@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>PadManiacs</title>
+  <script src="./js/phaser.min.js"></script>
+  <script src="./js/jszip.min.js"></script>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="icon" href="./favicon.png">
+</head>
+
+<body>
+  <div id="game"></div>
+  
+  <!-- Controller -->
+  <div id="controller">
+    <div id="controller_dpad">
+      <div id="controller_left"></div>
+      <div id="controller_right"></div>
+      <div id="controller_up"></div>
+      <div id="controller_down"></div>
+    </div>
+    <div id="controller_rhythm_pad">
+      <div id="controller_rhythm_left" class="capsuleBtn rhythm"></div>
+      <div id="controller_rhythm_down" class="capsuleBtn rhythm"></div>
+      <div id="controller_rhythm_up" class="capsuleBtn rhythm"></div>
+      <div id="controller_rhythm_right" class="capsuleBtn rhythm"></div>
+    </div>
+    <div id="controller_select" class="capsuleBtn">Select</div>
+    <div id="controller_start" class="capsuleBtn">Start</div>
+    <div id="controller_b" class="roundBtn">B</div>
+    <div id="controller_a" class="roundBtn">A</div>
+  </div>
+  
+  <!-- Debug Panel -->
+  <div id="debug"></div>
+  
+  <script src="./js/eruda.js"></script>
+  <script>
+    if (typeof window.eruda != 'undefined') {
+      eruda.init({
+        tool: ['console', 'resources', 'snippets']
+      });
+      const snippets = eruda.get('snippets');
+      snippets.clear();
+      snippets.add("Add fps text", () => {
+        const text = new Text(174, 2, "");
+        game.time.events.loop(1000, () => text.write(game.time.fps.toString()));
+      });
+    }
+  </script>
+  <script src="./js/constants.js"></script>
+  <script src="./js/gamepad.js"></script>
+  <script src="./js/game.js"></script>
+</body>
+
+</html>

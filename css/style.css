@@ -1,0 +1,373 @@
+:root {
+  --bg-color: #031921;
+  --text-color: #fff;
+  --controller-bg: #5c5c5c;
+  --controller-dark: #555;
+  --dpad-center: #5c5c5c;
+  --dpad-button: #666;
+  --dpad-button-dark: #5c5c5c;
+  --button-text: #440f1f;
+  --button-pink-light: #ab1465;
+  --button-pink-dark: #8b1e57;
+  --capsule-text: #111;
+  --capsule-light: #666;
+  --capsule-dark: #555;
+  --spinner-light: #88c070;
+  --spinner-dark: #306850;
+  --debug-bg: transparent;
+  --debug-border: #ddd;
+  --debug-hover: #eee;
+  --debug-active: #ddd;
+}
+
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue",
+    Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight: 300;
+  margin: 0;
+  padding: 0;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+}
+
+#game {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+#game canvas {
+  object-fit: contain;
+  height: 100%;
+}
+
+#controller {
+  display: none;
+  position: fixed;
+  bottom: 0px;
+  height: 210px;
+  width: 100%;
+  touch-action: none;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+#controller_dpad {
+  position: absolute;
+  bottom: 20px;
+  left: 0px;
+  width: 184px;
+  height: 184px;
+  pointer-events: inherit;
+}
+
+#controller_dpad:before {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 48px;
+  background: var(--controller-bg);
+  background: radial-gradient(
+    ellipse at center,
+    var(--controller-bg) 0%,
+    var(--controller-dark) 59%,
+    var(--dpad-center) 60%
+  );
+  position: absolute;
+  left: 68px;
+  top: 68px;
+  pointer-events: auto;
+}
+
+#controller_rhythm_pad {
+  display: flex;
+  gap: 5px;
+  flex-direction: row;
+  position: absolute;
+  bottom: 0px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+#controller_left {
+  position: absolute;
+  left: 20px;
+  top: 68px;
+  width: 48px;
+  height: 48px;
+  background: var(--dpad-button);
+  background: radial-gradient(ellipse at center, var(--dpad-button) 0%, var(--dpad-button-dark) 80%);
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  pointer-events: auto;
+}
+
+#controller_right {
+  position: absolute;
+  left: 116px;
+  top: 68px;
+  width: 48px;
+  height: 48px;
+  background: var(--dpad-button);
+  background: radial-gradient(ellipse at center, var(--dpad-button) 0%, var(--dpad-button-dark) 80%);
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  pointer-events: auto;
+}
+
+#controller_up {
+  position: absolute;
+  left: 68px;
+  top: 20px;
+  width: 48px;
+  height: 48px;
+  background: var(--dpad-button);
+  background: radial-gradient(ellipse at center, var(--dpad-button) 0%, var(--dpad-button-dark) 80%);
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  pointer-events: auto;
+}
+
+#controller_down {
+  position: absolute;
+  left: 68px;
+  top: 116px;
+  width: 48px;
+  height: 48px;
+  background: var(--dpad-button);
+  background: radial-gradient(ellipse at center, var(--dpad-button) 0%, var(--dpad-button-dark) 80%);
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  pointer-events: auto;
+}
+
+#controller_a {
+  position: absolute;
+  bottom: 110px;
+  right: 20px;
+  pointer-events: auto;
+}
+
+#controller_b {
+  position: absolute;
+  bottom: 80px;
+  right: 100px;
+  pointer-events: auto;
+}
+
+.roundBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 32px;
+  color: var(--button-text);
+  line-height: 64px;
+  width: 64px;
+  height: 64px;
+  border-radius: 64px;
+  background: var(--button-pink-dark);
+  background: radial-gradient(ellipse at center, var(--button-pink-light) 0%, var(--button-pink-dark) 100%);
+  box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.2);
+}
+
+.capsuleBtn {
+  font-weight: bold;
+  font-size: 10px;
+  color: var(--capsule-text);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 40px;
+  text-transform: uppercase;
+  width: 64px;
+  height: 32px;
+  border-radius: 40px;
+  background: var(--capsule-dark);
+  background: radial-gradient(ellipse at center, var(--capsule-light) 0%, var(--capsule-dark) 100%);
+  box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.2);
+}
+
+.rhythm {
+  width: 72px;
+  height: 64px;
+  border-radius: 10px;
+}
+
+#controller_start {
+  position: absolute;
+  bottom: 20px;
+  right: 15px;
+  pointer-events: auto;
+}
+
+#controller_select {
+  position: absolute;
+  bottom: 20px;
+  right: 100px;
+  pointer-events: auto;
+}
+
+.btnPressed {
+  opacity: 0.5;
+}
+
+@media only screen and (max-width: 640px) {
+  #game canvas {
+    margin-top:10px;
+    width: 100%;
+    max-width: 512px;
+    border: 0px;
+    border-radius: 0px;
+  }
+}
+
+@media only screen and (max-device-width: 812px) and (orientation: portrait) {
+  body {
+    margin: 0;
+  }
+
+  #game {
+    width: 100%;
+    position: fixed;
+    touch-action: none;
+  }
+
+  #game canvas {
+    margin-top: 35%;
+    display: block;
+    width: 100% !important;
+    height: auto !important;
+  }
+  
+  #controller {
+    margin-bottom: 50%;
+  }
+  
+  #controller_rhythm_pad {
+    bottom: -48px;
+  }
+}
+
+@media only screen and (max-device-width: 320px) and (orientation: portrait) {
+  #controller_dpad {
+    left: -5px;
+    bottom: -5px;
+  }
+
+  #controller_a {
+    right: 5px;
+    bottom: 95px;
+  }
+
+  #controller_b {
+    right: 80px;
+  }
+
+  #controller_start {
+    right: 5px;
+    bottom: 30px;
+  }
+
+  #controller_select {
+    right: 80px;
+    bottom: 30px;
+  }
+}
+
+/* Small devices in landscape */
+@media only screen and (max-device-width: 300px) and (orientation: landscape) {
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #game:after {
+    content: "PLEASE ROTATE ↻";
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--text-color);
+  }
+
+  #game canvas {
+    display: none;
+    max-width: 480px;
+  }
+
+  #controller {
+    display: none;
+  }
+}
+
+/* Devices large enough for landscape */
+@media only screen and (min-width: 300px) and (orientation: landscape) {
+  #controller {
+    bottom: 5%;
+    left: 50%;
+    width: 90%;
+    transform: translateX(-50%);
+    opacity: 0.5;
+  }
+}
+
+#debug {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:10px;
+  position:fixed;
+  top:0px;
+  left:0px;
+  right:0px;
+  bottom:0px;
+  font-family:Monospace;
+  background:var(--debug-bg);
+  pointer-events: none;
+}
+
+#debug div {
+  background: white;
+  color: black;
+  border: 1px solid var(--debug-border);
+  border-radius: 4px;
+  transform: position;
+  font-size: 11px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  display: flex;
+  align-items: center;
+}
+
+#debug span {
+  padding: 5px 8px;
+}
+
+#debug button {
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--debug-border);
+  display: flex;
+  align-items: center;
+  height: 100%;
+  pointer-events: initial;
+}
+
+#debug button:hover {
+  background: var(--debug-hover);
+}
+#debug button:active {
+  background: var(--debug-active);
+}
