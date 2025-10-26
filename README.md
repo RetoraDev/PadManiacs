@@ -66,7 +66,7 @@ PadManiacs is a rhythm game designed for mobile devices with full web browser co
 Pre-loaded songs included with the game.
 
 ### External Songs
-1. Create a `TapManiacs` folder in your device storage
+1. Create a `PapManiacs` folder in your device storage
 2. Place song folders containing .sm/.ssc files and audio
 3. Use "Load External Songs" in the Extra Songs menu
 
