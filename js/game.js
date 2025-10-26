@@ -2328,49 +2328,55 @@ class Player {
       .to({ alpha: 0 }, duration, "Linear", true)
       .onComplete.add(() => explosion.destroy());
   }
-
-  getNoteColor(note) {
-    const noteTimings = {
-      4: 0xff0000,
-      8: 0x0000ff,
-      12: 0x8800ff,
-      16: 0x00ff00,
-      24: 0x8800ff,
-      32: 0xffff00,
-      48: 0x8800ff,
-      64: 0x00ffff,
-      192: 0x00ffff,
-      def: 0x888888
-    };
-
-    for (let t in noteTimings) {
-      if ((note.beat + 1e-4) % (4 / t) < 1e-4) {
-        return noteTimings[t];
-      }
-    }
-    return noteTimings.def;
+  
+  getNoteFrame(note) {
+    const beat = note.beat;
+    
+    // Check for specific beat divisions in order of increasing frequency
+    if (this.isBeatDivision(beat, 4)) return 0;   // 4th notes - Red
+    if (this.isBeatDivision(beat, 8)) return 1;   // 8th notes - Blue
+    if (this.isBeatDivision(beat, 12)) return 2;  // 12th notes - Purple
+    if (this.isBeatDivision(beat, 16)) return 3;  // 16th notes - Yellow
+    if (this.isBeatDivision(beat, 24)) return 4;  // 24th notes - Dark Purple
+    if (this.isBeatDivision(beat, 32)) return 5;  // 32nd notes - Orange
+    if (this.isBeatDivision(beat, 48)) return 6;  // 48th notes - Darker Purple
+    if (this.isBeatDivision(beat, 64)) return 7;  // 64th notes - Cyan
+    if (this.isBeatDivision(beat, 96)) return 8;  // 96th notes - White
+    if (this.isBeatDivision(beat, 128)) return 9; // 128th notes - Pastel Blue
+    if (this.isBeatDivision(beat, 192)) return 10; // 192nd notes - Olive
+    
+    // For anything faster than 192nd, use frame 11
+    return 11; // 384th+ notes - Special frame
   }
 
-  getNoteFrame(note) {
-    const noteFrames = {
-      4: 0,
-      8: 1,
-      12: 2,
-      16: 3,
-      24: 4,
-      32: 5,
-      48: 6,
-      64: 7,
-      192: 2,
-      def: 0
-    };
+  isBeatDivision(beat, division) {
+    // Check if the beat aligns with the given division
+    // Using a small epsilon to account for floating point precision
+    const epsilon = 0.0001;
+    const remainder = (beat * division) % 4;
+    return Math.abs(remainder) < epsilon || Math.abs(remainder - 4) < epsilon;
+  }
 
-    for (let t in noteFrames) {
-      if ((note.beat + 1e-4) % (4 / t) < 1e-4) {
-        return noteFrames[t];
-      }
-    }
-    return noteFrames.def;
+  getNoteColor(note) {
+    const frame = this.getNoteFrame(note);
+    
+    // DDR/StepMania color mapping based on frame
+    const colorMap = {
+      0: 0xFF0000,  // 4th - Red
+      1: 0x0000FF,  // 8th - Blue
+      2: 0x8800FF,  // 12th - Purple
+      3: 0xFFFF00,  // 16th - Yellow
+      4: 0x6600CC,  // 24th - Dark Purple
+      5: 0xFF8800,  // 32nd - Orange
+      6: 0x440088,  // 48th - Darker Purple
+      7: 0x00FFFF,  // 64th - Cyan
+      8: 0xFFFFFF,  // 96th - White
+      9: 0x88CCFF,  // 128th - Pastel Blue
+      10: 0x88AA00, // 192nd - Olive
+      11: 0xFF00FF  // 384th+ - Magenta (or whatever color frame 11 is)
+    };
+    
+    return colorMap[frame] || 0x888888; // Fallback to gray
   }
 
   render() {
