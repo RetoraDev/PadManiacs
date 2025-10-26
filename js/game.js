@@ -959,6 +959,37 @@ class MainMenu {
       } else {
         index = 2;
       }
+      
+      const noteOptions = [
+        { value: 'NOTE', display: 'NOTE' },
+        { value: 'VIVID', display: 'VIVID' },
+        { value: 'FLAT', display: 'FLAT' },
+        { value: 'RAINBOW', display: 'RAINBOW' }
+      ];
+      
+      const currentNoteOption = Account.settings.noteColorOption || 'NOTE';
+      const currentNoteIndex = noteOptions.findIndex(opt => opt.value === currentNoteOption);
+      
+      settingsWindow.addSettingItem(
+        "Note Colors",
+        noteOptions.map(opt => opt.display),
+        currentNoteIndex,
+        index => {
+          const selectedOption = noteOptions[index].value;
+          Account.settings.noteColorOption = selectedOption;
+          saveAccount();
+          
+          if (notifications && notifications.canShowInCurrentState()) {
+            //notifications.show(`NOTE COLORS\n${noteOptions[index].display}`, 1500);
+          }
+          
+          // If we're in gameplay, update immediately
+          const currentState = game.state.getCurrentState();
+          if (currentState instanceof Play && currentState.player) {
+            currentState.player.setNoteColorOption(selectedOption);
+          }
+        }
+      );
 
       settingsWindow.addSettingItem(
         "Menu Music",
@@ -1022,19 +1053,6 @@ class MainMenu {
         "",
         () => eraseHighscores()
       );
-      
-      if (typeof window.cordova != "undefined") {
-        settingsWindow.addSettingItem(
-          "Use Noteskins",
-          ["YES", "NO"],
-          Account.settings.noteSkins ? 0 : 1,
-          index => {
-            Account.settings.noteSkins = index == 0 ? true : false;
-            restartNeeded = true;
-            saveAccount();
-          }
-        );
-      }
       
       settingsWindow.addItem("APPLY", "", () => {
         manager.remove(settingsWindow, true);
@@ -1852,6 +1870,17 @@ class Player {
     this.freezeBodyGroup = game.add.group();
     this.freezeEndGroup = game.add.group();
     this.notesGroup = game.add.group();
+    
+    // Note color option (default to NOTE)
+    this.noteColorOption = Account.settings.noteColorOption || 'NOTE';
+    
+    // Color mappings for different options
+    this.colorMappings = {
+      NOTE: this.getNoteColorMapping(),
+      VIVID: this.getVividColorMapping(),
+      FLAT: this.getFlatColorMapping(),
+      RAINBOW: this.getRainbowColorMapping()
+    };
   }
 
   initialize() {
@@ -2329,24 +2358,100 @@ class Player {
       .onComplete.add(() => explosion.destroy());
   }
   
+    // NOTE mode - stepmania default
+  getNoteColorMapping() {
+    return {
+      0: 0xFF0000,  // 4th - Red
+      1: 0x0000FF,  // 8th - Blue
+      2: 0x00FF00,  // 12th+ - Green (NOTE mode makes all others green)
+      3: 0xFFFF00,  // 16th - Yellow
+      4: 0x00FF00,  // 24th - Green
+      5: 0x00FF00,  // 32nd - Green
+      6: 0x00FF00,  // 48th - Green
+      7: 0x00FF00,  // 64th - Green
+      8: 0x00FF00,  // 96th - Green
+      9: 0x00FF00,  // 128th - Green
+      10: 0x00FF00, // 192nd - Green
+      11: 0x00FF00  // 384th+ - Green
+    };
+  }
+
+  // VIVID mode - color cycle per beat
+  getVividColorMapping() {
+    const vividColors = [0xFFFF00, 0x800000, 0x0000FF, 0x00FFFF]; // Yellow, Maroon, Blue, Cyan
+    
+    return {
+      0: vividColors[0],  // 4th - Yellow
+      1: vividColors[1],  // 8th - Maroon
+      2: vividColors[2],  // 12th - Blue
+      3: vividColors[3],  // 16th - Cyan
+      4: vividColors[0],  // 24th - Yellow
+      5: vividColors[1],  // 32nd - Maroon
+      6: vividColors[2],  // 48th - Blue
+      7: vividColors[3],  // 64th - Cyan
+      8: vividColors[0],  // 96th - Yellow
+      9: vividColors[1],  // 128th - Maroon
+      10: vividColors[2], // 192nd - Blue
+      11: vividColors[3]  // 384th+ - Cyan
+    };
+  }
+
+  // FLAT mode - all notes same color as 4th notes
+  getFlatColorMapping() {
+    const flatColor = 0xFFFF00; // Yellow (same as VIVID 4th notes)
+    
+    return {
+      0: flatColor,  // 4th - Yellow
+      1: flatColor,  // 8th - Yellow
+      2: flatColor,  // 12th - Yellow
+      3: flatColor,  // 16th - Yellow
+      4: flatColor,  // 24th - Yellow
+      5: flatColor,  // 32nd - Yellow
+      6: flatColor,  // 48th - Yellow
+      7: flatColor,  // 64th - Yellow
+      8: flatColor,  // 96th - Yellow
+      9: flatColor,  // 128th - Yellow
+      10: flatColor, // 192nd - Yellow
+      11: flatColor  // 384th+ - Yellow
+    };
+  }
+
+  // RAINBOW mode - orange, blue, purple/pink
+  getRainbowColorMapping() {
+    return {
+      0: 0xFF8800,  // 4th - Orange
+      1: 0x0000FF,  // 8th - Blue
+      2: 0xFF00FF,  // 12th - Purple/Pink
+      3: 0xFF00FF,  // 16th - Purple/Pink
+      4: 0x0000FF,  // 24th - Blue (reused)
+      5: 0xFF8800,  // 32nd - Orange (reused)
+      6: 0xFF00FF,  // 48th - Purple/Pink
+      7: 0x0000FF,  // 64th - Blue (reused)
+      8: 0xFF00FF,  // 96th - Purple/Pink
+      9: 0xFF8800,  // 128th - Orange (reused)
+      10: 0x0000FF, // 192nd - Blue (reused)
+      11: 0xFF00FF  // 384th+ - Purple/Pink
+    };
+  }
+  
   getNoteFrame(note) {
     const beat = note.beat;
     
     // Check for specific beat divisions in order of increasing frequency
-    if (this.isBeatDivision(beat, 4)) return 0;   // 4th notes - Red
-    if (this.isBeatDivision(beat, 8)) return 1;   // 8th notes - Blue
-    if (this.isBeatDivision(beat, 12)) return 2;  // 12th notes - Purple
-    if (this.isBeatDivision(beat, 16)) return 3;  // 16th notes - Yellow
-    if (this.isBeatDivision(beat, 24)) return 4;  // 24th notes - Dark Purple
-    if (this.isBeatDivision(beat, 32)) return 5;  // 32nd notes - Orange
-    if (this.isBeatDivision(beat, 48)) return 6;  // 48th notes - Darker Purple
-    if (this.isBeatDivision(beat, 64)) return 7;  // 64th notes - Cyan
-    if (this.isBeatDivision(beat, 96)) return 8;  // 96th notes - White
-    if (this.isBeatDivision(beat, 128)) return 9; // 128th notes - Pastel Blue
-    if (this.isBeatDivision(beat, 192)) return 10; // 192nd notes - Olive
+    if (this.isBeatDivision(beat, 4)) return 0;   // 4th notes
+    if (this.isBeatDivision(beat, 8)) return 1;   // 8th notes
+    if (this.isBeatDivision(beat, 12)) return 2;  // 12th notes
+    if (this.isBeatDivision(beat, 16)) return 3;  // 16th notes
+    if (this.isBeatDivision(beat, 24)) return 4;  // 24th notes
+    if (this.isBeatDivision(beat, 32)) return 5;  // 32nd notes
+    if (this.isBeatDivision(beat, 48)) return 6;  // 48th notes
+    if (this.isBeatDivision(beat, 64)) return 7;  // 64th notes
+    if (this.isBeatDivision(beat, 96)) return 8;  // 96th notes
+    if (this.isBeatDivision(beat, 128)) return 9; // 128th notes
+    if (this.isBeatDivision(beat, 192)) return 10; // 192nd notes
     
     // For anything faster than 192nd, use frame 11
-    return 11; // 384th+ notes - Special frame
+    return 11;
   }
 
   isBeatDivision(beat, division) {
@@ -2357,26 +2462,45 @@ class Player {
     return Math.abs(remainder) < epsilon || Math.abs(remainder - 4) < epsilon;
   }
 
+  // Actually unused. Might be removed in the future 
   getNoteColor(note) {
     const frame = this.getNoteFrame(note);
+    const colorMapping = this.colorMappings[this.noteColorOption];
     
-    // DDR/StepMania color mapping based on frame
-    const colorMap = {
-      0: 0xFF0000,  // 4th - Red
-      1: 0x0000FF,  // 8th - Blue
-      2: 0x8800FF,  // 12th - Purple
-      3: 0xFFFF00,  // 16th - Yellow
-      4: 0x6600CC,  // 24th - Dark Purple
-      5: 0xFF8800,  // 32nd - Orange
-      6: 0x440088,  // 48th - Darker Purple
-      7: 0x00FFFF,  // 64th - Cyan
-      8: 0xFFFFFF,  // 96th - White
-      9: 0x88CCFF,  // 128th - Pastel Blue
-      10: 0x88AA00, // 192nd - Olive
-      11: 0xFF00FF  // 384th+ - Magenta (or whatever color frame 11 is)
-    };
-    
-    return colorMap[frame] || 0x888888; // Fallback to gray
+    return colorMapping[frame] || 0x888888; // Fallback to gray
+  }
+  
+  // Method to change note color option
+  setNoteColorOption(option) {
+    if (this.colorMappings[option]) {
+      this.noteColorOption = option;
+      Account.settings.noteColorOption = option;
+      saveAccount();
+      
+      // Refresh all note colors if we're in gameplay
+      this.refreshNoteColors();
+    }
+  }
+
+  refreshNoteColors() {
+    // Update colors for all existing notes
+    this.notes.forEach(note => {
+      if (note.sprite) {
+        const frame = this.getNoteFrame(note);
+        const color = this.getNoteColor(note);
+        note.sprite.tint = color;
+      }
+    });
+  }
+
+  // Method to get available note options
+  getNoteColorOptions() {
+    return [
+      { key: 'NOTE', name: 'NOTE', description: 'Red/Blue/Yellow/Green' },
+      { key: 'VIVID', name: 'VIVID', description: 'Yellow/Maroon/Blue/Cyan cycle' },
+      { key: 'FLAT', name: 'FLAT', description: 'All notes yellow' },
+      { key: 'RAINBOW', name: 'RAINBOW', description: 'Orange/Blue/Purple' }
+    ];
   }
 
   render() {

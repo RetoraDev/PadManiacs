@@ -6,7 +6,8 @@ const DEFAULT_ACCOUNT = {
     randomSong: false,
     renderer: 0,
     pixelated: true,
-    framerate: 6
+    framerate: 6,
+    noteColorOption: 'NOTE'
   },
   lastSong: null,
   highScores: {}
