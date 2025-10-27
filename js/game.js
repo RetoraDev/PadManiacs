@@ -919,9 +919,9 @@ class MainMenu {
         animate: true,
         crop: false
       });
-      carousel.addItem("User Songs", () => this.loadExternalSongs());
+      if (typeof window.cordova != "undefined") carousel.addItem("User Songs", () => this.loadExternalSongs());
       carousel.addItem("Load Single Song", () => this.loadSingleSong());
-      if (window.externalSongs) {
+      if (typeof window.cordova != "undefined" && window.externalSongs) {
         carousel.addItem("Reload User Songs", () => {
           backgroundMusic.refreshCache();
           this.loadExternalSongs();
@@ -939,7 +939,7 @@ class MainMenu {
       
       settingsWindow.addSettingItem(
         "Volume",
-        [0, 25, 50, 75, 100], Account.settings.volume,
+        ["0%", "25%", "50%", "75%", "100%"], Account.settings.volume,
         index => {
           Account.settings.volume = index;
           saveAccount();
@@ -1183,7 +1183,7 @@ class SongSelect {
     }
     
     this.previewAudio = document.createElement("audio");
-    this.previewAudio.volume = [0,25,50,100][Account.settings.volume] / 100;
+    this.previewAudio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
     
     this.bannerImg = document.createElement("img");
     this.cdtitleImg = document.createElement("img");
@@ -1542,7 +1542,7 @@ class Play {
     // Create audio element
     this.audio = document.createElement("audio");
     this.audio.src = this.song.chart.audioUrl;
-    this.audio.volume = [0,25,50,100][Account.settings.volume] / 100;
+    this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
     
     window.addEventListener('visibilitychange', () => {
       if (document.hidden) {
@@ -5333,7 +5333,7 @@ class ExternalSMParser {
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
-    this.audio.volume = [0,25,50,100][Account.settings.volume] / 100;
+    this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
     this.randomSong = Account.settings.randomSong;
     this.audio.loop = true;
     this.isPlaying = false;
