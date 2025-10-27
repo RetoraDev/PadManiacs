@@ -47,7 +47,6 @@ window.onload = () => {
         game.state.add('Play', Play);
         game.state.add('Results', Results);
         game.state.start('Boot');
-        game.setFpsCap(FRAMERATES[Account.settings.framerate]);
       }
     }
   });
@@ -239,7 +238,11 @@ class LoadCordova {
     document.addEventListener("deviceready", () => {
       this.continue();
       document.addEventListener("backbutton", () => {
-        gamepad.press('b');
+        if (game.state.current == "Play") {
+          gamepad.press('start');
+        } else {
+          gamepad.press('b');
+        }
       });
     });
   }
@@ -341,7 +344,7 @@ class LoadExternalSongs {
     
     if (window.externalSongs) {
       this.songs = window.externalSongs;
-      this.finish();
+      this.finish(window.lastExternalSongIndex);
       return;
     }
     
@@ -710,7 +713,7 @@ class LoadExternalSongs {
     });
   }
 
-  finish() {
+  finish(resetIndex = 0) {
     console.log(`Loading complete: ${this.loadedCount} songs loaded, ${this.failedCount} failed`);
     
     if (this.songs.length === 0) {
@@ -720,7 +723,9 @@ class LoadExternalSongs {
     
     window.externalSongs = this.songs;
     
-    game.state.start("SongSelect", true, false, this.songs);
+    game.state.start("SongSelect", true, false, this.songs, resetIndex);
+    
+    setTimeout(() => window.lastExternalSongIndex = window.selectStartingIndex)
   }
 }
 
@@ -943,6 +948,7 @@ class MainMenu {
         index => {
           Account.settings.volume = index;
           saveAccount();
+          backgroundMusic.audio.volume = [0,25,50,75,100][index] / 100;
         }
       );
       
@@ -995,7 +1001,7 @@ class MainMenu {
 
       settingsWindow.addSettingItem(
         "Note Speed",
-        ["1", "2", "3", "4"],
+        ["Normal", "Double"],
         Account.settings.noteSpeedMult - 1,
         index => {
           Account.settings.noteSpeedMult = index + 1;
@@ -1003,6 +1009,25 @@ class MainMenu {
         }
       );
       
+      const offsetOptions = [];
+      for (let ms = -400; ms <= 400; ms += 25) {
+        offsetOptions.push(`${ms}ms`);
+      }
+      
+      const currentOffset = Account.settings.userOffset || 0;
+      const currentOffsetIndex = (currentOffset + 400) / 25;
+      
+      settingsWindow.addSettingItem(
+        "Global Offset",
+        offsetOptions,
+        currentOffsetIndex,
+        index => {
+          const newOffset = (index * 25) - 400;
+          Account.settings.userOffset = newOffset;
+          saveAccount();
+        }
+      );
+  
       settingsWindow.addSettingItem(
         "Menu Music",
         ["LAST SONG", "RANDOM SONG", "OFF"],
@@ -1026,17 +1051,6 @@ class MainMenu {
       );
       
       let restartNeeded = false;
-      
-      settingsWindow.addSettingItem(
-        "Frame limit",
-        FRAMERATES.map(value => `${value} FPS`),
-        Account.settings.framerate,
-        index => {
-          Account.settings.framerate = index;
-          game.setFpsCap(FRAMERATES[index]);
-          saveAccount();
-        }
-      );
       
       settingsWindow.addSettingItem(
         "Renderer",
@@ -1099,12 +1113,12 @@ class MainMenu {
       window.addItem("Yes", "", () => {
         text.destroy();
         manager.remove(window, true);
-        onConfirm()
+        onConfirm?.()
       });
       window.addItem("No", "", () => {
         text.destroy();
         manager.remove(window, true);
-        settings();
+        onCancel?.();
       }, true);
     }
     
@@ -1119,12 +1133,12 @@ class MainMenu {
         Account.settings = DEFAULT_ACCOUNT.settings;
         saveAccount();
         window.location.reload();
-      });
+      }, () => settings());
     }
     
-    const reload = () => confirm("Restart Now?", () => location.reload());
+    const reload = () => confirm("Restart Now?", () => location.reload(), () => settings());
     
-    const exit = () => confirm("Sure? Exit?", () => navigator.app.exitApp());
+    const exit = () => confirm("Sure? Exit?", () => navigator.app.exitApp(), () => home());
     
     home();
   }
@@ -1199,7 +1213,7 @@ class SongSelect {
 
     this.metadataText = new Text(102, 4, "");
     
-    this.highScoreText = new Text(108, 50, "");
+    this.highScoreText = new Text(104, 50, "");
     
     window.addEventListener('visibilitychange', () => {
       if (document.hidden) {
@@ -1640,7 +1654,6 @@ class Play {
   }
   
   songStart(initialDelay = 2000) {
-    
     // Set initial background
     if (this.song.chart.background && this.song.chart.background !== "assets/no-background.png") {
       this.loadBackgroundImage(this.song.chart.background);
@@ -1650,6 +1663,10 @@ class Play {
       this.backgroundCtx.fillRect(0, 0, 192, 112);
       this.updateBackgroundTexture();
     }
+    
+    // Apply both chart offset and user offset
+    const totalOffset = (this.song.chart.offset || 0) * 1000 + this.userOffset;
+    this.startTime = game.time.now + initialDelay - totalOffset;
     
     setTimeout(() => this.startChart(), initialDelay);
     
@@ -1662,7 +1679,6 @@ class Play {
       return;
     }
     this.audio.play();
-    this.startTime = game.time.now - (this.song.chart.offset || 0) * 1000;
     this.started = true;
   }
   
@@ -1794,9 +1810,7 @@ class Play {
     }
     this.lastStart = gamepad.pressed.start;
     
-    if (!this.isPaused) {
-      this.player.update();
-    }
+    this.player.update();
     
     this.hud.bringToTop();
     this.hud.alpha = this.player.gameOver ? 0.5 : 1;
@@ -1870,7 +1884,7 @@ class Player {
 
     // Game constants
     this.VERTICAL_SEPARATION = 1.5;
-    this.NOTE_SPEED_MULTIPLIER = Account.settings.noteSpeedMult;
+    this.NOTE_SPEED_MULTIPLIER = Account.settings.noteSpeedMult + 1;
     this.JUDGE_LINE = 90;
     this.COLUMN_SIZE = 16;
     this.COLUMN_SEPARATION = 4;
@@ -5346,12 +5360,14 @@ class BackgroundMusic {
   
   registerVisibilityChangeListener() {
     this.visibilityHiddenState = game.state.current;
+    this.visibilityVisibleState = game.state.current;
     window.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
+      if (document.hidden && this.visibilityVisibleState == game.state.current) {
         this.audio.pause();
         this.visibilityHiddenState = game.state.current;
       } else if (this.visibilityHiddenState == game.state.current) {
         this.audio.play();
+        this.visibilityVisibleState = game.state.current;
       }
     });
   }
@@ -5556,6 +5572,7 @@ class BackgroundMusic {
 
   destroy() {
     this.stop();
+    this.audio.src = "";
     this.audio = null;
     this.availableSongsCache = null;
   }

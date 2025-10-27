@@ -15,114 +15,157 @@ class Gamepad {
     ];
 
     // Initialize state objects
-    this.held = {
-      any: false
-    };
-    this.pressed = {
-      any: false
-    };
-    this.released = {
-      any: false
-    };
+    this.held = {};
+    this.pressed = {};
+    this.released = {};
+    this.prevState = {};
 
-    // Initialize all keys to false
+    // Initialize all keys
     this.keys.forEach(key => {
       this.held[key] = false;
       this.pressed[key] = false;
       this.released[key] = false;
+      this.prevState[key] = false;
     });
+    
+    // Initialize 'any' states
+    this.held.any = false;
+    this.pressed.any = false;
+    this.released.any = false;
+    this.prevState.any = false;
 
     // Keyboard mappings
     this.keyboardMap = {
-      up: Phaser.KeyCode.W,
-      down: Phaser.KeyCode.S,
-      left: Phaser.KeyCode.A,
-      right: Phaser.KeyCode.D,
-      a: Phaser.KeyCode.J,
-      b: Phaser.KeyCode.K,
-      select: Phaser.KeyCode.SHIFT,
-      start: Phaser.KeyCode.ENTER
+      up: [Phaser.KeyCode.UP, Phaser.KeyCode.W],
+      down: [Phaser.KeyCode.DOWN, Phaser.KeyCode.S],
+      left: [Phaser.KeyCode.LEFT, Phaser.KeyCode.A],
+      right: [Phaser.KeyCode.RIGHT, Phaser.KeyCode.D],
+      a: [Phaser.KeyCode.Z, Phaser.KeyCode.J, Phaser.KeyCode.SPACE],
+      b: [Phaser.KeyCode.X, Phaser.KeyCode.K, Phaser.KeyCode.ENTER],
+      select: [Phaser.KeyCode.SHIFT, Phaser.KeyCode.TAB],
+      start: [Phaser.KeyCode.ENTER, Phaser.KeyCode.ESC]
     };
 
-    // Gamepad button mappings (standard gamepad layout)
+    // Gamepad button mappings
     this.gamepadMap = {
-      up: 12,    // D-pad up
-      down: 13,  // D-pad down
-      left: 14,  // D-pad left
-      right: 15, // D-pad right
-      a: 0,      // A button (usually bottom button)
-      b: 1,      // B button (usually right button)
-      select: 8, // Select button
-      start: 9   // Start button
+      up: 12,
+      down: 13,
+      left: 14,
+      right: 15,
+      a: 0,
+      b: 1,
+      select: 8,
+      start: 9
     };
     
-    // Phaser signals to listen for key events
+    // Phaser signals
     this.signals = {
-      pressed: {
-        any: new Phaser.Signal()
-      },
-      released: {
-        any: new Phaser.Signal()
-      }
+      pressed: {},
+      released: {}
     };
     this.keys.forEach(key => {
-      this.signals.pressed[key] = new Phaser.Signal()
-      this.signals.released[key] = new Phaser.Signal()
+      this.signals.pressed[key] = new Phaser.Signal();
+      this.signals.released[key] = new Phaser.Signal();
     });
+    this.signals.pressed.any = new Phaser.Signal();
+    this.signals.released.any = new Phaser.Signal();
 
     // Touch tracking
-    this.activeTouches = new Map(); // Map to track active touches: touchId -> buttonKey
-    this.maxTouches = 2; // Maximum simultaneous touches allowed
+    this.activeTouches = new Map();
+    this.maxTouches = 2;
 
-    // Set up keyboard input
+    // Input detection
+    this.lastInputSource = 'none';
+    this.inputDetectionTimeout = null;
+    this.touchControlsVisible = false;
+
+    // Set up all input methods
     this.setupKeyboard();
-
-    // Set up gamepad input
     this.setupGamepad();
-
-    // Set up touch input for virtual controls
     this.setupTouch();
-
-    // Track previous state for pressed/released detection
-    this.prevState = { ...this.held };
+    this.setupInputDetection();
   }
 
   setupKeyboard() {
-    // Create Phaser keyboard handlers for each key
-    this.keyboard = {};
-    for (const [key, keyCode] of Object.entries(this.keyboardMap)) {
-      const keyboardKey = this.game.input.keyboard.addKey(keyCode);
-      keyboardKey.onDown.add(() => this.held[key] = true);
-      keyboardKey.onUp.add(() => this.held[key] = false);
-      this.keyboard[key] = keyboardKey;
+    // Clear any existing keyboard state
+    this.keyboardState = {};
+    this.keys.forEach(key => {
+      this.keyboardState[key] = false;
+    });
+  
+    // Create reverse mapping for quick lookup
+    this.keyCodeToAction = {};
+    for (const [action, keyCodes] of Object.entries(this.keyboardMap)) {
+      keyCodes.forEach(keyCode => {
+        this.keyCodeToAction[keyCode] = action;
+      });
     }
+  
+    // Dynamically create key capture array from keyboard map
+    const keyCaptureArray = [];
+    for (const keyCodes of Object.values(this.keyboardMap)) {
+      keyCaptureArray.push(...keyCodes);
+    }
+    
+    // Remove duplicates and add key capture
+    const uniqueKeyCapture = [...new Set(keyCaptureArray)];
+    this.game.input.keyboard.addKeyCapture(uniqueKeyCapture);
+  
+    // Global keyboard listeners
+    this.game.input.keyboard.onDownCallback = (event) => {
+      const action = this.keyCodeToAction[event.keyCode];
+      if (action) {
+        this.held[action] = true;
+        this.keyboardState[action] = true;
+      }
+      this.detectInputSource('keyboard');
+    };
+  
+    this.game.input.keyboard.onUpCallback = (event) => {
+      const action = this.keyCodeToAction[event.keyCode];
+      if (action) {
+        this.held[action] = false;
+        this.keyboardState[action] = false;
+      }
+    };
   }
 
   setupGamepad() {
     this.gamepad = null;
-    this.gamepadButtons = {};
+    
+    // Start gamepad polling
+    if (this.game.input.gamepad.supported) {
+      this.game.input.gamepad.start();
+      
+      // Check for already connected gamepads
+      if (this.game.input.gamepad.active && this.game.input.gamepad.pad1.connected) {
+        this.gamepad = this.game.input.gamepad.pad1;
+        this.detectInputSource('gamepad');
+      }
 
-    // Initialize gamepad buttons state
-    for (const key of this.keys) {
-      this.gamepadButtons[key] = false;
+      // Listen for gamepad connection
+      this.game.input.gamepad.onConnectCallback = (pad) => {
+        this.gamepad = pad;
+        this.detectInputSource('gamepad');
+      };
+
+      this.game.input.gamepad.onDisconnectCallback = (pad) => {
+        if (this.gamepad === pad) {
+          this.gamepad = null;
+        }
+      };
     }
-
-    // Start gamepad input
-    this.game.input.gamepad.start();
-
-    // Check if a gamepad is already connected
-    if (this.game.input.gamepad.supported && this.game.input.gamepad.active && this.game.input.gamepad.pad1.connected) {
-      this.gamepad = this.game.input.gamepad.pad1;
-    }
-
-    // Listen for gamepad connected
-    this.game.input.gamepad.onConnectCallback = (pad) => {
-      this.gamepad = pad;
-    };
   }
 
   setupTouch() {
-    // Virtual D-pad buttons
+    // Get controller elements
+    this.controllerElement = document.getElementById('controller');
+    
+    if (!this.controllerElement) {
+      return;
+    }
+
+    // Get all button elements
     this.dpadElements = {
       up: document.getElementById('controller_up'),
       down: document.getElementById('controller_down'),
@@ -130,60 +173,92 @@ class Gamepad {
       right: document.getElementById('controller_right')
     };
     
-    // Virtual action buttons
     this.buttonElements = {
       a: document.getElementById('controller_a'),
       b: document.getElementById('controller_b'),
       select: document.getElementById('controller_select'),
       start: document.getElementById('controller_start'),
-      // Virtual rhythm pad buttons (these are only for touch)
       rhythm_up: document.getElementById('controller_rhythm_up'),
       rhythm_down: document.getElementById('controller_rhythm_down'),
       rhythm_left: document.getElementById('controller_rhythm_left'),
       rhythm_right: document.getElementById('controller_rhythm_right')
     };
 
-    // Get the parent controller element
-    this.controllerElement = document.getElementById('controller');
-
-    if (!this.controllerElement) return;
-
-    // Set up touch event listeners on the parent controller element
+    // Set up touch events
     this.setupControllerTouchEvents();
 
-    // Show virtual controls on touch devices
-    if (this.game.device.touch) {
-      this.controllerElement.style.display = 'block';
+    // Initial visibility - show on mobile, hide on desktop
+    this.updateTouchControlsVisibility();
+  }
+
+  setupInputDetection() {
+    // Listen for screen taps to show touch controls
+    document.addEventListener('touchstart', (e) => {
+      if (!e.target.closest('#controller')) {
+        this.detectInputSource('touch');
+      }
+    }, { passive: true });
+
+    // Also detect clicks outside controller
+    document.addEventListener('mousedown', (e) => {
+      if (this.game.device.touch && !e.target.closest('#controller')) {
+        this.detectInputSource('touch');
+      }
+    }, { passive: true });
+  }
+
+  detectInputSource(source) {
+    if (this.lastInputSource === source) return;
+
+    this.lastInputSource = source;
+    
+    // Clear existing timeout
+    if (this.inputDetectionTimeout) {
+      clearTimeout(this.inputDetectionTimeout);
+    }
+
+    // Update touch controls visibility
+    this.updateTouchControlsVisibility();
+
+    // Auto-hide touch controls after 10 seconds of no touch input
+    if (source !== 'touch' && this.game.device.touch) {
+      this.inputDetectionTimeout = setTimeout(() => {
+        if (this.lastInputSource === source) {
+          this.lastInputSource = 'none';
+          this.updateTouchControlsVisibility();
+        }
+      }, 10000);
+    }
+  }
+
+  updateTouchControlsVisibility() {
+    if (!this.controllerElement) return;
+
+    const shouldShow = this.game.device.touch && 
+                     (this.lastInputSource === 'touch' || this.lastInputSource === 'none');
+
+    if (shouldShow !== this.touchControlsVisible) {
+      this.controllerElement.style.display = shouldShow ? 'block' : 'none';
+      this.touchControlsVisible = shouldShow;
     }
   }
 
   setupControllerTouchEvents() {
     const controller = this.controllerElement;
 
-    // Prevent default touch behavior to avoid scrolling
-    controller.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-    }, { passive: false });
+    // Prevent default touch behavior
+    const preventDefault = (e) => e.preventDefault();
+    
+    controller.addEventListener('touchstart', preventDefault, { passive: false });
+    controller.addEventListener('touchmove', preventDefault, { passive: false });
+    controller.addEventListener('touchend', preventDefault, { passive: false });
+    controller.addEventListener('touchcancel', preventDefault, { passive: false });
 
-    controller.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      this.handleTouchMove(e);
-    }, { passive: false });
-
-    controller.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      this.handleTouchEnd(e);
-    }, { passive: false });
-
-    controller.addEventListener('touchcancel', (e) => {
-      e.preventDefault();
-      this.handleTouchEnd(e);
-    }, { passive: false });
-
-    // Also handle touch start
-    controller.addEventListener('touchstart', (e) => {
-      this.handleTouchStart(e);
-    });
+    // Handle touch events
+    controller.addEventListener('touchstart', (e) => this.handleTouchStart(e));
+    controller.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+    controller.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+    controller.addEventListener('touchcancel', (e) => this.handleTouchEnd(e));
   }
 
   handleTouchStart(e) {
@@ -192,21 +267,15 @@ class Gamepad {
     for (let i = 0; i < touches.length; i++) {
       const touch = touches[i];
       
-      // Check if we've reached the maximum number of touches
-      if (this.activeTouches.size >= this.maxTouches) {
-        continue;
-      }
+      if (this.activeTouches.size >= this.maxTouches) continue;
 
       const buttonKey = this.getButtonFromTouch(touch);
       
       if (buttonKey) {
-        // Store the touch and associated button
         this.activeTouches.set(touch.identifier, buttonKey);
-        
-        // Activate the button
         this.held[buttonKey] = true;
+        this.detectInputSource('touch');
         
-        // Add visual feedback
         const element = this.dpadElements[buttonKey] || this.buttonElements[buttonKey];
         if (element) {
           element.classList.add('btnPressed');
@@ -222,37 +291,26 @@ class Gamepad {
       const touch = touches[i];
       const currentButtonKey = this.activeTouches.get(touch.identifier);
       
-      // Only process if this touch is already being tracked
       if (currentButtonKey !== undefined) {
         const newButtonKey = this.getButtonFromTouch(touch);
         
-        // If the touch moved to a different button
         if (newButtonKey && newButtonKey !== currentButtonKey) {
-          // Deactivate the old button
+          // Switch to new button
           this.held[currentButtonKey] = false;
-          const oldElement = this.dpadElements[currentButtonKey] || this.buttonElements[currentButtonKey];
-          if (oldElement) {
-            oldElement.classList.remove('btnPressed');
-          }
-          
-          // Activate the new button
           this.held[newButtonKey] = true;
-          const newElement = this.dpadElements[newButtonKey] || this.buttonElements[newButtonKey];
-          if (newElement) {
-            newElement.classList.add('btnPressed');
-          }
           
-          // Update the tracking
+          const oldElement = this.dpadElements[currentButtonKey] || this.buttonElements[currentButtonKey];
+          const newElement = this.dpadElements[newButtonKey] || this.buttonElements[newButtonKey];
+          
+          if (oldElement) oldElement.classList.remove('btnPressed');
+          if (newElement) newElement.classList.add('btnPressed');
+          
           this.activeTouches.set(touch.identifier, newButtonKey);
-        }
-        // If the touch moved away from any button, deactivate the current button
-        else if (!newButtonKey) {
+        } else if (!newButtonKey) {
+          // Moved away from buttons
           this.held[currentButtonKey] = false;
           const element = this.dpadElements[currentButtonKey] || this.buttonElements[currentButtonKey];
-          if (element) {
-            element.classList.remove('btnPressed');
-          }
-          // Don't remove from activeTouches yet - wait for touch end
+          if (element) element.classList.remove('btnPressed');
         }
       }
     }
@@ -266,16 +324,11 @@ class Gamepad {
       const buttonKey = this.activeTouches.get(touch.identifier);
       
       if (buttonKey !== undefined) {
-        // Deactivate the button
         this.held[buttonKey] = false;
         
-        // Remove visual feedback
         const element = this.dpadElements[buttonKey] || this.buttonElements[buttonKey];
-        if (element) {
-          element.classList.remove('btnPressed');
-        }
+        if (element) element.classList.remove('btnPressed');
         
-        // Remove the touch from tracking
         this.activeTouches.delete(touch.identifier);
       }
     }
@@ -283,20 +336,14 @@ class Gamepad {
 
   getButtonFromTouch(touch) {
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    
     if (!element) return null;
 
-    // Check if the touched element is one of our controller buttons
-    // or a child of one
     const buttonElement = element.closest('[id^="controller_"]');
     if (!buttonElement) return null;
 
     const id = buttonElement.id;
-    
-    // Extract the button key from the ID (remove "controller_" prefix)
     const key = id.replace('controller_', '').replace('rhythm_', '');
     
-    // Return the key only if it's one of our recognized buttons
     return this.keys.includes(key) ? key : null;
   }
 
@@ -306,64 +353,75 @@ class Gamepad {
       return;
     }
     
-    // Update gamepad state if connected
+    // Update gamepad state
     this.updateGamepad();
 
     // Calculate pressed and released states
     this.updateButtonStates();
     
-    // Dispatch signals
-    this.keys.forEach(key => {
-      if (this.pressed[key]) this.signals.pressed[key].dispatch();
-      if (this.released[key]) this.signals.released[key].dispatch();
-    });
-    if (this.pressed.any) this.signals.pressed.any.dispatch();
-    if (this.released.any) this.signals.released.any.dispatch();
+    // Dispatch signals for any pressed/released keys
+    let anyPressed = false;
+    let anyReleased = false;
     
-    // Save previous state for pressed/released detection
-    this.prevState = { ...this.held };
-  }
-  
-  debugString() {
-    const state = pressed => pressed ? "1" : "0";
-    return this.keys.map(key => `${key} - ${state(this.held[key])}${state(this.pressed[key])}${state(this.released[key])}`).join('\n');
+    this.keys.forEach(key => {
+      if (this.pressed[key]) {
+        this.signals.pressed[key].dispatch();
+        anyPressed = true;
+      }
+      if (this.released[key]) {
+        this.signals.released[key].dispatch();
+        anyReleased = true;
+      }
+    });
+    
+    // Dispatch 'any' signals
+    if (anyPressed) this.signals.pressed.any.dispatch();
+    if (anyReleased) this.signals.released.any.dispatch();
+    
+    // Save current state for next frame
+    this.keys.forEach(key => {
+      this.prevState[key] = this.held[key];
+    });
+    this.prevState.any = this.held.any;
   }
 
   updateGamepad() {
-    // Check if gamepad is connected and available
+    // Check for gamepad connection
     if (!this.gamepad || !this.gamepad.connected) {
-      // Try to get the first connected gamepad
       if (this.game.input.gamepad.active && this.game.input.gamepad.pad1.connected) {
         this.gamepad = this.game.input.gamepad.pad1;
+        this.detectInputSource('gamepad');
       } else {
-        return; // No gamepad connected
+        return;
       }
     }
 
-    // Update button states using Phaser CE's gamepad API
+    // Update gamepad buttons
+    let gamepadInputDetected = false;
+    
     for (const [key, buttonIndex] of Object.entries(this.gamepadMap)) {
       const button = this.gamepad.getButton(buttonIndex);
-      if (button && button.isDown) {
-        this.held[key] = true;
-      } else {
-        // Only set to false if not already set by touch
-        if (!this.isTouchControlled(key)) {
+      if (button) {
+        const isDown = button.isDown;
+        if (isDown && !this.isTouchControlled(key)) {
+          this.held[key] = true;
+          gamepadInputDetected = true;
+        } else if (!isDown && !this.isTouchControlled(key)) {
           this.held[key] = false;
         }
       }
     }
 
-    // Handle analog sticks for directional input
-    // This allows using sticks as an alternative to the d-pad
-    const deadZone = 0.2;
-
-    // Check if analog sticks are available
+    // Handle analog sticks
+    const deadZone = 0.3;
+    
     if (this.gamepad.axes.length >= 2) {
       const xAxis = this.gamepad.axis(0);
       const yAxis = this.gamepad.axis(1);
 
       if (Math.abs(xAxis) > deadZone || Math.abs(yAxis) > deadZone) {
-        // Only update if not being controlled by touch
+        gamepadInputDetected = true;
+        
         if (!this.isTouchControlled('left') && !this.isTouchControlled('right')) {
           this.held.left = xAxis < -deadZone;
           this.held.right = xAxis > deadZone;
@@ -374,60 +432,66 @@ class Gamepad {
           this.held.down = yAxis > deadZone;
         }
       } else {
-        // Reset directional input if not being controlled by touch
         if (!this.isTouchControlled('left')) this.held.left = false;
         if (!this.isTouchControlled('right')) this.held.right = false;
         if (!this.isTouchControlled('up')) this.held.up = false;
         if (!this.isTouchControlled('down')) this.held.down = false;
       }
     }
+
+    if (gamepadInputDetected) {
+      this.detectInputSource('gamepad');
+    }
   }
 
   isTouchControlled(key) {
-    // Check if this key is currently being controlled by touch input
     return Array.from(this.activeTouches.values()).includes(key);
   }
 
   updateButtonStates() {
-    // Calculate pressed (just pressed this frame) and released (just released this frame)
-    for (const key of this.keys) {
+    // Calculate pressed/released for individual keys
+    let anyPressed = false;
+    let anyReleased = false;
+    let anyHeld = false;
+
+    this.keys.forEach(key => {
       this.pressed[key] = this.held[key] && !this.prevState[key];
       this.released[key] = !this.held[key] && this.prevState[key];
-    }
-    // Update 'any' key states
-    let anyKeyPressed = false;
-    let anyKeyReleased = false;
-    let anyKeyHeld = false;
-    for (const key of this.keys) {
-      if (this.pressed[key]) anyKeyPressed = true;
-      if (this.released[key]) anyKeyReleased = true;
-      if (this.held[key]) anyKeyHeld = true;
-    }
-    this.pressed.any = anyKeyPressed;
-    this.released.any = anyKeyReleased;
-    this.held.any = anyKeyHeld;
+      
+      if (this.pressed[key]) anyPressed = true;
+      if (this.released[key]) anyReleased = true;
+      if (this.held[key]) anyHeld = true;
+    });
+
+    // Update 'any' states
+    this.pressed.any = anyPressed;
+    this.released.any = anyReleased;
+    this.held.any = anyHeld;
   }
   
   releaseAll() {
     this.keys.forEach(key => {
+      this.held[key] = false;
       this.pressed[key] = false;
       this.released[key] = false;
-      this.held[key] = false;
     });
+    this.held.any = false;
+    this.pressed.any = false;
+    this.released.any = false;
   }
   
   press(key) {
     this.dontUpdateThisTime = true;
     this.pressed[key] = true;
     this.pressed.any = true;
+    this.held[key] = true;
+    this.held.any = true;
   }
 
-  // Helper method to check if any direction is pressed
   isDirectionPressed() {
     return this.held.up || this.held.down || this.held.left || this.held.right;
   }
 
-  // Helper method to get direction as a normalized vector
   getDirection() {
     let x = 0, y = 0;
 
@@ -436,99 +500,56 @@ class Gamepad {
     if (this.held.up) y -= 1;
     if (this.held.down) y += 1;
 
-    // Normalize for diagonal movement
     if (x !== 0 && y !== 0) {
-      x *= 0.7071; // 1 / sqrt(2)
+      x *= 0.7071;
       y *= 0.7071;
     }
 
     return { x, y };
   }
 
-  // Reset all states
   reset() {
-    for (const key of this.keys) {
-      this.held[key] = false;
-      this.pressed[key] = false;
-      this.released[key] = false;
-      this.prevState[key] = false;
-    }
-
-    // Clear all active touches
+    this.releaseAll();
     this.activeTouches.clear();
 
-    // Remove pressed class from all virtual buttons
-    for (const element of Object.values(this.dpadElements)) {
-      if (element) element.classList.remove('btnPressed');
-    }
-
-    for (const element of Object.values(this.buttonElements)) {
-      if (element) element.classList.remove('btnPressed');
-    }
+    // Remove pressed classes from all buttons
+    Object.values(this.dpadElements).forEach(el => el?.classList.remove('btnPressed'));
+    Object.values(this.buttonElements).forEach(el => el?.classList.remove('btnPressed'));
   }
   
-  // Destroy
   destroy() {
-    // Remove Phaser keyboard event listeners and clear keyboard keys
-    if (this.keyboard) {
-      for (const key in this.keyboard) {
-        if (this.keyboard[key]) {
-          this.keyboard[key].onDown.removeAll();
-          this.keyboard[key].onUp.removeAll();
-          this.game.input.keyboard.removeKey(this.keyboard[key]);
-          this.keyboard[key] = null;
-        }
-      }
-      this.keyboard = null;
+    // Clean up everything
+    if (this.inputDetectionTimeout) {
+      clearTimeout(this.inputDetectionTimeout);
     }
-  
-    // Remove gamepad onConnect callback
-    if (this.game && this.game.input && this.game.input.gamepad) {
+
+    // Keyboard cleanup
+    if (this.keyboardKeys) {
+      Object.values(this.keyboardKeys).forEach(keys => {
+        keys.forEach(key => {
+          key.onDown.removeAll();
+          key.onUp.removeAll();
+        });
+      });
+    }
+
+    // Gamepad cleanup
+    if (this.game.input.gamepad) {
       this.game.input.gamepad.onConnectCallback = null;
+      this.game.input.gamepad.onDisconnectCallback = null;
     }
-    this.gamepad = null;
-    this.gamepadButtons = null;
-  
-    // Remove all Phaser signals listeners
+
+    // Signal cleanup
     if (this.signals) {
-      for (const key of this.keys) {
-        if (this.signals.pressed[key]) {
-          this.signals.pressed[key].removeAll();
-          this.signals.pressed[key] = null;
-        }
-        if (this.signals.released[key]) {
-          this.signals.released[key].removeAll();
-          this.signals.released[key] = null;
-        }
-      }
-      this.signals = null;
+      Object.values(this.signals.pressed).forEach(signal => signal?.removeAll());
+      Object.values(this.signals.released).forEach(signal => signal?.removeAll());
     }
-  
-    // Remove touch event listeners from controller element
+
+    // Touch cleanup
     if (this.controllerElement) {
-      this.controllerElement.removeEventListener('touchstart', this.handleTouchStart.bind(this));
-      this.controllerElement.removeEventListener('touchmove', this.handleTouchMove.bind(this));
-      this.controllerElement.removeEventListener('touchend', this.handleTouchEnd.bind(this));
-      this.controllerElement.removeEventListener('touchcancel', this.handleTouchEnd.bind(this));
-      this.controllerElement = null;
+      this.controllerElement.remove();
     }
-  
-    // Clear active touches map
-    if (this.activeTouches) {
-      this.activeTouches.clear();
-      this.activeTouches = null;
-    }
-  
-    // Clear other references
-    this.keys = null;
-    this.held = null;
-    this.pressed = null;
-    this.released = null;
-    this.prevState = null;
-    this.dpadElements = null;
-    this.buttonElements = null;
-    this.keyboardMap = null;
-    this.gamepadMap = null;
-    this.game = null;
+
+    this.activeTouches?.clear();
   }
 }
