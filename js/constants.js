@@ -7,7 +7,8 @@ const DEFAULT_ACCOUNT = {
     renderer: 0,
     pixelated: true,
     framerate: 6,
-    noteColorOption: 'NOTE'
+    noteColorOption: 'NOTE',
+    noteSpeedMult: 2
   },
   lastSong: null,
   highScores: {}

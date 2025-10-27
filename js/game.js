@@ -76,6 +76,8 @@ class Boot {
     
     game.time.advancedTiming = true;
     
+    game.world.updateOnlyExistingChildren = true;
+    
     window.primaryAssets = this.keys;
     
     game.state.start("Load", true, false, [
@@ -992,6 +994,16 @@ class MainMenu {
       );
 
       settingsWindow.addSettingItem(
+        "Note Speed",
+        ["1", "2", "3", "4"],
+        Account.settings.noteSpeedMult - 1,
+        index => {
+          Account.settings.noteSpeedMult = index + 1;
+          saveAccount();
+        }
+      );
+      
+      settingsWindow.addSettingItem(
         "Menu Music",
         ["LAST SONG", "RANDOM SONG", "OFF"],
         index,
@@ -1054,6 +1066,12 @@ class MainMenu {
         () => eraseHighscores()
       );
       
+      settingsWindow.addItem(
+        "Restore Default Settings",
+        "",
+        () => restoreDefaultSettings()
+      );
+      
       settingsWindow.addItem("APPLY", "", () => {
         manager.remove(settingsWindow, true);
         if (restartNeeded) {
@@ -1095,6 +1113,14 @@ class MainMenu {
       saveAccount();
       settings();
     });
+    
+    const restoreDefaultSettings = () => {
+      confirm("All settings will be restored to default.\nA refresh is needed", () => {
+        Account.settings = DEFAULT_ACCOUNT.settings;
+        saveAccount();
+        window.location.reload();
+      });
+    }
     
     const reload = () => confirm("Restart Now?", () => location.reload());
     
@@ -1157,7 +1183,7 @@ class SongSelect {
     }
     
     this.previewAudio = document.createElement("audio");
-    this.previewAudio.volume = [0,25,50,100][Account.settings.volume-1] / 100;
+    this.previewAudio.volume = [0,25,50,100][Account.settings.volume] / 100;
     
     this.bannerImg = document.createElement("img");
     this.cdtitleImg = document.createElement("img");
@@ -1462,6 +1488,7 @@ class Play {
     this.isPaused = false;
     this.pauseStartTime = 0;
     this.totalPausedDuration = 0;
+    this.pendingSongStart = false;
     this.audioEndListener = null;
     this.started = false;
     this.startTime = 0;
@@ -1515,13 +1542,11 @@ class Play {
     // Create audio element
     this.audio = document.createElement("audio");
     this.audio.src = this.song.chart.audioUrl;
-    this.audio.volume = [0,25,50,100][Account.settings.volume-1] / 100;
+    this.audio.volume = [0,25,50,100][Account.settings.volume] / 100;
     
     window.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         if (!this.isPaused) this.pause();
-      } else {
-        if (this.isPaused) this.resume();
       }
     });
     
@@ -1614,8 +1639,7 @@ class Play {
     }[type];
   }
   
-  songStart() {
-    const FIXED_DELAY = 2000; // 2-second delay
+  songStart(initialDelay = 2000) {
     
     // Set initial background
     if (this.song.chart.background && this.song.chart.background !== "assets/no-background.png") {
@@ -1627,15 +1651,19 @@ class Play {
       this.updateBackgroundTexture();
     }
     
-    this.startTime = game.time.now + FIXED_DELAY - (this.song.chart.offset || 0) * 1000;
-    
-    setTimeout(() => {
-      this.audio.play();
-      this.startTime = game.time.now - (this.song.chart.offset || 0) * 1000;
-      this.started = true;
-    }, FIXED_DELAY);
+    setTimeout(() => this.startChart(), initialDelay);
     
     this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
+  }
+  
+  startChart() {
+    if (this.isPaused) {
+      this.pendingSongStart = true;
+      return;
+    }
+    this.audio.play();
+    this.startTime = game.time.now - (this.song.chart.offset || 0) * 1000;
+    this.started = true;
   }
   
   loadBackgroundImage(url) {
@@ -1674,7 +1702,6 @@ class Play {
   }
   
   pause() {
-    if (!this.started) return;
     this.isPaused = true;
     this.pauseStartTime = game.time.now;
     this.audio?.pause();
@@ -1685,9 +1712,14 @@ class Play {
   resume() {
     this.isPaused = false;
     this.totalPausedDuration += game.time.now - this.pauseStartTime;
-    this.audio?.play();
-    if (this.video.src) this.video?.play();
     this.hidePauseMenu();
+    if (this.pendingSongStart) {
+      this.pendingSongStart = false;
+      this.startChart();
+    } else {
+      if (this.video.src) this.video?.play();
+      this.audio?.play();
+    }
   }
   
   showPauseMenu() {
@@ -1838,7 +1870,7 @@ class Player {
 
     // Game constants
     this.VERTICAL_SEPARATION = 1.5;
-    this.NOTE_SPEED_MULTIPLIER = 2;
+    this.NOTE_SPEED_MULTIPLIER = Account.settings.noteSpeedMult;
     this.JUDGE_LINE = 90;
     this.COLUMN_SIZE = 16;
     this.COLUMN_SEPARATION = 4;
@@ -3135,7 +3167,7 @@ class Text extends Phaser.Sprite {
     let isScrolling = true;
 
     const update = () => {
-      if (!isScrolling) return;
+      if (!this.visible || !isScrolling) return;
 
       // Extract the visible portion
       let visibleText = '';
@@ -3944,7 +3976,7 @@ class CarouselMenu extends Phaser.Sprite {
     
     this.setupInput();
     
-    game.add.existing(this);
+    if (!this.config.silent) game.add.existing(this);
   }
   
   setupInput() {
@@ -3957,8 +3989,35 @@ class CarouselMenu extends Phaser.Sprite {
   
   addItem(text, callback = null, data = {}) {
     const index = this.items.length;
-    const xPos = this.config.margin.left;
-    const yPos = this.config.margin.top + (index * this.totalItemHeight);
+    
+    const item = {
+      parent: null,
+      background: null,
+      text: null,
+      textContent: text,
+      callback: callback,
+      data: data,
+      index: index,
+      originalX: this.config.align === 'right' ? this.config.margin.right : this.config.margin.left,
+      originalAlpha: .4,
+      isSelected: false,
+      alphaTween: null
+    };
+    
+    this.items.push(item);
+    
+    this.updateSelection();
+    
+    return item;
+  }
+  
+  createItemVisuals(item, isSelected) {
+    const index = item.index;
+    let xPos = this.config.margin.left;
+    let yPos = item.initialY || this.config.margin.top + (index * this.totalItemHeight);
+    const data = item.data;
+    
+    item.initialY = null;
     
     const itemParent = new Phaser.Sprite(game, xPos, yPos);
     itemParent.alpha = .4;
@@ -3968,14 +4027,14 @@ class CarouselMenu extends Phaser.Sprite {
     const bgHeight = this.itemHeight;
     
     const background = this.createGradientBackground(bgWidth, bgHeight, data.bgcolor);
-    background.x = this.config.align === 'right' ? this.config.margin.right : this.config.margin.left;
+    background.x = item.originalX;
     itemParent.addChild(background);
     
     const textX = this.config.align === 'right' ? 
       bgWidth - 8 : 8;
     const textAnchor = this.config.align === 'right' ? 1 : 0;
     
-    const itemText = new Text(textX, 0, text, {
+    const itemText = new Text(textX, 0, item.textContent, {
       ...FONTS.default,
       tint: data.fgcolor || this.config.fgcolor
     });
@@ -3983,32 +4042,20 @@ class CarouselMenu extends Phaser.Sprite {
     itemText.y = 1;
     itemParent.addChild(itemText);
     
-    if (text.length * 4 > this.viewport.width -16) {
-      itemText.scrollwrite(text, (this.viewport.width - 16) / 4);
+    if (item.textContent.length * 4 > this.viewport.width -16) {
+      itemText.scrollwrite(item.textContent, (this.viewport.width - 16) / 4);
     }
     
-    const item = {
-      parent: itemParent,
-      background: background,
-      text: itemText,
-      callback: callback,
-      data: data,
-      index: index,
-      originalX: background.x,
-      originalAlpha: .4,
-      isSelected: false,
-      alphaTween: null
-    };
-    
-    this.items.push(item);
-    
-    if (this.items.length === 1) {
-      this.updateSelection();
-    }
-    
-    this.updateSelection();
-    
-    return item;
+    item.parent = itemParent;
+    item.background = background;
+    item.text = itemText;
+  }
+  
+  removeItemVisuals(item) {
+    item.parent?.destroy();
+    item.parent = null;
+    item.background = null;
+    item.text = null;
   }
   
   createGradientBackground(width, height, color) {
@@ -4096,18 +4143,26 @@ class CarouselMenu extends Phaser.Sprite {
       const isVisible = index >= this.scrollOffset && 
                        index < this.scrollOffset + this.visibleItems;
       
-      item.parent.visible = isVisible;
-      
       if (isVisible) {
+        if (!item.parent) {
+          this.createItemVisuals(item, isSelected);
+        }
         if (isSelected && !item.isSelected) {
           this.selectItem(item);
         } else if (!isSelected && item.isSelected) {
           this.deselectItem(item);
         }
-      } else if (item.isSelected) {
-        this.deselectItem(item);
+      } else {
+        if (item.parent) {
+          this.removeItemVisuals(item);
+        }
+        if (item.isSelected) {
+          this.deselectItem(item);
+        }
       }
     });
+    
+    this.updateItemPositions();
   }
   
   selectItem(item) {
@@ -4124,13 +4179,15 @@ class CarouselMenu extends Phaser.Sprite {
       item.alphaTween.stop();
     }
     
-    if (this.config.animate) {
-      // Start yoyo animation for selected item
-      item.alphaTween = game.add.tween(item.parent)
-        .to({ alpha: 0.9 }, 250, Phaser.Easing.Quadratic.InOut, true, 0, -1, true)
-        .yoyo(true, 500);
-    } else {
-      item.parent.alpha = 0.9;
+    if (item.parent) {
+      if (this.config.animate) {
+        // Start yoyo animation for selected item
+        item.alphaTween = game.add.tween(item.parent)
+          .to({ alpha: 0.9 }, 250, Phaser.Easing.Quadratic.InOut, true, 0, -1, true)
+          .yoyo(true, 500);
+      } else {
+        item.parent.alpha = 0.9;
+      }
     }
   }
   
@@ -4144,11 +4201,13 @@ class CarouselMenu extends Phaser.Sprite {
     }
     
     // Set fixed alpha for unselected items
-    if (this.config.animate) {
-      game.add.tween(item.parent)
-        .to({ alpha: .4 }, 100, Phaser.Easing.Quadratic.Out, true);
-    } else {
-      item.parent.alpha = .4;
+    if (item.parent) {
+      if (this.config.animate) {
+        game.add.tween(item.parent)
+          .to({ alpha: .4 }, 100, Phaser.Easing.Quadratic.Out, true);
+      } else {
+        item.parent.alpha = .4;
+      }
     }
   }
   
@@ -4164,8 +4223,6 @@ class CarouselMenu extends Phaser.Sprite {
       0,
       Math.max(0, this.items.length - this.visibleItems)
     );
-    
-    this.updateItemPositions();
   }
   
   updateItemPositions() {
@@ -4173,16 +4230,20 @@ class CarouselMenu extends Phaser.Sprite {
       const visibleIndex = index - this.scrollOffset;
       const targetY = this.config.margin.top + (visibleIndex * this.totalItemHeight);
       
-      if (this.config.animate && !this.isAnimating) {
-        game.add.tween(item.parent).to({ y: targetY }, 150, "Quad.easeOut", true);
+      if (item.parent) {
+        if (this.config.animate && !this.isAnimating) {
+          game.add.tween(item.parent).to({ y: targetY }, 150, "Quad.easeOut", true);
+        } else {
+          item.parent.y = targetY;
+        }
       } else {
-        item.parent.y = targetY;
+        item.initialY = targetY;
       }
     });
   }
   
   updateAnimations() {
-    // Update any ongoing animations here
+    // Update any ongoing animations here, might be removed 
   }
   
   confirm() {
@@ -4208,10 +4269,12 @@ class CarouselMenu extends Phaser.Sprite {
       }
     });
     
+    if (!item.parent) return;
+    
     const fadeDirection = this.config.align === 'right' ? 100 : -100;
     
     this.items.forEach(otherItem => {
-      if (otherItem !== item && otherItem.parent.visible) {
+      if (otherItem !== item && otherItem.parent && otherItem.parent.visible) {
         game.add.tween(otherItem.parent).to({ 
           x: otherItem.parent.x + fadeDirection,
           alpha: 0 
@@ -4259,7 +4322,7 @@ class CarouselMenu extends Phaser.Sprite {
     const fadeDirection = this.config.align === 'right' ? 100 : -100;
     
     this.items.forEach(item => {
-      if (item.parent.visible) {
+      if (item.parent && item.parent.visible) {
         game.add.tween(item.parent).to({ 
           x: item.parent.x + fadeDirection,
           alpha: 0 
@@ -4290,7 +4353,9 @@ class CarouselMenu extends Phaser.Sprite {
       if (item.alphaTween) {
         item.alphaTween.stop();
       }
-      item.parent.destroy();
+      if (item.parent) {
+        item.parent.destroy();
+      }
     });
     this.items = [];
     this.selectedIndex = 0;
@@ -5268,7 +5333,7 @@ class ExternalSMParser {
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
-    this.audio.volume = [0,25,50,100][Account.settings.volume-1] / 100;
+    this.audio.volume = [0,25,50,100][Account.settings.volume] / 100;
     this.randomSong = Account.settings.randomSong;
     this.audio.loop = true;
     this.isPlaying = false;
@@ -5276,6 +5341,19 @@ class BackgroundMusic {
     this.availableSongsCache = null; // Cache for available songs
     this.cacheTimestamp = 0;
     this.cacheDuration = 30000; // Cache for 30 seconds
+    this.registerVisibilityChangeListener();
+  }
+  
+  registerVisibilityChangeListener() {
+    this.visibilityHiddenState = game.state.current;
+    window.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.audio.pause();
+        this.visibilityHiddenState = game.state.current;
+      } else if (this.visibilityHiddenState == game.state.current) {
+        this.audio.play();
+      }
+    });
   }
 
   async playLastSong() {
