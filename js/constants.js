@@ -1,3 +1,7 @@
+const COPYRIGHT = "(C) RETORA 2025";
+
+const VERSION = "v0.0.2";
+
 const DEFAULT_ACCOUNT = {
   settings: {
     volume: 3,
@@ -9,7 +13,8 @@ const DEFAULT_ACCOUNT = {
     framerate: 6,
     noteColorOption: 'NOTE',
     noteSpeedMult: 1,
-    userOffset: 0
+    userOffset: 0,
+    scrollDirection: 'falling'
   },
   lastSong: null,
   highScores: {}
@@ -31,10 +36,13 @@ const EXTERNAL_DIRECTORY = "PadManiacs/";
 const ENABLE_PARALLEL_LOADING = true;
 const MAX_PARALLEL_DOWNLOADS = 32;
 
+const ENABLE_UI_SFX = false;
+
 const DEFAULT_SONG_FOLDERS = [
   "Miki Miki Romantic Night",
   "Thousand Cherry Blossoms",
   "Undead Enemy",
+  "Carnival",
   "Hatsune Miku - Melt",
   "Kagamine Rin - Love Is War(R184mm Remix)",
   "Kasane Territory - Kasane Teto",
@@ -48,5 +56,3 @@ const DEFAULT_SONG_FOLDERS = [
   "Gigantic Girl",
   "melody_2.exe"
 ];
-
-const FRAMERATES = [15, 20, 25, 30, 50, 55, 60];

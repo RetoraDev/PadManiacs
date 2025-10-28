@@ -81,6 +81,13 @@ class Boot {
     
     game.state.start("Load", true, false, [
       {
+        key: "ui_loading_dots",
+        url: "ui/loading_dots.png",
+        type: "spritesheet",
+        frameWidth: 26,
+        frameHeight: 6
+      },
+      {
         key: "ui_background_gradient",
         url: "ui/background_gradient.png"
       },
@@ -173,7 +180,7 @@ class Boot {
         type: 'spritesheet',
         frameWidth: 16,
         frameHeight: 16
-      }
+      },
     ], "LoadCordova");
   }
 }
@@ -210,8 +217,7 @@ class Load {
     });
 
     // Create simple progress display
-    this.progressText = new Text(96, 56, "LOADING ASSETS", FONTS.tiny);
-    this.progressText.anchor.set(0.5);
+    this.progressText = new ProgressText("LOADING ASSETS");
   }
 
   create() {
@@ -229,8 +235,9 @@ class LoadCordova {
     }
   }
   loadScript() {
-    this.progressText = new Text(96, 56, "INITIALIZING FILESYSTEM", FONTS.tiny);
-    this.progressText.anchor.set(0.5);
+    this.loadingDots = new LoadingDots();
+    
+    this.progressText = new ProgressText("INITIALIZING FILESYSTEM");
     
     const script = document.createElement("script");
     script.src = "./cordova/cordova.js";
@@ -253,13 +260,14 @@ class LoadCordova {
 
 class LoadLocalSongs {
   create() {
-    this.progressText = new Text(96, 56, "LOADING SONGS", FONTS.tiny);
-    this.progressText.anchor.set(0.5);
+    this.progressText = new ProgressText("LOADING SONGS");
     this.songs = [];
     this.parser = new LocalSMParser();
     this.loadSongs();
+    this.loadingDots = new LoadingDots();
   }
   async loadSongs() {
+    
     try {
       // Define default song folders
       const defaultSongFolders = DEFAULT_SONG_FOLDERS;
@@ -339,8 +347,9 @@ class LoadLocalSongs {
 
 class LoadExternalSongs {
   create() {
-    this.progressText = new Text(96, 56, "LOADING EXTERNAL SONGS", FONTS.tiny);
-    this.progressText.anchor.set(0.5);
+    this.loadingDots = new LoadingDots();
+    
+    this.progressText = new ProgressText("LOADING EXTERNAL SONGS");
     
     if (window.externalSongs) {
       this.songs = window.externalSongs;
@@ -495,13 +504,9 @@ class LoadExternalSongs {
   updateProgress() {
     const processed = this.loadedCount + this.failedCount;
     const progress = this.totalCount > 0 ? Math.round(processed / this.totalCount * 100) : 0;
-    const loadingText = `LOADING EXTERNAL SONGS\n${this.loadedCount}/${this.totalCount} (${progress}%)\nFailed: ${this.failedCount}`;
+    const loadingText = `${this.loadedCount}/${this.totalCount - this.failedCount} (${progress}%)`;
     
-    if (ENABLE_PARALLEL_LOADING) {
-      this.progressText.write(loadingText + `\nParallel: ${this.currentlyLoading.size}/${MAX_PARALLEL_DOWNLOADS}`);
-    } else {
-      this.progressText.write(loadingText);
-    }
+    this.progressText.write(loadingText);
   }
 
   showFileInput() {
@@ -731,8 +736,7 @@ class LoadExternalSongs {
 
 class LoadSongFolder {
   create() {
-    this.progressText = new Text(96, 56, "SELECT SONG FOLDER", FONTS.tiny);
-    this.progressText.anchor.set(0.5);
+    this.progressText = new ProgressText("SELECT SONG FOLDER");
 
     this.parser = new ExternalSMParser();
     this.showFileInput();
@@ -778,11 +782,11 @@ class LoadSongFolder {
       const content = await this.readFileContent(fileMap[smFileName]);
 
       const chart = this.parser.parseSM(fileMap, content);
-      chart.folderName = "External Song";
+      chart.folderName = `Single_External_${smFileName}`;
       chart.loaded = true;
 
       // Start gameplay directly with this single song
-      game.state.start("SongSelect", true, false, [ chart ]);
+      game.state.start("SongSelect", true, false, [ chart ], 0, true);
     } catch (error) {
       console.error("Error loading song folder:", error);
       this.showError("Failed to load song");
@@ -835,10 +839,10 @@ class Title {
     
     this.text = game.add.sprite(0, 0);
     
-    this.creditText = new Text(2, 110, "(C) Retora 2025", this.text);
+    this.creditText = new Text(2, 110, COPYRIGHT, this.text);
     this.creditText.anchor.y = 1;
     
-    this.creditText = new Text(190, 110, "v0.0.1", this.text);
+    this.creditText = new Text(190, 110, VERSION, this.text);
     this.creditText.anchor.set(1);
     
     if (!backgroundMusic) {
@@ -977,6 +981,16 @@ class MainMenu {
       
       const currentNoteOption = Account.settings.noteColorOption || 'NOTE';
       const currentNoteIndex = noteOptions.findIndex(opt => opt.value === currentNoteOption);
+      
+      settingsWindow.addSettingItem(
+        "Scroll Direction",
+        ["FALLING", "RISING"],
+        Account.settings.scrollDirection === 'falling' ? 0 : 1,
+        index => {
+          Account.settings.scrollDirection = index === 0 ? 'falling' : 'rising';
+          saveAccount();
+        }
+      );
       
       settingsWindow.addSettingItem(
         "Note Colors",
@@ -1156,9 +1170,9 @@ class MainMenu {
     this.manager?.update();
   }
   shutdown() {
-    // Stop music when leaving MainMenu for gameplay states
     if (backgroundMusic) {
-      backgroundMusic.stop();
+      backgroundMusic.destroy();
+      backgroundMusic = null;
     }
   }
 }
@@ -1215,13 +1229,18 @@ class SongSelect {
     
     this.highScoreText = new Text(104, 50, "");
     
-    window.addEventListener('visibilitychange', () => {
+    this.loadingDots = new LoadingDots();
+    this.loadingDots.visible = false;
+    
+    this.visibilityChangeListener = () => {
       if (document.hidden) {
         this.previewAudio?.pause();
       } else {
         this.previewAudio?.play();
       }
-    });
+    };
+    
+    window.addEventListener('visibilitychange', this.visibilityChangeListener);
     
     this.createSongSelectionMenu();
     
@@ -1285,6 +1304,8 @@ class SongSelect {
   }
 
   previewSong(song) {
+    this.loadingDots.visible = true;
+    let index = this.songCarousel.selectedIndex;
     if (song.audioUrl) {
       // Load and play preview
       this.previewAudio.src = song.audioUrl;
@@ -1294,12 +1315,15 @@ class SongSelect {
     if (song.banner) {
       this.bannerImg.src = song.banner;
       this.bannerImg.onload = () => {
+        if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
+        
         this.previewCtx.drawImage(this.bannerImg, 0, 0, 96, 32);
         
         const texture = PIXI.Texture.fromCanvas(this.previewCanvas);
         
         this.bannerSprite.loadTexture(texture);
       };
+      this.bannerImg.onerror = () => this.loadingDots.visible = false;
     }
     this.metadataText.write(this.getMetadataText(song));
     this.metadataText.wrapPreserveNewlines(80);
@@ -1361,9 +1385,9 @@ class SongSelect {
     
     if (title) text += title + '\n';
     if (subtitle) text += subtitle + '\n';
-    if (artist) text += artist + '\n';
-    if (genre) text += genre + '\n';
-    if (credit) text += credit;
+    if (artist) text += 'Artist: ' + artist + '\n';
+    //if (genre) text += genre + '\n';
+    if (credit) text += 'Credit: ' + credit;
     
     return text;
   }
@@ -1488,7 +1512,9 @@ class SongSelect {
   
   shutdown() {
     this.previewAudio.pause();
+    this.previewAudio.src = null;
     this.previewAudio = null;
+    window.removeEventListener("visibilitychange", this.visibilityChangeListener);
   }
 }
 
@@ -1507,6 +1533,7 @@ class Play {
     this.started = false;
     this.startTime = 0;
     this.autoplay = Account.settings.autoplay;
+    this.userOffset = Account.settings.userOffset;
     
     // Save last song to Account
     Account.lastSong = {
@@ -1535,6 +1562,8 @@ class Play {
       boo: 50,
       miss: 0
     };
+    
+    window.Play = this;
   }
   
   create() {
@@ -1558,11 +1587,13 @@ class Play {
     this.audio.src = this.song.chart.audioUrl;
     this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
     
-    window.addEventListener('visibilitychange', () => {
+    this.visibilityChangeListener = () => {
       if (document.hidden) {
         if (!this.isPaused) this.pause();
       }
-    });
+    };
+    
+    window.addEventListener('visibilitychange', this.visibilityChangeListener);
     
     // Create video element for background videos
     this.video = document.createElement("video");
@@ -1653,7 +1684,7 @@ class Play {
     }[type];
   }
   
-  songStart(initialDelay = 2000) {
+  setBackground() {
     // Set initial background
     if (this.song.chart.background && this.song.chart.background !== "assets/no-background.png") {
       this.loadBackgroundImage(this.song.chart.background);
@@ -1663,23 +1694,22 @@ class Play {
       this.backgroundCtx.fillRect(0, 0, 192, 112);
       this.updateBackgroundTexture();
     }
-    
-    // Apply both chart offset and user offset
-    const totalOffset = (this.song.chart.offset || 0) * 1000 + this.userOffset;
-    this.startTime = game.time.now + initialDelay - totalOffset;
-    
-    setTimeout(() => this.startChart(), initialDelay);
-    
-    this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
   }
   
-  startChart() {
-    if (this.isPaused) {
-      this.pendingSongStart = true;
-      return;
-    }
-    this.audio.play();
-    this.started = true;
+  songStart() {
+    this.setBackground();
+    
+    const FIXED_DELAY = 2000; 
+    const DEVICE_DELAY = -272.5; // Hardcoded device delay for must HTML5 audio players. TODO: Detect this dynamicly
+    
+    this.startTime = game.time.now + FIXED_DELAY - this.song.chart.offset * 1000;
+    
+    setTimeout(() => {
+      this.audio.play();
+      this.started = true;
+    }, FIXED_DELAY + DEVICE_DELAY + this.userOffset);
+    
+    this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
   }
   
   loadBackgroundImage(url) {
@@ -1731,7 +1761,7 @@ class Play {
     this.hidePauseMenu();
     if (this.pendingSongStart) {
       this.pendingSongStart = false;
-      this.startChart();
+      this.songStart();
     } else {
       if (this.video.src) this.video?.play();
       this.audio?.play();
@@ -1781,13 +1811,13 @@ class Play {
   
   getCurrentTime() {
     if (this.isPaused) {
-      const elapsed = this.pauseStartTime - this.startTime - this.totalPausedDuration;
+      const elapsed = this.pauseStartTime - this.startTime - this.totalPausedDuration + this.userOffset;
       return {
         now: elapsed / 1000,
         beat: this.secToBeat(elapsed / 1000)
       };
     } else {
-      const elapsed = game.time.now - this.startTime - this.totalPausedDuration;
+      const elapsed = game.time.now - this.startTime - this.totalPausedDuration + this.userOffset;
       return {
         now: elapsed / 1000,
         beat: this.secToBeat(elapsed / 1000)
@@ -1827,6 +1857,7 @@ class Play {
   
   shutdown() {
     this.audio.removeEventListener("ended", this.audioEndListener);
+    window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.audio.pause();
     this.audio.src = "";
     this.audio = null;
@@ -1849,6 +1880,8 @@ class Player {
     
     this.autoplay = scene.autoplay;
     this.autoplayActiveHolds = new Set();
+    
+    this.scrollDirection = Account.settings.scrollDirection || 'falling';
 
     // Gamepad keymap
     this.keymap = {
@@ -1885,7 +1918,7 @@ class Player {
     // Game constants
     this.VERTICAL_SEPARATION = 1.5;
     this.NOTE_SPEED_MULTIPLIER = Account.settings.noteSpeedMult + 1;
-    this.JUDGE_LINE = 90;
+    this.JUDGE_LINE = this.scrollDirection === 'falling' ? 100 : 20; // Top for rising, bottom for falling
     this.COLUMN_SIZE = 16;
     this.COLUMN_SEPARATION = 4;
     this.HOLD_FORGIVENESS = 0.3;
@@ -1935,14 +1968,22 @@ class Player {
     // Create receptors
     this.receptors = [];
     for (let i = 0; i < 4; i++) {
-      const receptor = game.add.sprite(leftOffset + i * (this.COLUMN_SIZE + this.COLUMN_SEPARATION) + this.COLUMN_SIZE / 2, this.JUDGE_LINE, "receptor", 2);
+      const receptor = game.add.sprite(
+        leftOffset + i * (this.COLUMN_SIZE + this.COLUMN_SEPARATION) + this.COLUMN_SIZE / 2, 
+        this.JUDGE_LINE, 
+        "receptor", 
+        2
+      );
       receptor.anchor.set(0.5);
+      
       receptor.angle = {
-        0: 90, // left
-        1: 0, // down
+        0: 90,  // left
+        1: 0,   // down
         2: 180, // up
-        3: -90 // right
+        3: -90  // right
       }[i];
+      
+      receptor.y += (this.COLUMN_SIZE / 2) * (this.scrollDirection == 'falling' ? -1 : 1);
 
       receptor.inputEnabled = true;
       receptor.down = false;
@@ -1966,7 +2007,7 @@ class Player {
 
       this.receptors.push(receptor);
     }
-
+    
     // Create UI text elements
     this.judgementText =
       this.scene.judgementText ||
@@ -2320,15 +2361,15 @@ class Player {
   getScoreRating() {
     const acc = this.accuracy;
     
-    if (acc >= 100) return "SSS+";
-    if (acc >= 99.5) return "SSS";
-    if (acc >= 99) return "SS";
-    if (acc >= 97) return "S";
-    if (acc >= 94) return "A";
-    if (acc >= 90) return "B";
-    if (acc >= 85) return "C";
-    if (acc >= 80) return "D";
-    if (acc >= 70) return "E";
+    if (acc >= 98) return "SSS+";
+    if (acc >= 95) return "SSS";
+    if (acc >= 92.5) return "SS";
+    if (acc >= 90) return "S";
+    if (acc >= 80) return "A";
+    if (acc >= 70) return "B";
+    if (acc >= 60) return "C";
+    if (acc >= 50) return "D";
+    if (acc >= 40) return "E";
     return "F";
   }
 
@@ -2381,7 +2422,7 @@ class Player {
     const explosion = game.add.sprite(receptor.x, receptor.y, "explosion");
     explosion.anchor.set(0.5);
     explosion.angle = receptor.angle;
-
+    
     const duration = 200;
     game.add.tween(explosion.scale).to({ x: 2, y: 2 }, duration, "Linear", true);
     game.add
@@ -2404,7 +2445,7 @@ class Player {
       .onComplete.add(() => explosion.destroy());
   }
   
-    // NOTE mode - stepmania default
+  // NOTE mode - stepmania default
   getNoteColorMapping() {
     return {
       0: 0xFF0000,  // 4th - Red
@@ -2532,9 +2573,9 @@ class Player {
     // Update colors for all existing notes
     this.notes.forEach(note => {
       if (note.sprite) {
+        //const color = this.getNoteColor(note);
+        //note.sprite.tint = color;
         const frame = this.getNoteFrame(note);
-        const color = this.getNoteColor(note);
-        note.sprite.tint = color;
       }
     });
   }
@@ -2548,22 +2589,22 @@ class Player {
       { key: 'RAINBOW', name: 'RAINBOW', description: 'Orange/Blue/Purple' }
     ];
   }
-
+  
   render() {
+    if (!this.scene.startTime || this.scene.isPaused) return;
+
+    if (this.scrollDirection === 'falling') {
+      this.renderFalling();
+    } else {
+      this.renderRising();
+    }
+  }
+
+  renderFalling() {
     if (!this.scene.startTime || this.scene.isPaused) return;
 
     const { now, beat } = this.scene.getCurrentTime();
     const leftOffset = this.calculateLeftOffset();
-
-    // Key down/up animation
-    for (let i = 0; i < 4; i++) {
-      const receptor = this.receptors[i];
-      const down = this.inputStates[i];
-      if (receptor.down != down) {
-        receptor.down = down;
-        receptor.play(down ? "down" : "up");
-      }
-    }
 
     // Render notes
     this.notes.forEach(note => {
@@ -2608,7 +2649,7 @@ class Player {
         }
         note.sprite.anchor.set(0.5);
         note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos + this.COLUMN_SIZE / 2;
+        note.sprite.y = yPos;
       } else if (note.type === "2" || note.type === "4") {
         if (!note.holdParts) {
           const prefix = note.type === "2" ? "hold" : "roll";
@@ -2636,8 +2677,6 @@ class Player {
           };
           
           note.holdParts = {
-            //body: game.add.tileSprite(x, yPos, this.COLUMN_SIZE, 0, `${prefix}_body`),
-            //end: game.add.sprite(x, yPos, `${prefix}_end`)
             body: getBody(),
             end: getEnd()
           };
@@ -2658,10 +2697,9 @@ class Player {
           const holdBottomY = yPos - bodyHeight;
           const judgeLineY = this.JUDGE_LINE;
 
-          visibleHeight = Math.max(0, judgeLineY - holdBottomY) - this.COLUMN_SIZE / 3;
-          note.visibleHeight = visibleHeight - this.COLUMN_SIZE / 2;
+          note.visibleHeight = Math.max(0, judgeLineY - holdBottomY);
 
-          if (yPos > this.JUDGE_LINE) yPos = this.JUDGE_LINE - this.COLUMN_SIZE / 2;
+          if (yPos > judgeLineY - this.COLUMN_SIZE / 2) yPos = judgeLineY - this.COLUMN_SIZE / 2;
 
           note.active = true;
         } else if (typeof note.visibleHeight != "undefined") {
@@ -2676,11 +2714,13 @@ class Player {
         }
 
         let spritesVisible = !note.finish;
+        
+        if (!isActive) visibleHeight += this.COLUMN_SIZE / 2;
 
-        note.holdParts.body.y = yPos + this.COLUMN_SIZE / 2;
+        note.holdParts.body.y = yPos;
         note.holdParts.body.height = visibleHeight;
 
-        note.holdParts.end.y = note.holdParts.body.top +1;
+        note.holdParts.end.y = note.holdParts.body.y - visibleHeight;
 
         note.holdParts.body.visible = spritesVisible;
         note.holdParts.end.visible = spritesVisible;
@@ -2727,7 +2767,182 @@ class Player {
           }[note.column];
         }
         note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos + this.COLUMN_SIZE / 2;
+        note.sprite.y = yPos;
+      }
+    });
+  }
+  
+  renderRising() {
+    const { now, beat } = this.scene.getCurrentTime();
+    const leftOffset = this.calculateLeftOffset();
+    
+    // Render notes
+    this.notes.forEach(note => {
+      const deltaNote = (note.beat - beat) * this.NOTE_SPEED_MULTIPLIER;
+      const bodyHeight = note.beatLength ? (note.beatLength + 1) * this.COLUMN_SIZE * this.NOTE_SPEED_MULTIPLIER * this.VERTICAL_SEPARATION - this.COLUMN_SIZE * 4 : 0;
+      
+      // Rising: notes come from bottom to top
+      let yPos = this.JUDGE_LINE + deltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION;
+      const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
+
+      // Check for missed notes - rising: notes are missed when they go above the screen
+      if (note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos < -this.COLUMN_SIZE) {
+        note.miss = true;
+        this.processJudgement(note, "miss", note.column);
+      }
+
+      // Remove off-screen notes - rising: remove when above screen or below with body
+      if (yPos > game.height + this.COLUMN_SIZE || yPos < -bodyHeight) {
+        if (note.sprite) {
+          note.sprite.kill();
+          delete note.sprite;
+          if (note.holdParts) {
+            note.holdParts.body.destroy();
+            note.holdParts.end.destroy();
+            delete note.holdParts;
+          }
+        }
+        return;
+      }
+
+      const holdData = this.activeHolds[note.column];
+
+      if (note.type === "M") {
+        if (!note.sprite) {
+          note.sprite = this.notesGroup.getFirstDead() || (() => {
+            const sprite = game.add.sprite(x, yPos, "mine");
+            this.notesGroup.add(sprite);
+            return sprite;
+          })();
+          note.sprite.reset(0, -32);
+          note.sprite.loadTexture("mine");
+          note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
+          note.sprite.animations.play("blink");
+        }
+        note.sprite.anchor.set(0.5);
+        note.sprite.x = x + this.COLUMN_SIZE / 2;
+        note.sprite.y = yPos;
+      } else if (note.type === "2" || note.type === "4") {
+        if (!note.holdParts) {
+          const prefix = note.type === "2" ? "hold" : "roll";
+          
+          const getBody = () => {
+            const sprite = this.freezeBodyGroup.getFirstDead() || (() => {
+              const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, `${prefix}_body`);
+              child.scale.y = -1;
+              child.anchor.y = 1;
+              this.freezeBodyGroup.add(child);
+              return child;
+            })();
+            sprite.reset(x, -64);
+            sprite.loadTexture(`${prefix}_body`);
+            return sprite;
+          };
+          
+          const getEnd = () => {
+            const sprite = this.freezeEndGroup.getFirstDead() || (() => {
+              const child = game.add.sprite(0, 0);
+              child.scale.y = -1;
+              child.anchor.y = 1;
+              this.freezeEndGroup.add(child);
+              return child;
+            })();
+            sprite.reset(x, -64);
+            sprite.loadTexture(`${prefix}_end`);
+            return sprite;
+          };
+          
+          note.holdParts = {
+            body: getBody(),
+            end: getEnd()
+          };
+          
+          note.holdActive = false;
+        }
+        
+        const isActive = !note.finish && !note.miss && holdData?.note === note && holdData.active;
+        const isInactive = holdData?.note === note && holdData.inactive;
+
+        let visibleHeightIsSet = typeof note.visibleHeight != "undefined";
+        let visibleHeight = visibleHeightIsSet ? note.visibleHeight : bodyHeight;
+
+        if (visibleHeight < 0) visibleHeight = 1;
+
+        if (isActive) {
+          const holdTopY = yPos + bodyHeight;
+          const judgeLineY = this.JUDGE_LINE;
+          note.visibleHeight = Math.max(0, holdTopY - judgeLineY);
+          
+          if (yPos < judgeLineY + this.COLUMN_SIZE / 2) yPos = judgeLineY + this.COLUMN_SIZE / 2;
+
+          note.active = true;
+        } else if (typeof note.visibleHeight != "undefined") {
+          yPos += bodyHeight - note.visibleHeight;
+          note.active = false;
+        }
+        
+        // Miss note when past judge line - rising: miss when above judge line
+        if (!note.miss && !note.holdActive && yPos < this.JUDGE_LINE - this.COLUMN_SIZE / 2) {
+          note.miss = true;
+          this.processJudgement(note, "miss", note.column);
+        }
+
+        let spritesVisible = !note.finish;
+        
+        if (!isActive) visibleHeight += this.COLUMN_SIZE / 2;
+        
+        // Position hold parts for rising mode
+        note.holdParts.body.y = yPos;
+        note.holdParts.body.height = visibleHeight;
+        note.holdParts.end.y = note.holdParts.body.y + visibleHeight;
+
+        note.holdParts.body.visible = spritesVisible;
+        note.holdParts.end.visible = spritesVisible;
+        
+        if (note.sprite) {
+          note.sprite.visible = !isActive && spritesVisible;
+        }
+
+        const frame = isActive ? 1 : 0;
+        const baseColor = note.type === "2" ? 0x00bb00 : 0x00eeee;
+        const tint = note.miss ? this.INACTIVE_COLOR : baseColor;
+        const alpha = note.miss ? 0.8 : 1;
+
+        note.holdParts.body.frame = frame;
+        note.holdParts.end.frame = frame;
+
+        note.holdParts.body.tint = tint;
+        note.holdParts.end.tint = tint;
+
+        note.holdParts.body.alpha = alpha;
+        note.holdParts.end.alpha = alpha;
+      }
+
+      // Show hold explosion when active
+      if (holdData?.active && !note.finish && !note.miss) {
+        this.toggleHoldExplosion(note.column, true);
+      }
+
+      if (note.type !== "M" && note.type !== "3") {
+        if (!note.sprite) {
+          note.sprite = this.notesGroup.getFirstDead() || (() => {
+            const sprite = game.add.sprite(0, 0);
+            this.notesGroup.add(sprite);
+            return sprite;
+          })();
+          note.sprite.reset(0, -32);
+          note.sprite.loadTexture("arrows");
+          note.sprite.frame = this.getNoteFrame(note);
+          note.sprite.anchor.set(0.5);
+          note.sprite.angle = {
+            0: 90,
+            1: 0,
+            2: 180,
+            3: -90
+          }[note.column];
+        }
+        note.sprite.x = x + this.COLUMN_SIZE / 2;
+        note.sprite.y = yPos;
       }
     });
   }
@@ -2749,6 +2964,16 @@ class Player {
     });
     } else {
       this.autoPlay();
+    }
+    
+    // Key down/up animation
+    for (let i = 0; i < 4; i++) {
+      const receptor = this.receptors[i];
+      const down = this.inputStates[i];
+      if (receptor.down != down) {
+        receptor.down = down;
+        receptor.play(down ? "down" : "up");
+      }
     }
 
     if (this.health != this.previousHealth) {
@@ -2852,8 +3077,20 @@ class Results {
     this.finalAccuracy = player.accuracy;
     this.scoreRating = player.getScoreRating();
     
-    // Save high score and check if it's a new record
+    this.previewAudio = document.createElement("audio");
+    this.previewAudio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
     
+    this.visibilityChangeListener = () => {
+      if (document.hidden) {
+        this.previewAudio?.pause();
+      } else {
+        this.previewAudio?.play();
+      }
+    };
+    
+    window.addEventListener('visibilitychange', this.visibilityChangeListener);
+
+    // Save high score and check if it's a new record
     this.isNewRecord = this.saveHighScore(song, difficulty, player);
     
     this.displayResults();
@@ -2897,7 +3134,7 @@ class Results {
     // Create unique key for song (for both local and external)
     if (song.chart.folderName) {
       return `local_${song.chart.folderName}`;
-    } else if (song.audioUrl) {
+    } else if (song.chart.audioUrl) {
       // For external songs, use audio URL hash
       return `external_${this.hashString(song.chart.audioUrl)}`;
     }
@@ -2927,6 +3164,12 @@ class Results {
     
     this.bannerSprite = game.add.sprite(112, 10);
     
+    if (song.chart.audioUrl) {
+      // Load and play preview
+      this.previewAudio.src = song.chart.audioUrl;
+      this.previewAudio.currentTime = song.chart.sampleStart || 0;
+      this.previewAudio.play();
+    }
     if (song.chart.banner) {
       this.bannerImg.src = song.chart.banner;
       this.bannerImg.onload = () => {
@@ -3006,8 +3249,8 @@ class Results {
     const colors = {
       "SSS+": 0xFFD700, // Gold
       "SSS": 0xFFD700,  // Gold
-      "SS": 0xFFFFFF,   // White
-      "S": 0xFFFFFF,    // White
+      "SS": 0xF0F0F0,   // Silver
+      "S": 0xF0F0F0,    // Silver
       "A": 0x00FF00,    // Green
       "B": 0x0000FF,    // Blue
       "C": 0xFFFF00,    // Yellow
@@ -3020,6 +3263,13 @@ class Results {
 
   update() {
     gamepad.update();
+  }
+  
+  shutdown() {
+    this.previewAudio.pause();
+    this.previewAudio.src = null;
+    this.previewAudio = null;
+    window.removeEventListener("visibilitychange", this.visibilityChangeListener);
   }
 }
 
@@ -3897,7 +4147,7 @@ class Window extends Phaser.Sprite {
   }
 
   playNavSound() {
-    Audio.play('sfx_ui_nav');
+    ENABLE_UI_SFX && Audio.play('sfx_ui_nav');
   }
 
   confirm() {
@@ -3905,7 +4155,7 @@ class Window extends Phaser.Sprite {
       const item = this.items[this.selectedIndex];
       if (item.type === 'item') {
         item.callback && item.callback(this.items[this.selectedIndex]);
-        Audio.play('sfx_ui_select');
+        ENABLE_UI_SFX && Audio.play('sfx_ui_select');
       } else {
         this.handleRight();
       }
@@ -3919,7 +4169,7 @@ class Window extends Phaser.Sprite {
     this.items.forEach(item => {
       if (item.backButton) {
         item.callback();
-        Audio.play('sfx_ui_cancel');
+        ENABLE_UI_SFX && Audio.play('sfx_ui_cancel');
       }
     });
     this.onCancel.dispatch(this.selectedIndex);
@@ -4321,7 +4571,7 @@ class CarouselMenu extends Phaser.Sprite {
       });
     });
     
-    Audio.play('sfx_ui_select');
+    ENABLE_UI_SFX && Audio.play('sfx_ui_select');
   }
   
   animateCancel(callback) {
@@ -4349,7 +4599,7 @@ class CarouselMenu extends Phaser.Sprite {
   
   cancel() {
     if (!this.isAnimating && this.onCancel.getNumListeners() > 0) {
-      Audio.play('sfx_ui_cancel');
+      ENABLE_UI_SFX && Audio.play('sfx_ui_cancel');
       this.animateCancel(() => {
         this.onCancel.dispatch();
         this.destroy();
@@ -4358,7 +4608,7 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   playNavSound() {
-    Audio.play('sfx_ui_nav');
+    ENABLE_UI_SFX && Audio.play('sfx_ui_nav');
   }
   
   clear() {
@@ -4595,6 +4845,27 @@ class FuturisticLines extends Phaser.Sprite {
     this.clearLines();
     this.graphics.destroy();
     super.destroy();
+  }
+}
+
+class LoadingDots extends Phaser.Sprite {
+  constructor() {
+    super(game, game.width - 2, game.height - 2, "ui_loading_dots");
+    
+    this.anchor.set(1);
+    
+    this.animations.add('loading', [0, 1, 2, 3, 4, 3, 2, 1], 8, true);
+    this.animations.play('loading');
+    
+    game.add.existing(this);
+  }
+}
+
+class ProgressText extends Text {
+  constructor(text) {
+    super(4, game.height - 4, text, FONTS.default);
+    
+    this.anchor.y = 1;
   }
 }
 
@@ -5297,7 +5568,6 @@ class ExternalSMParser {
   }
 
   convertSSCNotes(noteData, bpmChanges, stops) {
-    // Simplified conversion - you may need to expand this based on your needs
     const notes = [];
     let measureIndex = 0;
 
@@ -5359,17 +5629,15 @@ class BackgroundMusic {
   }
   
   registerVisibilityChangeListener() {
-    this.visibilityHiddenState = game.state.current;
-    this.visibilityVisibleState = game.state.current;
-    window.addEventListener('visibilitychange', () => {
-      if (document.hidden && this.visibilityVisibleState == game.state.current) {
+    this.visibilityChangeListener = () => {
+      if (document.hidden) {
         this.audio.pause();
-        this.visibilityHiddenState = game.state.current;
-      } else if (this.visibilityHiddenState == game.state.current) {
+      } else {
         this.audio.play();
-        this.visibilityVisibleState = game.state.current;
       }
-    });
+    };
+    
+    window.addEventListener('visibilitychange', this.visibilityChangeListener);
   }
 
   async playLastSong() {
@@ -5561,7 +5829,7 @@ class BackgroundMusic {
   }
 
   setVolume(volume) {
-    this.audio.volume = [0,25,50,100][volume-1] / 100;
+    this.audio.volume = [0,25,50,75,100][volume] / 100;
   }
 
   // Method to manually refresh the cache
@@ -5574,6 +5842,7 @@ class BackgroundMusic {
     this.stop();
     this.audio.src = "";
     this.audio = null;
+    window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.availableSongsCache = null;
   }
 }
@@ -5950,66 +6219,3 @@ class NotificationSystem {
     game.state.onStateChange.remove(this.onStateChange, this);
   }
 }
-
-/**
- * Caps the game's frame rate with frame skipping support
- * @param {number} [targetFps=30] - Desired frame rate, if 0 disable cap
- */
-Phaser.Game.prototype.setFpsCap = function (targetFps = 30) {
-  // Validate input
-  if (targetFps < 0 || targetFps > 60) {
-    console.warn('FPS cap must be between 0 (uncapped) and 60');
-    return;
-  }
-
-  // Remove existing cap if any
-  if (this._fpsCapLoop) {
-    cancelAnimationFrame(this._fpsCapLoop);
-    this._fpsCapLoop = null;
-    this.raf.start();
-  }
-
-  // If 0, return to default uncapped behavior
-  if (targetFps === 0) {
-    console.log('FPS cap removed - using default render loop');
-    return;
-  }
-
-  // Setup new capped loop with frame skipping
-  const targetFrameDuration = 1000 / targetFps;
-  let lastFrameTime = performance.now();
-  let accumulatedTime = 0;
-  const maxFrameSkip = Math.floor(targetFps / 2); // Maximum frames to skip before forcing an update
-
-  // Stop Phaser's automatic updates
-  this.raf.stop();
-
-  const cappedLoop = currentTime => {
-    this._fpsCapLoop = requestAnimationFrame(cappedLoop);
-
-    const deltaTime = currentTime - lastFrameTime;
-    lastFrameTime = currentTime;
-    accumulatedTime += deltaTime;
-
-    // Frame skipping logic
-    let framesToUpdate = 0;
-    if (accumulatedTime >= targetFrameDuration) {
-      framesToUpdate = Math.min(
-        Math.floor(accumulatedTime / targetFrameDuration),
-        maxFrameSkip
-      );
-      accumulatedTime -= framesToUpdate * targetFrameDuration;
-    }
-
-    // Update the game for each skipped frame
-    while (framesToUpdate > 0) {
-      this.update(currentTime);
-      this.renderGB && this.renderGB();
-      framesToUpdate--;
-    }
-  };
-
-  // Start the capped loop
-  this._fpsCapLoop = requestAnimationFrame(cappedLoop);
-  console.log(`FPS capped at ${targetFps} with frame skipping (max ${maxFrameSkip} frames)`);
-};
