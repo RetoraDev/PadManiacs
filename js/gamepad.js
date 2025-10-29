@@ -36,12 +36,12 @@ class Gamepad {
 
     // Keyboard mappings
     this.keyboardMap = {
-      up: [Phaser.KeyCode.UP, Phaser.KeyCode.W],
-      down: [Phaser.KeyCode.DOWN, Phaser.KeyCode.S],
-      left: [Phaser.KeyCode.LEFT, Phaser.KeyCode.A],
-      right: [Phaser.KeyCode.RIGHT, Phaser.KeyCode.D],
-      a: [Phaser.KeyCode.Z, Phaser.KeyCode.J, Phaser.KeyCode.SPACE],
-      b: [Phaser.KeyCode.X, Phaser.KeyCode.K, Phaser.KeyCode.ENTER],
+      up: [Phaser.KeyCode.UP, Phaser.KeyCode.W, Phaser.KeyCode.B],
+      down: [Phaser.KeyCode.DOWN, Phaser.KeyCode.S, Phaser.KeyCode.V],
+      left: [Phaser.KeyCode.LEFT, Phaser.KeyCode.A, Phaser.KeyCode.C],
+      right: [Phaser.KeyCode.RIGHT, Phaser.KeyCode.D, Phaser.KeyCode.N],
+      a: [Phaser.KeyCode.Z, Phaser.KeyCode.J],
+      b: [Phaser.KeyCode.X, Phaser.KeyCode.K],
       select: [Phaser.KeyCode.SHIFT, Phaser.KeyCode.TAB],
       start: [Phaser.KeyCode.ENTER, Phaser.KeyCode.ESC]
     };

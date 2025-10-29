@@ -1,57 +1,103 @@
 PadManiacs: Pocket Pixel Art StepMania Clone
+Copyright (c) 2025 Retora
 
-Software License:
+License: PadManiacs Non-Commercial License v1.0
 
-  Copyright (c) 2025 Retora. All rights reserved.
-  
-  PadManiacs is proprietary software. The source code, game mechanics, visual assets (excluding third-party content), and original implementations are the intellectual property of Retora.
+DEFINITION OF TERMS:
 
-Version:
-  PadManiacs v0.0.2
+"Software" refers to the PadManiacs game executable, source code, and original assets.
+"Original Assets" includes all graphics, code, and content created by Retora specifically for PadManiacs.
+"Third-Party Content" refers to song charts, audio files, and media not created by Retora.
+"Commercial Use" means any use intended for or resulting in commercial advantage or monetary compensation.
+"Non-Commercial Use" means personal, educational, or non-profit use without monetary gain.
+"Distribution" means sharing, publishing, or making the Software available to others.
+"Modification" means any alteration, adaptation, or derivative work based on the Software.
 
-Permissions:
-  - Personal use and gameplay
-  - Educational purposes (code study)
-  - Non-commercial distribution
+GRANT OF LICENSE:
 
-Restrictions:
-  - Commercial use or redistribution
-  - Modification of the software
-  - Creation of derivative works
-  - Reverse engineering
-  - Removal of attribution
-  
-Distribution:
-  - Commercial use or redistribution is strictly prohibited. Contact the developer to discuss distribution rights if you want to distribute a modified copy of the software
-  - Non-commercial distribution is allowed as long as the software has not been modified and credits are given to the original developer
-  - All redistributions must include a copy of this license or at least a reference to it
+Retora grants you a limited, non-exclusive, worldwide license to:
 
-Third-Party Content:
+1. USE the Software for personal, Non-Commercial Use
+2. STUDY the source code for educational and learning purposes
+3. DISTRIBUTE unmodified copies of the Software for Non-Commercial Use
+4. FORK the repository on GitHub for personal or educational use
 
-  This game uses the StepMania (.sm and .ssc) chart format specification. PadManiacs is not affiliated with, endorsed by, or connected to StepMania or its developers. StepMania is an open-source rhythm game engine created by the StepMania development team.
-  All song charts, audio files, and associated media included with or loaded into PadManiacs belong to their respective copyright holders. The game developers do not claim ownership over any musical content, chart data, or artistic works created by third parties.
-  Users are responsible for ensuring they have the proper rights to use any external songs or charts loaded into the application. The software provides tools for loading user-owned content but does not distribute copyrighted material.
+RESTRICTIONS:
+
+You may NOT:
+
+1. Use the Software for Commercial Use without explicit permission
+2. Create Modified versions of the Software for Distribution
+3. Redistribute Modified versions of the Software
+4. Use the Software in a service or product that generates revenue
+5. Remove or alter copyright notices and license information
+
+SPECIFIC PERMISSIONS:
+
+- GitHub hosting is explicitly permitted
+- Forking for educational purposes is allowed
+- Code study and analysis is encouraged
+- Bug reports and suggestions are welcome
+- Non-commercial streaming and content creation is permitted
+
+THIRD-PARTY CONTENT:
+
+This Software uses the StepMania (.sm and .ssc) chart format specification. 
+PadManiacs is not affiliated with, endorsed by, or connected to StepMania 
+or its developers.
+
+All song charts, audio files, and associated media included with or loaded 
+into PadManiacs belong to their respective copyright holders. The Software 
+developers do not claim ownership over any musical content, chart data, or 
+artistic works created by third parties.
+
+Users are responsible for ensuring they have the proper rights to use any 
+external songs or charts loaded into the application.
 
 StepMania Credits:
-  - StepMania software: Copyright © 2001-2024 StepMania Team
-  - Chart format specification: Derived from StepMania open-source project
-  - StepMania is licensed under the MIT License
+- StepMania software: Copyright © 2001-2024 StepMania Team
+- Chart format specification: Derived from StepMania open-source project
+- StepMania is licensed under the MIT License
 
-Open Source Acknowledgments:
-  This software may incorporate concepts and specifications from:
-  - StepMania (chart format, gameplay mechanics)
-  - Dance Dance Revolution (gameplay concept)
-  - Various open-source rhythm games
+DISTRIBUTION TERMS:
 
-Disclaimer:
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+You may distribute unmodified copies of the Software provided:
 
-Compliance:
-  Users must comply with all applicable laws regarding copyrighted content. The software developers are not responsible for user-generated content or illegally distributed material.
+1. This license file is included unchanged
+2. No fees are charged beyond reasonable distribution costs
+3. Original attribution to Retora is maintained
+4. Distribution is for Non-Commercial Use only
 
-Trademarks:
-  All trademarks, service marks, trade names, product names and logos appearing in the game are the property of their respective owners. Any use of third-party trademarks is for identification purposes only and does not imply endorsement or affiliation.
+MODIFICATION POLICY:
 
-Contact:
-  For licensing inquiries or permissions, please contact the developer.
-  
+While Modification of the Software is restricted for Distribution, we 
+encourage:
+
+- Personal modifications for learning and experimentation
+- Forking on GitHub for educational purposes
+- Submitting bug fixes and improvements via pull requests
+- Creating patches that don't modify core executable files
+
+For commercial use, modification rights, or special distribution needs, 
+please contact the developer to discuss licensing options.
+
+DISCLAIMER:
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+DEALINGS IN THE SOFTWARE.
+
+COMPLIANCE:
+
+Users must comply with all applicable laws regarding copyrighted content. 
+The Software developers are not responsible for user-generated content or 
+illegally distributed material.
+
+CONTACT:
+
+For licensing inquiries, commercial use permissions, or special requests, 
+please contact the developer.
