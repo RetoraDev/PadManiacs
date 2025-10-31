@@ -1,6 +1,9 @@
 /_*
 /*_src
+/build
 .nomedia
 .nosearch
 *.apk
 www.zip
+*.exe
+*build.zip

@@ -6,11 +6,11 @@
 #ARTISTTRANSLIT:;
 #GENRE:;
 #CREDIT:Condor Talon;
-#BANNER:a new world bn.png;
-#BACKGROUND:a new world bg.png;
+#BANNER:anewworldbn.png;
+#BACKGROUND:anewworldbg.png;
 #LYRICSPATH:;
 #CDTITLE:cdtitlecondortalon.png;
-#MUSIC:A New World.ogg;
+#MUSIC:ANewWorld.ogg;
 #OFFSET:-1.046;
 #SAMPLESTART:110.012;
 #SAMPLELENGTH:23.557;

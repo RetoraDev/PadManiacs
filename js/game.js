@@ -21,6 +21,7 @@ window.onload = () => {
     failIfMajorPerformanceCaveat: false,
     forceSetTimeOut: false,
     clearBeforeRender: true,
+    forceSingleUpdate: true,
     maxPointers: 0,
     keyboard: true,
     mouse: false,
@@ -74,6 +75,8 @@ class Boot {
     notifications = new NotificationSystem();
     
     game.time.advancedTiming = true;
+    game.time.desiredFps = 60;
+    game.time.desiredMinFps = 5;
     
     game.world.updateOnlyExistingChildren = true;
     
@@ -207,6 +210,9 @@ class Load {
           break;
         case 'audio':
           this.load.audio(resource.key, resource.url);
+          break;
+        case 'video':
+          this.load.video(resource.key, resource.url, 'canplay', true);
           break;
         case 'json':
           this.load.json(resource.key, resource.url);
@@ -353,7 +359,7 @@ class LoadExternalSongs {
     
     if (window.externalSongs) {
       this.songs = window.externalSongs;
-      this.finish(window.lastExternalSongIndex);
+      this.finish(window.lastExternalSongIndex || 0);
       return;
     }
     
@@ -647,8 +653,16 @@ class LoadExternalSongs {
 
   getDirectory(path) {
     return new Promise((resolve, reject) => {
+      let rootDir = LocalFileSystem.PERSISTENT;
+      if (game.device.windows) {
+        rootDir = cordova.file.dataDirectory; // C:/Users/[username]/AppData/Local/Packages/[package-id]/LocalState/
+      } else if (game.device.macOS || game.device.iOS) {
+        rootDir = cordova.file.documentsDirectory; // ~/Documents/
+      } else if (game.device.android) {
+        rootDir = cordova.file.externalRootDirectory; // <sdcard>/
+      }
       window.resolveLocalFileSystemURL(
-        cordova.file.externalRootDirectory + path,
+        rootDir + path,
         dir => resolve(dir),
         err => reject(err)
       );
@@ -1000,22 +1014,12 @@ class MainMenu {
           const selectedOption = noteOptions[index].value;
           Account.settings.noteColorOption = selectedOption;
           saveAccount();
-          
-          if (notifications && notifications.canShowInCurrentState()) {
-            //notifications.show(`NOTE COLORS\n${noteOptions[index].display}`, 1500);
-          }
-          
-          // If we're in gameplay, update immediately
-          const currentState = game.state.getCurrentState();
-          if (currentState instanceof Play && currentState.player) {
-            currentState.player.setNoteColorOption(selectedOption);
-          }
         }
       );
 
       settingsWindow.addSettingItem(
         "Note Speed",
-        ["Normal", "Double"],
+        ["Normal", "Double", "Triple", "Insane", "Sound Barrier", "Light Speed", "Faster than light"],
         Account.settings.noteSpeedMult - 1,
         index => {
           Account.settings.noteSpeedMult = index + 1;
@@ -1140,7 +1144,7 @@ class MainMenu {
       Account.highScores = {};
       saveAccount();
       settings();
-    });
+    }, () => settings());
     
     const restoreDefaultSettings = () => {
       confirm("All settings will be restored to default.\nA refresh is needed", () => {
@@ -1457,36 +1461,8 @@ class SongSelect {
   }
 
   startGame(song, difficultyIndex) {
-    console.log(song);
-    // Load all required assets for the song
-    const resources = [
-      {
-        key: `song_${song.folderName}_audio`,
-        url: song.audioUrl,
-        type: 'audio'
-      }
-    ];
-
-    // Add banner if available
-    if (song.banner && song.banner !== "assets/no-banner.png") {
-      resources.push({
-        key: `song_${song.folderName}_banner`,
-        url: song.banner,
-        type: 'image'
-      });
-    }
-
-    // Add background if available
-    if (song.background && song.background !== "assets/no-background.png") {
-      resources.push({
-        key: `song_${song.folderName}_background`,
-        url: song.background,
-        type: 'image'
-      });
-    }
-
-    // Load resources and start gameplay
-    game.state.start("Load", true, false, resources, "Play", {
+    // Start gameplay with selected song
+    game.state.start("Play", true, false, {
       chart: song,
       difficultyIndex: difficultyIndex
     });
@@ -1534,6 +1510,7 @@ class Play {
     this.startTime = 0;
     this.autoplay = Account.settings.autoplay;
     this.userOffset = Account.settings.userOffset;
+    this.lastVideoUpdateTime = 0;
     
     // Save last song to Account
     Account.lastSong = {
@@ -1575,7 +1552,8 @@ class Play {
     game.camera.fadeIn(0x000000);
     
     // Create background
-    this.backgroundSprite = game.add.sprite(0, 0, null);
+    this.backgroundLayer = game.add.group();
+    this.backgroundSprite = game.add.sprite(0, 0, null, 0, this.backgroundLayer);
     this.backgroundSprite.alpha = 0.6;
     this.backgroundCanvas = document.createElement("canvas");
     this.backgroundCanvas.width = 192;
@@ -1686,7 +1664,7 @@ class Play {
   
   setBackground() {
     // Set initial background
-    if (this.song.chart.background && this.song.chart.background !== "assets/no-background.png") {
+    if (this.song.chart.background && this.song.chart.background !== "no-media") {
       this.loadBackgroundImage(this.song.chart.background);
     } else {
       // Default black background
@@ -1719,6 +1697,33 @@ class Play {
       this.updateBackgroundTexture();
     };
     img.src = url;
+  }
+  
+  applyBackground(bg) {
+    if (this.backgroundVideo) this.backgroundVideo.destroy();
+    if (bg.file == '-nosongbg-') {
+      this.backgroundSprite.loadTexture(null);
+    } else if (bg.type == 'video') {
+      this.video.src = bg.url;
+      this.video.play();
+    } else {
+      this.loadBackgroundImage(bg.url);
+      this.video.src = "";
+    }
+    this.currentBackground = bg;
+    this.applyBgEffects(bg);
+  }
+  
+  applyBgEffects(bg) {
+    if (bg.fadeIn) {
+      this.backgroundSprite.alpha = 0;
+      game.add.tween(this.backgroundSprite).to({ alpha: parseFloat(bg.opacity) }, 500, "Linear",true);
+    } else {
+      this.backgroundSprite.alpha = bg.opacity;
+    }
+    
+    // TODO: Fade out
+    // TODO: Apply bg.effect
   }
   
   updateBackgroundTexture() {
@@ -1794,7 +1799,7 @@ class Play {
         game.state.start("SongSelect", true, false, null, null, true);
       });
     }
-    this.pauseCarousel.addItem("RESTART", () => game.state.restart(true, false, this.song, this.difficultyIndex));
+    this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex));
     this.pauseCarousel.addItem("GIVE UP", () => this.songEnd());
     this.pauseCarousel.addItem("QUIT", () => game.state.start("MainMenu"));
     
@@ -1829,6 +1834,31 @@ class Play {
     return this.player ? this.player.secToBeat(sec) : 0;
   }
   
+  updateBackgrounds() {
+    const { beat } = this.getCurrentTime();
+    
+    // Check for background(s) needed for this beat
+    this.song.chart.backgrounds.forEach(bg => {
+      if (beat >= bg.beat && !bg.activated) {
+        bg.activated = true;
+        this.backgroundQueue.push(bg);
+      }
+    });
+    
+    // Process the queue
+    if (this.backgroundQueue.length > 0) {
+      const nextBG = this.backgroundQueue.shift();
+      this.applyBackground(nextBG);
+    }
+    
+    // Update video if needed
+    if (this.currentBackground && this.currentBackground.type == "video" && game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 2)) {
+      this.lastVideoUpdateTime = game.time.now;
+      this.backgroundCtx.drawImage(this.video, 0, 0, 192, 112);
+      this.updateBackgroundTexture();
+    }
+  }
+  
   update() {
     gamepad.update();
     
@@ -1841,6 +1871,8 @@ class Play {
     this.lastStart = gamepad.pressed.start;
     
     this.player.update();
+    
+    this.updateBackgrounds();
     
     this.hud.bringToTop();
     this.hud.alpha = this.player.gameOver ? 0.5 : 1;
@@ -1866,6 +1898,7 @@ class Play {
       this.video.src = "";
       this.video = null;
     }
+    this.song.chart.backgrounds.forEach(bg => bg.activated = false);
   }
 }
 
@@ -1949,16 +1982,90 @@ class Player {
     this.freezeBodyGroup = game.add.group();
     this.freezeEndGroup = game.add.group();
     this.notesGroup = game.add.group();
+    this.explosionsGroup = game.add.group();
     
     // Note color option (default to NOTE)
     this.noteColorOption = Account.settings.noteColorOption || 'NOTE';
     
+    // Define color constants for spritesheet frames
+    const COLORS = {
+      // This is how spritesheet frames are colored
+      // They are ordered like NOTE color pattern
+      RED: 0,      // 4th
+      BLUE: 1,     // 8th
+      PURPLE: 2,   // 12th
+      YELLOW: 3,   // 16th
+      PINK: 4,     // 24th
+      ORANGE: 5,   // 32nd
+      CYAN: 6,     // 48th
+      GREEN: 7,    // 64th
+      WHITE: 8,    // 96th
+      SKYBLUE: 9,  // 128th
+      OLIVE: 10,   // 192nd
+      GRAY: 11     // Anything faster
+    };
+    
     // Color mappings for different options
     this.colorMappings = {
-      NOTE: this.getNoteColorMapping(),
-      VIVID: this.getVividColorMapping(),
-      FLAT: this.getFlatColorMapping(),
-      RAINBOW: this.getRainbowColorMapping()
+      NOTE: {
+        4: COLORS.RED,
+        8: COLORS.BLUE,
+        12: COLORS.PURPLE,
+        16: COLORS.YELLOW,
+        24: COLORS.PINK,
+        32: COLORS.ORANGE,
+        48: COLORS.CYAN,
+        64: COLORS.GREEN,
+        96: COLORS.WHITE,
+        128: COLORS.SKYBLUE,
+        192: COLORS.OLIVE,
+        default: COLORS.GRAY
+      },
+      VIVID: {
+        // VIVID: Color cycle per beat (Yellow, Maroon, Blue, Cyan)
+        4: COLORS.YELLOW,   // 4th - Yellow
+        8: COLORS.RED,      // 8th - Maroon (using RED as closest)
+        12: COLORS.BLUE,    // 12th - Blue
+        16: COLORS.CYAN,    // 16th - Cyan
+        24: COLORS.YELLOW,  // 24th - Yellow (cycle repeats)
+        32: COLORS.RED,     // 32nd - Maroon
+        48: COLORS.BLUE,    // 48th - Blue
+        64: COLORS.CYAN,    // 64th - Cyan
+        96: COLORS.YELLOW,  // 96th - Yellow
+        128: COLORS.RED,    // 128th - Maroon
+        192: COLORS.BLUE,   // 192nd - Blue
+        default: COLORS.CYAN // Ultra-fast - Cyan
+      },
+      FLAT: {
+        // FLAT: All notes same color as VIVID 4th notes (Yellow)
+        4: COLORS.YELLOW,   // 4th - Yellow
+        8: COLORS.YELLOW,   // 8th - Yellow
+        12: COLORS.YELLOW,  // 12th - Yellow
+        16: COLORS.YELLOW,  // 16th - Yellow
+        24: COLORS.YELLOW,  // 24th - Yellow
+        32: COLORS.YELLOW,  // 32nd - Yellow
+        48: COLORS.YELLOW,  // 48th - Yellow
+        64: COLORS.YELLOW,  // 64th - Yellow
+        96: COLORS.YELLOW,  // 96th - Yellow
+        128: COLORS.YELLOW, // 128th - Yellow
+        192: COLORS.YELLOW, // 192nd - Yellow
+        default: COLORS.YELLOW // Ultra-fast - Yellow
+      },
+      RAINBOW: {
+        // RAINBOW: Orange, Blue, Purple/Pink with color reuse
+        4: COLORS.ORANGE,   // 4th - Orange
+        8: COLORS.BLUE,     // 8th - Blue
+        12: COLORS.PINK,    // 12th - Purple/Pink
+        16: COLORS.PINK,    // 16th - Purple/Pink
+        24: COLORS.BLUE,    // 24th - Blue (reused)
+        32: COLORS.ORANGE,  // 32nd - Orange (reused)
+        48: COLORS.PINK,    // 48th - Purple/Pink
+        64: COLORS.BLUE,    // 64th - Blue (reused)
+        96: COLORS.PINK,    // 96th - Purple/Pink
+        128: COLORS.ORANGE, // 128th - Orange (reused)
+        192: COLORS.BLUE,   // 192nd - Blue (reused)
+        default: COLORS.PINK // Ultra-fast - Purple/Pink
+      }
     };
   }
 
@@ -2067,7 +2174,7 @@ class Player {
       }
     }
     
-    // Process hold notes for auto-play
+    // Process freezes for auto-play
     for (let column = 0; column < 4; column++) {
       const holdNote = this.notes.find(n => 
         (n.type === "2" || n.type === "4") && 
@@ -2088,34 +2195,6 @@ class Player {
       if (activeHold && activeHold.progress >= activeHold.note.secLength) {
         this.handleInput(column, false);
         this.autoplayActiveHolds.delete(column);
-      }
-    }
-    
-    // Process roll notes (type "4") - need rapid tapping
-    for (let column = 0; column < 4; column++) {
-      const rollNote = this.notes.find(n => 
-        n.type === "4" && 
-        n.column === column && 
-        !n.hit && 
-        n.beat <= beat && 
-        n.beat + n.beatLength >= beat
-      );
-      
-      if (rollNote && this.autoplayActiveHolds.has(column)) {
-        // For rolls, simulate rapid tapping while the note is active
-        const activeHold = this.activeHolds[column];
-        if (activeHold && activeHold.note === rollNote) {
-          const timeSinceLastTap = now - (activeHold.lastTap || 0);
-          const tapInterval = 100; // Tap every 100ms for rolls
-          
-          if (timeSinceLastTap > tapInterval) {
-            // Simulate tap by briefly releasing and pressing
-            this.handleInput(column, false);
-            this.handleInput(column, true);
-            activeHold.lastTap = now;
-            activeHold.tapped++;
-          }
-        }
       }
     }
     
@@ -2215,7 +2294,7 @@ class Player {
     const mineNote = this.notes.find(n => n.type === "M" && n.column === column && !n.hit && Math.abs(n.beat - beat) <= this.scene.JUDGE_WINDOWS.marvelous);
 
     if (mineNote) {
-      this.createMineExplosion(mineNote);
+      this.createExplosion(mineNote, "mine");
       this.processJudgement(mineNote, "miss", column);
       mineNote.hit = true;
       mineNote.sprite?.destroy();
@@ -2277,6 +2356,9 @@ class Player {
   processJudgement(note, judgement, column) {
     const scoreValue = this.scene.SCORE_VALUES[judgement];
     if (!this.gameOver) this.score += scoreValue;
+    
+    // Judge marvelous if autoplay
+    if (this.autoplay) judgement = "marvelous";
     
     // Update judgement counts
     this.judgementCounts[judgement]++;
@@ -2417,128 +2499,53 @@ class Player {
     return (r << 16) | (g << 8) | b;
   }
 
-  createExplosion(note) {
+  createExplosion(note, type = "normal") {
     const receptor = this.receptors[note.column];
-    const explosion = game.add.sprite(receptor.x, receptor.y, "explosion");
-    explosion.anchor.set(0.5);
+    
+    const existingChild = this.explosionsGroup.getFirstDead();
+    
+    const explosion = existingChild || (() => {
+      const child = game.add.sprite(-64, -64);
+      child.anchor.set(0.5);
+      this.explosionsGroup.add(child);
+      return child;
+    })();
+    
+    explosion.loadTexture(type == "normal" ? "explosion" : "mineexplosion");
+    explosion.reset(receptor.x, receptor.y);
+    explosion.alpha = 1;
+    explosion.scale.set(1);
     explosion.angle = receptor.angle;
     
     const duration = 200;
-    game.add.tween(explosion.scale).to({ x: 2, y: 2 }, duration, "Linear", true);
+    game.add.tween(explosion.scale)
+      .to({ x: 2, y: 2 }, duration, "Linear", true);
     game.add
       .tween(explosion)
       .to({ alpha: 0 }, duration, "Linear", true)
-      .onComplete.add(() => explosion.destroy());
-  }
-
-  createMineExplosion(note) {
-    const receptor = this.receptors[note.column];
-    const explosion = game.add.sprite(receptor.x, receptor.y, "mineexplosion");
-    explosion.anchor.set(0.5);
-    explosion.angle = receptor.angle;
-
-    const duration = 200;
-    game.add.tween(explosion.scale).to({ x: 2.5, y: 2.5 }, duration, "Linear", true);
-    game.add
-      .tween(explosion)
-      .to({ alpha: 0 }, duration, "Linear", true)
-      .onComplete.add(() => explosion.destroy());
-  }
-  
-  // NOTE mode - stepmania default
-  getNoteColorMapping() {
-    return {
-      0: 0xFF0000,  // 4th - Red
-      1: 0x0000FF,  // 8th - Blue
-      2: 0x00FF00,  // 12th+ - Green (NOTE mode makes all others green)
-      3: 0xFFFF00,  // 16th - Yellow
-      4: 0x00FF00,  // 24th - Green
-      5: 0x00FF00,  // 32nd - Green
-      6: 0x00FF00,  // 48th - Green
-      7: 0x00FF00,  // 64th - Green
-      8: 0x00FF00,  // 96th - Green
-      9: 0x00FF00,  // 128th - Green
-      10: 0x00FF00, // 192nd - Green
-      11: 0x00FF00  // 384th+ - Green
-    };
-  }
-
-  // VIVID mode - color cycle per beat
-  getVividColorMapping() {
-    const vividColors = [0xFFFF00, 0x800000, 0x0000FF, 0x00FFFF]; // Yellow, Maroon, Blue, Cyan
-    
-    return {
-      0: vividColors[0],  // 4th - Yellow
-      1: vividColors[1],  // 8th - Maroon
-      2: vividColors[2],  // 12th - Blue
-      3: vividColors[3],  // 16th - Cyan
-      4: vividColors[0],  // 24th - Yellow
-      5: vividColors[1],  // 32nd - Maroon
-      6: vividColors[2],  // 48th - Blue
-      7: vividColors[3],  // 64th - Cyan
-      8: vividColors[0],  // 96th - Yellow
-      9: vividColors[1],  // 128th - Maroon
-      10: vividColors[2], // 192nd - Blue
-      11: vividColors[3]  // 384th+ - Cyan
-    };
-  }
-
-  // FLAT mode - all notes same color as 4th notes
-  getFlatColorMapping() {
-    const flatColor = 0xFFFF00; // Yellow (same as VIVID 4th notes)
-    
-    return {
-      0: flatColor,  // 4th - Yellow
-      1: flatColor,  // 8th - Yellow
-      2: flatColor,  // 12th - Yellow
-      3: flatColor,  // 16th - Yellow
-      4: flatColor,  // 24th - Yellow
-      5: flatColor,  // 32nd - Yellow
-      6: flatColor,  // 48th - Yellow
-      7: flatColor,  // 64th - Yellow
-      8: flatColor,  // 96th - Yellow
-      9: flatColor,  // 128th - Yellow
-      10: flatColor, // 192nd - Yellow
-      11: flatColor  // 384th+ - Yellow
-    };
-  }
-
-  // RAINBOW mode - orange, blue, purple/pink
-  getRainbowColorMapping() {
-    return {
-      0: 0xFF8800,  // 4th - Orange
-      1: 0x0000FF,  // 8th - Blue
-      2: 0xFF00FF,  // 12th - Purple/Pink
-      3: 0xFF00FF,  // 16th - Purple/Pink
-      4: 0x0000FF,  // 24th - Blue (reused)
-      5: 0xFF8800,  // 32nd - Orange (reused)
-      6: 0xFF00FF,  // 48th - Purple/Pink
-      7: 0x0000FF,  // 64th - Blue (reused)
-      8: 0xFF00FF,  // 96th - Purple/Pink
-      9: 0xFF8800,  // 128th - Orange (reused)
-      10: 0x0000FF, // 192nd - Blue (reused)
-      11: 0xFF00FF  // 384th+ - Purple/Pink
-    };
+      .onComplete.add(() => explosion.kill());
   }
   
   getNoteFrame(note) {
     const beat = note.beat;
     
-    // Check for specific beat divisions in order of increasing frequency
-    if (this.isBeatDivision(beat, 4)) return 0;   // 4th notes
-    if (this.isBeatDivision(beat, 8)) return 1;   // 8th notes
-    if (this.isBeatDivision(beat, 12)) return 2;  // 12th notes
-    if (this.isBeatDivision(beat, 16)) return 3;  // 16th notes
-    if (this.isBeatDivision(beat, 24)) return 4;  // 24th notes
-    if (this.isBeatDivision(beat, 32)) return 5;  // 32nd notes
-    if (this.isBeatDivision(beat, 48)) return 6;  // 48th notes
-    if (this.isBeatDivision(beat, 64)) return 7;  // 64th notes
-    if (this.isBeatDivision(beat, 96)) return 8;  // 96th notes
-    if (this.isBeatDivision(beat, 128)) return 9; // 128th notes
-    if (this.isBeatDivision(beat, 192)) return 10; // 192nd notes
+    // Get the current color mapping
+    const colorMapping = this.colorMappings[this.noteColorOption];
     
-    // For anything faster than 192nd, use frame 11
-    return 11;
+    // Check each division in the mapping
+    const divisions = Object.keys(colorMapping)
+      .filter(key => key !== 'default')
+      .map(Number)
+      .sort((a, b) => a - b);
+    
+    for (const division of divisions) {
+      if (this.isBeatDivision(beat, division)) {
+        return colorMapping[division];
+      }
+    }
+    
+    // Return default frame for ultra-fast notes
+    return colorMapping.default;
   }
 
   isBeatDivision(beat, division) {
@@ -2549,47 +2556,6 @@ class Player {
     return Math.abs(remainder) < epsilon || Math.abs(remainder - 4) < epsilon;
   }
 
-  // Actually unused. Might be removed in the future 
-  getNoteColor(note) {
-    const frame = this.getNoteFrame(note);
-    const colorMapping = this.colorMappings[this.noteColorOption];
-    
-    return colorMapping[frame] || 0x888888; // Fallback to gray
-  }
-  
-  // Method to change note color option
-  setNoteColorOption(option) {
-    if (this.colorMappings[option]) {
-      this.noteColorOption = option;
-      Account.settings.noteColorOption = option;
-      saveAccount();
-      
-      // Refresh all note colors if we're in gameplay
-      this.refreshNoteColors();
-    }
-  }
-
-  refreshNoteColors() {
-    // Update colors for all existing notes
-    this.notes.forEach(note => {
-      if (note.sprite) {
-        //const color = this.getNoteColor(note);
-        //note.sprite.tint = color;
-        const frame = this.getNoteFrame(note);
-      }
-    });
-  }
-
-  // Method to get available note options
-  getNoteColorOptions() {
-    return [
-      { key: 'NOTE', name: 'NOTE', description: 'Red/Blue/Yellow/Green' },
-      { key: 'VIVID', name: 'VIVID', description: 'Yellow/Maroon/Blue/Cyan cycle' },
-      { key: 'FLAT', name: 'FLAT', description: 'All notes yellow' },
-      { key: 'RAINBOW', name: 'RAINBOW', description: 'Orange/Blue/Purple' }
-    ];
-  }
-  
   render() {
     if (!this.scene.startTime || this.scene.isPaused) return;
 
@@ -2599,7 +2565,7 @@ class Player {
       this.renderRising();
     }
   }
-
+  
   renderFalling() {
     if (!this.scene.startTime || this.scene.isPaused) return;
 
@@ -2718,9 +2684,9 @@ class Player {
         if (!isActive) visibleHeight += this.COLUMN_SIZE / 2;
 
         note.holdParts.body.y = yPos;
-        note.holdParts.body.height = visibleHeight;
+        note.holdParts.body.height = Math.floor(visibleHeight);
 
-        note.holdParts.end.y = note.holdParts.body.y - visibleHeight;
+        note.holdParts.end.y = note.holdParts.body.y - visibleHeight + 1;
 
         note.holdParts.body.visible = spritesVisible;
         note.holdParts.end.visible = spritesVisible;
@@ -2893,8 +2859,8 @@ class Player {
         
         // Position hold parts for rising mode
         note.holdParts.body.y = yPos;
-        note.holdParts.body.height = visibleHeight;
-        note.holdParts.end.y = note.holdParts.body.y + visibleHeight;
+        note.holdParts.body.height = Math.floor(visibleHeight);
+        note.holdParts.end.y = note.holdParts.body.y + visibleHeight - 1;
 
         note.holdParts.body.visible = spritesVisible;
         note.holdParts.end.visible = spritesVisible;
@@ -2976,21 +2942,30 @@ class Player {
       }
     }
 
+    // Update healh
     if (this.health != this.previousHealth) {
       this.previousHealth = this.health;
-      //this.scene.lifebarMiddle.width = (this.health / this.maxHealth) * 104;
       game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.maxHealth) * 104 }, 100, Phaser.Easing.Quadratic.In, true);
       if (this.health <= 0) {
         this.gameOver = true;
-        // TODO: Danger warning
+        this.health = 0;
       }
+      this.healthText.write(`${Math.floor(this.health / this.maxHealth * 100)}`);
     }
     this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
+    if (this.scene.acurracyBar) {
+      if (this.accuracy <= 0) {
+        this.scene.acurracyBar.visible = false;
+      } else {
+        this.scene.acurracyBar.visible = true;
+      }
+    }
 
     // Update active holds
     Object.entries(this.activeHolds).forEach(([col, hold]) => {
       const { now } = this.scene.getCurrentTime();
-      if (hold.note.type === "2") {
+      
+      if (this.autoplay || hold.note.type === "2") {
         if (!hold.active) {
           const sinceRelease = now - hold.lastRelease;
           if (sinceRelease > this.HOLD_FORGIVENESS) {
@@ -3019,7 +2994,7 @@ class Player {
           const requiredTaps = Math.ceil(hold.note.beatLength * this.ROLL_REQUIRED_INTERVALS);
           judgement = hold.tapped >= requiredTaps && !hold.note.miss ? "marvelous" : "boo";
         }
-
+      
         hold.note.finish = true;
 
         this.processJudgement(hold.note, judgement, Number(col));
@@ -3470,71 +3445,6 @@ class Text extends Phaser.Sprite {
         this.timer.loopDelay = newSpeed;
       }
     };
-  }
-
-  scrollwriteBidirectional(text, visibleLength = 5, scrollSpeed = 200, separation = 5) {
-    if (this.timer.running) this.timer.stop();
-
-    const fullText = text + ' '.repeat(separation);
-    let position = 0;
-    let direction = 1; // 1 = right, -1 = left
-    let pauseCount = 0;
-    const maxPause = 10; // Pause at ends
-
-    this.timer.loop(scrollSpeed, () => {
-      // Pause at the beginning and end
-      if (pauseCount > 0) {
-        pauseCount--;
-        return;
-      }
-
-      let visibleText = '';
-      
-      if (direction === 1) {
-        // Scrolling right
-        for (let i = 0; i < visibleLength; i++) {
-          const charIndex = (position + i) % fullText.length;
-          visibleText += fullText[charIndex];
-        }
-        
-        position = (position + 1) % fullText.length;
-        
-        // Change direction when we reach the end
-        if (position === 0) {
-          direction = -1;
-          pauseCount = maxPause;
-        }
-      } else {
-        // Scrolling left
-        for (let i = 0; i < visibleLength; i++) {
-          let charIndex = position - i;
-          if (charIndex < 0) charIndex += fullText.length;
-          visibleText += fullText[charIndex];
-        }
-        
-        position = (position - 1 + fullText.length) % fullText.length;
-        
-        // Change direction when we reach the beginning
-        if (position === fullText.length - 1) {
-          direction = 1;
-          pauseCount = maxPause;
-        }
-      }
-
-      this.write(visibleText);
-    });
-
-    this.timer.start();
-
-    return {
-      stop: () => this.timer.stop(),
-      pause: () => this.timer.pause(),
-      resume: () => this.timer.resume()
-    };
-  }
-
-  marquee(text, visibleLength = 5, scrollSpeed = 200) {
-    return this.scrollwrite(text, visibleLength, scrollSpeed, visibleLength);
   }
 
   stopScrolling() {
@@ -4902,9 +4812,9 @@ class LocalSMParser {
     out.stops = [];
     out.notes = {};
     out.backgrounds = [];
-    out.banner = "assets/no-banner.png";
+    out.banner = "no-media";
     out.difficulties = [];
-    out.background = "assets/no-background.png";
+    out.background = "no-media";
     out.cdtitle = null;
     out.audioUrl = null;
     out.videoUrl = null;
@@ -5130,9 +5040,9 @@ class LocalSMParser {
       stops: [],
       notes: {},
       backgrounds: [],
-      banner: "assets/no-banner.png",
+      banner: "no-media",
       difficulties: [],
-      background: "assets/no-background.png",
+      background: "no-media",
       cdtitle: null,
       audioUrl: null,
       videoUrl: null,
@@ -5193,9 +5103,9 @@ class ExternalSMParser {
     out.stops = [];
     out.notes = {};
     out.backgrounds = [];
-    out.banner = "assets/no-banner.png";
+    out.banner = "no-media";
     out.difficulties = [];
-    out.background = "assets/no-background.png";
+    out.background = "no-media";
     out.cdtitle = null;
     out.audioUrl = null;
     out.videoUrl = null;
@@ -5436,9 +5346,9 @@ class ExternalSMParser {
       stops: [],
       notes: {},
       backgrounds: [],
-      banner: "assets/no-banner.png",
+      banner: "no-media",
       difficulties: [],
-      background: "assets/no-background.png",
+      background: "no-media",
       cdtitle: null,
       audioUrl: null,
       videoUrl: null,

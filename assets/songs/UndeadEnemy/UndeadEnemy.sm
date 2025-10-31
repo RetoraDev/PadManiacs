@@ -6,11 +6,11 @@
 #ARTISTTRANSLIT:;
 #GENRE:;
 #CREDIT:Mister Green Bean's Simfiles Set 10;
-#BANNER:Undead Enemy-banner.png;
-#BACKGROUND:Undead Enemy-bg.png;
+#BANNER:UndeadEnemy-banner.png;
+#BACKGROUND:UndeadEnemy-bg.png;
 #LYRICSPATH:;
 #CDTITLE:;
-#MUSIC:Undead Enemy.ogg;
+#MUSIC:UndeadEnemy.ogg;
 #OFFSET:-0.215000;
 #SAMPLESTART:39.146751;
 #SAMPLELENGTH:20.230560;

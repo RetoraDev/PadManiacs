@@ -8,11 +8,11 @@
 #CREDIT:Huzure;
 #MENUCOLOR:;
 #METERTYPE:DDR;
-#BANNER:Hatsune Miku - Melt-bn.png;
-#BACKGROUND:Hatsune Miku - Melt-bg.png;
-#LYRICSPATH:Hatsune Miku - Melt.lrc;
+#BANNER:HatsuneMiku-Melt-bn.png;
+#BACKGROUND:HatsuneMiku-Melt-bg.png;
+#LYRICSPATH:HatsuneMiku-Melt.lrc;
 #CDTITLE:Huz'm-Cdtitle.png;
-#MUSIC:Hatsune Miku - Melt.mp3;
+#MUSIC:HatsuneMiku-Melt.mp3;
 #OFFSET:1.248;
 #SAMPLESTART:60.820;
 #SAMPLELENGTH:11.180;

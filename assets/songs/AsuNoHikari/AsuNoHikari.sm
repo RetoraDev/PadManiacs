@@ -5,12 +5,12 @@
 #SUBTITLETRANSLIT:;
 #ARTISTTRANSLIT:;
 #GENRE:;
-#CREDIT:;
-#BANNER:asu no hikari bn.png;
-#BACKGROUND:asu no hikari bg.png;
+#CREDIT:Condor Talon;
+#BANNER:asunohikaribn.png;
+#BACKGROUND:asunohikaribg.png;
 #LYRICSPATH:;
 #CDTITLE:cdtitlecondortalon.png;
-#MUSIC:Asu No Hikari.ogg;
+#MUSIC:AsuNoHikari.ogg;
 #OFFSET:0.012;
 #SAMPLESTART:84.812;
 #SAMPLELENGTH:14.435;

@@ -6,11 +6,11 @@
 #ARTISTTRANSLIT:Kasane Teto;
 #GENRE:;
 #CREDIT:Hazenkain;
-#BANNER:Kasane Territory - Kasane Teto-banner.png;
-#BACKGROUND:Kasane Territory - Kasane Teto-bg.png;
-#LYRICSPATH:Kasane Teto - Kasane Territory.lrc;
-#CDTITLE:Kasane Territory - Kasane Teto-cd.png;
-#MUSIC:Kasane Territory - Kasane Teto.mp3;
+#BANNER:KasaneTerritory-KasaneTeto-banner.png;
+#BACKGROUND:KasaneTerritory-KasaneTeto-bg.png;
+#LYRICSPATH:KasaneTeto-KasaneTerritory.lrc;
+#CDTITLE:KasaneTerritory-KasaneTeto-cd.png;
+#MUSIC:KasaneTerritory-KasaneTeto.mp3;
 #OFFSET:-0.020;
 #SAMPLESTART:44.820;
 #SAMPLELENGTH:15.240;

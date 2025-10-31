@@ -60,27 +60,13 @@ Use "Load Single Song" from the Extra Songs menu. Select the entire folder conta
 
 ### Settings
 - **Volume**: Controls the global music volume level (0%-100%)
-- **Menu Music**: Sets menu background music behavior:
-  - LAST SONG: Play the last song you played
-  - RANDOM SONG: Plays a random song 
-  - OFF: Disables menu music entirely
+- **Menu Music**: Sets menu background music behavior
 - **Auto-play**: Toggles automatic gameplay (notes play themselves)
-- **Scroll Direction**: Changes note movement direction:
-  - FALLING: Notes fall from top to bottom
-  - RISING: Notes rise from bottom to top
-- **Note Speed**: Adjusts the speed at which notes move:
-  - Normal: Standard speed
-  - Double: Twice the normal speed
+- **Scroll Direction**: Changes note movement direction
+- **Note Speed**: Adjusts the speed at which notes move
 - **Global Offset**: Fine-tunes audio synchronization (-400ms to +400ms in 25ms increments)
-- **Note Colors**: Changes the appearance of notes:
-  - NOTE: Default note colors
-  - VIVID: More vibrant colors
-  - FLAT: Solid, flat colors
-  - RAINBOW: Multi-colored rainbow effect
+- **Note Colors**: Changes the appearance of notes
 - **Renderer**: Selects graphics rendering method:
-  - AUTO: Automatically chooses best renderer
-  - CANVAS: Uses Canvas rendering (faster)
-  - WEBGL: Uses WebGL rendering (best performance)
 - **Pixelated**: Toggles pixel-perfect scaling
 - **Erase Highscores**: Permanently clears all saved high scores
 - **Restore Default Settings**: Resets all settings to factory defaults
@@ -92,7 +78,7 @@ Changes are saved automatically when made. Some settings require app restart to 
 
 - **StepMania (.sm)**: Fully supported
 - **StepMania SSC (.ssc)**: Won't work
-- **Background Videos**: Won't work
+- **Background Videos**: Supported but .AVI videos won't play
 
 ## Platforms
 
@@ -102,7 +88,7 @@ Changes are saved automatically when made. Some settings require app restart to 
 ## Known Limitations
 
 - SSC chart format support not finished
-- Background videos logic not finished
+- Background videos will work, but .AVI format is not supported by HTML5 video player and won't load
 - Web version requires manual song loading
 - Most mobile file browsers may require selecting individual files one by one
 - No specific binary for desktop

@@ -6,11 +6,11 @@
 #ARTISTTRANSLIT:;
 #GENRE:;
 #CREDIT:Condor Talon;
-#BANNER:gigantic girl bn.png;
-#BACKGROUND:gigantic girl bg.png;
+#BANNER:giganticgirlbn.png;
+#BACKGROUND:giganticgirlbg.png;
 #LYRICSPATH:;
 #CDTITLE:cdtitlecondortalon.png;
-#MUSIC:Gigantic Girl.ogg;
+#MUSIC:GiganticGirl.ogg;
 #OFFSET:-1.329;
 #SAMPLESTART:72.005;
 #SAMPLELENGTH:14.221;

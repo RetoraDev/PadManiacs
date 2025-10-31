@@ -6,11 +6,11 @@
 #ARTISTTRANSLIT:;
 #GENRE:;
 #CREDIT:Condor Talon;
-#BANNER:gentle despair bn.png;
-#BACKGROUND:gentle despair bg.png;
+#BANNER:gentledespairbn.png;
+#BACKGROUND:gentledespairbg.png;
 #LYRICSPATH:;
 #CDTITLE:cdtitlecondortalon.png;
-#MUSIC:Gentle Despair.ogg;
+#MUSIC:GentleDespair.ogg;
 #OFFSET:-0.444;
 #SAMPLESTART:82.739;
 #SAMPLELENGTH:13.713;

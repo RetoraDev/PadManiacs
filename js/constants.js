@@ -1,6 +1,6 @@
 const COPYRIGHT = "(C) RETORA 2025";
 
-const VERSION = "v0.0.2";
+const VERSION = "v0.0.3";
 
 const DEFAULT_ACCOUNT = {
   settings: {
@@ -39,20 +39,20 @@ const MAX_PARALLEL_DOWNLOADS = 32;
 const ENABLE_UI_SFX = false;
 
 const DEFAULT_SONG_FOLDERS = [
-  "Miki Miki Romantic Night",
-  "Thousand Cherry Blossoms",
-  "Undead Enemy",
+  "MikiMikiRomanticNight",
+  "ThousandCherryBlossoms",
+  "UndeadEnemy",
   "Carnival",
-  "Hatsune Miku - Melt",
-  "Kagamine Rin - Love Is War(R184mm Remix)",
-  "Kasane Territory - Kasane Teto",
-  "A New World",
+  "HatsuneMiku-Melt",
+  "KagamineRin-LoveIsWar(R184mmRemix)",
+  "KasaneTerritory-KasaneTeto",
+  "ANewWorld",
   "39",
-  "Asu No Hikari",
-  "The Dubstep Soldiers at the Front",
-  "Just Be Friends",
-  "Gentle Despair",
+  "AsuNoHikari",
+  "TheDubstepSoldiersattheFront",
+  "JustBeFriends",
+  "GentleDespair",
   "Palette",
-  "Gigantic Girl",
+  "GiganticGirl",
   "melody_2.exe"
 ];
