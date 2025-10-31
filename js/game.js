@@ -217,6 +217,9 @@ class Load {
         case 'json':
           this.load.json(resource.key, resource.url);
           break;
+        case 'text':
+          this.load.text(resource.key, resource.url);
+          break;
       }
       
       this.loadedCount++;
@@ -986,16 +989,6 @@ class MainMenu {
         index = 2;
       }
       
-      const noteOptions = [
-        { value: 'NOTE', display: 'NOTE' },
-        { value: 'VIVID', display: 'VIVID' },
-        { value: 'FLAT', display: 'FLAT' },
-        { value: 'RAINBOW', display: 'RAINBOW' }
-      ];
-      
-      const currentNoteOption = Account.settings.noteColorOption || 'NOTE';
-      const currentNoteIndex = noteOptions.findIndex(opt => opt.value === currentNoteOption);
-      
       settingsWindow.addSettingItem(
         "Scroll Direction",
         ["FALLING", "RISING"],
@@ -1005,6 +998,16 @@ class MainMenu {
           saveAccount();
         }
       );
+      
+      const noteOptions = [
+        { value: 'NOTE', display: 'NOTE' },
+        { value: 'VIVID', display: 'VIVID' },
+        { value: 'FLAT', display: 'FLAT' },
+        { value: 'RAINBOW', display: 'RAINBOW' }
+      ];
+      
+      const currentNoteOption = Account.settings.noteColorOption || 'NOTE';
+      const currentNoteIndex = noteOptions.findIndex(opt => opt.value === currentNoteOption);
       
       settingsWindow.addSettingItem(
         "Note Colors",
@@ -1251,6 +1254,7 @@ class SongSelect {
     if (this.autoSelect) {
       this.selectSong(this.songs[this.songCarousel.selectedIndex], this.songCarousel.selectedIndex);
       this.songCarousel.destroy();
+      this.autoSelect = false;
     }
   }
 
@@ -1308,7 +1312,7 @@ class SongSelect {
   }
 
   previewSong(song) {
-    this.loadingDots.visible = true;
+    if (!this.autoSelect) this.loadingDots.visible = true;
     let index = this.songCarousel.selectedIndex;
     if (song.audioUrl) {
       // Load and play preview
@@ -1462,10 +1466,29 @@ class SongSelect {
 
   startGame(song, difficultyIndex) {
     // Start gameplay with selected song
-    game.state.start("Play", true, false, {
-      chart: song,
-      difficultyIndex: difficultyIndex
-    });
+    const resources = [];
+    
+    if (song.lyrics) {
+      resources.push({
+        type: "text",
+        key: 'song_lyrics',
+        url: song.lyrics
+      })
+    }
+    
+    this.load.baseURL = "";
+    
+    if (!resources.length) {
+      game.state.start("Play", true, false, {
+        chart: song,
+        difficultyIndex
+      });
+    } else {
+      game.state.start("Load", true, false, resources, "Play", {
+        chart: song,
+        difficultyIndex
+      });
+    }
   }
 
   update() {
@@ -1511,6 +1534,8 @@ class Play {
     this.autoplay = Account.settings.autoplay;
     this.userOffset = Account.settings.userOffset;
     this.lastVideoUpdateTime = 0;
+    this.lyrics = null;
+    this.hasLyricsFile = song.chart.lyrics ? true : false;
     
     // Save last song to Account
     Account.lastSong = {
@@ -1580,6 +1605,8 @@ class Play {
     
     this.createHud();
     
+    this.setupLyrics();
+    
     this.player = new Player(this);
     
     this.songStart();
@@ -1631,6 +1658,23 @@ class Play {
     
     this.comboText = new Text(191, 106, "0", FONTS.combo);
     this.comboText.anchor.set(1);
+  }
+  
+  setupLyrics() {
+    if (this.hasLyricsFile && game.cache.checkTextKey('song_lyrics')) {
+      const lrcContent = game.cache.getText('song_lyrics');
+      
+      // Create lyrics text element
+      this.lyricsText = new Text(game.width / 2, 72, "", FONTS.stroke);
+      this.lyricsText.anchor.set(0.5);
+      
+      // Initialize lyrics system
+      this.lyrics = new Lyrics({
+        textElement: this.lyricsText,
+        maxLineLength: 25,
+        lrc: lrcContent
+      });
+    }
   }
   
   getDifficultyColor(value) {
@@ -1703,12 +1747,15 @@ class Play {
     if (this.backgroundVideo) this.backgroundVideo.destroy();
     if (bg.file == '-nosongbg-') {
       this.backgroundSprite.loadTexture(null);
+      this.BackgroundGradient.visible = false;
     } else if (bg.type == 'video') {
       this.video.src = bg.url;
       this.video.play();
+      this.BackgroundGradient.visible = false;
     } else {
       this.loadBackgroundImage(bg.url);
       this.video.src = "";
+      this.BackgroundGradient.visible = true;
     }
     this.currentBackground = bg;
     this.applyBgEffects(bg);
@@ -1717,9 +1764,9 @@ class Play {
   applyBgEffects(bg) {
     if (bg.fadeIn) {
       this.backgroundSprite.alpha = 0;
-      game.add.tween(this.backgroundSprite).to({ alpha: parseFloat(bg.opacity) }, 500, "Linear",true);
+      game.add.tween(this.backgroundSprite).to({ alpha: parseFloat(bg.opacity) * 0.6 }, 500, "Linear",true);
     } else {
-      this.backgroundSprite.alpha = bg.opacity;
+      this.backgroundSprite.alpha = bg.opacity * 0.6;
     }
     
     // TODO: Fade out
@@ -1869,6 +1916,12 @@ class Play {
       this.togglePause();
     }
     this.lastStart = gamepad.pressed.start;
+    
+    // Update lyrics with current time
+    if (this.hasLyricsFile && this.lyrics && this.started) {
+      const currentTime = this.getCurrentTime().now;
+      this.lyrics.move(currentTime);
+    }
     
     this.player.update();
     
@@ -2566,6 +2619,18 @@ class Player {
     }
   }
   
+  calculateVerticalPosition(note, beat) {
+    const deltaNote = note.beat - beat;
+    const scalar = this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+    const bodyHeight = note.beatLength ? Math.max(this.COLUMN_SIZE, note.beatLength * scalar - this.COLUMN_SIZE) : 0;
+    const pastSize = deltaNote * scalar;
+    const yPos = this.scrollDirection === 'falling' ?
+      this.JUDGE_LINE - pastSize :
+      this.JUDGE_LINE + pastSize;
+    
+    return { deltaNote, scalar, bodyHeight, yPos, pastSize };
+  }
+  
   renderFalling() {
     if (!this.scene.startTime || this.scene.isPaused) return;
 
@@ -2574,9 +2639,8 @@ class Player {
 
     // Render notes
     this.notes.forEach(note => {
-      const deltaNote = (note.beat - beat) * this.NOTE_SPEED_MULTIPLIER;
-      const bodyHeight = note.beatLength ? (note.beatLength + 1) * this.COLUMN_SIZE * this.NOTE_SPEED_MULTIPLIER * this.VERTICAL_SEPARATION - this.COLUMN_SIZE * 4 : 0;
-      let yPos = this.JUDGE_LINE - deltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION;
+      let { deltaNote, scalar, bodyHeight, yPos, pastSize } = this.calculateVerticalPosition(note, beat);
+      
       const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
 
       // Check for missed notes
@@ -2683,10 +2747,12 @@ class Player {
         
         if (!isActive) visibleHeight += this.COLUMN_SIZE / 2;
 
-        note.holdParts.body.y = yPos;
-        note.holdParts.body.height = Math.floor(visibleHeight);
-
-        note.holdParts.end.y = note.holdParts.body.y - visibleHeight + 1;
+        let freezeYPos = Math.floor(yPos);
+        let freezeHeight = Math.floor(visibleHeight);
+        
+        note.holdParts.body.y = freezeYPos;
+        note.holdParts.body.height = freezeHeight;
+        note.holdParts.end.y = freezeYPos - freezeHeight;
 
         note.holdParts.body.visible = spritesVisible;
         note.holdParts.end.visible = spritesVisible;
@@ -2744,13 +2810,10 @@ class Player {
     
     // Render notes
     this.notes.forEach(note => {
-      const deltaNote = (note.beat - beat) * this.NOTE_SPEED_MULTIPLIER;
-      const bodyHeight = note.beatLength ? (note.beatLength + 1) * this.COLUMN_SIZE * this.NOTE_SPEED_MULTIPLIER * this.VERTICAL_SEPARATION - this.COLUMN_SIZE * 4 : 0;
+      let { deltaNote, scalar, bodyHeight, yPos } = this.calculateVerticalPosition(note, beat);
       
-      // Rising: notes come from bottom to top
-      let yPos = this.JUDGE_LINE + deltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION;
       const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
-
+      
       // Check for missed notes - rising: notes are missed when they go above the screen
       if (note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos < -this.COLUMN_SIZE) {
         note.miss = true;
@@ -2857,10 +2920,13 @@ class Player {
         
         if (!isActive) visibleHeight += this.COLUMN_SIZE / 2;
         
+        let freezeYPos = Math.floor(yPos);
+        let freezeHeight = Math.floor(visibleHeight);
+        
         // Position hold parts for rising mode
-        note.holdParts.body.y = yPos;
-        note.holdParts.body.height = Math.floor(visibleHeight);
-        note.holdParts.end.y = note.holdParts.body.y + visibleHeight - 1;
+        note.holdParts.body.y = freezeYPos;
+        note.holdParts.body.height = freezeHeight;
+        note.holdParts.end.y = freezeYPos + freezeHeight;
 
         note.holdParts.body.visible = spritesVisible;
         note.holdParts.end.visible = spritesVisible;
@@ -4893,6 +4959,9 @@ class LocalSMParser {
         case "#CDTITLE":
           if (p[1]) out.cdtitle = this.resolveFileUrl(p[1]);
           break;
+        case "#LYRICSPATH":
+          if (p[1]) out.lyrics = this.resolveFileUrl(p[1]);
+          break;
         case "#SAMPLESTART":
           if (p[1]) out.sampleStart = parseFloat(p[1]);
           break;
@@ -5221,6 +5290,15 @@ class ExternalSMParser {
             const file = files[p[1].toLowerCase()];
             out.videoUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
             out.videoUrl = out.videoUrl
+              .replace('cdvfile://', 'file://')
+              .replace('localhost/persistent/', '/storage/emulated/0/');
+          }
+          break;
+        case "#LYRICSPATH":
+          if (p[1] && files[p[1].toLowerCase()]) {
+            const file = files[p[1].toLowerCase()];
+            out.lyrics = file.localURL ? file.localURL : URL.createObjectURL(file);
+            out.lyrics = out.lyrics
               .replace('cdvfile://', 'file://')
               .replace('localhost/persistent/', '/storage/emulated/0/');
           }
@@ -5666,6 +5744,11 @@ class BackgroundMusic {
 
   async checkUrlAccessible(url) {
     return new Promise((resolve, reject) => {
+      if (!url) {
+        reject();
+        return
+      }
+      
       if (url.startsWith('blob:')) {
         resolve();
         return;
@@ -6127,5 +6210,170 @@ class NotificationSystem {
   destroy() {
     this.clear();
     game.state.onStateChange.remove(this.onStateChange, this);
+  }
+}
+
+class Lyrics {
+  constructor(options = {}) {
+    this.textElement = options.textElement || null; // Text instance to display lyrics
+    this.maxLineLength = options.maxLineLength || 30; // Maximum characters per line
+    this.currentTime = 0;
+    this.lrcData = [];
+    this.rangeLrc = [];
+    this.currentLineIndex = -1;
+    
+    // Parse LRC data
+    if (options.lrc) {
+      this.setLrc(options.lrc);
+    }
+  }
+
+  setLrc(rawLrc) {
+    this.tags = {};
+    this.lrcData = [];
+    this.rangeLrc = [];
+    this.currentLineIndex = -1;
+
+    const tagRegex = /\[([a-z]+):(.*)\].*/;
+    const lrcAllRegex = /(\[[0-9.:\[\]]*\])+(.*)/;
+    const timeRegex = /\[([0-9]+):([0-9.]+)\]/;
+    const rawLrcArray = rawLrc.split(/[\r\n]/);
+    
+    for (let i = 0; i < rawLrcArray.length; i++) {
+      // Handle tags (artist, title, etc.)
+      const tag = tagRegex.exec(rawLrcArray[i]);
+      if (tag && tag[0]) {
+        this.tags[tag[1]] = tag[2];
+        continue;
+      }
+      
+      // Handle lyrics with timestamps
+      const lrc = lrcAllRegex.exec(rawLrcArray[i]);
+      if (lrc && lrc[0]) {
+        const times = lrc[1].replace(/\]\[/g,"],[").split(",");
+        const lineText = lrc[2].trim();
+        
+        for (let j = 0; j < times.length; j++) {
+          const time = timeRegex.exec(times[j]);
+          if (time && time[0]) {
+            const startTime = parseInt(time[1], 10) * 60 + parseFloat(time[2]);
+            this.lrcData.push({ 
+              startTime: startTime, 
+              line: lineText 
+            });
+          }
+        }
+      }
+    }
+
+    // Sort by start time
+    this.lrcData.sort((a, b) => a.startTime - b.startTime);
+
+    // Create range-based LRC data for easier lookup
+    let startTime = 0;
+    let line = "";
+    
+    for (let i = 0; i < this.lrcData.length; i++) {
+      const endTime = this.lrcData[i].startTime;
+      this.rangeLrc.push({ 
+        startTime: startTime, 
+        endTime: endTime, 
+        line: line 
+      });
+      startTime = endTime;
+      line = this.lrcData[i].line;
+    }
+    
+    // Add final segment
+    this.rangeLrc.push({ 
+      startTime: startTime, 
+      endTime: Number.MAX_SAFE_INTEGER, 
+      line: line 
+    });
+
+    console.log(`Lyrics loaded: ${this.lrcData.length} lines`);
+  }
+
+  move(time) {
+    this.currentTime = time;
+    
+    // Find the current line based on time
+    for (let i = 0; i < this.rangeLrc.length; i++) {
+      if (time >= this.rangeLrc[i].startTime && time < this.rangeLrc[i].endTime) {
+        if (this.currentLineIndex !== i && this.textElement) {
+          this.currentLineIndex = i;
+          this.displayCurrentLine();
+        }
+        return;
+      }
+    }
+    
+    // If no line found, clear display
+    if (this.currentLineIndex !== -1 && this.textElement) {
+      this.currentLineIndex = -1;
+      this.textElement.write("");
+    }
+  }
+
+  displayCurrentLine() {
+    if (!this.textElement || this.currentLineIndex < 0) return;
+
+    const currentLineData = this.rangeLrc[this.currentLineIndex];
+    const lineText = currentLineData.line.trim();
+    
+    if (!lineText) {
+      this.textElement.write("");
+      return;
+    }
+
+    // Stop any existing scrolling
+    if (this.textElement.isScrolling && this.textElement.stopScrolling) {
+      this.textElement.stopScrolling();
+    }
+
+    this.textElement.write(lineText);
+    
+    // Warp if text too long
+    if (lineText.length > this.maxLineLength) {
+      this.textElement.wrap(this.maxLineLength * 5);
+    }
+  }
+
+  // Get current line text
+  getCurrentLine() {
+    if (this.currentLineIndex >= 0 && this.currentLineIndex < this.rangeLrc.length) {
+      return this.rangeLrc[this.currentLineIndex].line;
+    }
+    return "";
+  }
+
+  // Get next line text (for preview)
+  getNextLine() {
+    const nextIndex = this.currentLineIndex + 1;
+    if (nextIndex < this.rangeLrc.length) {
+      return this.rangeLrc[nextIndex].line;
+    }
+    return "";
+  }
+
+  // Check if lyrics are loaded
+  hasLyrics() {
+    return this.lrcData.length > 0;
+  }
+
+  // Clear lyrics display
+  clear() {
+    if (this.textElement) {
+      this.textElement.write("");
+    }
+    this.currentLineIndex = -1;
+    this.lrcData = [];
+    this.rangeLrc = [];
+  }
+
+  // Destroy and cleanup
+  destroy() {
+    this.clear();
+    this.textElement = null;
   }
 }

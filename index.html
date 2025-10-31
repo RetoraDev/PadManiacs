@@ -36,6 +36,26 @@
   <!-- Debug Panel -->
   <div id="debug"></div>
   
+  <script src="./js/eruda.js"></script>
+  <script>
+    if (typeof window.eruda != 'undefined') {
+      eruda.init({
+        tool: ['console', 'resources', 'snippets']
+      });
+      const snippets = eruda.get('snippets');
+      snippets.clear();
+      snippets.add("Add performance text", () => {
+        const text = new Text(190, 2, "");
+        text.anchor.x = 1;
+        game.time.events.loop(60, () => {
+          const player = game.state.current == 'Play' ? game.state.getCurrentState().player : null;
+          text.write(
+            `FPS: ${game.time.fps}\n`
+          );
+        });
+      }, "Displays performance information");
+    }
+  </script>
   <script src="./js/constants.js"></script>
   <script src="./js/gamepad.js"></script>
   <script src="./js/game.js"></script>
