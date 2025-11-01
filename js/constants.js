@@ -14,7 +14,8 @@ const DEFAULT_ACCOUNT = {
     noteColorOption: 'NOTE',
     noteSpeedMult: 1,
     userOffset: 0,
-    scrollDirection: 'falling'
+    scrollDirection: 'falling',
+    visualizer: 'NONE'
   },
   lastSong: null,
   highScores: {}
@@ -32,6 +33,8 @@ const FONTS = {
 const WINDOW_PANELS = ["1"];
 
 const EXTERNAL_DIRECTORY = "PadManiacs/";
+const ADDONS_DIRECTORY = "Addons";
+const SONGS_DIRECTORY = "Songs"
 
 const ENABLE_PARALLEL_LOADING = true;
 const MAX_PARALLEL_DOWNLOADS = 32;

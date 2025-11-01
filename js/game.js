@@ -252,7 +252,7 @@ class LoadCordova {
     script.src = "./cordova/cordova.js";
     document.head.appendChild(script);
     document.addEventListener("deviceready", () => {
-      this.continue();
+      this.createFolderStructure();
       document.addEventListener("backbutton", () => {
         if (game.state.current == "Play") {
           gamepad.press('start');
@@ -261,6 +261,18 @@ class LoadCordova {
         }
       });
     });
+  }
+  async createFolderStructure() {
+    const fileSystem = new FileSystemTools();
+    
+    const rootDir = await fileSystem.getDirectory("");
+    
+    const gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
+    
+    await fileSystem.createDirectory(gameDir, ADDONS_DIRECTORY);
+    await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
+    
+    this.continue();
   }
   continue() {
     game.state.start("LoadLocalSongs");
@@ -354,7 +366,137 @@ class LoadLocalSongs {
   }
 }
 
-class LoadExternalSongs {
+class FileSystemTools {
+  getDirectory(path) {
+    return new Promise((resolve, reject) => {
+      let rootDir = LocalFileSystem.PERSISTENT;
+      if (game.device.windows) {
+        rootDir = cordova.file.dataDirectory; // C:/Users/[username]/AppData/Local/Packages/[package-id]/LocalState/
+      } else if (game.device.macOS || game.device.iOS) {
+        rootDir = cordova.file.documentsDirectory; // ~/Documents/
+      } else if (game.device.android) {
+        rootDir = cordova.file.externalRootDirectory; // <sdcard>/
+      }
+      window.resolveLocalFileSystemURL(
+        rootDir + path,
+        dir => resolve(dir),
+        err => reject(err)
+      );
+    });
+  }
+
+  listDirectories(dirEntry) {
+    return new Promise((resolve, reject) => {
+      dirEntry.createReader().readEntries(
+        entries => resolve(entries.filter(e => e.isDirectory)),
+        err => reject(err)
+      );
+    });
+  }
+
+  listAllDirectories(startDir) {
+    return new Promise(async resolve => {
+      const dirs = [];
+      const queue = [startDir];
+
+      while (queue.length) {
+        const dir = queue.shift();
+        try {
+          const subDirs = await this.listDirectories(dir);
+          dirs.push(...subDirs);
+          queue.push(...subDirs);
+        } catch (error) {
+          console.warn(`Error listing directories in ${dir.name}:`, error);
+        }
+      }
+
+      resolve(dirs);
+    });
+  }
+
+  listFiles(dirEntry) {
+    return new Promise((resolve, reject) => {
+      dirEntry.createReader().readEntries(
+        entries => resolve(entries.filter(e => e.isFile)),
+        err => reject(err)
+      );
+    });
+  }
+
+  getFile(fileEntry) {
+    return new Promise((resolve, reject) => {
+      fileEntry.file(
+        file => resolve(file),
+        err => reject(err)
+      );
+    });
+  }
+
+  readFileContent(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
+  }
+  
+  saveFile(dirEntry, fileData, fileName) {
+    return new Promise((resolve, reject) => {
+      dirEntry.getFile(fileName, { create: true, exclusive: false }, fileEntry => {
+        this.writeFile(fileEntry, fileData)
+          .then(() => resolve(fileEntry))
+          .catch(err => reject(err));
+      }, error => reject(error));
+    });
+  }
+  
+  createEmptyFile(dirEntry, fileName, isAppend) {
+    return new Promise((resolve, reject) => {
+      dirEntry.getFile(fileName, {create: true, exclusive: false}, fileEntry => {
+        this.writeFile(fileEntry, null, isAppend)
+          .then(() => resolve(fileEntry))
+          .catch(err => reject(err));
+      }, err => reject(err));
+    });
+  }
+  
+  writeFile(fileEntry, dataObj, isAppend) {
+    return new Promise((resolve, reject) => {
+      fileEntry.createWriter(fileWriter => {
+        fileWriter.onwrite = () => resolve(fileWriter);
+        fileWriter.onerror = err => reject(err);
+  
+        fileWriter.write(dataObj);
+      });
+    });
+  }
+  
+  createDirectory(rootDirEntry, dirName) {
+    return new Promise((resolve, reject) => {
+      rootDirEntry.getDirectory(dirName, { create: true }, dirEntry => {
+        resolve(dirEntry);
+      }, err => reject(err));
+    });
+  }
+
+  finish(resetIndex = 0) {
+    console.log(`Loading complete: ${this.loadedCount} songs loaded, ${this.failedCount} failed`);
+    
+    if (this.songs.length === 0) {
+      this.showError("No external songs found");
+      return;
+    }
+    
+    window.externalSongs = this.songs;
+    
+    game.state.start("SongSelect", true, false, this.songs, resetIndex);
+    
+    setTimeout(() => window.lastExternalSongIndex = window.selectStartingIndex)
+  }
+}
+
+class LoadExternalSongs extends FileSystemTools {
   create() {
     this.loadingDots = new LoadingDots();
     
@@ -384,7 +526,7 @@ class LoadExternalSongs {
     try {
       console.log("Loading songs from external storage...");
       
-      const rootDir = await this.getDirectory(EXTERNAL_DIRECTORY);
+      const rootDir = await this.getDirectory(EXTERNAL_DIRECTORY + SONGS_DIRECTORY);
       const allDirs = await this.listAllDirectories(rootDir);
       allDirs.unshift(rootDir);
 
@@ -653,101 +795,12 @@ class LoadExternalSongs {
     console.log(`No valid chart files in ${folderName}`);
     return null;
   }
-
-  getDirectory(path) {
-    return new Promise((resolve, reject) => {
-      let rootDir = LocalFileSystem.PERSISTENT;
-      if (game.device.windows) {
-        rootDir = cordova.file.dataDirectory; // C:/Users/[username]/AppData/Local/Packages/[package-id]/LocalState/
-      } else if (game.device.macOS || game.device.iOS) {
-        rootDir = cordova.file.documentsDirectory; // ~/Documents/
-      } else if (game.device.android) {
-        rootDir = cordova.file.externalRootDirectory; // <sdcard>/
-      }
-      window.resolveLocalFileSystemURL(
-        rootDir + path,
-        dir => resolve(dir),
-        err => reject(err)
-      );
-    });
-  }
-
-  listDirectories(dirEntry) {
-    return new Promise((resolve, reject) => {
-      dirEntry.createReader().readEntries(
-        entries => resolve(entries.filter(e => e.isDirectory)),
-        err => reject(err)
-      );
-    });
-  }
-
-  listAllDirectories(startDir) {
-    return new Promise(async resolve => {
-      const dirs = [];
-      const queue = [startDir];
-
-      while (queue.length) {
-        const dir = queue.shift();
-        try {
-          const subDirs = await this.listDirectories(dir);
-          dirs.push(...subDirs);
-          queue.push(...subDirs);
-        } catch (error) {
-          console.warn(`Error listing directories in ${dir.name}:`, error);
-        }
-      }
-
-      resolve(dirs);
-    });
-  }
-
-  listFiles(dirEntry) {
-    return new Promise((resolve, reject) => {
-      dirEntry.createReader().readEntries(
-        entries => resolve(entries.filter(e => e.isFile)),
-        err => reject(err)
-      );
-    });
-  }
-
-  getFile(fileEntry) {
-    return new Promise((resolve, reject) => {
-      fileEntry.file(
-        file => resolve(file),
-        err => reject(err)
-      );
-    });
-  }
-
-  readFileContent(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsText(file);
-    });
-  }
-
+  
   showError(message) {
     this.progressText.write(message);
     game.time.events.add(3000, () => {
       game.state.start("MainMenu");
     });
-  }
-
-  finish(resetIndex = 0) {
-    console.log(`Loading complete: ${this.loadedCount} songs loaded, ${this.failedCount} failed`);
-    
-    if (this.songs.length === 0) {
-      this.showError("No songs found in any folders");
-      return;
-    }
-    
-    window.externalSongs = this.songs;
-    
-    game.state.start("SongSelect", true, false, this.songs, resetIndex);
-    
-    setTimeout(() => window.lastExternalSongIndex = window.selectStartingIndex)
   }
 }
 
@@ -988,6 +1041,21 @@ class MainMenu {
       } else {
         index = 2;
       }
+      
+      const visualizerOptions = ['NONE', 'ACURRACY', 'AUDIO', 'BPM'];
+      const currentVisualizer = Account.settings.visualizer || 'NONE';
+      const currentVisualizerIndex = visualizerOptions.indexOf(currentVisualizer);
+      
+      settingsWindow.addSettingItem(
+        "Visualizer",
+        visualizerOptions,
+        currentVisualizerIndex,
+        index => {
+          const selectedVisualizer = visualizerOptions[index];
+          Account.settings.visualizer = selectedVisualizer;
+          saveAccount();
+        }
+      );
       
       settingsWindow.addSettingItem(
         "Scroll Direction",
@@ -1422,7 +1490,7 @@ class SongSelect {
     });
     
     // Add difficulties
-    song.difficulties.forEach((diff, index) => {
+    song.difficulties.sort((a, b) => a.rating - b.rating).forEach((diff, index) => {
       this.difficultyCarousel.addItem(
         `${diff.type} (${diff.rating})`,
         (item) => {
@@ -1536,6 +1604,8 @@ class Play {
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
     this.hasLyricsFile = song.chart.lyrics ? true : false;
+    this.visualizerType = Account.settings.visualizer || 'NONE';
+    this.lastVisualizerUpdateTime = 0;
     
     // Save last song to Account
     Account.lastSong = {
@@ -1616,7 +1686,7 @@ class Play {
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
     this.hud = game.add.sprite(0, 0, "ui_hud_background", 0);
-  
+    
     const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
     
     this.difficultyBanner = game.add.sprite(0, 0, "ui_difficulty_banner", 0);
@@ -1658,6 +1728,40 @@ class Play {
     
     this.comboText = new Text(191, 106, "0", FONTS.combo);
     this.comboText.anchor.set(1);
+    
+    this.createVisualizer();
+  }
+  
+  createVisualizer() {
+    const visualizerX = 2;
+    const visualizerY = 103;
+    const visualizerWidth = 36;
+    const visualizerHeight = 7;
+
+    // Remove existing visualizer
+    if (this.visualizer) {
+      this.visualizer.destroy();
+      this.visualizer = null;
+    }
+
+    // Create new visualizer based on setting
+    switch (this.visualizerType) {
+      case 'ACURRACY':
+        this.visualizer = new AccuracyVisualizer(this, visualizerX, visualizerY, visualizerWidth, visualizerHeight);
+        break;
+      case 'AUDIO':
+        this.visualizer = new AudioVisualizer(this, visualizerX, visualizerY, visualizerWidth, visualizerHeight);
+        break;
+      case 'BPM':
+        this.visualizer = new BPMVisualizer(this, visualizerX, visualizerY, visualizerWidth, visualizerHeight);
+        break;
+      default:
+        this.visualizer = null; // NONE
+    }
+    
+    if (this.visualizer) {
+      this.hud.addChild(this.visualizer.graphics);
+    }
   }
   
   setupLyrics() {
@@ -1751,11 +1855,11 @@ class Play {
     } else if (bg.type == 'video') {
       this.video.src = bg.url;
       this.video.play();
-      this.BackgroundGradient.visible = false;
+      this.backgroundGradient.visible = false;
     } else {
       this.loadBackgroundImage(bg.url);
       this.video.src = "";
-      this.BackgroundGradient.visible = true;
+      this.backgroundGradient.visible = true;
     }
     this.currentBackground = bg;
     this.applyBgEffects(bg);
@@ -1899,7 +2003,7 @@ class Play {
     }
     
     // Update video if needed
-    if (this.currentBackground && this.currentBackground.type == "video" && game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 2)) {
+    if (this.currentBackground && this.currentBackground.type == "video" && game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
       this.lastVideoUpdateTime = game.time.now;
       this.backgroundCtx.drawImage(this.video, 0, 0, 192, 112);
       this.updateBackgroundTexture();
@@ -1921,6 +2025,12 @@ class Play {
     if (this.hasLyricsFile && this.lyrics && this.started) {
       const currentTime = this.getCurrentTime().now;
       this.lyrics.move(currentTime);
+    }
+    
+    // Update visualizer
+    if (this.visualizer && game.time.now - this.lastVisualizerUpdateTime >= game.time.elapsedMS * 4) {
+      this.visualizer.update();
+      this.lastVisualizerUpdateTime = game.time.now;
     }
     
     this.player.update();
@@ -1952,6 +2062,10 @@ class Play {
       this.video = null;
     }
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
+    if (this.visualizer) {
+      this.visualizer.destroy();
+      this.visualizer = null;
+    }
   }
 }
 
@@ -1993,6 +2107,7 @@ class Player {
     this.maxHealth = 100;
     this.health = this.maxHealth;
     this.previousHealth = this.health;
+    this.timingStory = [];
 
     // Visual elements
     this.receptors = [];
@@ -2359,6 +2474,9 @@ class Player {
     const holdNote = this.notes.find(n => (n.type === "2" || n.type === "4") && n.column === column && !n.hit && Math.abs(n.beat - beat) <= this.scene.JUDGE_WINDOWS.boo);
 
     if (holdNote) {
+      const delta = Math.abs(holdNote.beat - beat);
+      const judgement = this.getJudgement(delta);
+      
       this.activeHolds[column] = {
         note: holdNote,
         startTime: now,
@@ -2400,12 +2518,13 @@ class Player {
   }
 
   getJudgement(delta) {
+    this.timingStory.push(delta);
     for (const [judgement, window] of Object.entries(this.scene.JUDGE_WINDOWS)) {
       if (delta <= window) return judgement;
     }
     return "miss";
   }
-
+  
   processJudgement(note, judgement, column) {
     const scoreValue = this.scene.SCORE_VALUES[judgement];
     if (!this.gameOver) this.score += scoreValue;
@@ -6375,5 +6494,225 @@ class Lyrics {
   destroy() {
     this.clear();
     this.textElement = null;
+  }
+}
+
+class Visualizer {
+  constructor(scene, x, y, width, height) {
+    this.scene = scene;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.graphics = scene.add.graphics(x, y);
+    this.active = true;
+  }
+
+  update() {
+    // To be implemented by subclasses
+  }
+
+  destroy() {
+    this.graphics.destroy();
+  }
+
+  clear() {
+    this.graphics.clear();
+  }
+}
+
+class AccuracyVisualizer extends Visualizer {
+  constructor(scene, x, y, width, height) {
+    super(scene, x, y, width, height);
+    this.accuracyHistory = [];
+    this.maxHistoryLength = this.width / 4;
+  }
+
+  update() {
+    if (!this.active || !this.scene.player) return;
+
+    this.clear();
+    
+    this.accuracyHistory = this.scene.player.timingStory;
+    
+    // Keep only recent history
+    if (this.accuracyHistory.length > this.maxHistoryLength) {
+      this.accuracyHistory.shift();
+    }
+    
+    // Draw 0 line
+    this.graphics.lineStyle(1, 0xF0F0F0, 0.3);
+    this.graphics.moveTo(0, 3);
+    this.graphics.lineTo(this.width, 3);
+      
+    // Draw accuracy line
+    if (this.accuracyHistory.length > 1) {
+      this.graphics.lineStyle(1, 0x00FF00, 1);
+      this.graphics.moveTo(0, 3);
+
+      for (let i = 0; i < this.accuracyHistory.length; i++) {
+        const x = (i / this.maxHistoryLength) * this.width;
+        const accuracy = this.accuracyHistory[i];
+        const y = 2 + (accuracy / 0.4) * 3;
+        
+        this.graphics.lineTo(x, y);
+      }
+    }
+  }
+}
+
+class AudioVisualizer extends Visualizer {
+  constructor(scene, x, y, width, height) {
+    super(scene, x, y, width, height);
+    this.audioContext = null;
+    this.analyser = null;
+    this.dataArray = null;
+    this.bufferLength = 32;
+    this.bars = [];
+    this.setupAudioAnalysis();
+  }
+
+  setupAudioAnalysis() {
+    try {
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      this.analyser = this.audioContext.createAnalyser();
+      this.analyser.fftSize = 64;
+      this.analyser.maxDecibels = -10;
+      this.analyser.smoothingTimeConstant = 0.1;
+      this.bufferLength = this.analyser.frequencyBinCount;
+      this.dataArray = new Uint8Array(this.bufferLength);
+
+      // Connect to game audio if available
+      if (this.scene.audio) {
+        const source = this.audioContext.createMediaElementSource(this.scene.audio);
+        source.connect(this.analyser);
+        this.analyser.connect(this.audioContext.destination);
+      }
+    } catch (error) {
+      console.warn('Audio visualizer not supported:', error);
+      this.active = false;
+    }
+  }
+
+  update() {
+    if (!this.active || !this.analyser) return;
+
+    this.clear();
+    
+    // Get frequency data
+    this.analyser.getByteFrequencyData(this.dataArray);
+    
+    // Draw bars
+    const barWidth = (this.width / this.bufferLength) * 2;
+    let x = 0;
+    
+    for (let i = 0; i < this.bufferLength / 2; i++) {
+      const barHeight = (this.dataArray[i] / 255) * this.height;
+      
+      if (barHeight > 0) {
+        this.graphics.lineStyle(barWidth - 1, 0x0000FF, 0.9);
+        this.graphics.moveTo(x, this.height - 1);
+        this.graphics.lineTo(x, this.height - barHeight);
+      }
+
+      x += barWidth;
+    }
+  }
+
+  destroy() {
+    super.destroy();
+    if (this.audioContext) {
+      this.audioContext.close();
+    }
+  }
+}
+
+class BPMVisualizer extends Visualizer {
+  constructor(scene, x, y, width, height) {
+    super(scene, x, y, width, height);
+    this.bpmChanges = scene.song?.chart?.bpmChanges || [];
+    this.stops = scene.song?.chart?.stops || [];
+    this.text = new Text(width - 1, 1, "");
+    this.text.anchor.x = 1;
+    this.text.alpha = 0.5;
+    this.graphics.addChild(this.text);
+    this.beatIndicatorAlpha = 1;
+    this.currentBeat = 0;
+    this.currentBeatInt = 0;
+    this.previusBeatInt = 1;
+    this.currentBpm = 0;
+    this.previusBpm = 1;
+  }
+
+  update() {
+    if (!this.active) return;
+    
+    this.clear();
+    
+    const currentTime = this.scene.getCurrentTime();
+    this.currentBeat = currentTime.beat;
+    
+    this.currentBeatInt = Math.floor(this.currentBeat);
+    
+    if (this.currentBeatInt != this.previusBeatInt) this.beatIndicatorAlpha = 1;
+    
+    this.previusBeatInt = this.currentBeatInt;
+    
+    this.currentBpm = this.getLastBpm();
+    
+    if (this.currentBpm != this.previusBpm) {
+      this.text.write(`${this.currentBpm}`);
+      this.text.alpha = 1;
+      game.add.tween(this.text).to({ alpha: 0.5 }, 100, "Linear", true);
+    }
+    
+    this.text.tint = this.getLastStop() && this.getLastStop().beat == this.currentBeat ? 0xFF0000 : 0xFFFFFF;
+    
+    this.previusBpm = this.currentBpm;
+    
+    // Draw BPM changes
+    const maxBeat = Math.max(...this.bpmChanges.map(b => b.beat), this.currentBeat + 50);
+    const beatsToShow = 8; 
+
+    this.bpmChanges.forEach(bpmChange => {
+      const x = ((bpmChange.beat - this.currentBeat) / beatsToShow) * this.width;
+      if (x >= 0 && x <= this.width) {
+        // BPM change marker
+        this.graphics.beginFill(0xFFFF00, 0.8);
+        this.graphics.drawRect(x - 1, 0, 1, this.height);
+        this.graphics.endFill();
+      }
+    });
+
+    // Draw stops
+    this.stops.forEach(stop => {
+      const x = ((stop.beat - this.currentBeat) / beatsToShow) * this.width;
+      if (x >= 0 && x <= this.width) {
+        // Stop marker
+        this.graphics.beginFill(0xFF0000, 0.8);
+        this.graphics.drawRect(x - 1, 0, 1, this.height);
+        this.graphics.endFill();
+      }
+    });
+    
+    // Draw beat indicator
+    this.graphics.beginFill(0x00FF00, this.beatIndicatorAlpha);
+    this.graphics.drawCircle(3, 3, 4);
+    this.graphics.endFill();
+    
+    this.beatIndicatorAlpha -= 0.2;
+  }
+  
+  getLastBpm() {
+    return this.bpmChanges.length ? this.bpmChanges.find((e, i, a) => i + 1 == a.length || a[i + 1].beat >= this.currentBeat).bpm : 0;
+  }
+  
+  getLastStop() {
+    return this.stops.length ? this.stops.find((e, i, a) => i + 1 == a.length || a[i + 1].beat >= this.currentBeat) : null;
+  }
+
+  destroy() {
+    super.destroy();
+    this.text.destroy();
   }
 }
