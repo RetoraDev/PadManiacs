@@ -15,7 +15,11 @@ const DEFAULT_ACCOUNT = {
     noteSpeedMult: 1,
     userOffset: 0,
     scrollDirection: 'falling',
-    visualizer: 'NONE'
+    visualizer: 'NONE',
+    // Addon system settings
+    safeMode: false,
+    enabledAddons: [],
+    hibernatingAddons: []
   },
   lastSong: null,
   highScores: {}
@@ -34,10 +38,13 @@ const WINDOW_PANELS = ["1"];
 
 const EXTERNAL_DIRECTORY = "PadManiacs/";
 const ADDONS_DIRECTORY = "Addons";
-const SONGS_DIRECTORY = "Songs"
+const SONGS_DIRECTORY = "Songs";
 
 const ENABLE_PARALLEL_LOADING = true;
 const MAX_PARALLEL_DOWNLOADS = 32;
+
+const MAX_PARALLEL_ADDON_LOADS = 3;
+const ENABLE_ADDON_SAFE_MODE = true;
 
 const ENABLE_UI_SFX = false;
 

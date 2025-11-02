@@ -1,4 +1,4 @@
-let game, gamepad, backgroundMusic, notifications;
+let game, gamepad, backgroundMusic, notifications, addonManager;
 
 let Account = {
   ...DEFAULT_ACCOUNT,
@@ -39,6 +39,7 @@ window.onload = () => {
         game.state.add('Boot', Boot);
         game.state.add('Load', Load);
         game.state.add('LoadCordova', LoadCordova);
+        game.state.add('LoadAddons', LoadAddons);
         game.state.add('LoadLocalSongs', LoadLocalSongs);
         game.state.add('LoadExternalSongs', LoadExternalSongs);
         game.state.add('LoadSongFolder', LoadSongFolder);
@@ -82,7 +83,7 @@ class Boot {
     
     window.primaryAssets = this.keys;
     
-    game.state.start("Load", true, false, [
+    window.gameResources = [
       {
         key: "ui_loading_dots",
         url: "ui/loading_dots.png",
@@ -183,8 +184,10 @@ class Boot {
         type: 'spritesheet',
         frameWidth: 16,
         frameHeight: 16
-      },
-    ], "LoadCordova");
+      }
+    ];
+    
+    game.state.start("Load", true, false, window.gameResources, "LoadCordova");
   }
 }
 
@@ -275,7 +278,29 @@ class LoadCordova {
     this.continue();
   }
   continue() {
-    game.state.start("LoadLocalSongs");
+    game.state.start("LoadAddons");
+  }
+}
+
+class LoadAddons {
+  create() {
+    this.progressText = new ProgressText("LOADING ADD-ONS");
+    this.loadingDots = new LoadingDots();
+    this.initialize();
+  }
+  async initialize() {
+    // Initialize addon manager
+    addonManager = new AddonManager();
+    await addonManager.initialize();
+    
+    // Execute global addon behaviors
+    addonManager.executeGlobalBehaviors();
+    
+    const resources = addonManager.getResourceList();
+    
+    game.load.baseURL = "";
+    
+    game.state.start("Load", true, false, resources, "LoadLocalSongs");
   }
 }
 
@@ -922,7 +947,10 @@ class Title {
     
     this.introEnded = false;
     
-    this.logo.intro(() => this.introEnded = true);
+    this.logo.intro(() => this.introEnded = true)
+
+    // Execute addon behaviors for this state
+    addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   update() {
     gamepad.update();
@@ -947,6 +975,10 @@ class MainMenu {
     
     this.menu();
     
+    this.previewCanvas = document.createElement("canvas");
+    this.previewCtx = this.previewCanvas.getContext("2d");
+    this.previewImg = new Image();
+    
     // Only start music if it's not already playing from Title
     if (!backgroundMusic || !backgroundMusic.isPlaying) {
       if (!backgroundMusic) {
@@ -954,6 +986,9 @@ class MainMenu {
       }
       backgroundMusic.playLastSong();
     }
+    
+    // Execute addon behaviors for this state
+    addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   menu() {
     const manager = new WindowManager();
@@ -969,6 +1004,7 @@ class MainMenu {
       });
       carousel.addItem("Rhythm Game", () => startGame());
       carousel.addItem("Settings", () => settings());
+      carousel.addItem("Addons", () => this.addonManager());
       
       if (typeof window.cordova !== "undefined") {
         carousel.addItem("Exit", () => exit());
@@ -1163,6 +1199,18 @@ class MainMenu {
         }
       );
       
+      settingsWindow.addSettingItem(
+        "Safe Mode",
+        ["ENABLED", "DISABLED"],
+        Account.settings.safeMode ? 0 : 1,
+        index => {
+          restartNeeded = true;
+          const enabled = index == 0;
+          addonManager?.setSafeMode(enabled);
+          saveAccount();
+        }
+      );
+      
       settingsWindow.addItem(
         "Erase Highscores",
         "",
@@ -1239,6 +1287,148 @@ class MainMenu {
   }
   loadSingleSong() {
     game.state.start("LoadSongFolder");
+  }
+  addonManager() {
+    const detailText = new Text(4, 4, "");
+    
+    const preview = game.add.sprite(112, 4);
+      
+    const showInstalledAddons = () => {
+      const addons = addonManager.getAddonList();
+      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
+        align: 'left',
+        bgcolor: 'brown',
+        fgcolor: '#ffffff',
+        animate: true,
+        crop: false
+      });
+      
+      if (addons.length === 0) {
+        carousel.addItem("No addons installed", () => {});
+      } else {
+        addons.forEach(addon => {
+          const statusColor = addon.isHibernating ? "gray" : (addon.isEnabled ? "#00cc00" : "brown")
+          carousel.addItem(
+            `${addon.name} v${addon.version}`,
+            () => showAddonDetails(addon),
+            { addon, bgcolor: statusColor }
+          );
+        });
+        
+        carousel.onSelect.add((index, item) => {
+          if (item.data && item.data.addon) {
+            previewAddon(item.data.addon);
+          }
+        });
+        
+        previewAddon(addons[0]);
+      }
+      
+      carousel.addItem("< Back", () => applyChanges());
+      carousel.onCancel.add(() => applyChanges());
+    };
+    
+    let needsReload = false;
+    
+    const previewAddon = (addon) => {
+      detailText.write(
+        `${addon.name}\n` +
+        `V${addon.version}\n` +
+        `By ${addon.author}\n\n` +
+        `${addon.description}\n` +
+        'STATE: ' + 
+        (addon.isHibernating ?
+          'Hybernating'
+          :
+        (addon.isEnabled ?
+          'Enabled' : 'Disabled'))
+      ).wrap(112);
+      if (addon.icon) {
+        this.previewImg.src = addon.icon;
+        this.previewImg.onload = () => {
+          this.previewCtx.drawImage(this.previewImg, 0, 0, 50, 50);
+          preview.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
+        };
+      }
+    }
+    
+    const showAddonDetails = (addon) => {
+      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
+        align: 'left',
+        bgcolor: '#9b59b6',
+        fgcolor: '#ffffff',
+        animate: true,
+        crop: false
+      });
+      
+      if (addon.isHibernating) {
+        carousel.addItem("Wake Addon", () => {
+          addonManager.wakeAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+      } else if (addon.isEnabled) {
+        carousel.addItem("Disable Addon", () => {
+          addonManager.disableAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+        carousel.addItem("Hibernate Addon", () => {
+          addonManager.hibernateAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+      } else {
+        carousel.addItem("Enable Addon", () => {
+          addonManager.enableAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+      }
+      
+      carousel.addItem("< Back", () => showInstalledAddons());
+      carousel.onCancel.add(() => showInstalledAddons());
+    };
+    
+    const applyChanges = () => {
+      if (needsReload || addonManager.needsReload()) {
+        confirm("Reload required. Restart now?", () => {
+          location.reload();
+        }, () => {
+          this.menu();
+          preview.destroy();
+        });
+      } else {
+        preview.destroy();
+        this.menu();
+      }
+    };
+    
+    const confirm = (message, onConfirm, onCancel) => {
+      const text = new Text(game.width / 2, 40, message || "You sure?", FONTS.shaded);
+      text.anchor.x = 0.5;
+      
+      const window = this.manager.createWindow(10, 7, 5, 4, "1");
+      window.fontTint = 0x76fcde;
+      
+      window.offset = {
+        x: 7,
+        y: 4
+      };
+      
+      window.addItem("Yes", "", () => {
+        text.destroy();
+        this.manager.remove(window, true);
+        onConfirm?.()
+      });
+      window.addItem("No", "", () => {
+        text.destroy();
+        this.manager.remove(window, true);
+        onCancel?.();
+      }, true);
+    }
+    
+    showInstalledAddons();
   }
   update() {
     gamepad.update();
@@ -1324,6 +1514,9 @@ class SongSelect {
       this.songCarousel.destroy();
       this.autoSelect = false;
     }
+    
+    // Execute addon behaviors for this state
+    addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
   createSongSelectionMenu() {
@@ -1680,6 +1873,9 @@ class Play {
     this.player = new Player(this);
     
     this.songStart();
+    
+    // Execute addon behaviors for this state
+    addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
   createHud() {
@@ -3255,6 +3451,9 @@ class Results {
     
     this.displayResults();
     this.showMenu();
+    
+    // Execute addon behaviors for this state
+    addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
   saveHighScore(song, difficulty, player) {
@@ -3559,6 +3758,7 @@ class Text extends Phaser.Sprite {
 
   write(text) {
     this.texture.text = text;
+    return this;
   }
 
   typewrite(text, callback) {
@@ -3579,6 +3779,8 @@ class Text extends Phaser.Sprite {
     });
 
     this.timer.start();
+    
+    return this;
   }
 
   scrollwrite(text, visibleLength = 5, scrollSpeed = 200, separation = 5) {
@@ -6714,5 +6916,386 @@ class BPMVisualizer extends Visualizer {
   destroy() {
     super.destroy();
     this.text.destroy();
+  }
+}
+
+class AddonManager {
+  constructor() {
+    this.addons = new Map();
+    this.enabledAddons = new Set();
+    this.hibernatingAddons = new Set();
+    this.safeMode = false;
+    this.isInitialized = false;
+  }
+
+  async initialize() {
+    if (this.isInitialized) return;
+    
+    // Load addon settings from account
+    this.safeMode = Account.settings?.safeMode || false;
+    this.enabledAddons = new Set(Account.settings?.enabledAddons || []);
+    this.hibernatingAddons = new Set(Account.settings?.hibernatingAddons || []);
+    
+    if (this.safeMode) {
+      console.log("🔒 Addon Safe Mode enabled - skipping addon loading");
+      this.isInitialized = true;
+      return;
+    }
+
+    await this.loadAddons();
+    this.isInitialized = true;
+  }
+
+  async loadAddons() {
+    try {
+      console.log("📦 Loading addons...");
+      
+      if (window.cordova && cordova.file) {
+        await this.loadAddonsFromStorage();
+      } else {
+        await this.loadAddonsFromLocal();
+      }
+      
+      await this.processAddons();
+      
+    } catch (error) {
+      console.error("Error loading addons:", error);
+    }
+  }
+
+  async loadAddonsFromStorage() {
+    const fileSystem = new FileSystemTools();
+    
+    try {
+      const rootDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + ADDONS_DIRECTORY);
+      const addonDirs = await fileSystem.listDirectories(rootDir);
+      
+      console.log(`Found ${addonDirs.length} addon directories`);
+      
+      for (const addonDir of addonDirs) {
+        try {
+          await this.loadAddonFromDirectory(addonDir, fileSystem);
+        } catch (error) {
+          console.warn(`Failed to load addon from ${addonDir.name}:`, error);
+        }
+      }
+      
+    } catch (error) {
+      console.log("No external addons directory found");
+    }
+  }
+
+  async loadAddonsFromLocal() {
+    // For non-Cordova environments, addons would be in a local directory
+    console.log("Local addon loading not implemented in this environment");
+  }
+
+  async loadAddonFromDirectory(addonDir, fileSystem) {
+    const files = await fileSystem.listFiles(addonDir);
+    const fileMap = {};
+    
+    for (const fileEntry of files) {
+      const file = await fileSystem.getFile(fileEntry);
+      fileMap[file.name.toLowerCase()] = {
+        entry: fileEntry,
+        file: file,
+        name: file.name
+      };
+    }
+    
+    // Check for manifest
+    const manifestFile = fileMap['manifest.json'];
+    if (!manifestFile) {
+      throw new Error("No manifest.json found");
+    }
+    
+    const manifestContent = await fileSystem.readFileContent(manifestFile.file);
+    const manifest = JSON.parse(manifestContent);
+    
+    // Validate manifest
+    if (!manifest.id || !manifest.name || !manifest.version) {
+      throw new Error("Invalid manifest: missing required fields");
+    }
+    
+    const addon = {
+      id: manifest.id,
+      name: manifest.name,
+      version: manifest.version,
+      icon: manifest.icon,
+      author: manifest.author || "Unknown",
+      description: manifest.description || "",
+      manifest: manifest,
+      directory: addonDir,
+      dir: addonDir,
+      files: fileMap,
+      assets: [],
+      behaviors: {},
+      isEnabled: this.enabledAddons.has(manifest.id) && !this.hibernatingAddons.has(manifest.id),
+      isHibernating: this.hibernatingAddons.has(manifest.id)
+    };
+    
+    if (manifest.icon) {
+      addon.icon = addon.dir.nativeURL + manifest.icon;
+    }
+    
+    this.processAddonAssets(addon);
+    
+    this.addons.set(addon.id, addon);
+    console.log(`📦 Loaded addon: ${addon.name} v${addon.version} (${addon.isEnabled ? 'enabled' : 'disabled'})`);
+  }
+
+  async processAddons() {
+    // Process assets and behaviors for enabled addons
+    for (const [addonId, addon] of this.addons) {
+      if (!addon.isEnabled) continue;
+      
+      try {
+        await this.processAddonBehaviors(addon);
+      } catch (error) {
+        console.error(`Failed to process addon ${addon.name}:`, error);
+      }
+    }
+  }
+
+  processAddonAssets(addon) {
+    const assetsManifest = addon.manifest.assets;
+    if (!assetsManifest) return;
+    
+    const defaultResources = {};
+    window.gameResources.forEach(res => defaultResources[res.key] = res);
+    
+    for (const [assetKey, assetPath] of Object.entries(assetsManifest)) {
+      const assetUrl = addon.dir.nativeURL + assetPath;
+      
+      const addonAssets = addon.assets;
+      
+      if (defaultResources[assetKey]) {
+        addon.assets.push({
+          ...defaultResources[assetKey],
+          key: assetKey,
+          url: assetUrl
+        });
+      } else {
+        addon.assets.push({
+          type: "image",
+          key: assetKey,
+          url: assetUrl
+        });
+      }
+    }
+  }
+
+  async processAddonBehaviors(addon) {
+    const behaviorsManifest = addon.manifest.behaviors;
+    if (!behaviorsManifest) return;
+    
+    for (const [stateName, behaviorPath] of Object.entries(behaviorsManifest)) {
+      const behaviorUrl = addon.dir.nativeURL + behaviorPath;
+            
+      const content = await this.loadTextFile(behaviorUrl);
+      addon.behaviors[stateName] = { 
+        content,
+        stateName
+      };
+    }
+  }
+  
+  async loadTextFile(url) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          resolve(xhr.responseText);
+        } else {
+          resolve(null);
+        }
+      };
+      xhr.onerror = () => resolve(null);
+      xhr.send();
+    });
+  }
+
+  async readFileContent(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
+  }
+
+  executeBehavior(addon, stateName, context, extraParams) {
+    const behavior = addon.behaviors[stateName];
+    if (!behavior) return;
+    
+    try {
+      // Create a safe execution context
+      const safeContext = {
+        global: context.global,
+        game: context.game || game,
+        state: context.state,
+        addon: addon,
+        console: console,
+        ...(extraParams || {})
+      };
+      
+      // Execute in a controlled environment
+      const func = new Function(
+        ...Object.keys(safeContext),
+        `"use strict"; ${behavior.content}`
+      );
+      
+      func.call(context.global, ...Object.values(safeContext));
+      
+    } catch (error) {
+      console.error(`Error executing behavior for ${addon.name} in ${stateName}:`, error);
+    }
+  }
+
+  executeGlobalBehaviors() {
+    for (const [addonId, addon] of this.addons) {
+      if (!addon.isEnabled) continue;
+      this.executeBehavior(addon, 'Global', { game, global: window });
+    }
+  }
+
+  executeStateBehaviors(stateName, stateInstance, extraParams) {
+    for (const [addonId, addon] of this.addons) {
+      if (!addon.isEnabled) continue;
+      this.executeBehavior(addon, stateName, {
+        game: game,
+        global: stateInstance,
+        state: stateInstance,
+        stateName: stateName,
+        extraParams: extraParams
+      });
+    }
+  }
+
+  parseVersion(version) {
+    const parts = version.split('.').map(part => parseInt(part, 10) || 0);
+    while (parts.length < 3) parts.push(0);
+    return parts;
+  }
+
+  compareVersions(v1, v2) {
+    for (let i = 0; i < 3; i++) {
+      if (v1[i] > v2[i]) return 1;
+      if (v1[i] < v2[i]) return -1;
+    }
+    return 0;
+  }
+
+  enableAddon(addonId) {
+    const addon = this.addons.get(addonId);
+    if (addon) {
+      addon.isEnabled = true;
+      this.enabledAddons.add(addonId);
+      this.hibernatingAddons.delete(addonId);
+      this.saveAddonSettings();
+      return true;
+    }
+    return false;
+  }
+
+  disableAddon(addonId) {
+    const addon = this.addons.get(addonId);
+    if (addon) {
+      addon.isEnabled = false;
+      this.enabledAddons.delete(addonId);
+      this.saveAddonSettings();
+      return true;
+    }
+    return false;
+  }
+
+  hibernateAddon(addonId) {
+    const addon = this.addons.get(addonId);
+    if (addon) {
+      addon.isEnabled = false;
+      addon.isHibernating = true;
+      this.enabledAddons.delete(addonId);
+      this.hibernatingAddons.add(addonId);
+      this.saveAddonSettings();
+      return true;
+    }
+    return false;
+  }
+  
+  wakeAddon(addonId) {
+    const addon = this.addons.get(addonId);
+    if (addon && addon.isHibernating) {
+      addon.isEnabled = true;
+      addon.isHibernating = false;
+      this.enabledAddons.add(addonId);
+      this.hibernatingAddons.delete(addonId);
+      this.saveAddonSettings();
+      return true;
+    }
+    return false;
+  }
+
+  setSafeMode(enabled) {
+    this.safeMode = enabled;
+    Account.settings.safeMode = enabled;
+    saveAccount();
+  }
+
+  getAddonList() {
+    return Array.from(this.addons.values()).map(addon => ({
+      id: addon.id,
+      name: addon.name,
+      version: addon.version,
+      author: addon.author,
+      description: addon.description,
+      isEnabled: addon.isEnabled,
+      isHibernating: addon.isHibernating,
+      icon: addon.icon,
+      assets: addon.assets,
+      hasAssets: Object.keys(addon.assets).length > 0,
+      hasBehaviors: Object.keys(addon.behaviors).length > 0
+    }));
+  }
+  
+  getResourceList() {
+    let resources = [];
+    
+    const addons = Array.from(this.addons.values());
+    
+    addons.forEach(addon => {
+      resources = [
+        ...resources,
+        ...addon.assets
+      ];
+    });
+    
+    return resources;
+  }
+
+  saveAddonSettings() {
+    Account.settings.enabledAddons = Array.from(this.enabledAddons);
+    Account.settings.hibernatingAddons = Array.from(this.hibernatingAddons);
+    Account.settings.safeMode = this.safeMode;
+    saveAccount();
+  }
+
+  needsReload() {
+    // Check if any changes were made that require a reload
+    const currentEnabled = new Set(Account.settings?.enabledAddons || []);
+    const currentHibernating = new Set(Account.settings?.hibernatingAddons || []);
+    const currentSafeMode = Account.settings?.safeMode || false;
+    
+    return !this.setsEqual(currentEnabled, this.enabledAddons) ||
+           !this.setsEqual(currentHibernating, this.hibernatingAddons) ||
+           currentSafeMode !== this.safeMode;
+  }
+
+  setsEqual(set1, set2) {
+    if (set1.size !== set2.size) return false;
+    for (const item of set1) {
+      if (!set2.has(item)) return false;
+    }
+    return true;
   }
 }
