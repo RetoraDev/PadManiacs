@@ -2,7 +2,7 @@ const COPYRIGHT = "(C) RETORA 2025";
 
 const VERSION = "v0.0.4";
 
-window.DEBUG = true;
+window.DEBUG = false;
 
 const DEFAULT_ACCOUNT = {
   settings: {
