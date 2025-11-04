@@ -17,6 +17,7 @@ const DEFAULT_ACCOUNT = {
     userOffset: 0,
     scrollDirection: 'falling',
     visualizer: 'NONE',
+    metronome: 'OFF',
     // Addon system settings
     safeMode: false, 
     enabledAddons: [],

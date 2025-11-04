@@ -131,6 +131,11 @@ class Boot {
         key: "ui_acurracy_bar",
         url: "ui/acurracy_bar.png"
       },
+      {
+        key: "assist_tick",
+        type: "audio",
+        url: "sfx/assist_tick.ogg"
+      },
       // Chart assets
       {
         key: "arrows",
@@ -1082,6 +1087,21 @@ class MainMenu {
         }
       );
       
+      const metronomeOptions = ['OFF', 'Note', 'Quarters', 'Eighths', 'Sixteenths', 'Thirty-seconds'];
+      const currentMetronome = Account.settings.metronome || 'OFF';
+      const currentMetronomeIndex = metronomeOptions.indexOf(currentMetronome);
+      
+      settingsWindow.addSettingItem(
+        "Metronome",
+        metronomeOptions,
+        currentMetronomeIndex,
+        index => {
+          const selectedOption = metronomeOptions[index];
+          Account.settings.metronome = selectedOption;
+          saveAccount();
+        }
+      );
+      
       let index = 0;
       if (Account.settings.enableMenuMusic) {
         index = Account.settings.randomSong ? 1 : 0;
@@ -1089,7 +1109,7 @@ class MainMenu {
         index = 2;
       }
       
-      const visualizerOptions = ['NONE', 'ACURRACY', 'AUDIO', 'BPM'];
+      const visualizerOptions = ['NONE', 'BPM', 'ACURRACY', 'AUDIO'];
       const currentVisualizer = Account.settings.visualizer || 'NONE';
       const currentVisualizerIndex = visualizerOptions.indexOf(currentVisualizer);
       
@@ -1146,12 +1166,12 @@ class MainMenu {
       );
       
       const offsetOptions = [];
-      for (let ms = -400; ms <= 400; ms += 25) {
+      for (let ms = -1000; ms <= 1000; ms += 25) {
         offsetOptions.push(`${ms}ms`);
       }
       
       const currentOffset = Account.settings.userOffset || 0;
-      const currentOffsetIndex = (currentOffset + 400) / 25;
+      const currentOffsetIndex = (currentOffset + 1000) / 25;
       
       settingsWindow.addSettingItem(
         "Global Offset",
@@ -1163,7 +1183,7 @@ class MainMenu {
           saveAccount();
         }
       );
-  
+      
       settingsWindow.addSettingItem(
         "Menu Music",
         ["LAST SONG", "RANDOM SONG", "OFF"],
@@ -1254,7 +1274,8 @@ class MainMenu {
         animate: true,
         crop: false
       });
-      carousel.addItem("Addons", () => this.addonManager());
+      if (window.cordova) carousel.addItem("Addon Manager", () => this.addonManager());
+      carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
       game.onMenuIn.dispatch('extras', carousel);
       carousel.addItem("< Back", () => home());
       carousel.onCancel.add(() => home());
@@ -1308,6 +1329,11 @@ class MainMenu {
   }
   freePlay() {
     game.state.start("SongSelect", true, false, window.localSongs);
+  }
+  startOffsetAssistant() {
+    // Create and start the offset assistant
+    const offsetAssistant = new OffsetAssistant(game);
+    game.add.existing(offsetAssistant);
   }
   loadExternalSongs() {
     game.state.start("LoadExternalSongs");
@@ -1840,6 +1866,8 @@ class Play {
     this.hasLyricsFile = song.chart.lyrics ? true : false;
     this.visualizerType = Account.settings.visualizer || 'NONE';
     this.lastVisualizerUpdateTime = 0;
+    this.metronome = null;
+    this.gameRecorder = null;
     
     // Save last song to Account
     Account.lastSong = {
@@ -1912,6 +1940,8 @@ class Play {
     this.setupLyrics();
     
     this.player = new Player(this);
+    
+    this.metronome = new Metronome(this);
     
     this.songStart();
     
@@ -2287,6 +2317,26 @@ class Play {
       this.lastVisualizerUpdateTime = game.time.now;
     }
     
+    // Handle assist tick toggle with Select button
+    if (gamepad.pressed.select && !this.lastSelect) {
+      this.metronome.toggle();
+    }
+    this.lastSelect = gamepad.pressed.select;
+    
+    // Update assist tick metronome
+    if (this.metronome) {
+      this.metronome.update();
+    }
+    
+    // Update autoplay text
+    let text = "";
+    if (this.autoplay) {
+      text = this.metronome.enabled ? "AUTOPLAY + METRONOME" : "AUTOPLAY";
+    } else if (this.metronome.enabled) {
+      text = "METRONOME";
+    }
+    if (this.autoplayText.text != text) this.autoplayText.write(text);
+    
     this.player.update();
     
     this.updateBackgrounds();
@@ -2320,6 +2370,20 @@ class Play {
       this.visualizer.destroy();
       this.visualizer = null;
     }
+    if (this.metronome) {
+      this.metronome.destroy();
+      this.metronome = null;
+    }
+    
+    // Stop recording and show video
+    if (this.gameRecorder && this.gameRecorder.isRecording) {
+      this.gameRecorder.stopRecording();
+    }
+    if (this.gameRecorder) {
+      this.gameRecorder.destroy();
+      this.gameRecorder = null;
+    }
+    window.recordNextGame = false;
   }
 }
 
@@ -5012,6 +5076,309 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
+class OffsetAssistant extends Phaser.Sprite {
+  constructor(game) {
+    super(game, 0, 0);
+    
+    this.taps = [];
+    this.confidenceThreshold = 0.8;
+    this.maxTaps = 16;
+    this.requiredTaps = 8;
+    this.tickBPM = 120;
+    this.tickInterval = 60000 / this.tickBPM; // 500ms per tick
+    
+    // Store background music state
+    this.wasMusicPlaying = backgroundMusic && backgroundMusic.isPlaying;
+    this.originalMusicTime = 0;
+    
+    // Pause background music
+    this.pauseBackgroundMusic();
+    
+    // Start tick sound
+    this.startTickSound();
+    
+    // Create background
+    this.background = game.add.graphics(0, 0);
+    this.background.beginFill(0x000000, 0.8);
+    this.background.drawRect(0, 0, game.width, game.height);
+    this.background.endFill();
+    this.addChild(this.background);
+    
+    // Create instruction text
+    this.instructionText = new Text(game.width / 2, game.height / 2 - 20, "TAP A TO THE TICK", FONTS.shaded);
+    this.instructionText.anchor.set(0.5);
+    this.addChild(this.instructionText);
+    
+    // Create offset display text
+    this.offsetText = new Text(game.width / 2, game.height / 2 + 10, "Offset: 0ms", FONTS.default);
+    this.offsetText.anchor.set(0.5);
+    this.addChild(this.offsetText);
+    
+    // Create tap counter
+    this.tapCounter = new Text(game.width / 2, game.height / 2 + 30, "Taps: 0", FONTS.default);
+    this.tapCounter.anchor.set(0.5);
+    this.tapCounter.alpha = 0.7;
+    this.addChild(this.tapCounter);
+    
+    // Create exit hint
+    this.exitText = new Text(game.width / 2, game.height - 10, "Press B to exit and save", FONTS.default);
+    this.exitText.anchor.set(0.5);
+    this.exitText.alpha = 0.5;
+    this.addChild(this.exitText);
+    
+    // Track button states
+    this.lastAPress = false;
+    this.lastBPress = false;
+    
+    // Track tick timing
+    this.lastTickTime = 0;
+    this.nextTickTime = this.game.time.now;
+    
+    // Store calculated offsets for averaging
+    this.calculatedOffsets = [];
+  }
+
+  update() {
+    // Handle A button for tapping
+    if (gamepad.pressed.a && !this.lastAPress) {
+      this.onTap();
+    }
+    this.lastAPress = gamepad.pressed.a;
+    
+    // Handle B button to exit
+    if (gamepad.pressed.b && !this.lastBPress) {
+      this.exit();
+    }
+    this.lastBPress = gamepad.pressed.b;
+    
+    // Update tick sound
+    this.updateTickSound();
+    
+    // Update tap counter
+    this.tapCounter.write(`Taps: ${this.taps.length}`);
+  }
+
+  pauseBackgroundMusic() {
+    if (backgroundMusic && backgroundMusic.isPlaying) {
+      this.originalMusicTime = backgroundMusic.audio.currentTime;
+      backgroundMusic.stop();
+      console.log("Background music paused for offset assistant");
+    }
+  }
+
+  resumeBackgroundMusic() {
+    if (backgroundMusic && this.wasMusicPlaying) {
+      // Try to resume from where we left off
+      backgroundMusic.audio.currentTime = this.originalMusicTime;
+      backgroundMusic.audio.play().catch(error => {
+        console.log("Could not resume background music:", error);
+      });
+      console.log("Background music resumed");
+    }
+  }
+
+  startTickSound() {
+    // Preload the tick sound if not already loaded
+    if (!game.cache.checkSoundKey('assist_tick')) {
+      console.warn("Tick sound not preloaded!");
+      return;
+    }
+    
+    // Play first tick immediately
+    this.playTickSound();
+    this.lastTickTime = this.game.time.now;
+    this.nextTickTime = this.lastTickTime + this.tickInterval;
+  }
+
+  updateTickSound() {
+    if (this.destroyed) return;
+    
+    const currentTime = this.game.time.now;
+    
+    // Check if it's time for the next tick
+    if (currentTime >= this.nextTickTime) {
+      this.playTickSound();
+      this.lastTickTime = currentTime;
+      this.nextTickTime = currentTime + this.tickInterval;
+    }
+  }
+
+  playTickSound() {
+    if (game.cache.checkSoundKey('assist_tick')) {
+      const tickSound = game.add.audio('assist_tick');
+      tickSound.volume = 0.5;
+      tickSound.play();
+    }
+  }
+
+  onTap() {
+    const currentTime = this.game.time.now;
+    
+    // Add the current tap time
+    this.taps.push(currentTime);
+    
+    // Keep only the most recent taps
+    if (this.taps.length > this.maxTaps) {
+      this.taps.shift();
+    }
+    
+    // Calculate the detected offset
+    this.calculateOffset();
+    
+    // Provide visual feedback for the tap
+    this.showTapFeedback();
+  }
+
+  calculateOffset() {
+    if (this.taps.length < 2) {
+      this.offsetText.write("Offset: 0ms");
+      this.offsetText.tint = 0xFFFFFF;
+      return;
+    }
+    
+    // Calculate offset for each tap relative to the nearest tick
+    const currentOffsets = [];
+    
+    for (let i = 0; i < this.taps.length; i++) {
+      const tapTime = this.taps[i];
+      
+      // Find the nearest tick time
+      const ticksSinceStart = Math.round((tapTime - this.taps[0]) / this.tickInterval);
+      const expectedTapTime = this.taps[0] + (ticksSinceStart * this.tickInterval);
+      
+      // Calculate offset for this tap
+      const offset = tapTime - expectedTapTime;
+      currentOffsets.push(offset);
+    }
+    
+    // Calculate average offset from all taps
+    const averageOffset = currentOffsets.reduce((a, b) => a + b, 0) / currentOffsets.length;
+    
+    // Round to nearest 25ms
+    const roundedOffset = Math.round(averageOffset / 25) * 25;
+    
+    // Store this calculated offset for final averaging
+    this.calculatedOffsets.push(roundedOffset);
+    
+    // Keep only recent calculated offsets
+    if (this.calculatedOffsets.length > 5) {
+      this.calculatedOffsets.shift();
+    }
+    
+    // Calculate final average offset from all calculations
+    const finalAverageOffset = this.calculatedOffsets.length > 0 
+      ? Math.round(this.calculatedOffsets.reduce((a, b) => a + b, 0) / this.calculatedOffsets.length / 25) * 25
+      : roundedOffset;
+    
+    // Calculate confidence based on tap consistency
+    const confidence = this.calculateConfidence(currentOffsets);
+    
+    // Update display with the final averaged offset
+    const offsetDisplay = `Offset: ${finalAverageOffset}ms`;
+    this.offsetText.write(offsetDisplay);
+    
+    // Change color based on confidence
+    if (this.taps.length >= this.requiredTaps && confidence >= this.confidenceThreshold) {
+      this.offsetText.tint = 0x00FF00; // Green - confident
+    } else if (this.taps.length >= 4) {
+      this.offsetText.tint = 0xFFFF00; // Yellow - somewhat confident
+    } else {
+      this.offsetText.tint = 0xFFFFFF; // White - not confident
+    }
+    
+    console.log(`Taps: ${this.taps.length}, Current Offset: ${roundedOffset}ms, Final Average: ${finalAverageOffset}ms, Confidence: ${confidence.toFixed(2)}`);
+  }
+
+  calculateConfidence(offsets) {
+    if (offsets.length < 3) return 0;
+    
+    // Calculate mean offset
+    const mean = offsets.reduce((a, b) => a + b, 0) / offsets.length;
+    
+    // Calculate variance
+    const variance = offsets.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / offsets.length;
+    
+    // Calculate standard deviation
+    const stdDev = Math.sqrt(variance);
+    
+    // Confidence is inverse of standard deviation (lower deviation = higher confidence)
+    // Using 50ms as reference point (if stdDev is 50ms, confidence is 0)
+    const confidence = Math.max(0, 1 - (stdDev / 50));
+    
+    return Math.min(1, confidence);
+  }
+  
+  roundToNearestMultipleOf25(num) {
+    const rounded = Math.round(num / 25);
+    return rounded >= 0 ? rounded * 25 : (rounded + 1) * 25;
+  }
+
+  showTapFeedback() {
+    // Flash the instruction text briefly
+    this.game.add.tween(this.instructionText.scale)
+      .to({ x: 1.1, y: 1.1 }, 50, Phaser.Easing.Quadratic.Out, true)
+      .yoyo(true);
+  }
+
+  exit() {
+    // Calculate final offset average
+    let finalOffset = 0;
+    
+    if (this.calculatedOffsets.length > 0) {
+      finalOffset = this.roundToNearestMultipleOf25(this.calculatedOffsets.reduce((a, b) => a + b, 0) / this.calculatedOffsets.length);
+      
+      // Update account settings with the final averaged offset
+      Account.settings.userOffset = finalOffset;
+      saveAccount();
+      
+      // Show confirmation
+      notifications.show(`Offset set to ${finalOffset}ms`);
+      console.log(`Final offset saved: ${finalOffset}ms`);
+    } else if (this.taps.length > 0) {
+      // Fallback to last calculation if no averages stored
+      const currentOffset = this.parseOffsetText();
+      if (currentOffset !== null) {
+        Account.settings.userOffset = currentOffset;
+        saveAccount();
+        notifications.show(`Offset set to ${currentOffset}ms`);
+        console.log(`Offset saved: ${currentOffset}ms`);
+      }
+    }
+    
+    // Resume background music
+    this.resumeBackgroundMusic();
+    
+    // Return to settings menu
+    this.destroy();
+    game.state.getCurrentState().menu();
+  }
+
+  parseOffsetText() {
+    const text = this.offsetText.text;
+    const match = text.match(/Offset: (-?\d+)ms/);
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+    return null;
+  }
+
+  destroy() {
+    // Make sure music is resumed even if destroyed unexpectedly
+    this.resumeBackgroundMusic();
+    
+    this.destroyed = true;
+    
+    // Clean up all created objects
+    this.background.destroy();
+    this.instructionText.destroy();
+    this.offsetText.destroy();
+    this.tapCounter.destroy();
+    this.exitText.destroy();
+    
+    super.destroy();
+  }
+}
+
 class BackgroundGradient extends Phaser.Sprite {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, "ui_background_gradient");
@@ -7380,5 +7747,176 @@ class AddonManager {
       if (!set2.has(item)) return false;
     }
     return true;
+  }
+}
+
+class Metronome {
+  constructor(scene) {
+    this.scene = scene;
+    this.player = scene.player;
+    this.enabled = Account.settings.metronome != 'OFF';
+    this.mode = Account.settings.metronome;
+    this.beatDivisions = {
+      'OFF': 0,
+      'Quarters': 1,       // Every whole beat (1, 2, 3, 4...)
+      'Eighths': 2,        // Every half beat (1, 1.5, 2, 2.5...)
+      'Sixteenths': 4,     // Every quarter beat (1, 1.25, 1.5, 1.75...)
+      'Thirty-seconds': 8, // Every eighth beat (1, 1.125, 1.25, 1.375...)
+      'Note': 'Note'       // Special mode - plays when notes reach their beat time
+    };
+    
+    this.lastDivisionValue = -1;
+    this.currentDivision = this.beatDivisions[this.mode];
+    
+    // For NOTE mode
+    this.noteIndex = 0; // Current note index to check
+    this.lastNoteBeat = -1; // Last note beat that triggered a tick
+    this.notes = []; // Array of unique note beats
+    
+    // Bind the toggle method to the scene
+    this.scene.onSelectPressed = this.toggle.bind(this);
+  }
+
+  update() {
+    if (!this.enabled) return;
+    
+    if (this.mode === 'Note') {
+      this.updateNoteMode();
+    } else {
+      this.updateBeatMode();
+    }
+  }
+  
+  updateBeatMode() {
+    if (this.currentDivision === 0) return;
+    
+    const { beat } = this.scene.getCurrentTime();
+    const currentDivisionValue = this.getCurrentDivisionValue(beat);
+    
+    // Check if we've crossed a new division
+    if (currentDivisionValue !== this.lastDivisionValue) {
+      this.playTick();
+      this.lastDivisionValue = currentDivisionValue;
+    }
+  }
+
+  updateNoteMode() {
+    const { beat } = this.scene.getCurrentTime();
+    const currentBeat = beat;
+    
+    // Initialize notes array if empty
+    if (this.notes.length === 0) {
+      this.initializeNotes();
+    }
+    
+    // If we've processed all notes, return
+    if (this.noteIndex >= this.notes.length) return;
+    
+    // Get the next note beat to check
+    const nextNoteBeat = this.notes[this.noteIndex];
+    
+    // Check if current time has reached the next note's beat
+    if (currentBeat >= nextNoteBeat) {
+      // Play tick and move to next note
+      this.playTick();
+      this.lastNoteBeat = nextNoteBeat;
+      this.noteIndex++;
+      
+      // Skip any notes with the same beat (group them together)
+      while (this.noteIndex < this.notes.length && this.notes[this.noteIndex] === this.lastNoteBeat) {
+        this.noteIndex++;
+      }
+    }
+  }
+
+  initializeNotes() {
+    // Get all notes from the current difficulty
+    const difficulty = this.scene.song.chart.difficulties[this.scene.song.difficultyIndex];
+    const difficultyKey = `${difficulty.type}${difficulty.rating}`;
+    const allNotes = this.scene.song.chart.notes[difficultyKey];
+    
+    if (!allNotes) {
+      this.notes = [];
+      return;
+    }
+    
+    // Extract unique note beats (only regular notes, no duplicates, sorted)
+    const uniqueBeats = new Set();
+    
+    for (const note of allNotes) {
+      // Skip mines, holds, rolls - only regular notes
+      if (note.type === "1" || note.type === "2") {
+        // Round to 3 decimal places to handle floating point precision
+        const roundedBeat = Math.round(note.beat * 1000) / 1000;
+        uniqueBeats.add(roundedBeat);
+      }
+    }
+    
+    // Convert to sorted array
+    this.notes = Array.from(uniqueBeats).sort((a, b) => a - b);
+    this.noteIndex = 0;
+    this.lastNoteBeat = -1;
+    
+    console.log(`NOTE mode: Loaded ${this.notes.length} unique note beats`);
+  }
+
+  getCurrentDivisionValue(beat) {
+    if (this.currentDivision === 0) return -1;
+    
+    // Calculate the current division value
+    return Math.floor(beat * this.currentDivision);
+  }
+
+  playTick() {
+    if (game.cache.checkSoundKey('assist_tick')) {
+      // Play the tick sound
+      const tickSound = game.add.audio('assist_tick');
+      tickSound.volume = 0.5; // Adjust volume as needed
+      tickSound.play();
+    }
+  }
+
+  toggle() {
+    this.enabled = !this.enabled;
+    this.lastDivisionValue = -1; // Reset to ensure tick plays on next division
+    this.resetNoteMode(); // Reset note mode state
+    
+    console.log("Metronome", this.enabled ? "enabled:" : "disabled", this.mode);
+  }
+
+  resetNoteMode() {
+    this.noteIndex = 0;
+    this.lastNoteBeat = -1;
+    this.notes = [];
+  }
+
+  setMode(mode) {
+    if (this.beatDivisions.hasOwnProperty(mode)) {
+      this.mode = mode;
+      this.currentDivision = this.beatDivisions[mode];
+      this.lastDivisionValue = -1; // Reset division tracking
+      this.resetNoteMode(); // Reset note mode state
+      
+      // Update enabled state based on mode
+      this.enabled = mode !== 'OFF';
+      
+      // Update account settings
+      Account.settings.metronome = mode;
+      saveAccount();
+      
+      console.log("Metronome mode changed to:", mode);
+    }
+  }
+
+  destroy() {
+    this.enabled = false;
+    this.lastDivisionValue = -1;
+    this.resetNoteMode();
+    
+    // Clean up text display
+    if (this.statusText) {
+      this.statusText.destroy();
+      this.statusText = null;
+    }
   }
 }
