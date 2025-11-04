@@ -7,3 +7,7 @@
 www.zip
 *.exe
 *build.zip
+log.txt
+save/
+gamepad.json
+settings.json

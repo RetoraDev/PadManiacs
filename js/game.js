@@ -7,7 +7,8 @@ let Account = {
 
 const saveAccount = () => localStorage.setItem("Account", JSON.stringify(Account));
 
-window.onload = () => {
+const bootGame = () => {
+  if (game) game.destroy();
   game = new Phaser.Game({
     width: 192,
     height: 112,
@@ -21,7 +22,7 @@ window.onload = () => {
     failIfMajorPerformanceCaveat: false,
     forceSetTimeOut: false,
     clearBeforeRender: true,
-    forceSingleUpdate: true,
+    forceSingleUpdate: false,
     maxPointers: 0,
     keyboard: true,
     mouse: false,
@@ -50,9 +51,12 @@ window.onload = () => {
         game.state.add('Results', Results);
         game.state.start('Boot');
       }
-    }
+    },
+    ...(window.GameConfig || {})
   });
 };
+
+window.onload = bootGame;
 
 class Boot {
   preload() {
@@ -80,6 +84,8 @@ class Boot {
     game.time.desiredMinFps = 5;
     
     game.world.updateOnlyExistingChildren = true;
+    
+    game.onMenuIn = new Phaser.Signal();
     
     window.primaryAssets = this.keys;
     
@@ -240,7 +246,7 @@ class Load {
 
 class LoadCordova {
   create() {
-    if (window.location.protocol == "file:") {
+    if (window.location.protocol == "file:" && !window.cordova) {
       this.loadScript();
     } else {
       this.continue();
@@ -947,7 +953,7 @@ class Title {
     
     this.introEnded = false;
     
-    this.logo.intro(() => this.introEnded = true)
+    this.logo.intro(() => this.introEnded = true);
 
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
@@ -1004,7 +1010,9 @@ class MainMenu {
       });
       carousel.addItem("Rhythm Game", () => startGame());
       carousel.addItem("Settings", () => settings());
-      carousel.addItem("Addons", () => this.addonManager());
+      carousel.addItem("Extras", () => extras());
+      
+      game.onMenuIn.dispatch('home', carousel);
       
       if (typeof window.cordova !== "undefined") {
         carousel.addItem("Exit", () => exit());
@@ -1022,6 +1030,7 @@ class MainMenu {
       });
       carousel.addItem("Free Play", () => this.freePlay());
       carousel.addItem("Extra Songs", () => extraSongs());
+      game.onMenuIn.dispatch('startGame', carousel);
       carousel.addItem("< Back", () => home());
       carousel.onCancel.add(() => home());
     };
@@ -1039,9 +1048,11 @@ class MainMenu {
       if (typeof window.cordova != "undefined" && window.externalSongs) {
         carousel.addItem("Reload User Songs", () => {
           backgroundMusic.refreshCache();
+          window.externalSongs = undefined;
           this.loadExternalSongs();
         });
       }
+      game.onMenuIn.dispatch('extraSongs', carousel);
       carousel.addItem("< Back", () => home());
       carousel.onCancel.add(() => home());
     };
@@ -1217,6 +1228,8 @@ class MainMenu {
         () => eraseHighscores()
       );
       
+      game.onMenuIn.dispatch('settings', settingsWindow);
+      
       settingsWindow.addItem(
         "Restore Default Settings",
         "",
@@ -1231,6 +1244,20 @@ class MainMenu {
           home();
         }
       }, true);
+    };
+    
+    const extras = () => {
+      const carousel = new CarouselMenu(0, 112 / 2, 112, 112 / 2, {
+        align: 'left',
+        bgcolor: 'brown',
+        fgcolor: '#ffffff',
+        animate: true,
+        crop: false
+      });
+      carousel.addItem("Addons", () => this.addonManager());
+      game.onMenuIn.dispatch('extras', carousel);
+      carousel.addItem("< Back", () => home());
+      carousel.onCancel.add(() => home());
     };
     
     const confirm = (message, onConfirm, onCancel) => {
@@ -1324,6 +1351,8 @@ class MainMenu {
         previewAddon(addons[0]);
       }
       
+      game.onMenuIn.dispatch('addons', carousel);
+      
       carousel.addItem("< Back", () => applyChanges());
       carousel.onCancel.add(() => applyChanges());
     };
@@ -1331,17 +1360,20 @@ class MainMenu {
     let needsReload = false;
     
     const previewAddon = (addon) => {
+      console.log(addon);
       detailText.write(
         `${addon.name}\n` +
         `V${addon.version}\n` +
-        `By ${addon.author}\n\n` +
+        `By ${addon.author}\n` +
+        `BEHAVIORS:${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
+        `ASSETS:${addon.assets ? addon.assets.length : 0}\n\n` +
         `${addon.description}\n` +
         'STATE: ' + 
         (addon.isHibernating ?
           'Hybernating'
           :
         (addon.isEnabled ?
-          'Enabled' : 'Disabled'))
+          'Enabled' : 'Disabled')) + '\n'
       ).wrap(112);
       if (addon.icon) {
         this.previewImg.src = addon.icon;
@@ -1386,6 +1418,8 @@ class MainMenu {
         });
       }
       
+      game.onMenuIn.dispatch('addonDetails', carousel);
+      
       carousel.addItem("< Back", () => showInstalledAddons());
       carousel.onCancel.add(() => showInstalledAddons());
     };
@@ -1396,10 +1430,10 @@ class MainMenu {
           location.reload();
         }, () => {
           this.menu();
-          preview.destroy();
         });
       } else {
         preview.destroy();
+        detailText.destroy();
         this.menu();
       }
     };
@@ -1407,6 +1441,9 @@ class MainMenu {
     const confirm = (message, onConfirm, onCancel) => {
       const text = new Text(game.width / 2, 40, message || "You sure?", FONTS.shaded);
       text.anchor.x = 0.5;
+      
+      preview.destroy();
+      detailText.destroy();
       
       const window = this.manager.createWindow(10, 7, 5, 4, "1");
       window.fontTint = 0x76fcde;
@@ -1551,6 +1588,8 @@ class SongSelect {
       });
     }
     
+    game.onMenuIn.dispatch('songList', this.songCarousel);
+    
     // Move to the starting index
     this.songCarousel.selectedIndex = this.startingIndex;
     this.songCarousel.updateSelection();
@@ -1681,6 +1720,8 @@ class SongSelect {
       align: "center",
       animate: true
     });
+    
+    game.onMenuIn.dispatch('difficulty', this.songCarousel);
     
     // Add difficulties
     song.difficulties.sort((a, b) => a.rating - b.rating).forEach((diff, index) => {
@@ -2024,7 +2065,9 @@ class Play {
     const FIXED_DELAY = 2000; 
     const DEVICE_DELAY = -272.5; // Hardcoded device delay for must HTML5 audio players. TODO: Detect this dynamicly
     
-    this.startTime = game.time.now + FIXED_DELAY - this.song.chart.offset * 1000;
+    const chartOffset = this.song.chart.offset || 0;
+    
+    this.startTime = game.time.now + FIXED_DELAY - chartOffset * 1000;
     
     setTimeout(() => {
       this.audio.play();
@@ -2043,15 +2086,23 @@ class Play {
     img.src = url;
   }
   
+  loadBackgroundVideo(url) {
+    this.video.src = url;
+    this.video.play();
+    this.backgroundGradient.visible = false;
+  }
+  
+  clearBackgroundImage() {
+    this.backgroundSprite.loadTexture(null);
+    this.backgroundGradient.visible = false;
+  }
+  
   applyBackground(bg) {
     if (this.backgroundVideo) this.backgroundVideo.destroy();
     if (bg.file == '-nosongbg-') {
-      this.backgroundSprite.loadTexture(null);
-      this.BackgroundGradient.visible = false;
+      this.clearBackgroundImage();
     } else if (bg.type == 'video') {
-      this.video.src = bg.url;
-      this.video.play();
-      this.backgroundGradient.visible = false;
+      this.loadBackgroundVideo(bg.url);
     } else {
       this.loadBackgroundImage(bg.url);
       this.video.src = "";
@@ -2148,6 +2199,9 @@ class Play {
     }
     this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex));
     this.pauseCarousel.addItem("GIVE UP", () => this.songEnd());
+    
+    game.onMenuIn.dispatch('pause', this.pauseCarousel);
+    
     this.pauseCarousel.addItem("QUIT", () => game.state.start("MainMenu"));
     
     this.pauseCarousel.onCancel.add(() => this.resume());
@@ -2199,6 +2253,10 @@ class Play {
     }
     
     // Update video if needed
+    this.updateVideo();
+  }
+  
+  updateVideo() {
     if (this.currentBackground && this.currentBackground.type == "video" && game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
       this.lastVideoUpdateTime = game.time.now;
       this.backgroundCtx.drawImage(this.video, 0, 0, 192, 112);
@@ -2224,7 +2282,7 @@ class Play {
     }
     
     // Update visualizer
-    if (this.visualizer && game.time.now - this.lastVisualizerUpdateTime >= game.time.elapsedMS * 4) {
+    if (this.visualizer && game.time.now - this.lastVisualizerUpdateTime >= game.time.elapsedMS * 2) {
       this.visualizer.update();
       this.lastVisualizerUpdateTime = game.time.now;
     }
@@ -3001,7 +3059,7 @@ class Player {
           
           const getBody = () => {
             const sprite = this.freezeBodyGroup.getFirstDead() || (() => {
-              const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, `${prefix}_body`);
+              const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, 0, `${prefix}_body`);
               this.freezeBodyGroup.add(child);
               return child;
             })();
@@ -3063,7 +3121,7 @@ class Player {
         if (!isActive) visibleHeight += this.COLUMN_SIZE / 2;
 
         let freezeYPos = Math.floor(yPos);
-        let freezeHeight = Math.floor(visibleHeight);
+        let freezeHeight = Math.min(112, Math.floor(visibleHeight));
         
         note.holdParts.body.y = freezeYPos;
         note.holdParts.body.height = freezeHeight;
@@ -3071,6 +3129,7 @@ class Player {
 
         note.holdParts.body.visible = spritesVisible;
         note.holdParts.end.visible = spritesVisible;
+        
         if (note.sprite) {
           note.sprite.visible = !isActive && spritesVisible;
         }
@@ -3319,8 +3378,9 @@ class Player {
       const down = this.inputStates[i];
       if (receptor.down != down) {
         receptor.down = down;
-        receptor.play(down ? "down" : "up");
+        //receptor.animations.play(down ? "down" : "up");
       }
+      receptor.frame = down ? 0 : 2;
     }
 
     // Update healh
@@ -3593,8 +3653,10 @@ class Results {
     }
     menu.addItem("RETRY", () => game.state.start("Play", true, false, this.gameData.song));
     menu.addItem("QUIT", () => game.state.start("MainMenu"));
+    
+    game.onMenuIn.dispatch('results', menu);
   }
-
+  
   getJudgementsText(judgements) {
     return `MARVELOUS: ${judgements.marvelous}\n` +
            `PERFECT: ${judgements.perfect}\n` +
@@ -4532,6 +4594,8 @@ class CarouselMenu extends Phaser.Sprite {
     
     this.lastUp = false;
     this.lastDown = false;
+    this.lastLeft = false;
+    this.lastRight = false;
     this.lastConfirm = false;
     this.lastCancel = false;
     
@@ -4656,6 +4720,8 @@ class CarouselMenu extends Phaser.Sprite {
   handleInput() {
     const upPressed = gamepad.pressed.up && !this.lastUp;
     const downPressed = gamepad.pressed.down && !this.lastDown;
+    const leftPressed = gamepad.pressed.left && !this.lastLeft;
+    const rightPressed = gamepad.pressed.right && !this.lastRight;
     const confirmPressed = gamepad.pressed.a && !this.lastConfirm;
     const cancelPressed = gamepad.pressed.b && !this.lastCancel;
     
@@ -4663,6 +4729,10 @@ class CarouselMenu extends Phaser.Sprite {
       this.navigate(-1);
     } else if (downPressed) {
       this.navigate(1);
+    } else if (leftPressed) {
+      this.navigate(-1, true);
+    } else if (rightPressed) {
+      this.navigate(1, true);
     }
     
     if (confirmPressed && this.items.length > 0) {
@@ -4675,18 +4745,26 @@ class CarouselMenu extends Phaser.Sprite {
     
     this.lastUp = gamepad.pressed.up;
     this.lastDown = gamepad.pressed.down;
+    this.lastLeft = gamepad.pressed.left;
+    this.lastRight = gamepad.pressed.right;
     this.lastConfirm = gamepad.pressed.a;
     this.lastCancel = gamepad.pressed.b;
   }
   
-  navigate(direction) {
+  navigate(direction, page) {
     if (this.items.length === 0 || this.isAnimating) return;
     
-    const newIndex = Phaser.Math.clamp(
-      this.selectedIndex + direction,
-      0,
-      this.items.length - 1
-    );
+    let scrollAmount = page ? direction * Math.max(1, this.visibleItems) : direction;
+    
+    let newIndex = this.selectedIndex + scrollAmount;
+    
+    if (!page) {
+      if (newIndex < 0) newIndex = this.items.length - 1;
+      if (newIndex > this.items.length - 1) newIndex = 0;
+    } else {
+      if (newIndex < 0) newIndex = 0;
+      if (newIndex > this.items.length - 1) newIndex = this.items.length - 1;
+    }
     
     if (newIndex !== this.selectedIndex) {
       this.selectedIndex = newIndex;
@@ -6902,7 +6980,9 @@ class BPMVisualizer extends Visualizer {
     this.graphics.drawCircle(3, 3, 4);
     this.graphics.endFill();
     
-    this.beatIndicatorAlpha -= 0.2;
+    let speed = (Math.min(250, this.currentBpm) / 250) * 0.5;
+    
+    this.beatIndicatorAlpha -= speed;
   }
   
   getLastBpm() {
@@ -7133,7 +7213,7 @@ class AddonManager {
       // Create a safe execution context
       const safeContext = {
         global: context.global,
-        game: context.game || game,
+        game: game,
         state: context.state,
         addon: addon,
         console: console,
@@ -7143,10 +7223,10 @@ class AddonManager {
       // Execute in a controlled environment
       const func = new Function(
         ...Object.keys(safeContext),
-        `"use strict"; ${behavior.content}`
+        `${behavior.content}`
       );
       
-      func.call(context.global, ...Object.values(safeContext));
+      func.call(context.global || window, ...Object.values(safeContext));
       
     } catch (error) {
       console.error(`Error executing behavior for ${addon.name} in ${stateName}:`, error);
@@ -7155,14 +7235,14 @@ class AddonManager {
 
   executeGlobalBehaviors() {
     for (const [addonId, addon] of this.addons) {
-      if (!addon.isEnabled) continue;
+      if (addon.isHibernating || !addon.isEnabled) continue;
       this.executeBehavior(addon, 'Global', { game, global: window });
     }
   }
 
   executeStateBehaviors(stateName, stateInstance, extraParams) {
     for (const [addonId, addon] of this.addons) {
-      if (!addon.isEnabled) continue;
+      if (addon.isHibernating || !addon.isEnabled) continue;
       this.executeBehavior(addon, stateName, {
         game: game,
         global: stateInstance,
@@ -7253,6 +7333,7 @@ class AddonManager {
       isHibernating: addon.isHibernating,
       icon: addon.icon,
       assets: addon.assets,
+      behaviors: addon.behaviors,
       hasAssets: Object.keys(addon.assets).length > 0,
       hasBehaviors: Object.keys(addon.behaviors).length > 0
     }));
@@ -7264,10 +7345,12 @@ class AddonManager {
     const addons = Array.from(this.addons.values());
     
     addons.forEach(addon => {
-      resources = [
-        ...resources,
-        ...addon.assets
-      ];
+      if (!addon.isHibernating && addon.isEnabled) {
+        resources = [
+          ...resources,
+          ...addon.assets
+        ];
+      }
     });
     
     return resources;

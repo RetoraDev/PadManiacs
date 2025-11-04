@@ -40,12 +40,12 @@ class Gamepad {
       down: [Phaser.KeyCode.DOWN, Phaser.KeyCode.S, Phaser.KeyCode.V],
       left: [Phaser.KeyCode.LEFT, Phaser.KeyCode.A, Phaser.KeyCode.C],
       right: [Phaser.KeyCode.RIGHT, Phaser.KeyCode.D, Phaser.KeyCode.N],
-      a: [Phaser.KeyCode.Z, Phaser.KeyCode.J],
-      b: [Phaser.KeyCode.X, Phaser.KeyCode.K],
+      a: [Phaser.KeyCode.Z, Phaser.KeyCode.K],
+      b: [Phaser.KeyCode.X, Phaser.KeyCode.J],
       select: [Phaser.KeyCode.SHIFT, Phaser.KeyCode.TAB],
       start: [Phaser.KeyCode.ENTER, Phaser.KeyCode.ESC]
     };
-
+    
     // Gamepad button mappings
     this.gamepadMap = {
       up: 12,
@@ -72,7 +72,7 @@ class Gamepad {
 
     // Touch tracking
     this.activeTouches = new Map();
-    this.maxTouches = 2;
+    this.maxTouches = 4;
 
     // Input detection
     this.lastInputSource = 'none';
@@ -131,30 +131,33 @@ class Gamepad {
   }
 
   setupGamepad() {
-    this.gamepad = null;
-    
     // Start gamepad polling
-    if (this.game.input.gamepad.supported) {
-      this.game.input.gamepad.start();
-      
-      // Check for already connected gamepads
-      if (this.game.input.gamepad.active && this.game.input.gamepad.pad1.connected) {
-        this.gamepad = this.game.input.gamepad.pad1;
-        this.detectInputSource('gamepad');
-      }
-
-      // Listen for gamepad connection
-      this.game.input.gamepad.onConnectCallback = (pad) => {
-        this.gamepad = pad;
-        this.detectInputSource('gamepad');
-      };
-
-      this.game.input.gamepad.onDisconnectCallback = (pad) => {
-        if (this.gamepad === pad) {
-          this.gamepad = null;
+    if (!this.game.input.gamepad.supported) return
+    
+    this.game.input.gamepad.start();
+    
+    this.gamepadState = {};
+    this.keys.forEach(key => {
+      this.gamepadState[key] = false;
+    });
+    
+    this.game.input.gamepad.onDownCallback = keyCode => {
+      this.keys.forEach(key => {
+        if (this.gamepadMap[key] == keyCode) {
+          this.held[key] = true;
+          this.gamepadState[key] = true;
         }
-      };
-    }
+      });
+    };
+    
+    this.game.input.gamepad.onUpCallback = keyCode => {
+      this.keys.forEach(key => {
+        if (this.gamepadMap[key] == keyCode) {
+          this.held[key] = false;
+          this.gamepadState[key] = false;
+        }
+      });
+    };
   }
 
   setupTouch() {
@@ -271,9 +274,10 @@ class Gamepad {
 
       const buttonKey = this.getButtonFromTouch(touch);
       
+      
       if (buttonKey) {
         this.activeTouches.set(touch.identifier, buttonKey);
-        this.held[buttonKey] = true;
+        this.held[buttonKey.replace('rhythm_', '')] = true;
         this.detectInputSource('touch');
         
         const element = this.dpadElements[buttonKey] || this.buttonElements[buttonKey];
@@ -296,8 +300,8 @@ class Gamepad {
         
         if (newButtonKey && newButtonKey !== currentButtonKey) {
           // Switch to new button
-          this.held[currentButtonKey] = false;
-          this.held[newButtonKey] = true;
+          this.held[currentButtonKey.replace('rhythm_', '')] = false;
+          this.held[newButtonKey.replace('rhythm_', '')] = true;
           
           const oldElement = this.dpadElements[currentButtonKey] || this.buttonElements[currentButtonKey];
           const newElement = this.dpadElements[newButtonKey] || this.buttonElements[newButtonKey];
@@ -308,7 +312,7 @@ class Gamepad {
           this.activeTouches.set(touch.identifier, newButtonKey);
         } else if (!newButtonKey) {
           // Moved away from buttons
-          this.held[currentButtonKey] = false;
+          this.held[currentButtonKey.replace('rhythm_', '')] = false;
           const element = this.dpadElements[currentButtonKey] || this.buttonElements[currentButtonKey];
           if (element) element.classList.remove('btnPressed');
         }
@@ -324,7 +328,7 @@ class Gamepad {
       const buttonKey = this.activeTouches.get(touch.identifier);
       
       if (buttonKey !== undefined) {
-        this.held[buttonKey] = false;
+        this.held[buttonKey.replace('rhythm_', '')] = false;
         
         const element = this.dpadElements[buttonKey] || this.buttonElements[buttonKey];
         if (element) element.classList.remove('btnPressed');
@@ -342,9 +346,9 @@ class Gamepad {
     if (!buttonElement) return null;
 
     const id = buttonElement.id;
-    const key = id.replace('controller_', '').replace('rhythm_', '');
+    const key = id.replace('controller_', '');
     
-    return this.keys.includes(key) ? key : null;
+    return this.keys.includes(key) || key.startsWith('rhythm_') ? key : null;
   }
 
   update() {
@@ -353,9 +357,6 @@ class Gamepad {
       return;
     }
     
-    // Update gamepad state
-    this.updateGamepad();
-
     // Calculate pressed and released states
     this.updateButtonStates();
     
@@ -383,65 +384,6 @@ class Gamepad {
       this.prevState[key] = this.held[key];
     });
     this.prevState.any = this.held.any;
-  }
-
-  updateGamepad() {
-    // Check for gamepad connection
-    if (!this.gamepad || !this.gamepad.connected) {
-      if (this.game.input.gamepad.active && this.game.input.gamepad.pad1.connected) {
-        this.gamepad = this.game.input.gamepad.pad1;
-        this.detectInputSource('gamepad');
-      } else {
-        return;
-      }
-    }
-
-    // Update gamepad buttons
-    let gamepadInputDetected = false;
-    
-    for (const [key, buttonIndex] of Object.entries(this.gamepadMap)) {
-      const button = this.gamepad.getButton(buttonIndex);
-      if (button) {
-        const isDown = button.isDown;
-        if (isDown && !this.isTouchControlled(key)) {
-          this.held[key] = true;
-          gamepadInputDetected = true;
-        } else if (!isDown && !this.isTouchControlled(key)) {
-          this.held[key] = false;
-        }
-      }
-    }
-
-    // Handle analog sticks
-    const deadZone = 0.3;
-    
-    if (this.gamepad.axes.length >= 2) {
-      const xAxis = this.gamepad.axis(0);
-      const yAxis = this.gamepad.axis(1);
-
-      if (Math.abs(xAxis) > deadZone || Math.abs(yAxis) > deadZone) {
-        gamepadInputDetected = true;
-        
-        if (!this.isTouchControlled('left') && !this.isTouchControlled('right')) {
-          this.held.left = xAxis < -deadZone;
-          this.held.right = xAxis > deadZone;
-        }
-
-        if (!this.isTouchControlled('up') && !this.isTouchControlled('down')) {
-          this.held.up = yAxis < -deadZone;
-          this.held.down = yAxis > deadZone;
-        }
-      } else {
-        if (!this.isTouchControlled('left')) this.held.left = false;
-        if (!this.isTouchControlled('right')) this.held.right = false;
-        if (!this.isTouchControlled('up')) this.held.up = false;
-        if (!this.isTouchControlled('down')) this.held.down = false;
-      }
-    }
-
-    if (gamepadInputDetected) {
-      this.detectInputSource('gamepad');
-    }
   }
 
   isTouchControlled(key) {

@@ -2,6 +2,8 @@ const COPYRIGHT = "(C) RETORA 2025";
 
 const VERSION = "v0.0.4";
 
+window.DEBUG = true;
+
 const DEFAULT_ACCOUNT = {
   settings: {
     volume: 3,
@@ -10,14 +12,13 @@ const DEFAULT_ACCOUNT = {
     randomSong: false,
     renderer: 0,
     pixelated: true,
-    framerate: 6,
     noteColorOption: 'NOTE',
     noteSpeedMult: 1,
     userOffset: 0,
     scrollDirection: 'falling',
     visualizer: 'NONE',
     // Addon system settings
-    safeMode: false,
+    safeMode: false, 
     enabledAddons: [],
     hibernatingAddons: []
   },
@@ -41,7 +42,7 @@ const ADDONS_DIRECTORY = "Addons";
 const SONGS_DIRECTORY = "Songs";
 
 const ENABLE_PARALLEL_LOADING = true;
-const MAX_PARALLEL_DOWNLOADS = 32;
+const MAX_PARALLEL_DOWNLOADS = 16;
 
 const MAX_PARALLEL_ADDON_LOADS = 3;
 const ENABLE_ADDON_SAFE_MODE = true;

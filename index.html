@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>PadManiacs</title>
   <script src="./js/phaser.min.js"></script>
-  <script src="./js/jszip.min.js"></script>
   <link rel="stylesheet" href="./css/style.css">
   <link rel="icon" href="./favicon.png">
 </head>
@@ -38,10 +37,11 @@
   <div id="debug"></div>
   
   <script src="./js/eruda.js"></script>
+  <script src="./js/constants.js"></script>
   <script>
-    if (typeof window.eruda != 'undefined') {
+    if (typeof window.eruda != 'undefined' && window.DEBUG) {
       eruda.init({
-        tool: ['console', 'resources', 'snippets']
+        tool: ['console', 'elements', 'resources', 'snippets']
       });
       const snippets = eruda.get('snippets');
       snippets.clear();
@@ -57,7 +57,6 @@
       }, "Displays performance information");
     }
   </script>
-  <script src="./js/constants.js"></script>
   <script src="./js/gamepad.js"></script>
   <script src="./js/game.js"></script>
 </body>
