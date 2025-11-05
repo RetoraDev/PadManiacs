@@ -146,6 +146,7 @@ class Gamepad {
         if (this.gamepadMap[key] == keyCode) {
           this.held[key] = true;
           this.gamepadState[key] = true;
+          this.detectInputSource('gamepad');
         }
       });
     };
@@ -212,7 +213,7 @@ class Gamepad {
 
   detectInputSource(source) {
     if (this.lastInputSource === source) return;
-
+    
     this.lastInputSource = source;
     
     // Clear existing timeout

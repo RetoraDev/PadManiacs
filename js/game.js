@@ -22,7 +22,7 @@ const bootGame = () => {
     failIfMajorPerformanceCaveat: false,
     forceSetTimeOut: false,
     clearBeforeRender: true,
-    forceSingleUpdate: false,
+    forceSingleUpdate: true,
     maxPointers: 0,
     keyboard: true,
     mouse: false,
@@ -80,8 +80,6 @@ class Boot {
     notifications = new NotificationSystem();
     
     game.time.advancedTiming = true;
-    game.time.desiredFps = 60;
-    game.time.desiredMinFps = 5;
     
     game.world.updateOnlyExistingChildren = true;
     
@@ -1178,7 +1176,7 @@ class MainMenu {
         offsetOptions,
         currentOffsetIndex,
         index => {
-          const newOffset = (index * 25) - 400;
+          const newOffset = (index * 25) - 1000;
           Account.settings.userOffset = newOffset;
           saveAccount();
         }
@@ -3185,7 +3183,7 @@ class Player {
         if (!isActive) visibleHeight += this.COLUMN_SIZE / 2;
 
         let freezeYPos = Math.floor(yPos);
-        let freezeHeight = Math.min(112, Math.floor(visibleHeight));
+        let freezeHeight = Math.floor(visibleHeight);
         
         note.holdParts.body.y = freezeYPos;
         note.holdParts.body.height = freezeHeight;
@@ -4294,6 +4292,7 @@ class WindowManager {
     return false;
   }
 }
+
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -7754,8 +7753,8 @@ class Metronome {
   constructor(scene) {
     this.scene = scene;
     this.player = scene.player;
-    this.enabled = Account.settings.metronome != 'OFF';
     this.mode = Account.settings.metronome;
+    this.enabled = this.mode !== 'OFF';
     this.beatDivisions = {
       'OFF': 0,
       'Quarters': 1,       // Every whole beat (1, 2, 3, 4...)
@@ -7877,6 +7876,8 @@ class Metronome {
   }
 
   toggle() {
+    if (this.mode == 'OFF') return;
+    
     this.enabled = !this.enabled;
     this.lastDivisionValue = -1; // Reset to ensure tick plays on next division
     this.resetNoteMode(); // Reset note mode state
