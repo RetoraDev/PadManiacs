@@ -252,7 +252,7 @@ class LoadCordova {
     if (window.location.protocol == "file:" && !window.cordova) {
       this.loadScript();
     } else {
-      this.continue();
+      this.createFolderStructure();
     }
   }
   loadScript() {
@@ -275,15 +275,16 @@ class LoadCordova {
     });
   }
   async createFolderStructure() {
-    const fileSystem = new FileSystemTools();
-    
-    const rootDir = await fileSystem.getDirectory("");
-    
-    const gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
-    
-    await fileSystem.createDirectory(gameDir, ADDONS_DIRECTORY);
-    await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
-    
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+      const fileSystem = new FileSystemTools();
+      
+      const rootDir = await fileSystem.getDirectory("");
+      
+      const gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
+      
+      await fileSystem.createDirectory(gameDir, ADDONS_DIRECTORY);
+      await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
+    }
     this.continue();
   }
   continue() {
@@ -400,141 +401,13 @@ class LoadLocalSongs {
   }
 }
 
-class FileSystemTools {
-  getDirectory(path) {
-    return new Promise((resolve, reject) => {
-      let rootDir = LocalFileSystem.PERSISTENT;
-      if (game.device.windows) {
-        rootDir = cordova.file.dataDirectory; // C:/Users/[username]/AppData/Local/Packages/[package-id]/LocalState/
-      } else if (game.device.macOS || game.device.iOS) {
-        rootDir = cordova.file.documentsDirectory; // ~/Documents/
-      } else if (game.device.android) {
-        rootDir = cordova.file.externalRootDirectory; // <sdcard>/
-      }
-      window.resolveLocalFileSystemURL(
-        rootDir + path,
-        dir => resolve(dir),
-        err => reject(err)
-      );
-    });
-  }
-
-  listDirectories(dirEntry) {
-    return new Promise((resolve, reject) => {
-      dirEntry.createReader().readEntries(
-        entries => resolve(entries.filter(e => e.isDirectory)),
-        err => reject(err)
-      );
-    });
-  }
-
-  listAllDirectories(startDir) {
-    return new Promise(async resolve => {
-      const dirs = [];
-      const queue = [startDir];
-
-      while (queue.length) {
-        const dir = queue.shift();
-        try {
-          const subDirs = await this.listDirectories(dir);
-          dirs.push(...subDirs);
-          queue.push(...subDirs);
-        } catch (error) {
-          console.warn(`Error listing directories in ${dir.name}:`, error);
-        }
-      }
-
-      resolve(dirs);
-    });
-  }
-
-  listFiles(dirEntry) {
-    return new Promise((resolve, reject) => {
-      dirEntry.createReader().readEntries(
-        entries => resolve(entries.filter(e => e.isFile)),
-        err => reject(err)
-      );
-    });
-  }
-
-  getFile(fileEntry) {
-    return new Promise((resolve, reject) => {
-      fileEntry.file(
-        file => resolve(file),
-        err => reject(err)
-      );
-    });
-  }
-
-  readFileContent(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsText(file);
-    });
-  }
-  
-  saveFile(dirEntry, fileData, fileName) {
-    return new Promise((resolve, reject) => {
-      dirEntry.getFile(fileName, { create: true, exclusive: false }, fileEntry => {
-        this.writeFile(fileEntry, fileData)
-          .then(() => resolve(fileEntry))
-          .catch(err => reject(err));
-      }, error => reject(error));
-    });
-  }
-  
-  createEmptyFile(dirEntry, fileName, isAppend) {
-    return new Promise((resolve, reject) => {
-      dirEntry.getFile(fileName, {create: true, exclusive: false}, fileEntry => {
-        this.writeFile(fileEntry, null, isAppend)
-          .then(() => resolve(fileEntry))
-          .catch(err => reject(err));
-      }, err => reject(err));
-    });
-  }
-  
-  writeFile(fileEntry, dataObj, isAppend) {
-    return new Promise((resolve, reject) => {
-      fileEntry.createWriter(fileWriter => {
-        fileWriter.onwrite = () => resolve(fileWriter);
-        fileWriter.onerror = err => reject(err);
-  
-        fileWriter.write(dataObj);
-      });
-    });
-  }
-  
-  createDirectory(rootDirEntry, dirName) {
-    return new Promise((resolve, reject) => {
-      rootDirEntry.getDirectory(dirName, { create: true }, dirEntry => {
-        resolve(dirEntry);
-      }, err => reject(err));
-    });
-  }
-
-  finish(resetIndex = 0) {
-    console.log(`Loading complete: ${this.loadedCount} songs loaded, ${this.failedCount} failed`);
-    
-    if (this.songs.length === 0) {
-      this.showError("No external songs found");
-      return;
-    }
-    
-    window.externalSongs = this.songs;
-    
-    game.state.start("SongSelect", true, false, this.songs, resetIndex);
-    
-    setTimeout(() => window.lastExternalSongIndex = window.selectStartingIndex)
-  }
-}
-
-class LoadExternalSongs extends FileSystemTools {
+class LoadExternalSongs {
   create() {
     this.loadingDots = new LoadingDots();
     
     this.progressText = new ProgressText("LOADING EXTERNAL SONGS");
+    
+    this.fileSystem = new FileSystemTools();
     
     if (window.externalSongs) {
       this.songs = window.externalSongs;
@@ -549,7 +422,7 @@ class LoadExternalSongs extends FileSystemTools {
     this.totalCount = 0;
     this.currentlyLoading = new Set();
     
-    if (window.cordova && cordova.file) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       this.loadSongsFromStorage();
     } else {
       this.showFileInput();
@@ -560,8 +433,8 @@ class LoadExternalSongs extends FileSystemTools {
     try {
       console.log("Loading songs from external storage...");
       
-      const rootDir = await this.getDirectory(EXTERNAL_DIRECTORY + SONGS_DIRECTORY);
-      const allDirs = await this.listAllDirectories(rootDir);
+      const rootDir = await this.fileSystem.getDirectory(EXTERNAL_DIRECTORY + SONGS_DIRECTORY);
+      const allDirs = await this.fileSystem.listAllDirectories(rootDir);
       allDirs.unshift(rootDir);
 
       this.totalCount = allDirs.length;
@@ -642,11 +515,11 @@ class LoadExternalSongs extends FileSystemTools {
 
   async processSongDirectory(dirEntry) {
     try {
-      const files = await this.listFiles(dirEntry);
+      const files = await this.fileSystem.listFiles(dirEntry);
       const chartFiles = {};
 
       for (const fileEntry of files) {
-        const file = await this.getFile(fileEntry);
+        const file = await this.fileSystem.getFile(fileEntry);
         chartFiles[file.name.toLowerCase()] = file;
       }
 
@@ -662,7 +535,7 @@ class LoadExternalSongs extends FileSystemTools {
       for (const smFileName of chartFileNames) {
         try {
           console.log(`Trying to parse ${smFileName} in ${dirEntry.name}`);
-          const content = await this.readFileContent(chartFiles[smFileName]);
+          const content = await this.fileSystem.readFileContent(chartFiles[smFileName]);
           const chart = this.parser.parseSM(chartFiles, content);
           
           if (chart && chart.difficulties && chart.difficulties.length > 0) {
@@ -811,7 +684,7 @@ class LoadExternalSongs extends FileSystemTools {
     for (const smFileName of chartFileNames) {
       try {
         console.log(`Trying to parse ${smFileName} in ${folderName}`);
-        const content = await this.readFileContent(files[smFileName]);
+        const content = await this.fileSystem.readFileContent(files[smFileName]);
         const chart = this.parser.parseSM(files, content);
         
         if (chart && chart.difficulties && chart.difficulties.length > 0) {
@@ -835,6 +708,21 @@ class LoadExternalSongs extends FileSystemTools {
     game.time.events.add(3000, () => {
       game.state.start("MainMenu");
     });
+  }
+  
+  finish(resetIndex = 0) {
+    console.log(`Loading complete: ${this.loadedCount} songs loaded, ${this.failedCount} failed`);
+    
+    if (this.songs.length === 0) {
+      this.showError("No external songs found");
+      return;
+    }
+    
+    window.externalSongs = this.songs;
+    
+    game.state.start("SongSelect", true, false, this.songs, resetIndex);
+    
+    setTimeout(() => window.lastExternalSongIndex = window.selectStartingIndex)
   }
 }
 
@@ -1017,7 +905,7 @@ class MainMenu {
       
       game.onMenuIn.dispatch('home', carousel);
       
-      if (typeof window.cordova !== "undefined") {
+      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
         carousel.addItem("Exit", () => exit());
         carousel.onCancel.add(() => exit());
       }
@@ -1046,9 +934,10 @@ class MainMenu {
         animate: true,
         crop: false
       });
-      if (typeof window.cordova != "undefined") carousel.addItem("User Songs", () => this.loadExternalSongs());
+      
+      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) carousel.addItem("User Songs", () => this.loadExternalSongs());
       carousel.addItem("Load Single Song", () => this.loadSingleSong());
-      if (typeof window.cordova != "undefined" && window.externalSongs) {
+      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS && window.externalSongs) {
         carousel.addItem("Reload User Songs", () => {
           backgroundMusic.refreshCache();
           window.externalSongs = undefined;
@@ -1272,7 +1161,7 @@ class MainMenu {
         animate: true,
         crop: false
       });
-      if (window.cordova) carousel.addItem("Addon Manager", () => this.addonManager());
+      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) carousel.addItem("Addon Manager", () => this.addonManager());
       carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
       game.onMenuIn.dispatch('extras', carousel);
       carousel.addItem("< Back", () => home());
@@ -1321,7 +1210,16 @@ class MainMenu {
     
     const reload = () => confirm("Restart Now?", () => location.reload(), () => settings());
     
-    const exit = () => confirm("Sure? Exit?", () => navigator.app.exitApp(), () => home());
+    const exit = () => confirm("Sure? Exit?", () => {
+      switch (CURRENT_ENVIRONMENT) {
+        case ENVIRONMENT.CORDOVA:
+          navigator.app.exitApp();
+          break;
+        case ENVIRONMENT.NWJS:
+          nw?.gui?.Window?.close?.(true);
+          break;
+      }
+    }, () => home());
     
     home();
   }
@@ -7396,11 +7294,7 @@ class AddonManager {
     try {
       console.log("📦 Loading addons...");
       
-      if (window.cordova && cordova.file) {
-        await this.loadAddonsFromStorage();
-      } else {
-        await this.loadAddonsFromLocal();
-      }
+      await this.loadAddonsFromStorage();
       
       await this.processAddons();
       
@@ -7429,11 +7323,6 @@ class AddonManager {
     } catch (error) {
       console.log("No external addons directory found");
     }
-  }
-
-  async loadAddonsFromLocal() {
-    // For non-Cordova environments, addons would be in a local directory
-    console.log("Local addon loading not implemented in this environment");
   }
 
   async loadAddonFromDirectory(addonDir, fileSystem) {

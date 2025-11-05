@@ -4,6 +4,32 @@ const VERSION = "v0.0.5";
 
 window.DEBUG = true;
 
+// Environment detection constants
+const ENVIRONMENT = {
+  UNKNOWN: 'UNKNOWN',
+  NWJS: 'NWJS',
+  CORDOVA: 'CORDOVA',
+  WEB: 'WEB'
+};
+
+// Detect environment
+const detectEnvironment = () => {
+  // Check for NWJS
+  if (typeof nw !== 'undefined' && nw.process && nw.process.versions && nw.process.versions['node-webkit']) {
+    return ENVIRONMENT.NWJS;
+  }
+  
+  // Check for Cordova (file protocol or explicit cordova object)
+  if (window.location.protocol === 'file:' || typeof window.cordova !== 'undefined') {
+    return ENVIRONMENT.CORDOVA;
+  }
+  
+  // Default to web
+  return ENVIRONMENT.WEB;
+};
+
+const CURRENT_ENVIRONMENT = detectEnvironment();
+
 const DEFAULT_ACCOUNT = {
   settings: {
     volume: 3,
@@ -38,11 +64,15 @@ const FONTS = {
 
 const WINDOW_PANELS = ["1"];
 
-const EXTERNAL_DIRECTORY = "PadManiacs/";
+const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
+const NWJS_EXTERNAL_DIRECTORY = "data/";
+
+const EXTERNAL_DIRECTORY = CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA ? CORDOVA_EXTERNAL_DIRECTORY : NWJS_EXTERNAL_DIRECTORY;
+
 const ADDONS_DIRECTORY = "Addons";
 const SONGS_DIRECTORY = "Songs";
 
-const ENABLE_PARALLEL_LOADING = true;
+const ENABLE_PARALLEL_LOADING = false;
 const MAX_PARALLEL_DOWNLOADS = 16;
 
 const MAX_PARALLEL_ADDON_LOADS = 3;
