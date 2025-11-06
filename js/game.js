@@ -28,7 +28,7 @@ const bootGame = () => {
     mouse: false,
     mouseWheel: false,
     mspointer: false,
-    multiTexture: true,
+    multiTexture: false,
     pointerLock: false,
     preserveDrawingBuffer: false,
     roundPixels: true,
@@ -937,7 +937,7 @@ class MainMenu {
       
       if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) carousel.addItem("User Songs", () => this.loadExternalSongs());
       carousel.addItem("Load Single Song", () => this.loadSingleSong());
-      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS && window.externalSongs) {
+      if (window.externalSongs && (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS)) {
         carousel.addItem("Reload User Songs", () => {
           backgroundMusic.refreshCache();
           window.externalSongs = undefined;
@@ -1216,7 +1216,7 @@ class MainMenu {
           navigator.app.exitApp();
           break;
         case ENVIRONMENT.NWJS:
-          nw?.gui?.Window?.close?.(true);
+          nw.?App?.quit();
           break;
       }
     }, () => home());
@@ -1339,6 +1339,12 @@ class MainMenu {
           showInstalledAddons();
         });
       }
+      
+      carousel.addItem("Uninstall Addon", confirm("The addon folder will be removed. Continue?", () => {
+        addonManager.uninstallAddon(addon.id);
+        needsReload = true;
+        showInstalledAddons();
+      }, () => showInstalledAddons()));
       
       game.onMenuIn.dispatch('addonDetails', carousel);
       
@@ -7544,7 +7550,7 @@ class AddonManager {
     }
     return false;
   }
-
+  
   hibernateAddon(addonId) {
     const addon = this.addons.get(addonId);
     if (addon) {
@@ -7571,6 +7577,16 @@ class AddonManager {
     return false;
   }
 
+  uninstallAddon(addonId) {
+    const addon = this.addons.get(addonId);
+    if (addon) {
+      addon.dir.removeRecursively();
+      this.addons.delete(addonId);
+      return true;
+    }
+    return false;
+  }
+  
   setSafeMode(enabled) {
     this.safeMode = enabled;
     Account.settings.safeMode = enabled;
