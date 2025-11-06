@@ -1216,7 +1216,7 @@ class MainMenu {
           navigator.app.exitApp();
           break;
         case ENVIRONMENT.NWJS:
-          nw.?App?.quit();
+          nw?.App?.quit?.();
           break;
       }
     }, () => home());
@@ -4635,7 +4635,7 @@ class CarouselMenu extends Phaser.Sprite {
     itemParent.addChild(itemText);
     
     if (item.textContent.length * 4 > this.viewport.width -16) {
-      itemText.scrollwrite(item.textContent, (this.viewport.width - 16) / 4);
+      itemText.write(item.textContent.substr(0, Math.floor(this.viewport.width - 16) / 4));
     }
     
     item.parent = itemParent;
@@ -4794,6 +4794,9 @@ class CarouselMenu extends Phaser.Sprite {
       } else {
         item.parent.alpha = 0.9;
       }
+      if (item.text && item.textContent.length * 4 > this.viewport.width -16) {
+        item.text.scrollwrite(item.textContent, Math.floor(this.viewport.width - 16) / 4);
+      }
     }
   }
   
@@ -4806,13 +4809,17 @@ class CarouselMenu extends Phaser.Sprite {
       item.alphaTween = null;
     }
     
-    // Set fixed alpha for unselected items
+    // Update visual for unselected items 
     if (item.parent) {
       if (this.config.animate) {
         game.add.tween(item.parent)
           .to({ alpha: .4 }, 100, Phaser.Easing.Quadratic.Out, true);
       } else {
         item.parent.alpha = .4;
+      }
+      if (item.text && item.text.isScrolling()) {
+        item.text.stopScrolling();
+        item.text.write(item.textContent.substr(0, Math.floor(this.viewport.width - 16) / 4));
       }
     }
   }
@@ -4956,6 +4963,7 @@ class CarouselMenu extends Phaser.Sprite {
   clear() {
     // Stop all tweens before clearing
     this.items.forEach(item => {
+      this.removeItemVisuals(item);
       if (item.alphaTween) {
         item.alphaTween.stop();
       }

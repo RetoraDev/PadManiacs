@@ -55,6 +55,21 @@
           );
         });
       }, "Displays performance information");
+      snippets.add("Screenshoot", () => {
+        var renderTexture = game.add.renderTexture(game.width, game.height, 'screenshotTemp');
+        renderTexture.renderXY(game.world, 0, 0, true);
+        var image = renderTexture.getBase64();
+        var link = document.createElement('a');
+        link.href = image;
+        link.download = 'screenshot-' + Date.now() + '.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        renderTexture.destroy();
+      }, "Take a screenshot");
+      snippets.add("Destroy", () => {
+        eruda.destroy();
+      }, "Destroy eruda");
     }
   </script>
   <script src="./js/gamepad.js"></script>
