@@ -2,7 +2,7 @@ const COPYRIGHT = "(C) RETORA 2025";
 
 const VERSION = "v0.0.5";
 
-window.DEBUG = true;
+window.DEBUG = false;
 
 // Environment detection constants
 const ENVIRONMENT = {

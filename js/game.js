@@ -804,21 +804,6 @@ class LoadSongFolder {
 
 class Title {
   create() {
-    game.renderer.setTexturePriority([
-      'arrows',
-      'explosion',
-      //'hold_body',
-      //'hold_end',
-      //'roll_body',
-      //'roll_end',
-      'mine',
-      'mineexplosion',
-      'receptor',
-      'ui_lifebar',
-      'ui_logo_shape',
-      ...window.primaryAssets
-    ]);
-    
     game.camera.fadeIn(0xffffff);
     
     this.background = new BackgroundGradient();
@@ -7756,8 +7741,8 @@ class Metronome {
     const uniqueBeats = new Set();
     
     for (const note of allNotes) {
-      // Skip mines, holds, rolls - only regular notes
-      if (note.type === "1" || note.type === "2") {
+      // Skip mines and freeze end
+      if (note.type === "1" || note.type === "2" || note.type === "4") {
         // Round to 3 decimal places to handle floating point precision
         const roundedBeat = Math.round(note.beat * 1000) / 1000;
         uniqueBeats.add(roundedBeat);
