@@ -239,7 +239,7 @@ game.onMenuIn.add((menuKey, menuObject) => {
 - `Metronome` - Rhythm assistance system
 - `Visualizer` - Gameplay visualization
 
-For complete class documentation, see [CORE_CLASSES_DOCUMENTATION.md](CORE_CLASSES_DOCUMENTATION.md)
+For complete class documentation, see [CORE_CLASSES_DOCUMENTATION.md](https://github.com/RetoraDev/PadManiacs/blob/824bbec365691162f305223777e1c2d98db13064/CORE_CLASSES_DOCUMENTATION.md)
 
 ### Important Properties
 
