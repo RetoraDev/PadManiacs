@@ -116,7 +116,7 @@ PadManiacs supports community-created modifications through an add-on system. Ad
 - Add new behaviors and gameplay mechanics
 - Extend the game with new features
 
-See [MODDING_DOCUMENTATION.md](https://github.com/RetoraDev/padmaniacs/blob/main/MODDING_DOCUMENTATION.md) for complete modding information.
+See [Modding API Documentation](https://retoradev.github.io/PadManiacsDocumentation/) for complete modding information.
 
 ### Add-on Manager
 Accessible from the main menu, the Add-on Manager allows you to:
@@ -159,6 +159,7 @@ Accessible from the main menu, the Add-on Manager allows you to:
 - SSC chart format support not finished
 - Background videos will work, but .AVI format is not supported by HTML5 video player and won't load
 - Web version requires manual song loading
+- Doubles charts are converted to Singles 
 - Most mobile file browsers may require selecting individual files one by one
 - No specific binary for desktop
 
