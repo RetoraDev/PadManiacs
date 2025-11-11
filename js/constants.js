@@ -45,7 +45,8 @@ const DEFAULT_ACCOUNT = {
     visualizer: 'NONE',
     metronome: 'OFF',
     drawTimeLines: true,
-    beatsPerMeasure: 4, // Typically 4/4 time signature
+    beatsPerMeasure: 4, // TODO: Make this configurable
+    speedMod: 'X-MOD',
     // Addon system settings
     safeMode: false, 
     enabledAddons: [],

@@ -1038,6 +1038,16 @@ class MainMenu {
       );
       
       settingsWindow.addSettingItem(
+        "Speed Mod",
+        ["X-MOD", "C-MOD"],
+        Account.settings.speedMod === 'C-MOD' ? 1 : 0,
+        index => {
+          Account.settings.speedMod = index === 1 ? 'C-MOD' : 'X-MOD';
+          saveAccount();
+        }
+      );
+      
+      settingsWindow.addSettingItem(
         "Beat Lines",
         ["ENABLED", "DISABLED"],
         Account.settings.drawTimeLines ? 0 : 1,
@@ -2341,6 +2351,9 @@ class Player {
     this.ROLL_REQUIRED_INTERVALS = 1.5;
     this.INACTIVE_COLOR = 0x888888;
     
+    // Speed mod setting
+    this.speedMod = Account.settings.speedMod || 'X-MOD';
+    
     // Accuracy tracking
     this.judgementCounts = {
       marvelous: 0,
@@ -2981,16 +2994,36 @@ class Player {
     }
   }
   
-  calculateVerticalPosition(note, beat) {
-    const deltaNote = note.beat - beat;
-    const scalar = this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
-    const bodyHeight = note.beatLength ? Math.max(this.COLUMN_SIZE, note.beatLength * scalar) : 0;
-    const pastSize = deltaNote * scalar;
+  calculateVerticalPosition(note, now, beat) {
+    let pastSize;
+    let bodyHeight = 0;
+    
+    if (this.speedMod === 'C-MOD') {
+      // C-MOD: Use constant timing based on seconds
+      const constantDeltaNote = note.sec - now;
+      pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      
+      // For C-MOD, calculate body height using seconds as well
+      if (note.beatLength) {
+        const freezeDuration = note.secLength || (note.beatLength * 60 / this.getCurrentBPM());
+        bodyHeight = Math.max(this.COLUMN_SIZE, freezeDuration * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER);
+      }
+    } else {
+      // X-MOD: Use beat-based timing (default)
+      const deltaNote = note.beat - beat;
+      pastSize = deltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      
+      // For X-MOD, calculate body height using beats
+      if (note.beatLength) {
+        bodyHeight = Math.max(this.COLUMN_SIZE, note.beatLength * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER);
+      }
+    }
+    
     const yPos = this.scrollDirection === 'falling' ?
       this.JUDGE_LINE - pastSize :
       this.JUDGE_LINE + pastSize;
     
-    return { deltaNote, scalar, bodyHeight, yPos, pastSize };
+    return { pastSize, bodyHeight, yPos };
   }
   
   renderFalling() {
@@ -3001,7 +3034,7 @@ class Player {
 
     // Render notes
     this.notes.forEach(note => {
-      let { deltaNote, scalar, bodyHeight, yPos, pastSize } = this.calculateVerticalPosition(note, beat);
+      let { deltaNote, scalar, bodyHeight, yPos, pastSize } = this.calculateVerticalPosition(note, now, beat);
       
       const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
 
@@ -3171,7 +3204,7 @@ class Player {
     
     // Render notes
     this.notes.forEach(note => {
-      let { deltaNote, scalar, bodyHeight, yPos } = this.calculateVerticalPosition(note, beat);
+      let { deltaNote, scalar, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
       
       const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
       
@@ -3372,16 +3405,28 @@ class Player {
   }
   
   updateTimeLine(targetBeat, alpha) {
-    const currentBeat = this.scene.getCurrentTime().beat;
-    const deltaBeat = targetBeat - currentBeat;
+    const { now, beat } = this.scene.getCurrentTime();
     
-    // Calculate vertical position using the same logic as note rendering
-    const scalar = this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
-    const yPos = this.scrollDirection === 'falling' ?
-      this.JUDGE_LINE - (deltaBeat * scalar) :
-      this.JUDGE_LINE + (deltaBeat * scalar);
+    let yPos;
     
-    // Lines should exist as long as they're on screen, not just when they're above the judge line
+    if (this.speedMod === 'C-MOD') {
+      // C-MOD: Calculate position based on seconds
+      const targetSec = this.beatToSec(targetBeat);
+      const constantDeltaNote = targetSec - now;
+      const pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      yPos = this.scrollDirection === 'falling' ?
+        this.JUDGE_LINE - pastSize :
+        this.JUDGE_LINE + pastSize;
+    } else {
+      // X-MOD: Calculate position based on beats
+      const deltaBeat = targetBeat - beat;
+      const pastSize = deltaBeat * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      yPos = this.scrollDirection === 'falling' ?
+        this.JUDGE_LINE - pastSize :
+        this.JUDGE_LINE + pastSize;
+    }
+    
+    // Lines should exist as long as they're on screen
     const isVisible = yPos >= -this.COLUMN_SIZE && yPos <= this.scene.game.height + this.COLUMN_SIZE;
     
     if (isVisible) {
@@ -3406,7 +3451,7 @@ class Player {
     
     return null;
   }
-  
+
   findLineForBeat(targetBeat) {
     // Look through alive lines in the pool to find one for this beat
     const aliveLines = this.linesGroup.getAll('alive', true);
@@ -3546,7 +3591,7 @@ class Player {
   }
   
   beatToSec(beat) {
-    let b = this.getLastBpm(bpmChanges, beat, "beat");
+    let b = this.getLastBpm(beat, "beat");
     let x = ((beat - b.beat) / b.bpm) * 60 + b.sec;
     let s = this.stops.filter(({ beat: i }) => i >= b.beat && i < beat).map(i => i.len);
     for (let i in s) x += s[i];
