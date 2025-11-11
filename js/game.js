@@ -2660,7 +2660,7 @@ class Player {
       this.checkRegularNotes(column, now, beat);
     }
   }
-
+  
   checkRegularNotes(column, now, beat) {
     const closestNote = this.notes.find(n => !n.hit && n.column === column && n.type === "1" && Math.abs(n.beat - beat) <= this.scene.JUDGE_WINDOWS.boo);
 
@@ -2692,7 +2692,7 @@ class Player {
   checkHoldStart(column, now, beat) {
     const holdNote = this.notes.find(n => (n.type === "2" || n.type === "4") && n.column === column && !n.hit && Math.abs(n.beat - beat) <= this.scene.JUDGE_WINDOWS.boo);
 
-    if (holdNote) {
+    if (holdNote && this.lastNoteCheckBeats[column] !== beat) {
       const delta = Math.abs(holdNote.beat - beat);
       const judgement = this.getJudgement(delta);
       

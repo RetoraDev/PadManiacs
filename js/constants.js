@@ -1,6 +1,6 @@
 const COPYRIGHT = "(C) RETORA 2025";
 
-const VERSION = "v0.0.5";
+const VERSION = "v0.0.6";
 
 window.DEBUG = true;
 
