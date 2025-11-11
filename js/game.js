@@ -1980,7 +1980,6 @@ class Play {
     this.setBackground();
     
     const FIXED_DELAY = 2000; 
-    const DEVICE_DELAY = -272.5; // Hardcoded device delay for must HTML5 audio players. TODO: Detect this dynamicly
     
     const chartOffset = this.song.chart.offset || 0;
     
@@ -1989,7 +1988,7 @@ class Play {
     setTimeout(() => {
       this.audio.play();
       this.started = true;
-    }, FIXED_DELAY + DEVICE_DELAY + this.userOffset);
+    }, FIXED_DELAY + this.userOffset);
     
     this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
   }
@@ -2324,12 +2323,12 @@ class Player {
     // Game constants
     this.VERTICAL_SEPARATION = 1.5;
     this.NOTE_SPEED_MULTIPLIER = Account.settings.noteSpeedMult + 1;
-    this.JUDGE_LINE = this.scrollDirection === 'falling' ? 100 : 20; // Top for rising, bottom for falling
+    this.JUDGE_LINE = this.scrollDirection === 'falling' ? 90 : 30; // Top for rising, bottom for falling
     this.COLUMN_SIZE = 16;
     this.COLUMN_SEPARATION = 4;
     this.HOLD_FORGIVENESS = 0.3;
     this.ROLL_FORGIVENESS = 0.3;
-    this.ROLL_REQUIRED_INTERVALS = 2;
+    this.ROLL_REQUIRED_INTERVALS = 1.5;
     this.INACTIVE_COLOR = 0x888888;
     
     // Accuracy tracking
@@ -2352,6 +2351,8 @@ class Player {
     this.initialize();
     
     // Groups for pooling
+    this.receptorsGroup = game.add.group();
+    this.linesGroup = game.add.group();
     this.freezeBodyGroup = game.add.group();
     this.freezeEndGroup = game.add.group();
     this.notesGroup = game.add.group();
@@ -2441,7 +2442,7 @@ class Player {
       }
     };
   }
-
+  
   initialize() {
     const leftOffset = this.calculateLeftOffset();
 
@@ -2463,8 +2464,6 @@ class Player {
         3: -90  // right
       }[i];
       
-      receptor.y += (this.COLUMN_SIZE / 2) * (this.scrollDirection == 'falling' ? -1 : 1);
-
       receptor.inputEnabled = true;
       receptor.down = false;
       receptor.events.onInputDown.add(() => this.handleInput(i, true));
@@ -2485,6 +2484,7 @@ class Player {
       explosion.scale.setTo(1.5);
       game.add.tween(explosion.scale).to({ x: 2, y: 2 }, duration, "Linear", true).yoyo(true).repeat(-1);
 
+      this.receptorsGroup.add(receptor);
       this.receptors.push(receptor);
     }
     
@@ -2537,7 +2537,7 @@ class Player {
         !n.hit && 
         n.column === column && 
         n.type === "1" && 
-        Math.abs(n.beat - beat) <= this.scene.JUDGE_WINDOWS.marvelous
+        Math.abs(n.beat - beat) <= 0.05
       );
       
       if (closestNote && !this.inputStates[column]) {
@@ -2652,6 +2652,7 @@ class Player {
 
     if (closestNote && this.lastNoteCheckBeats[column] !== beat) {
       const delta = Math.abs(closestNote.beat - beat);
+      console.log(delta);
       const judgement = this.getJudgement(delta);
 
       this.createExplosion(closestNote);
@@ -2668,10 +2669,10 @@ class Player {
 
     if (mineNote) {
       this.createExplosion(mineNote, "mine");
-      this.processJudgement(mineNote, "miss", column);
       mineNote.hit = true;
       mineNote.sprite?.destroy();
       this.health = Math.max(0, this.health - 10);
+      this.combo = 0;
     }
   }
 
@@ -2903,6 +2904,24 @@ class Player {
       .onComplete.add(() => explosion.kill());
   }
   
+  createLine(y, alpha) {
+    const existingChild = this.linesGroup.getFirstDead();
+    
+    const line = existingChild || (() => {
+      const bmd = game.add.bitmapData(1, 1);
+      bmd.fill(255, 255, 255);
+      const child = game.add.sprite(this.calculateLeftOffset(), y, bmd);
+      child.width = (this.COLUMN_SIZE * 4) + (this.COLUMN_SEPARATION * 3);
+      this.linesGroup.add(child);
+      return child;
+    })();
+    
+    line.y = y;
+    line.alpha = alpha;
+    
+    return line;
+  }
+  
   getNoteFrame(note) {
     const beat = note.beat;
     
@@ -2946,7 +2965,7 @@ class Player {
   calculateVerticalPosition(note, beat) {
     const deltaNote = note.beat - beat;
     const scalar = this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
-    const bodyHeight = note.beatLength ? Math.max(this.COLUMN_SIZE, note.beatLength * scalar - this.COLUMN_SIZE) : 0;
+    const bodyHeight = note.beatLength ? Math.max(this.COLUMN_SIZE, note.beatLength * scalar) : 0;
     const pastSize = deltaNote * scalar;
     const yPos = this.scrollDirection === 'falling' ?
       this.JUDGE_LINE - pastSize :
@@ -3053,7 +3072,7 @@ class Player {
 
           note.visibleHeight = Math.max(0, judgeLineY - holdBottomY);
 
-          if (yPos > judgeLineY - this.COLUMN_SIZE / 2) yPos = judgeLineY - this.COLUMN_SIZE / 2;
+          if (yPos > judgeLineY - this.COLUMN_SIZE / 2) yPos = judgeLineY;
 
           note.active = true;
         } else if (typeof note.visibleHeight != "undefined") {
@@ -3069,8 +3088,6 @@ class Player {
 
         let spritesVisible = !note.finish;
         
-        if (!isActive) visibleHeight += this.COLUMN_SIZE / 2;
-
         let freezeYPos = Math.floor(yPos);
         let freezeHeight = Math.floor(visibleHeight);
         
@@ -3227,7 +3244,7 @@ class Player {
           const judgeLineY = this.JUDGE_LINE;
           note.visibleHeight = Math.max(0, holdTopY - judgeLineY);
           
-          if (yPos < judgeLineY + this.COLUMN_SIZE / 2) yPos = judgeLineY + this.COLUMN_SIZE / 2;
+          if (yPos < judgeLineY + this.COLUMN_SIZE / 2) yPos = judgeLineY;
 
           note.active = true;
         } else if (typeof note.visibleHeight != "undefined") {
@@ -3242,8 +3259,6 @@ class Player {
         }
 
         let spritesVisible = !note.finish;
-        
-        if (!isActive) visibleHeight += this.COLUMN_SIZE / 2;
         
         let freezeYPos = Math.floor(yPos);
         let freezeHeight = Math.floor(visibleHeight);
