@@ -42,8 +42,8 @@ class Gamepad {
       right: [Phaser.KeyCode.RIGHT, Phaser.KeyCode.D, Phaser.KeyCode.N],
       a: [Phaser.KeyCode.Z, Phaser.KeyCode.K],
       b: [Phaser.KeyCode.X, Phaser.KeyCode.J],
-      select: [Phaser.KeyCode.SHIFT, Phaser.KeyCode.TAB],
-      start: [Phaser.KeyCode.ENTER, Phaser.KeyCode.ESC]
+      select: [Phaser.KeyCode.SHIFT, Phaser.KeyCode.TAB, Phaser.KeyCode.SPACEBAR],
+      start: [Phaser.KeyCode.ENTER, Phaser.KeyCode.ESC, Phaser.KeyCode.P]
     };
     
     // Gamepad button mappings

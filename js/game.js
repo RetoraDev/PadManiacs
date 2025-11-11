@@ -108,8 +108,15 @@ class Boot {
         url: "ui/hud_background.png"
       },
       {
-        key: "ui_navigation_hint",
-        url: "ui/navigation_hint.png",
+        key: "ui_navigation_hint_keyboard",
+        url: "ui/navigation_hint_keyboard.png",
+        type: "spritesheet",
+        frameWidth: 192,
+        frameHeight: 112
+      },
+      {
+        key: "ui_navigation_hint_gamepad",
+        url: "ui/navigation_hint_gamepad.png",
         type: "spritesheet",
         frameWidth: 192,
         frameHeight: 112
@@ -853,7 +860,7 @@ class MainMenu {
     
     new BackgroundGradient();
     
-    game.add.sprite(0, 0, "ui_navigation_hint");
+    this.navigationHint = new NavigationHint(0);
     
     this.menu();
     
@@ -1454,7 +1461,7 @@ class SongSelect {
     this.previewCanvas = document.createElement("canvas");
     this.previewCtx = this.previewCanvas.getContext("2d");
     
-    this.navigationHint = game.add.sprite(0, 0, "ui_navigation_hint", 2);
+    this.navigationHint = new NavigationHint(2);
     
     this.autoplayText = new Text(4, 104, "");
     
@@ -2596,7 +2603,7 @@ class Player {
   }
 
   // Input handling
-  handleInput(column, isKeyDown) {
+  OLD_handleInput(column, isKeyDown) {
     if (!this.scene.startTime || this.scene.isPaused) return;
 
     const { now, beat } = this.scene.getCurrentTime();
@@ -2657,7 +2664,47 @@ class Player {
         hold.inactive = false;
         this.toggleHoldExplosion(column, true);
       }
-      this.checkRegularNotes(column, now, beat);
+    }
+  }
+  handleInput(column, isKeyDown) {
+    if (!this.scene.startTime || this.scene.isPaused) return;
+  
+    const { now, beat } = this.scene.getCurrentTime();
+    const hold = this.activeHolds[column];
+  
+    // Update input state
+    this.inputStates[column] = isKeyDown;
+  
+    // Handle key down events
+    if (isKeyDown) {
+      this.heldColumns.add(column);
+  
+      // Reactivate inactive holds within forgiveness window
+      if (hold?.inactive && now - hold.lastRelease < this.HOLD_FORGIVENESS) {
+        hold.active = true;
+        hold.inactive = false;
+        hold.pressCount++;
+        hold.lastPress = now;
+        this.toggleHoldExplosion(column, true);
+      }
+  
+      // Handle roll note tapping
+      if (hold?.note.type === "4") {
+        hold.tapped++;
+        hold.lastTap = now;
+        hold.active = true;
+        hold.inactive = false;
+        this.toggleHoldExplosion(column, true);
+      }
+  
+      // Check for new holds and regular notes
+      const noteHit = this.checkRegularNotes(column, now, beat);
+      if (!noteHit) this.checkHoldStart(column, now, beat);
+    }
+    // Handle key up events
+    else {
+      this.heldColumns.delete(column);
+      this.checkHoldRelease(column, now);
     }
   }
   
@@ -2674,6 +2721,10 @@ class Player {
       closestNote.hit = true;
 
       this.lastNoteCheckBeats[column] = beat;
+      
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -3750,7 +3801,7 @@ class Results {
   }
   
   showMenu() {
-    game.add.sprite(0, 0, "ui_navigation_hint", 1);
+    this.navigationHint = new NavigationHint(1);
     
     const menu = new CarouselMenu(108, 44, 80, 80, {
       bgcolor: 'brown',
@@ -5845,6 +5896,27 @@ class ProgressText extends Text {
     super(4, game.height - 4, text, FONTS.default);
     
     this.anchor.y = 1;
+  }
+}
+
+class NavigationHint extends Phaser.Sprite {
+  constructor(frame = 0) {
+    super(game, 0, 0);
+    
+    this.defaultFrame = frame;
+    this.lastInputSource = null;
+    
+    game.add.existing(this);
+  }
+  update() {
+    if (!gamepad) return;
+    
+    if (gamepad.lastInputSource != this.lastInputSource) {
+      this.loadTexture(gamepad.lastInputSource == 'keyboard' ? 'ui_navigation_hint_keyboard' : 'ui_navigation_hint_gamepad');
+      this.frame = this.defaultFrame;
+    }
+    
+    this.lastInputSource = gamepad.lastInputSource;
   }
 }
 
