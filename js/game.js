@@ -1049,7 +1049,7 @@ class MainMenu {
       
       settingsWindow.addSettingItem(
         "Beat Lines",
-        ["ENABLED", "DISABLED"],
+        ["YES", "NO"],
         Account.settings.drawTimeLines ? 0 : 1,
         index => {
           Account.settings.drawTimeLines = index === 0;
@@ -1184,7 +1184,7 @@ class MainMenu {
       
       window.offset = {
         x: 7,
-        y: 4
+        y: 0
       };
       
       window.addItem("Yes", "", () => {
@@ -4388,6 +4388,13 @@ class Window extends Phaser.Sprite {
     this.selector.animations.play('blink');
     this.addChild(this.selector);
 
+    // Scroll bar
+    this.scrollBar = game.add.graphics(this.size.width * 8 - 3, 8);
+    this.scrollBar.alpha = 0; // Start hidden
+    this.addChild(this.scrollBar);
+    
+    this.scrollBarTween = null;
+
     // Signals
     this.onSelect = new Phaser.Signal();
     this.onConfirm = new Phaser.Signal();
@@ -4429,23 +4436,23 @@ class Window extends Phaser.Sprite {
     }
   }
 
-  addItem(text, leftText, callback = null, backButton = false) {
+  addItem(text, valueText, callback = null, backButton = false) {
     const itemText = new Text(8 + this.offset.x, 0, text, {
       ...FONTS[this.font],
       tint: this.fontTint
     });
     this.addChild(itemText);
     
-    const itemLeftText = new Text(this.size.width * 8 -8 - 3, 0, leftText, {
+    const itemValueText = new Text(this.size.width * 8 -8 - 4, 0, valueText, {
       ...FONTS[this.font],
       tint: this.fontTint
     });
-    itemLeftText.anchor.x = 1;
-    itemText.addChild(itemLeftText);
+    itemValueText.anchor.x = 1;
+    itemText.addChild(itemValueText);
     
     const item = {
       text: itemText,
-      leftText: itemLeftText,
+      valueText: itemValueText,
       callback: callback,
       backButton: backButton,
       type: 'item',
@@ -4453,8 +4460,8 @@ class Window extends Phaser.Sprite {
       setText: text => {
         itemText.write(text);
       },
-      setLeftText: text => {
-        itemLeftText.write(text);
+      setValueText: text => {
+        itemValueText.write(text);
       }
     };
 
@@ -4473,7 +4480,7 @@ class Window extends Phaser.Sprite {
     // Translate text
     options = options.map(option => Window.processMultilingual(option));
 
-    const valueText = new Text(this.size.width * 8 -8- 3, 0, options[currentIndex].toString(), {
+    const valueText = new Text(this.size.width * 8 -8- 4, 0, options[currentIndex].toString(), {
       ...FONTS[this.font],
       tint: this.fontTint
     });
@@ -4482,7 +4489,6 @@ class Window extends Phaser.Sprite {
 
     const item = {
       text: itemText,
-      leftText: valueText,
       valueText: valueText,
       options: options,
       currentIndex: currentIndex,
@@ -4519,35 +4525,122 @@ class Window extends Phaser.Sprite {
   }
 
   update() {
-    this.visibleItems = this.size.height - 2 - Math.floor((this.itemOffset * this.items.length - 1) / 8);
+    // Calculate visible items based on window height and item spacing
+    const availableHeight = (this.size.height * 8) - 10; // Subtract padding
+    this.visibleItems = Math.floor(availableHeight / 8); // Each item is 8px tall
+    
+    // Ensure we don't show more items than we have
+    this.visibleItems = Math.min(this.visibleItems, this.items.length);
+    
+    // Ensure scroll offset is within bounds
+    this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, this.items.length - this.visibleItems));
+
+    // Calculate vertical centering
+    const totalContentHeight = this.visibleItems * 8; // Total height of all visible items
+    const startY = ((this.size.height * 8) - totalContentHeight) / 2; // Center the block of items
 
     this.items.forEach((item, index) => {
-      const isVisible = index >= this.scrollOffset &&
-        index < this.scrollOffset + this.visibleItems;
-
+      const isVisible = index >= this.scrollOffset && index < this.scrollOffset + this.visibleItems;
+      
       item.text.visible = isVisible;
       item.visible = isVisible;
       item.text.tint = this.fontTint;
-      item.leftText.tint = this.fontTint;
+      if (item.valueText) item.valueText.tint = this.fontTint;
 
       if (isVisible) {
-        // Position the text relative to current scroll
-        const yPos = 5 + ((index - this.scrollOffset) * 8) + this.itemOffset * index;
+        // Calculate Y position with vertical centering
+        const visibleIndex = index - this.scrollOffset;
+        const yPos = startY + (visibleIndex * 8); // Fixed 8px per item, centered
+        
         item.text.y = yPos + this.offset.y;
       }
     });
 
     this.updateSelector();
   }
-
+  
   updateSelector() {
     // Position selector arrow
-    if (this.focus && this.items.length > 0) {
+    if (this.focus && this.items.length > 0 && this.selectedIndex >= this.scrollOffset && this.selectedIndex < this.scrollOffset + this.visibleItems) {
+      const totalContentHeight = this.visibleItems * 8;
+      const startY = ((this.size.height * 8) - totalContentHeight) / 2;
       const visibleIndex = this.selectedIndex - this.scrollOffset;
-      this.selector.y = this.items[this.selectedIndex].text.y;
+      const selectorY = startY + (visibleIndex * 8) + this.offset.y;
+      
+      this.selector.y = selectorY;
       this.selector.visible = true;
     } else {
       this.selector.visible = false;
+    }
+  }
+  
+  updateScrollBar() {
+    // Clear previous scroll bar
+    this.scrollBar.clear();
+    
+    // Only show scroll bar if there are more items than visible
+    if (this.items.length <= this.visibleItems) {
+      this.hideScrollBar();
+      return;
+    }
+    
+    const windowHeight = (this.size.height - 2) * 8;
+    const totalItems = this.items.length;
+    
+    // Calculate scroll bar dimensions
+    const scrollBarHeight = Math.max(8, (this.visibleItems / totalItems) * windowHeight);
+    const scrollBarWidth = 1;
+    
+    // Calculate scroll bar position
+    const scrollRange = totalItems - this.visibleItems;
+    const scrollProgress = this.scrollOffset / scrollRange;
+    const scrollBarY = scrollProgress * (windowHeight - scrollBarHeight);
+    
+    // Draw scroll bar
+    this.scrollBar.beginFill(this.fontTint, 0.8);
+    this.scrollBar.drawRect(0, scrollBarY, scrollBarWidth, scrollBarHeight);
+    this.scrollBar.endFill();
+    
+    // Show scroll bar with fade in
+    this.showScrollBar();
+  }
+  
+  showScrollBar() {
+    // Cancel any existing fade out tween
+    if (this.scrollBarTween) {
+      this.scrollBarTween.stop();
+    }
+    
+    // Fade in immediately
+    this.scrollBar.alpha = 1;
+    
+    // Start fade out after 1 second
+    this.scrollBarTween = game.add.tween(this.scrollBar);
+    
+    this.scrollBarTween.to({ alpha: 0 }, 1000, Phaser.Easing.Quadratic.Out, true, 500)
+      .onComplete.add(() => {
+        this.scrollBarTween = null;
+      });
+  }
+
+  hideScrollBar() {
+    // Cancel any existing tween
+    if (this.scrollBarTween) {
+      this.scrollBarTween.stop();
+      this.scrollBarTween = null;
+    }
+    
+    // Hide immediately
+    this.scrollBar.alpha = 0;
+    this.scrollBar.clear();
+  }
+  
+  adjustScroll() {
+    // Adjust scroll offset to ensure selected item is visible
+    if (this.selectedIndex < this.scrollOffset) {
+      this.scrollOffset = this.selectedIndex;
+    } else if (this.selectedIndex >= this.scrollOffset + this.visibleItems) {
+      this.scrollOffset = this.selectedIndex - this.visibleItems + 1;
     }
   }
 
@@ -4576,6 +4669,7 @@ class Window extends Phaser.Sprite {
     if (newIndex !== this.selectedIndex) {
       this.selectedIndex = newIndex;
       this.adjustScroll();
+      this.updateScrollBar();
       this.playNavSound();
     }
   }
@@ -4614,14 +4708,6 @@ class Window extends Phaser.Sprite {
     }
   }
 
-  adjustScroll() {
-    if (this.selectedIndex < this.scrollOffset) {
-      this.scrollOffset = this.selectedIndex;
-    } else if (this.selectedIndex >= this.scrollOffset + this.visibleItems) {
-      this.scrollOffset = this.selectedIndex - this.visibleItems + 1;
-    }
-  }
-
   playNavSound() {
     ENABLE_UI_SFX && Audio.play('sfx_ui_nav');
   }
@@ -4657,6 +4743,10 @@ class Window extends Phaser.Sprite {
       if (item.valueText) item.valueText.destroy();
       if (item.toggleText) item.toggleText.destroy();
     });
+    if (this.scrollBarTween) {
+      this.scrollBarTween.stop();
+      this.scrollBarTween = null;
+    }
     this.frameParts.forEach(part => part.destroy());
     this.items = [];
     this.frameParts = [];
