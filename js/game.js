@@ -2328,7 +2328,7 @@ class Player {
     this.healthText = null;
 
     // Game constants
-    this.VERTICAL_SEPARATION = 1.5;
+    this.VERTICAL_SEPARATION = 1.25;
     this.SCREEN_CONSTANT = Account.settings.speedMod === "C-MOD" ? 240 / 60 : 1;
     this.NOTE_SPEED_MULTIPLIER = Account.settings.noteSpeedMult + this.SCREEN_CONSTANT;
     this.JUDGE_LINE = this.scrollDirection === 'falling' ? 90 : 30; // Top for rising, bottom for falling
@@ -3021,7 +3021,7 @@ class Player {
 
     // Render notes
     this.notes.forEach(note => {
-      let { deltaNote, scalar, bodyHeight, yPos, pastSize } = this.calculateVerticalPosition(note, now, beat);
+      let { pastSize, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
       
       const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
 
@@ -3120,7 +3120,7 @@ class Player {
         }
         
         // Miss note when past judge line but keep it to don't mess the rhythm
-        if (!note.miss && !note.holdActive && yPos > this.JUDGE_LINE + this.COLUMN_SIZE / 2) {
+        if (!note.miss && !note.holdActive && yPos > this.JUDGE_LINE + this.COLUMN_SIZE) {
           note.miss = true;
           this.processJudgement(note, "miss", note.column);
         }
@@ -3128,7 +3128,7 @@ class Player {
         let spritesVisible = !note.finish;
         
         let freezeYPos = Math.floor(yPos);
-        let freezeHeight = Math.floor(visibleHeight - this.COLUMN_SIZE / 2);
+        let freezeHeight = Math.floor(visibleHeight);
         
         note.holdParts.body.y = freezeYPos;
         note.holdParts.body.height = freezeHeight;
@@ -3292,7 +3292,7 @@ class Player {
         }
         
         // Miss note when past judge line - rising: miss when above judge line
-        if (!note.miss && !note.holdActive && yPos < this.JUDGE_LINE - this.COLUMN_SIZE / 2) {
+        if (!note.miss && !note.holdActive && yPos < this.JUDGE_LINE - this.COLUMN_SIZE) {
           note.miss = true;
           this.processJudgement(note, "miss", note.column);
         }
@@ -3300,7 +3300,7 @@ class Player {
         let spritesVisible = !note.finish;
         
         let freezeYPos = Math.floor(yPos);
-        let freezeHeight = Math.floor(visibleHeight - this.COLUMN_SIZE / 2);
+        let freezeHeight = Math.floor(visibleHeight);
         
         // Position hold parts for rising mode
         note.holdParts.body.y = freezeYPos;
@@ -4777,6 +4777,7 @@ class CarouselMenu extends Phaser.Sprite {
       align: 'left',
       bgcolor: '#3498db',
       fgcolor: '#ffffff',
+      disableScrollBar: false,
       ...config,
       margin: { top: 4, bottom: 4, left: 4, right: 4, ...(config.margin || {}) },
     };
@@ -4798,6 +4799,15 @@ class CarouselMenu extends Phaser.Sprite {
     
     this.isAnimating = false;
     this.inputEnabled = true;
+        
+    // Scroll bar
+    if (!this.config.disableScrollBar) {
+      this.scrollBar = game.add.graphics(this.viewport.width - 3, this.config.margin.top);
+      this.scrollBar.alpha = 0; // Start hidden
+      this.addChild(this.scrollBar);
+      
+      this.scrollBarTween = null;
+    }
     
     this.lastUp = false;
     this.lastDown = false;
@@ -4978,6 +4988,11 @@ class CarouselMenu extends Phaser.Sprite {
       this.updateSelection();
       this.playNavSound();
       this.onSelect.dispatch(this.selectedIndex, this.items[this.selectedIndex]);
+      
+      // Show scroll bar when navigating
+      if (!this.config.disableScrollBar) {
+        this.showScrollBar();
+      }
     }
   }
   
@@ -5009,6 +5024,11 @@ class CarouselMenu extends Phaser.Sprite {
     });
     
     this.updateItemPositions();
+    
+    // Update scroll bar after selection changes
+    if (!this.config.disableScrollBar) {
+      this.updateScrollBar();
+    }
   }
   
   selectItem(item) {
@@ -5076,6 +5096,74 @@ class CarouselMenu extends Phaser.Sprite {
       0,
       Math.max(0, this.items.length - this.visibleItems)
     );
+  }
+  
+  updateScrollBar() {
+    if (this.config.disableScrollBar) return;
+    
+    // Clear previous scroll bar
+    this.scrollBar.clear();
+    
+    // Only show scroll bar if there are more items than visible
+    if (this.items.length <= this.visibleItems) {
+      this.hideScrollBar();
+      return;
+    }
+    
+    const contentHeight = this.viewport.height - this.config.margin.top - this.config.margin.bottom;
+    const totalItems = this.items.length;
+    
+    // Calculate scroll bar dimensions
+    const scrollBarHeight = Math.max(8, (this.visibleItems / totalItems) * contentHeight);
+    const scrollBarWidth = 1;
+    
+    // Calculate scroll bar position
+    const scrollRange = totalItems - this.visibleItems;
+    const scrollProgress = this.scrollOffset / scrollRange;
+    const scrollBarY = scrollProgress * (contentHeight - scrollBarHeight);
+    
+    // Draw scroll bar using fgcolor
+    const fgcolor = Phaser.Color.hexToRGB(this.config.fgcolor);
+    this.scrollBar.beginFill(fgcolor, 0.8);
+    this.scrollBar.drawRect(0, scrollBarY, scrollBarWidth, scrollBarHeight);
+    this.scrollBar.endFill();
+    
+    // Show scroll bar with fade in
+    this.showScrollBar();
+  }
+
+  showScrollBar() {
+    if (this.config.disableScrollBar) return;
+    
+    // Cancel any existing fade out tween
+    if (this.scrollBarTween) {
+      this.scrollBarTween.stop();
+    }
+    
+    // Fade in immediately
+    this.scrollBar.alpha = 1;
+    
+    // Start fade out after 1 second
+    this.scrollBarTween = game.add.tween(this.scrollBar);
+    
+    this.scrollBarTween.to({ alpha: 0 }, 1000, Phaser.Easing.Quadratic.Out, true, 500)
+      .onComplete.add(() => {
+        this.scrollBarTween = null;
+      });
+  }
+
+  hideScrollBar() {
+    if (this.config.disableScrollBar) return;
+    
+    // Cancel any existing tween
+    if (this.scrollBarTween) {
+      this.scrollBarTween.stop();
+      this.scrollBarTween = null;
+    }
+    
+    // Hide immediately
+    this.scrollBar.alpha = 0;
+    this.scrollBar.clear();
   }
   
   updateItemPositions() {
@@ -5215,6 +5303,12 @@ class CarouselMenu extends Phaser.Sprite {
     this.selectedIndex = 0;
     this.scrollOffset = 0;
     
+    // Clean up scroll bar tween
+    if (!this.config.disableScrollBar && this.scrollBarTween) {
+      this.scrollBarTween.stop();
+      this.scrollBarTween = null;
+    }
+
     // Destroy the signals
     this.onSelect.dispose();
     this.onConfirm.dispose();
