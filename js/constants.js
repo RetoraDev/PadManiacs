@@ -44,6 +44,8 @@ const DEFAULT_ACCOUNT = {
     scrollDirection: 'falling',
     visualizer: 'NONE',
     metronome: 'OFF',
+    drawTimeLines: true,
+    beatsPerMeasure: 4, // Typically 4/4 time signature
     // Addon system settings
     safeMode: false, 
     enabledAddons: [],

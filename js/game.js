@@ -1037,6 +1037,16 @@ class MainMenu {
         }
       );
       
+      settingsWindow.addSettingItem(
+        "Draw Time Lines",
+        ["YES", "NO"],
+        Account.settings.drawTimeLines ? 0 : 1,
+        index => {
+          Account.settings.drawTimeLines = index === 0;
+          saveAccount();
+        }
+      );
+      
       const offsetOptions = [];
       for (let ms = -1000; ms <= 1000; ms += 25) {
         offsetOptions.push(`${ms}ms`);
@@ -2347,16 +2357,19 @@ class Player {
     // Calculate total notes for accuracy
     this.calculateTotalNotes();
     this.updateAccuracy();
-
-    this.initialize();
     
+    // Time lines tracking
+    this.lastVisibleBeats = new Set();
+
     // Groups for pooling
-    this.receptorsGroup = game.add.group();
     this.linesGroup = game.add.group();
+    this.receptorsGroup = game.add.group();
     this.freezeBodyGroup = game.add.group();
     this.freezeEndGroup = game.add.group();
     this.notesGroup = game.add.group();
     this.explosionsGroup = game.add.group();
+    
+    this.initialize();
     
     // Note color option (default to NOTE)
     this.noteColorOption = Account.settings.noteColorOption || 'NOTE';
@@ -2918,6 +2931,7 @@ class Player {
     
     line.y = y;
     line.alpha = alpha;
+    line.revive();
     
     return line;
   }
@@ -2959,6 +2973,11 @@ class Player {
       this.renderFalling();
     } else {
       this.renderRising();
+    }
+    
+    // Render time lines if enabled
+    if (Account.settings.drawTimeLines) {
+      this.renderTimeLines();
     }
   }
   
@@ -3318,7 +3337,112 @@ class Player {
       }
     });
   }
+  
+  renderTimeLines() {
+    if (!Account.settings.drawTimeLines) return;
 
+    const { beat } = this.scene.getCurrentTime();
+    const beatsPerMeasure = Account.settings.beatsPerMeasure || 4;
+    
+    // Calculate visible beat range (8 measures ahead like reference code)
+    const startMeasure = Math.floor(beat / beatsPerMeasure);
+    const endMeasure = startMeasure + 8;
+    
+    const currentVisibleBeats = new Set();
+    
+    // Update or create measure lines and beat lines
+    for (let measure = startMeasure; measure <= endMeasure; measure++) {
+      const measureBeat = measure * beatsPerMeasure;
+      
+      // Draw measure line
+      if (measureBeat >= beat) {
+        this.updateTimeLine(measureBeat, 0.9);
+        currentVisibleBeats.add(measureBeat);
+      }
+      
+      // Draw beat lines within this measure
+      for (let beatOffset = 1; beatOffset < beatsPerMeasure; beatOffset++) {
+        const currentBeat = measureBeat + beatOffset;
+        if (currentBeat >= beat) {
+          this.updateTimeLine(currentBeat, 0.5);
+          currentVisibleBeats.add(currentBeat);
+        }
+      }
+    }
+    
+    // Kill lines that are no longer visible
+    this.cleanupInvisibleLines(currentVisibleBeats);
+    this.lastVisibleBeats = currentVisibleBeats;
+  }
+  
+  updateTimeLine(targetBeat, alpha) {
+    const currentBeat = this.scene.getCurrentTime().beat;
+    const deltaBeat = targetBeat - currentBeat;
+    
+    // Calculate vertical position using the same logic as note rendering
+    const scalar = this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+    const yPos = this.scrollDirection === 'falling' ?
+      this.JUDGE_LINE - (deltaBeat * scalar) :
+      this.JUDGE_LINE + (deltaBeat * scalar);
+    
+    // Only create/update line if it's within the visible area
+    const isVisible = yPos >= -this.COLUMN_SIZE && yPos <= game.height + this.COLUMN_SIZE;
+    
+    if (isVisible) {
+      // Try to find existing line for this beat
+      let line = this.findLineForBeat(targetBeat);
+      
+      if (!line) {
+        // Create new line using pooling
+        line = this.createLine(yPos, alpha);
+        if (line) {
+          line.targetBeat = targetBeat; // Store which beat this line represents
+        }
+      } else {
+        // Update existing line position and alpha
+        line.y = yPos;
+        line.alpha = alpha;
+        line.revive(); // Ensure it's active
+      }
+      
+      return line;
+    }
+    
+    return null;
+  }
+  
+  findLineForBeat(targetBeat) {
+    // Look through alive lines in the pool to find one for this beat
+    const aliveLines = this.linesGroup.getAll('alive', true);
+    
+    for (let i = 0; i < aliveLines.length; i++) {
+      const line = aliveLines[i];
+      if (line.targetBeat === targetBeat) {
+        return line;
+      }
+    }
+    
+    return null;
+  }
+  
+  cleanupInvisibleLines(currentVisibleBeats) {
+    const aliveLines = this.linesGroup.getAll('alive', true);
+    
+    for (let i = 0; i < aliveLines.length; i++) {
+      const line = aliveLines[i];
+      
+      // If this line represents a beat that's no longer visible, kill it
+      if (line.targetBeat !== undefined && !currentVisibleBeats.has(line.targetBeat)) {
+        line.kill();
+      }
+      
+      // Also kill lines that are too far off screen
+      if (line.y < -this.COLUMN_SIZE * 2 || line.y > this.scene.game.height + this.COLUMN_SIZE * 2) {
+        line.kill();
+      }
+    }
+  }
+  
   update() {
     const { now, beat } = this.scene.getCurrentTime();
 
