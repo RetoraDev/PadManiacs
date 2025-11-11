@@ -3108,7 +3108,7 @@ class Player {
         let spritesVisible = !note.finish;
         
         let freezeYPos = Math.floor(yPos);
-        let freezeHeight = Math.floor(visibleHeight);
+        let freezeHeight = Math.floor(visibleHeight - this.COLUMN_SIZE / 2);
         
         note.holdParts.body.y = freezeYPos;
         note.holdParts.body.height = freezeHeight;
@@ -3280,7 +3280,7 @@ class Player {
         let spritesVisible = !note.finish;
         
         let freezeYPos = Math.floor(yPos);
-        let freezeHeight = Math.floor(visibleHeight);
+        let freezeHeight = Math.floor(visibleHeight - this.COLUMN_SIZE / 2);
         
         // Position hold parts for rising mode
         note.holdParts.body.y = freezeYPos;
@@ -5191,7 +5191,6 @@ class OffsetAssistant extends Phaser.Sprite {
     if (backgroundMusic && backgroundMusic.isPlaying) {
       this.originalMusicTime = backgroundMusic.audio.currentTime;
       backgroundMusic.stop();
-      console.log("Background music paused for offset assistant");
     }
   }
 
@@ -5199,10 +5198,7 @@ class OffsetAssistant extends Phaser.Sprite {
     if (backgroundMusic && this.wasMusicPlaying) {
       // Try to resume from where we left off
       backgroundMusic.audio.currentTime = this.originalMusicTime;
-      backgroundMusic.audio.play().catch(error => {
-        console.log("Could not resume background music:", error);
-      });
-      console.log("Background music resumed");
+      backgroundMusic.audio.play();
     }
   }
 
@@ -5314,8 +5310,6 @@ class OffsetAssistant extends Phaser.Sprite {
     } else {
       this.offsetText.tint = 0xFFFFFF; // White - not confident
     }
-    
-    console.log(`Taps: ${this.taps.length}, Current Offset: ${roundedOffset}ms, Final Average: ${finalAverageOffset}ms, Confidence: ${confidence.toFixed(2)}`);
   }
 
   calculateConfidence(offsets) {
@@ -5362,7 +5356,6 @@ class OffsetAssistant extends Phaser.Sprite {
       
       // Show confirmation
       notifications.show(`Offset set to ${finalOffset}ms`);
-      console.log(`Final offset saved: ${finalOffset}ms`);
     } else if (this.taps.length > 0) {
       // Fallback to last calculation if no averages stored
       const currentOffset = this.parseOffsetText();
@@ -5370,7 +5363,6 @@ class OffsetAssistant extends Phaser.Sprite {
         Account.settings.userOffset = currentOffset;
         saveAccount();
         notifications.show(`Offset set to ${currentOffset}ms`);
-        console.log(`Offset saved: ${currentOffset}ms`);
       }
     }
     
@@ -6451,7 +6443,6 @@ class BackgroundMusic {
     const allSongs = this.getCachedAvailableSongs();
     
     if (allSongs.length === 0) {
-      console.log("No songs available for background music");
       return;
     }
     
@@ -6523,7 +6514,6 @@ class BackgroundMusic {
       }
     }
     
-    console.log(`🎵 Available songs for randomization: ${allSongs.length}`);
     return allSongs;
   }
 
@@ -6583,7 +6573,6 @@ class BackgroundMusic {
     this.audio.play().then(() => {
       this.isPlaying = true;
       this.currentSong = songData;
-      console.log(`🎵 Now playing: ${songData.title} - ${songData.artist}`);
       if (notifications) {
         const displayText = `${songData.title} - ${songData.artist}`;
         //notifications.show(`NOW PLAYING: \n ${displayText}`, 3000);
@@ -6698,8 +6687,6 @@ class NotificationSystem {
       endTime: Date.now() + duration,
       queuedInState: stateName
     });
-    
-    console.log(`📢 Notification queued in ${stateName}: "${text}" -> "${wrappedText}"`);
     
     if (this.isStateAllowed(stateName) && !this.isShowing) {
       this.processNext();
@@ -7085,8 +7072,6 @@ class Lyrics {
       endTime: Number.MAX_SAFE_INTEGER, 
       line: line 
     });
-
-    console.log(`Lyrics loaded: ${this.lrcData.length} lines`);
   }
 
   move(time) {
@@ -7886,8 +7871,6 @@ class Metronome {
     this.notes = Array.from(uniqueBeats).sort((a, b) => a - b);
     this.noteIndex = 0;
     this.lastNoteBeat = -1;
-    
-    console.log(`NOTE mode: Loaded ${this.notes.length} unique note beats`);
   }
 
   getCurrentDivisionValue(beat) {
@@ -7912,8 +7895,6 @@ class Metronome {
     this.enabled = !this.enabled;
     this.lastDivisionValue = -1; // Reset to ensure tick plays on next division
     this.resetNoteMode(); // Reset note mode state
-    
-    console.log("Metronome", this.enabled ? "enabled:" : "disabled", this.mode);
   }
 
   resetNoteMode() {
@@ -7935,8 +7916,6 @@ class Metronome {
       // Update account settings
       Account.settings.metronome = mode;
       saveAccount();
-      
-      console.log("Metronome mode changed to:", mode);
     }
   }
 
