@@ -1038,8 +1038,8 @@ class MainMenu {
       );
       
       settingsWindow.addSettingItem(
-        "Draw Time Lines",
-        ["YES", "NO"],
+        "Beat Lines",
+        ["ENABLED", "DISABLED"],
         Account.settings.drawTimeLines ? 0 : 1,
         index => {
           Account.settings.drawTimeLines = index === 0;
@@ -3355,22 +3355,18 @@ class Player {
       const measureBeat = measure * beatsPerMeasure;
       
       // Draw measure line
-      if (measureBeat >= beat) {
-        this.updateTimeLine(measureBeat, 0.9);
-        currentVisibleBeats.add(measureBeat);
-      }
+      this.updateTimeLine(measureBeat, 0.9);
+      currentVisibleBeats.add(measureBeat);
       
       // Draw beat lines within this measure
       for (let beatOffset = 1; beatOffset < beatsPerMeasure; beatOffset++) {
         const currentBeat = measureBeat + beatOffset;
-        if (currentBeat >= beat) {
-          this.updateTimeLine(currentBeat, 0.5);
-          currentVisibleBeats.add(currentBeat);
-        }
+        this.updateTimeLine(currentBeat, 0.35);
+        currentVisibleBeats.add(currentBeat);
       }
     }
     
-    // Kill lines that are no longer visible
+    // Kill lines that are no longer visible (past the screen)
     this.cleanupInvisibleLines(currentVisibleBeats);
     this.lastVisibleBeats = currentVisibleBeats;
   }
@@ -3385,8 +3381,8 @@ class Player {
       this.JUDGE_LINE - (deltaBeat * scalar) :
       this.JUDGE_LINE + (deltaBeat * scalar);
     
-    // Only create/update line if it's within the visible area
-    const isVisible = yPos >= -this.COLUMN_SIZE && yPos <= game.height + this.COLUMN_SIZE;
+    // Lines should exist as long as they're on screen, not just when they're above the judge line
+    const isVisible = yPos >= -this.COLUMN_SIZE && yPos <= this.scene.game.height + this.COLUMN_SIZE;
     
     if (isVisible) {
       // Try to find existing line for this beat
@@ -3431,13 +3427,11 @@ class Player {
     for (let i = 0; i < aliveLines.length; i++) {
       const line = aliveLines[i];
       
-      // If this line represents a beat that's no longer visible, kill it
-      if (line.targetBeat !== undefined && !currentVisibleBeats.has(line.targetBeat)) {
-        line.kill();
-      }
+      // Kill lines that are too far off screen (with some buffer)
+      const buffer = this.COLUMN_SIZE * 2;
+      const isOffScreen = line.y < -buffer || line.y > this.scene.game.height + buffer;
       
-      // Also kill lines that are too far off screen
-      if (line.y < -this.COLUMN_SIZE * 2 || line.y > this.scene.game.height + this.COLUMN_SIZE * 2) {
+      if (isOffScreen) {
         line.kill();
       }
     }
