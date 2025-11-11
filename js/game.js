@@ -1787,22 +1787,9 @@ class Play {
     saveAccount();
     
     // Game constants
-    this.JUDGE_WINDOWS = {
-      marvelous: 0.15,
-      perfect: 0.2,
-      great: 0.25,
-      good: 0.3,
-      boo: 0.4
-    };
+    this.JUDGE_WINDOWS = JUDGE_WINDOWS;
     
-    this.SCORE_VALUES = {
-      marvelous: 1000,
-      perfect: 800,
-      great: 500,
-      good: 200,
-      boo: 50,
-      miss: 0
-    };
+    this.SCORE_VALUES = SCORE_VALUES;
     
     window.Play = this;
   }
@@ -2342,7 +2329,8 @@ class Player {
 
     // Game constants
     this.VERTICAL_SEPARATION = 1.5;
-    this.NOTE_SPEED_MULTIPLIER = Account.settings.noteSpeedMult + 1;
+    this.SCREEN_CONSTANT = Account.settings.speedMod === "C-MOD" ? 240 / 60 : 1;
+    this.NOTE_SPEED_MULTIPLIER = Account.settings.noteSpeedMult + this.SCREEN_CONSTANT;
     this.JUDGE_LINE = this.scrollDirection === 'falling' ? 90 : 30; // Top for rising, bottom for falling
     this.COLUMN_SIZE = 16;
     this.COLUMN_SEPARATION = 4;
@@ -2678,7 +2666,6 @@ class Player {
 
     if (closestNote && this.lastNoteCheckBeats[column] !== beat) {
       const delta = Math.abs(closestNote.beat - beat);
-      console.log(delta);
       const judgement = this.getJudgement(delta);
 
       this.createExplosion(closestNote);

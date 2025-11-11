@@ -101,3 +101,20 @@ const DEFAULT_SONG_FOLDERS = [
   "GiganticGirl",
   "melody_2.exe"
 ];
+
+let JUDGE_WINDOWS = {
+  marvelous: 0.20,
+  perfect: 0.25,
+  great: 0.30,
+  good: 0.35,
+  boo: 0.45
+};
+
+let SCORE_VALUES = {
+  marvelous: 1000,
+  perfect: 800,
+  great: 500,
+  good: 200,
+  boo: 50,
+  miss: 0
+};
