@@ -45,31 +45,19 @@
       });
       const snippets = eruda.get('snippets');
       snippets.clear();
-      snippets.add("Add performance text", () => {
-        const text = new Text(190, 2, "");
-        text.anchor.x = 1;
-        game.time.events.loop(60, () => {
-          const player = game.state.current == 'Play' ? game.state.getCurrentState().player : null;
-          text.write(
-            `FPS: ${game.time.fps}\n`
-          );
-        });
-      }, "Displays performance information");
-      snippets.add("Screenshoot", () => {
-        var renderTexture = game.add.renderTexture(game.width, game.height, 'screenshotTemp');
-        renderTexture.renderXY(game.world, 0, 0, true);
-        var image = renderTexture.getBase64();
-        var link = document.createElement('a');
-        link.href = image;
-        link.download = 'screenshot-' + Date.now() + '.png';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        renderTexture.destroy();
-      }, "Take a screenshot");
-      snippets.add("Destroy", () => {
-        eruda.destroy();
-      }, "Destroy eruda");
+      snippets.add("Start Recording", () => game.recorder.start(), "Start recording the game");
+      snippets.add("Stop Recording", () => game.recorder.stop(), "Stop recording and save video");
+      snippets.add("Record Next Game", () => window.recordNextGame = true, "Start recording next song, stop when it ends");
+      snippets.add("Screenshoot", () => game.recorder.screenshot(), "Take a screenshot");
+      snippets.add("Take Screenshoots", () => {
+        const screenshot = () => {
+          game.recorder.screenshot();
+          setTimeout(() => screenshot(), game.rnd.between(5000, 20000));
+        };
+        screenshot();
+      }, "Take screenshots anytime randomly");
+      snippets.add("Add FPS text", () => addFpsText(), "Displays performance information");
+      snippets.add("Destroy", () => eruda.destroy(), "Destroy eruda");
     }
   </script>
   <script src="./js/gamepad.js"></script>

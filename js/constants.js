@@ -73,6 +73,7 @@ const NWJS_EXTERNAL_DIRECTORY = "data/";
 const EXTERNAL_DIRECTORY = CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA ? CORDOVA_EXTERNAL_DIRECTORY : NWJS_EXTERNAL_DIRECTORY;
 
 const ADDONS_DIRECTORY = "Addons";
+const SCREENSHOTS_DIRECTORY = "Screenshots";
 const SONGS_DIRECTORY = "Songs";
 
 const ENABLE_PARALLEL_LOADING = false;
@@ -102,7 +103,7 @@ const DEFAULT_SONG_FOLDERS = [
   "melody_2.exe"
 ];
 
-let JUDGE_WINDOWS = {
+const JUDGE_WINDOWS = {
   marvelous: 0.20,
   perfect: 0.25,
   great: 0.30,
@@ -110,7 +111,7 @@ let JUDGE_WINDOWS = {
   boo: 0.45
 };
 
-let SCORE_VALUES = {
+const SCORE_VALUES = {
   marvelous: 1000,
   perfect: 800,
   great: 500,

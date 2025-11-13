@@ -11,6 +11,10 @@ A pocket-sized cross-platform pixel art StepMania clone.
 
 PadManiacs is a lightweight rhythm game that brings the StepMania experience to web and mobile devices with a retro pixel art aesthetic. The game features core rhythm gameplay mechanics of StepMania, a popular open source rhythm game.
 
+[Play Directly In Your Browser](https://retoradev.github.io/PadManiacs/)
+
+[Play On Itch.io](https://retora.itch.io/padmaniacs)
+
 ## Controls
 
 ### Keyboard

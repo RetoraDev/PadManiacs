@@ -255,6 +255,17 @@ body {
   
   #controller_rhythm_pad {
     bottom: -52px;
+    width: calc(100% - 40px);
+    left: 20px;
+    transform: none;
+    justify-content: space-between;
+  }
+  
+  #controller_rhythm_pad .rhythm {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    max-width: 80px;
   }
 }
 
@@ -281,6 +292,11 @@ body {
   #controller_select {
     right: 80px;
     bottom: 30px;
+  }
+  
+  #controller_rhythm_pad {
+    width: calc(100% - 20px);
+    left: 10px;
   }
 }
 
