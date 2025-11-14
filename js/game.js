@@ -49,6 +49,8 @@ const bootGame = () => {
         game.state.add('SongSelect', SongSelect);
         game.state.add('Play', Play);
         game.state.add('Results', Results);
+        game.state.add('Jukebox', Jukebox);
+        game.state.add('Credits', Credits);
         game.state.start('Boot');
         game.recorder = new ScreenRecorder(game);
       }
@@ -892,11 +894,11 @@ class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
     
-    new FuturisticLines();
+    this.futuristicLines = new FuturisticLines();
     
-    new BackgroundGradient();
+    this.backgroundGradient = new BackgroundGradient();
     
-    new NavigationHint(0);
+    this.navigationHint = new NavigationHint(0);
     
     this.menu();
     
@@ -1211,6 +1213,7 @@ class MainMenu {
       });
       if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) carousel.addItem("Addon Manager", () => this.addonManager());
       carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
+      carousel.addItem("Credits", () => this.showCredits());
       game.onMenuIn.dispatch('extras', carousel);
       carousel.addItem("< Back", () => home());
       carousel.onCancel.add(() => home());
@@ -1441,6 +1444,9 @@ class MainMenu {
     }
     
     showInstalledAddons();
+  }
+  showCredits() {
+    game.state.start("Credits", true, false, "MainMenu");
   }
   update() {
     gamepad.update();
@@ -2377,7 +2383,7 @@ class Player {
     this.COLUMN_SEPARATION = 4;
     this.HOLD_FORGIVENESS = 0.3;
     this.ROLL_FORGIVENESS = 0.3;
-    this.ROLL_REQUIRED_INTERVALS = 1.5;
+    this.ROLL_REQUIRED_INTERVALS = 0.5;
     this.INACTIVE_COLOR = 0x888888;
     
     // Speed mod setting
@@ -2902,7 +2908,7 @@ class Player {
     sprite.scale.set(1);
     game.add.tween(sprite.scale).to({ x: 1.2, y: 1.2 }, 50, "Linear", true).yoyo(true);
   }
-
+  
   getComboColor(combo) {
     const max = 100;
     const value = Math.min(max, combo);
@@ -3836,9 +3842,848 @@ class Results {
   }
 }
 
-window.PhaserGlobal = {
-  enableWebAudio: false
-};
+class Jukebox {
+  init(songs = null, startIndex = 0) {
+    this.songs = songs || window.localSongs || [];
+    this.currentIndex = startIndex;
+    this.currentSong = this.songs[this.currentIndex];
+    this.isPlaying = false;
+    this.isShuffled = false;
+    this.originalSongOrder = [...this.songs];
+    this.visualizerMode = 'symmetrical';
+    this.seekSpeed = 10; // seconds per key press
+    this.lastSeekTime = 0;
+    this.seekCooldown = 200; // ms between seek actions
+    
+    // Background system
+    this.currentBackground = null;
+    this.backgroundQueue = [];
+    this.backgroundSprite = null;
+    this.videoElement = null;
+    
+    // Visualizer
+    this.visualizer = null;
+  }
+
+  create() {
+    game.camera.fadeIn(0x000000);
+    
+    // Setup background
+    this.setupBackground();
+    
+    // Setup audio player
+    this.setupAudioPlayer();
+    
+    // Setup UI
+    this.setupUI();
+    
+    // Setup visualizer
+    this.setupVisualizer();
+    
+    // Load first song
+    this.loadSong(this.currentIndex);
+    
+    // Execute addon behaviors
+    addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+
+  setupBackground() {
+    this.backgroundSprite = game.add.sprite(0, 0);
+    this.backgroundSprite.alpha = 0.6;
+    
+    // Create video element for background videos
+    this.videoElement = document.createElement("video");
+    this.videoElement.muted = true;
+    this.videoElement.loop = true;
+  }
+
+  setupAudioPlayer() {
+    this.audioElement = document.createElement("audio");
+    this.audioElement.volume = [0,25,50,75,100][Account.settings.volume] / 100;
+    
+    this.audioElement.addEventListener('loadedmetadata', () => {
+      this.updateDurationDisplay();
+    });
+    
+    this.audioElement.addEventListener('timeupdate', () => {
+      this.updateProgressBar();
+      this.updateTimeDisplay();
+    });
+    
+    this.audioElement.addEventListener('ended', () => {
+      this.nextSong();
+    });
+  }
+
+  setupUI() {
+    // Background gradient for readability
+    this.uiBackground = game.add.graphics(0, 0);
+    this.uiBackground.beginFill(0x000000, 0.7);
+    this.uiBackground.drawRect(0, 80, game.width, 32);
+    this.uiBackground.endFill();
+    
+    // Song banner
+    this.bannerSprite = game.add.sprite(4, 4);
+    
+    // Song metadata
+    this.songTitle = new Text(100, 4, "", FONTS.shaded);
+    this.songArtist = new Text(100, 14, "", FONTS.default);
+    this.songCredit = new Text(100, 24, "", FONTS.default);
+    
+    // Playback time displays
+    this.currentTimeText = new Text(4, 84, "0:00", FONTS.default);
+    this.durationText = new Text(188, 84, "0:00", FONTS.default);
+    this.durationText.anchor.x = 1;
+    
+    // Progress bar
+    this.progressBarBg = game.add.graphics(30, 86);
+    this.progressBarBg.lineStyle(2, 0x666666, 1);
+    this.progressBarBg.moveTo(0, 0);
+    this.progressBarBg.lineTo(132, 0);
+    
+    this.progressBar = game.add.graphics(30, 86);
+    
+    // Playback controls
+    this.controlsBackground = game.add.graphics(0, 100);
+    this.controlsBackground.beginFill(0x000000, 0.8);
+    this.controlsBackground.drawRect(0, 100, game.width, 12);
+    this.controlsBackground.endFill();
+    
+    this.drawPlaybackControls();
+    
+    // Visualizer mode display
+    this.visualizerModeText = new Text(4, 112, `Visualizer: ${this.visualizerMode}`, FONTS.default);
+    
+    // Help text
+    this.helpText = new Text(game.width / 2, 112, "A:Play/Pause B:Shuffle START:Menu SELECT:Visualizer", FONTS.default);
+    this.helpText.anchor.x = 0.5;
+    this.helpText.alpha = 0.7;
+  }
+
+  setupVisualizer() {
+    this.visualizer = new FullScreenAudioVisualizer(this.audioElement, {
+      visualizationType: this.visualizerMode,
+      barColor: 0x76fcde,
+      barWidth: 3,
+      barSpacing: 1,
+      barBaseHeight: 5,
+      barMaxHeight: 40,
+      alpha: 0.6,
+      fftSize: 512,
+      smoothing: 0.7
+    });
+  }
+
+  drawPlaybackControls() {
+    this.controlsGraphics = game.add.graphics(0, 100);
+    this.controlsGraphics.clear();
+    
+    const centerX = game.width / 2;
+    const controlY = 104;
+    
+    // Previous button (triangle left)
+    this.controlsGraphics.beginFill(0xffffff, 0.8);
+    this.controlsGraphics.moveTo(centerX - 30, controlY);
+    this.controlsGraphics.lineTo(centerX - 20, controlY - 4);
+    this.controlsGraphics.lineTo(centerX - 20, controlY + 4);
+    this.controlsGraphics.endFill();
+    
+    // Play/Pause button
+    if (this.isPlaying) {
+      // Pause icon (two bars)
+      this.controlsGraphics.beginFill(0xffffff, 0.8);
+      this.controlsGraphics.drawRect(centerX - 6, controlY - 4, 2, 8);
+      this.controlsGraphics.drawRect(centerX - 2, controlY - 4, 2, 8);
+      this.controlsGraphics.endFill();
+    } else {
+      // Play icon (triangle right)
+      this.controlsGraphics.beginFill(0xffffff, 0.8);
+      this.controlsGraphics.moveTo(centerX - 6, controlY - 4);
+      this.controlsGraphics.lineTo(centerX + 2, controlY);
+      this.controlsGraphics.lineTo(centerX - 6, controlY + 4);
+      this.controlsGraphics.endFill();
+    }
+    
+    // Next button (triangle right)
+    this.controlsGraphics.beginFill(0xffffff, 0.8);
+    this.controlsGraphics.moveTo(centerX + 30, controlY);
+    this.controlsGraphics.lineTo(centerX + 20, controlY - 4);
+    this.controlsGraphics.lineTo(centerX + 20, controlY + 4);
+    this.controlsGraphics.endFill();
+    
+    // Shuffle indicator
+    if (this.isShuffled) {
+      this.controlsGraphics.beginFill(0x76fcde, 0.8);
+      this.controlsGraphics.drawCircle(centerX - 50, controlY, 3);
+      this.controlsGraphics.endFill();
+    }
+  }
+
+  loadSong(index) {
+    if (index < 0 || index >= this.songs.length) return;
+    
+    // Stop current playback
+    this.audioElement.pause();
+    this.isPlaying = false;
+    
+    // Update current index and song
+    this.currentIndex = index;
+    this.currentSong = this.songs[this.currentIndex];
+    
+    // Load audio
+    this.audioElement.src = this.currentSong.audioUrl;
+    
+    // Update UI
+    this.updateSongDisplay();
+    this.updateBackground();
+    
+    // Start playback
+    this.play();
+  }
+
+  updateSongDisplay() {
+    const song = this.currentSong;
+    
+    // Update text displays
+    this.songTitle.write(song.titleTranslit || song.title || "Unknown Title");
+    this.songArtist.write(`Artist: ${song.artistTranslit || song.artist || "Unknown"}`);
+    this.songCredit.write(`Credit: ${song.credit || "Unknown"}`);
+    
+    // Load banner
+    if (song.banner && song.banner !== "no-media") {
+      const bannerImg = new Image();
+      bannerImg.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 96;
+        canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bannerImg, 0, 0, 96, 32);
+        const texture = PIXI.Texture.fromCanvas(canvas);
+        this.bannerSprite.loadTexture(texture);
+      };
+      bannerImg.src = song.banner;
+    } else {
+      this.bannerSprite.loadTexture(null);
+    }
+    
+    // Update controls
+    this.drawPlaybackControls();
+  }
+
+  updateBackground() {
+    // Clear current background
+    this.backgroundSprite.loadTexture(null);
+    this.videoElement.src = "";
+    
+    // Load song background
+    if (this.currentSong.background && this.currentSong.background !== "no-media") {
+      const bgImg = new Image();
+      bgImg.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 192;
+        canvas.height = 112;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bgImg, 0, 0, 192, 112);
+        const texture = PIXI.Texture.fromCanvas(canvas);
+        this.backgroundSprite.loadTexture(texture);
+      };
+      bgImg.src = this.currentSong.background;
+    }
+    
+    // Handle background videos
+    if (this.currentSong.videoUrl) {
+      this.videoElement.src = this.currentSong.videoUrl;
+      this.videoElement.play();
+      
+      // Update video frame periodically
+      this.lastVideoUpdate = game.time.now;
+    }
+  }
+
+  updateDurationDisplay() {
+    const duration = this.audioElement.duration;
+    if (isNaN(duration)) return;
+    
+    const minutes = Math.floor(duration / 60);
+    const seconds = Math.floor(duration % 60);
+    this.durationText.write(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+  }
+
+  updateProgressBar() {
+    const currentTime = this.audioElement.currentTime;
+    const duration = this.audioElement.duration;
+    
+    if (isNaN(duration) || duration === 0) return;
+    
+    const progress = currentTime / duration;
+    const barWidth = 132 * progress;
+    
+    this.progressBar.clear();
+    this.progressBar.lineStyle(2, 0x76fcde, 1);
+    this.progressBar.moveTo(0, 0);
+    this.progressBar.lineTo(barWidth, 0);
+  }
+
+  updateTimeDisplay() {
+    const currentTime = this.audioElement.currentTime;
+    const minutes = Math.floor(currentTime / 60);
+    const seconds = Math.floor(currentTime % 60);
+    this.currentTimeText.write(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+  }
+
+  play() {
+    this.audioElement.play().then(() => {
+      this.isPlaying = true;
+      this.drawPlaybackControls();
+    }).catch(error => {
+      console.warn("Playback failed:", error);
+      this.isPlaying = false;
+      this.drawPlaybackControls();
+    });
+  }
+
+  pause() {
+    this.audioElement.pause();
+    this.isPlaying = false;
+    this.drawPlaybackControls();
+  }
+
+  togglePlayback() {
+    if (this.isPlaying) {
+      this.pause();
+    } else {
+      this.play();
+    }
+  }
+
+  nextSong() {
+    let nextIndex = this.currentIndex + 1;
+    if (nextIndex >= this.songs.length) {
+      nextIndex = 0; // Loop to beginning
+    }
+    this.loadSong(nextIndex);
+  }
+
+  previousSong() {
+    let prevIndex = this.currentIndex - 1;
+    if (prevIndex < 0) {
+      prevIndex = this.songs.length - 1; // Loop to end
+    }
+    this.loadSong(prevIndex);
+  }
+
+  toggleShuffle() {
+    this.isShuffled = !this.isShuffled;
+    
+    if (this.isShuffled) {
+      // Shuffle the playlist (Fisher-Yates algorithm)
+      const shuffled = [...this.songs];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      this.songs = shuffled;
+    } else {
+      // Restore original order
+      this.songs = [...this.originalSongOrder];
+    }
+    
+    this.drawPlaybackControls();
+  }
+
+  seekForward() {
+    const currentTime = this.audioElement.currentTime;
+    const newTime = Math.min(currentTime + this.seekSpeed, this.audioElement.duration || 0);
+    this.audioElement.currentTime = newTime;
+  }
+
+  seekBackward() {
+    const currentTime = this.audioElement.currentTime;
+    const newTime = Math.max(currentTime - this.seekSpeed, 0);
+    this.audioElement.currentTime = newTime;
+  }
+
+  changeVisualizerMode() {
+    const modes = ['bars', 'symmetrical', 'waveform', 'circular'];
+    const currentIndex = modes.indexOf(this.visualizerMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    this.visualizerMode = modes[nextIndex];
+    
+    this.visualizer.setVisualizationType(this.visualizerMode);
+    this.visualizerModeText.write(`Visualizer: ${this.visualizerMode}`);
+  }
+
+  showMenu() {
+    const menu = new CarouselMenu(60, 40, 72, 40, {
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      align: 'center'
+    });
+    
+    menu.addItem("Resume", () => {
+      menu.destroy();
+    });
+    
+    menu.addItem("Play/Pause", () => {
+      this.togglePlayback();
+      menu.destroy();
+    });
+    
+    menu.addItem("Next Song", () => {
+      this.nextSong();
+      menu.destroy();
+    });
+    
+    menu.addItem("Previous Song", () => {
+      this.previousSong();
+      menu.destroy();
+    });
+    
+    menu.addItem("Toggle Shuffle", () => {
+      this.toggleShuffle();
+      menu.destroy();
+    });
+    
+    menu.addItem("Exit Jukebox", () => {
+      this.exitJukebox();
+    });
+    
+    menu.onCancel.add(() => {
+      menu.destroy();
+    });
+  }
+
+  exitJukebox() {
+    // Clean up
+    this.audioElement.pause();
+    this.audioElement.src = "";
+    
+    if (this.videoElement) {
+      this.videoElement.pause();
+      this.videoElement.src = "";
+    }
+    
+    if (this.visualizer) {
+      this.visualizer.destroy();
+    }
+    
+    // Return to main menu
+    game.state.start("MainMenu");
+  }
+
+  update() {
+    // Update visualizer
+    if (this.visualizer) {
+      this.visualizer.update();
+    }
+    
+    // Update video background if playing
+    if (this.videoElement.src && this.videoElement.readyState >= 2) {
+      const currentTime = game.time.now;
+      if (currentTime - this.lastVideoUpdate >= 33) { // ~30fps
+        this.lastVideoUpdate = currentTime;
+        const canvas = document.createElement('canvas');
+        canvas.width = 192;
+        canvas.height = 112;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(this.videoElement, 0, 0, 192, 112);
+        const texture = PIXI.Texture.fromCanvas(canvas);
+        this.backgroundSprite.loadTexture(texture);
+      }
+    }
+    
+    this.handleInput();
+  }
+
+  handleInput() {
+    const currentTime = game.time.now;
+    
+    // Play/Pause
+    if (gamepad.pressed.a && !this.lastA) {
+      this.togglePlayback();
+    }
+    
+    // Shuffle toggle
+    if (gamepad.pressed.b && !this.lastB) {
+      this.toggleShuffle();
+    }
+    
+    // Visualizer mode change
+    if (gamepad.pressed.select && !this.lastSelect) {
+      this.changeVisualizerMode();
+    }
+    
+    // Menu
+    if (gamepad.pressed.start && !this.lastStart) {
+      this.showMenu();
+    }
+    
+    // Seek handling with cooldown
+    if (currentTime - this.lastSeekTime > this.seekCooldown) {
+      // Single press - seek
+      if (gamepad.pressed.left && !this.lastLeft) {
+        this.seekBackward();
+        this.lastSeekTime = currentTime;
+      }
+      
+      if (gamepad.pressed.right && !this.lastRight) {
+        this.seekForward();
+        this.lastSeekTime = currentTime;
+      }
+      
+      // Double press detection for song change
+      if (gamepad.pressed.left && this.lastLeft && currentTime - this.lastLeftPress < 500) {
+        this.previousSong();
+        this.lastSeekTime = currentTime;
+      }
+      
+      if (gamepad.pressed.right && this.lastRight && currentTime - this.lastRightPress < 500) {
+        this.nextSong();
+        this.lastSeekTime = currentTime;
+      }
+    }
+    
+    // Track press times for double press detection
+    if (gamepad.pressed.left && !this.lastLeft) {
+      this.lastLeftPress = currentTime;
+    }
+    
+    if (gamepad.pressed.right && !this.lastRight) {
+      this.lastRightPress = currentTime;
+    }
+    
+    // Update last states
+    this.lastA = gamepad.pressed.a;
+    this.lastB = gamepad.pressed.b;
+    this.lastSelect = gamepad.pressed.select;
+    this.lastStart = gamepad.pressed.start;
+    this.lastLeft = gamepad.pressed.left;
+    this.lastRight = gamepad.pressed.right;
+  }
+
+  shutdown() {
+    // Clean up resources
+    this.audioElement.pause();
+    this.audioElement.src = "";
+    
+    if (this.videoElement) {
+      this.videoElement.pause();
+      this.videoElement.src = "";
+    }
+    
+    if (this.visualizer) {
+      this.visualizer.destroy();
+    }
+  }
+}
+
+class Credits {
+  init(returnState = 'MainMenu', returnStateParams = {}) {
+    this.returnState = returnState;
+    this.returnStateParams = returnStateParams;
+    this.scrollSpeed = 15; // pixels per second
+    this.isWaitingForInput = false;
+    this.backgroundInterval = 8000; // Change background every 8 seconds
+    this.currentBackgroundIndex = 0;
+    this.availableBackgrounds = [];
+  }
+
+  create() {
+    game.camera.fadeIn(0x000000);
+    
+    // Create background system
+    this.setupBackground();
+    
+    // Start background music
+    this.startBackgroundMusic();
+    
+    // Create credits container
+    this.creditsContainer = game.add.group();
+    
+    // Base credits content
+    const creditsContent = [
+      { text: "PADMANIACS", font: FONTS.shaded, tint: 0x76fcde, spacing: 25 },
+      { text: "Created by Retora", font: FONTS.default, tint: 0xffffff, spacing: 15 },
+      
+      // Dynamic song credits section
+      { text: "SONG CREDITS", font: FONTS.shaded, tint: 0x76fcde, spacing: 20 }
+    ];
+    
+    // Add credits from local songs
+    const songCredits = this.getSongCredits();
+    if (songCredits.length > 0) {
+      creditsContent.push(...songCredits);
+      creditsContent.push({ text: "", font: FONTS.default, tint: 0xffffff, spacing: 15 });
+    }
+    
+    // Continue with remaining credits
+    creditsContent.push(
+      { text: "Special Thanks", font: FONTS.shaded, tint: 0x76fcde, spacing: 20 },
+      { text: "StepMania Team", font: FONTS.default, tint: 0xffffff, spacing: 8 },
+      { text: "photonstorm", font: FONTS.default, tint: 0xffffff, spacing: 8 },
+      { text: "itch.io", font: FONTS.default, tint: 0xffffff, spacing: 8 },
+      { text: "You!", font: FONTS.shaded, tint: 0xffffff, spacing: 25 },
+      
+      { text: COPYRIGHT, font: FONTS.default, tint: 0x888888, spacing: 40 },
+    );
+    
+    // Create all text elements
+    let currentY = game.height + 20; // Start below the screen
+    
+    creditsContent.forEach((credit, index) => {
+      const text = new Text(game.width / 2, currentY, credit.text, credit.font, this.creditsContainer);
+      text.anchor.set(0.5);
+      text.wrapPreserveNewlines(112);
+      text.tint = credit.tint;
+      text.creditData = credit; // Store spacing info
+      
+      currentY += credit.spacing;
+    });
+    
+    // Store total height for scrolling calculation
+    this.totalHeight = currentY;
+    this.startY = this.creditsContainer.y;
+    
+    // Setup completion detection
+    this.creditsComplete = false;
+    
+    // Execute addon behaviors
+    addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+
+  setupBackground() {
+    // Create background sprite
+    this.backgroundSprite = game.add.sprite(0, 0);
+    this.backgroundSprite.alpha = 0.7;
+    
+    // Collect all available backgrounds from songs
+    this.collectBackgrounds();
+    
+    // Start background slideshow
+    if (this.availableBackgrounds.length > 0) {
+      this.showNextBackground();
+      this.backgroundTimer = game.time.events.loop(this.backgroundInterval, this.showNextBackground, this);
+    } else {
+      // Fallback: create gradient background
+      this.backgroundSprite.loadTexture("ui_background_gradient");
+    }
+  }
+
+  collectBackgrounds() {
+    this.availableBackgrounds = [];
+    
+    // Collect from local songs
+    if (window.localSongs && Array.isArray(window.localSongs)) {
+      window.localSongs.forEach(song => {
+        if (song.background && song.background !== "no-media") {
+          this.availableBackgrounds.push(song.background);
+        }
+        if (song.banner && song.banner !== "no-media") {
+          this.availableBackgrounds.push(song.banner);
+        }
+      });
+    }
+    
+    // Collect from external songs
+    if (window.externalSongs && Array.isArray(window.externalSongs)) {
+      window.externalSongs.forEach(song => {
+        if (song.background && song.background !== "no-media") {
+          this.availableBackgrounds.push(song.background);
+        }
+        if (song.banner && song.banner !== "no-media") {
+          this.availableBackgrounds.push(song.banner);
+        }
+      });
+    }
+    
+    // Remove duplicates
+    this.availableBackgrounds = [...new Set(this.availableBackgrounds)];
+    
+    console.log(`Found ${this.availableBackgrounds.length} backgrounds for slideshow`);
+  }
+
+  showNextBackground() {
+    if (this.availableBackgrounds.length === 0) return;
+    
+    this.currentBackgroundIndex = (this.currentBackgroundIndex + 1) % this.availableBackgrounds.length;
+    const nextBackground = this.availableBackgrounds[this.currentBackgroundIndex];
+    
+    // Create temporary image to load and display
+    const tempImg = new Image();
+    tempImg.onload = () => {
+      // Create canvas for the background
+      const canvas = document.createElement('canvas');
+      canvas.width = 192;
+      canvas.height = 112;
+      const ctx = canvas.getContext('2d');
+      
+      // Draw and scale the image to fit
+      ctx.drawImage(tempImg, 0, 0, 192, 112);
+      
+      // Create texture and apply to sprite
+      const texture = PIXI.Texture.fromCanvas(canvas);
+      this.backgroundSprite.loadTexture(texture);
+      
+      // Fade in effect
+      this.backgroundSprite.alpha = 0;
+      game.add.tween(this.backgroundSprite).to({ alpha: 0.4 }, 1000, "Linear", true);
+    };
+    
+    tempImg.src = nextBackground;
+  }
+
+  startBackgroundMusic() {
+    // Stop any existing background music
+    if (backgroundMusic) {
+      backgroundMusic.stop();
+    }
+    
+    // Get all available songs
+    const allSongs = [];
+    
+    // Add local songs
+    if (window.localSongs && Array.isArray(window.localSongs)) {
+      allSongs.push(...window.localSongs);
+    }
+    
+    // Add external songs
+    if (window.externalSongs && Array.isArray(window.externalSongs)) {
+      allSongs.push(...window.externalSongs);
+    }
+    
+    // Filter songs that have audio
+    const songsWithAudio = allSongs.filter(song => song.audioUrl);
+    
+    if (songsWithAudio.length > 0) {
+      // Pick a random song
+      const randomSong = game.rnd.pick(songsWithAudio);
+      
+      // Create audio element for credits music
+      this.creditsMusic = document.createElement("audio");
+      this.creditsMusic.src = randomSong.audioUrl;
+      this.creditsMusic.volume = [0,25,50,75,100][Account.settings.volume] / 100;
+      this.creditsMusic.loop = true;
+      
+      // Start playback
+      this.creditsMusic.play().catch(error => {
+        console.warn("Could not play credits music:", error);
+      });
+      
+      console.log(`Playing credits music: ${randomSong.title || "Unknown Song"}`);
+    }
+  }
+
+  getSongCredits() {
+    const songCredits = [];
+    const seenCredits = new Set();
+    
+    if (window.localSongs && Array.isArray(window.localSongs)) {
+      window.localSongs.forEach(song => {
+        // Check if song has credit information
+        const credit = song.credit;
+        const title = song.titleTranslit || song.title || "Unknown Song";
+        
+        if (credit && !seenCredits.has(credit.toLowerCase())) {
+          seenCredits.add(credit.toLowerCase());
+          
+          // Add song title and credit
+          songCredits.push(
+            { text: title, font: FONTS.default, tint: 0xffffff, spacing: 8 },
+            { text: `by ${credit}`, font: FONTS.default, tint: 0xe0e0e0, spacing: 12 }
+          );
+        }
+      });
+    }
+    
+    // Also add disclaimer
+    songCredits.push(
+      { text: "", font: FONTS.default, tint: 0xffffff, spacing: 8 },
+      { text: "All songs and charts belong to their respective copyright holders.", font: FONTS.default, tint: 0x888888, spacing: 12 }
+    );
+    
+    return songCredits;
+  }
+
+  update() {
+    // Update audio visualizer
+    if (this.visualizer) {
+      this.visualizer.update();
+    }
+    
+    // Update gamepad
+    gamepad.update();
+    
+    if (this.creditsComplete) return;
+    
+    // Scroll credits upward
+    this.creditsContainer.y -= this.scrollSpeed * (gamepad.held.any ? 4 : 1) * (game.time.elapsed / 1000);
+    
+    // Check if credits have finished scrolling
+    const bottomOfCredits = this.creditsContainer.y + this.totalHeight;
+    if (bottomOfCredits < 0 && !this.creditsComplete) {
+      this.creditsComplete = true;
+      this.onCreditsComplete();
+    }
+  }
+
+  onCreditsComplete() {
+    // Show continue prompt
+    this.continueText = new Text(game.width / 2, game.height / 2, "Thank you for playing", FONTS.shaded);
+    this.continueText.anchor.set(0.5);
+    this.continueText.alpha = 0;
+    
+    game.add.tween(this.continueText).to({ alpha: 1 }, 1000, "Linear", true);
+    
+    // Wait for input to return
+    this.isWaitingForInput = true;
+    gamepad.signals.pressed.any.addOnce(() => {
+      this.returnToMenu();
+    });
+  }
+
+  returnToMenu() {
+    // Stop background music
+    if (this.creditsMusic) {
+      this.creditsMusic.pause();
+      this.creditsMusic.src = "";
+      this.creditsMusic = null;
+    }
+    
+    // Stop background slideshow
+    if (this.backgroundTimer) {
+      game.time.events.remove(this.backgroundTimer);
+    }
+    
+    // Restore background music if it was playing
+    if (backgroundMusic && Account.settings.enableMenuMusic) {
+      backgroundMusic.playLastSong();
+    }
+    
+    // Fade out and transition
+    game.camera.fade(0x000000, 1000);
+    game.camera.onFadeComplete.addOnce(() => {
+      game.state.start(this.returnState, true, false, this.returnStateParams);
+    });
+  }
+
+  shutdown() {
+    // Clean up event listeners
+    if (this.skipHandler) {
+      gamepad.signals.pressed.any.remove(this.skipHandler);
+    }
+    
+    // Clean up music
+    if (this.creditsMusic) {
+      this.creditsMusic.pause();
+      this.creditsMusic.src = "";
+    }
+    
+    // Clean up background timer
+    if (this.backgroundTimer) {
+      game.time.events.remove(this.backgroundTimer);
+    }
+  }
+}
 
 class Logo extends Phaser.Sprite {
   constructor() {
@@ -5883,6 +6728,12 @@ class NavigationHint extends Phaser.Sprite {
     
     game.add.existing(this);
   }
+  hide() {
+    this.visible = false;
+  }
+  show() {
+    this.visible = true;
+  }
   update() {
     if (!gamepad) return;
     
@@ -7640,6 +8491,364 @@ class BPMVisualizer extends Visualizer {
   destroy() {
     super.destroy();
     this.text.destroy();
+  }
+}
+
+class FullScreenAudioVisualizer {
+  constructor(audioElement, options = {}) {
+    this.audioElement = audioElement;
+    this.options = {
+      barColor: 0x76fcde,
+      barWidth: 4,
+      barSpacing: 2,
+      barBaseHeight: 10,
+      barMaxHeight: 80,
+      smoothing: 0.8,
+      alpha: 1,
+      fftSize: 256,
+      visualizationType: 'circular', // 'bars', 'waveform', 'circular', 'symmetrical'
+      ...options
+    };
+    
+    this.graphics = game.add.graphics(0, 0);
+    this.analyser = null;
+    this.dataArray = null;
+    this.bufferLength = 0;
+    this.frequencyData = null;
+    this.isActive = false;
+    
+    this.setupAudioAnalysis();
+  }
+
+  setupAudioAnalysis() {
+    try {
+      // Create audio context if not already created
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      
+      this.analyser = this.audioContext.createAnalyser();
+      this.analyser.fftSize = this.options.fftSize;
+      this.analyser.smoothingTimeConstant = this.options.smoothing;
+      this.analyser.minDecibels = -90;
+      this.analyser.maxDecibels = -10;
+      
+      this.bufferLength = this.analyser.frequencyBinCount;
+      this.dataArray = new Uint8Array(this.bufferLength);
+      this.frequencyData = new Uint8Array(this.bufferLength);
+      
+      // Connect audio element to analyser
+      if (this.audioElement) {
+        this.connectAudioSource();
+      }
+      
+      this.isActive = true;
+      
+    } catch (error) {
+      console.warn('FullScreenAudioVisualizer: Audio analysis not supported:', error);
+      this.isActive = false;
+    }
+  }
+
+  connectAudioSource() {
+    if (!this.audioElement || !this.analyser) return;
+    
+    try {
+      // Disconnect existing source if any
+      if (this.source) {
+        this.source.disconnect();
+      }
+      
+      // Create new source and connect
+      this.source = this.audioContext.createMediaElementSource(this.audioElement);
+      this.source.connect(this.analyser);
+      this.analyser.connect(this.audioContext.destination);
+      
+    } catch (error) {
+      console.warn('FullScreenAudioVisualizer: Could not connect audio source:', error);
+    }
+  }
+
+  setAudioSource(audioElement) {
+    this.audioElement = audioElement;
+    if (this.isActive) {
+      this.connectAudioSource();
+    }
+  }
+
+  update() {
+    if (!this.isActive || !this.analyser) return;
+    
+    this.graphics.clear();
+    this.graphics.alpha = this.options.alpha;
+    
+    // Get frequency data for all visualization types
+    this.analyser.getByteFrequencyData(this.dataArray);
+    
+    // Apply smoothing - only process first half of buffer (the meaningful frequencies)
+    const meaningfulLength = Math.floor(this.bufferLength / 2);
+    
+    if (!this.frequencyData) {
+      this.frequencyData = new Uint8Array(this.dataArray);
+    } else {
+      for (let i = 0; i < meaningfulLength; i++) {
+        this.frequencyData[i] = Math.max(
+          this.frequencyData[i] * this.options.smoothing,
+          this.dataArray[i]
+        );
+      }
+      // Ignore second half (usually zeros with MP3 files)
+      for (let i = meaningfulLength; i < this.bufferLength; i++) {
+        this.frequencyData[i] = 0;
+      }
+    }
+    
+    // Handle different visualization types
+    switch (this.options.visualizationType) {
+      case 'bars':
+        this.drawBars();
+        break;
+      case 'waveform':
+        this.drawWaveform();
+        break;
+      case 'circular':
+        this.drawCircularVisualizer();
+        break;
+      case 'symmetrical':
+        this.drawSymmetricalBars();
+        break;
+      default:
+        this.drawBars(); // Default fallback
+    }
+  }
+
+  // Bars visualization implementation
+  drawBars() {
+    const totalBars = Math.floor(game.width / (this.options.barWidth + this.options.barSpacing));
+    const startX = (game.width - (totalBars * (this.options.barWidth + this.options.barSpacing))) / 2;
+    const meaningfulLength = Math.floor(this.bufferLength / 2);
+    
+    for (let i = 0; i < totalBars; i++) {
+      // Map to first half of frequency data only
+      const dataIndex = Math.floor((i / totalBars) * meaningfulLength);
+      
+      if (dataIndex >= meaningfulLength) continue;
+      
+      const frequencyValue = this.frequencyData[dataIndex] || 0;
+      const normalizedValue = frequencyValue / 255;
+      const barHeight = this.options.barBaseHeight + (normalizedValue * this.options.barMaxHeight);
+      
+      const x = startX + i * (this.options.barWidth + this.options.barSpacing);
+      const y = game.height - barHeight;
+      
+      this.drawBar(x, y, this.options.barWidth, barHeight, normalizedValue);
+    }
+  }
+
+  // Symmetrical bars visualization (mirrored from center)
+  drawSymmetricalBars() {
+    const totalBars = Math.floor(game.width / (this.options.barWidth + this.options.barSpacing));
+    const barsPerSide = Math.floor(totalBars / 2);
+    const centerX = game.width / 2;
+    const meaningfulLength = Math.floor(this.bufferLength / 2);
+    
+    for (let i = 0; i < barsPerSide; i++) {
+      // Map to first half of frequency data only
+      const dataIndex = Math.floor((i / barsPerSide) * meaningfulLength);
+      
+      if (dataIndex >= meaningfulLength) continue;
+      
+      const frequencyValue = this.frequencyData[dataIndex] || 0;
+      const normalizedValue = frequencyValue / 255;
+      const barHeight = this.options.barBaseHeight + (normalizedValue * this.options.barMaxHeight);
+      
+      // Right side bar
+      const rightX = centerX + i * (this.options.barWidth + this.options.barSpacing);
+      const rightY = game.height - barHeight;
+      this.drawBar(rightX, rightY, this.options.barWidth, barHeight, normalizedValue);
+      
+      // Left side bar (mirrored)
+      const leftX = centerX - (i + 1) * (this.options.barWidth + this.options.barSpacing);
+      const leftY = game.height - barHeight;
+      this.drawBar(leftX, leftY, this.options.barWidth, barHeight, normalizedValue);
+    }
+  }
+
+  // Waveform visualization implementation
+  drawWaveform() {
+    const waveformData = new Uint8Array(this.bufferLength);
+    this.analyser.getByteTimeDomainData(waveformData);
+    
+    this.graphics.lineStyle(2, this.options.barColor, 0.8);
+    
+    const sliceWidth = game.width / this.bufferLength;
+    let x = 0;
+    
+    for (let i = 0; i < this.bufferLength; i++) {
+      const v = waveformData[i] / 128.0;
+      const y = (v * game.height) / 2;
+      
+      if (i === 0) {
+        this.graphics.moveTo(x, y);
+      } else {
+        this.graphics.lineTo(x, y);
+      }
+      
+      x += sliceWidth;
+    }
+  }
+
+  // Circular visualization implementation
+  drawCircularVisualizer() {
+    const centerX = game.width / 2;
+    const centerY = game.height / 2;
+    const radius = Math.min(game.width, game.height) * 0.3;
+    const meaningfulLength = Math.floor(this.bufferLength / 2);
+    
+    this.graphics.lineStyle(2, this.options.barColor, 0.8);
+    
+    for (let i = 0; i < meaningfulLength; i += 2) {
+      const value = this.frequencyData[i] / 255;
+      const angle = (i / meaningfulLength) * Math.PI * 2;
+      const barLength = value * radius * 0.5;
+      
+      const x1 = centerX + Math.cos(angle) * radius;
+      const y1 = centerY + Math.sin(angle) * radius;
+      const x2 = centerX + Math.cos(angle) * (radius + barLength);
+      const y2 = centerY + Math.sin(angle) * (radius + barLength);
+      
+      this.graphics.moveTo(x1, y1);
+      this.graphics.lineTo(x2, y2);
+    }
+  }
+
+  // Individual bar drawing method
+  drawBar(x, y, width, height, intensity) {
+    const baseColor = this.options.barColor;
+    const brightness = 0.3 + (intensity * 0.7);
+    
+    const r = ((baseColor >> 16) & 0xFF) * brightness;
+    const g = ((baseColor >> 8) & 0xFF) * brightness;
+    const b = (baseColor & 0xFF) * brightness;
+    
+    const color = (Math.floor(r) << 16) | (Math.floor(g) << 8) | Math.floor(b);
+    
+    // Draw main bar
+    this.graphics.beginFill(color, 0.8);
+    this.graphics.drawRect(x, y, width, height);
+    this.graphics.endFill();
+    
+    // Add highlight effect on top
+    if (intensity > 0.5) {
+      const highlightAlpha = (intensity - 0.5) * 0.4;
+      this.graphics.beginFill(0xFFFFFF, highlightAlpha);
+      this.graphics.drawRect(x, y, width, Math.max(2, height * 0.1));
+      this.graphics.endFill();
+    }
+  }
+
+  // Method to change visualization type
+  setVisualizationType(type) {
+    const validTypes = ['bars', 'waveform', 'circular', 'symmetrical'];
+    if (validTypes.includes(type)) {
+      this.options.visualizationType = type;
+    } else {
+      console.warn(`Invalid visualization type: ${type}. Using 'bars' instead.`);
+      this.options.visualizationType = 'bars';
+    }
+  }
+
+  setBarColor(color) {
+    this.options.barColor = color;
+  }
+
+  setAlpha(alpha) {
+    this.options.alpha = Phaser.Math.clamp(alpha, 0, 1);
+  }
+
+  setOptions(newOptions) {
+    this.options = { ...this.options, ...newOptions };
+    
+    // Re-apply analyser settings if changed
+    if (this.analyser) {
+      if (newOptions.fftSize) {
+        this.analyser.fftSize = newOptions.fftSize;
+        this.bufferLength = this.analyser.frequencyBinCount;
+        this.dataArray = new Uint8Array(this.bufferLength);
+        this.frequencyData = new Uint8Array(this.bufferLength);
+      }
+      
+      if (newOptions.smoothing !== undefined) {
+        this.analyser.smoothingTimeConstant = newOptions.smoothing;
+      }
+    }
+    
+    // Validate visualization type
+    if (newOptions.visualizationType) {
+      this.setVisualizationType(newOptions.visualizationType);
+    }
+  }
+
+  // Get current visualization settings
+  getSettings() {
+    return { ...this.options };
+  }
+
+  // Check if visualizer is ready and active
+  isReady() {
+    return this.isActive && this.analyser !== null;
+  }
+
+  // Pause/Resume functionality
+  pause() {
+    this.isActive = false;
+  }
+
+  resume() {
+    this.isActive = true;
+  }
+
+  destroy() {
+    this.isActive = false;
+    
+    // Disconnect audio nodes
+    if (this.source) {
+      this.source.disconnect();
+    }
+    
+    if (this.analyser) {
+      this.analyser.disconnect();
+    }
+    
+    // Close audio context
+    if (this.audioContext && this.audioContext.state !== 'closed') {
+      this.audioContext.close().catch(error => {
+        console.warn('Error closing audio context:', error);
+      });
+    }
+    
+    // Remove graphics
+    if (this.graphics) {
+      this.graphics.destroy();
+    }
+    
+    // Clean up references
+    this.audioElement = null;
+    this.analyser = null;
+    this.source = null;
+    this.audioContext = null;
+    this.dataArray = null;
+    this.frequencyData = null;
+  }
+
+  // Static method to create visualizer with default settings
+  static create(audioElement, options = {}) {
+    return new FullScreenAudioVisualizer(audioElement, options);
+  }
+
+  // Static method to check if browser supports audio analysis
+  static isSupported() {
+    return !!(window.AudioContext || window.webkitAudioContext);
   }
 }
 
