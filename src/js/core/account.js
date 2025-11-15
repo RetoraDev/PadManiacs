@@ -12,7 +12,7 @@ const DEFAULT_ACCOUNT = {
     scrollDirection: 'falling',
     visualizer: 'NONE',
     metronome: 'OFF',
-    drawTimeLines: true,
+    beatLines: false,
     beatsPerMeasure: 4, // TODO: Make this configurable
     speedMod: 'X-MOD',
     // Addon system settings

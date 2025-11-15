@@ -675,7 +675,7 @@ class Player {
     }
     
     // Render time lines if enabled
-    if (Account.settings.drawTimeLines) {
+    if (Account.settings.beatLines) {
       this.renderTimeLines();
     }
   }
@@ -1058,7 +1058,7 @@ class Player {
   }
   
   renderTimeLines() {
-    if (!Account.settings.drawTimeLines) return;
+    if (!Account.settings.beatLines) return;
 
     const { beat } = this.scene.getCurrentTime();
     const beatsPerMeasure = Account.settings.beatsPerMeasure || 4;

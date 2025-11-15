@@ -1,13 +1,13 @@
 // Environment detection constants
 const ENVIRONMENT = {
-  UNKNOWN: 'UNKNOWN',
+  UNKNOWN: 'WEB',
   NWJS: 'NWJS',
   CORDOVA: 'CORDOVA',
   WEB: 'WEB'
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = %;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";

@@ -15,4 +15,5 @@ nw/
 itch.io.html
 dist/www.zip
 dist/*.apk
+dist/*.apk.idsig
 dist/padmaniacs-*.zip

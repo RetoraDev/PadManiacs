@@ -203,9 +203,9 @@ class MainMenu {
       settingsWindow.addSettingItem(
         "Beat Lines",
         ["YES", "NO"],
-        Account.settings.drawTimeLines ? 0 : 1,
+        Account.settings.beatLines ? 0 : 1,
         index => {
-          Account.settings.drawTimeLines = index === 0;
+          Account.settings.beatLines = index === 0;
           saveAccount();
         }
       );

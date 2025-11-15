@@ -1,8 +1,8 @@
-const COPYRIGHT = "(C) RETORA 2025";
+const COPYRIGHT = "%";
 
-const VERSION = "v0.0.6";
+const VERSION = "%";
 
-window.DEBUG = true;
+window.DEBUG = %;
 
 const FONTS = {
   default: { font: "font_tiny" },

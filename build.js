@@ -15,15 +15,10 @@ class BuildSystem {
       libDir: './lib',
       flags: {
         debug: false,
-        dev: false,
-        platform: 'all', // 'web', 'cordova', 'nwjs', 'all'
-        minify: false,
-        includeEruda: false
+        platform: 'all', // 'web', 'cordova', 'nwjs', 'all', 'none'
+        minify: false
       }
     };
-    
-    this.packageInfo = this.readPackageInfo();
-    this.LICENSE_HEADER = this.getLicenseHeader();
     
     // File order for concatenation
     this.fileOrder = [
@@ -124,7 +119,7 @@ class BuildSystem {
     }
   }
 
-  readPackageInfo() {
+  getPackageInfo() {
     try {
       const packagePath = './package.json';
       if (fs.existsSync(packagePath)) {
@@ -143,26 +138,27 @@ class BuildSystem {
   getLicenseHeader() {
     return `/**
 PadManiacs Rhythm Game
-Copyright (c) 2025 RETORA. All Rights Reserved.
-${this.packageInfo.?repository?.url || ""}
+Copyright ${this.copyright}. All Rights Reserved.
+https://github.com/RetoraDev/PadManiacs
+Version: ${this.versionName}
 Build: ${new Date().toLocaleString()}
 Platform: ${this.config.flags.platform}
 Debug: ${this.config.flags.debug}
-Minified: ${this.config.flags.minify}*/\n\n`;
-*/\n`;
+Minified: ${this.config.flags.minify}
+*/`;
   }
 
   parseFlags() {
     const args = process.argv.slice(2);
     args.forEach(arg => {
       if (arg === '--debug') this.config.flags.debug = true;
-      if (arg === '--dev') this.config.flags.dev = true;
+      if (arg === '--dev') this.config.flags.platform = 'none';
+      if (arg === '--none') this.config.flags.platform = 'none';
       if (arg === '--cordova') this.config.flags.platform = 'cordova';
       if (arg === '--nwjs') this.config.flags.platform = 'nwjs';
       if (arg === '--web') this.config.flags.platform = 'web';
       if (arg === '--all') this.config.flags.platform = 'all';
       if (arg === '--minify') this.config.flags.minify = true;
-      if (arg === '--eruda') this.config.flags.includeEruda = true;
     });
   }
 
@@ -187,23 +183,28 @@ Minified: ${this.config.flags.minify}*/\n\n`;
       // Replace version with package.json version
       content = content
         .replace(
-          /const VERSION = "[^"]*";/,
-          `const VERSION = "v${this.packageInfo.version + (this.config.flags.dev ? " dev" : "")}";`
+          'const COPYRIGHT = "%";',
+          `const COPYRIGHT = "${this.copyright}";`
         )
         .replace(
-          /window.DEBUG = [^"]*;/,
+          'const VERSION = "%";',
+          `const VERSION = "${this.versionName}";`
+        )
+        .replace(
+          'window.DEBUG = %;',
           `window.DEBUG = ${this.config.flags.debug};`
         );
     } else if (filePath === 'js/core/environment.js') {
       // Replace environment based on build platform
       const envMap = {
+        'none': 'ENVIRONMENT.UNKNOWN',
         'web': 'ENVIRONMENT.WEB',
         'cordova': 'ENVIRONMENT.CORDOVA', 
         'nwjs': 'ENVIRONMENT.NWJS'
       };
       const currentEnv = envMap[this.config.flags.platform] || 'ENVIRONMENT.WEB';
       content = content.replace(
-        /const CURRENT_ENVIRONMENT = [^;]*;/,
+        'const CURRENT_ENVIRONMENT = %;',
         `const CURRENT_ENVIRONMENT = ${currentEnv};`
       );
     }
@@ -248,16 +249,6 @@ Minified: ${this.config.flags.minify}*/\n\n`;
     
     let output = '';
     
-    // Add eruda first if requested
-    if (this.config.flags.includeEruda || this.config.flags.debug) {
-      const erudaPath = path.join(this.config.libDir, 'eruda.js');
-      if (fs.existsSync(erudaPath)) {
-        const erudaContent = this.readFile(erudaPath);
-        output += this.processFileContent(erudaContent, 'lib/eruda.js') + '\n\n';
-        this.log('Included eruda.js', 'success');
-      }
-    }
-    
     // Process all files in order
     for (const relativePath of this.fileOrder) {
       let fullPath;
@@ -282,7 +273,7 @@ Minified: ${this.config.flags.minify}*/\n\n`;
     
     if (this.config.flags.minify) {
       this.log('Minifying code...', 'info');
-      return await this.minifyCode(buildInfo + output);
+      return await this.minifyCode(this.LICENSE_HEADER + output);
     } else {
       return this.LICENSE_HEADER + '\n\n' + output;
     }
@@ -326,14 +317,12 @@ Minified: ${this.config.flags.minify}*/\n\n`;
       this.log('phaser.min.js copied to lib/', 'success');
     }
     
-    // Copy eruda.js to lib folder if not already included in bundle
-    if (!this.config.flags.includeEruda && !this.config.flags.debug) {
-      const erudaSrc = path.join(this.config.libDir, 'eruda.js');
-      const erudaDest = path.join(libDest, 'eruda.js');
-      if (fs.existsSync(erudaSrc)) {
-        fs.copyFileSync(erudaSrc, erudaDest);
-        this.log('eruda.js copied to lib/', 'success');
-      }
+    // Copy eruda.js to lib folder
+    const erudaSrc = path.join(this.config.libDir, 'eruda.js');
+    const erudaDest = path.join(libDest, 'eruda.js');
+    if (fs.existsSync(erudaSrc)) {
+      fs.copyFileSync(erudaSrc, erudaDest);
+      this.log('eruda.js copied to lib/', 'success');
     }
   }
 
@@ -374,10 +363,8 @@ Minified: ${this.config.flags.minify}*/\n\n`;
       // Add phaser from lib (always first)
       scriptTags += '  <script src="./lib/phaser.min.js"></script>\n';
       
-      // Add eruda if not bundled
-      if (!this.config.flags.includeEruda && !this.config.flags.debug) {
-        scriptTags += '  <script src="./lib/eruda.js"></script>\n';
-      }
+      // Add eruda too
+      scriptTags += '  <script src="./lib/eruda.js"></script>\n';
       
       // Add the concatenated game.js
       scriptTags += '  <script src="./js/game.js"></script>\n';
@@ -389,9 +376,14 @@ Minified: ${this.config.flags.minify}*/\n\n`;
       );
       
       // Add debug initialization script if needed
-      if (this.config.flags.debug || this.config.flags.includeEruda) {
+      if (this.config.flags.debug) {
         const debugScript = `
   <script>
+    // Auto-enable debug mode if URL has debug parameter
+    if (location.search.includes('debug')) {
+      window.DEBUG = true;
+    }
+    
     // Debug initialization
     if (typeof window.eruda !== 'undefined' && (window.DEBUG || location.search.includes('debug'))) {
       eruda.init({
@@ -452,13 +444,6 @@ Minified: ${this.config.flags.minify}*/\n\n`;
       }, "Remove debug panel");
       
       console.log('PadManiacs Debug Mode Active');
-      console.log('Version:', window.VERSION || 'unknown');
-      console.log('Environment:', window.CURRENT_ENVIRONMENT || 'unknown');
-    }
-    
-    // Auto-enable debug mode if URL has debug parameter
-    if (location.search.includes('debug')) {
-      window.DEBUG = true;
     }
   </script>`;
         
@@ -665,7 +650,7 @@ Minified: ${this.config.flags.minify}*/\n\n`;
   }
   
   buildNWJS() {
-    this.log('Building NW.js platform...', 'info');
+    this.log('Building NW.js Windows platform...', 'info');
     
     const nwStatic = path.join(this.config.srcDir, 'static/nw');
     if (fs.existsSync(nwStatic)) {
@@ -675,6 +660,20 @@ Minified: ${this.config.flags.minify}*/\n\n`;
       
       // Copy NW.js binaries to temp directory
       this.copyDir(nwStatic, tempNwDir, [".placeholder"]);
+      
+      // Replace version in temp package.json by current version
+      const packageJsonPath = path.join(tempNwDir, 'package.json');
+      if (fs.existsSync(packageJsonPath)) {
+        try {
+          const packageContent = fs.readFileSync(packageJsonPath, 'utf8');
+          const updatedContent = packageContent.replace('"version": "%"', `"version": "${this.packageInfo.version}"`);
+          fs.writeFileSync(packageJsonPath, updatedContent);
+          this.log(`Set NW.js package.json version to: ${this.packageInfo.version}`, 'success');
+        } catch (error) {
+          this.log('Failed to set NW.js package.json version', 'warning');
+          console.error(error);
+        }
+      }
       
       // Copy only web files to NW.js www folder (no cordova)
       const wwwDest = path.join(tempNwDir, 'www');
@@ -707,7 +706,7 @@ Minified: ${this.config.flags.minify}*/\n\n`;
       this.ensureDir(tempAndroidDir);
       
       // Copy Android app structure to temp directory
-      this.copyDir(androidStatic, tempAndroidDir);
+      this.copyDir(androidStatic, tempAndroidDir, [".placeholder", 'signkey.keystore']);
       
       // Copy web files + cordova to Android www folder
       const wwwDest = path.join(tempAndroidDir, 'assets/www');
@@ -720,7 +719,7 @@ Minified: ${this.config.flags.minify}*/\n\n`;
       const cordovaStatic = path.join(this.config.srcDir, 'static/cordova');
       const cordovaDest = path.join(wwwDest, 'cordova');
       if (fs.existsSync(cordovaStatic)) {
-        this.copyDir(cordovaStatic, cordovaDest, [".placeholder"]);
+        this.copyDir(cordovaStatic, cordovaDest);
         this.log('Cordova files copied for Android build', 'success');
       }
       
@@ -752,8 +751,6 @@ Minified: ${this.config.flags.minify}*/\n\n`;
   }
   
   buildForPlatform() {
-    if (this.config.flags.dev) return;
-    
     const platform = this.config.flags.platform;
     
     if (platform === 'all') {
@@ -771,6 +768,11 @@ Minified: ${this.config.flags.minify}*/\n\n`;
 
   async build() {
     this.parseFlags();
+    
+    this.packageInfo = this.getPackageInfo();
+    this.versionName = `v${this.packageInfo.version + (this.config.flags.dev ? " dev" : "")}`;
+    this.copyright = `(C) RETORA ${new Date().getFullYear()}`;
+    this.LICENSE_HEADER = this.getLicenseHeader();
     
     this.log('Starting build process...', 'info');
     this.log(`Platform: ${this.config.flags.platform}`, 'info');
