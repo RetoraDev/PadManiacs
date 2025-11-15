@@ -1,0 +1,26 @@
+Signature-Version: 1.0
+Created-By: Retora
+SHA1-Digest-Manifest: KBoyWxzO698azqjOQFTZuSfo6XY=
+X-Android-APK-Signed: 2, 3
+
+Name: AndroidManifest.xml
+SHA1-Digest: xlc0a99iR4Hem562vlggq7x9QIk=
+
+Name: META-INF/com/android/build/gradle/app-metadata.properties
+SHA1-Digest: oVk/NunQXsuZ+4HyCPhUigTUMdA=
+
+Name: assets/www/.placeholder
+SHA1-Digest: 1Rm1Gv6GQQFXi8KvZDPkAJZo3kU=
+
+Name: classes.dex
+SHA1-Digest: qx5oIsFmR2PWVGgOXagSzeOnqMU=
+
+Name: res/drawable/logo.png
+SHA1-Digest: wlXRU2yZQxuW2pKeyhIMHumG55k=
+
+Name: res/xml/config.xml
+SHA1-Digest: DqV/uZRVam6GIAb5Ltrrx7A2FBY=
+
+Name: resources.arsc
+SHA1-Digest: SkI4inTVPa3Ld0YmavWJevQh/8s=
+

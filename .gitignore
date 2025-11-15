@@ -4,7 +4,6 @@
 .nomedia
 .nosearch
 *.apk
-www.zip
 *.exe
 *build.zip
 log.txt
@@ -14,3 +13,6 @@ settings.json
 data/
 nw/
 itch.io.html
+dist/www.zip
+dist/*.apk
+dist/padmaniacs-*.zip

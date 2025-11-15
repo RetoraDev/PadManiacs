@@ -1,0 +1,100 @@
+let game, gamepad, backgroundMusic, notifications, addonManager;
+
+let Account = {
+  ...DEFAULT_ACCOUNT,
+  ...JSON.parse(localStorage.getItem("Account") || "{}")
+};
+
+const saveAccount = () => localStorage.setItem("Account", JSON.stringify(Account));
+
+const bootGame = () => {
+  if (game) game.destroy();
+  game = new Phaser.Game({
+    width: 192,
+    height: 112,
+    renderer: Account.settings.renderer,
+    scaleMode: Phaser.ScaleManager.SHOW_ALL,
+    crisp: Account.settings.pixelated,
+    antialias: false,
+    alignV: false,
+    alignH: true,
+    enableDebug: false,
+    failIfMajorPerformanceCaveat: false,
+    forceSetTimeOut: false,
+    clearBeforeRender: true,
+    forceSingleUpdate: true,
+    maxPointers: 0,
+    keyboard: true,
+    mouse: false,
+    mouseWheel: false,
+    mspointer: false,
+    multiTexture: false,
+    pointerLock: false,
+    preserveDrawingBuffer: false,
+    roundPixels: true,
+    touch: false,
+    transparent: false,
+    parent: "game",
+    state: {
+      create() {
+        game.state.add('Boot', Boot);
+        game.state.add('Load', Load);
+        game.state.add('LoadCordova', LoadCordova);
+        game.state.add('LoadAddons', LoadAddons);
+        game.state.add('LoadLocalSongs', LoadLocalSongs);
+        game.state.add('LoadExternalSongs', LoadExternalSongs);
+        game.state.add('LoadSongFolder', LoadSongFolder);
+        game.state.add('Title', Title);
+        game.state.add('MainMenu', MainMenu);
+        game.state.add('SongSelect', SongSelect);
+        game.state.add('Play', Play);
+        game.state.add('Results', Results);
+        game.state.add('Jukebox', Jukebox);
+        game.state.add('Credits', Credits);
+        game.state.start('Boot');
+        game.recorder = new ScreenRecorder(game);
+      }
+    },
+    ...(window.GameConfig || {})
+  });
+};
+
+window.onload = bootGame;
+
+const addFpsText = () => {
+  const text = new Text(190, 2, "");
+  text.anchor.x = 1;
+  game.time.events.loop(1000, () => text.write(`FPS: ${game.time.fps}`));
+};
+
+const Audio = {
+  pool: {},
+  add: function (key, volume = 1, loop = false, reset = true) {
+    if (!reset || !this.pool[key]) {
+      this.pool[key] = game.add.audio(key);
+    }
+    return this.pool[key];
+  },
+  play: function (key, volume = 1, loop = false, reset = true) {
+    if (game) {
+      if (!reset || !this.pool[key]) {
+        this.pool[key] = game.add.audio(key);
+      }
+      return this.pool[key].play(null, 0, volume, loop, reset);
+    }
+  },
+  stop: function (key, fadeOut) {
+    if (game) {
+      const audio = this.pool[key];
+      if (audio) {
+        if (fadeOut) {
+          audio.stop();
+        } else {
+          audio.fadeOut();
+          audio.onFadeComplete.addOnce(() => audio.stop());
+        }
+      }
+      return;
+    }
+  }
+};

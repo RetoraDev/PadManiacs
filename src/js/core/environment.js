@@ -1,0 +1,27 @@
+// Environment detection constants
+const ENVIRONMENT = {
+  UNKNOWN: 'UNKNOWN',
+  NWJS: 'NWJS',
+  CORDOVA: 'CORDOVA',
+  WEB: 'WEB'
+};
+
+// Build-time environment setting
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+
+const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
+const NWJS_EXTERNAL_DIRECTORY = "data/";
+
+const EXTERNAL_DIRECTORY = CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA ? CORDOVA_EXTERNAL_DIRECTORY : NWJS_EXTERNAL_DIRECTORY;
+
+const ADDONS_DIRECTORY = "Addons";
+const SCREENSHOTS_DIRECTORY = "Screenshots";
+const SONGS_DIRECTORY = "Songs";
+
+const ENABLE_PARALLEL_LOADING = false;
+const MAX_PARALLEL_DOWNLOADS = 16;
+
+const MAX_PARALLEL_ADDON_LOADS = 3;
+const ENABLE_ADDON_SAFE_MODE = true;
+
+const ENABLE_UI_SFX = false;
