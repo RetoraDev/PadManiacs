@@ -456,7 +456,7 @@ Minified: ${this.config.flags.minify}
       }, "Remove debug panel");
       
       console.log('PadManiacs Debug Mode Active');
-      console.log('Platform:', window.CURRENT_ENVIRONMENT);
+      console.log('Platform:', CURRENT_ENVIRONMENT);
     }
   </script>`;
         
