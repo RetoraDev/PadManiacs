@@ -3,7 +3,7 @@ PadManiacs Rhythm Game
 Copyright (C) RETORA 2025. All Rights Reserved.
 https://github.com/RetoraDev/PadManiacs
 Version: v0.0.6 dev
-Build: 11/15/2025, 1:36:06 PM
+Build: 11/15/2025, 2:11:44 PM
 Platform: Development
 Debug: true
 Minified: false

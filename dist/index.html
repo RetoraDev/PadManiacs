@@ -5,8 +5,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>PadManiacs</title>
-  <link rel="stylesheet" href="./css/style.css">
-  <link rel="icon" href="./favicon.png">
 
   <script src="./lib/phaser.min.js"></script>
   <script src="./lib/eruda.js"></script>
@@ -38,29 +36,6 @@
   
   <!-- Debug Panel -->
   <div id="debug"></div>
-  
-  <script>
-    if (typeof window.eruda != 'undefined' && window.DEBUG) {
-      eruda.init({
-        tool: ['console', 'elements', 'resources', 'snippets']
-      });
-      const snippets = eruda.get('snippets');
-      snippets.clear();
-      snippets.add("Start Recording", () => game.recorder.start(), "Start recording the game");
-      snippets.add("Stop Recording", () => game.recorder.stop(), "Stop recording and save video");
-      snippets.add("Record Next Game", () => window.recordNextGame = true, "Start recording next song, stop when it ends");
-      snippets.add("Screenshoot", () => game.recorder.screenshot(), "Take a screenshot");
-      snippets.add("Take Screenshoots", () => {
-        const screenshot = () => {
-          game.recorder.screenshot();
-          setTimeout(() => screenshot(), game.rnd.between(5000, 20000));
-        };
-        screenshot();
-      }, "Take screenshots anytime randomly");
-      snippets.add("Add FPS text", () => addFpsText(), "Displays performance information");
-      snippets.add("Destroy", () => eruda.destroy(), "Destroy eruda");
-    }
-  </script>
 
   <script>
     // Auto-enable debug mode if URL has debug parameter
