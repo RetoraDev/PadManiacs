@@ -25,7 +25,7 @@
     "url": "git+https://github.com/RetoraDev/PadManiacs.git"
   },
   "author": "RetoraDev",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "engines": {
     "node": ">=14.0.0",
     "npm": ">=6.0.0"

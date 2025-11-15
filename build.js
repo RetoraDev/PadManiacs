@@ -23,7 +23,7 @@ class BuildSystem {
     };
     
     this.packageInfo = this.readPackageInfo();
-    this.LICENSE_HEADER = this.readLicenseHeader();
+    this.LICENSE_HEADER = this.getLicenseHeader();
     
     // File order for concatenation
     this.fileOrder = [
@@ -140,25 +140,15 @@ class BuildSystem {
     };
   }
 
-  readLicenseHeader() {
-    try {
-      const licensePath = path.join(this.config.srcDir, 'LICENCE.txt');
-      if (fs.existsSync(licensePath)) {
-        const licenseContent = fs.readFileSync(licensePath, 'utf8');
-        // Extract first few lines for header
-        const lines = licenseContent.split('\n').slice(0, 8).join('\n');
-        return `/*\n${lines}\n*/\n`;
-      }
-    } catch (error) {
-      this.log('Could not read license file, using default header', 'warning');
-    }
-    
-    // Fallback header
-    return `/*
+  getLicenseHeader() {
+    return `/**
 PadManiacs Rhythm Game
 Copyright (c) 2025 RETORA. All Rights Reserved.
-Non-Commercial Use Only.
-Build: ${new Date().toISOString()}
+${this.packageInfo.?repository?.url || ""}
+Build: ${new Date().toLocaleString()}
+Platform: ${this.config.flags.platform}
+Debug: ${this.config.flags.debug}
+Minified: ${this.config.flags.minify}*/\n\n`;
 */\n`;
   }
 
@@ -290,14 +280,11 @@ Build: ${new Date().toISOString()}
       }
     }
     
-    // Add build info comment at the top
-    const buildInfo = `/*\nBuild: ${new Date().toISOString()}\nPlatform: ${this.config.flags.platform}\nDebug: ${this.config.flags.debug}\nMinified: ${this.config.flags.minify}\n*/\n\n`;
-    
     if (this.config.flags.minify) {
       this.log('Minifying code...', 'info');
       return await this.minifyCode(buildInfo + output);
     } else {
-      return buildInfo + this.LICENSE_HEADER + '\n\n' + output;
+      return this.LICENSE_HEADER + '\n\n' + output;
     }
   }
 
