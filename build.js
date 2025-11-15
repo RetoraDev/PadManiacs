@@ -135,17 +135,29 @@ class BuildSystem {
     };
   }
 
-  getLicenseHeader() {
+  getLicenseHeader(platform) {
+    const platformName = this.getPlatformDisplayName(platform);
     return `/**
 PadManiacs Rhythm Game
 Copyright ${this.copyright}. All Rights Reserved.
 https://github.com/RetoraDev/PadManiacs
 Version: ${this.versionName}
 Build: ${new Date().toLocaleString()}
-Platform: ${this.config.flags.platform}
+Platform: ${platformName}
 Debug: ${this.config.flags.debug}
 Minified: ${this.config.flags.minify}
 */`;
+  }
+
+  getPlatformDisplayName(platform) {
+    const platformMap = {
+      'none': 'Development',
+      'web': 'Web',
+      'cordova': 'Android (Cordova)',
+      'nwjs': 'Windows (NW.js)',
+      'all': 'All Platforms'
+    };
+    return platformMap[platform] || platform;
   }
 
   parseFlags() {
@@ -177,7 +189,7 @@ Minified: ${this.config.flags.minify}
     }
   }
 
-  processFileContent(content, filePath) {
+  processFileContent(content, filePath, platform) {
     // Dynamic replacements based on file type
     if (filePath === 'js/core/constants.js') {
       // Replace version with package.json version
@@ -202,7 +214,7 @@ Minified: ${this.config.flags.minify}
         'cordova': 'ENVIRONMENT.CORDOVA', 
         'nwjs': 'ENVIRONMENT.NWJS'
       };
-      const currentEnv = envMap[this.config.flags.platform] || 'ENVIRONMENT.WEB';
+      const currentEnv = envMap[platform] || 'ENVIRONMENT.WEB';
       content = content.replace(
         'const CURRENT_ENVIRONMENT = %;',
         `const CURRENT_ENVIRONMENT = ${currentEnv};`
@@ -217,7 +229,7 @@ Minified: ${this.config.flags.minify}
     return content;
   }
 
-  async minifyCode(code) {
+  async minifyCode(code, platform) {
     if (!this.config.flags.minify) {
       return code;
     }
@@ -234,18 +246,18 @@ Minified: ${this.config.flags.minify}
       
       if (minified.error) {
         this.log('Minification error:', 'warning', minified.error);
-        return this.LICENSE_HEADER + '\n\n' + code;
+        return this.getLicenseHeader(platform) + '\n\n' + code;
       }
       
-      return this.LICENSE_HEADER + '\n\n' + minified.code;
+      return this.getLicenseHeader(platform) + '\n\n' + minified.code;
     } catch (error) {
       this.log('Minification failed, using original code:', 'warning', error.message);
-      return this.LICENSE_HEADER + '\n\n' + code;
+      return this.getLicenseHeader(platform) + '\n\n' + code;
     }
   }
 
-  async concatenateFiles() {
-    this.log('Concatenating JavaScript files...', 'info');
+  async concatenateFiles(platform) {
+    this.log(`Concatenating JavaScript files for ${this.getPlatformDisplayName(platform)}...`, 'info');
     
     let output = '';
     
@@ -262,7 +274,7 @@ Minified: ${this.config.flags.minify}
       
       if (fs.existsSync(fullPath)) {
         const content = this.readFile(fullPath);
-        const processedContent = this.processFileContent(content, relativePath);
+        const processedContent = this.processFileContent(content, relativePath, platform);
         const newLine = processedContent.endsWith('\n') ? '\n' : '\n\n';
         output += processedContent + newLine;
         this.log(`Processed ${relativePath}`, 'success');
@@ -273,9 +285,9 @@ Minified: ${this.config.flags.minify}
     
     if (this.config.flags.minify) {
       this.log('Minifying code...', 'info');
-      return await this.minifyCode(this.LICENSE_HEADER + output);
+      return await this.minifyCode(output, platform);
     } else {
-      return this.LICENSE_HEADER + '\n\n' + output;
+      return this.getLicenseHeader(platform) + '\n\n' + output;
     }
   }
 
@@ -345,8 +357,8 @@ Minified: ${this.config.flags.minify}
     this.log('Static files copied', 'success');
   }
 
-  processIndexHTML() {
-    this.log('Processing index.html...', 'info');
+  processIndexHTML(platform) {
+    this.log(`Processing index.html for ${this.getPlatformDisplayName(platform)}...`, 'info');
     
     const htmlSrc = path.join(this.config.srcDir, 'index.html');
     const htmlDest = path.join(this.config.distDir, 'index.html');
@@ -444,6 +456,7 @@ Minified: ${this.config.flags.minify}
       }, "Remove debug panel");
       
       console.log('PadManiacs Debug Mode Active');
+      console.log('Platform:', window.CURRENT_ENVIRONMENT);
     }
   </script>`;
         
@@ -627,7 +640,7 @@ Minified: ${this.config.flags.minify}
     }
   }
 
-  buildWeb() {
+  async buildWeb() {
     this.log('Building web platform...', 'info');
     
     // Create temporary web build directory
@@ -649,7 +662,7 @@ Minified: ${this.config.flags.minify}
     fs.rmSync(path.join(this.config.distDir, 'temp'), { recursive: true });
   }
   
-  buildNWJS() {
+  async buildNWJS() {
     this.log('Building NW.js Windows platform...', 'info');
     
     const nwStatic = path.join(this.config.srcDir, 'static/nw');
@@ -675,10 +688,14 @@ Minified: ${this.config.flags.minify}
         }
       }
       
-      // Copy only web files to NW.js www folder (no cordova)
-      const wwwDest = path.join(tempNwDir, 'www');
-      this.ensureDir(wwwDest);
-      this.copyDir(this.config.distDir, wwwDest, ['www.zip', 'padmaniacs-*.zip', '*.apk', 'temp', 'cordova']);
+      // Create platform-specific game.js for NW.js
+      const jsDest = path.join(tempNwDir, 'www/js');
+      this.ensureDir(jsDest);
+      const nwjsGameJS = await this.concatenateFiles('nwjs');
+      fs.writeFileSync(path.join(jsDest, 'game.js'), nwjsGameJS);
+      
+      // Copy other web files to NW.js www folder (no cordova)
+      this.copyDir(this.config.distDir, path.join(tempNwDir, 'www'), ['www.zip', 'padmaniacs-*.zip', '*.apk', 'temp', 'cordova', 'js']);
       
       // Create 7z archive for NW.js from temp directory
       const nwZipName = `padmaniacs-v${this.packageInfo.version}-nwjs-win-x64.zip`;
@@ -696,7 +713,7 @@ Minified: ${this.config.flags.minify}
     }
   }
   
-  buildAndroid() {
+  async buildAndroid() {
     this.log('Building Android platform...', 'info');
     
     const androidStatic = path.join(this.config.srcDir, 'static/android_app');
@@ -708,12 +725,16 @@ Minified: ${this.config.flags.minify}
       // Copy Android app structure to temp directory
       this.copyDir(androidStatic, tempAndroidDir, [".placeholder", 'signkey.keystore']);
       
-      // Copy web files + cordova to Android www folder
+      // Create platform-specific game.js for Android
       const wwwDest = path.join(tempAndroidDir, 'assets/www');
       this.ensureDir(wwwDest);
+      const jsDest = path.join(wwwDest, 'js');
+      this.ensureDir(jsDest);
+      const androidGameJS = await this.concatenateFiles('cordova');
+      fs.writeFileSync(path.join(jsDest, 'game.js'), androidGameJS);
       
-      // Copy all web files
-      this.copyDir(this.config.distDir, wwwDest, ['www.zip', 'padmaniacs-*.zip', '*.apk', 'temp']);
+      // Copy other web files to Android www folder
+      this.copyDir(this.config.distDir, wwwDest, ['www.zip', 'padmaniacs-*.zip', '*.apk', 'temp', 'js']);
       
       // Copy cordova files specifically for Android
       const cordovaStatic = path.join(this.config.srcDir, 'static/cordova');
@@ -728,7 +749,7 @@ Minified: ${this.config.flags.minify}
       const unsignedApkPath = path.join(this.config.distDir, unsignedApkName);
       
       if (this.createZipArchive(tempAndroidDir, '../../' + unsignedApkName)) {
-        // Sign the APK (apksigner needs to navigate to dist directory)
+        // Sign the APK
         const signedApkName = `padmaniacs-v${this.packageInfo.version}-android.apk`;
         const signedApkPath = path.join(this.config.distDir, signedApkName);
         
@@ -750,29 +771,57 @@ Minified: ${this.config.flags.minify}
     }
   }
   
-  buildForPlatform() {
+  async buildForPlatform() {
     const platform = this.config.flags.platform;
     
     if (platform === 'all') {
-      this.buildWeb();
-      this.buildNWJS();
-      this.buildAndroid();
+      // Build base files first
+      await this.buildBaseFiles('web');
+      
+      // Then build each platform with their specific environment
+      await this.buildWeb();
+      await this.buildNWJS();
+      await this.buildAndroid();
     } else if (platform === 'web') {
-      this.buildWeb();
+      await this.buildBaseFiles('web');
+      await this.buildWeb();
     } else if (platform === 'nwjs') {
-      this.buildNWJS();
+      await this.buildBaseFiles('nwjs');
+      await this.buildNWJS();
     } else if (platform === 'cordova') {
-      this.buildAndroid();
+      await this.buildBaseFiles('cordova');
+      await this.buildAndroid();
+    } else if (platform === 'none') {
+      await this.buildBaseFiles('none');
+      this.log('Development build complete - no platform packaging', 'success');
     }
+  }
+
+  async buildBaseFiles(platform) {
+    this.log(`Building base files for ${this.getPlatformDisplayName(platform)}...`, 'info');
+    
+    // Create JS directory in dist
+    const jsDistDir = path.join(this.config.distDir, 'js');
+    this.ensureDir(jsDistDir);
+    
+    // Concatenate all JavaScript files with platform-specific environment
+    const concatenatedJS = await this.concatenateFiles(platform);
+    fs.writeFileSync(path.join(jsDistDir, 'game.js'), concatenatedJS);
+    
+    // Copy other files to base dist
+    this.copyAssets();
+    this.copyCSS();
+    this.copyLibFiles();
+    this.copyStaticFiles();
+    this.processIndexHTML(platform);
   }
 
   async build() {
     this.parseFlags();
     
     this.packageInfo = this.getPackageInfo();
-    this.versionName = `v${this.packageInfo.version + (this.config.flags.dev ? " dev" : "")}`;
+    this.versionName = `v${this.packageInfo.version + (this.config.flags.platform === 'none' ? " dev" : "")}`;
     this.copyright = `(C) RETORA ${new Date().getFullYear()}`;
-    this.LICENSE_HEADER = this.getLicenseHeader();
     
     this.log('Starting build process...', 'info');
     this.log(`Platform: ${this.config.flags.platform}`, 'info');
@@ -786,24 +835,9 @@ Minified: ${this.config.flags.minify}
     }
     this.ensureDir(this.config.distDir);
     
-    // Create JS directory in dist
-    const jsDistDir = path.join(this.config.distDir, 'js');
-    this.ensureDir(jsDistDir);
-    
     try {
-      // Concatenate all JavaScript files
-      const concatenatedJS = await this.concatenateFiles();
-      fs.writeFileSync(path.join(jsDistDir, 'game.js'), concatenatedJS);
-      
-      // Copy other files to base dist (this is our clean web build)
-      this.copyAssets();
-      this.copyCSS();
-      this.copyLibFiles();
-      this.copyStaticFiles();
-      this.processIndexHTML();
-      
-      // Platform-specific builds (create isolated builds from clean base)
-      this.buildForPlatform();
+      // Platform-specific builds
+      await this.buildForPlatform();
       
       this.log('\nBuild completed successfully!', 'success');
       this.log(`Output directory: ${this.config.distDir}`, 'info');
@@ -811,12 +845,14 @@ Minified: ${this.config.flags.minify}
       // List generated files
       const files = fs.readdirSync(this.config.distDir);
       const outputFiles = files.filter(file => 
-        file.endsWith('.zip') || file.endsWith('.apk') || file === 'www'
+        file.endsWith('.zip') || file.endsWith('.apk')
       );
       if (outputFiles.length > 0) {
         this.log('Generated files:', 'info');
         outputFiles.forEach(file => {
-          this.log(`  - ${file}`, 'info');
+          const filePath = path.join(this.config.distDir, file);
+          const stats = fs.statSync(filePath);
+          this.log(`  - ${file} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`, 'info');
         });
       }
       
