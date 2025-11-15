@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>PadManiacs</title>
+  <script src="./js/game.js"></script>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="icon" href="./favicon.png">
+</head>
+
+<body>
+  <div id="game"></div>
+  
+  <!-- Controller -->
+  <div id="controller">
+    <div id="controller_dpad">
+      <div id="controller_left"></div>
+      <div id="controller_right"></div>
+      <div id="controller_up"></div>
+      <div id="controller_down"></div>
+    </div>
+    <div id="controller_rhythm_pad">
+      <div id="controller_rhythm_left" class="capsuleBtn rhythm"></div>
+      <div id="controller_rhythm_down" class="capsuleBtn rhythm"></div>
+      <div id="controller_rhythm_up" class="capsuleBtn rhythm"></div>
+      <div id="controller_rhythm_right" class="capsuleBtn rhythm"></div>
+    </div>
+    <div id="controller_select" class="capsuleBtn">Select</div>
+    <div id="controller_start" class="capsuleBtn">Start</div>
+    <div id="controller_b" class="roundBtn">B</div>
+    <div id="controller_a" class="roundBtn">A</div>
+  </div>
+  
+  <!-- Debug Panel -->
+  <div id="debug"></div>
+  
+  <script src="./js/game.js"></script>
+  
+  <script>
+    if (typeof window.eruda != 'undefined' && window.DEBUG) {
+      eruda.init({
+        tool: ['console', 'elements', 'resources', 'snippets']
+      });
+      const snippets = eruda.get('snippets');
+      snippets.clear();
+      snippets.add("Start Recording", () => game.recorder.start(), "Start recording the game");
+      snippets.add("Stop Recording", () => game.recorder.stop(), "Stop recording and save video");
+      snippets.add("Record Next Game", () => window.recordNextGame = true, "Start recording next song, stop when it ends");
+      snippets.add("Screenshoot", () => game.recorder.screenshot(), "Take a screenshot");
+      snippets.add("Take Screenshoots", () => {
+        const screenshot = () => {
+          game.recorder.screenshot();
+          setTimeout(() => screenshot(), game.rnd.between(5000, 20000));
+        };
+        screenshot();
+      }, "Take screenshots anytime randomly");
+      snippets.add("Add FPS text", () => addFpsText(), "Displays performance information");
+      snippets.add("Destroy", () => eruda.destroy(), "Destroy eruda");
+    }
+  </script>
+</body>
+
+</html>

@@ -169,4 +169,4 @@ Accessible from the main menu, the Add-on Manager allows you to:
 
 ## License
 
-PadManiacs Non-Commercial License v1.0 - See [LICENSE.txt](https://github.com/RetoraDev/PadManiacs/blob/7a62f8c8b18d6c00a7b032eb465748f81e9a5075/LICENCE.txt)  for details.
+Copyright © 2025 RetoraDev

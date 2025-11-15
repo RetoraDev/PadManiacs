@@ -1,0 +1,37 @@
+{
+  "name": "padmaniacs",
+  "version": "0.0.6",
+  "description": "Pocket Pixel Art StepMania clone",
+  "main": "build.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "build": "node build.js --all --debug",
+    "build:web": "node build.js --web --debug",
+    "build:cordova": "node build.js --cordova --debug",
+    "build:nwjs": "node build.js --nwjs --debug",
+    "build:min": "node build.js --minify --debug",
+    "build:dev": "node build.js --dev --debug",
+    "build:prod": "node build.js --all --minify",
+    "serve": "python -m http.server 8080 -d dist/",
+    "serve:src": "python -m http.server 8080 -d src/",
+    "dev": "npm run build:dev && npm run serve",
+    "clean": "rm -rf dist",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RetoraDev/PadManiacs.git"
+  },
+  "author": "RetoraDev",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/RetoraDev/PadManiacs/issues"
+  },
+  "homepage": "https://github.com/RetoraDev/PadManiacs#readme"
+}

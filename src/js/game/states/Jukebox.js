@@ -1,0 +1,534 @@
+class Jukebox {
+  init(songs = null, startIndex = 0) {
+    this.songs = songs || window.localSongs || [];
+    this.currentIndex = startIndex;
+    this.currentSong = this.songs[this.currentIndex];
+    this.isPlaying = false;
+    this.isShuffled = false;
+    this.originalSongOrder = [...this.songs];
+    this.visualizerMode = 'symmetrical';
+    this.seekSpeed = 10; // seconds per key press
+    this.lastSeekTime = 0;
+    this.seekCooldown = 200; // ms between seek actions
+    
+    // Background system
+    this.currentBackground = null;
+    this.backgroundQueue = [];
+    this.backgroundSprite = null;
+    this.videoElement = null;
+    
+    // Visualizer
+    this.visualizer = null;
+  }
+
+  create() {
+    game.camera.fadeIn(0x000000);
+    
+    // Setup background
+    this.setupBackground();
+    
+    // Setup audio player
+    this.setupAudioPlayer();
+    
+    // Setup UI
+    this.setupUI();
+    
+    // Setup visualizer
+    this.setupVisualizer();
+    
+    // Load first song
+    this.loadSong(this.currentIndex);
+    
+    // Execute addon behaviors
+    addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+
+  setupBackground() {
+    this.backgroundSprite = game.add.sprite(0, 0);
+    this.backgroundSprite.alpha = 0.6;
+    
+    // Create video element for background videos
+    this.videoElement = document.createElement("video");
+    this.videoElement.muted = true;
+    this.videoElement.loop = true;
+  }
+
+  setupAudioPlayer() {
+    this.audioElement = document.createElement("audio");
+    this.audioElement.volume = [0,25,50,75,100][Account.settings.volume] / 100;
+    
+    this.audioElement.addEventListener('loadedmetadata', () => {
+      this.updateDurationDisplay();
+    });
+    
+    this.audioElement.addEventListener('timeupdate', () => {
+      this.updateProgressBar();
+      this.updateTimeDisplay();
+    });
+    
+    this.audioElement.addEventListener('ended', () => {
+      this.nextSong();
+    });
+  }
+
+  setupUI() {
+    // Background gradient for readability
+    this.uiBackground = game.add.graphics(0, 0);
+    this.uiBackground.beginFill(0x000000, 0.7);
+    this.uiBackground.drawRect(0, 80, game.width, 32);
+    this.uiBackground.endFill();
+    
+    // Song banner
+    this.bannerSprite = game.add.sprite(4, 4);
+    
+    // Song metadata
+    this.songTitle = new Text(100, 4, "", FONTS.shaded);
+    this.songArtist = new Text(100, 14, "", FONTS.default);
+    this.songCredit = new Text(100, 24, "", FONTS.default);
+    
+    // Playback time displays
+    this.currentTimeText = new Text(4, 84, "0:00", FONTS.default);
+    this.durationText = new Text(188, 84, "0:00", FONTS.default);
+    this.durationText.anchor.x = 1;
+    
+    // Progress bar
+    this.progressBarBg = game.add.graphics(30, 86);
+    this.progressBarBg.lineStyle(2, 0x666666, 1);
+    this.progressBarBg.moveTo(0, 0);
+    this.progressBarBg.lineTo(132, 0);
+    
+    this.progressBar = game.add.graphics(30, 86);
+    
+    // Playback controls
+    this.controlsBackground = game.add.graphics(0, 100);
+    this.controlsBackground.beginFill(0x000000, 0.8);
+    this.controlsBackground.drawRect(0, 100, game.width, 12);
+    this.controlsBackground.endFill();
+    
+    this.drawPlaybackControls();
+    
+    // Visualizer mode display
+    this.visualizerModeText = new Text(4, 112, `Visualizer: ${this.visualizerMode}`, FONTS.default);
+    
+    // Help text
+    this.helpText = new Text(game.width / 2, 112, "A:Play/Pause B:Shuffle START:Menu SELECT:Visualizer", FONTS.default);
+    this.helpText.anchor.x = 0.5;
+    this.helpText.alpha = 0.7;
+  }
+
+  setupVisualizer() {
+    this.visualizer = new FullScreenAudioVisualizer(this.audioElement, {
+      visualizationType: this.visualizerMode,
+      barColor: 0x76fcde,
+      barWidth: 3,
+      barSpacing: 1,
+      barBaseHeight: 5,
+      barMaxHeight: 40,
+      alpha: 0.6,
+      fftSize: 512,
+      smoothing: 0.7
+    });
+  }
+
+  drawPlaybackControls() {
+    this.controlsGraphics = game.add.graphics(0, 100);
+    this.controlsGraphics.clear();
+    
+    const centerX = game.width / 2;
+    const controlY = 104;
+    
+    // Previous button (triangle left)
+    this.controlsGraphics.beginFill(0xffffff, 0.8);
+    this.controlsGraphics.moveTo(centerX - 30, controlY);
+    this.controlsGraphics.lineTo(centerX - 20, controlY - 4);
+    this.controlsGraphics.lineTo(centerX - 20, controlY + 4);
+    this.controlsGraphics.endFill();
+    
+    // Play/Pause button
+    if (this.isPlaying) {
+      // Pause icon (two bars)
+      this.controlsGraphics.beginFill(0xffffff, 0.8);
+      this.controlsGraphics.drawRect(centerX - 6, controlY - 4, 2, 8);
+      this.controlsGraphics.drawRect(centerX - 2, controlY - 4, 2, 8);
+      this.controlsGraphics.endFill();
+    } else {
+      // Play icon (triangle right)
+      this.controlsGraphics.beginFill(0xffffff, 0.8);
+      this.controlsGraphics.moveTo(centerX - 6, controlY - 4);
+      this.controlsGraphics.lineTo(centerX + 2, controlY);
+      this.controlsGraphics.lineTo(centerX - 6, controlY + 4);
+      this.controlsGraphics.endFill();
+    }
+    
+    // Next button (triangle right)
+    this.controlsGraphics.beginFill(0xffffff, 0.8);
+    this.controlsGraphics.moveTo(centerX + 30, controlY);
+    this.controlsGraphics.lineTo(centerX + 20, controlY - 4);
+    this.controlsGraphics.lineTo(centerX + 20, controlY + 4);
+    this.controlsGraphics.endFill();
+    
+    // Shuffle indicator
+    if (this.isShuffled) {
+      this.controlsGraphics.beginFill(0x76fcde, 0.8);
+      this.controlsGraphics.drawCircle(centerX - 50, controlY, 3);
+      this.controlsGraphics.endFill();
+    }
+  }
+
+  loadSong(index) {
+    if (index < 0 || index >= this.songs.length) return;
+    
+    // Stop current playback
+    this.audioElement.pause();
+    this.isPlaying = false;
+    
+    // Update current index and song
+    this.currentIndex = index;
+    this.currentSong = this.songs[this.currentIndex];
+    
+    // Load audio
+    this.audioElement.src = this.currentSong.audioUrl;
+    
+    // Update UI
+    this.updateSongDisplay();
+    this.updateBackground();
+    
+    // Start playback
+    this.play();
+  }
+
+  updateSongDisplay() {
+    const song = this.currentSong;
+    
+    // Update text displays
+    this.songTitle.write(song.titleTranslit || song.title || "Unknown Title");
+    this.songArtist.write(`Artist: ${song.artistTranslit || song.artist || "Unknown"}`);
+    this.songCredit.write(`Credit: ${song.credit || "Unknown"}`);
+    
+    // Load banner
+    if (song.banner && song.banner !== "no-media") {
+      const bannerImg = new Image();
+      bannerImg.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 96;
+        canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bannerImg, 0, 0, 96, 32);
+        const texture = PIXI.Texture.fromCanvas(canvas);
+        this.bannerSprite.loadTexture(texture);
+      };
+      bannerImg.src = song.banner;
+    } else {
+      this.bannerSprite.loadTexture(null);
+    }
+    
+    // Update controls
+    this.drawPlaybackControls();
+  }
+
+  updateBackground() {
+    // Clear current background
+    this.backgroundSprite.loadTexture(null);
+    this.videoElement.src = "";
+    
+    // Load song background
+    if (this.currentSong.background && this.currentSong.background !== "no-media") {
+      const bgImg = new Image();
+      bgImg.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 192;
+        canvas.height = 112;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bgImg, 0, 0, 192, 112);
+        const texture = PIXI.Texture.fromCanvas(canvas);
+        this.backgroundSprite.loadTexture(texture);
+      };
+      bgImg.src = this.currentSong.background;
+    }
+    
+    // Handle background videos
+    if (this.currentSong.videoUrl) {
+      this.videoElement.src = this.currentSong.videoUrl;
+      this.videoElement.play();
+      
+      // Update video frame periodically
+      this.lastVideoUpdate = game.time.now;
+    }
+  }
+
+  updateDurationDisplay() {
+    const duration = this.audioElement.duration;
+    if (isNaN(duration)) return;
+    
+    const minutes = Math.floor(duration / 60);
+    const seconds = Math.floor(duration % 60);
+    this.durationText.write(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+  }
+
+  updateProgressBar() {
+    const currentTime = this.audioElement.currentTime;
+    const duration = this.audioElement.duration;
+    
+    if (isNaN(duration) || duration === 0) return;
+    
+    const progress = currentTime / duration;
+    const barWidth = 132 * progress;
+    
+    this.progressBar.clear();
+    this.progressBar.lineStyle(2, 0x76fcde, 1);
+    this.progressBar.moveTo(0, 0);
+    this.progressBar.lineTo(barWidth, 0);
+  }
+
+  updateTimeDisplay() {
+    const currentTime = this.audioElement.currentTime;
+    const minutes = Math.floor(currentTime / 60);
+    const seconds = Math.floor(currentTime % 60);
+    this.currentTimeText.write(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+  }
+
+  play() {
+    this.audioElement.play().then(() => {
+      this.isPlaying = true;
+      this.drawPlaybackControls();
+    }).catch(error => {
+      console.warn("Playback failed:", error);
+      this.isPlaying = false;
+      this.drawPlaybackControls();
+    });
+  }
+
+  pause() {
+    this.audioElement.pause();
+    this.isPlaying = false;
+    this.drawPlaybackControls();
+  }
+
+  togglePlayback() {
+    if (this.isPlaying) {
+      this.pause();
+    } else {
+      this.play();
+    }
+  }
+
+  nextSong() {
+    let nextIndex = this.currentIndex + 1;
+    if (nextIndex >= this.songs.length) {
+      nextIndex = 0; // Loop to beginning
+    }
+    this.loadSong(nextIndex);
+  }
+
+  previousSong() {
+    let prevIndex = this.currentIndex - 1;
+    if (prevIndex < 0) {
+      prevIndex = this.songs.length - 1; // Loop to end
+    }
+    this.loadSong(prevIndex);
+  }
+
+  toggleShuffle() {
+    this.isShuffled = !this.isShuffled;
+    
+    if (this.isShuffled) {
+      // Shuffle the playlist (Fisher-Yates algorithm)
+      const shuffled = [...this.songs];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      this.songs = shuffled;
+    } else {
+      // Restore original order
+      this.songs = [...this.originalSongOrder];
+    }
+    
+    this.drawPlaybackControls();
+  }
+
+  seekForward() {
+    const currentTime = this.audioElement.currentTime;
+    const newTime = Math.min(currentTime + this.seekSpeed, this.audioElement.duration || 0);
+    this.audioElement.currentTime = newTime;
+  }
+
+  seekBackward() {
+    const currentTime = this.audioElement.currentTime;
+    const newTime = Math.max(currentTime - this.seekSpeed, 0);
+    this.audioElement.currentTime = newTime;
+  }
+
+  changeVisualizerMode() {
+    const modes = ['bars', 'symmetrical', 'waveform', 'circular'];
+    const currentIndex = modes.indexOf(this.visualizerMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    this.visualizerMode = modes[nextIndex];
+    
+    this.visualizer.setVisualizationType(this.visualizerMode);
+    this.visualizerModeText.write(`Visualizer: ${this.visualizerMode}`);
+  }
+
+  showMenu() {
+    const menu = new CarouselMenu(60, 40, 72, 40, {
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      align: 'center'
+    });
+    
+    menu.addItem("Resume", () => {
+      menu.destroy();
+    });
+    
+    menu.addItem("Play/Pause", () => {
+      this.togglePlayback();
+      menu.destroy();
+    });
+    
+    menu.addItem("Next Song", () => {
+      this.nextSong();
+      menu.destroy();
+    });
+    
+    menu.addItem("Previous Song", () => {
+      this.previousSong();
+      menu.destroy();
+    });
+    
+    menu.addItem("Toggle Shuffle", () => {
+      this.toggleShuffle();
+      menu.destroy();
+    });
+    
+    menu.addItem("Exit Jukebox", () => {
+      this.exitJukebox();
+    });
+    
+    menu.onCancel.add(() => {
+      menu.destroy();
+    });
+  }
+
+  exitJukebox() {
+    // Clean up
+    this.audioElement.pause();
+    this.audioElement.src = "";
+    
+    if (this.videoElement) {
+      this.videoElement.pause();
+      this.videoElement.src = "";
+    }
+    
+    if (this.visualizer) {
+      this.visualizer.destroy();
+    }
+    
+    // Return to main menu
+    game.state.start("MainMenu");
+  }
+
+  update() {
+    // Update visualizer
+    if (this.visualizer) {
+      this.visualizer.update();
+    }
+    
+    // Update video background if playing
+    if (this.videoElement.src && this.videoElement.readyState >= 2) {
+      const currentTime = game.time.now;
+      if (currentTime - this.lastVideoUpdate >= 33) { // ~30fps
+        this.lastVideoUpdate = currentTime;
+        const canvas = document.createElement('canvas');
+        canvas.width = 192;
+        canvas.height = 112;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(this.videoElement, 0, 0, 192, 112);
+        const texture = PIXI.Texture.fromCanvas(canvas);
+        this.backgroundSprite.loadTexture(texture);
+      }
+    }
+    
+    this.handleInput();
+  }
+
+  handleInput() {
+    const currentTime = game.time.now;
+    
+    // Play/Pause
+    if (gamepad.pressed.a && !this.lastA) {
+      this.togglePlayback();
+    }
+    
+    // Shuffle toggle
+    if (gamepad.pressed.b && !this.lastB) {
+      this.toggleShuffle();
+    }
+    
+    // Visualizer mode change
+    if (gamepad.pressed.select && !this.lastSelect) {
+      this.changeVisualizerMode();
+    }
+    
+    // Menu
+    if (gamepad.pressed.start && !this.lastStart) {
+      this.showMenu();
+    }
+    
+    // Seek handling with cooldown
+    if (currentTime - this.lastSeekTime > this.seekCooldown) {
+      // Single press - seek
+      if (gamepad.pressed.left && !this.lastLeft) {
+        this.seekBackward();
+        this.lastSeekTime = currentTime;
+      }
+      
+      if (gamepad.pressed.right && !this.lastRight) {
+        this.seekForward();
+        this.lastSeekTime = currentTime;
+      }
+      
+      // Double press detection for song change
+      if (gamepad.pressed.left && this.lastLeft && currentTime - this.lastLeftPress < 500) {
+        this.previousSong();
+        this.lastSeekTime = currentTime;
+      }
+      
+      if (gamepad.pressed.right && this.lastRight && currentTime - this.lastRightPress < 500) {
+        this.nextSong();
+        this.lastSeekTime = currentTime;
+      }
+    }
+    
+    // Track press times for double press detection
+    if (gamepad.pressed.left && !this.lastLeft) {
+      this.lastLeftPress = currentTime;
+    }
+    
+    if (gamepad.pressed.right && !this.lastRight) {
+      this.lastRightPress = currentTime;
+    }
+    
+    // Update last states
+    this.lastA = gamepad.pressed.a;
+    this.lastB = gamepad.pressed.b;
+    this.lastSelect = gamepad.pressed.select;
+    this.lastStart = gamepad.pressed.start;
+    this.lastLeft = gamepad.pressed.left;
+    this.lastRight = gamepad.pressed.right;
+  }
+
+  shutdown() {
+    // Clean up resources
+    this.audioElement.pause();
+    this.audioElement.src = "";
+    
+    if (this.videoElement) {
+      this.videoElement.pause();
+      this.videoElement.src = "";
+    }
+    
+    if (this.visualizer) {
+      this.visualizer.destroy();
+    }
+  }
+}
