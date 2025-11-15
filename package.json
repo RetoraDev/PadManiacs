@@ -2,10 +2,7 @@
   "name": "padmaniacs",
   "version": "0.0.6",
   "description": "Pocket Pixel Art StepMania clone",
-  "main": "build.js",
-  "directories": {
-    "lib": "lib"
-  },
+  "main": "index.js",
   "scripts": {
     "build": "node build.js --all --debug",
     "build:web": "node build.js --web --debug",
@@ -14,6 +11,7 @@
     "build:min": "node build.js --minify --debug",
     "build:dev": "node build.js --dev --debug",
     "build:release": "node build.js --all --minify",
+    "interface": "node index.js",
     "release": "node build.js --all --minify",
     "serve": "python -m http.server 8080 -d dist/",
     "serve:src": "python -m http.server 8080 -d src/",

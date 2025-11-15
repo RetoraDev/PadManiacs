@@ -4,9 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// Import terser from lib folder
-const terser = require('./lib/terser.js');
-
 class BuildSystem {
   constructor() {
     this.config = {
@@ -235,6 +232,9 @@ Minified: ${this.config.flags.minify}
     }
 
     try {
+      // Import terser from lib folder
+      const terser = require(this.config.libDir + '/terser.js');
+
       const minified = await terser.minify(code, {
         mangle: {
           toplevel: false,
@@ -863,6 +863,18 @@ Minified: ${this.config.flags.minify}
   }
 }
 
-// Run build
-const builder = new BuildSystem();
-builder.build().catch(console.error);
+async function build() {
+  const builder = new BuildSystem();
+  await builder.build();
+}
+
+// Run build if this script is executed directly
+if (require.main === module) {
+  build();
+}
+
+module.exports = {
+  build,
+  execSync,
+  BuildSystem
+};
