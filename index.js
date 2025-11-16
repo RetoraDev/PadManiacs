@@ -66,6 +66,7 @@ class InteractiveInterface {
     this.customBuildMenu = [
       { label: 'Platform: All', action: () => this.togglePlatform() },
       { label: 'Minify: Off', action: () => this.toggleMinify() },
+      { label: 'Zip Align: Off', action: () => this.toggleZipAlign() },
       { label: 'Debug: Off', action: () => this.toggleDebug() },
       { label: 'Start Build', action: () => this.startCustomBuild() },
       { label: 'Back to Build Menu', action: () => this.showBuildMenu() }
@@ -74,6 +75,7 @@ class InteractiveInterface {
     this.customBuildOptions = {
       platform: 'all',
       minify: false,
+      zipalign: false,
       debug: false
     };
     
@@ -114,14 +116,6 @@ class InteractiveInterface {
       const label = isSelected ? this.color(item.label, 'bright') : item.label;
       console.log(`${prefix}${label}${isSelected ? this.colors.reset : ''}`);
     });
-    
-    // Show current custom build options if in custom menu
-    if (this.currentMenu === this.customBuildMenu) {
-      console.log(`\n${this.color('Current Options:', 'yellow')}`);
-      console.log(`  Platform: ${this.color(this.customBuildOptions.platform.toUpperCase(), 'cyan')}`);
-      console.log(`  Minify: ${this.color(this.customBuildOptions.minify ? 'ON' : 'OFF', this.customBuildOptions.minify ? 'green' : 'red')}`);
-      console.log(`  Debug: ${this.color(this.customBuildOptions.debug ? 'ON' : 'OFF', this.customBuildOptions.debug ? 'green' : 'red')}`);
-    }
   }
 
   handleInput(key) {
@@ -194,7 +188,8 @@ class InteractiveInterface {
   updateCustomBuildLabels() {
     this.customBuildMenu[0].label = `Platform: ${this.color(this.customBuildOptions.platform, 'cyan')}`;
     this.customBuildMenu[1].label = `Minify: ${this.color(this.customBuildOptions.minify ? 'ON' : 'OFF', this.customBuildOptions.minify ? 'green' : 'red')}`;
-    this.customBuildMenu[2].label = `Debug: ${this.color(this.customBuildOptions.debug ? 'ON' : 'OFF', this.customBuildOptions.debug ? 'green' : 'red')}`;
+    this.customBuildMenu[2].label = `Zip Align: ${this.color(this.customBuildOptions.zipalign ? 'ON' : 'OFF', this.customBuildOptions.zipalign ? 'green' : 'red')}`;
+    this.customBuildMenu[3].label = `Debug: ${this.color(this.customBuildOptions.debug ? 'ON' : 'OFF', this.customBuildOptions.debug ? 'green' : 'red')}`;
   }
 
   togglePlatform() {
@@ -211,6 +206,12 @@ class InteractiveInterface {
     this.drawMenu();
   }
 
+  toggleZipAlign() {
+    this.customBuildOptions.zipalign = !this.customBuildOptions.zipalign;
+    this.updateCustomBuildLabels();
+    this.drawMenu();
+  }
+  
   toggleDebug() {
     this.customBuildOptions.debug = !this.customBuildOptions.debug;
     this.updateCustomBuildLabels();
@@ -224,6 +225,9 @@ class InteractiveInterface {
     }
     if (this.customBuildOptions.minify) {
       args.push('--minify');
+    }
+    if (this.customBuildOptions.zipalign) {
+      args.push('--zipalign');
     }
     if (this.customBuildOptions.debug) {
       args.push('--debug');

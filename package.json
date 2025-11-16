@@ -10,7 +10,7 @@
     "build:nwjs": "node build.js --nwjs --debug",
     "build:min": "node build.js --minify --debug",
     "build:dev": "node build.js --dev --debug",
-    "build:release": "node build.js --all --minify",
+    "build:release": "node build.js --all --minify --zipalign",
     "interface": "node index.js",
     "release": "node build.js --all --minify",
     "serve": "python -m http.server 8080 -d dist/",

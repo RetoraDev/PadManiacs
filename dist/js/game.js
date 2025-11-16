@@ -3,8 +3,8 @@ PadManiacs Rhythm Game
 Copyright (C) RETORA 2025. All Rights Reserved.
 https://github.com/RetoraDev/PadManiacs
 Version: v0.0.6
-Build: 11/15/2025, 4:43:20 PM
-Platform: Android (Cordova)
+Build: 11/15/2025, 10:04:43 PM
+Platform: Web
 Debug: false
 Minified: false
 */
@@ -71,7 +71,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";

@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { exec, execSync } = require('child_process');
 
 class BuildSystem {
   constructor() {
@@ -13,7 +13,8 @@ class BuildSystem {
       flags: {
         debug: false,
         platform: 'all', // 'web', 'cordova', 'nwjs', 'all', 'none'
-        minify: false
+        minify: false,
+        zipalign: false
       }
     };
     
@@ -164,6 +165,7 @@ Minified: ${this.config.flags.minify}
       if (arg === '--dev') this.config.flags.platform = 'none';
       if (arg === '--none') this.config.flags.platform = 'none';
       if (arg === '--cordova') this.config.flags.platform = 'cordova';
+      if (arg === '--zipalign') this.config.flags.zipalign = true;
       if (arg === '--nwjs') this.config.flags.platform = 'nwjs';
       if (arg === '--web') this.config.flags.platform = 'web';
       if (arg === '--all') this.config.flags.platform = 'all';
@@ -576,6 +578,15 @@ Minified: ${this.config.flags.minify}
       return false;
     }
   }
+  
+  hasZipAlign() {
+    try {
+      exec('zipalign', { stdio: 'ignore' });
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
 
   createZipArchive(sourceDir, outputFile) {
     this.log(`Creating zip: ${sourceDir} → ${outputFile}`, 'info');
@@ -614,6 +625,26 @@ Minified: ${this.config.flags.minify}
     }
   }
 
+  zipAlignAndroidAPK(apkPath, outputPath) {
+    this.log(`Applying Zip alignment: ${apkPath} → ${outputPath}`, 'info');
+    
+    try {
+      if (this.hasZipAlign()) {
+        execSync(`zipalign -f '4' ${apkPath} ${outputPath}`, {
+          stdio: 'inherit'
+        });
+        this.log(`Zip alignment success: ${outputPath}`, 'success');
+        return true;
+      } else {
+        this.log('zipalign not available. Please install Android SDK Build Tools.', 'error');
+        return false;
+      }
+    } catch (error) {
+      this.log(`Failed to zipalign APK: ${error.message}`, 'error');
+      return false;
+    }
+  }
+  
   signAndroidAPK(apkPath, outputPath) {
     this.log(`Signing Android APK: ${apkPath} → ${outputPath}`, 'info');
     
@@ -745,21 +776,38 @@ Minified: ${this.config.flags.minify}
       }
       
       // First create unsigned APK using zip from temp directory
-      const unsignedApkName = `padmaniacs-v${this.packageInfo.version}-android-unsigned.apk`;
-      const unsignedApkPath = path.join(this.config.distDir, unsignedApkName);
+      const unsignedUnalignedApkName = `padmaniacs-v${this.packageInfo.version}-android-unsigned-unaligned.apk`;
+      const unsignedUnalignedApkPath = path.join(this.config.distDir, unsignedUnalignedApkName);
       
-      if (this.createZipArchive(tempAndroidDir, '../../' + unsignedApkName)) {
+      if (this.createZipArchive(tempAndroidDir, '../../' + unsignedUnalignedApkName)) {
+        // Apply zipalign
+        let unsignedApkName = `padmaniacs-v${this.packageInfo.version}-android-unsigned.apk`;
+        let unsignedApkPath  = path.join(this.config.distDir, unsignedApkName);
+        
+        if (this.config.flags.zipalign) {
+          if (this.zipAlignAndroidAPK(unsignedUnalignedApkPath, unsignedApkPath)) {
+            // Clean up build artifacts
+            fs.unlinkSync(unsignedUnalignedApkPath);
+          } else {
+            this.log('Could not apply zipalign to APK', 'warning');
+          }
+        } else {
+          unsignedApkName = unsignedUnalignedApkName;
+          unsignedApkPath = unsignedUnalignedApkPath;
+        }
+        
         // Sign the APK
         const signedApkName = `padmaniacs-v${this.packageInfo.version}-android.apk`;
         const signedApkPath = path.join(this.config.distDir, signedApkName);
-        
+
         if (this.signAndroidAPK(unsignedApkPath, signedApkPath)) {
           // Clean up build artifacts
           fs.unlinkSync(unsignedApkPath);
-          this.log('Android platform build complete', 'success');
         } else {
-          this.log('Android platform build failed - signing failed', 'warning');
+          this.log('Could not apply signature to APK', 'warning');
         }
+        
+        this.log('Android platform build complete', 'success');
       } else {
         this.log('Android platform build failed - zip command unavailable', 'warning');
       }
