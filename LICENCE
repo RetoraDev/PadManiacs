@@ -1,0 +1,70 @@
+Copyright (c) RETORA 2025
+
+PERMISSION GRANT
+You are hereby granted permission to:
+- Use, copy, and modify the software for personal and non-commercial purposes
+- Study, examine, and learn from the source code
+- Distribute complete, unmodified copies of the software
+
+CONDITIONS AND RESTRICTIONS
+1. ATTRIBUTION: All copies of the software must maintain complete and 
+   prominent attribution to the original author "RETORA"
+2. NON-COMMERCIAL: No commercial use, distribution, or monetization is 
+   permitted without explicit written permission
+3. NO REDISTRIBUTION OF MODIFIED VERSIONS: Modified versions may not be 
+   distributed publicly without explicit written permission
+4. LICENSE INCLUSION: All distributed copies must include this complete 
+   unmodified license file
+
+DISCLAIMER
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+THIRD-PARTY COMPONENTS ATTRIBUTION
+This software includes third-party libraries that have their own license terms:
+
+1. Phaser CE 2.20.2
+   - Source: https://github.com/phaserjs/phaser-ce
+   - License: MIT License
+   - Copyright: Richard Davey, Photon Storm Ltd.
+
+2. Eruda.js
+   - Source: https://github.com/liriliri/eruda
+   - License: MIT License
+   - Copyright: liriliri
+
+3. Terser.js
+   - Source: https://github.com/terser/terser
+   - License: BSD-2-Clause License
+   - Copyright: Mihai Bazon
+
+MEDIA FORMAT COMPATIBILITY
+This software uses the StepMania (.sm and .ssc) chart format specification.
+PadManiacs is not affiliated with, endorsed by, or connected to StepMania 
+or its developers.
+
+StepMania Credits:
+- StepMania software: Copyright © 2001-2024 StepMania Team
+- Chart format specification: Derived from StepMania open-source project
+- StepMania is licensed under the MIT License
+
+MEDIA CONTENT DISCLAIMER
+All song charts, audio files, and associated media included with or loaded 
+into PadManiacs belong to their respective copyright holders. The Software 
+developers do not claim ownership over any musical content, chart data, or 
+artistic works created by third parties.
+
+Users are responsible for ensuring they have the proper rights to use any 
+external songs or charts loaded into the application.
+
+REDISTRIBUTION REQUIREMENTS
+Any distribution of this software must include:
+1. This complete unmodified LICENSE file
+2. All third-party attribution notices
+3. All copyright notices from the original software
+4. Clear attribution to "RETORA" as the original author

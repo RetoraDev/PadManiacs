@@ -134,17 +134,31 @@ class BuildSystem {
   }
 
   getLicenseHeader(platform) {
-    const platformName = this.getPlatformDisplayName(platform);
     return `/**
 PadManiacs Rhythm Game
-Copyright ${this.copyright}. All Rights Reserved.
+Copyright ${this.copyright}
 https://github.com/RetoraDev/PadManiacs
 Version: ${this.versionName}
 Build: ${new Date().toLocaleString()}
-Platform: ${platformName}
+Platform: ${this.getPlatformDisplayName(platform)}
 Debug: ${this.config.flags.debug}
 Minified: ${this.config.flags.minify}
 */`;
+  }
+  
+  getLicenseHeader(platform) {
+    return `/**
+ * PadManiacs Rhythm Game
+ * Copyright ${this.copyright}
+ * Licensed under the PadManiacs License (see LICENSE file for full terms)
+ * 
+ * Source: https://github.com/RetoraDev/PadManiacs
+ * Version: ${this.versionName}
+ * Build: ${new Date().toLocaleString()}
+ * Platform: ${this.getPlatformDisplayName(platform)}
+ * Debug: ${this.config.flags.debug}
+ * Minified: ${this.config.flags.minify}
+ */`;
   }
 
   getPlatformDisplayName(platform) {
