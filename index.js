@@ -48,6 +48,7 @@ class InteractiveInterface {
       { label: 'Build Options', action: () => this.showBuildMenu() },
       { label: 'Serve Project', action: () => this.showServeMenu() },
       { label: 'Run Tests', action: () => this.runTests() },
+      { label: 'Code Reminders', action: () => this.showCodeReminders() }, // New option
       { label: 'Project Info', action: () => this.showProjectInfo() },
       { label: 'Exit', action: () => this.exit() }
     ];
@@ -265,7 +266,6 @@ class InteractiveInterface {
   async runBuildHeadless(args) {
     try {
       process.argv = ['node', 'build.js', ...args];
-      await build();
       
       if (this.cliArgs.cordova && this.isTermux()) {
         // Auto-open APK in Termux
@@ -455,6 +455,176 @@ class InteractiveInterface {
     this.updateCustomBuildLabels();
     this.drawMenu();
   }
+  
+  showCodeReminders() {
+    this.clearScreen();
+    this.drawLogo();
+    
+    console.log(this.color('Scanning for code reminders...\n', 'yellow'));
+    
+    const reminders = this.scanCodeReminders();
+    
+    if (reminders.length === 0) {
+      console.log(this.color('✓ No code reminders found!', 'green'));
+      console.log(this.color('\nPress any key to return to menu...', 'dim'));
+      this.rl.input.once('data', () => this.showMainMenu());
+      return;
+    }
+    
+    this.displayReminders(reminders);
+  }
+
+  scanCodeReminders() {
+    const buildSystem = new BuildSystem();
+    const reminders = [];
+    const reminderPatterns = {
+      'TODO': { color: 'yellow', symbol: '●' },
+      'BUG': { color: 'red', symbol: '⚠' },
+      'FIXME': { color: 'red', symbol: '⚠' },
+      'HACK': { color: 'magenta', symbol: '⚡' },
+      'NOTE': { color: 'blue', symbol: 'ℹ' },
+      'OPTIMIZE': { color: 'cyan', symbol: '⚙' },
+      'REVIEW': { color: 'yellow', symbol: '👁' },
+      'XXX': { color: 'red', symbol: '❌' },
+      'WARNING': { color: 'yellow', symbol: '⚠' }
+    };
+
+    // Scan all source files in the file order
+    buildSystem.fileOrder.forEach(filePath => {
+      if (filePath.startsWith('js/')) {
+        const fullPath = path.join(buildSystem.config.srcDir, filePath);
+        this.scanFileForReminders(fullPath, filePath, reminderPatterns, reminders);
+      }
+    });
+
+    // Also scan root JS files
+    const rootFiles = ['build.js', 'index.js'];
+    rootFiles.forEach(fileName => {
+      const fullPath = path.join('.', fileName);
+      if (fs.existsSync(fullPath)) {
+        this.scanFileForReminders(fullPath, fileName, reminderPatterns, reminders);
+      }
+    });
+
+    return reminders.sort((a, b) => {
+      // Sort by priority: BUG/FIXME first, then TODO, then others
+      const priority = { 'BUG': 1, 'FIXME': 1, 'XXX': 1, 'TODO': 2, 'HACK': 3, 'WARNING': 4, 'OPTIMIZE': 5, 'REVIEW': 6, 'NOTE': 7 };
+      const aPriority = priority[a.type] || 8;
+      const bPriority = priority[b.type] || 8;
+      
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+      
+      // Then by file name
+      return a.file.localeCompare(b.file);
+    });
+  }
+
+scanFileForReminders(filePath, relativePath, patterns, reminders) {
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n');
+    
+    lines.forEach((line, index) => {
+      const lineNumber = index + 1;
+      const trimmedLine = line.trim();
+      
+      // Only process lines with // comments
+      const commentIndex = trimmedLine.indexOf('//');
+      if (commentIndex === -1) return;
+      
+      // Extract just the comment part (after //)
+      const commentText = trimmedLine.substring(commentIndex + 2).trim();
+      
+      // Look for reminder patterns at the START of the comment (case-sensitive)
+      Object.keys(patterns).forEach(type => {
+        // Exact match at start of comment (case-sensitive)
+        const exactPattern = new RegExp(`^${type}\\b\\s*:?\\s*(.*?)(?:\\s+by\\s+([\\w\\s]+))?$`);
+        const match = commentText.match(exactPattern);
+        
+        if (match) {
+          const comment = match[1]?.trim() || '';
+          const author = match[2]?.trim();
+          
+          reminders.push({
+            type: type,
+            comment: comment,
+            author: author,
+            file: relativePath,
+            line: lineNumber,
+            pattern: patterns[type]
+          });
+          return; // Stop checking other patterns for this line
+        }
+      });
+    });
+    
+  } catch (error) {
+    console.log(this.color(`✗ Could not read file: ${filePath}`, 'red'));
+  }
+}  
+  displayReminders(reminders) {
+    console.log(this.color(`Found ${reminders.length} code reminder(s):\n`, 'cyan'));
+    
+    let currentFile = '';
+    
+    reminders.forEach((reminder, index) => {
+      // Show file header if it changed
+      if (reminder.file !== currentFile) {
+        if (currentFile !== '') console.log('');
+        console.log(this.color(`📁 ${reminder.file}`, 'bright'));
+        currentFile = reminder.file;
+      }
+      
+      // Format the reminder line
+      const symbol = this.color(reminder.pattern.symbol, reminder.pattern.color);
+      const type = this.color(reminder.type, reminder.pattern.color);
+      const author = reminder.author ? this.color(` by ${reminder.author}`, 'dim') : '';
+      const comment = reminder.comment ? `: ${reminder.comment}` : '';
+      
+      console.log(`  ${symbol} ${type}${author}${comment}`);
+      console.log(`    ${this.color('on line', 'dim')} ${this.color(reminder.line.toString(), 'white')}`);
+    });
+    
+    // Show summary
+    const summary = this.generateRemindersSummary(reminders);
+    console.log(`\n${this.color('Summary:', 'yellow')}`);
+    Object.keys(summary).forEach(type => {
+      console.log(`  ${this.color(type, summary[type].color)}: ${summary[type].count}`);
+    });
+    
+    console.log(this.color('\nPress any key to return to menu...', 'dim'));
+    this.rl.input.once('data', () => this.showMainMenu());
+  }
+
+  generateRemindersSummary(reminders) {
+    const summary = {};
+    const colors = {
+      'BUG': 'red',
+      'FIXME': 'red', 
+      'XXX': 'red',
+      'TODO': 'yellow',
+      'HACK': 'magenta',
+      'WARNING': 'yellow',
+      'OPTIMIZE': 'cyan',
+      'REVIEW': 'yellow',
+      'NOTE': 'blue'
+    };
+    
+    reminders.forEach(reminder => {
+      if (!summary[reminder.type]) {
+        summary[reminder.type] = {
+          count: 0,
+          color: colors[reminder.type] || 'white'
+        };
+      }
+      summary[reminder.type].count++;
+    });
+    
+    return summary;
+  }
+
 
   startCustomBuild() {
     const args = [];
@@ -484,11 +654,12 @@ class InteractiveInterface {
     console.log(this.color('─'.repeat(50), 'dim') + '\n');
     
     try {
-      // TODO: Handle interrupt
-      
-      // Run the build process
-      process.argv = ['node', 'build.js', ...args];
-      await build();
+      const builder = new BuildSystem();
+      process.on('SIGINT', () => {
+        builder.exit();
+        this.exit();
+      });
+      await builder.build();
       
       console.log(`\n${this.color('Build completed successfully!', 'green')}`);
       console.log(this.color('Press any key to return to menu...', 'dim'));
