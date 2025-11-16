@@ -4,19 +4,41 @@
   "description": "Pocket Pixel Art StepMania clone",
   "main": "index.js",
   "scripts": {
-    "build": "node build.js --all --debug",
-    "build:web": "node build.js --web --debug",
-    "build:cordova": "node build.js --cordova --debug",
-    "build:nwjs": "node build.js --nwjs --debug",
-    "build:min": "node build.js --minify --debug",
-    "build:dev": "node build.js --dev --debug",
-    "build:release": "node build.js --all --minify --zipalign",
+    "start": "node index.js",
     "interface": "node index.js",
-    "release": "node build.js --all --minify",
-    "serve": "python -m http.server 8080 -d dist/",
-    "dev": "npm run build:dev && npm run serve",
+    
+    "build": "node index.js --all --debug",
+    "build:web": "node index.js --web --debug",
+    "build:cordova": "node index.js --cordova --debug",
+    "build:nwjs": "node index.js --nwjs --debug",
+    "build:min": "node index.js --all --minify --debug",
+    "build:dev": "node index.js --none --debug",
+    "build:release": "node index.js --all --minify --zipalign",
+    "build:headless": "node index.js --all --minify --headless",
+    
+    "serve": "node index.js --serve",
+    "serve:dist": "node index.js --serve",
+    "serve:src": "node index.js --serve-src",
+    "serve:dev": "node index.js --serve-src",
+    
+    "dev": "npm run build:dev && npm run serve:dist",
+    "dev:fast": "npm run serve:src",
+    
+    "android": "node index.js --cordova --debug",
+    "android:release": "node index.js --cordova --minify --zipalign",
+    "windows": "node index.js --nwjs --debug",
+    "windows:release": "node index.js --nwjs --minify",
+    "web": "node index.js --web --debug",
+    "web:release": "node index.js --web --minify",
+    
+    "release": "node index.js --all --minify --zipalign",
+    "release:headless": "node index.js --all --minify --zipalign --headless",
+    
     "clean": "rm -rf dist",
-    "test": "echo \"No tests specified\" && exit 0"
+    "clean:all": "rm -rf dist && rm -f *.zip *.apk",
+    
+    "test": "echo \"No tests specified\" && exit 0",
+    "help": "node index.js --help"
   },
   "repository": {
     "type": "git",
@@ -31,5 +53,15 @@
   "bugs": {
     "url": "https://github.com/RetoraDev/PadManiacs/issues"
   },
-  "homepage": "https://github.com/RetoraDev/PadManiacs#readme"
+  "homepage": "https://github.com/RetoraDev/PadManiacs#readme",
+  "keywords": [
+    "rhythm-game",
+    "music-game",
+    "dance",
+    "vocaloid",
+    "stepmania",
+    "ddr",
+    "phaser",
+    "pixel-art"
+  ]
 }

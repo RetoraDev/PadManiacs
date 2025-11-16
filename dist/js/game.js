@@ -2,18 +2,21 @@
 PadManiacs Rhythm Game
 Copyright (C) RETORA 2025. All Rights Reserved.
 https://github.com/RetoraDev/PadManiacs
-Version: v0.0.6
-Build: 11/16/2025, 1:35:02 AM
-Platform: Web
-Debug: false
+Version: v0.0.6 dev
+Build: 11/16/2025, 2:38:46 AM
+Platform: Development
+Debug: true
 Minified: false
 */
 
+
+
+// ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2025";
 
-const VERSION = "v0.0.6";
+const VERSION = "v0.0.6 dev";
 
-window.DEBUG = false;
+window.DEBUG = true;
 
 const FONTS = {
   default: { font: "font_tiny" },
@@ -62,6 +65,9 @@ const SCORE_VALUES = {
   miss: 0
 };
 
+
+
+// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -71,7 +77,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -90,6 +96,9 @@ const ENABLE_ADDON_SAFE_MODE = true;
 
 const ENABLE_UI_SFX = false;
 
+
+
+// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
   settings: {
     volume: 3,
@@ -116,6 +125,9 @@ const DEFAULT_ACCOUNT = {
   highScores: {}
 };
 
+
+
+// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -211,6 +223,9 @@ class FileSystemTools {
   }
 }
 
+
+
+// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -620,6 +635,9 @@ class NodeFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -735,6 +753,9 @@ class CordovaFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -778,6 +799,9 @@ class FallbackFileSystem {
   }
 }
 
+
+
+// ======== js/game/game.js ========
 let game, gamepad, backgroundMusic, notifications, addonManager;
 
 let Account = {
@@ -879,6 +903,9 @@ const Audio = {
   }
 };
 
+
+
+// ======== js/utils/Gamepad.js ========
 class Gamepad {
   constructor(game) {
     this.game = game;
@@ -1378,6 +1405,9 @@ class Gamepad {
   }
 }
 
+
+
+// ======== js/utils/ScreenRecorder.js ========
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -1747,6 +1777,9 @@ class ScreenRecorder {
   }
 }
 
+
+
+// ======== js/utils/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -2118,6 +2151,9 @@ class NotificationSystem {
   }
 }
 
+
+
+// ======== js/utils/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -2281,6 +2317,9 @@ class Lyrics {
   }
 }
 
+
+
+// ======== js/utils/Metronome.js ========
 class Metronome {
   constructor(scene) {
     this.scene = scene;
@@ -2448,6 +2487,9 @@ class Metronome {
   }
 }
 
+
+
+// ======== js/utils/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -2743,6 +2785,9 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config, parent) {
     config = {
@@ -3044,6 +3089,9 @@ class Text extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -3465,6 +3513,9 @@ class Window extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
@@ -3616,6 +3667,9 @@ class WindowManager {
   }
 }
 
+
+
+// ======== js/ui/CarouselMenu.js ========
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -4169,6 +4223,9 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/BackgroundGradient.js ========
 class BackgroundGradient extends Phaser.Sprite {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, "ui_background_gradient");
@@ -4181,6 +4238,9 @@ class BackgroundGradient extends Phaser.Sprite {
   }
 } 
 
+
+
+// ======== js/ui/Background.js ========
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, key);
@@ -4193,6 +4253,9 @@ class Background extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -4380,6 +4443,9 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -4393,6 +4459,9 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -4442,6 +4511,9 @@ class Logo extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(frame = 0) {
     super(game, 0, 0);
@@ -4469,6 +4541,9 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 4, text, FONTS.default);
@@ -4477,6 +4552,9 @@ class ProgressText extends Text {
   }
 }
 
+
+
+// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -4712,6 +4790,9 @@ class BackgroundMusic {
   }
 }
 
+
+
+// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -4736,6 +4817,9 @@ class Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -4776,6 +4860,9 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -4842,6 +4929,9 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -4934,6 +5024,9 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -5292,6 +5385,9 @@ class FullScreenAudioVisualizer {
   }
 }
 
+
+
+// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   constructor() {
     this.baseUrl = "";
@@ -5592,6 +5688,9 @@ class LocalSMParser {
   }
 }
 
+
+
+// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   parseSM(files, smContent) {
     let out = {};
@@ -6049,6 +6148,9 @@ class ExternalSMParser {
   }
 }
 
+
+
+// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -6434,6 +6536,9 @@ class AddonManager {
   }
 }
 
+
+
+// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -6611,6 +6716,9 @@ class Boot {
   }
 }
 
+
+
+// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -7214,6 +7322,9 @@ class LoadSongFolder {
   }
 }
 
+
+
+// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -7257,6 +7368,9 @@ class Title {
   }
 }
 
+
+
+// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -7827,6 +7941,9 @@ class MainMenu {
   }
 }
 
+
+
+// ======== js/game/states/SongSelect.js ========
 class SongSelect {
   init(songs, index, autoSelect) {
     this.songs = songs || [];
@@ -8167,6 +8284,9 @@ class SongSelect {
   }
 }
 
+
+
+// ======== js/game/states/Play.js ========
 class Play {
   init(song, difficultyIndex) {
     this.song = song;
@@ -8205,8 +8325,6 @@ class Play {
     this.JUDGE_WINDOWS = JUDGE_WINDOWS;
     
     this.SCORE_VALUES = SCORE_VALUES;
-    
-    window.Play = this;
   }
   
   create() {
@@ -8694,6 +8812,9 @@ class Play {
   }
 }
 
+
+
+// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData; // { song, difficultyIndex, player }
@@ -8922,6 +9043,9 @@ class Results {
   }
 }
 
+
+
+// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || window.localSongs || [];
@@ -9457,6 +9581,9 @@ class Jukebox {
   }
 }
 
+
+
+// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
@@ -9763,6 +9890,9 @@ class Credits {
   }
 }
 
+
+
+// ======== js/game/player/Player.js ========
 class Player {
   constructor(scene) {
     this.scene = scene;

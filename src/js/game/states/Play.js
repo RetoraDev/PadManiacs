@@ -36,8 +36,6 @@ class Play {
     this.JUDGE_WINDOWS = JUDGE_WINDOWS;
     
     this.SCORE_VALUES = SCORE_VALUES;
-    
-    window.Play = this;
   }
   
   create() {

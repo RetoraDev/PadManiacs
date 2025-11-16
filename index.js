@@ -8,7 +8,7 @@ const { spawn, execSync } = require('child_process');
 const readline = require('readline');
 
 // Import the build system
-const { build, BuildSystem } = require('./build.js');
+const { build, BuildSystem, buildProcess } = require('./build.js');
 
 class InteractiveInterface {
   constructor() {
@@ -484,6 +484,8 @@ class InteractiveInterface {
     console.log(this.color('─'.repeat(50), 'dim') + '\n');
     
     try {
+      // TODO: Handle interrupt
+      
       // Run the build process
       process.argv = ['node', 'build.js', ...args];
       await build();

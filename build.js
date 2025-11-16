@@ -928,5 +928,6 @@ if (require.main === module) {
 module.exports = {
   build,
   execSync,
-  BuildSystem
+  BuildSystem,
+  buildProcess: process
 };
