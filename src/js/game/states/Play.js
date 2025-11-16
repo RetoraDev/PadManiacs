@@ -290,8 +290,7 @@ class Play {
       this.backgroundSprite.alpha = bg.opacity * 0.6;
     }
     
-    // TODO: Fade out
-    // TODO: Apply bg.effect
+    // TODO: When applying bg effects take in account bg.fadeOut and bg.effect
   }
   
   updateBackgroundTexture() {

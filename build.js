@@ -5,7 +5,7 @@ const path = require('path');
 const { exec, execSync } = require('child_process');
 
 class BuildSystem {
-  constructor() {
+  constructor(flags = {}) {
     this.config = {
       srcDir: './src',
       distDir: './dist',
@@ -14,7 +14,8 @@ class BuildSystem {
         debug: false,
         platform: 'all', // 'web', 'cordova', 'nwjs', 'all', 'none'
         minify: false,
-        zipalign: false
+        zipalign: false,
+        ...flags
       }
     };
     
@@ -178,8 +179,8 @@ Minified: ${this.config.flags.minify}
     this.copyright = `(C) RETORA ${new Date().getFullYear()}`;
   }
 
-  parseFlags() {
-    const args = process.argv.slice(2);
+  parseFlags(args) {
+    if (!args) args = process.argv.slice(2);
     args.forEach(arg => {
       if (arg === '--debug') this.config.flags.debug = true;
       if (arg === '--dev') this.config.flags.platform = 'none';
@@ -884,8 +885,8 @@ Minified: ${this.config.flags.minify}
     this.processIndexHTML(platform);
   }
 
-  async build() {
-    this.parseFlags();
+  async build(args) {
+    this.parseFlags(args);
     
     this.setInfo();
     
@@ -929,9 +930,9 @@ Minified: ${this.config.flags.minify}
   }
 }
 
-async function build() {
+async function build(args) {
   const builder = new BuildSystem();
-  await builder.build();
+  await builder.build(args);
 }
 
 // Run build if this script is executed directly

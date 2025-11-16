@@ -321,10 +321,27 @@ class MainMenu {
       });
       if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) carousel.addItem("Addon Manager", () => this.addonManager());
       carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
+      carousel.addItem("Jukebox", () => jukebox());
       carousel.addItem("Credits", () => this.showCredits());
       game.onMenuIn.dispatch('extras', carousel);
       carousel.addItem("< Back", () => home());
       carousel.onCancel.add(() => home());
+    };
+    
+    const jukebox = () => {
+      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+        if (!window.externalSongs) {
+          confirm("Load extra songs from external storage?", () => {
+            game.state.start("LoadExternalSongs", true, false, "Jukebox", [...window.localSongs, ...window.externalSongs]);
+          }, () => {
+            game.state.start("Jukebox", true, false, window.localSongs);
+          });
+        } else {
+          game.state.start("Jukebox", true, false, [...window.localSongs, ...window.externalSongs]);
+        }
+      } else {
+        game.state.start("Jukebox", true, false, window.localSongs);
+      }
     };
     
     const confirm = (message, onConfirm, onCancel) => {

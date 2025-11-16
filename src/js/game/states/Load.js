@@ -201,6 +201,11 @@ class LoadLocalSongs {
 }
 
 class LoadExternalSongs {
+  init(nextState, nextStateParams) {
+    this.nextState = nextState || 'SongSelect';
+    this.nextStateParams = nextStateParams || {};
+  }
+  
   create() {
     this.loadingDots = new LoadingDots();
     
@@ -519,7 +524,7 @@ class LoadExternalSongs {
     
     window.externalSongs = this.songs;
     
-    game.state.start("SongSelect", true, false, this.songs, resetIndex);
+    game.state.start(this.nextState, true, false, this.nextStateParams);
     
     setTimeout(() => window.lastExternalSongIndex = window.selectStartingIndex)
   }

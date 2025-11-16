@@ -521,49 +521,50 @@ class InteractiveInterface {
     });
   }
 
-scanFileForReminders(filePath, relativePath, patterns, reminders) {
-  try {
-    const content = fs.readFileSync(filePath, 'utf8');
-    const lines = content.split('\n');
-    
-    lines.forEach((line, index) => {
-      const lineNumber = index + 1;
-      const trimmedLine = line.trim();
+  scanFileForReminders(filePath, relativePath, patterns, reminders) {
+    try {
+      const content = fs.readFileSync(filePath, 'utf8');
+      const lines = content.split('\n');
       
-      // Only process lines with // comments
-      const commentIndex = trimmedLine.indexOf('//');
-      if (commentIndex === -1) return;
-      
-      // Extract just the comment part (after //)
-      const commentText = trimmedLine.substring(commentIndex + 2).trim();
-      
-      // Look for reminder patterns at the START of the comment (case-sensitive)
-      Object.keys(patterns).forEach(type => {
-        // Exact match at start of comment (case-sensitive)
-        const exactPattern = new RegExp(`^${type}\\b\\s*:?\\s*(.*?)(?:\\s+by\\s+([\\w\\s]+))?$`);
-        const match = commentText.match(exactPattern);
+      lines.forEach((line, index) => {
+        const lineNumber = index + 1;
+        const trimmedLine = line.trim();
         
-        if (match) {
-          const comment = match[1]?.trim() || '';
-          const author = match[2]?.trim();
+        // Only process lines with // comments
+        const commentIndex = trimmedLine.indexOf('//');
+        if (commentIndex === -1) return;
+        
+        // Extract just the comment part (after //)
+        const commentText = trimmedLine.substring(commentIndex + 2).trim();
+        
+        // Look for reminder patterns at the START of the comment (case-sensitive)
+        Object.keys(patterns).forEach(type => {
+          // Exact match at start of comment (case-sensitive)
+          const exactPattern = new RegExp(`^${type}\\b\\s*:?\\s*(.*?)(?:\\s+by\\s+([\\w\\s]+))?$`);
+          const match = commentText.match(exactPattern);
           
-          reminders.push({
-            type: type,
-            comment: comment,
-            author: author,
-            file: relativePath,
-            line: lineNumber,
-            pattern: patterns[type]
-          });
-          return; // Stop checking other patterns for this line
-        }
+          if (match) {
+            const comment = match[1]?.trim() || '';
+            const author = match[2]?.trim();
+            
+            reminders.push({
+              type: type,
+              comment: comment,
+              author: author,
+              file: relativePath,
+              line: lineNumber,
+              pattern: patterns[type]
+            });
+            return; // Stop checking other patterns for this line
+          }
+        });
       });
-    });
-    
-  } catch (error) {
-    console.log(this.color(`✗ Could not read file: ${filePath}`, 'red'));
-  }
-}  
+      
+    } catch (error) {
+      console.log(this.color(`✗ Could not read file: ${filePath}`, 'red'));
+    }
+  }  
+  
   displayReminders(reminders) {
     console.log(this.color(`Found ${reminders.length} code reminder(s):\n`, 'cyan'));
     
@@ -625,7 +626,6 @@ scanFileForReminders(filePath, relativePath, patterns, reminders) {
     return summary;
   }
 
-
   startCustomBuild() {
     const args = [];
     if (this.customBuildOptions.platform !== 'all') {
@@ -654,12 +654,7 @@ scanFileForReminders(filePath, relativePath, patterns, reminders) {
     console.log(this.color('─'.repeat(50), 'dim') + '\n');
     
     try {
-      const builder = new BuildSystem();
-      process.on('SIGINT', () => {
-        builder.exit();
-        this.exit();
-      });
-      await builder.build();
+      await build(args);
       
       console.log(`\n${this.color('Build completed successfully!', 'green')}`);
       console.log(this.color('Press any key to return to menu...', 'dim'));

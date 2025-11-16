@@ -1,9 +1,9 @@
-<pre><code>
+```
    ___          ____  ___          _      _  __
   / _ \___ ____/ /  |/  /__ ____  (_)__ _| |/_/
  / ___/ _ `/ _  / /|_/ / _ `/ _ \/ / _ `/>  <
 /_/   \_,_/\_,_/_/  /_/\_,_/_//_/_/\_,_/_/|_|
-</code></pre>
+```
 
 A pocket-sized cross-platform pixel art StepMania clone.
 
@@ -21,17 +21,17 @@ PadManiacs is a lightweight rhythm game that brings the StepMania experience to 
 
 **Directional Inputs:**
 - **Arrow Keys**: Primary directional inputs (Left, Down, Up, Right)
-- **W/A/S/D**: Secondary directional mapping
-- **C/V/B/N**: Dance pad layout (Left, Down, Up, Right)
+- **D/F/J/K**: Primary dance pad layout
+- **C/V/B/N**: Secondary dance pad layout
 
 **Action Buttons:**
 - **Z** or **J**: A button / Right column
 - **X** or **K**: B button / Down column
-- **Shift** or **Tab**: Select button
-- **Enter** or **Escape**: Start button
+- **Shift**, **Tab**, or **Space Bar**: Select button
+- **Enter**, **Escape**, or **P**: Start button
 
 ### Gamepad
-Standard gamepad layout with D-pad for directional inputs and face buttons for actions.
+Standard gamepad layout with D-pad for directional inputs and face buttons for actions. Use **LEFT/DOWN/A/B** to play with a dance pad layout
 
 ### Touch Controls
 Virtual controls appear automatically on mobile devices. Tap anywhere on the screen to show touch controls if they are hidden.
@@ -60,63 +60,16 @@ You can add as many songs as desired.
 ### Loading Individual Songs
 Use "Load Single Song" from the Extra Songs menu. Select the entire folder containing the chart files when prompted. This method works on both desktop and mobile for quick testing of individual songs.
 
-## Settings
+## Screenshots & Recording
+You can capture the screen using keyboard shortcuts:
+- **F8**: Take Screenshot
+- **F9**: Start/Stop Recording (It has extremely low quality so it's recommended to use an external recorder)
 
-### Audio Settings
-- **Volume**: Controls global music volume (0%-100%)
-- **Menu Music**: Sets menu background music behavior
-- **Global Offset**: Fine-tunes audio synchronization (-400ms to +400ms in 25ms increments)
+Screenshots and recordings are saved in `Screenshots/` folder in local storage folder:
+- **Desktop**: `Path/To/PadManiacs/data/Screenshots/`
+- **Android**: `Internal Storage/PadManiacs/Screenshots/`
 
-### Gameplay Settings
-- **Auto-play**: Toggles automatic gameplay (notes play themselves)
-- **Scroll Direction**: Changes note movement direction
-- **Note Speed**: Adjusts the speed at which notes move
-- **Note Colors**: Changes the appearance of notes
-
-### Visual Settings
-- **Visualizer**: Shows real-time gameplay data:
-  - **NONE**: No visualizer
-  - **ACCURACY**: Displays timing accuracy history
-  - **AUDIO**: Shows audio frequency spectrum
-  - **BPM**: Displays BPM changes and beat indicators
-- **Metronome**: Adds rhythmic audio feedback during gameplay:
-  - **OFF**: No metronome
-  - **Quarters**: Plays on whole beats (1, 2, 3, 4...)
-  - **Eighths**: Plays on half beats (1, 1.5, 2, 2.5...)
-  - **Sixteenths**: Plays on quarter beats (1, 1.25, 1.5, 1.75...)
-  - **Thirty-seconds**: Plays on eighth beats (1, 1.125, 1.25, 1.375...)
-  - **NOTE**: Plays when notes reach the judge line (helps check chart sync)
-- **Renderer**: Selects graphics rendering method
-- **Pixelated**: Toggles pixel-perfect scaling
-
-### Utility Settings
-- **Offset Assistant**: Interactive tool to help calibrate audio sync by tapping to a metronome
-- **Erase Highscores**: Permanently clears all saved high scores
-- **Restore Default Settings**: Resets all settings to factory defaults
-- **APPLY**: Applies changes and restarts if necessary
-
-Changes are saved automatically when made. Some settings require an application restart to take effect.
-
-## Gameplay Features
-
-### Metronome
-Toggle during gameplay with the **Select** button. The metronome provides rhythmic feedback to help with timing:
-- **Beat modes**: Play at regular intervals (Quarters, Eighths, etc.)
-- **NOTE mode**: Plays exactly when notes reach the judge line - ideal for checking chart synchronization
-- Status display shows current mode in the top-left corner during gameplay
-
-### Visualizer
-Choose from different visual feedback options in the HUD:
-- **Accuracy**: Shows your timing consistency as a graph
-- **Audio**: Real-time audio frequency display
-- **BPM**: Shows current BPM and upcoming tempo changes
-
-### Offset Assistant
-Accessible from Settings, this tool helps you find the perfect audio synchronization:
-- Pauses background music and plays a 120 BPM metronome
-- Tap the **A button** in time with the ticks
-- System calculates your offset and displays confidence level (white → yellow → green)
-- Press **B button** to save the calculated offset and return to settings
+Note Web platform can't save files.
 
 ## Modding & Add-ons
 
@@ -140,23 +93,6 @@ Accessible from the main menu, the Add-on Manager allows you to:
 - **Android devices** (via Cordova)
 - **Desktop applications** (via NW.js with full file system access)
 
-### Platform-Specific Features
-
-**NW.js (Desktop):**
-- Full file system access for songs and add-ons
-- Native application exit
-- Better performance and integration
-
-**Cordova (Mobile):**
-- External storage access for songs
-- Mobile-optimized touch controls
-- App exit functionality
-
-**Web Browser:**
-- Manual song loading via file dialogs
-- Limited file system access
-- Cross-platform compatibility
-
 ## Format Support
 
 - **StepMania (.sm)**: Fully supported
@@ -170,7 +106,8 @@ Accessible from the main menu, the Add-on Manager allows you to:
 - Web version requires manual song loading
 - Doubles charts are converted to Singles format
 - Most mobile file browsers may require selecting individual files one by one
-- No specific binary for desktop platforms
+- Input mapping is not implented
+- Recordings have extremely low quality
 
 ## License
 

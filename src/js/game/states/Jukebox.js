@@ -5,11 +5,13 @@ class Jukebox {
     this.currentSong = this.songs[this.currentIndex];
     this.isPlaying = false;
     this.isShuffled = false;
+    this.menuVisible = false;
     this.originalSongOrder = [...this.songs];
     this.visualizerMode = 'symmetrical';
-    this.seekSpeed = 10; // seconds per key press
+    this.seekSpeed = 1; // seconds per key press
     this.lastSeekTime = 0;
-    this.seekCooldown = 200; // ms between seek actions
+    this.seekCooldown = 60; // ms between seek actions
+    this.doublePressTimeout = 200; // ms between presses to be considered a double press
     
     // Background system
     this.currentBackground = null;
@@ -45,7 +47,7 @@ class Jukebox {
 
   setupBackground() {
     this.backgroundSprite = game.add.sprite(0, 0);
-    this.backgroundSprite.alpha = 0.6;
+    this.backgroundSprite.alpha = 0.4;
     
     // Create video element for background videos
     this.videoElement = document.createElement("video");
@@ -54,12 +56,14 @@ class Jukebox {
   }
 
   setupAudioPlayer() {
+    if (backgroundMusic) {
+      backgroundMusic.stop();
+    }
+    
     this.audioElement = document.createElement("audio");
     this.audioElement.volume = [0,25,50,75,100][Account.settings.volume] / 100;
     
-    this.audioElement.addEventListener('loadedmetadata', () => {
-      this.updateDurationDisplay();
-    });
+    // TODO: Fix OGG songs having Infinity audio.duration value
     
     this.audioElement.addEventListener('timeupdate', () => {
       this.updateProgressBar();
@@ -258,7 +262,10 @@ class Jukebox {
 
   updateDurationDisplay() {
     const duration = this.audioElement.duration;
-    if (isNaN(duration)) return;
+    if (isNaN(duration) || duration == Infinity) {
+      this.durationText.write("--:--");
+      return;
+    };
     
     const minutes = Math.floor(duration / 60);
     const seconds = Math.floor(duration % 60);
@@ -349,7 +356,7 @@ class Jukebox {
 
   seekForward() {
     const currentTime = this.audioElement.currentTime;
-    const newTime = Math.min(currentTime + this.seekSpeed, this.audioElement.duration || 0);
+    const newTime = Math.min(currentTime + this.seekSpeed, this.audioElement.duration || Infinity);
     this.audioElement.currentTime = newTime;
   }
 
@@ -370,6 +377,8 @@ class Jukebox {
   }
 
   showMenu() {
+    this.menuVisible = true;
+    
     const menu = new CarouselMenu(60, 40, 72, 40, {
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -407,6 +416,8 @@ class Jukebox {
     menu.onCancel.add(() => {
       menu.destroy();
     });
+    
+    menu.events.onDestroy.add(() => this.menuVisible = false);
   }
 
   exitJukebox() {
@@ -433,6 +444,8 @@ class Jukebox {
       this.visualizer.update();
     }
     
+    this.updateDurationDisplay();
+    
     // Update video background if playing
     if (this.videoElement.src && this.videoElement.readyState >= 2) {
       const currentTime = game.time.now;
@@ -454,67 +467,65 @@ class Jukebox {
   handleInput() {
     const currentTime = game.time.now;
     
+    // Update gamepad
+    gamepad.update();
+    
+    // Don't trigger actions if menu is visible
+    if (this.menuVisible) return;
+    
     // Play/Pause
-    if (gamepad.pressed.a && !this.lastA) {
+    if (gamepad.pressed.a) {
       this.togglePlayback();
     }
     
     // Shuffle toggle
-    if (gamepad.pressed.b && !this.lastB) {
+    if (gamepad.pressed.b) {
       this.toggleShuffle();
     }
     
     // Visualizer mode change
-    if (gamepad.pressed.select && !this.lastSelect) {
+    if (gamepad.pressed.select) {
       this.changeVisualizerMode();
     }
     
     // Menu
-    if (gamepad.pressed.start && !this.lastStart) {
+    if (gamepad.pressed.start) {
       this.showMenu();
     }
     
     // Seek handling with cooldown
     if (currentTime - this.lastSeekTime > this.seekCooldown) {
       // Single press - seek
-      if (gamepad.pressed.left && !this.lastLeft) {
+      if (gamepad.held.left) {
         this.seekBackward();
         this.lastSeekTime = currentTime;
       }
       
-      if (gamepad.pressed.right && !this.lastRight) {
+      if (gamepad.held.right) {
         this.seekForward();
         this.lastSeekTime = currentTime;
       }
+    }
       
-      // Double press detection for song change
-      if (gamepad.pressed.left && this.lastLeft && currentTime - this.lastLeftPress < 500) {
-        this.previousSong();
-        this.lastSeekTime = currentTime;
-      }
+    // Double press detection for song change
+    if (gamepad.pressed.left && currentTime - this.lastLeftPress < this.doublePressTimeout) {
+      this.previousSong();
+      this.lastSeekTime = currentTime;
+    }
       
-      if (gamepad.pressed.right && this.lastRight && currentTime - this.lastRightPress < 500) {
-        this.nextSong();
-        this.lastSeekTime = currentTime;
-      }
+    if (gamepad.pressed.right && currentTime - this.lastRightPress < this.doublePressTimeout) {
+      this.nextSong();
+      this.lastSeekTime = currentTime;
     }
     
     // Track press times for double press detection
-    if (gamepad.pressed.left && !this.lastLeft) {
+    if (gamepad.pressed.left) {
       this.lastLeftPress = currentTime;
     }
     
-    if (gamepad.pressed.right && !this.lastRight) {
+    if (gamepad.pressed.right) {
       this.lastRightPress = currentTime;
     }
-    
-    // Update last states
-    this.lastA = gamepad.pressed.a;
-    this.lastB = gamepad.pressed.b;
-    this.lastSelect = gamepad.pressed.select;
-    this.lastStart = gamepad.pressed.start;
-    this.lastLeft = gamepad.pressed.left;
-    this.lastRight = gamepad.pressed.right;
   }
 
   shutdown() {
