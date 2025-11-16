@@ -2,6 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
+const url = require('url');
 const { spawn, execSync } = require('child_process');
 const readline = require('readline');
 
@@ -12,7 +14,9 @@ class InteractiveInterface {
   constructor() {
     this.currentSelection = 0;
     this.busy = false;
+    this.currentServer = null;
     this.menuStack = [];
+    this.cliArgs = this.parseCLIArgs();
     this.rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout
@@ -42,7 +46,7 @@ class InteractiveInterface {
     
     this.mainMenu = [
       { label: 'Build Options', action: () => this.showBuildMenu() },
-      { label: 'Serve Project', action: () => this.serveProject() },
+      { label: 'Serve Project', action: () => this.showServeMenu() },
       { label: 'Run Tests', action: () => this.runTests() },
       { label: 'Project Info', action: () => this.showProjectInfo() },
       { label: 'Exit', action: () => this.exit() }
@@ -63,6 +67,12 @@ class InteractiveInterface {
       { label: 'Back to menu', action: () => this.showMainMenu() }
     ];
     
+    this.serveMenu = [
+      { label: 'Serve Development (src/)', action: () => this.serveProject('src') },
+      { label: 'Serve Production (dist/)', action: () => this.serveProject('dist') },
+      { label: 'Back to Main Menu', action: () => this.showMainMenu() }
+    ];
+    
     this.customBuildMenu = [
       { label: 'Platform: All', action: () => this.togglePlatform() },
       { label: 'Minify: Off', action: () => this.toggleMinify() },
@@ -80,6 +90,228 @@ class InteractiveInterface {
     };
     
     this.currentMenu = this.mainMenu;
+  }
+  
+  parseCLIArgs() {
+    const args = process.argv.slice(2);
+    const parsed = {
+      serve: false,
+      serveSrc: false,
+      build: false,
+      cordova: false,
+      nwjs: false,
+      web: false,
+      all: false,
+      minify: false,
+      debug: false,
+      zipalign: false,
+      headless: false,
+      help: false
+    };
+
+    args.forEach(arg => {
+      switch (arg) {
+        case '--serve':
+          parsed.serve = true;
+          parsed.build = false;
+          break;
+        case '--serve-src':
+        case '--serve-src':
+          parsed.serveSrc = true;
+          parsed.build = false;
+          break;
+        case '--cordova':
+          parsed.cordova = true;
+          parsed.build = true;
+          break;
+        case '--nwjs':
+          parsed.nwjs = true;
+          parsed.build = true;
+          break;
+        case '--web':
+          parsed.web = true;
+          parsed.build = true;
+          break;
+        case '--all':
+          parsed.all = true;
+          parsed.build = true;
+          break;
+        case '--minify':
+          parsed.minify = true;
+          break;
+        case '--debug':
+          parsed.debug = true;
+          break;
+        case '--zipalign':
+          parsed.zipalign = true;
+          break;
+        case '--headless':
+          parsed.headless = true;
+          break;
+        case '--help':
+        case '-h':
+          parsed.help = true;
+          break;
+      }
+    });
+
+    return parsed;
+  }
+  
+  handleCLIArgs() {
+    if (this.cliArgs.help) {
+      this.showHelp();
+      return true;
+    }
+
+    if (this.cliArgs.headless) {
+      // Disable interactive features for headless mode
+      this.rl.close();
+      process.stdin.pause();
+    }
+
+    if (this.cliArgs.build) {
+      this.executeCLIBuild();
+      return true;
+    }
+
+    if (this.cliArgs.serveSrc) {
+      this.executeCLIServe('src');
+      return true;
+    }
+
+    if (this.cliArgs.serve) {
+      this.executeCLIServe('dist');
+      return true;
+    }
+
+    return false; // No CLI args handled, show interactive menu
+  }
+  
+  showHelp() {
+    this.clearScreen();
+    this.drawLogo();
+    
+    console.log(this.color('PadManiacs Build System - Command Line Interface\n', 'yellow'));
+    console.log(this.color('Usage:', 'cyan'));
+    console.log('  node index.js [options]');
+    console.log('  npm start [options]');
+    console.log('');
+    
+    console.log(this.color('Build Options:', 'yellow'));
+    console.log('  --cordova        Build Android platform only');
+    console.log('  --nwjs           Build Windows platform only');
+    console.log('  --web            Build web platform only');
+    console.log('  --all            Build all platforms (default)');
+    console.log('  --minify         Enable minification');
+    console.log('  --debug          Enable debug mode');
+    console.log('  --zipalign       Enable APK zip alignment');
+    console.log('');
+    
+    console.log(this.color('Serve Options:', 'yellow'));
+    console.log('  --serve          Serve dist/ directory');
+    console.log('  --serve-src      Serve src/ directory (development mode)');
+    console.log('');
+    
+    console.log(this.color('Other Options:', 'yellow'));
+    console.log('  --headless       Run without interactive menu');
+    console.log('  --help, -h       Show this help message');
+    console.log('');
+    
+    console.log(this.color('Examples:', 'cyan'));
+    console.log('  node index.js --cordova --debug');
+    console.log('  node index.js --serve-src');
+    console.log('  node index.js --all --minify --headless');
+    console.log('  npm start -- --serve');
+    console.log('');
+    
+    process.exit(0);
+  }
+
+  executeCLIBuild() {
+    const args = [];
+    
+    // Determine platform
+    if (this.cliArgs.cordova) {
+      args.push('--cordova');
+    } else if (this.cliArgs.nwjs) {
+      args.push('--nwjs');
+    } else if (this.cliArgs.web) {
+      args.push('--web');
+    } else {
+      args.push('--all');
+    }
+    
+    // Add flags
+    if (this.cliArgs.minify) {
+      args.push('--minify');
+    }
+    if (this.cliArgs.debug) {
+      args.push('--debug');
+    }
+    if (this.cliArgs.zipalign) {
+      args.push('--zipalign');
+    }
+
+    if (this.cliArgs.headless) {
+      // Run build directly without interactive output
+      this.runBuildHeadless(args);
+    } else {
+      // Run build with interactive output
+      this.runBuild(args);
+    }
+  }
+  
+  async runBuildHeadless(args) {
+    try {
+      process.argv = ['node', 'build.js', ...args];
+      await build();
+      
+      if (this.cliArgs.cordova && this.isTermux()) {
+        // Auto-open APK in Termux
+        let distDir = new BuildSystem().config.distDir;
+        const apkFiles = fs.readdirSync(distDir).filter(file => file.endsWith('.apk'));
+        if (apkFiles.length > 0) {
+          const apkPath = path.join(distDir, apkFiles[0]);
+          execSync(`termux-open ${apkPath}`, { stdio: "ignore" });
+        }
+      }
+      
+      process.exit(0);
+    } catch (error) {
+      console.error(this.color('Build failed:', 'red'), error.message);
+      process.exit(1);
+    }
+  }
+
+  executeCLIServe(mode) {
+    const port = 8080;
+    
+    if (this.cliArgs.headless) {
+      console.log(this.color(`Starting ${mode} server on port ${port}...`, 'yellow'));
+    } else {
+      this.clearScreen();
+      this.drawLogo();
+      console.log(this.color(`Starting ${mode} server...\n`, 'yellow'));
+    }
+    
+    console.log(this.color('Server:', 'cyan'), `http://localhost:${port}`);
+    console.log(this.color('Directory:', 'cyan'), mode === 'src' ? 'src/' : 'dist/');
+    
+    if (this.cliArgs.headless) {
+      console.log(this.color('Press Ctrl+C to stop', 'dim'));
+    }
+    
+    this.startNodeServer(mode === 'src' ? './' : 'dist', port, mode);
+    
+    // For headless mode, keep the process running
+    if (this.cliArgs.headless) {
+      // Keep process alive
+      process.on('SIGINT', () => {
+        console.log(this.color('\nServer stopped.', 'green'));
+        process.exit(0);
+      });
+    }
   }
 
   color(text, color) {
@@ -157,6 +389,12 @@ class InteractiveInterface {
     this.drawMenu();
   }
   
+  showBuildMenu() {
+    this.currentMenu = this.buildMenu;
+    this.currentSelection = 0;
+    this.drawMenu();
+  }
+
   showOpenApkConfirm() {
     this.currentMenu = this.openApkConfirm;
     this.currentSelection = 0;
@@ -171,9 +409,9 @@ class InteractiveInterface {
     }
     this.showMainMenu();
   }
-
-  showBuildMenu() {
-    this.currentMenu = this.buildMenu;
+  
+  showServeMenu() {
+    this.currentMenu = this.serveMenu;
     this.currentSelection = 0;
     this.drawMenu();
   }
@@ -266,35 +504,415 @@ class InteractiveInterface {
     }
   }
 
-  serveProject() {
+  serveProject(mode) {
     this.clearScreen();
     this.drawLogo();
     
-    this.busy = true;
+    const serveDir = mode === 'src' ? './' : 'dist';
+    const port = 8080;
     
-    console.log(this.color('Starting development server...\n', 'yellow'));
-    console.log(this.color('Server will be available at:', 'cyan'), this.color('http://localhost:8080', 'bright'));
+    console.log(this.color(`Starting ${mode} development server...\n`, 'yellow'));
+    console.log(this.color('Server will be available at:', 'cyan'), this.color(`http://localhost:${port}`, 'bright'));
+    console.log(this.color('Serving from:', 'cyan'), this.color(serveDir, 'bright'));
+    
+    if (mode === 'src') {
+      console.log(this.color('Development mode: Loading individual source files', 'green'));
+    } else {
+      console.log(this.color('Production mode: Loading bundled game.js', 'green'));
+    }
+    
     console.log(this.color('Press Ctrl+C to stop the server', 'dim'));
     console.log(this.color('─'.repeat(50), 'dim') + '\n');
     
-    try {
-      const server = spawn('python', ['-m', 'http.server', '8080', '-d', 'dist/'], {
-        stdio: 'inherit',
-        shell: true
+    this.startNodeServer(serveDir, port, mode);
+  }
+  
+  async findAvailablePort(startPort = 8080, maxAttempts = 10) {
+    const net = require('net');
+    
+    for (let port = startPort; port <= startPort + maxAttempts; port++) {
+      const isAvailable = await new Promise((resolve) => {
+        const tester = net.createServer()
+          .once('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+              resolve(false);
+            } else {
+              resolve(false); // Other errors also mean port is not available
+            }
+          })
+          .once('listening', () => {
+            tester.once('close', () => resolve(true)).close();
+          })
+          .listen(port);
       });
       
-      server.on('close', (code) => {
-        console.log(`\n${this.color('Server stopped.', 'yellow')}`);
-        console.log(this.color('Press any key to return to menu...', 'dim'));
+      if (isAvailable) {
+        return port;
+      }
+    }
+    
+    throw new Error(`No available ports found between ${startPort} and ${startPort + maxAttempts}`);
+  }
+  
+  async startNodeServer(serveDir, preferredPort, mode) {
+    try {
+      // Check if preferred port is available, if not find another one
+      const actualPort = await this.findAvailablePort(preferredPort);
+      
+      if (actualPort !== preferredPort) {
+        console.log(this.color(`Port ${preferredPort} is busy, using port ${actualPort} instead`, 'yellow'));
+      }
+      
+      this.busy = true;
+      
+      const server = http.createServer((req, res) => {
+        const startTime = Date.now();
+        const requestId = Math.random().toString(36).substr(2, 9);
         
-        this.rl.input.once('data', () => this.showMainMenu());
+        // Log request details based on mode
+        console.log(this.color(`${req.method} → ${req.url}`, 'cyan'));
+        
+        // Parse the URL
+        const parsedUrl = url.parse(req.url);
+        let pathname = parsedUrl.pathname;
+        
+        // Default to index.html
+        if (pathname === '/') {
+          pathname = '/index.html';
+          if (mode === 'src') {
+            console.log(this.color(`→ Rewrote / to /index.html`, 'gray'));
+          }
+        }
+        
+        // Build the file path
+        let filePath = path.join(process.cwd(), serveDir, pathname);
+        
+        // Special handling for src mode index.html
+        if (mode === 'src' && pathname === '/index.html') {
+          try {
+            const devHtml = this.generateDevIndexHtml();
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end(devHtml);
+            const duration = Date.now() - startTime;
+            console.log(this.color(`200 OK (${duration}ms) - Generated dev index.html`, 'green'));
+            return;
+          } catch (error) {
+            console.log(this.color(`✗ Error generating dev index.html:`, 'red'), error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('Error generating development index.html');
+            const duration = Date.now() - startTime;
+            console.log(this.color(`500 Internal Server Error (${duration}ms)`, 'red'));
+            return;
+          }
+        }
+        
+        // Handle assets route - redirect /assets/ to ./src/assets/
+        if (mode === 'src' && pathname.startsWith('/assets/')) {
+          console.log(this.color(`Redirecting: ${pathname} → /src${pathname}`, 'cyan'));
+          // Replace /assets/ with /src/assets/ in the file path
+          filePath = path.join(process.cwd(), 'src', 'assets', pathname.substring('/assets/'.length));
+        }
+
+        // Check if file exists
+        fs.access(filePath, fs.constants.F_OK, (err) => {
+          if (err) {
+            // File not found
+            const duration = Date.now() - startTime;
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('404 Not Found');
+            console.log(this.color(`404 Not Found (${duration}ms) - ${filePath}`, 'yellow'));
+            return;
+          }
+          
+          // Read and serve the file
+          fs.readFile(filePath, (err, data) => {
+            const duration = Date.now() - startTime;
+            
+            if (err) {
+              res.writeHead(500, { 'Content-Type': 'text/plain' });
+              res.end('500 Internal Server Error');
+              console.log(this.color(`500 Internal Server Error (${duration}ms)`, 'red'));
+              return;
+            }
+            
+            let content = data;
+            
+            // For binary files (images, audio), don't convert to string
+            const ext = path.extname(filePath).toLowerCase();
+            const textExtensions = ['.html', '.css', '.js', '.json', '.sm', '.lrc', '.txt'];
+            
+            if (textExtensions.includes(ext)) {
+              content = data.toString();
+              // Dynamic replacements based on file type for development mode
+              content = this.processDynamicContent(filePath, content, mode);
+            }
+            
+            // Set content type based on file extension
+            const contentTypes = {
+              '.html': 'text/html',
+              '.css': 'text/css',
+              '.js': 'application/javascript',
+              '.png': 'image/png',
+              '.jpg': 'image/jpeg',
+              '.jpeg': 'image/jpeg',
+              '.gif': 'image/gif',
+              '.svg': 'image/svg+xml',
+              '.json': 'application/json',
+              '.ogg': 'audio/ogg',
+              '.mp3': 'audio/mpeg',
+              '.wav': 'audio/wav',
+              '.sm': 'text/plain',
+              '.lrc': 'text/plain',
+              '.txt': 'text/plain'
+            };
+            
+            const contentType = contentTypes[ext] || 'text/plain';
+            res.writeHead(200, { 'Content-Type': contentType });
+            res.end(content);
+            
+            console.log(this.color(`200 OK (${duration}ms) - ${filePath}`, 'green'));
+          });
+        });
       });
+      
+      // Store server reference for graceful shutdown
+      this.currentServer = server;
+      
+      // Add comprehensive event listeners based on mode
+      server.on('listening', () => {
+        console.log(this.color(`✓ Server running!`, 'green'));
+      });
+      
+      server.on('connection', (socket) => {
+        if (mode === 'src') {
+          console.log(this.color(`→ New connection from ${socket.remoteAddress}:${socket.remotePort}`, 'blue'));
+        }
+      });
+      
+      server.on('close', () => {
+        console.log(this.color(' → Server connection closed', 'cyan'));
+      });
+      
+      server.on('checkContinue', (request, response) => {
+        if (mode === 'src') {
+          console.log(this.color(`→ Expect: 100-continue for ${request.url}`, 'magenta'));
+        }
+      });
+      
+      // Handle server errors
+      server.on('error', (error) => {
+        if (error.code === 'EADDRINUSE') {
+          console.log(this.color(`✗ Port ${actualPort} is already in use!`, 'red'));
+          console.log(this.color('  Please close other servers or try a different port.', 'yellow'));
+        } else {
+          console.log(this.color('✗ Server error:', 'red'), error.message);
+          if (mode === 'src') {
+            console.log(this.color(`  Error details: ${error.stack}`, 'gray'));
+          }
+        }
+        
+        this.returnToMenuAfterError();
+      });
+      
+      server.on('clientError', (error, socket) => {
+        if (mode === 'src') {
+          console.log(this.color(`⚠ Client error: ${error.message}`, 'yellow'));
+        }
+        
+        if (socket.writable) {
+          socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+        }
+      });
+      
+      server.listen(actualPort, () => {
+        // Listening message is handled by the 'listening' event
+      });
+      
+      // Handle graceful shutdown
+      const shutdownHandler = () => {
+        server.close(() => {
+          console.log(this.color('✓ Server stopped gracefully', 'green'));
+          this.currentServer = null;
+          this.exit();
+        });
+        
+        // Force close after 5 seconds if graceful shutdown fails
+        setTimeout(() => {
+          console.log(this.color('⚠ Forcing server shutdown', 'yellow'));
+          process.exit(0);
+        }, 5000);
+      };
+      
+      process.on('SIGINT', shutdownHandler);
+      
+      // Store the handler so we can remove it later
+      this.currentShutdownHandler = shutdownHandler;
       
     } catch (error) {
-      console.log(`${this.color('Failed to start server:', 'red')} ${error.message}`);
-      console.log(this.color('Press any key to return to menu...', 'dim'));
+      console.log(this.color('✗ Failed to start server:', 'red'), error.message);
+      if (mode === 'src') {
+        console.log(this.color(`  Error stack: ${error.stack}`, 'gray'));
+      }
+      this.returnToMenuAfterError();
+    }
+  }
+
+  returnToMenuAfterError() {
+    console.log(this.color('Press any key to return to menu...', 'dim'));
+    
+    this.rl.input.once('data', () => {
+      this.cleanupServer();
+      this.showMainMenu();
+    });
+  }
+
+  generateDevIndexHtml() {
+    const buildSystem = new BuildSystem();
+    let htmlContent = fs.readFileSync('./src/index.html', 'utf8');
+    
+    // Replace stylesheet url
+    htmlContent = htmlContent.replace(
+      /<link[^>]*href=["'][^"']*style\.css["'][^>]*>/gi,
+      '<link rel="stylesheet" href="./src/css/style.css">'
+    );
+    
+    // Remove existing script tags if any
+    htmlContent = htmlContent.replace(/<script src="[^"]*"><\/script>\s*/g, '');
+    
+    // Build head content (libraries and CSS)
+    let headContent = '';
+    
+    // Add lib files to head
+    headContent += '  <script src="./lib/phaser.min.js"></script>\n';
+    headContent += '  <script src="./lib/eruda.js"></script>\n';
+    
+    // Build body content (source code)
+    let bodyContent = '\n';
+    
+    // Add all source JS files in order to body
+    buildSystem.fileOrder.forEach(filePath => {
+      if (filePath.startsWith('js/')) {
+        bodyContent += `  <script src="./src/${filePath}"></script>\n`;
+      }
+    });
+    
+    // Add debug initialization to body (after source files)
+    bodyContent += `
+    <script>
+      // Auto-enable debug mode for development
+      window.DEBUG = true;
       
-      this.rl.input.once('data', () => this.showMainMenu());
+      // Initialize eruda for development
+      if (typeof window.eruda !== 'undefined') {
+        eruda.init({
+          tool: ['console', 'elements', 'resources', 'snippets']
+        });
+        
+        const snippets = eruda.get('snippets');
+        snippets.clear();
+        
+        // Debug utilities
+        snippets.add("Start Recording", () => {
+          if (window.game && game.recorder) {
+            game.recorder.start();
+          } else {
+            console.warn('Game not initialized yet');
+          }
+        }, "Start recording the game");
+        
+        snippets.add("Stop Recording", () => {
+          if (window.game && game.recorder) {
+            game.recorder.stop();
+          }
+        }, "Stop recording and save video");
+        
+        snippets.add("Record Next Game", () => {
+          window.recordNextGame = true;
+          console.log('Recording will start on next game');
+        }, "Start recording next song, stop when it ends");
+        
+        snippets.add("Take Screenshot", () => {
+          if (window.game && game.recorder) {
+            game.recorder.screenshot();
+          }
+        }, "Take a screenshot");
+        
+        snippets.add("Auto Screenshots", () => {
+          const screenshot = () => {
+            if (window.game && game.recorder) {
+              game.recorder.screenshot();
+              setTimeout(screenshot, Phaser.Math.between(5000, 20000));
+            }
+          };
+          screenshot();
+        }, "Take screenshots randomly every 5-20 seconds");
+        
+        snippets.add("Add FPS Counter", () => {
+          if (window.game) {
+            addFpsText();
+          }
+        }, "Displays performance information");
+        
+        snippets.add("Reload Game", () => {
+          location.reload();
+        }, "Reload the game");
+        
+        snippets.add("Destroy Eruda", () => {
+          eruda.destroy();
+        }, "Remove debug panel");
+        
+        console.log('PadManiacs Development Mode Active');
+      }
+    </script>`;
+    
+    // Insert libraries in head
+    htmlContent = htmlContent.replace('</head>', headContent + '\n</head>');
+    
+    // Insert source code in body
+    htmlContent = htmlContent.replace('</body>', bodyContent + '\n</body>');
+    
+    return htmlContent;
+  }
+  
+  processDynamicContent(filePath, content, mode) {
+    if (mode !== 'src') return content;
+    
+    const filename = path.basename(filePath);
+    
+    const buildSystem = new BuildSystem();
+    buildSystem.config.flags.platform = 'none';
+    buildSystem.setInfo();
+    
+    // Handle constants.js
+    if (filePath.includes('constants.js')) {
+      return content
+        .replace('const COPYRIGHT = "%";', `const COPYRIGHT = "${buildSystem.copyright}";`)
+        .replace('const VERSION = "%";', `const VERSION = "${buildSystem.versionName}";`)
+        .replace('window.DEBUG = %;', 'window.DEBUG = true;');
+    }
+    
+    // Handle environment.js
+    if (filePath.includes('environment.js')) {
+      return content.replace(
+        'const CURRENT_ENVIRONMENT = %;',
+        'const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;'
+      );
+    }
+    
+    return content;
+  }
+  
+  cleanupServer() {
+    // Remove SIGINT handler
+    if (this.currentShutdownHandler) {
+      process.removeListener('SIGINT', this.currentShutdownHandler);
+      this.currentShutdownHandler = null;
+    }
+    
+    // Close server if it's running
+    if (this.currentServer) {
+      this.currentServer.close();
+      this.currentServer = null;
     }
   }
 
@@ -383,11 +1001,17 @@ class InteractiveInterface {
   }
 
   exit() {
+    this.cleanupServer();
     this.rl.close();
     process.exit(0);
   }
 
   start() {
+    // Handle CLI arguments first
+    if (this.handleCLIArgs()) {
+      return; // CLI command handled, don't show interactive menu
+    }
+    
     // Set up raw mode for keypress events
     this.rl.input.setRawMode(true);
     this.rl.input.resume();
@@ -407,6 +1031,8 @@ class InteractiveInterface {
         this.handleInput('escape');
       }
     });
+    
+    process.on('SIGINT', () => this.exit());
 
     this.showMainMenu();
   }
@@ -427,5 +1053,16 @@ module.exports = { InteractiveInterface, startInteractive };
 
 // Start if run directly
 if (require.main === module) {
-  startInteractive();
+  const interface = new InteractiveInterface();
+  
+  // Check if we should run in CLI mode
+  const hasCLIArgs = process.argv.length > 2;
+  
+  if (hasCLIArgs) {
+    // CLI mode - handle arguments and execute commands
+    interface.start();
+  } else {
+    // Interactive mode - start the menu interface
+    startInteractive();
+  }
 }

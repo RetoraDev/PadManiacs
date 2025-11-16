@@ -157,6 +157,12 @@ Minified: ${this.config.flags.minify}
     };
     return platformMap[platform] || platform;
   }
+  
+  setInfo() {
+    this.packageInfo = this.getPackageInfo();
+    this.versionName = `v${this.packageInfo.version + (this.config.flags.platform === 'none' ? " dev" : "")}`;
+    this.copyright = `(C) RETORA ${new Date().getFullYear()}`;
+  }
 
   parseFlags() {
     const args = process.argv.slice(2);
@@ -867,9 +873,7 @@ Minified: ${this.config.flags.minify}
   async build() {
     this.parseFlags();
     
-    this.packageInfo = this.getPackageInfo();
-    this.versionName = `v${this.packageInfo.version + (this.config.flags.platform === 'none' ? " dev" : "")}`;
-    this.copyright = `(C) RETORA ${new Date().getFullYear()}`;
+    this.setInfo();
     
     this.log('Starting build process...', 'info');
     this.log(`Platform: ${this.config.flags.platform}`, 'info');

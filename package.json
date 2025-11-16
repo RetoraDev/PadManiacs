@@ -14,7 +14,6 @@
     "interface": "node index.js",
     "release": "node build.js --all --minify",
     "serve": "python -m http.server 8080 -d dist/",
-    "serve:src": "python -m http.server 8080 -d src/",
     "dev": "npm run build:dev && npm run serve",
     "clean": "rm -rf dist",
     "test": "echo \"No tests specified\" && exit 0"
