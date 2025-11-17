@@ -524,7 +524,11 @@ class LoadExternalSongs {
     
     window.externalSongs = this.songs;
     
-    game.state.start(this.nextState, true, false, ...this.nextStateParams);
+    if (this.nextStateParams.length) {
+      game.state.start(this.nextState, true, false, ...this.nextStateParams);
+    } else {
+      game.state.start(this.nextState, true, false,  this.songs);
+    }
     
     setTimeout(() => window.lastExternalSongIndex = window.selectStartingIndex)
   }

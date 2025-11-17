@@ -243,7 +243,6 @@ class Play {
       if (window.recordNextGame) game.recorder.start(this.audio, 0);
     }, FIXED_DELAY + this.userOffset);
     
-    
     this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
   }
   
@@ -268,7 +267,6 @@ class Play {
   }
   
   applyBackground(bg) {
-    if (this.backgroundVideo) this.backgroundVideo.destroy();
     if (bg.file == '-nosongbg-') {
       this.clearBackgroundImage();
     } else if (bg.type == 'video') {

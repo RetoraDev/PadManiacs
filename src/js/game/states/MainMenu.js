@@ -332,7 +332,7 @@ class MainMenu {
       if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
         if (!window.externalSongs) {
           confirm("Load extra songs from external storage?", () => {
-            game.state.start("LoadExternalSongs", true, false, "Jukebox");
+            game.state.start("LoadExternalSongs", true, false, "Jukebox", [undefined, undefined]);
           }, () => {
             game.state.start("Jukebox");
           });

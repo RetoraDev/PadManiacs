@@ -98,8 +98,8 @@ class Boot {
         frameHeight: 8
       },
       {
-        key: "ui_jukebox_lrc",
-        url: "ui/jukebox_lrc.png",
+        key: "ui_jukebox_menu",
+        url: "ui/jukebox_menu.png",
         type: "spritesheet",
         frameWidth: 8,
         frameHeight: 8

@@ -6,6 +6,7 @@ class Jukebox {
     this.isPlaying = false;
     this.isShuffled = false;
     this.menuVisible = false;
+    this.songListMenuVisible = false;
     this.originalSongOrder = [...this.songs];
     this.visualizerMode = 'symmetrical';
     this.seekSpeed = 1; // seconds per key press
@@ -24,8 +25,10 @@ class Jukebox {
     
     // LRC system
     this.lyrics = null;
-    this.lyricsVisible = true;
     this.hasLyrics = false;
+    
+    // Fullscreen mode
+    this.fullscreenMode = false;
     
     // Button states and timers
     this.buttonActiveTimers = {};
@@ -33,6 +36,9 @@ class Jukebox {
     this.lastRightPress = 0;
     this.lastSelectPress = 0;
     this.lastBPress = 0;
+    
+    // Remember playback position
+    this.playbackPositions = {};
   }
 
   create() {
@@ -89,6 +95,10 @@ class Jukebox {
     this.audioElement.addEventListener('ended', () => {
       this.nextSong();
     });
+    
+    this.audioElement.addEventListener('error', (e) => {
+      console.warn("Audio error:", e);
+    });
   }
 
   setupUI() {
@@ -102,7 +112,7 @@ class Jukebox {
     this.bannerSprite = game.add.sprite(4, 4);
     
     // Song metadata
-    this.songTitle = new Text(104, 4, "", FONTS.shaded);
+    this.songTitle = new Text(102, 4, "", FONTS.shaded);
     this.songArtist = new Text(104, 14, "", FONTS.default);
     this.songCredit = new Text(104, 24, "", FONTS.default);
     
@@ -125,7 +135,7 @@ class Jukebox {
     // Create lyrics display
     this.lyricsText = new Text(game.width / 2, 51, "", FONTS.stroke);
     this.lyricsText.anchor.set(0.5);
-    this.lyricsText.visible = false;
+    this.lyricsText.visible = true; // Always visible
   }
 
   createPlaybackControls() {
@@ -138,7 +148,7 @@ class Jukebox {
         skip: 8,
         seek: 8,
         pause: 12,
-        lrc: 8
+        menu: 8
     };
     
     // Calculate total width including buttons and spacing
@@ -149,7 +159,7 @@ class Jukebox {
         buttonWidths.pause + buttonSpacing +
         buttonWidths.seek + buttonSpacing +
         buttonWidths.skip + buttonSpacing +
-        buttonWidths.lrc;
+        buttonWidths.menu;
     
     const startX = centerX - (totalWidth / 2);
     let currentX = startX;
@@ -186,9 +196,9 @@ class Jukebox {
     this.skipRightButton.anchor.set(0.5);
     currentX += buttonWidths.skip + buttonSpacing;
     
-    // LRC button (rightmost)
-    this.lrcButton = game.add.sprite(currentX + buttonWidths.lrc/2, yPos, "ui_jukebox_lrc", 0);
-    this.lrcButton.anchor.set(0.5);
+    // Fullscreen button (rightmost)
+    this.menuButton = game.add.sprite(currentX + buttonWidths.menu/2, yPos, "ui_jukebox_menu", 0);
+    this.menuButton.anchor.set(0.5);
   }
 
   setupVisualizer() {
@@ -212,7 +222,6 @@ class Jukebox {
     } else {
       this.lyrics = null;
       this.hasLyrics = false;
-      this.lrcButton.alpha = 0.5; // Dim button when no lyrics available
     }
   }
 
@@ -239,18 +248,53 @@ class Jukebox {
       });
       
       this.hasLyrics = true;
-      this.lrcButton.alpha = 1.0;
       
     } catch (error) {
       console.warn("Could not load lyrics:", error);
       this.lyrics = null;
       this.hasLyrics = false;
-      this.lrcButton.alpha = 0.5;
     }
+  }
+
+  getSongKey(song) {
+    // Create unique key for song
+    if (song.folderName) {
+      return `local_${song.folderName}`;
+    } else if (song.audioUrl) {
+      let hash = 0;
+      for (let i = 0; i < song.audioUrl.length; i++) {
+        const char = song.audioUrl.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      return `external_${hash.toString(36)}`;
+    }
+    return `unknown_${Date.now()}`;
+  }
+
+  savePlaybackPosition() {
+    if (this.audioElement && this.currentSong) {
+      const songKey = this.getSongKey(this.currentSong);
+      this.playbackPositions[songKey] = this.audioElement.currentTime;
+    }
+  }
+
+  loadPlaybackPosition() {
+    if (this.currentSong) {
+      const songKey = this.getSongKey(this.currentSong);
+      const savedPosition = this.playbackPositions[songKey];
+      if (savedPosition && savedPosition > 0) {
+        return savedPosition;
+      }
+    }
+    return 0;
   }
 
   loadSong(index) {
     if (index < 0 || index >= this.songs.length) return;
+    
+    // Save current playback position before switching
+    this.savePlaybackPosition();
     
     // Stop current playback
     this.audioElement.pause();
@@ -270,7 +314,10 @@ class Jukebox {
     // Load lyrics for new song
     this.setupLyrics();
     
-    // Start playback
+    // Start playback from saved position or beginning
+    const startTime = this.loadPlaybackPosition();
+    this.audioElement.currentTime = startTime;
+    
     this.play();
   }
 
@@ -301,6 +348,8 @@ class Jukebox {
   }
 
   updateBackground() {
+    // TODO: Implement background videos correctly 
+    
     // Clear current background
     this.backgroundSprite.loadTexture(null);
     this.videoElement.src = "";
@@ -364,10 +413,65 @@ class Jukebox {
     this.currentTimeText.write(`${minutes}:${seconds.toString().padStart(2, '0')}`);
   }
 
-  updateButtonStates() {
-    if (this.menuVisible) return;
+  updateFullscreenMode() {
+    if (this.fullscreenMode) {
+      // Fullscreen mode: background alpha 1, hide UI elements except lyrics
+      this.backgroundSprite.alpha = 1;
+      this.uiBackground.visible = false;
+      this.bannerSprite.visible = false;
+      this.songTitle.visible = false;
+      this.songArtist.visible = false;
+      this.songCredit.visible = false;
+      this.currentTimeText.visible = false;
+      this.durationText.visible = false;
+      this.progressBarBg.visible = false;
+      this.progressBar.visible = false;
+      this.visualizationButton.visible = false;
+      this.skipLeftButton.visible = false;
+      this.seekLeftButton.visible = false;
+      this.pauseButton.visible = false;
+      this.seekRightButton.visible = false;
+      this.skipRightButton.visible = false;
+      this.menuButton.visible = false;
+      this.navigationHint.visible = false;
+    } else {
+      // Normal mode: restore all UI elements
+      this.backgroundSprite.alpha = 0.4;
+      this.uiBackground.visible = true;
+      this.bannerSprite.visible = true;
+      this.songTitle.visible = true;
+      this.songArtist.visible = true;
+      this.songCredit.visible = true;
+      this.currentTimeText.visible = true;
+      this.durationText.visible = true;
+      this.progressBarBg.visible = true;
+      this.progressBar.visible = true;
+      this.visualizationButton.visible = true;
+      this.skipLeftButton.visible = true;
+      this.seekLeftButton.visible = true;
+      this.pauseButton.visible = true;
+      this.seekRightButton.visible = true;
+      this.skipRightButton.visible = true;
+      this.menuButton.visible = true;
+      this.navigationHint.visible = true;
+    }
     
+    // Lyrics are always visible in both modes
+    this.lyricsText.visible = true;
+  }
+
+  toggleFullscreen() {
+    this.fullscreenMode = !this.fullscreenMode;
+    this.updateFullscreenMode();
+  }
+
+  updateButtonStates() {
     const currentTime = game.time.now;
+    
+    // Update menu button based on active timer
+    this.menuButton.frame = this.buttonActiveTimers.menu > currentTime ? 1 : 0;
+    
+    if (this.menuVisible || this.songListMenuVisible) return;
     
     // Update pause button based on playback state
     const pauseFrame = this.isPlaying ? 0 : 1; // 0 = pause icon, 1 = play icon
@@ -383,20 +487,30 @@ class Jukebox {
     
     // Update visualization button based on active timer
     this.visualizationButton.frame = this.buttonActiveTimers.visualization > currentTime ? 1 : 0;
-    
-    // Update LRC button based on active timer and state
-    this.lrcButton.frame = this.buttonActiveTimers.lrc > currentTime ? 1 : 0;
-    
-    // Dim LRC button if no lyrics available
-    if (!this.hasLyrics) {
-      this.lrcButton.alpha = 0.5;
-    } else {
-      this.lrcButton.alpha = 1.0;
-    }
   }
 
   setButtonActive(buttonName, duration = 100) {
     this.buttonActiveTimers[buttonName] = game.time.now + duration;
+  }
+
+  changeVolume(delta) {
+    let currentVolume = Account.settings.volume;
+    let newVolume = currentVolume + delta;
+    
+    // Clamp volume between 0 and 4 (0%, 25%, 50%, 75%, 100%)
+    newVolume = Phaser.Math.clamp(newVolume, 0, 4);
+    
+    if (newVolume !== currentVolume) {
+      Account.settings.volume = newVolume;
+      saveAccount();
+      
+      // Update audio volume
+      this.audioElement.volume = [0,25,50,75,100][newVolume] / 100;
+      
+      // Show volume feedback
+      const volumeLevels = ["MUTE", "25%", "50%", "75%", "100%"];
+      notifications.show(`VOLUME: ${volumeLevels[newVolume]}`, 1000);
+    }
   }
 
   play() {
@@ -405,6 +519,9 @@ class Jukebox {
     }).catch(error => {
       console.warn("Playback failed:", error);
       this.isPlaying = false;
+      // On error, try to start from beginning
+      this.audioElement.currentTime = 0;
+      this.play();
     });
   }
 
@@ -485,26 +602,65 @@ class Jukebox {
     this.setButtonActive('visualization', 100);
   }
 
-  toggleLyrics() {
-    if (!this.hasLyrics) return;
+  showSongList() {
+    this.songListMenuVisible = true;
     
-    this.lyricsVisible = !this.lyricsVisible;
+    const menuBg = game.add.graphics(0, 0);
+    menuBg.beginFill(0x000000, 0.7);
+    menuBg.drawRect(0, 0, game.width, game.height);
+    menuBg.endFill();
     
-    // Show active frame on LRC button
-    this.setButtonActive('lrc', 100);
-  }
-
-  updateLyrics() {
-    this.lyricsText.visible = this.lyricsVisible && this.hasLyrics;
-        
-    if (this.lyricsVisible && this.lyrics && this.audioElement) {
-      const currentTime = this.audioElement.currentTime;
-      this.lyrics.move(currentTime);
-    }
+    const menu = new CarouselMenu(20, 20, 152, 72, {
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      align: 'left',
+      disableScrollBar: false
+    });
+    
+    // Add all songs to the menu
+    this.songs.forEach((song, index) => {
+      const title = song.titleTranslit || song.title || `Song ${index + 1}`;
+      const isCurrent = index === this.currentIndex;
+      const displayText = isCurrent ? `> ${title}` : `  ${title}`;
+      
+      menu.addItem(
+        displayText,
+        () => {
+          if (index !== this.currentIndex) {
+            this.loadSong(index);
+          }
+          menu.destroy();
+          menuBg.destroy();
+          this.songListMenuVisible = false;
+        },
+        { 
+          song: song, 
+          index: index,
+          bgcolor: isCurrent ? '#9b59b6' : 'brown'
+        }
+      );
+    });
+    
+    menu.onCancel.add(() => {
+      menu.destroy();
+      menuBg.destroy();
+      this.songListMenuVisible = false;
+    });
+    
+    // Set initial selection to current song
+    menu.selectedIndex = this.currentIndex;
+    menu.updateSelection();
   }
 
   showMenu() {
     this.menuVisible = true;
+    
+    this.setButtonActive('menu', 100);
+    
+    const menuBg = game.add.graphics(0, 0);
+    menuBg.beginFill(0x000000, 0.7);
+    menuBg.drawRect(0, 0, game.width, game.height);
+    menuBg.endFill();
     
     const menu = new CarouselMenu(60, 40, 72, 40, {
       bgcolor: 'brown',
@@ -514,12 +670,21 @@ class Jukebox {
     
     menu.addItem("Continue", () => {
       menu.destroy();
+      menuBg.destroy();
       this.menuVisible = false;
+    });
+    
+    menu.addItem("Song List", () => {
+      menu.destroy();
+      menuBg.destroy();
+      this.menuVisible = false;
+      this.showSongList();
     });
     
     menu.addItem("Toggle Shuffle", () => {
       this.toggleShuffle();
       menu.destroy();
+      menuBg.destroy();
       this.menuVisible = false;
     });
     
@@ -529,11 +694,15 @@ class Jukebox {
     
     menu.onCancel.add(() => {
       menu.destroy();
+      menuBg.destroy();
       this.menuVisible = false;
     });
   }
 
   exitJukebox() {
+    // Save current playback position before exiting
+    this.savePlaybackPosition();
+    
     // Clean up
     this.audioElement.pause();
     this.audioElement.src = "";
@@ -583,6 +752,15 @@ class Jukebox {
     this.handleInput();
   }
 
+  updateLyrics() {
+    if (this.hasLyrics && this.lyrics && this.audioElement) {
+      const currentTime = this.audioElement.currentTime;
+      this.lyrics.move(currentTime);
+    } else {
+      this.lyricsText.write(""); // Clear lyrics if none available
+    }
+  }
+
   handleInput() {
     const currentTime = game.time.now;
     
@@ -590,16 +768,25 @@ class Jukebox {
     gamepad.update();
     
     // Don't trigger actions if menu is visible
-    if (this.menuVisible) return;
+    if (this.menuVisible || this.songListMenuVisible) return;
+    
+    // Volume control (UP/DOWN)
+    if (gamepad.pressed.up) {
+      this.changeVolume(1); // Increase volume
+    }
+    
+    if (gamepad.pressed.down) {
+      this.changeVolume(-1); // Decrease volume
+    }
     
     // Play/Pause (A button)
     if (gamepad.pressed.a) {
       this.togglePlayback();
     }
     
-    // LRC toggle (B button)
+    // Fullscreen toggle (B button)
     if (gamepad.pressed.b) {
-      this.toggleLyrics();
+      this.toggleFullscreen();
     }
     
     // Visualizer mode change (Select button)
@@ -663,6 +850,9 @@ class Jukebox {
   }
 
   shutdown() {
+    // Save current playback position before shutting down
+    this.savePlaybackPosition();
+    
     // Clean up resources
     this.audioElement.pause();
     this.audioElement.src = "";
