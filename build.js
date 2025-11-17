@@ -928,6 +928,10 @@ Minified: ${this.config.flags.minify}
       process.exit(1);
     }
   }
+  
+  exit() {
+    process.exit(0);
+  }
 }
 
 async function build(args) {

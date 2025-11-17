@@ -1248,7 +1248,11 @@ class Player {
           judgement = !hold.note.miss ? "marvelous" : "boo";
         } else if (hold.note.type === "4") {
           const requiredTaps = Math.ceil(hold.note.beatLength * this.ROLL_REQUIRED_INTERVALS);
-          judgement = hold.tapped >= requiredTaps && !hold.note.miss ? "marvelous" : "boo";
+          if (hold.note.beatLength <= 0.5) {
+            judgement = "marvelous";
+          } else {
+            judgement = hold.tapped >= requiredTaps && !hold.note.miss ? "marvelous" : "boo";
+          }
         }
       
         hold.note.finish = true;

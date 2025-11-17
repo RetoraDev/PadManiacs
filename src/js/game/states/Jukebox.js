@@ -93,7 +93,7 @@ class Jukebox {
     });
     
     this.audioElement.addEventListener('ended', () => {
-      this.nextSong();
+      this.nextSong(true);
     });
     
     this.audioElement.addEventListener('error', (e) => {
@@ -272,6 +272,13 @@ class Jukebox {
     return `unknown_${Date.now()}`;
   }
 
+  resetPlaybackPosition() {
+    if (this.audioElement && this.currentSong) {
+      const songKey = this.getSongKey(this.currentSong);
+      this.playbackPositions[songKey] = 0;
+    }
+  }
+  
   savePlaybackPosition() {
     if (this.audioElement && this.currentSong) {
       const songKey = this.getSongKey(this.currentSong);
@@ -290,11 +297,15 @@ class Jukebox {
     return 0;
   }
 
-  loadSong(index) {
+  loadSong(index, reset) {
     if (index < 0 || index >= this.songs.length) return;
     
-    // Save current playback position before switching
-    this.savePlaybackPosition();
+    // Save or reset current playback position before switching
+    if (reset) {
+      this.resetPlaybackPosition();
+    } else {
+      this.savePlaybackPosition();
+    }
     
     // Stop current playback
     this.audioElement.pause();
@@ -542,12 +553,12 @@ class Jukebox {
     this.setButtonActive('pause', 100);
   }
 
-  nextSong() {
+  nextSong(reset) {
     let nextIndex = this.currentIndex + 1;
     if (nextIndex >= this.songs.length) {
       nextIndex = 0; // Loop to beginning
     }
-    this.loadSong(nextIndex);
+    this.loadSong(nextIndex, reset);
   }
 
   previousSong() {

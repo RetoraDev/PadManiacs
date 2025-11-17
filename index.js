@@ -8,7 +8,7 @@ const { spawn, execSync } = require('child_process');
 const readline = require('readline');
 
 // Import the build system
-const { build, BuildSystem, buildProcess } = require('./build.js');
+const { BuildSystem, buildProcess } = require('./build.js');
 
 class InteractiveInterface {
   constructor() {
@@ -369,9 +369,17 @@ class InteractiveInterface {
         this.executeSelection();
         break;
       case 'escape':
+        if (this.currentServer) {
+          this.currentServer.close(() => {
+            this.currentServer = null;
+            this.busy = false;
+          });
+        }
         if (this.menuStack.length > 0) {
           this.currentMenu = this.menuStack.pop();
           this.currentSelection = 0;
+          this.drawMenu();
+        } else {
           this.drawMenu();
         }
         break;
@@ -659,7 +667,11 @@ class InteractiveInterface {
     console.log(this.color('─'.repeat(50), 'dim') + '\n');
     
     try {
-      await build(args);
+      this.currentBuild = new BuildSystem();
+      
+      await this.currentBuild.build(args);
+      
+      this.currentBuild = null;
       
       console.log(`\n${this.color('Build completed successfully!', 'green')}`);
       
