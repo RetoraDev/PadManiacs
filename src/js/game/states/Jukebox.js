@@ -21,6 +21,18 @@ class Jukebox {
     
     // Visualizer
     this.visualizer = null;
+    
+    // LRC system
+    this.lyrics = null;
+    this.lyricsVisible = true;
+    this.hasLyrics = false;
+    
+    // Button states and timers
+    this.buttonActiveTimers = {};
+    this.lastLeftPress = 0;
+    this.lastRightPress = 0;
+    this.lastSelectPress = 0;
+    this.lastBPress = 0;
   }
 
   create() {
@@ -37,6 +49,9 @@ class Jukebox {
     
     // Setup visualizer
     this.setupVisualizer();
+    
+    // Setup lyrics
+    this.setupLyrics();
     
     // Add navigation hint
     this.navigationHint = new NavigationHint(3);
@@ -104,10 +119,76 @@ class Jukebox {
     
     this.progressBar = game.add.graphics(30, 86);
     
-    const center = game.width / 2;
+    // Create playback controls
+    this.createPlaybackControls();
     
-    // Playback controls
-    // TODO: Implement playback controls
+    // Create lyrics display
+    this.lyricsText = new Text(game.width / 2, 51, "", FONTS.stroke);
+    this.lyricsText.anchor.set(0.5);
+    this.lyricsText.visible = false;
+  }
+
+  createPlaybackControls() {
+    const centerX = game.width / 2;
+    const yPos = 70;
+    const buttonSpacing = 2; // 2px separation between buttons
+    
+    const buttonWidths = {
+        visualization: 8,
+        skip: 8,
+        seek: 8,
+        pause: 12,
+        lrc: 8
+    };
+    
+    // Calculate total width including buttons and spacing
+    const totalWidth = 
+        buttonWidths.visualization + buttonSpacing +
+        buttonWidths.skip + buttonSpacing +
+        buttonWidths.seek + buttonSpacing +
+        buttonWidths.pause + buttonSpacing +
+        buttonWidths.seek + buttonSpacing +
+        buttonWidths.skip + buttonSpacing +
+        buttonWidths.lrc;
+    
+    const startX = centerX - (totalWidth / 2);
+    let currentX = startX;
+    
+    // Visualization button (leftmost)
+    this.visualizationButton = game.add.sprite(currentX + buttonWidths.visualization/2, yPos, "ui_jukebox_visualization", 0);
+    this.visualizationButton.anchor.set(0.5);
+    currentX += buttonWidths.visualization + buttonSpacing;
+    
+    // Left skip button
+    this.skipLeftButton = game.add.sprite(currentX + buttonWidths.skip/2, yPos, "ui_jukebox_skip", 0);
+    this.skipLeftButton.anchor.set(0.5);
+    this.skipLeftButton.scale.x = -1; // Flip horizontally for left arrow
+    currentX += buttonWidths.skip + buttonSpacing;
+    
+    // Left seek button
+    this.seekLeftButton = game.add.sprite(currentX + buttonWidths.seek/2, yPos, "ui_jukebox_seek", 0);
+    this.seekLeftButton.anchor.set(0.5);
+    this.seekLeftButton.scale.x = -1; // Flip horizontally for left arrow
+    currentX += buttonWidths.seek + buttonSpacing;
+    
+    // Pause/Play toggle button (center) - larger button
+    this.pauseButton = game.add.sprite(currentX + buttonWidths.pause/2, yPos, "ui_jukebox_pause_toggle", 0);
+    this.pauseButton.anchor.set(0.5);
+    currentX += buttonWidths.pause + buttonSpacing;
+    
+    // Right seek button
+    this.seekRightButton = game.add.sprite(currentX + buttonWidths.seek/2, yPos, "ui_jukebox_seek", 0);
+    this.seekRightButton.anchor.set(0.5);
+    currentX += buttonWidths.seek + buttonSpacing;
+    
+    // Right skip button
+    this.skipRightButton = game.add.sprite(currentX + buttonWidths.skip/2, yPos, "ui_jukebox_skip", 0);
+    this.skipRightButton.anchor.set(0.5);
+    currentX += buttonWidths.skip + buttonSpacing;
+    
+    // LRC button (rightmost)
+    this.lrcButton = game.add.sprite(currentX + buttonWidths.lrc/2, yPos, "ui_jukebox_lrc", 0);
+    this.lrcButton.anchor.set(0.5);
   }
 
   setupVisualizer() {
@@ -122,6 +203,50 @@ class Jukebox {
       fftSize: 512,
       smoothing: 0.7
     });
+  }
+
+  setupLyrics() {
+    // Check if current song has lyrics
+    if (this.currentSong.lyrics) {
+      this.loadLyrics(this.currentSong.lyrics);
+    } else {
+      this.lyrics = null;
+      this.hasLyrics = false;
+      this.lrcButton.alpha = 0.5; // Dim button when no lyrics available
+    }
+  }
+
+  async loadLyrics(lyricsUrl) {
+    try {
+      const lrcContent = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', lyricsUrl);
+        xhr.onload = () => {
+          if (xhr.status === 200 || xhr.status === 0) { // 0 for file:// protocol
+            resolve(xhr.responseText);
+          } else {
+            reject(new Error(`Failed to load lyrics: ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error loading lyrics'));
+        xhr.send();
+      });
+      
+      this.lyrics = new Lyrics({
+        textElement: this.lyricsText,
+        maxLineLength: 25,
+        lrc: lrcContent
+      });
+      
+      this.hasLyrics = true;
+      this.lrcButton.alpha = 1.0;
+      
+    } catch (error) {
+      console.warn("Could not load lyrics:", error);
+      this.lyrics = null;
+      this.hasLyrics = false;
+      this.lrcButton.alpha = 0.5;
+    }
   }
 
   loadSong(index) {
@@ -142,6 +267,9 @@ class Jukebox {
     this.updateSongDisplay();
     this.updateBackground();
     
+    // Load lyrics for new song
+    this.setupLyrics();
+    
     // Start playback
     this.play();
   }
@@ -150,9 +278,9 @@ class Jukebox {
     const song = this.currentSong;
     
     // Update text displays
-    this.songTitle.write(song.titleTranslit || song.title || "Unknown Title");
-    this.songArtist.write(`Artist: ${song.artistTranslit || song.artist || "Unknown"}`);
-    this.songCredit.write(`Credit: ${song.credit || "Unknown"}`);
+    this.songTitle.write(song.titleTranslit || song.title || "Unknown Title", 21);
+    this.songArtist.write(song.artistTranslit || song.artist || "Unknown Artist", 21);
+    this.songCredit.write(song.credit || "", 21);
     
     // Load banner
     if (song.banner && song.banner !== "no-media") {
@@ -236,6 +364,41 @@ class Jukebox {
     this.currentTimeText.write(`${minutes}:${seconds.toString().padStart(2, '0')}`);
   }
 
+  updateButtonStates() {
+    if (this.menuVisible) return;
+    
+    const currentTime = game.time.now;
+    
+    // Update pause button based on playback state
+    const pauseFrame = this.isPlaying ? 0 : 1; // 0 = pause icon, 1 = play icon
+    this.pauseButton.frame = pauseFrame;
+    
+    // Update seek buttons based on held state
+    this.seekLeftButton.frame = gamepad.held.left ? 1 : 0;
+    this.seekRightButton.frame = gamepad.held.right ? 1 : 0;
+    
+    // Update skip buttons based on active timers
+    this.skipLeftButton.frame = this.buttonActiveTimers.skipLeft > currentTime ? 1 : 0;
+    this.skipRightButton.frame = this.buttonActiveTimers.skipRight > currentTime ? 1 : 0;
+    
+    // Update visualization button based on active timer
+    this.visualizationButton.frame = this.buttonActiveTimers.visualization > currentTime ? 1 : 0;
+    
+    // Update LRC button based on active timer and state
+    this.lrcButton.frame = this.buttonActiveTimers.lrc > currentTime ? 1 : 0;
+    
+    // Dim LRC button if no lyrics available
+    if (!this.hasLyrics) {
+      this.lrcButton.alpha = 0.5;
+    } else {
+      this.lrcButton.alpha = 1.0;
+    }
+  }
+
+  setButtonActive(buttonName, duration = 100) {
+    this.buttonActiveTimers[buttonName] = game.time.now + duration;
+  }
+
   play() {
     this.audioElement.play().then(() => {
       this.isPlaying = true;
@@ -256,6 +419,10 @@ class Jukebox {
     } else {
       this.play();
     }
+    
+    // Show active frame on pause button
+    this.pauseButton.frame = 2; // Active frame
+    this.setButtonActive('pause', 100);
   }
 
   nextSong() {
@@ -289,6 +456,9 @@ class Jukebox {
       // Restore original order
       this.songs = [...this.originalSongOrder];
     }
+    
+    // Show active frame on visualization button for shuffle
+    this.setButtonActive('visualization', 100);
   }
 
   seekForward() {
@@ -310,7 +480,27 @@ class Jukebox {
     this.visualizerMode = modes[nextIndex];
     
     this.visualizer.setVisualizationType(this.visualizerMode);
-    this.visualizerModeText.write(`Visualizer: ${this.visualizerMode}`);
+    
+    // Show active frame on visualization button
+    this.setButtonActive('visualization', 100);
+  }
+
+  toggleLyrics() {
+    if (!this.hasLyrics) return;
+    
+    this.lyricsVisible = !this.lyricsVisible;
+    
+    // Show active frame on LRC button
+    this.setButtonActive('lrc', 100);
+  }
+
+  updateLyrics() {
+    this.lyricsText.visible = this.lyricsVisible && this.hasLyrics;
+        
+    if (this.lyricsVisible && this.lyrics && this.audioElement) {
+      const currentTime = this.audioElement.currentTime;
+      this.lyrics.move(currentTime);
+    }
   }
 
   showMenu() {
@@ -322,28 +512,15 @@ class Jukebox {
       align: 'center'
     });
     
-    menu.addItem("Resume", () => {
+    menu.addItem("Continue", () => {
       menu.destroy();
-    });
-    
-    menu.addItem("Play/Pause", () => {
-      this.togglePlayback();
-      menu.destroy();
-    });
-    
-    menu.addItem("Next Song", () => {
-      this.nextSong();
-      menu.destroy();
-    });
-    
-    menu.addItem("Previous Song", () => {
-      this.previousSong();
-      menu.destroy();
+      this.menuVisible = false;
     });
     
     menu.addItem("Toggle Shuffle", () => {
       this.toggleShuffle();
       menu.destroy();
+      this.menuVisible = false;
     });
     
     menu.addItem("Exit Jukebox", () => {
@@ -352,9 +529,8 @@ class Jukebox {
     
     menu.onCancel.add(() => {
       menu.destroy();
+      this.menuVisible = false;
     });
-    
-    menu.events.onDestroy.add(() => this.menuVisible = false);
   }
 
   exitJukebox() {
@@ -371,6 +547,10 @@ class Jukebox {
       this.visualizer.destroy();
     }
     
+    if (this.lyrics) {
+      this.lyrics.destroy();
+    }
+    
     // Return to main menu
     game.state.start("MainMenu");
   }
@@ -382,6 +562,8 @@ class Jukebox {
     }
     
     this.updateDurationDisplay();
+    this.updateButtonStates();
+    this.updateLyrics();
     
     // Update video background if playing
     if (this.videoElement.src && this.videoElement.readyState >= 2) {
@@ -410,22 +592,27 @@ class Jukebox {
     // Don't trigger actions if menu is visible
     if (this.menuVisible) return;
     
-    // Play/Pause
+    // Play/Pause (A button)
     if (gamepad.pressed.a) {
       this.togglePlayback();
     }
     
-    // Shuffle toggle
+    // LRC toggle (B button)
     if (gamepad.pressed.b) {
-      this.toggleShuffle();
+      this.toggleLyrics();
     }
     
-    // Visualizer mode change
+    // Visualizer mode change (Select button)
     if (gamepad.pressed.select) {
       this.changeVisualizerMode();
     }
     
-    // Menu
+    // Shuffle toggle (Double press Select)
+    if (gamepad.pressed.select && currentTime - this.lastSelectPress < this.doublePressTimeout) {
+      this.toggleShuffle();
+    }
+    
+    // Menu (Start button)
     if (gamepad.pressed.start) {
       this.showMenu();
     }
@@ -443,15 +630,17 @@ class Jukebox {
         this.lastSeekTime = currentTime;
       }
     }
-      
+    
     // Double press detection for song change
     if (gamepad.pressed.left && currentTime - this.lastLeftPress < this.doublePressTimeout) {
       this.previousSong();
+      this.setButtonActive('skipLeft', 100);
       this.lastSeekTime = currentTime;
     }
-      
+    
     if (gamepad.pressed.right && currentTime - this.lastRightPress < this.doublePressTimeout) {
       this.nextSong();
+      this.setButtonActive('skipRight', 100);
       this.lastSeekTime = currentTime;
     }
     
@@ -462,6 +651,14 @@ class Jukebox {
     
     if (gamepad.pressed.right) {
       this.lastRightPress = currentTime;
+    }
+    
+    if (gamepad.pressed.select) {
+      this.lastSelectPress = currentTime;
+    }
+    
+    if (gamepad.pressed.b) {
+      this.lastBPress = currentTime;
     }
   }
 
@@ -477,6 +674,10 @@ class Jukebox {
     
     if (this.visualizer) {
       this.visualizer.destroy();
+    }
+    
+    if (this.lyrics) {
+      this.lyrics.destroy();
     }
   }
 }

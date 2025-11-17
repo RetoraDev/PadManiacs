@@ -9,7 +9,7 @@
     
     "build": "node index.js --all --debug",
     "build:web": "node index.js --web --debug",
-    "build:cordova": "node index.js --cordova --debug",
+    "build:cordova": "node index.js --cordova --debug --no-install",
     "build:nwjs": "node index.js --nwjs --debug",
     "build:min": "node index.js --all --minify --debug",
     "build:dev": "node index.js --none --debug",
@@ -24,8 +24,8 @@
     "dev": "npm run build:dev && npm run serve:dist",
     "dev:fast": "npm run serve:src",
     
-    "android": "node index.js --cordova --debug",
-    "android:release": "node index.js --cordova --minify --zipalign",
+    "android": "node index.js --cordova --debug --no-install",
+    "android:release": "node index.js --cordova --minify --zipalign --no-install",
     "windows": "node index.js --nwjs --debug",
     "windows:release": "node index.js --nwjs --minify",
     "web": "node index.js --web --debug",

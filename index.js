@@ -57,7 +57,7 @@ class InteractiveInterface {
       { label: 'Development Build (Debug)', action: () => this.runBuild(['--none', '--debug']) },
       { label: 'Production Build (All Platforms)', action: () => this.runBuild(['--all', '--minify']) },
       { label: 'Web Platform Only', action: () => this.runBuild(['--web']) },
-      { label: 'Android Platform Only', action: () => this.runBuild(['--cordova']) },
+      { label: 'Android Platform Only', action: () => this.runBuild(['--cordova', '--zipalign']) },
       { label: 'Windows Platform Only', action: () => this.runBuild(['--nwjs']) },
       { label: 'Custom Build...', action: () => this.showCustomBuildMenu() },
       { label: 'Back to Main Menu', action: () => this.showMainMenu() }
@@ -101,6 +101,8 @@ class InteractiveInterface {
       build: false,
       cordova: false,
       nwjs: false,
+      noInstall: false,
+      none: false,
       web: false,
       all: false,
       minify: false,
@@ -117,9 +119,12 @@ class InteractiveInterface {
           parsed.build = false;
           break;
         case '--serve-src':
-        case '--serve-src':
           parsed.serveSrc = true;
           parsed.build = false;
+          break;
+        case '--none':
+          parsed.none = true;
+          parsed.build = true;
           break;
         case '--cordova':
           parsed.cordova = true;
@@ -145,6 +150,9 @@ class InteractiveInterface {
           break;
         case '--zipalign':
           parsed.zipalign = true;
+          break;
+        case '--no-install':
+          parsed.noInstall = true;
           break;
         case '--headless':
           parsed.headless = true;
@@ -239,6 +247,8 @@ class InteractiveInterface {
       args.push('--nwjs');
     } else if (this.cliArgs.web) {
       args.push('--web');
+    } else if (this.cliArgs.none) {
+      args.push('--none');
     } else {
       args.push('--all');
     }
@@ -250,9 +260,15 @@ class InteractiveInterface {
     if (this.cliArgs.debug) {
       args.push('--debug');
     }
+    if (this.cliArgs.noInstall) {
+      args.push('--no-install');
+    }
     if (this.cliArgs.zipalign) {
       args.push('--zipalign');
     }
+    
+    // Flag should exit when it ends
+    this.executingCliBuild = true;
 
     if (this.cliArgs.headless) {
       // Run build directly without interactive output
@@ -266,17 +282,6 @@ class InteractiveInterface {
   async runBuildHeadless(args) {
     try {
       process.argv = ['node', 'build.js', ...args];
-      
-      if (this.cliArgs.cordova && this.isTermux()) {
-        // Auto-open APK in Termux
-        let distDir = new BuildSystem().config.distDir;
-        const apkFiles = fs.readdirSync(distDir).filter(file => file.endsWith('.apk'));
-        if (apkFiles.length > 0) {
-          const apkPath = path.join(distDir, apkFiles[0]);
-          execSync(`termux-open ${apkPath}`, { stdio: "ignore" });
-        }
-      }
-      
       process.exit(0);
     } catch (error) {
       console.error(this.color('Build failed:', 'red'), error.message);
@@ -657,9 +662,15 @@ class InteractiveInterface {
       await build(args);
       
       console.log(`\n${this.color('Build completed successfully!', 'green')}`);
+      
+      if (this.executingCliBuild) {
+        this.exit();
+        return;
+      }
+      
       console.log(this.color('Press any key to return to menu...', 'dim'));
       
-      if (this.isTermux() && args.includes("--cordova")) {
+      if (this.isTermux() && !args.includes("--no-install") && args.includes("--cordova")) {
         this.rl.input.once('data', () => this.showOpenApkConfirm());
       } else {
         this.rl.input.once('data', () => this.showMainMenu());

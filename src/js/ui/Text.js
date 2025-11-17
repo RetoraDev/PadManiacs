@@ -37,8 +37,13 @@ class Text extends Phaser.Sprite {
     }
   }
 
-  write(text) {
-    this.texture.text = text;
+  write(text, max) {
+    if (max && text.length > max) {
+      this.scrollwrite(text, max);
+    } else {
+      if (this.timer.running) this.timer.stop();
+      this.texture.text = text;
+    }
     return this;
   }
 
@@ -66,7 +71,7 @@ class Text extends Phaser.Sprite {
 
   scrollwrite(text, visibleLength = 5, scrollSpeed = 200, separation = 5) {
     if (this.timer.running) this.timer.stop();
-
+    
     // Prepare the text with separation spaces
     const fullText = text + ' '.repeat(separation);
     let position = 0;
@@ -84,7 +89,7 @@ class Text extends Phaser.Sprite {
         visibleText += fullText[charIndex];
       }
 
-      this.write(visibleText);
+      this.texture.text = visibleText;
 
       // Move to next position
       position = (position + 1) % fullText.length;
