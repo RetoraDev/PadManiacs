@@ -77,6 +77,42 @@ class Boot {
         url: "ui/acurracy_bar.png"
       },
       {
+        key: "ui_jukebox_pause_toggle",
+        url: "ui/jukebox_pause_toggle.png",
+        type: "spritesheet",
+        frameWidth: 12,
+        frameHeight: 12
+      },
+      {
+        key: "ui_jukebox_seek",
+        url: "ui/jukebox_seek.png",
+        type: "spritesheet",
+        frameWidth: 8,
+        frameHeight: 8
+      },
+      {
+        key: "ui_jukebox_skip",
+        url: "ui/jukebox_skip.png",
+        type: "spritesheet",
+        frameWidth: 8,
+        frameHeight: 8
+      },
+      {
+        key: "ui_jukebox_lrc",
+        url: "ui/jukebox_lrc.png",
+        type: "spritesheet",
+        frameWidth: 8,
+        frameHeight: 8
+      },
+      {
+        key: "ui_jukebox_visualization",
+        url: "ui/jukebox_visualization.png",
+        type: "spritesheet",
+        frameWidth: 8,
+        frameHeight: 8
+      },
+      // Sfx
+      {
         key: "assist_tick",
         type: "audio",
         url: "sfx/assist_tick.ogg"

@@ -1,7 +1,7 @@
 class Jukebox {
   init(songs = null, startIndex = 0) {
-    this.songs = songs || window.localSongs || [];
-    this.currentIndex = startIndex;
+    this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
+    this.currentIndex = startIndex || 0;
     this.currentSong = this.songs[this.currentIndex];
     this.isPlaying = false;
     this.isShuffled = false;
@@ -38,6 +38,9 @@ class Jukebox {
     // Setup visualizer
     this.setupVisualizer();
     
+    // Add navigation hint
+    this.navigationHint = new NavigationHint(3);
+    
     // Load first song
     this.loadSong(this.currentIndex);
     
@@ -63,8 +66,6 @@ class Jukebox {
     this.audioElement = document.createElement("audio");
     this.audioElement.volume = [0,25,50,75,100][Account.settings.volume] / 100;
     
-    // TODO: Fix OGG songs having Infinity audio.duration value
-    
     this.audioElement.addEventListener('timeupdate', () => {
       this.updateProgressBar();
       this.updateTimeDisplay();
@@ -86,9 +87,9 @@ class Jukebox {
     this.bannerSprite = game.add.sprite(4, 4);
     
     // Song metadata
-    this.songTitle = new Text(100, 4, "", FONTS.shaded);
-    this.songArtist = new Text(100, 14, "", FONTS.default);
-    this.songCredit = new Text(100, 24, "", FONTS.default);
+    this.songTitle = new Text(104, 4, "", FONTS.shaded);
+    this.songArtist = new Text(104, 14, "", FONTS.default);
+    this.songCredit = new Text(104, 24, "", FONTS.default);
     
     // Playback time displays
     this.currentTimeText = new Text(4, 84, "0:00", FONTS.default);
@@ -103,21 +104,10 @@ class Jukebox {
     
     this.progressBar = game.add.graphics(30, 86);
     
+    const center = game.width / 2;
+    
     // Playback controls
-    this.controlsBackground = game.add.graphics(0, 100);
-    this.controlsBackground.beginFill(0x000000, 0.8);
-    this.controlsBackground.drawRect(0, 100, game.width, 12);
-    this.controlsBackground.endFill();
-    
-    this.drawPlaybackControls();
-    
-    // Visualizer mode display
-    this.visualizerModeText = new Text(4, 112, `Visualizer: ${this.visualizerMode}`, FONTS.default);
-    
-    // Help text
-    this.helpText = new Text(game.width / 2, 112, "A:Play/Pause B:Shuffle START:Menu SELECT:Visualizer", FONTS.default);
-    this.helpText.anchor.x = 0.5;
-    this.helpText.alpha = 0.7;
+    // TODO: Implement playback controls
   }
 
   setupVisualizer() {
@@ -132,51 +122,6 @@ class Jukebox {
       fftSize: 512,
       smoothing: 0.7
     });
-  }
-
-  drawPlaybackControls() {
-    this.controlsGraphics = game.add.graphics(0, 100);
-    this.controlsGraphics.clear();
-    
-    const centerX = game.width / 2;
-    const controlY = 104;
-    
-    // Previous button (triangle left)
-    this.controlsGraphics.beginFill(0xffffff, 0.8);
-    this.controlsGraphics.moveTo(centerX - 30, controlY);
-    this.controlsGraphics.lineTo(centerX - 20, controlY - 4);
-    this.controlsGraphics.lineTo(centerX - 20, controlY + 4);
-    this.controlsGraphics.endFill();
-    
-    // Play/Pause button
-    if (this.isPlaying) {
-      // Pause icon (two bars)
-      this.controlsGraphics.beginFill(0xffffff, 0.8);
-      this.controlsGraphics.drawRect(centerX - 6, controlY - 4, 2, 8);
-      this.controlsGraphics.drawRect(centerX - 2, controlY - 4, 2, 8);
-      this.controlsGraphics.endFill();
-    } else {
-      // Play icon (triangle right)
-      this.controlsGraphics.beginFill(0xffffff, 0.8);
-      this.controlsGraphics.moveTo(centerX - 6, controlY - 4);
-      this.controlsGraphics.lineTo(centerX + 2, controlY);
-      this.controlsGraphics.lineTo(centerX - 6, controlY + 4);
-      this.controlsGraphics.endFill();
-    }
-    
-    // Next button (triangle right)
-    this.controlsGraphics.beginFill(0xffffff, 0.8);
-    this.controlsGraphics.moveTo(centerX + 30, controlY);
-    this.controlsGraphics.lineTo(centerX + 20, controlY - 4);
-    this.controlsGraphics.lineTo(centerX + 20, controlY + 4);
-    this.controlsGraphics.endFill();
-    
-    // Shuffle indicator
-    if (this.isShuffled) {
-      this.controlsGraphics.beginFill(0x76fcde, 0.8);
-      this.controlsGraphics.drawCircle(centerX - 50, controlY, 3);
-      this.controlsGraphics.endFill();
-    }
   }
 
   loadSong(index) {
@@ -225,9 +170,6 @@ class Jukebox {
     } else {
       this.bannerSprite.loadTexture(null);
     }
-    
-    // Update controls
-    this.drawPlaybackControls();
   }
 
   updateBackground() {
@@ -297,18 +239,15 @@ class Jukebox {
   play() {
     this.audioElement.play().then(() => {
       this.isPlaying = true;
-      this.drawPlaybackControls();
     }).catch(error => {
       console.warn("Playback failed:", error);
       this.isPlaying = false;
-      this.drawPlaybackControls();
     });
   }
 
   pause() {
     this.audioElement.pause();
     this.isPlaying = false;
-    this.drawPlaybackControls();
   }
 
   togglePlayback() {
@@ -350,8 +289,6 @@ class Jukebox {
       // Restore original order
       this.songs = [...this.originalSongOrder];
     }
-    
-    this.drawPlaybackControls();
   }
 
   seekForward() {

@@ -332,15 +332,15 @@ class MainMenu {
       if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
         if (!window.externalSongs) {
           confirm("Load extra songs from external storage?", () => {
-            game.state.start("LoadExternalSongs", true, false, "Jukebox", [...window.localSongs, ...window.externalSongs]);
+            game.state.start("LoadExternalSongs", true, false, "Jukebox");
           }, () => {
-            game.state.start("Jukebox", true, false, window.localSongs);
+            game.state.start("Jukebox");
           });
         } else {
-          game.state.start("Jukebox", true, false, [...window.localSongs, ...window.externalSongs]);
+          game.state.start("Jukebox");
         }
       } else {
-        game.state.start("Jukebox", true, false, window.localSongs);
+        game.state.start("Jukebox");
       }
     };
     

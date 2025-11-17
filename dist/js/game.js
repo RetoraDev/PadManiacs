@@ -4,9 +4,9 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v0.0.6 dev
- * Build: 11/16/2025, 5:53:32 PM
- * Platform: Development
+ * Version: v0.0.6
+ * Build: 11/17/2025, 12:01:43 AM
+ * Platform: Android (Cordova)
  * Debug: true
  * Minified: false
  */
@@ -16,7 +16,7 @@
 // ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2025";
 
-const VERSION = "v0.0.6 dev";
+const VERSION = "v0.0.6";
 
 window.DEBUG = true;
 
@@ -79,7 +79,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -6928,7 +6928,7 @@ class LoadLocalSongs {
 class LoadExternalSongs {
   init(nextState, nextStateParams) {
     this.nextState = nextState || 'SongSelect';
-    this.nextStateParams = nextStateParams || {};
+    this.nextStateParams = nextStateParams || [];
   }
   
   create() {
@@ -7249,7 +7249,7 @@ class LoadExternalSongs {
     
     window.externalSongs = this.songs;
     
-    game.state.start(this.nextState, true, false, this.nextStateParams);
+    game.state.start(this.nextState, true, false, ...this.nextStateParams);
     
     setTimeout(() => window.lastExternalSongIndex = window.selectStartingIndex)
   }
@@ -7714,15 +7714,15 @@ class MainMenu {
       if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
         if (!window.externalSongs) {
           confirm("Load extra songs from external storage?", () => {
-            game.state.start("LoadExternalSongs", true, false, "Jukebox", [...window.localSongs, ...window.externalSongs]);
+            game.state.start("LoadExternalSongs", true, false, "Jukebox");
           }, () => {
-            game.state.start("Jukebox", true, false, window.localSongs);
+            game.state.start("Jukebox");
           });
         } else {
-          game.state.start("Jukebox", true, false, [...window.localSongs, ...window.externalSongs]);
+          game.state.start("Jukebox");
         }
       } else {
-        game.state.start("Jukebox", true, false, window.localSongs);
+        game.state.start("Jukebox");
       }
     };
     
@@ -8316,6 +8316,7 @@ class SongSelect {
 class Play {
   init(song, difficultyIndex) {
     this.song = song;
+    console.log(difficultyIndex);
     this.difficultyIndex = difficultyIndex;
     this.player = null;
     this.backgroundQueue = [];
@@ -9073,8 +9074,8 @@ class Results {
 // ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
-    this.songs = songs || window.localSongs || [];
-    this.currentIndex = startIndex;
+    this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
+    this.currentIndex = startIndex || 0;
     this.currentSong = this.songs[this.currentIndex];
     this.isPlaying = false;
     this.isShuffled = false;
@@ -9138,7 +9139,6 @@ class Jukebox {
     
     this.audioElement.addEventListener('timeupdate', () => {
       this.updateProgressBar();
-      this.updateDurationDisplay();
       this.updateTimeDisplay();
     });
     
@@ -9158,9 +9158,9 @@ class Jukebox {
     this.bannerSprite = game.add.sprite(4, 4);
     
     // Song metadata
-    this.songTitle = new Text(100, 4, "", FONTS.shaded);
-    this.songArtist = new Text(100, 14, "", FONTS.default);
-    this.songCredit = new Text(100, 24, "", FONTS.default);
+    this.songTitle = new Text(104, 4, "", FONTS.shaded);
+    this.songArtist = new Text(104, 14, "", FONTS.default);
+    this.songCredit = new Text(104, 24, "", FONTS.default);
     
     // Playback time displays
     this.currentTimeText = new Text(4, 84, "0:00", FONTS.default);
@@ -9334,7 +9334,7 @@ class Jukebox {
 
   updateDurationDisplay() {
     const duration = this.audioElement.duration;
-    if (isNaN(duration)) {
+    if (isNaN(duration) || duration == Infinity) {
       this.durationText.write("--:--");
       return;
     };
@@ -9428,7 +9428,7 @@ class Jukebox {
 
   seekForward() {
     const currentTime = this.audioElement.currentTime;
-    const newTime = Math.min(currentTime + this.seekSpeed, this.audioElement.duration || 0);
+    const newTime = Math.min(currentTime + this.seekSpeed, this.audioElement.duration || Infinity);
     this.audioElement.currentTime = newTime;
   }
 
@@ -9515,6 +9515,8 @@ class Jukebox {
     if (this.visualizer) {
       this.visualizer.update();
     }
+    
+    this.updateDurationDisplay();
     
     // Update video background if playing
     if (this.videoElement.src && this.videoElement.readyState >= 2) {
