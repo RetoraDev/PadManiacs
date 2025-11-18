@@ -86,6 +86,7 @@ class Player {
     this.freezeBodyGroup = new Phaser.Group(game);
     this.freezeEndGroup = new Phaser.Group(game); 
     this.notesGroup = new Phaser.SpriteBatch(game);
+    this.minesGroup = new Phaser.Group(game);
     this.explosionsGroup = new Phaser.SpriteBatch(game);
     
     this.initialize();
@@ -748,13 +749,12 @@ class Player {
 
       if (note.type === "M") {
         if (!note.sprite) {
-          note.sprite = this.notesGroup.getFirstDead() || (() => {
+          note.sprite = this.minesGroup.getFirstDead() || (() => {
             const sprite = game.add.sprite(x, yPos, "mine");
-            this.notesGroup.add(sprite);
+            this.minesGroup.add(sprite);
             return sprite;
           })();
           note.sprite.reset(0, -32);
-          note.sprite.loadTexture("mine");
           note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
           note.sprite.animations.play("blink");
         }
@@ -918,13 +918,12 @@ class Player {
 
       if (note.type === "M") {
         if (!note.sprite) {
-          note.sprite = this.notesGroup.getFirstDead() || (() => {
+          note.sprite = this.minesGroup.getFirstDead() || (() => {
             const sprite = game.add.sprite(x, yPos, "mine");
             this.notesGroup.add(sprite);
             return sprite;
           })();
           note.sprite.reset(0, -32);
-          note.sprite.loadTexture("mine");
           note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
           note.sprite.animations.play("blink");
         }
