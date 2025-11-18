@@ -81,12 +81,12 @@ class Player {
     this.lastVisibleBeats = new Set();
 
     // Groups for pooling
-    this.linesGroup = game.add.group();
-    this.receptorsGroup = game.add.group();
-    this.freezeBodyGroup = game.add.group();
-    this.freezeEndGroup = game.add.group();
-    this.notesGroup = game.add.group();
-    this.explosionsGroup = game.add.group();
+    this.linesGroup = new Phaser.SpriteBatch(game);
+    this.receptorsGroup = new Phaser.SpriteBatch(game);
+    this.freezeBodyGroup = new Phaser.Group(game);
+    this.freezeEndGroup = new Phaser.Group(game); 
+    this.notesGroup = new Phaser.SpriteBatch(game);
+    this.explosionsGroup = new Phaser.SpriteBatch(game);
     
     this.initialize();
     
@@ -800,8 +800,8 @@ class Player {
         const isInactive = holdData?.note === note && holdData.inactive;
 
         let visibleHeightIsSet = typeof note.visibleHeight != "undefined";
-        let visibleHeight = visibleHeightIsSet ? note.visibleHeight : bodyHeight;
-
+        let visibleHeight = visibleHeightIsSet ? note.visibleHeight : bodyHeight; // OPTIMIZE: Avoid having tile sprites larger than game height.
+        
         if (visibleHeight < 0) visibleHeight = 1;
 
         if (isActive) {
@@ -825,7 +825,7 @@ class Player {
         }
 
         let spritesVisible = !note.finish;
-        
+         
         let freezeYPos = Math.floor(yPos);
         let freezeHeight = Math.floor(visibleHeight);
         

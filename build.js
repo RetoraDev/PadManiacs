@@ -344,12 +344,13 @@ Minified: ${this.config.flags.minify}
     const libDest = path.join(this.config.distDir, 'lib');
     this.ensureDir(libDest);
     
-    // Copy phaser.min.js to lib folder
-    const phaserSrc = path.join(this.config.libDir, 'phaser.min.js');
-    const phaserDest = path.join(libDest, 'phaser.min.js');
+    // Copy Phaser to lib folder
+    const phaserLib = this.config.flags.debug ? 'phaser.js' : 'phaser.min.js';
+    const phaserSrc = path.join(this.config.libDir, phaserLib);
+    const phaserDest = path.join(libDest, phaserLib);
     if (fs.existsSync(phaserSrc)) {
       fs.copyFileSync(phaserSrc, phaserDest);
-      this.log('phaser.min.js copied to lib/', 'success');
+      this.log(`${phaserLib} copied to lib/`, 'success');
     }
     
     // Copy eruda.js to lib folder
@@ -396,7 +397,7 @@ Minified: ${this.config.flags.minify}
       let scriptTags = '';
       
       // Add phaser from lib (always first)
-      scriptTags += '  <script src="./lib/phaser.min.js"></script>\n';
+      scriptTags += `  <script src="./lib/${this.config.flags.debug ? 'phaser.js' : 'phaser.min.js'}"></script>\n`;
       
       // Add eruda too
       scriptTags += '  <script src="./lib/eruda.js"></script>\n';
@@ -497,7 +498,7 @@ Minified: ${this.config.flags.minify}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>PadManiacs</title>
-  <script src="./lib/phaser.min.js"></script>
+  <script src="./lib/${this.config.flags.debug ? 'phaser.js' : 'phaser.min.js'}"></script>
   <script src="./js/game.js"></script>
   <link rel="stylesheet" href="./css/style.css">
   <link rel="icon" href="./favicon.png">

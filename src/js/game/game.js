@@ -22,7 +22,7 @@ const bootGame = () => {
     failIfMajorPerformanceCaveat: false,
     forceSetTimeOut: false,
     clearBeforeRender: true,
-    forceSingleUpdate: true,
+    forceSingleUpdate: false,
     maxPointers: 0,
     keyboard: true,
     mouse: false,
@@ -64,7 +64,7 @@ window.onload = bootGame;
 const addFpsText = () => {
   const text = new Text(190, 2, "");
   text.anchor.x = 1;
-  game.time.events.loop(1000, () => text.write(`FPS: ${game.time.fps}`));
+  game.time.events.loop(100, () => text.write(`${game.time.fps} (${game.renderer.renderSession.drawCount - 1})`));
 };
 
 const Audio = {

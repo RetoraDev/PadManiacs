@@ -114,12 +114,7 @@ class Metronome {
   }
 
   playTick() {
-    if (game.cache.checkSoundKey('assist_tick')) {
-      // Play the tick sound
-      const tickSound = game.add.audio('assist_tick');
-      tickSound.volume = 0.5; // Adjust volume as needed
-      tickSound.play();
-    }
+    Audio.play('assist_tick');
   }
 
   toggle() {

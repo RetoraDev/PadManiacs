@@ -10,7 +10,7 @@ class Window extends Phaser.Sprite {
     this.offset = {
       x: 0,
       y: 0
-    }
+    };
     
     this.scrollOffset = 0;
     this.itemOffset = 1;
@@ -121,7 +121,7 @@ class Window extends Phaser.Sprite {
     return item;
   }
 
-  addSettingItem(text, options, currentIndex = 0, callback = null) {
+  addSettingItem(text, options, currentIndex, callback = null) {
     const itemText = new Text(8 + this.offset.x, 0, text, {
       ...FONTS[this.font],
       tint: this.fontTint
@@ -360,7 +360,7 @@ class Window extends Phaser.Sprite {
   }
 
   playNavSound() {
-    ENABLE_UI_SFX && Audio.play('sfx_ui_nav');
+    ENABLE_UI_SFX && Audio.play('ui_nav');
   }
 
   confirm() {
@@ -368,7 +368,7 @@ class Window extends Phaser.Sprite {
       const item = this.items[this.selectedIndex];
       if (item.type === 'item') {
         item.callback && item.callback(this.items[this.selectedIndex]);
-        ENABLE_UI_SFX && Audio.play('sfx_ui_select');
+        ENABLE_UI_SFX && Audio.play('ui_select');
       } else {
         this.handleRight();
       }
@@ -382,7 +382,7 @@ class Window extends Phaser.Sprite {
     this.items.forEach(item => {
       if (item.backButton) {
         item.callback();
-        ENABLE_UI_SFX && Audio.play('sfx_ui_cancel');
+        ENABLE_UI_SFX && Audio.play('ui_cancel');
       }
     });
     this.onCancel.dispatch(this.selectedIndex);

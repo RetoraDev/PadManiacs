@@ -478,7 +478,7 @@ class CarouselMenu extends Phaser.Sprite {
       });
     });
     
-    ENABLE_UI_SFX && Audio.play('sfx_ui_select');
+    ENABLE_UI_SFX && Audio.play('ui_select');
   }
   
   animateCancel(callback) {
@@ -506,7 +506,7 @@ class CarouselMenu extends Phaser.Sprite {
   
   cancel() {
     if (!this.isAnimating && this.onCancel.getNumListeners() > 0) {
-      ENABLE_UI_SFX && Audio.play('sfx_ui_cancel');
+      ENABLE_UI_SFX && Audio.play('ui_cancel');
       this.animateCancel(() => {
         this.onCancel.dispatch();
         this.destroy();
@@ -515,7 +515,7 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   playNavSound() {
-    ENABLE_UI_SFX && Audio.play('sfx_ui_nav');
+    ENABLE_UI_SFX && Audio.play('ui_nav');
   }
   
   clear() {

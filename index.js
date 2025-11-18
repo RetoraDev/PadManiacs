@@ -974,7 +974,7 @@ class InteractiveInterface {
     let headContent = '';
     
     // Add lib files to head
-    headContent += '  <script src="./lib/phaser.min.js"></script>\n';
+    headContent += '  <script src="./lib/phaser.js"></script>\n';
     headContent += '  <script src="./lib/eruda.js"></script>\n';
     
     // Build body content (source code)
