@@ -25,6 +25,30 @@ class BuildSystem {
       'js/core/constants.js',
       'js/core/environment.js', 
       'js/core/account.js',
+      'js/core/character.js',
+      
+      // Character System
+      'js/character/Character.js',
+      'js/character/CharacterDisplay.js',
+      'js/character/CharacterCroppedDisplay.js',
+      'js/character/CharacterPortrait.js',
+      'js/character/CharacterCloseShot.js',
+      'js/character/CharacterManager.js',
+      'js/character/CharacterSkillSystem.js',
+      
+      // UI Components
+      'js/ui/Text.js',
+      'js/ui/Window.js',
+      'js/ui/WindowManager.js',
+      'js/ui/CarouselMenu.js',
+      'js/ui/BackgroundGradient.js',
+      'js/ui/Background.js',
+      'js/ui/FuturisticLines.js',
+      'js/ui/LoadingDots.js',
+      'js/ui/Logo.js',
+      'js/ui/NavigationHint.js',
+      'js/ui/ProgressText.js',
+      'js/ui/ExperienceBar.js',
       
       // Filesystem
       'js/filesystem/filesystem.js',
@@ -42,19 +66,6 @@ class BuildSystem {
       'js/utils/Lyrics.js',
       'js/utils/Metronome.js',
       'js/utils/OffsetAssistant.js',
-      
-      // UI Components
-      'js/ui/Text.js',
-      'js/ui/Window.js',
-      'js/ui/WindowManager.js',
-      'js/ui/CarouselMenu.js',
-      'js/ui/BackgroundGradient.js',
-      'js/ui/Background.js',
-      'js/ui/FuturisticLines.js',
-      'js/ui/LoadingDots.js',
-      'js/ui/Logo.js',
-      'js/ui/NavigationHint.js',
-      'js/ui/ProgressText.js',
       
       // Audio
       'js/audio/BackgroundMusic.js',
@@ -78,6 +89,8 @@ class BuildSystem {
       'js/game/states/Load.js',
       'js/game/states/Title.js',
       'js/game/states/MainMenu.js',
+      'js/game/states/CharacterSelect.js',
+      'js/game/states/CharacterCustomize.js',
       'js/game/states/SongSelect.js',
       'js/game/states/Play.js',
       'js/game/states/Results.js',

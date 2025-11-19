@@ -176,6 +176,62 @@ class Boot {
         type: 'spritesheet',
         frameWidth: 16,
         frameHeight: 16
+      },
+      // Character assets
+      {
+        key: "character_base",
+        url: "character/base.png",
+        type: "spritesheet",
+        frameWidth: 100,
+        frameHeight: 100
+      },
+      {
+        key: "character_eyes", 
+        url: "character/eyes.png",
+        type: "spritesheet",
+        frameWidth: 100,
+        frameHeight: 100
+      },
+      
+      // Hair styles
+      ...(() => {
+        const hairResources = [];
+        // Front hairs
+        for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.front; i++) {
+          hairResources.push({
+            key: `character_front_hair_${i}`,
+            url: `character/front_hair_${i}.png`,
+            type: "image"
+          });
+        }
+        // Back hairs  
+        for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.back; i++) {
+          hairResources.push({
+            key: `character_back_hair_${i}`,
+            url: `character/back_hair_${i}.png`, 
+            type: "image"
+          });
+        }
+        return hairResources;
+      })(),
+      
+      // Clothing and accessories
+      {
+        key: "character_clothing_school_uniform",
+        url: "character/school_uniform.png",
+        type: "image"
+      },
+      {
+        key: "character_accessory_headphones", 
+        url: "character/headphones.png",
+        type: "image"
+      },
+      {
+        key: "character_noise",
+        url: "ui/character_noise.png", 
+        type: "spritesheet",
+        frameWidth: 36,
+        frameHeight: 7
       }
     ];
     

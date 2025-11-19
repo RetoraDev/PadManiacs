@@ -47,6 +47,8 @@ const bootGame = () => {
         game.state.add('Title', Title);
         game.state.add('MainMenu', MainMenu);
         game.state.add('SongSelect', SongSelect);
+        game.state.add('CharacterSelect', CharacterSelect);
+        game.state.add('CharacterCustomize', CharacterCustomize);
         game.state.add('Play', Play);
         game.state.add('Results', Results);
         game.state.add('Jukebox', Jukebox);
