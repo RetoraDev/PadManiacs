@@ -1,14 +1,14 @@
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
-    
+
     this.keys = [];
-    
+
     Object.keys(FONTS).forEach(key => {
       const entry = FONTS[key];
       this.load.spritesheet(entry.font, `fonts/${key}.png`, entry.fontWidth || 4, entry.fontHeight || 6);
     });
-    
+
     WINDOW_PANELS.forEach(key => {
       this.load.spritesheet(`ui_window_${key}`, `ui/window_${key}.png`, 8, 8);
       this.keys.push(`ui_window_${key}`);
@@ -16,17 +16,32 @@ class Boot {
   }
   create() {
     gamepad = new Gamepad(game);
-    
+
     notifications = new NotificationSystem();
-    
+
     game.time.advancedTiming = true;
-    
+
     game.world.updateOnlyExistingChildren = true;
-    
+
     game.onMenuIn = new Phaser.Signal();
-    
+
+    game.state.add("Load", Load);
+    game.state.add("LoadCordova", LoadCordova);
+    game.state.add("LoadAddons", LoadAddons);
+    game.state.add("LoadLocalSongs", LoadLocalSongs);
+    game.state.add("LoadExternalSongs", LoadExternalSongs);
+    game.state.add("LoadSongFolder", LoadSongFolder);
+    game.state.add("Title", Title);
+    game.state.add("MainMenu", MainMenu);
+    game.state.add("SongSelect", SongSelect);
+    game.state.add("CharacterSelect", CharacterSelect);
+    game.state.add("Play", Play);
+    game.state.add("Results", Results);
+    game.state.add("Jukebox", Jukebox);
+    game.state.add("Credits", Credits);
+
     window.primaryAssets = this.keys;
-    
+
     window.gameResources = [
       {
         key: "ui_loading_dots",
@@ -121,59 +136,59 @@ class Boot {
       {
         key: "arrows",
         url: "chart/arrows.png",
-        type: 'spritesheet',
+        type: "spritesheet",
         frameWidth: 16,
         frameHeight: 16
       },
       {
         key: "receptor",
         url: "chart/receptor.png",
-        type: 'spritesheet', 
+        type: "spritesheet",
         frameWidth: 16,
         frameHeight: 16
       },
       {
         key: "explosion",
         url: "chart/explosion.png",
-        type: 'image'
+        type: "image"
       },
       {
-        key: "mineexplosion", 
+        key: "mineexplosion",
         url: "chart/mine_explosion.png",
-        type: 'image'
+        type: "image"
       },
       {
         key: "mine",
         url: "chart/mine.png",
-        type: 'spritesheet',
+        type: "spritesheet",
         frameWidth: 16,
         frameHeight: 16
       },
       {
         key: "hold_end",
         url: "chart/hold_end.png",
-        type: 'spritesheet',
-        frameWidth: 16, 
+        type: "spritesheet",
+        frameWidth: 16,
         frameHeight: 8
       },
       {
         key: "hold_body",
         url: "chart/hold_body.png",
-        type: 'spritesheet',
+        type: "spritesheet",
         frameWidth: 16,
         frameHeight: 112
       },
       {
-        key: "roll_end", 
+        key: "roll_end",
         url: "chart/roll_end.png",
-        type: 'spritesheet',
+        type: "spritesheet",
         frameWidth: 16,
         frameHeight: 8
       },
       {
         key: "roll_body",
         url: "chart/roll_body.png",
-        type: 'spritesheet',
+        type: "spritesheet",
         frameWidth: 16,
         frameHeight: 16
       },
@@ -186,13 +201,13 @@ class Boot {
         frameHeight: 100
       },
       {
-        key: "character_eyes", 
+        key: "character_eyes",
         url: "character/eyes.png",
         type: "spritesheet",
         frameWidth: 100,
         frameHeight: 100
       },
-      
+
       // Hair styles
       ...(() => {
         const hairResources = [];
@@ -204,17 +219,17 @@ class Boot {
             type: "image"
           });
         }
-        // Back hairs  
+        // Back hairs
         for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.back; i++) {
           hairResources.push({
             key: `character_back_hair_${i}`,
-            url: `character/back_hair_${i}.png`, 
+            url: `character/back_hair_${i}.png`,
             type: "image"
           });
         }
         return hairResources;
       })(),
-      
+
       // Clothing and accessories
       {
         key: "character_clothing_school_uniform",
@@ -222,32 +237,32 @@ class Boot {
         type: "image"
       },
       {
-        key: "character_accessory_headphones", 
+        key: "character_accessory_headphones",
         url: "character/headphones.png",
         type: "image"
       },
       {
         key: "character_noise",
-        url: "ui/character_noise.png", 
+        url: "ui/character_noise.png",
         type: "spritesheet",
         frameWidth: 36,
         frameHeight: 7
       }
     ];
-    
-    window.addEventListener('keydown', (event) => {
+
+    window.addEventListener("keydown", event => {
       // Only process if we're in the game and not in an input field
-      if (document.activeElement.tagName === 'INPUT') return;
-      
-      switch(event.code) {
-        case 'F8': // Screenshot
+      if (document.activeElement.tagName === "INPUT") return;
+
+      switch (event.code) {
+        case "F8": // Screenshot
           event.preventDefault();
           if (game.recorder) {
             game.recorder.screenshot();
           }
           break;
-          
-        case 'F9': // Start/Stop recording
+
+        case "F9": // Start/Stop recording
           event.preventDefault();
           if (game.recorder.isRecording) {
             game.recorder.stop();
@@ -255,14 +270,14 @@ class Boot {
             game.recorder.start();
           }
           break;
-          
-        case 'F10': // Record next game
+
+        case "F10": // Record next game
           event.preventDefault();
           window.recordNextGame = true;
           break;
       }
     });
-    
+
     game.state.start("Load", true, false, window.gameResources, "LoadCordova");
   }
 }
