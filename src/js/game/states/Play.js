@@ -22,6 +22,11 @@ class Play {
     this.metronome = null;
     this.gameRecorder = null;
     
+    // Initialize character system
+    this.characterManager = new CharacterManager();
+    this.currentCharacter = this.characterManager.getCurrentCharacter();
+    this.skillSystem = new CharacterSkillSystem(this.currentCharacter);
+    
     // Save last song to Account
     Account.lastSong = {
       url: song.chart.audioUrl,
@@ -77,7 +82,7 @@ class Play {
     
     this.setupLyrics();
     
-    this.player = new Player(this);
+    this.setupPlayer();
     
     this.metronome = new Metronome(this);
     
@@ -170,6 +175,10 @@ class Play {
     }
   }
   
+  setupPlayer() {
+    this.player = new Player(this);
+  }
+  
   setupLyrics() {
     if (this.hasLyricsFile && game.cache.checkTextKey('song_lyrics')) {
       const lrcContent = game.cache.getText('song_lyrics');
@@ -243,7 +252,39 @@ class Play {
       if (window.recordNextGame) game.recorder.start(this.audio, 0);
     }, FIXED_DELAY + this.userOffset);
     
+    this.showCharacterCloseShot(FIXED_DELAY + this.userOffset);
+    
     this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
+  }
+  
+  showCharacterCloseShot(duration) {
+    // Same implementation as in skill system
+    const displayTime = Math.max(500, duration - 200);
+    const closeShot = new CharacterCloseShot(2, 103, this.currentCharacter);
+    closeShot.visible = false;
+    this.hud.addChild(closeShot);
+
+    const noiseSprite = game.add.sprite(2, 103, 'character_noise');
+    noiseSprite.animations.add('static', [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
+    noiseSprite.animations.play('static');
+    this.hud.addChild(noiseSprite);
+
+    game.time.events.add(100, () => {
+      noiseSprite.destroy();
+      closeShot.visible = true;
+    });
+
+    game.time.events.add(displayTime, () => {
+      closeShot.visible = false;
+      const endNoise = game.add.sprite(2, 103, 'character_noise');
+      endNoise.animations.add('static', [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
+      endNoise.animations.play('static');
+      
+      game.time.events.add(100, () => {
+        endNoise.destroy();
+        closeShot.destroy();
+      });
+    });
   }
   
   loadBackgroundImage(url) {
@@ -297,6 +338,17 @@ class Play {
   }
   
   songEnd() {
+    // Update character stats
+    const gameResults = {
+      score: this.player.score,
+      accuracy: this.player.accuracy,
+      maxCombo: this.player.maxCombo,
+      judgements: { ...this.player.judgementCounts },
+      skillsUsed: this.skillSystem.getSkillsUsed()
+    };
+    
+    this.characterManager.updateCharacterStats(gameResults);
+    
     // Pass game data to Results state
     const gameData = {
       song: this.song,
@@ -441,6 +493,11 @@ class Play {
       this.togglePause();
     }
     this.lastStart = gamepad.pressed.start;
+    
+    // Update skill system
+    if (this.skillSystem) {
+      this.skillSystem.update();
+    }
     
     // Update lyrics with current time
     if (this.hasLyricsFile && this.lyrics && this.started) {

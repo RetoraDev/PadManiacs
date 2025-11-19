@@ -73,6 +73,11 @@ class Player {
     this.accuracy = 0;
     this.gameOver = false;
     
+    // Skill system
+    this.skillSystem = this.scene.skillSystem;
+    this.perfectStreak = 0;
+    this.skillSystem.onHealthRegen = amount => this.onSkillHpRegen(amount);
+    
     // Calculate total notes for accuracy
     this.calculateTotalNotes();
     this.updateAccuracy();
@@ -435,16 +440,59 @@ class Player {
       explosion.bringToTop();
     }
   }
+  
+  getAdjustedJudgementWindows() {
+    const baseWindows = { ...this.scene.JUDGE_WINDOWS };
+    const multiplier = this.skillSystem ? this.skillSystem.getJudgementWindowMultiplier() : 1.0;
+    
+    Object.keys(baseWindows).forEach(judgement => {
+      baseWindows[judgement] *= multiplier;
+    });
+    
+    return baseWindows;
+  }
 
   getJudgement(delta) {
     this.timingStory.push(delta);
-    for (const [judgement, window] of Object.entries(this.scene.JUDGE_WINDOWS)) {
-      if (delta <= window) return judgement;
+    
+    // Use adjusted judgement windows
+    const judgeWindows = this.getAdjustedJudgementWindows();
+    
+    for (const [judgement, window] of Object.entries(judgeWindows)) {
+      if (delta <= window) {
+        // Update perfect streak
+        if (judgement === 'marvelous' || judgement === 'perfect') {
+          this.perfectStreak++;
+        } else {
+          this.perfectStreak = 0;
+        }
+        return judgement;
+      }
     }
     return "miss";
   }
   
   processJudgement(note, judgement, column) {
+    // Check for skill activation based on judgement
+    if (this.skillSystem) {
+      this.skillSystem.checkSkillActivation('on_miss', { judgement: judgement });
+      
+      // Check perfect streak
+      if (this.perfectStreak > 0) {
+        this.skillSystem.checkSkillActivation('on_perfect_streak', { 
+          perfectStreak: this.perfectStreak 
+        });
+      }
+    }
+    
+    // Apply judgement conversion from skills
+    if (this.skillSystem) {
+      const conversion = this.skillSystem.getJudgementConversion();
+      if (conversion && judgement === conversion.from) {
+        judgement = conversion.to;
+      }
+    }
+    
     const scoreValue = this.scene.SCORE_VALUES[judgement];
     if (!this.gameOver) this.score += scoreValue;
     
@@ -459,7 +507,7 @@ class Player {
       this.health = Math.max(0, this.health - 5);
     } else {
       this.combo++;
-      if (!this.gameOver) this.health = Math.min(this.maxHealth, this.health + 2);
+      if (!this.gameOver) this.health = Math.min(this.getMaxHealth(), this.health + 2);
       if (this.combo > this.maxCombo) {
         this.maxCombo = this.combo;
       }
@@ -473,6 +521,18 @@ class Player {
 
     // Show judgement text
     this.showJudgementText(judgement, column);
+  }
+  
+  getMaxHealth() {
+    const baseHealth = this.maxHealth;
+    const bonus = this.skillSystem ? this.skillSystem.getMaxHealthBonus() : 0;
+    return baseHealth + bonus;
+  }
+  
+  getNoteSpeedMultiplier() {
+    const baseMultiplier = this.NOTE_SPEED_MULTIPLIER;
+    const skillMultiplier = this.skillSystem ? this.skillSystem.getNoteSpeedMultiplier() : 1.0;
+    return baseMultiplier * skillMultiplier;
   }
   
   updateAccuracy() {
@@ -522,7 +582,7 @@ class Player {
 
     this.scoreText.write(this.score.toString().padStart(8, "0"));
 
-    const healthPercent = Math.round(this.health / this.maxHealth);
+    const healthPercent = Math.round(this.health / this.getMaxHealth());
     this.healthText.write(`${healthPercent * 100}`);
 
     // Pulse combo on increase
@@ -588,6 +648,12 @@ class Player {
     const g = Math.floor(255 + (255 - 255) * (value / max));
     const b = Math.floor(255 + (0 - 255) * (value / max));
     return (r << 16) | (g << 8) | b;
+  }
+  
+  onSkillHpRegen(amount = 0) {
+    if (!this.gameOver) {
+      this.health = Math.min(this.getMaxHealth(), this.health + amount);
+    }
   }
 
   createExplosion(note, type = "normal") {
@@ -1196,16 +1262,30 @@ class Player {
       }
       receptor.frame = down ? 0 : 2;
     }
+    
+    // Check for skill activations
+    if (this.skillSystem) {
+      // Combo-based skills
+      if (this.combo > 0) {
+        this.skillSystem.checkSkillActivation('on_combo', { combo: this.combo });
+        this.skillSystem.checkSkillActivation('on_high_combo', { combo: this.combo });
+      }
+      
+      // Health-based skills
+      if (this.health <= 30) {
+        this.skillSystem.checkSkillActivation('on_low_health', { health: this.health });
+      }
+    }
 
     // Update healh
     if (this.health != this.previousHealth) {
       this.previousHealth = this.health;
-      game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.maxHealth) * 104 }, 100, Phaser.Easing.Quadratic.In, true);
+      game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.getMaxHealth()) * 104 }, 100, Phaser.Easing.Quadratic.In, true);
       if (this.health <= 0) {
         this.gameOver = true;
         this.health = 0;
       }
-      this.healthText.write(`${Math.floor(this.health / this.maxHealth * 100)}`);
+      this.healthText.write(`${Math.floor(this.health / this.getMaxHealth() * 100)}`);
     }
     this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
     if (this.scene.acurracyBar) {
