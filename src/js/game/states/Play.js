@@ -22,6 +22,11 @@ class Play {
     this.metronome = null;
     this.gameRecorder = null;
     
+    // Initialize character system
+    this.characterManager = new CharacterManager();
+    this.currentCharacter = this.characterManager.getCurrentCharacter();
+    this.skillSystem = new CharacterSkillSystem(this, this.currentCharacter);
+    
     // Save last song to Account
     Account.lastSong = {
       url: song.chart.audioUrl,
@@ -77,7 +82,7 @@ class Play {
     
     this.setupLyrics();
     
-    this.player = new Player(this);
+    this.setupPlayer();
     
     this.metronome = new Metronome(this);
     
@@ -92,6 +97,8 @@ class Play {
 
     this.hud = game.add.sprite(0, 0, "ui_hud_background", 0);
     
+    this.overHud = game.add.sprite(0, 0);
+    
     const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
     
     this.difficultyBanner = game.add.sprite(0, 0, "ui_difficulty_banner", 0);
@@ -102,12 +109,15 @@ class Play {
     
     const title = this.song.chart.titleTranslit || this.song.chart.title;
     
-    this.songTitleText = new Text(34, 1, title, null, this.hud);
+    this.songTitleText = new Text(34, 1, "", null, this.hud);
+    this.songTitleText.write(title, 28);
     
-    this.playerName = new Text(4, 8, "Miku", FONTS.shaded, this.hud);
-    this.playerName.tint = 0xffffff;
+    this.playerName = new Text(4, 8, "", FONTS.shaded, this.hud);
+    this.playerName.write(this.currentCharacter.name, 4);
+    this.playerName.tint = this.currentCharacter.appearance.hairColor;
     
-    if (title.length > 28) this.songTitleText.scrollwrite(title, 28);
+    this.skillBar = new SkillBar(6, 15);
+    this.hud.addChild(this.skillBar);
     
     this.scoreText = new Text(22, 12, "0".repeat(9), null, this.hud);
     
@@ -168,6 +178,10 @@ class Play {
     if (this.visualizer) {
       this.hud.addChild(this.visualizer.graphics);
     }
+  }
+  
+  setupPlayer() {
+    this.player = new Player(this);
   }
   
   setupLyrics() {
@@ -235,6 +249,8 @@ class Play {
     
     const chartOffset = this.song.chart.offset || 0;
     
+    this.showCharacterCloseShot(FIXED_DELAY + this.userOffset);
+    
     this.startTime = game.time.now + FIXED_DELAY - chartOffset * 1000;
     
     setTimeout(() => {
@@ -244,6 +260,44 @@ class Play {
     }, FIXED_DELAY + this.userOffset);
     
     this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
+  }
+  
+  showCharacterCloseShot(duration) {
+    const displayTime = Math.max(500, duration - 400);
+    const closeShot = new CharacterCloseShot(2, 103, this.currentCharacter);
+    closeShot.visible = false;
+    this.overHud.addChild(closeShot);
+    
+    if (this.visualizer) {
+      this.visualizer.graphics.visible = false;
+    }
+
+    const noiseSprite = game.add.sprite(2, 103, 'character_noise');
+    noiseSprite.animations.add('static', [0, 1, 2, 3, 4, 5, 6, 7], 60, true);
+    noiseSprite.animations.play('static');
+    this.overHud.addChild(noiseSprite);
+
+    game.time.events.add(200, () => {
+      noiseSprite.destroy();
+      closeShot.visible = true;
+      closeShot.blink(game.rnd.between(0, 200));
+    });
+
+    game.time.events.add(displayTime, () => {
+      closeShot.visible = false;
+      const endNoise = game.add.sprite(2, 103, 'character_noise');
+      endNoise.animations.add('static', [0, 1, 2, 3, 4, 5, 6, 7], 60, true);
+      endNoise.animations.play('static');
+      this.overHud.addChild(noiseSprite);
+      
+      game.time.events.add(200, () => {
+        if (this.visualizer) {
+          this.visualizer.graphics.visible = true;
+        }
+        endNoise.destroy();
+        closeShot.destroy();
+      });
+    });
   }
   
   loadBackgroundImage(url) {
@@ -297,6 +351,17 @@ class Play {
   }
   
   songEnd() {
+    // Update character stats
+    const gameResults = {
+      score: this.player.score,
+      accuracy: this.player.accuracy,
+      maxCombo: this.player.maxCombo,
+      judgements: { ...this.player.judgementCounts },
+      skillsUsed: this.skillSystem.getSkillsUsed()
+    };
+    
+    this.characterManager.updateCharacterStats(gameResults);
+    
     // Pass game data to Results state
     const gameData = {
       song: this.song,
@@ -433,7 +498,7 @@ class Play {
   
   update() {
     gamepad.update();
-    
+        
     if (this.isPaused) return;
     
     // Pause with start button
@@ -441,6 +506,11 @@ class Play {
       this.togglePause();
     }
     this.lastStart = gamepad.pressed.start;
+    
+    // Update skill system
+    if (this.skillSystem) {
+      this.skillSystem.update();
+    }
     
     // Update lyrics with current time
     if (this.hasLyricsFile && this.lyrics && this.started) {
@@ -480,6 +550,8 @@ class Play {
     
     this.hud.bringToTop();
     this.hud.alpha = this.player.gameOver ? 0.5 : 1;
+    
+    this.overHud.bringToTop();
     
     this.judgementText.bringToTop();
     this.comboText.bringToTop();

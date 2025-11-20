@@ -25,23 +25,16 @@ class BuildSystem {
       'js/core/constants.js',
       'js/core/environment.js', 
       'js/core/account.js',
+      'js/core/character.js',
       
-      // Filesystem
-      'js/filesystem/filesystem.js',
-      'js/filesystem/node-filesystem.js',
-      'js/filesystem/cordova-filesystem.js',
-      'js/filesystem/fallback-filesystem.js',
-      
-      // Game main
-      'js/game/game.js',
-      
-      // Utils
-      'js/utils/Gamepad.js',
-      'js/utils/ScreenRecorder.js',
-      'js/utils/NotificationSystem.js',
-      'js/utils/Lyrics.js',
-      'js/utils/Metronome.js',
-      'js/utils/OffsetAssistant.js',
+      // Character System
+      'js/character/Character.js',
+      'js/character/CharacterDisplay.js',
+      'js/character/CharacterCroppedDisplay.js',
+      'js/character/CharacterPortrait.js',
+      'js/character/CharacterCloseShot.js',
+      'js/character/CharacterManager.js',
+      'js/character/CharacterSkillSystem.js',
       
       // UI Components
       'js/ui/Text.js',
@@ -55,6 +48,26 @@ class BuildSystem {
       'js/ui/Logo.js',
       'js/ui/NavigationHint.js',
       'js/ui/ProgressText.js',
+      'js/ui/ExperienceBar.js',
+      'js/ui/SkillBar.js',
+      'js/ui/TextInput.js',
+      'js/ui/NotificationSystem.js',
+      'js/ui/Lyrics.js',
+      'js/ui/OffsetAssistant.js',
+      
+      // Filesystem
+      'js/filesystem/filesystem.js',
+      'js/filesystem/node-filesystem.js',
+      'js/filesystem/cordova-filesystem.js',
+      'js/filesystem/fallback-filesystem.js',
+      
+      // Game main
+      'js/game/game.js',
+      
+      // Utils
+      'js/utils/Gamepad.js',
+      'js/utils/ScreenRecorder.js',
+      'js/utils/Metronome.js',
       
       // Audio
       'js/audio/BackgroundMusic.js',
@@ -79,6 +92,7 @@ class BuildSystem {
       'js/game/states/Title.js',
       'js/game/states/MainMenu.js',
       'js/game/states/SongSelect.js',
+      'js/game/states/CharacterSelect.js',
       'js/game/states/Play.js',
       'js/game/states/Results.js',
       'js/game/states/Jukebox.js',

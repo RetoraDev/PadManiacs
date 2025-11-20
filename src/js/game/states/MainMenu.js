@@ -38,6 +38,7 @@ class MainMenu {
         crop: false
       });
       carousel.addItem("Rhythm Game", () => startGame());
+      carousel.addItem("Character Select", () => game.state.start("CharacterSelect"));
       carousel.addItem("Settings", () => settings());
       carousel.addItem("Extras", () => extras());
       
