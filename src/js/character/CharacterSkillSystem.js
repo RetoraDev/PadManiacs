@@ -32,6 +32,7 @@ class CharacterSkillSystem {
   canActivateSkill(skill, params) {
     if (this.exhausted) return false;
     if (this.skillCooldowns.has(skill.id)) return false;
+    if (this.scene.autoPlay) return false;
 
     switch (skill.activationCondition) {
       case 'on_miss':
@@ -107,6 +108,7 @@ class CharacterSkillSystem {
         
       case 'modify_note_speed':
         this.skillEffects.noteSpeedMultiplier = skill.effectParams.multiplier;
+        this.scene.showGlitchAnimation(100);
         break;
     }
   }
@@ -136,6 +138,7 @@ class CharacterSkillSystem {
         
       case 'modify_note_speed':
         this.skillEffects.noteSpeedMultiplier = 1.0;
+        this.scene.showGlitchAnimation(100);
         break;
     }
 

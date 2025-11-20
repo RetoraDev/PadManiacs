@@ -33,7 +33,7 @@ const DEFAULT_ACCOUNT = {
         level: 1,
         experience: 0,
         skillLevel: 1,
-        unlockedSkills: ["safety_net", "focus_boost"],
+        unlockedSkills: ["safety_net", "focus_boost", "max_health_boost", "time_dilation"],
         selectedSkill: "safety_net",
         appearance: {
           skinTone: 0,

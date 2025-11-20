@@ -581,10 +581,7 @@ class Player {
     this.comboText.tint = this.getComboColor(this.combo);
 
     this.scoreText.write(this.score.toString().padStart(8, "0"));
-
-    const healthPercent = Math.round(this.health / this.getMaxHealth());
-    this.healthText.write(`${healthPercent * 100}`);
-
+    
     // Pulse combo on increase
     if (this.combo > 0) {
       this.pulseText(this.comboText);
@@ -754,21 +751,21 @@ class Player {
     if (this.speedMod === 'C-MOD') {
       // C-MOD: Use constant timing based on seconds
       const constantDeltaNote = note.sec - now;
-      pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.getNoteSpeedMultiplier();
       
       // For C-MOD, calculate body height using seconds as well
       if (note.beatLength) {
         const freezeDuration = note.secLength || (note.beatLength * 60 / this.getCurrentBPM());
-        bodyHeight = Math.max(this.COLUMN_SIZE, freezeDuration * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER);
+        bodyHeight = Math.max(this.COLUMN_SIZE, freezeDuration * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.getNoteSpeedMultiplier());
       }
     } else {
       // X-MOD: Use beat-based timing (default)
       const deltaNote = note.beat - beat;
-      pastSize = deltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      pastSize = deltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.getNoteSpeedMultiplier();
       
       // For X-MOD, calculate body height using beats
       if (note.beatLength) {
-        bodyHeight = Math.max(this.COLUMN_SIZE, note.beatLength * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER);
+        bodyHeight = Math.max(this.COLUMN_SIZE, note.beatLength * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.getNoteSpeedMultiplier());
       }
     }
     
@@ -1164,14 +1161,14 @@ class Player {
       // C-MOD: Calculate position based on seconds
       const targetSec = this.beatToSec(targetBeat);
       const constantDeltaNote = targetSec - now;
-      const pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      const pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.getNoteSpeedMultiplier();
       yPos = this.scrollDirection === 'falling' ?
         this.JUDGE_LINE - pastSize :
         this.JUDGE_LINE + pastSize;
     } else {
       // X-MOD: Calculate position based on beats
       const deltaBeat = targetBeat - beat;
-      const pastSize = deltaBeat * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      const pastSize = deltaBeat * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.getNoteSpeedMultiplier();
       yPos = this.scrollDirection === 'falling' ?
         this.JUDGE_LINE - pastSize :
         this.JUDGE_LINE + pastSize;
@@ -1277,15 +1274,16 @@ class Player {
       }
     }
 
-    // Update healh
+    // Update health
     if (this.health != this.previousHealth) {
       this.previousHealth = this.health;
-      game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.getMaxHealth()) * 104 }, 100, Phaser.Easing.Quadratic.In, true);
+      game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
       if (this.health <= 0) {
         this.gameOver = true;
         this.health = 0;
       }
-      this.healthText.write(`${Math.floor(this.health / this.getMaxHealth() * 100)}`);
+      //const healthPercent = Math.round(this.health / 100);
+      this.healthText.write(this.health.toString());
     }
     this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
     if (this.scene.acurracyBar) {

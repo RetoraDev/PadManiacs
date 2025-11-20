@@ -78,6 +78,13 @@ class Boot {
         frameHeight: 112
       },
       {
+        key: "ui_glitch_animation",
+        url: "ui/glitch_animation.png",
+        type: "spritesheet",
+        frameWidth: 192,
+        frameHeight: 112
+      },
+      {
         key: "ui_navigation_hint_gamepad",
         url: "ui/navigation_hint_gamepad.png",
         type: "spritesheet",

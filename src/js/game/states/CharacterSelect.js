@@ -212,19 +212,30 @@ class CharacterSelect extends Phaser.State {
       animate: true
     });
     
+    let i = 0;
+    let selectedIndex = 0;
+    
     this.selectedCharacter.unlockedSkills.forEach(skillId => {
       const skill = CHARACTER_SKILLS.find(s => s.id === skillId);
       if (skill) {
         const isCurrent = this.selectedCharacter.selectedSkill === skillId;
+        if (isCurrent) selectedIndex = i;
+        i++;
         this.skillsCarousel.addItem(isCurrent ? `> ${skill.name}` : `  ${skill.name}`, (item) => {
           this.selectedCharacter.selectedSkill = item.data.skillId;
           this.updateSkillPreview(item.data.skillId);
+          this.skillsCarousel.destroy();
+          this.skillsCarousel = null;
+          this.skillPreviewText.destroy();
+          this.setSkill();
         }, {
           skillId: skillId,
           bgcolor: isCurrent ? "#e74c3c" : "#9b59b6"
         });
       }
     });
+    
+    this.skillsCarousel.selectIndex(selectedIndex);
     
     // Set up navigation
     this.skillsCarousel.onSelect.add((index, item) => {
@@ -368,9 +379,9 @@ class CharacterSelect extends Phaser.State {
 
   customizeHairColor() {
     let color = this.selectedCharacter.appearance.hairColor;
-    let r = Math.max(0x88, (color >> 16) & 0xff);
-    let g = Math.max(0x88, (color >> 8) & 0xff);
-    let b = Math.max(0x88, color & 0xff);
+    let r = (color >> 16) & 0xff;
+    let g = (color >> 8) & 0xff;
+    let b = color & 0xff;
 
     const colorText = new Text(96, 80, "HAIR COLOR", FONTS.shaded);
     colorText.anchor.set(0.5);
@@ -388,7 +399,7 @@ class CharacterSelect extends Phaser.State {
     const colorHandler = key => {
       switch (key) {
         case "left":
-          r = Math.max(0x88, r - 32);
+          r = Math.max(0, r - 32);
           break;
         case "right":
           r = Math.min(255, r + 32);
@@ -397,13 +408,13 @@ class CharacterSelect extends Phaser.State {
           g = Math.min(255, g + 32);
           break;
         case "down":
-          g = Math.max(0x88, g - 32);
+          g = Math.max(0, g - 32);
           break;
         case "a":
           b = Math.min(255, b + 32);
           break;
         case "b":
-          b = Math.max(0x88, b - 32);
+          b = Math.max(0, b - 32);
           break;
         case "start":
           colorText.destroy();
