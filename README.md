@@ -60,6 +60,10 @@ You can add as many songs as desired.
 ### Loading Individual Songs
 Use "Load Single Song" from the Extra Songs menu. Select the entire folder containing the chart files when prompted. This method works on both desktop and mobile for quick testing of individual songs.
 
+## Character System
+
+Customize and level up your own avatar with RPG-style progression. Create characters with unique appearances, unlock skills that activate automatically during gameplay, and watch them grow as you play.
+
 ## Screenshots & Recording
 You can capture the screen using keyboard shortcuts:
 - **F8**: Take Screenshot
