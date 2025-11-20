@@ -38,19 +38,6 @@ const bootGame = () => {
     state: {
       create() {
         game.state.add('Boot', Boot);
-        game.state.add('Load', Load);
-        game.state.add('LoadCordova', LoadCordova);
-        game.state.add('LoadAddons', LoadAddons);
-        game.state.add('LoadLocalSongs', LoadLocalSongs);
-        game.state.add('LoadExternalSongs', LoadExternalSongs);
-        game.state.add('LoadSongFolder', LoadSongFolder);
-        game.state.add('Title', Title);
-        game.state.add('MainMenu', MainMenu);
-        game.state.add('SongSelect', SongSelect);
-        game.state.add('Play', Play);
-        game.state.add('Results', Results);
-        game.state.add('Jukebox', Jukebox);
-        game.state.add('Credits', Credits);
         game.state.start('Boot');
         game.recorder = new ScreenRecorder(game);
       }

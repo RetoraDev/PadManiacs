@@ -13,7 +13,7 @@ class NotificationSystem {
     this.notificationTexts = null;
     
     this.restrictedStates = new Set(['Title', 'Play', 'Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
-    this.allowedStates = new Set(['MainMenu', 'SongSelect', 'Results']);
+    this.allowedStates = new Set(['MainMenu', 'SongSelect', 'Results', 'CharacterSelect', 'Jukebox']);
     
     this.setupStateChangeHandling();
   }

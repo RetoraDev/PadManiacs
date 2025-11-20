@@ -21,8 +21,6 @@ class Window extends Phaser.Sprite {
     this.font = "default";
     this.fontTint = 0x76fcde;
 
-    this.fixedToCamera = true;
-
     if (parent) {
       parent.addChild(this);
     } else {

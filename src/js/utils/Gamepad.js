@@ -364,23 +364,23 @@ class Gamepad {
     this.updateButtonStates();
     
     // Dispatch signals for any pressed/released keys
-    let anyPressed = false;
-    let anyReleased = false;
+    let anyPressed = null;
+    let anyReleased = null;
     
     this.keys.forEach(key => {
       if (this.pressed[key]) {
         this.signals.pressed[key].dispatch();
-        anyPressed = true;
+        anyPressed = key;
       }
       if (this.released[key]) {
         this.signals.released[key].dispatch();
-        anyReleased = true;
+        anyReleased = key;
       }
     });
     
     // Dispatch 'any' signals
-    if (anyPressed) this.signals.pressed.any.dispatch();
-    if (anyReleased) this.signals.released.any.dispatch();
+    if (anyPressed) this.signals.pressed.any.dispatch(anyPressed);
+    if (anyReleased) this.signals.released.any.dispatch(anyReleased);
     
     // Save current state for next frame
     this.keys.forEach(key => {
