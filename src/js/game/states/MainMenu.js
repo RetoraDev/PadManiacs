@@ -30,7 +30,7 @@ class MainMenu {
     this.manager = manager;
     
     const home = () => {
-      const carousel = new CarouselMenu(0, 112 / 2, 112, 112 / 2, {
+      const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
         align: 'left',
         bgcolor: 'brown',
         fgcolor: '#ffffff',
@@ -51,7 +51,7 @@ class MainMenu {
     };
     
     const startGame = () => {
-      const carousel = new CarouselMenu(0, 112 / 2, 112, 112 / 2, {
+      const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
         align: 'left',
         bgcolor: 'brown',
         fgcolor: '#ffffff',
@@ -66,7 +66,7 @@ class MainMenu {
     };
     
     const extraSongs = () => {
-      const carousel = new CarouselMenu(0, 112 / 2, 112, 112 / 2, {
+      const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
         align: 'left',
         bgcolor: 'brown',
         fgcolor: '#ffffff',
@@ -313,7 +313,7 @@ class MainMenu {
     };
     
     const extras = () => {
-      const carousel = new CarouselMenu(0, 112 / 2, 112, 112 / 2, {
+      const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
         align: 'left',
         bgcolor: 'brown',
         fgcolor: '#ffffff',
