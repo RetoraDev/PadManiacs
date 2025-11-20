@@ -33,9 +33,8 @@ const CHARACTER_SKILLS = [
     name: "Focus Boost", 
     description: "Temporarily increases accuracy window by 20%",
     activationCondition: "on_combo",
-    effectParams: { threshold: 50 },
     effect: "modify_judgement_window",
-    effectParams: { multiplier: 1.2 },
+    effectParams: { multiplier: 1.2, threshold: 50 },
     duration: 5000,
     cooldown: 30000
   },
@@ -44,20 +43,18 @@ const CHARACTER_SKILLS = [
     name: "Health Regeneration",
     description: "Regenerates 1 health per second for 10 seconds",
     activationCondition: "on_low_health",
-    effectParams: { threshold: 30 },
     effect: "health_regen",
-    effectParams: { amount: 1, interval: 1000 },
+    effectParams: { amount: 1, interval: 1000, threshold: 30 },
     duration: 10000,
     cooldown: 45000
   },
   {
     id: "max_health_boost",
     name: "Max Health Boost",
-    description: "Increases maximum health by 20 for 15 seconds",
+    description: "Increases maximum health by 25 for 15 seconds",
     activationCondition: "on_high_combo",
-    effectParams: { threshold: 100 },
     effect: "modify_max_health",
-    effectParams: { amount: 20 },
+    effectParams: { amount: 25, threshold: 100 },
     duration: 15000,
     cooldown: 60000
   },
@@ -66,9 +63,8 @@ const CHARACTER_SKILLS = [
     name: "Time Dilation",
     description: "Slows down note speed by 15% for 8 seconds",
     activationCondition: "on_perfect_streak",
-    effectParams: { threshold: 10 },
     effect: "modify_note_speed",
-    effectParams: { multiplier: 0.85 },
+    effectParams: { multiplier: 0.7, threshold: 10 },
     duration: 8000,
     cooldown: 40000
   }

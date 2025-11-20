@@ -22,6 +22,9 @@ class MainMenu {
       backgroundMusic.playLastSong();
     }
     
+    // Dispose background music when player leaves 
+    this.keepBackgroundMusic = false;
+    
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
@@ -38,7 +41,10 @@ class MainMenu {
         crop: false
       });
       carousel.addItem("Rhythm Game", () => startGame());
-      carousel.addItem("Character Select", () => game.state.start("CharacterSelect"));
+      carousel.addItem("Character Select", () => {
+        this.keepBackgroundMusic = true;
+        game.state.start("CharacterSelect");
+      });
       carousel.addItem("Settings", () => settings());
       carousel.addItem("Extras", () => extras());
       
@@ -579,7 +585,7 @@ class MainMenu {
     this.manager?.update();
   }
   shutdown() {
-    if (backgroundMusic) {
+    if (backgroundMusic && !this.keepBackgroundMusic) {
       backgroundMusic.destroy();
       backgroundMusic = null;
     }

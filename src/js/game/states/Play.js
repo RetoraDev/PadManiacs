@@ -123,8 +123,8 @@ class Play {
     
     this.lifebarStart = game.add.sprite(21, 8, "ui_lifebar", 0);
     this.lifebarMiddle = game.add.sprite(1, 0, "ui_lifebar", 1);
-    this.lifebarMiddle.width = 104;
-    this.lifebarEnd = game.add.sprite(104, 0, "ui_lifebar", 2);
+    this.lifebarMiddle.width = 102;
+    this.lifebarEnd = game.add.sprite(103, 0, "ui_lifebar", 2);
     
     this.hud.addChild(this.lifebarStart);
     this.lifebarStart.addChild(this.lifebarMiddle);
@@ -249,8 +249,6 @@ class Play {
     
     const chartOffset = this.song.chart.offset || 0;
     
-    this.showCharacterCloseShot(FIXED_DELAY + this.userOffset);
-    
     this.startTime = game.time.now + FIXED_DELAY - chartOffset * 1000;
     
     setTimeout(() => {
@@ -288,7 +286,7 @@ class Play {
       const endNoise = game.add.sprite(2, 103, 'character_noise');
       endNoise.animations.add('static', [0, 1, 2, 3, 4, 5, 6, 7], 60, true);
       endNoise.animations.play('static');
-      this.overHud.addChild(noiseSprite);
+      this.overHud.addChild(endNoise);
       
       game.time.events.add(200, () => {
         if (this.visualizer) {
@@ -298,6 +296,15 @@ class Play {
         closeShot.destroy();
       });
     });
+  }
+  
+  showGlitchAnimation(duration = 1000) {
+    const glitch = game.add.sprite(0, 0, 'ui_glitch_animation');
+    glitch.animations.add('glitch', [0, 1, 2, 3, 4, 5, 6], 12, true);
+    glitch.animations.play('glitch');
+    glitch.lifespan = duration;
+    glitch.blendMode = PIXI.blendModes.ADD;
+    this.overHud.addChild(glitch);
   }
   
   loadBackgroundImage(url) {
