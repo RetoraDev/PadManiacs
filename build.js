@@ -49,6 +49,11 @@ class BuildSystem {
       'js/ui/NavigationHint.js',
       'js/ui/ProgressText.js',
       'js/ui/ExperienceBar.js',
+      'js/ui/SkillBar.js',
+      'js/ui/TextInput.js',
+      'js/ui/NotificationSystem.js',
+      'js/ui/Lyrics.js',
+      'js/ui/OffsetAssistant.js',
       
       // Filesystem
       'js/filesystem/filesystem.js',
@@ -62,10 +67,7 @@ class BuildSystem {
       // Utils
       'js/utils/Gamepad.js',
       'js/utils/ScreenRecorder.js',
-      'js/utils/NotificationSystem.js',
-      'js/utils/Lyrics.js',
       'js/utils/Metronome.js',
-      'js/utils/OffsetAssistant.js',
       
       // Audio
       'js/audio/BackgroundMusic.js',
@@ -89,9 +91,8 @@ class BuildSystem {
       'js/game/states/Load.js',
       'js/game/states/Title.js',
       'js/game/states/MainMenu.js',
-      'js/game/states/CharacterSelect.js',
-      'js/game/states/CharacterCustomize.js',
       'js/game/states/SongSelect.js',
+      'js/game/states/CharacterSelect.js',
       'js/game/states/Play.js',
       'js/game/states/Results.js',
       'js/game/states/Jukebox.js',

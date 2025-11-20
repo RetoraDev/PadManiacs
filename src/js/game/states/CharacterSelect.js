@@ -1,103 +1,126 @@
-class CharacterSelect {
+class CharacterSelect extends Phaser.State {
   create() {
     game.camera.fadeIn(0x000000);
-    
+
     this.characterManager = new CharacterManager();
     this.selectedCharacter = this.characterManager.getCurrentCharacter();
-    
+
+    new Background('ui_lobby_background', false, 1);
+    new Background('ui_lobby_overlay', true, 0.3, 0.5);
     new FuturisticLines();
-    new BackgroundGradient();
-    
+
     this.navigationHint = new NavigationHint(0);
-    
+
     this.createUI();
     this.updateDisplay();
   }
 
   createUI() {
-    // Character display area (center, properly positioned)
-    this.characterDisplay = new CharacterDisplay(96, 30, this.selectedCharacter);
-    this.characterDisplay.scale.set(0.5);
-    this.characterDisplay.anchor.set(0.5);
-    
-    // Character list carousel (left)
-    this.characterCarousel = new CarouselMenu(10, 30, 80, 60, {
-      bgcolor: "#9b59b6",
-      fgcolor: "#ffffff",
-      align: "left",
-      animate: true
-    });
-    
-    // Add characters to carousel
-    this.characterManager.getCharacterList().forEach(character => {
-      const isCurrent = character.name === this.selectedCharacter.name;
-      this.characterCarousel.addItem(
-        isCurrent ? `> ${character.name}` : `  ${character.name}`,
-        () => this.selectCharacter(character),
-        { 
-          character: character,
-          bgcolor: isCurrent ? '#e74c3c' : '#9b59b6'
-        }
-      );
-    });
-    
-    // Add "Add Character" option
-    this.characterCarousel.addItem("+ ADD CHARACTER", () => this.addCharacter());
-    
-    // Character details using Text class instead of Window
+    // Create all UI elements that persist throughout the state
+    this.characterDisplay = new CharacterDisplay(46, 6, this.selectedCharacter);
     this.createDetailsText();
     
-    // Action menu (will be shown when character is selected)
+    // Initialize menus as null
     this.actionMenu = null;
-    
-    // Set up proper navigation
-    this.characterCarousel.onCancel.add(() => {
-      game.state.start("MainMenu");
-    });
+    this.customizationMenu = null;
+    this.skillsCarousel = null;
+    this.creationMenu = null;
+    this.characterCarousel = null;
+
+    // Show initial state
+    this.showHomeUI();
   }
 
   createDetailsText() {
-    // Remove any existing details
-    if (this.detailsText) {
-      this.detailsText.destroy();
+    // Create text display for character details
+    this.nameText = new Text(115, 10, "", FONTS.shaded);
+    this.levelText = new Text(140, 10, "", FONTS.default);
+    this.selectedSkillText = new Text(115, 34, "", FONTS.default);
+    this.skillDescriptionText = new Text(117, 42, "", FONTS.default);
+    
+    // Create experience bar and skill bar
+    this.expBar = new ExperienceBar(140, 16, 36, 3);
+    this.skillBar = new SkillBar(117, 18);
+  }
+  
+  showHomeUI() {
+    // Clear any existing menus
+    this.clearAllMenus();
+    
+    // Show character details
+    this.showCharacterDetails();
+    
+    // Create character list
+    this.showCharacterList();
+    
+    // Update display with current character
+    this.updateDisplay();
+  }
+  
+  clearAllMenus() {
+    // Destroy all menus
+    if (this.characterCarousel) {
+      this.characterCarousel.destroy();
+      this.characterCarousel = null;
+    }
+    if (this.actionMenu) {
+      this.actionMenu.destroy();
+      this.actionMenu = null;
+    }
+    if (this.customizationMenu) {
+      this.customizationMenu.destroy();
+      this.customizationMenu = null;
+    }
+    if (this.skillsCarousel) {
+      this.skillsCarousel.destroy();
+      this.skillsCarousel = null;
+    }
+    if (this.creationMenu) {
+      this.creationMenu.destroy();
+      this.creationMenu = null;
     }
     
+    // Remove any input handlers
+    gamepad.signals.pressed.any.removeAll();
+  }
+  
+  writeCharacterInformation() {
     const char = this.selectedCharacter;
-    const detailsContent = [
-      `NAME: ${char.name}`,
-      `LEVEL: ${char.level}`,
-      `SKILL: ${char.skillLevel}/5`,
-      `EXP: ${char.experience}/${char.getRequiredExperience()}`,
-      "",
-      "SKILLS:"
-    ];
     
-    // Add unlocked skills
-    char.unlockedSkills.forEach(skillId => {
-      const skill = CHARACTER_SKILLS.find(s => s.id === skillId);
-      if (skill) {
-        detailsContent.push(`- ${skill.name}`);
-      }
-    });
+    // Name
+    this.nameText.write(char.name);
     
-    // Create experience bar
-    if (this.expBar) {
-      this.expBar.destroy();
-    }
-    this.expBar = new ExperienceBar(110, 70, 70, 4);
+    // Level and experience
+    const expText = `${char.experience}/${char.getRequiredExperience()}`;
+    this.levelText.write(`Lv. ${char.level}`);
+    
+    // Update experience bar
     this.expBar.setProgress(char.getExperienceProgress());
     
-    // Create text display with wrapping
-    this.detailsText = new Text(110, 10, detailsContent.join('\n'), FONTS.default);
-    this.detailsText.wrapPreserveNewlines(70);
+    // Skill level
+    this.skillBar.value = char.skillLevel;
+    this.skillBar.update();
+    
+    // Selected skill info
+    if (char.selectedSkill) {
+      const skill = CHARACTER_SKILLS.find(s => s.id === char.selectedSkill);
+      if (skill) {
+        this.selectedSkillText.write(skill.name);
+        this.skillDescriptionText.write(skill.description);
+        this.skillDescriptionText.wrapPreserveNewlines(70);
+      } else {
+        this.selectedSkillText.write("");
+        this.skillDescriptionText.write("< NO SKILL >");
+      }
+    } else {
+      this.selectedSkillText.write("");
+      this.skillDescriptionText.write("< NO SKILL >");
+    }
   }
 
   selectCharacter(character) {
     this.selectedCharacter = character;
     this.updateDisplay();
-    
-    // Show action menu
-    this.showActionMenu();
   }
 
   updateDisplay() {
@@ -105,316 +128,418 @@ class CharacterSelect {
     if (this.characterDisplay) {
       this.characterDisplay.destroy();
     }
-    this.characterDisplay = new CharacterDisplay(96, 30, this.selectedCharacter);
-    this.characterDisplay.scale.set(0.5);
-    this.characterDisplay.anchor.set(0.5);
-    
-    // Update details text
-    this.createDetailsText();
-    
-    // Update experience bar
-    if (this.expBar) {
-      this.expBar.setProgress(this.selectedCharacter.getExperienceProgress());
+    this.characterDisplay = new CharacterDisplay(46, 6, this.selectedCharacter);
+
+    if (this.characterCarousel) {
+      this.characterCarousel.bringToTop();
     }
+
+    // Update details text
+    this.writeCharacterInformation();
+  }
+
+  showCharacterList() {
+    // Character list carousel (left)
+    this.characterCarousel = new CarouselMenu(0, 8, 80, 104, {
+      bgcolor: "#9b59b6",
+      fgcolor: "#ffffff",
+      align: "left",
+      animate: true
+    });
+
+    // Add characters to carousel
+    this.characterManager.getCharacterList().forEach(character => {
+      const isCurrent = character.name === this.selectedCharacter.name;
+      this.characterCarousel.addItem(isCurrent ? `> ${character.name}` : `  ${character.name}`, () => {
+        this.selectCharacter(character);
+        this.showActionMenu();
+      }, {
+        character: character,
+        bgcolor: isCurrent ? "#e74c3c" : "#9b59b6"
+      });
+    });
+
+    // Add "Add Character" option
+    this.characterCarousel.addItem("+ ADD CHARACTER", () => this.startCharacterCreation());
+
+    // Set up proper navigation
+    this.characterCarousel.onSelect.add((index, item) => {
+      if (item.data.character) this.selectCharacter(item.data.character);
+    });
     
-    // Carousel selection is handled automatically by the carousel component
+    this.characterCarousel.onCancel.add(() => {
+      game.state.start("MainMenu");
+    });
   }
 
   showActionMenu() {
-    if (this.actionMenu) {
-      this.actionMenu.destroy();
-    }
-    
+    this.clearAllMenus();
+
     this.actionMenu = new CarouselMenu(60, 70, 72, 30, {
       bgcolor: "#34495e",
       fgcolor: "#ffffff",
       align: "center"
     });
-    
+
     this.actionMenu.addItem("SELECT", () => this.confirmSelection());
+    if (this.selectedCharacter.unlockedSkills.length) this.actionMenu.addItem("SET SKILL", () => this.setSkill());
     this.actionMenu.addItem("CUSTOMIZE", () => this.customizeCharacter());
     this.actionMenu.addItem("DELETE", () => this.deleteCharacter());
-    
-    // Proper cancel handling - return to character list
+
+    // Proper cancel handling
     this.actionMenu.onCancel.add(() => {
-      this.actionMenu.destroy();
-      this.actionMenu = null;
-      // Return focus to character carousel
-      if (this.characterCarousel) {
-        this.characterCarousel.inputEnabled = true;
-      }
+      this.showHomeUI();
     });
   }
 
   confirmSelection() {
     this.characterManager.setCurrentCharacter(this.selectedCharacter.name);
-    notifications.show(`Character selected: ${this.selectedCharacter.name}`);
-    game.state.start("MainMenu");
+    this.showCharacterList();
+  }
+
+  setSkill() {
+    // Hide character details
+    this.hideCharacterDetails();
+    
+    // Create skill preview text
+    this.skillPreviewText = new Text(110, 4, "", FONTS.default);
+    this.skillPreviewText.wrapPreserveNewlines(70);
+    
+    this.skillsCarousel = new CarouselMenu(0, 8, 80, 104, {
+      bgcolor: "#9b59b6",
+      fgcolor: "#ffffff",
+      align: "left",
+      animate: true
+    });
+    
+    this.selectedCharacter.unlockedSkills.forEach(skillId => {
+      const skill = CHARACTER_SKILLS.find(s => s.id === skillId);
+      if (skill) {
+        const isCurrent = this.selectedCharacter.selectedSkill === skillId;
+        this.skillsCarousel.addItem(isCurrent ? `> ${skill.name}` : `  ${skill.name}`, (item) => {
+          this.selectedCharacter.selectedSkill = item.data.skillId;
+          this.updateSkillPreview(item.data.skillId);
+        }, {
+          skillId: skillId,
+          bgcolor: isCurrent ? "#e74c3c" : "#9b59b6"
+        });
+      }
+    });
+    
+    // Set up navigation
+    this.skillsCarousel.onSelect.add((index, item) => {
+      this.updateSkillPreview(item.data.skillId);
+    });
+    
+    this.skillsCarousel.onCancel.add(() => {
+      this.skillsCarousel.destroy();
+      this.skillsCarousel = null;
+      this.skillPreviewText.destroy();
+      this.showActionMenu();
+    });
+    
+    // Update preview with first skill
+    if (this.selectedCharacter.unlockedSkills.length > 0) {
+      this.updateSkillPreview(this.selectedCharacter.unlockedSkills[0]);
+    }
+  }
+  
+  updateSkillPreview(skillId) {
+    const skill = CHARACTER_SKILLS.find(s => s.id === skillId);
+    if (!skill) return;
+    
+    let previewText = `${skill.name}\n\n`;
+    previewText += `${skill.description}\n\n`;
+    
+    // Add effect details
+    previewText += "EFFECT:\n";
+    switch (skill.effect) {
+      case 'convert_judgement':
+        previewText += `• Converts ${skill.effectParams.from} to ${skill.effectParams.to}\n`;
+        break;
+      case 'modify_judgement_window':
+        previewText += `• Judgement window ×${skill.effectParams.multiplier}\n`;
+        break;
+      case 'health_regen':
+        previewText += `• +${skill.effectParams.amount} HP every ${skill.effectParams.interval/1000}s\n`;
+        break;
+      case 'modify_max_health':
+        previewText += `• +${skill.effectParams.amount} Max HP\n`;
+        break;
+      case 'modify_note_speed':
+        previewText += `• Note speed ×${skill.effectParams.multiplier}\n`;
+        break;
+    }
+    
+    // Add activation details
+    previewText += "\nACTIVATION:\n";
+    switch (skill.activationCondition) {
+      case 'on_miss':
+        previewText += "• When you get a Miss judgement\n";
+        break;
+      case 'on_combo':
+        previewText += `• When combo reaches ${skill.effectParams.threshold}\n`;
+        break;
+      case 'on_low_health':
+        previewText += `• When health drops below ${skill.effectParams.threshold}%\n`;
+        break;
+      case 'on_high_combo':
+        previewText += `• When combo reaches ${skill.effectParams.threshold}\n`;
+        break;
+      case 'on_perfect_streak':
+        previewText += `• After ${skill.effectParams.threshold} perfect notes in a row\n`;
+        break;
+    }
+    
+    // Add duration and cooldown
+    if (skill.duration > 0) {
+      previewText += `\nDURATION: ${skill.duration/1000}s\n`;
+    }
+    if (skill.cooldown > 0) {
+      previewText += `COOLDOWN: ${skill.cooldown/1000}s\n`;
+    }
+    
+    this.skillPreviewText.write(previewText);
+    this.skillPreviewText.wrapPreserveNewlines(80);
   }
 
   customizeCharacter() {
-    // Implement customization directly in this state instead of separate state
     this.showCustomizationMenu();
   }
 
   showCustomizationMenu() {
-    if (this.customizationMenu) {
-      this.customizationMenu.destroy();
-    }
-    
+    this.clearAllMenus();
+
     this.customizationMenu = new CarouselMenu(10, 70, 172, 30, {
       bgcolor: "#2c3e50",
       fgcolor: "#ffffff",
       align: "center"
     });
-    
+
     this.customizationMenu.addItem("SKIN TONE", () => this.customizeSkinTone());
     this.customizationMenu.addItem("HAIR COLOR", () => this.customizeHairColor());
-    this.customizationMenu.addItem("FRONT HAIR", () => this.customizeHairStyle('frontHair'));
-    this.customizationMenu.addItem("BACK HAIR", () => this.customizeHairStyle('backHair'));
+    this.customizationMenu.addItem("FRONT HAIR", () => this.customizeHairStyle("frontHair"));
+    this.customizationMenu.addItem("BACK HAIR", () => this.customizeHairStyle("backHair"));
     this.customizationMenu.addItem("CLOTHING", () => this.customizeClothing());
     this.customizationMenu.addItem("ACCESSORY", () => this.customizeAccessory());
-    this.customizationMenu.addItem("APPLY & BACK", () => this.finishCustomization());
-    
-    // Proper cancel handling - return to action menu
+    this.customizationMenu.addItem("APPLY", () => this.finishCustomization());
+
+    // Proper cancel handling
     this.customizationMenu.onCancel.add(() => {
-      this.customizationMenu.destroy();
-      this.customizationMenu = null;
-      // Restore original appearance if cancelled
       this.characterDisplay.updateAppearance(this.originalAppearance);
       this.showActionMenu();
     });
-    
+
     // Store original appearance for cancellation
     this.originalAppearance = { ...this.selectedCharacter.appearance };
-    
-    // Hide action menu
-    if (this.actionMenu) {
-      this.actionMenu.destroy();
-      this.actionMenu = null;
-    }
   }
 
   customizeSkinTone() {
     const skinOptions = ["LIGHT", "DARK"];
     const skinText = new Text(96, 80, "SKIN TONE", FONTS.shaded);
     skinText.anchor.set(0.5);
-    
+
     let currentIndex = this.selectedCharacter.appearance.skinTone;
     const skinValueText = new Text(96, 90, skinOptions[currentIndex], FONTS.default);
     skinValueText.anchor.set(0.5);
-    
-    const skinHandler = (key) => {
-      if (key === 'left') {
+
+    const skinHandler = key => {
+      if (key === "left") {
         currentIndex = (currentIndex - 1 + skinOptions.length) % skinOptions.length;
-      } else if (key === 'right') {
-        currentIndex = (currentIndex + 1) % skinOptions.length;
-      } else if (key === 'a' || key === 'start') {
-        // Apply and exit
         this.selectedCharacter.appearance.skinTone = currentIndex;
         this.characterDisplay.updateAppearance({ skinTone: currentIndex });
+      } else if (key === "right") {
+        currentIndex = (currentIndex + 1) % skinOptions.length;
+        this.selectedCharacter.appearance.skinTone = currentIndex;
+        this.characterDisplay.updateAppearance({ skinTone: currentIndex });
+      } else if (key === "a" || key === "b" || key === "start") {
         skinText.destroy();
         skinValueText.destroy();
         gamepad.signals.pressed.any.remove(skinHandler);
-        return;
-      } else if (key === 'b' || key === 'select') {
-        // Cancel
-        skinText.destroy();
-        skinValueText.destroy();
-        gamepad.signals.pressed.any.remove(skinHandler);
+        this.showCustomizationMenu();
         return;
       }
-      
+
       skinValueText.write(skinOptions[currentIndex]);
     };
-    
+
     gamepad.signals.pressed.any.add(skinHandler);
   }
 
   customizeHairColor() {
     let color = this.selectedCharacter.appearance.hairColor;
-    let r = (color >> 16) & 0xFF;
-    let g = (color >> 8) & 0xFF;
-    let b = color & 0xFF;
-    
+    let r = Math.max(0x88, (color >> 16) & 0xff);
+    let g = Math.max(0x88, (color >> 8) & 0xff);
+    let b = Math.max(0x88, color & 0xff);
+
     const colorText = new Text(96, 80, "HAIR COLOR", FONTS.shaded);
     colorText.anchor.set(0.5);
-    
+
     const rgbText = new Text(96, 90, `R:${r} G:${g} B:${b}`, FONTS.default);
     rgbText.anchor.set(0.5);
-    
+
     const updateColor = () => {
       const newColor = (r << 16) | (g << 8) | b;
       this.selectedCharacter.appearance.hairColor = newColor;
       this.characterDisplay.updateAppearance({ hairColor: newColor });
       rgbText.write(`R:${r} G:${g} B:${b}`);
     };
-    
-    const colorHandler = (key) => {
-      switch(key) {
-        case 'left': r = Math.max(0, r - 32); break;
-        case 'right': r = Math.min(255, r + 32); break;
-        case 'up': g = Math.min(255, g + 32); break;
-        case 'down': g = Math.max(0, g - 32); break;
-        case 'a': b = Math.min(255, b + 32); break;
-        case 'b': b = Math.max(0, b - 32); break;
-        case 'start':
-          // Apply and exit
+
+    const colorHandler = key => {
+      switch (key) {
+        case "left":
+          r = Math.max(0x88, r - 32);
+          break;
+        case "right":
+          r = Math.min(255, r + 32);
+          break;
+        case "up":
+          g = Math.min(255, g + 32);
+          break;
+        case "down":
+          g = Math.max(0x88, g - 32);
+          break;
+        case "a":
+          b = Math.min(255, b + 32);
+          break;
+        case "b":
+          b = Math.max(0x88, b - 32);
+          break;
+        case "start":
           colorText.destroy();
           rgbText.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
-          return;
-        case 'select':
-          // Cancel
-          this.characterDisplay.updateAppearance({ hairColor: color });
-          colorText.destroy();
-          rgbText.destroy();
-          gamepad.signals.pressed.any.remove(colorHandler);
+          this.showCustomizationMenu();
           return;
       }
       updateColor();
     };
-    
+
     gamepad.signals.pressed.any.add(colorHandler);
   }
 
   customizeHairStyle(type) {
-    const unlocked = Account.characters.unlockedHairs[type === 'frontHair' ? 'front' : 'back'];
-    const options = unlocked.map(id => `STYLE ${id}`);
+    const unlocked = Account.characters.unlockedHairs[type === "frontHair" ? "front" : "back"];
     
+    // For back hair, add "NONE" option
+    const options = type === "backHair" 
+      ? ["NONE", ...unlocked.map(id => `STYLE ${id}`)]
+      : unlocked.map(id => `STYLE ${id}`);
+    
+    const values = type === "backHair" 
+      ? [null, ...unlocked]
+      : unlocked;
+
     const hairText = new Text(96, 80, `${type.toUpperCase()}`, FONTS.shaded);
     hairText.anchor.set(0.5);
+
+    let currentIndex = type === "backHair" 
+      ? (this.selectedCharacter.appearance[type] ? values.indexOf(this.selectedCharacter.appearance[type]) : 0)
+      : unlocked.indexOf(this.selectedCharacter.appearance[type]);
     
-    let currentIndex = unlocked.indexOf(this.selectedCharacter.appearance[type]);
+    if (currentIndex === -1) currentIndex = 0;
+    
     const hairValueText = new Text(96, 90, options[currentIndex], FONTS.default);
     hairValueText.anchor.set(0.5);
-    
-    const hairHandler = (key) => {
-      if (key === 'left') {
+
+    const hairHandler = key => {
+      if (key === "left") {
         currentIndex = (currentIndex - 1 + options.length) % options.length;
-      } else if (key === 'right') {
+      } else if (key === "right") {
         currentIndex = (currentIndex + 1) % options.length;
-      } else if (key === 'a' || key === 'start') {
-        // Apply and exit
-        this.selectedCharacter.appearance[type] = unlocked[currentIndex];
-        this.characterDisplay.updateAppearance({ [type]: unlocked[currentIndex] });
+      } else if (key === "a" || key === "b" || key === "start") {
+        this.selectedCharacter.appearance[type] = values[currentIndex];
+        this.characterDisplay.updateAppearance({ [type]: values[currentIndex] });
         hairText.destroy();
         hairValueText.destroy();
         gamepad.signals.pressed.any.remove(hairHandler);
-        return;
-      } else if (key === 'b' || key === 'select') {
-        // Cancel
-        hairText.destroy();
-        hairValueText.destroy();
-        gamepad.signals.pressed.any.remove(hairHandler);
+        this.showCustomizationMenu();
         return;
       }
-      
+
       hairValueText.write(options[currentIndex]);
     };
-    
+
     gamepad.signals.pressed.any.add(hairHandler);
   }
 
   customizeClothing() {
-    const unlocked = Account.characters.unlockedItems.filter(itemId => 
-      CHARACTER_ITEMS.clothing.some(item => item.id === itemId)
-    );
+    const unlocked = Account.characters.unlockedItems.filter(itemId => CHARACTER_ITEMS.clothing.some(item => item.id === itemId));
     const options = unlocked.map(id => {
       const item = CHARACTER_ITEMS.clothing.find(i => i.id === id);
       return item ? item.name : id;
     });
-    
+
     const clothingText = new Text(96, 80, "CLOTHING", FONTS.shaded);
     clothingText.anchor.set(0.5);
-    
+
     let currentIndex = unlocked.indexOf(this.selectedCharacter.appearance.clothing);
+    if (currentIndex === -1) currentIndex = 0;
+    
     const clothingValueText = new Text(96, 90, options[currentIndex], FONTS.default);
     clothingValueText.anchor.set(0.5);
-    
-    const clothingHandler = (key) => {
-      if (key === 'left') {
+
+    const clothingHandler = key => {
+      if (key === "left") {
         currentIndex = (currentIndex - 1 + options.length) % options.length;
-      } else if (key === 'right') {
+      } else if (key === "right") {
         currentIndex = (currentIndex + 1) % options.length;
-      } else if (key === 'a' || key === 'start') {
-        // Apply and exit
+      } else if (key === "a" || key === "b" || key === "start") {
         this.selectedCharacter.appearance.clothing = unlocked[currentIndex];
         this.characterDisplay.updateAppearance({ clothing: unlocked[currentIndex] });
         clothingText.destroy();
         clothingValueText.destroy();
         gamepad.signals.pressed.any.remove(clothingHandler);
-        return;
-      } else if (key === 'b' || key === 'select') {
-        // Cancel
-        clothingText.destroy();
-        clothingValueText.destroy();
-        gamepad.signals.pressed.any.remove(clothingHandler);
+        this.showCustomizationMenu();
         return;
       }
-      
+
       clothingValueText.write(options[currentIndex]);
     };
-    
+
     gamepad.signals.pressed.any.add(clothingHandler);
   }
 
   customizeAccessory() {
-    const unlocked = Account.characters.unlockedItems.filter(itemId => 
-      CHARACTER_ITEMS.accessories.some(item => item.id === itemId)
-    );
-    const options = ["NONE", ...unlocked.map(id => {
-      const item = CHARACTER_ITEMS.accessories.find(i => i.id === id);
-      return item ? item.name : id;
-    })];
-    
+    const unlocked = Account.characters.unlockedItems.filter(itemId => CHARACTER_ITEMS.accessories.some(item => item.id === itemId));
+    const options = [
+      "NONE",
+      ...unlocked.map(id => {
+        const item = CHARACTER_ITEMS.accessories.find(i => i.id === id);
+        return item ? item.name : id;
+      })
+    ];
+
     const accessoryText = new Text(96, 80, "ACCESSORY", FONTS.shaded);
     accessoryText.anchor.set(0.5);
-    
-    const currentIndex = this.selectedCharacter.appearance.accessory ? 
-      unlocked.indexOf(this.selectedCharacter.appearance.accessory) + 1 : 0;
+
+    const currentIndex = this.selectedCharacter.appearance.accessory ? unlocked.indexOf(this.selectedCharacter.appearance.accessory) + 1 : 0;
     let selectedIndex = currentIndex;
     const accessoryValueText = new Text(96, 90, options[selectedIndex], FONTS.default);
     accessoryValueText.anchor.set(0.5);
-    
-    const accessoryHandler = (key) => {
-      if (key === 'left') {
+
+    const accessoryHandler = key => {
+      if (key === "left") {
         selectedIndex = (selectedIndex - 1 + options.length) % options.length;
-      } else if (key === 'right') {
+      } else if (key === "right") {
         selectedIndex = (selectedIndex + 1) % options.length;
-      } else if (key === 'a' || key === 'start') {
-        // Apply and exit
+      } else if (key === "a" || key === "b" || key === "start") {
         this.selectedCharacter.appearance.accessory = selectedIndex === 0 ? null : unlocked[selectedIndex - 1];
         this.characterDisplay.updateAppearance({ accessory: this.selectedCharacter.appearance.accessory });
         accessoryText.destroy();
         accessoryValueText.destroy();
         gamepad.signals.pressed.any.remove(accessoryHandler);
-        return;
-      } else if (key === 'b' || key === 'select') {
-        // Cancel
-        accessoryText.destroy();
-        accessoryValueText.destroy();
-        gamepad.signals.pressed.any.remove(accessoryHandler);
+        this.showCustomizationMenu();
         return;
       }
-      
       accessoryValueText.write(options[selectedIndex]);
     };
-    
+
     gamepad.signals.pressed.any.add(accessoryHandler);
   }
 
   finishCustomization() {
-    // Save changes
     this.characterManager.saveToAccount();
-    
-    // Clean up
-    if (this.customizationMenu) {
-      this.customizationMenu.destroy();
-      this.customizationMenu = null;
-    }
-    
-    // Return to action menu
     this.showActionMenu();
   }
 
@@ -423,110 +548,488 @@ class CharacterSelect {
       notifications.show("Cannot delete last character");
       return;
     }
-    
-    // Use text-based confirmation instead of window
-    const confirmText = new Text(96, 60, "DELETE CHARACTER?\n\nPRESS A TO CONFIRM\nPRESS B TO CANCEL", FONTS.shaded);
-    confirmText.anchor.set(0.5);
-    
-    const confirmHandler = (key) => {
-      if (key === 'a') {
-        // Confirm deletion
+  
+    this.confirm(
+      "DELETE CHARACTER?",
+      () => {
+        // Confirm callback
         this.characterManager.deleteCharacter(this.selectedCharacter.name);
         this.selectedCharacter = this.characterManager.getCharacterList()[0];
-        confirmText.destroy();
-        gamepad.signals.pressed.any.remove(confirmHandler);
-        
-        // Refresh UI
-        if (this.actionMenu) {
-          this.actionMenu.destroy();
-          this.actionMenu = null;
-        }
-        this.createUI();
-        this.updateDisplay();
-        
-      } else if (key === 'b') {
-        // Cancel
-        confirmText.destroy();
-        gamepad.signals.pressed.any.remove(confirmHandler);
-      }
-    };
+        this.showHomeUI();
+      },
+      () => {
+        // Cancel callback - return to action menu
+        this.showActionMenu();
+      },
+      "no" // Recommended to choose "No" for destructive actions
+    );
+  }
+  
+  confirm(message, onConfirm, onCancel, recommended = "none") {
+    // Clear any existing menus
+    this.clearAllMenus();
     
-    gamepad.signals.pressed.any.add(confirmHandler);
+    // Create confirmation text
+    const confirmText = new Text(96, 60, message, FONTS.shaded);
+    confirmText.anchor.set(0.5);
+    
+    // Create confirmation menu
+    const confirmMenu = new CarouselMenu(60, 70, 72, 32, {
+      bgcolor: "#2c3e50",
+      fgcolor: "#ffffff",
+      align: "center"
+    });
+    
+    // Determine button colors based on recommended option
+    let yesColor = "#34495e"; // Default
+    let noColor = "#34495e";  // Default
+    let initialSelection = 0; // Start on first item (YES)
+    
+    switch (recommended) {
+      case "yes":
+        yesColor = "#27ae60"; // Green for recommended
+        noColor = "#c0392b";  // Red for not recommended
+        initialSelection = 0; // Start on YES
+        break;
+      case "no":
+        yesColor = "#c0392b"; // Red for not recommended
+        noColor = "#27ae60";  // Green for recommended
+        initialSelection = 1; // Start on NO
+        break;
+      default: // "none" or undefined
+        yesColor = "#34495e";
+        noColor = "#34495e";
+        initialSelection = 0;
+        break;
+    }
+    
+    // Add buttons with appropriate colors
+    confirmMenu.addItem("YES", () => {
+      confirmText.destroy();
+      confirmMenu.destroy();
+      onConfirm?.();
+    }, {
+      bgcolor: yesColor
+    });
+    
+    confirmMenu.addItem("NO", () => {
+      confirmText.destroy();
+      confirmMenu.destroy();
+      onCancel?.();
+    }, {
+      bgcolor: noColor
+    });
+    
+    // Set initial selection based on recommended option
+    if (initialSelection === 1) {
+      confirmMenu.selectIndex(1);
+    }
+    
+    // Set up cancel handling
+    confirmMenu.onCancel.add(() => {
+      confirmText.destroy();
+      confirmMenu.destroy();
+      onCancel?.();
+    });
   }
 
-  addCharacter() {
-    const nameText = new Text(96, 60, "ENTER NAME (MAX 4 LETTERS)\n\nUSE A/B/X/Y BUTTONS\nSTART TO CONFIRM", FONTS.shaded);
-    nameText.anchor.set(0.5);
-    
-    const nameDisplay = new Text(96, 80, "____", FONTS.default);
-    nameDisplay.anchor.set(0.5);
-    
-    let name = "";
-    
-    const updateNameDisplay = () => {
-      let display = name;
-      while (display.length < CHARACTER_SYSTEM.MAX_NAME_LENGTH) {
-        display += "_";
-      }
-      nameDisplay.write(display);
+  startCharacterCreation() {
+    this.creationStep = 0;
+    this.newCharacterAppearance = {
+      skinTone: 0,
+      hairColor: 0xFFFFFF,
+      frontHair: "1",
+      backHair: "1",
+      clothing: "school_uniform",
+      accessory: null
     };
     
-    const nameHandler = (key) => {
-      if (key === 'backspace') {
-        name = name.slice(0, -1);
-      } else if (key === 'a' && name.length < CHARACTER_SYSTEM.MAX_NAME_LENGTH) {
-        name += 'A';
-      } else if (key === 'b' && name.length < CHARACTER_SYSTEM.MAX_NAME_LENGTH) {
-        name += 'B';
-      } else if (key === 'x' && name.length < CHARACTER_SYSTEM.MAX_NAME_LENGTH) {
-        name += 'X';
-      } else if (key === 'y' && name.length < CHARACTER_SYSTEM.MAX_NAME_LENGTH) {
-        name += 'Y';
-      } else if (key === 'start') {
-        // Confirm creation
-        if (name.length > 0) {
-          const newChar = this.characterManager.createCharacter(name);
-          if (newChar) {
-            this.selectedCharacter = newChar;
-            nameText.destroy();
-            nameDisplay.destroy();
-            gamepad.signals.pressed.any.remove(nameHandler);
-            
-            // Refresh UI
-            this.createUI();
-            this.updateDisplay();
-            this.showActionMenu();
-          } else {
-            notifications.show("Character name already exists");
-          }
-        }
+    // Hide existing UI and character details
+    this.clearAllMenus();
+    this.hideCharacterDetails();
+    
+    // Create temporary character display for creation
+    this.tempCharacterDisplay = new CharacterDisplay(46, 6, {
+      name: "NEW CHARACTER",
+      appearance: this.newCharacterAppearance
+    });
+    
+    this.showCreationStep();
+  }
+  
+  hideCharacterDetails() {
+    this.nameText.visible = false;
+    this.levelText.visible = false;
+    this.selectedSkillText.visible = false;
+    this.skillDescriptionText.visible = false;
+    this.expBar.visible = false;
+    this.skillBar.visible = false;
+  }
+  
+  showCharacterDetails() {
+    this.nameText.visible = true;
+    this.levelText.visible = true;
+    this.selectedSkillText.visible = true;
+    this.skillDescriptionText.visible = true;
+    this.expBar.visible = true;
+    this.skillBar.visible = true;
+  }
+  
+  showCreationStep() {
+    // Remove any existing creation UI and input handlers
+    if (this.creationMenu) {
+      this.creationMenu.destroy();
+      this.creationMenu = null;
+    }
+    if (this.creationText) {
+      this.creationText.destroy();
+      this.creationText = null;
+    }
+    
+    // Clear any existing input handlers
+    gamepad.signals.pressed.any.removeAll();
+    
+    const steps = [
+      { title: "CHOOSE SKIN TONE", action: (callback) => this.creationCustomizeSkinTone(callback) },
+      { title: "CHOOSE HAIR COLOR", action: (callback) => this.creationCustomizeHairColor(callback) },
+      { title: "CHOOSE FRONT HAIR", action: (callback) => this.creationCustomizeHairStyle("frontHair", callback) },
+      { title: "CHOOSE BACK HAIR", action: (callback) => this.creationCustomizeHairStyle("backHair", callback) },
+      { title: "CHOOSE CLOTHING", action: (callback) => this.creationCustomizeClothing(callback) },
+      { title: "CHOOSE ACCESSORY", action: (callback) => this.creationCustomizeAccessory(callback) },
+      { title: "NAME YOUR CHARACTER", action: (callback) => this.creationNameCharacter(callback) }
+    ];
+    
+    if (this.creationStep < steps.length) {
+      const step = steps[this.creationStep];
+      
+      this.creationText = new Text(96, 80, step.title, FONTS.shaded);
+      this.creationText.anchor.set(0.5);
+      
+      // Show customization interface first
+      step.action(() => {
+        // When customization is done, show the navigation menu
+        this.showCreationNavigationMenu();
+      });
+    }
+  }
+  
+  showCreationNavigationMenu() {
+    this.creationMenu = new CarouselMenu(60, 90, 72, 20, {
+      bgcolor: "#34495e",
+      fgcolor: "#ffffff",
+      align: "center"
+    });
+    
+    this.creationMenu.addItem("NEXT", () => {
+      this.creationStep++;
+      this.showCreationStep();
+    });
+    
+    if (this.creationStep > 0) {
+      this.creationMenu.addItem("PREVIOUS", () => {
+        this.creationStep--;
+        this.showCreationStep();
+      });
+    }
+    
+    this.creationMenu.addItem("CANCEL", () => {
+      this.cancelCharacterCreation();
+    });
+    
+    this.creationMenu.onCancel.add(() => {
+      this.cancelCharacterCreation();
+    });
+  }
+  
+  creationCustomizeSkinTone(callback) {
+    const skinOptions = ["LIGHT", "DARK"];
+    let currentIndex = this.newCharacterAppearance.skinTone;
+    
+    const skinText = new Text(96, 90, skinOptions[currentIndex], FONTS.default);
+    skinText.anchor.set(0.5);
+    
+    const skinHandler = key => {
+      if (key === "left") {
+        currentIndex = (currentIndex - 1 + skinOptions.length) % skinOptions.length;
+      } else if (key === "right") {
+        currentIndex = (currentIndex + 1) % skinOptions.length;
+      } else if (key === "a") {
+        // Confirm selection and proceed
+        skinText.destroy();
+        gamepad.signals.pressed.any.remove(skinHandler);
+        callback();
         return;
-      } else if (key === 'select') {
-        // Cancel
-        nameText.destroy();
-        nameDisplay.destroy();
-        gamepad.signals.pressed.any.remove(nameHandler);
+      } else if (key === "b") {
+        // Go back to navigation
+        skinText.destroy();
+        gamepad.signals.pressed.any.remove(skinHandler);
+        this.showCreationNavigationMenu();
         return;
       }
       
-      updateNameDisplay();
+      this.newCharacterAppearance.skinTone = currentIndex;
+      this.tempCharacterDisplay.updateAppearance({ skinTone: currentIndex });
+      skinText.write(skinOptions[currentIndex]);
     };
     
-    gamepad.signals.pressed.any.add(nameHandler);
-    updateNameDisplay();
+    gamepad.signals.pressed.any.add(skinHandler);
+  }
+  
+  creationCustomizeHairColor(callback) {
+    let color = this.newCharacterAppearance.hairColor;
+    let r = Math.max(0x88, (color >> 16) & 0xff);
+    let g = Math.max(0x88, (color >> 8) & 0xff);
+    let b = Math.max(0x88, color & 0xff);
+    
+    const updateColor = () => {
+      const newColor = (r << 16) | (g << 8) | b;
+      this.newCharacterAppearance.hairColor = newColor;
+      this.tempCharacterDisplay.updateAppearance({ hairColor: newColor });
+      return `R:${r} G:${g} B:${b}`;
+    };
+    
+    const rgbText = new Text(96, 90, updateColor(), FONTS.default);
+    rgbText.anchor.set(0.5);
+    
+    const colorHandler = key => {
+      switch (key) {
+        case "left": r = Math.max(0x88, r - 32); break;
+        case "right": r = Math.min(255, r + 32); break;
+        case "up": g = Math.min(255, g + 32); break;
+        case "down": g = Math.max(0x88, g - 32); break;
+        case "a": b = Math.min(255, b + 32); break;
+        case "b": b = Math.max(0x88, b - 32); break;
+        case "start":
+          // Confirm selection
+          rgbText.destroy();
+          gamepad.signals.pressed.any.remove(colorHandler);
+          callback();
+          return;
+        case "select":
+          // Go back to navigation
+          rgbText.destroy();
+          gamepad.signals.pressed.any.remove(colorHandler);
+          this.showCreationNavigationMenu();
+          return;
+      }
+      
+      rgbText.write(updateColor());
+    };
+    
+    gamepad.signals.pressed.any.add(colorHandler);
+  }
+  
+  creationCustomizeHairStyle(type, callback) {
+    const unlocked = Account.characters.unlockedHairs[type === "frontHair" ? "front" : "back"];
+    
+    // For back hair, add "NONE" option at the beginning
+    const options = type === "backHair" 
+      ? ["NONE", ...unlocked.map(id => `STYLE ${id}`)]
+      : unlocked.map(id => `STYLE ${id}`);
+    
+    const values = type === "backHair" 
+      ? [null, ...unlocked]
+      : unlocked;
+    
+    let currentIndex = type === "backHair" 
+      ? (this.newCharacterAppearance[type] ? values.indexOf(this.newCharacterAppearance[type]) : 0)
+      : values.indexOf(this.newCharacterAppearance[type]);
+    
+    if (currentIndex === -1) currentIndex = 0;
+    
+    const hairText = new Text(96, 90, options[currentIndex], FONTS.default);
+    hairText.anchor.set(0.5);
+    
+    const updateHair = () => {
+      this.newCharacterAppearance[type] = values[currentIndex];
+      this.tempCharacterDisplay.updateAppearance({ [type]: values[currentIndex] });
+      hairText.write(options[currentIndex]);
+    };
+    
+    const hairHandler = key => {
+      if (key === "left") {
+        currentIndex = (currentIndex - 1 + options.length) % options.length;
+      } else if (key === "right") {
+        currentIndex = (currentIndex + 1) % options.length;
+      } else if (key === "a") {
+        // Confirm selection
+        hairText.destroy();
+        gamepad.signals.pressed.any.remove(hairHandler);
+        callback();
+        return;
+      } else if (key === "b") {
+        // Go back to navigation
+        hairText.destroy();
+        gamepad.signals.pressed.any.remove(hairHandler);
+        this.showCreationNavigationMenu();
+        return;
+      }
+      
+      updateHair();
+    };
+    
+    gamepad.signals.pressed.any.add(hairHandler);
+    updateHair(); // Initial update
+  }
+  
+  creationCustomizeClothing(callback) {
+    const unlocked = Account.characters.unlockedItems.filter(itemId => 
+      CHARACTER_ITEMS.clothing.some(item => item.id === itemId)
+    );
+    const options = unlocked.map(id => {
+      const item = CHARACTER_ITEMS.clothing.find(i => i.id === id);
+      return item ? item.name : id;
+    });
+    
+    let currentIndex = unlocked.indexOf(this.newCharacterAppearance.clothing);
+    if (currentIndex === -1) currentIndex = 0;
+    
+    const clothingText = new Text(96, 90, options[currentIndex], FONTS.default);
+    clothingText.anchor.set(0.5);
+    
+    const clothingHandler = key => {
+      if (key === "left") {
+        currentIndex = (currentIndex - 1 + options.length) % options.length;
+      } else if (key === "right") {
+        currentIndex = (currentIndex + 1) % options.length;
+      } else if (key === "a") {
+        // Confirm selection
+        clothingText.destroy();
+        gamepad.signals.pressed.any.remove(clothingHandler);
+        callback();
+        return;
+      } else if (key === "b") {
+        // Go back to navigation
+        clothingText.destroy();
+        gamepad.signals.pressed.any.remove(clothingHandler);
+        this.showCreationNavigationMenu();
+        return;
+      }
+      
+      this.newCharacterAppearance.clothing = unlocked[currentIndex];
+      this.tempCharacterDisplay.updateAppearance({ clothing: unlocked[currentIndex] });
+      clothingText.write(options[currentIndex]);
+    };
+    
+    gamepad.signals.pressed.any.add(clothingHandler);
+  }
+  
+  creationCustomizeAccessory(callback) {
+    const unlocked = Account.characters.unlockedItems.filter(itemId => 
+      CHARACTER_ITEMS.accessories.some(item => item.id === itemId)
+    );
+    const options = [
+      "NONE",
+      ...unlocked.map(id => {
+        const item = CHARACTER_ITEMS.accessories.find(i => i.id === id);
+        return item ? item.name : id;
+      })
+    ];
+    
+    let currentIndex = this.newCharacterAppearance.accessory ? 
+      unlocked.indexOf(this.newCharacterAppearance.accessory) + 1 : 0;
+    
+    const accessoryText = new Text(96, 90, options[currentIndex], FONTS.default);
+    accessoryText.anchor.set(0.5);
+    
+    const accessoryHandler = key => {
+      if (key === "left") {
+        currentIndex = (currentIndex - 1 + options.length) % options.length;
+      } else if (key === "right") {
+        currentIndex = (currentIndex + 1) % options.length;
+      } else if (key === "a") {
+        // Confirm selection
+        accessoryText.destroy();
+        gamepad.signals.pressed.any.remove(accessoryHandler);
+        callback();
+        return;
+      } else if (key === "b") {
+        // Go back to navigation
+        accessoryText.destroy();
+        gamepad.signals.pressed.any.remove(accessoryHandler);
+        this.showCreationNavigationMenu();
+        return;
+      }
+      
+      this.newCharacterAppearance.accessory = currentIndex === 0 ? null : unlocked[currentIndex - 1];
+      this.tempCharacterDisplay.updateAppearance({ accessory: this.newCharacterAppearance.accessory });
+      accessoryText.write(options[currentIndex]);
+    };
+    
+    gamepad.signals.pressed.any.add(accessoryHandler);
+  }
+  
+  creationNameCharacter(callback) {
+    if (this.creationMenu) {
+      this.creationMenu.destroy();
+      this.creationMenu = null;
+    }
+    if (this.creationText) {
+      this.creationText.destroy();
+      this.creationText = null;
+    }
+    
+    const nameText = new Text(96, 80, "ENTER CHARACTER NAME", FONTS.shaded);
+    nameText.anchor.set(0.5);
+    
+    const instructionText = new Text(96, 90, "A: ADD LETTER  B: DELETE  START: CONFIRM", FONTS.default);
+    instructionText.anchor.set(0.5);
+    
+    new TextInput(
+      "",
+      CHARACTER_SYSTEM.MAX_NAME_LENGTH,
+      name => {
+        // Finalize character creation
+        const newChar = this.characterManager.createCharacter(name, this.newCharacterAppearance);
+        if (newChar) {
+          this.selectedCharacter = newChar;
+          nameText.destroy();
+          instructionText.destroy();
+          
+          // Clean up temporary display
+          if (this.tempCharacterDisplay) {
+            this.tempCharacterDisplay.destroy();
+            this.tempCharacterDisplay = null;
+          }
+          
+          // Return to home UI
+          this.showHomeUI();
+        } else {
+          notifications.show("Character name already exists");
+          // Retry naming
+          this.creationNameCharacter(callback);
+        }
+      },
+      () => {
+        // Cancel creation
+        nameText.destroy();
+        instructionText.destroy();
+        this.cancelCharacterCreation();
+      }
+    );
+  }
+  
+  cancelCharacterCreation() {
+    // Clean up
+    if (this.tempCharacterDisplay) {
+      this.tempCharacterDisplay.destroy();
+      this.tempCharacterDisplay = null;
+    }
+    if (this.creationMenu) {
+      this.creationMenu.destroy();
+      this.creationMenu = null;
+    }
+    if (this.creationText) {
+      this.creationText.destroy();
+      this.creationText = null;
+    }
+    
+    // Return to home UI
+    this.showHomeUI();
   }
 
   update() {
     gamepad.update();
-    if (this.characterCarousel && !this.actionMenu && !this.customizationMenu) {
-      this.characterCarousel.update();
-    }
-    if (this.actionMenu) {
-      this.actionMenu.update();
-    }
-    if (this.customizationMenu) {
-      this.customizationMenu.update();
-    }
   }
 
   shutdown() {

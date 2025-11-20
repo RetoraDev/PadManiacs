@@ -1,8 +1,8 @@
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
-    this.width = width;
-    this.height = height;
+    this.barWidth = width;
+    this.barHeight = height;
     this.progress = 0;
     
     this.background = game.add.graphics(0, 0);
@@ -21,6 +21,8 @@ class ExperienceBar extends Phaser.Sprite {
     this.addChild(this.border);
     
     this.updateBar();
+    
+    game.add.existing(this);
   }
   
   setProgress(progress) {
@@ -31,7 +33,7 @@ class ExperienceBar extends Phaser.Sprite {
   updateBar() {
     this.bar.clear();
     this.bar.beginFill(0x76fcde);
-    this.bar.drawRect(0, 0, this.width * this.progress, this.height);
+    this.bar.drawRect(0, 0, this.barWidth * this.progress, this.barHeight);
     this.bar.endFill();
   }
   

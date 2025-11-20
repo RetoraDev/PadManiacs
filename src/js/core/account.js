@@ -22,8 +22,8 @@ const DEFAULT_ACCOUNT = {
   },
   characters: {
     unlockedHairs: {
-      front: ["1", "2", "3"],
-      back: ["1", "2", "3"]
+      front: ["1"],
+      back: ["1"]
     },
     unlockedItems: ["school_uniform", "headphones"],
     currentCharacter: "EIRI",
@@ -33,7 +33,8 @@ const DEFAULT_ACCOUNT = {
         level: 1,
         experience: 0,
         skillLevel: 1,
-        unlockedSkills: ["safety_net"],
+        unlockedSkills: ["safety_net", "focus_boost"],
+        selectedSkill: "safety_net",
         appearance: {
           skinTone: 0,
           hairColor: 0xFFFFFF,

@@ -5,6 +5,7 @@ class Character {
     this.experience = data.experience || 0;
     this.skillLevel = data.skillLevel || 1;
     this.unlockedSkills = data.unlockedSkills || [];
+    this.selectedSkill = data.selectedSkill || null;
     this.appearance = data.appearance || {
       skinTone: 0,
       hairColor: 0xFFFFFF,
@@ -89,6 +90,7 @@ class Character {
       experience: this.experience,
       skillLevel: this.skillLevel,
       unlockedSkills: this.unlockedSkills,
+      selectedSkill: this.selectedSkill,
       appearance: this.appearance,
       stats: this.stats,
       lastSkillLevelUp: this.lastSkillLevelUp

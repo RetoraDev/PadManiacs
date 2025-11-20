@@ -11,8 +11,8 @@ const CHARACTER_SYSTEM = {
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
   CLOSE_SHOT_CROP: { x: 32, y: 15, w: 36, h: 7 },
   HAIR_STYLES: {
-    front: 3,  // 3 front hair styles
-    back: 3    // 3 back hair styles
+    front: 1,
+    back: 1
   }
 };
 
