@@ -226,6 +226,11 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  selectIndex(index) {
+    this.selectedIndex = index;
+    this.updateSelection();
+  }
+  
   updateSelection() {
     this.adjustScroll();
     

@@ -1,6 +1,7 @@
 class CharacterSkillSystem {
-  constructor(character) {
-    this.character = character;
+  constructor(scene, character) {
+    this.scene = scene;
+    this.character = character || scene.character;
     this.activeSkills = new Map();
     this.skillCooldowns = new Map();
     this.skillsUsedThisGame = 0;
@@ -15,22 +16,21 @@ class CharacterSkillSystem {
 
   // Main method to check and activate skills
   checkSkillActivation(condition, params = {}) {
-    if (this.skillsUsedThisGame >= this.character.skillLevel) return;
+    if (this.exhausted) return;
 
     const availableSkills = this.character.unlockedSkills
-      .map(skillId => CHARACTER_SKILLS.find(s => s.id === skillId))
-      .filter(skill => skill && skill.activationCondition === condition);
+      .map(skillId => CHARACTER_SKILLS.find(s => s.id === skillId));
 
-    for (const skill of availableSkills) {
-      if (this.canActivateSkill(skill, params)) {
-        this.activateSkill(skill, params);
-        this.skillsUsedThisGame++;
-        break;
-      }
+    const selectedSkill = availableSkills.find(s => s.id === this.character.selectedSkill);
+
+    if (selectedSkill && selectedSkill.activationCondition === condition && this.canActivateSkill(selectedSkill, params)) {
+      this.activateSkill(selectedSkill, params);
+      this.skillsUsedThisGame++;
     }
   }
 
   canActivateSkill(skill, params) {
+    if (this.exhausted) return false;
     if (this.skillCooldowns.has(skill.id)) return false;
 
     switch (skill.activationCondition) {
@@ -44,14 +44,14 @@ class CharacterSkillSystem {
         return params.combo >= (skill.effectParams.threshold || 100);
       case 'on_perfect_streak':
         return params.perfectStreak >= (skill.effectParams.threshold || 10);
+      case 'custom':
+        return skill.activationCheckFunction ? skill.activationCheckFunction() : false;
       default:
         return true;
     }
   }
 
   activateSkill(skill, params) {
-    console.log(`Skill activated: ${skill.name}`);
-    
     // Apply skill effect
     this.applySkillEffect(skill);
     
@@ -64,7 +64,7 @@ class CharacterSkillSystem {
     }
 
     // Show visual feedback
-    this.showCharacterCloseShot(skill.duration || 1800);
+    this.scene?.showCharacterCloseShot(skill.duration || 1800);
 
     // Handle duration-based skills
     if (skill.duration > 0) {
@@ -80,7 +80,11 @@ class CharacterSkillSystem {
     }
 
     // Trigger notification
-    notifications.show(`SKILL: ${skill.name}`, 2000);
+    this.notifySkillUsed(skill);
+  }
+  
+  notifySkillUsed(skill) {
+    // TODO: Notify skill used
   }
 
   applySkillEffect(skill) {
@@ -154,38 +158,14 @@ class CharacterSkillSystem {
       this.healthRegenTimer = null;
     }
   }
-
-  showCharacterCloseShot(duration) {
-    const displayTime = Math.max(500, duration - 200);
-    const closeShot = new CharacterCloseShot(2, 103, this.character);
-    closeShot.visible = false;
-    game.world.add(closeShot);
-
-    const noiseSprite = game.add.sprite(2, 103, 'character_noise');
-    noiseSprite.animations.add('static', [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
-    noiseSprite.animations.play('static');
-
-    game.time.events.add(100, () => {
-      noiseSprite.destroy();
-      closeShot.visible = true;
-    });
-
-    game.time.events.add(displayTime, () => {
-      closeShot.visible = false;
-      const endNoise = game.add.sprite(2, 103, 'character_noise');
-      endNoise.animations.add('static', [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
-      endNoise.animations.play('static');
-      
-      game.time.events.add(100, () => {
-        endNoise.destroy();
-        closeShot.destroy();
-      });
-    });
-  }
-
+  
   // Getters for skill effects (used by Player class)
   getJudgementConversion() {
-    return this.skillEffects.judgementConversion;
+    if (this.exhausted) {
+      return null;
+    } else {
+      return this.skillEffects.judgementConversion;
+    }
   }
 
   getJudgementWindowMultiplier() {
@@ -203,6 +183,9 @@ class CharacterSkillSystem {
   update() {
     const currentTime = game.time.now;
     
+    // Update exhausted state
+    this.exhausted = this.skillsUsedThisGame >= this.character.skillLevel
+    
     // Update active skills
     for (const [skillId, skillData] of this.activeSkills) {
       if (currentTime >= skillData.endTime) {
@@ -216,6 +199,11 @@ class CharacterSkillSystem {
         this.skillCooldowns.delete(skillId);
       }
     }
+  
+    // Update skill bar
+    this.scene.skillBar.value = (5 - (5 - this.character.skillLevel)) - this.getSkillsUsed();
+    this.scene.skillBar.visibleParts = this.character.skillLevel;
+    this.scene.skillBar.update();
   }
 
   resetGame() {

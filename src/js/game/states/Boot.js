@@ -63,6 +63,14 @@ class Boot {
         url: "ui/hud_background.png"
       },
       {
+        key: "ui_lobby_background",
+        url: "ui/lobby_background.png"
+      },
+      {
+        key: "ui_lobby_overlay",
+        url: "ui/lobby_overlay.png"
+      },
+      {
         key: "ui_navigation_hint_keyboard",
         url: "ui/navigation_hint_keyboard.png",
         type: "spritesheet",
@@ -86,6 +94,13 @@ class Boot {
         type: "spritesheet",
         frameWidth: 1,
         frameHeight: 5
+      },
+      {
+        key: "ui_skill_bar",
+        url: "ui/skill_bar.png",
+        type: "spritesheet",
+        frameWidth: 2,
+        frameHeight: 2
       },
       {
         key: "ui_acurracy_bar",
@@ -207,40 +222,54 @@ class Boot {
         frameWidth: 100,
         frameHeight: 100
       },
-
       // Hair styles
       ...(() => {
-        const hairResources = [];
+        const resources = [];
         // Front hairs
         for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.front; i++) {
-          hairResources.push({
+          resources.push({
             key: `character_front_hair_${i}`,
             url: `character/front_hair_${i}.png`,
-            type: "image"
+            type: "spritesheet",
+            frameWidth: 100,
+            frameHeight: 100
           });
         }
         // Back hairs
         for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.back; i++) {
-          hairResources.push({
+          resources.push({
             key: `character_back_hair_${i}`,
             url: `character/back_hair_${i}.png`,
-            type: "image"
+            type: "spritesheet",
+            frameWidth: 100,
+            frameHeight: 100
           });
         }
-        return hairResources;
+        return resources;
       })(),
-
       // Clothing and accessories
-      {
-        key: "character_clothing_school_uniform",
-        url: "character/school_uniform.png",
-        type: "image"
-      },
-      {
-        key: "character_accessory_headphones",
-        url: "character/headphones.png",
-        type: "image"
-      },
+      ...(() => {
+        const resources = [];
+        CHARACTER_ITEMS.clothing.forEach(item => {
+          resources.push({
+            key: `character_clothing_${item.id}`,
+            url: `character/${item.id}.png`,
+            type: "spritesheet",
+            frameWidth: 100,
+            frameHeight: 100
+          });
+        });
+        CHARACTER_ITEMS.accessories.forEach(item => {
+          resources.push({
+            key: `character_accessory_${item.id}`,
+            url: `character/${item.id}.png`,
+            type: "spritesheet",
+            frameWidth: 100,
+            frameHeight: 100
+          });
+        });
+        return resources;
+      })(),
       {
         key: "character_noise",
         url: "ui/character_noise.png",
