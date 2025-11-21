@@ -24,8 +24,8 @@ class BuildSystem {
       // Core modules
       'js/core/constants.js',
       'js/core/environment.js', 
-      'js/core/account.js',
       'js/core/character.js',
+      'js/core/account.js',
       
       // Character System
       'js/character/Character.js',
@@ -98,8 +98,8 @@ class BuildSystem {
       'js/game/states/Jukebox.js',
       'js/game/states/Credits.js',
       
-      // Player
-      'js/game/player/Player.js'
+      // Note Rendering and Player
+      'js/game/player/Player.js',
     ];
   }
   

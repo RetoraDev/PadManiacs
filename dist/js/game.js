@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.6 dev
- * Build: 11/21/2025, 6:58:12 AM
+ * Build: 11/21/2025, 10:03:04 AM
  * Platform: Development
  * Debug: true
  * Minified: false
@@ -13319,12 +13319,6 @@ class Player {
       let { pastSize, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
       
       const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
-
-      // Check for missed notes
-      if (note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos > game.height) {
-        note.miss = true;
-        this.processJudgement(note, "miss", note.column);
-      }
 
       // Remove off-screen notes
       if (yPos < -this.COLUMN_SIZE || yPos > game.height + bodyHeight) {
