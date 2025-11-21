@@ -80,6 +80,7 @@ class BuildSystem {
       'js/visualizers/FullScreenAudioVisualizer.js',
       
       // Parsers
+      'js/parsers/SMFile.js',
       'js/parsers/LocalSMParser.js',
       'js/parsers/ExternalSMParser.js',
       
@@ -99,6 +100,7 @@ class BuildSystem {
       'js/game/states/Credits.js',
       
       // Note Rendering and Player
+      'js/game/player/ChartRenderer.js',
       'js/game/player/Player.js',
     ];
   }

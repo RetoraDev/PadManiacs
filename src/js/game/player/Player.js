@@ -197,7 +197,6 @@ class Player {
         hold.lastTap = now;
         hold.active = true;
         hold.inactive = false;
-        this.toggleHoldExplosion(column, true);
       }
   
       // Check for new holds and regular notes
@@ -263,6 +262,8 @@ class Player {
         lastTap: now
       };
       holdNote.holdActive = true;
+      
+      this.toggleHoldExplosion(column, true);
     }
   }
 
@@ -321,10 +322,30 @@ class Player {
     return "miss";
   }
   
-  processJudgement(note, judgement, column) {
+  processJudgement(note, judgement, column, type = "normal") {
+    // Filter OK/N.G. judgements
+    let judgementKey = "";
+    
+    switch (judgement) {
+      case "ok":
+        judgementKey = "marvelous";
+        break;
+      case "n.g.":
+      case "ng":
+        judgementKey = "boo";
+        judgement = "n.g.";
+        break;
+    }
+    
+    // Judge marvelous if autoplay
+    if (this.autoplay) {
+      judgement = type == "normal" ? "marvelous" : "ok";
+      judgementKey = "marvelous";
+    }
+    
     // Check for skill activation based on judgement
     if (this.skillSystem) {
-      this.skillSystem.checkSkillActivation('on_miss', { judgement: judgement });
+      this.skillSystem.checkSkillActivation('on_miss', { judgement: judgementKey });
       
       // Check perfect streak
       if (this.perfectStreak > 0) {
@@ -342,14 +363,11 @@ class Player {
       }
     }
     
-    const scoreValue = this.scene.SCORE_VALUES[judgement];
+    const scoreValue = this.scene.SCORE_VALUES[judgementKey];
     if (!this.gameOver) this.score += scoreValue;
     
-    // Judge marvelous if autoplay
-    if (this.autoplay) judgement = "marvelous";
-    
     // Update judgement counts
-    this.judgementCounts[judgement]++;
+    this.judgementCounts[judgementKey]++;
 
     if (judgement === "miss") {
       this.combo = 0;
@@ -369,7 +387,7 @@ class Player {
     this.updateUI();
 
     // Show judgement text
-    this.showJudgementText(judgement, column);
+    this.showJudgementText(judgement, column, type);
   }
   
   getMaxHealth() {
@@ -452,28 +470,39 @@ class Player {
     return "F";
   }
 
-  showJudgementText(judgement, column) {
+  showJudgementText(judgement, column, type) {
     const colors = {
       marvelous: 0x00ffff,
       perfect: 0xffff00,
       great: 0x00ff00,
       good: 0x0000ff,
       boo: 0xffa500,
-      miss: 0xff0000
+      miss: 0xff0000,
+      ok: 0x00cc00,
+      ng: 0x22ffff
     };
-
-    this.judgementText.write(judgement.toUpperCase());
-    this.judgementText.tint = colors[judgement];
-    this.judgementText.alpha = 1;
-    this.judgementText.scale.set(1);
-
-    game.tweens.removeFrom(this.judgementText);
-    game.add.tween(this.judgementText.scale).to({ x: 1.5, y: 1 }, 200, "Linear", true).yoyo(true);
-    game.add.tween(this.judgementText).to({ alpha: 0 }, 200, "Linear", true, 200);
     
-    if (column !== undefined && judgement !== "miss") {
-      const receptor = this.receptors[column];
-      this.pulseSprite(receptor);
+    let tintColor = colors[judgement.replace("n.g.", "ng")];
+    
+    if (type == "freeze") {
+      const text = new Text(this.renderer.receptors[column].x, this.renderer.JUDGE_LINE + 12 * this.renderer.DIRECTION, judgement, FONTS.shaded);
+      text.tint = tintColor;
+      text.anchor.setTo(0.5);
+      game.add.tween(text).to({ alpha: 0, y: text.y + (8 * this.renderer.DIRECTION) }, 250, "Linear", true, 25).onComplete.addOnce(() => text.destroy());
+    } else {
+      this.judgementText.write(judgement.toUpperCase());
+      this.judgementText.tint = tintColor;
+      this.judgementText.alpha = 1;
+      this.judgementText.scale.set(1);
+  
+      game.tweens.removeFrom(this.judgementText);
+      game.add.tween(this.judgementText.scale).to({ x: 1.5, y: 1 }, 200, "Linear", true).yoyo(true);
+      game.add.tween(this.judgementText).to({ alpha: 0 }, 200, "Linear", true, 200);
+      
+      if (column !== undefined && judgement !== "miss") {
+        const receptor = this.receptors[column];
+        this.pulseSprite(receptor);
+      }
     }
   }
 
@@ -520,6 +549,8 @@ class Player {
   
   render() {
     if (!this.scene.startTime || this.scene.isPaused) return;
+
+    this.renderer.scene.activeHolds = this.activeHolds;
 
     const { now, beat } = this.scene.getCurrentTime();
     this.renderer.render(now, beat);
@@ -613,19 +644,19 @@ class Player {
         let judgement = "boo";
 
         if (hold.note.type === "2") {
-          judgement = !hold.note.miss ? "marvelous" : "boo";
+          judgement = !hold.note.miss ? "ok" : "n.g.";
         } else if (hold.note.type === "4") {
           const requiredTaps = Math.ceil(hold.note.beatLength * this.ROLL_REQUIRED_INTERVALS);
           if (hold.note.beatLength <= 0.5) {
-            judgement = "marvelous";
+            judgement = "ok";
           } else {
-            judgement = hold.tapped >= requiredTaps && !hold.note.miss ? "marvelous" : "boo";
+            judgement = hold.tapped >= requiredTaps && !hold.note.miss ? "ok" : "n.g.";
           }
         }
       
         hold.note.finish = true;
 
-        this.processJudgement(hold.note, judgement, Number(col));
+        this.processJudgement(hold.note, judgement, Number(col), "freeze");
         hold.note.hit = true;
         this.toggleHoldExplosion(col, false);
         delete this.activeHolds[col];
@@ -637,5 +668,350 @@ class Player {
     if (this.renderer) {
       this.renderer.destroy();
     }
+  }
+}
+
+class AAAAA {
+  renderFalling() {
+    if (!this.scene.startTime || this.scene.isPaused) return;
+
+    const { now, beat } = this.scene.getCurrentTime();
+    const leftOffset = this.calculateLeftOffset();
+
+    // Render notes
+    this.notes.forEach(note => {
+      let { pastSize, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
+      
+      const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
+
+      // Check for missed notes
+      if (note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos > game.height) {
+        note.miss = true;
+        this.processJudgement(note, "miss", note.column);
+      }
+
+      // Remove off-screen notes
+      if (yPos < -this.COLUMN_SIZE || yPos > game.height + bodyHeight) {
+        if (note.sprite) {
+          note.sprite.kill();
+          delete note.sprite;
+          if (note.holdParts) {
+            note.holdParts.body.destroy();
+            note.holdParts.end.destroy();
+            delete note.holdParts;
+          }
+        }
+        return;
+      }
+
+      const holdData = this.activeHolds[note.column];
+
+      if (note.type === "M") {
+        if (!note.sprite) {
+          note.sprite = this.minesGroup.getFirstDead() || (() => {
+            const sprite = game.add.sprite(x, yPos, "mine");
+            this.minesGroup.add(sprite);
+            return sprite;
+          })();
+          note.sprite.reset(0, -32);
+          note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
+          note.sprite.animations.play("blink");
+        }
+        note.sprite.anchor.set(0.5);
+        note.sprite.x = x + this.COLUMN_SIZE / 2;
+        note.sprite.y = yPos;
+      } else if (note.type === "2" || note.type === "4") {
+        if (!note.holdParts) {
+          const prefix = note.type === "2" ? "hold" : "roll";
+          
+          const getBody = () => {
+            const sprite = this.freezeBodyGroup.getFirstDead() || (() => {
+              const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, 0, `${prefix}_body`);
+              this.freezeBodyGroup.add(child);
+              return child;
+            })();
+            sprite.reset(x, -64);
+            sprite.loadTexture(`${prefix}_body`);
+            return sprite;
+          };
+          
+          const getEnd = () => {
+            const sprite = this.freezeEndGroup.getFirstDead() || (() => {
+              const child = game.add.sprite(0, 0);
+              this.freezeEndGroup.add(child);
+              return child;
+            })();
+            sprite.reset(x, -64);
+            sprite.loadTexture(`${prefix}_end`);
+            return sprite;
+          };
+          
+          note.holdParts = {
+            body: getBody(),
+            end: getEnd()
+          };
+          note.holdParts.body.anchor.y = 1;
+          note.holdParts.end.anchor.y = 1;
+          note.holdActive = false;
+        }
+        
+        const isActive = !note.finish && !note.miss && holdData?.note === note && holdData.active;
+        const isInactive = holdData?.note === note && holdData.inactive;
+
+        let visibleHeightIsSet = typeof note.visibleHeight != "undefined";
+        let visibleHeight = visibleHeightIsSet ? note.visibleHeight : bodyHeight; // OPTIMIZE: Avoid having tile sprites larger than game height.
+        
+        if (visibleHeight < 0) visibleHeight = 1;
+
+        if (isActive) {
+          const holdBottomY = yPos - bodyHeight;
+          const judgeLineY = this.JUDGE_LINE;
+
+          note.visibleHeight = Math.max(0, judgeLineY - holdBottomY);
+
+          if (yPos > judgeLineY - this.COLUMN_SIZE / 2) yPos = judgeLineY;
+
+          note.active = true;
+        } else if (typeof note.visibleHeight != "undefined") {
+          yPos -= bodyHeight - note.visibleHeight;
+          note.active = false;
+        }
+        
+        // Miss note when past judge line but keep it to don't mess the rhythm
+        if (!note.miss && !note.holdActive && yPos > this.JUDGE_LINE + this.COLUMN_SIZE) {
+          note.miss = true;
+          this.processJudgement(note, "miss", note.column);
+        }
+
+        let spritesVisible = !note.finish;
+         
+        let freezeYPos = Math.floor(yPos);
+        let freezeHeight = Math.floor(visibleHeight);
+        
+        note.holdParts.body.y = freezeYPos;
+        note.holdParts.body.height = freezeHeight;
+        note.holdParts.end.y = freezeYPos - freezeHeight;
+
+        note.holdParts.body.visible = spritesVisible;
+        note.holdParts.end.visible = spritesVisible;
+        
+        if (note.sprite) {
+          note.sprite.visible = !isActive && spritesVisible;
+        }
+
+        const frame = isActive ? 1 : 0;
+        const baseColor = note.type === "2" ? 0x00bb00 : 0x00eeee;
+        const tint = note.miss ? this.INACTIVE_COLOR : baseColor;
+        const alpha = note.miss ? 0.8 : 1;
+
+        note.holdParts.body.frame = frame;
+        note.holdParts.end.frame = frame;
+
+        note.holdParts.body.tint = tint;
+        note.holdParts.end.tint = tint;
+
+        note.holdParts.body.alpha = alpha;
+        note.holdParts.end.alpha = alpha;
+      }
+
+      // Show hold explosion when active
+      if (holdData?.active && !note.finish && !note.miss) {
+        this.toggleHoldExplosion(note.column, true);
+      }
+
+      if (note.type !== "M" && note.type !== "3") {
+        if (!note.sprite) {
+          note.sprite = this.notesGroup.getFirstDead() || (() => {
+            const sprite = game.add.sprite(0, 0);
+            this.notesGroup.add(sprite);
+            return sprite;
+          })();
+          note.sprite.reset(0, -32);
+          note.sprite.loadTexture("arrows");
+          note.sprite.frame = this.getNoteFrame(note);
+          note.sprite.anchor.set(0.5);
+          note.sprite.angle = {
+            0: 90,
+            1: 0,
+            2: 180,
+            3: -90
+          }[note.column];
+        }
+        note.sprite.x = x + this.COLUMN_SIZE / 2;
+        note.sprite.y = yPos;
+      }
+    });
+  }
+  
+  renderRising() {
+    const { now, beat } = this.scene.getCurrentTime();
+    const leftOffset = this.calculateLeftOffset();
+    
+    // Render notes
+    this.notes.forEach(note => {
+      let { deltaNote, scalar, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
+      
+      const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
+      
+      // Check for missed notes - rising: notes are missed when they go above the screen
+      if (note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos < -this.COLUMN_SIZE) {
+        note.miss = true;
+        this.processJudgement(note, "miss", note.column);
+      }
+
+      // Remove off-screen notes - rising: remove when above screen or below with body
+      if (yPos > game.height + this.COLUMN_SIZE || yPos < -bodyHeight) {
+        if (note.sprite) {
+          note.sprite.kill();
+          delete note.sprite;
+          if (note.holdParts) {
+            note.holdParts.body.destroy();
+            note.holdParts.end.destroy();
+            delete note.holdParts;
+          }
+        }
+        return;
+      }
+
+      const holdData = this.activeHolds[note.column];
+
+      if (note.type === "M") {
+        if (!note.sprite) {
+          note.sprite = this.minesGroup.getFirstDead() || (() => {
+            const sprite = game.add.sprite(x, yPos, "mine");
+            this.notesGroup.add(sprite);
+            return sprite;
+          })();
+          note.sprite.reset(0, -32);
+          note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
+          note.sprite.animations.play("blink");
+        }
+        note.sprite.anchor.set(0.5);
+        note.sprite.x = x + this.COLUMN_SIZE / 2;
+        note.sprite.y = yPos;
+      } else if (note.type === "2" || note.type === "4") {
+        if (!note.holdParts) {
+          const prefix = note.type === "2" ? "hold" : "roll";
+          
+          const getBody = () => {
+            const sprite = this.freezeBodyGroup.getFirstDead() || (() => {
+              const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, `${prefix}_body`);
+              child.scale.y = -1;
+              child.anchor.y = 1;
+              this.freezeBodyGroup.add(child);
+              return child;
+            })();
+            sprite.reset(x, -64);
+            sprite.loadTexture(`${prefix}_body`);
+            return sprite;
+          };
+          
+          const getEnd = () => {
+            const sprite = this.freezeEndGroup.getFirstDead() || (() => {
+              const child = game.add.sprite(0, 0);
+              child.scale.y = -1;
+              child.anchor.y = 1;
+              this.freezeEndGroup.add(child);
+              return child;
+            })();
+            sprite.reset(x, -64);
+            sprite.loadTexture(`${prefix}_end`);
+            return sprite;
+          };
+          
+          note.holdParts = {
+            body: getBody(),
+            end: getEnd()
+          };
+          
+          note.holdActive = false;
+        }
+        
+        const isActive = !note.finish && !note.miss && holdData?.note === note && holdData.active;
+        const isInactive = holdData?.note === note && holdData.inactive;
+
+        let visibleHeightIsSet = typeof note.visibleHeight != "undefined";
+        let visibleHeight = visibleHeightIsSet ? note.visibleHeight : bodyHeight;
+
+        if (visibleHeight < 0) visibleHeight = 1;
+
+        if (isActive) {
+          const holdTopY = yPos + bodyHeight;
+          const judgeLineY = this.JUDGE_LINE;
+          note.visibleHeight = Math.max(0, holdTopY - judgeLineY);
+          
+          if (yPos < judgeLineY + this.COLUMN_SIZE / 2) yPos = judgeLineY;
+
+          note.active = true;
+        } else if (typeof note.visibleHeight != "undefined") {
+          yPos += bodyHeight - note.visibleHeight;
+          note.active = false;
+        }
+        
+        // Miss note when past judge line - rising: miss when above judge line
+        if (!note.miss && !note.holdActive && yPos < this.JUDGE_LINE - this.COLUMN_SIZE) {
+          note.miss = true;
+          this.processJudgement(note, "miss", note.column);
+        }
+
+        let spritesVisible = !note.finish;
+        
+        let freezeYPos = Math.floor(yPos);
+        let freezeHeight = Math.floor(visibleHeight);
+        
+        // Position hold parts for rising mode
+        note.holdParts.body.y = freezeYPos;
+        note.holdParts.body.height = freezeHeight;
+        note.holdParts.end.y = freezeYPos + freezeHeight;
+
+        note.holdParts.body.visible = spritesVisible;
+        note.holdParts.end.visible = spritesVisible;
+        
+        if (note.sprite) {
+          note.sprite.visible = !isActive && spritesVisible;
+        }
+
+        const frame = isActive ? 1 : 0;
+        const baseColor = note.type === "2" ? 0x00bb00 : 0x00eeee;
+        const tint = note.miss ? this.INACTIVE_COLOR : baseColor;
+        const alpha = note.miss ? 0.8 : 1;
+
+        note.holdParts.body.frame = frame;
+        note.holdParts.end.frame = frame;
+
+        note.holdParts.body.tint = tint;
+        note.holdParts.end.tint = tint;
+
+        note.holdParts.body.alpha = alpha;
+        note.holdParts.end.alpha = alpha;
+      }
+
+      // Show hold explosion when active
+      if (holdData?.active && !note.finish && !note.miss) {
+        this.toggleHoldExplosion(note.column, true);
+      }
+
+      if (note.type !== "M" && note.type !== "3") {
+        if (!note.sprite) {
+          note.sprite = this.notesGroup.getFirstDead() || (() => {
+            const sprite = game.add.sprite(0, 0);
+            this.notesGroup.add(sprite);
+            return sprite;
+          })();
+          note.sprite.reset(0, -32);
+          note.sprite.loadTexture("arrows");
+          note.sprite.frame = this.getNoteFrame(note);
+          note.sprite.anchor.set(0.5);
+          note.sprite.angle = {
+            0: 90,
+            1: 0,
+            2: 180,
+            3: -90
+          }[note.column];
+        }
+        note.sprite.x = x + this.COLUMN_SIZE / 2;
+        note.sprite.y = yPos;
+      }
+    });
   }
 }
