@@ -1,4 +1,5 @@
 class LocalSMParser {
+  // TODO: Make this class use SMFile
   constructor() {
     this.baseUrl = "";
   }

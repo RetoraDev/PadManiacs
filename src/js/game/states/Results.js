@@ -1,6 +1,6 @@
 class Results {
   init(gameData) {
-    this.gameData = gameData; // { song, difficultyIndex, player }
+    this.gameData = gameData;
     this.isNewRecord = false;
     this.finalScore = 0;
     this.finalAccuracy = 0;
@@ -38,6 +38,10 @@ class Results {
     this.isNewRecord = this.saveHighScore(song, difficulty, player);
     
     this.displayResults();
+    if (this.gameData.character) {
+      this.showCharacterExp();
+    }
+    
     this.showMenu();
     
     // Execute addon behaviors for this state
@@ -156,8 +160,9 @@ class Results {
     
     // New record indicator
     if (!autoplay && this.isNewRecord) {
-      this.recordText = new Text(152, 38, "NEW RECORD!", FONTS.shaded);
+      this.recordText = new Text(this.scoreText.right + 4, this.scoreText.y, "NEW RECORD!", FONTS.shaded);
       this.recordText.anchor.x = 0.5;
+      this.recordText.x += this.scoreText.width / 2;
       this.recordText.tint = 0xFFD700; // Gold color
       
       // Pulse animation for new record
@@ -165,11 +170,60 @@ class Results {
     }
   }
   
+  showCharacterExp() {
+    const portrait = new CharacterPortrait(112, 41, this.gameData.character || null);
+    
+    const nameText = new Text(128, 42, "", FONTS.shaded);
+    
+    const levelText = new Text(0, 42, "");
+    
+    const expBar = new ExperienceBar(129, 50, 40, 3);
+    
+    if (this.gameData.character) {
+      nameText.write(this.gameData.character.name);
+      
+      const storyEntry = this.gameData.character.experienceStory[0];
+      const expCurve = CHARACTER_SYSTEM.EXPERIENCE_CURVE;
+      
+      if (storyEntry) {
+        let currentExp = storyEntry.expBefore;
+        let currentLevel = storyEntry.levelBefore;
+        
+        levelText.x = nameText.right + 8;
+        levelText.write(`Lv. ${currentLevel}`);
+        
+        expBar.setProgress(currentExp / expCurve(currentLevel));
+        
+        function animate(currentExp, currentLevel) {
+          if (currentExp < expCurve(currentLevel)) {
+            currentExp ++;
+            ENABLE_EXP_SFX && Audio.play("exp_up", 0.6);
+          } else {
+            currentExp = 0;
+            currentLevel ++;
+            levelText.write(`Lv. ${currentLevel}`);
+            ENABLE_EXP_SFX && Audio.play("level_up", 0.9);
+          }
+          expBar.setProgress(currentExp / expCurve(currentLevel));
+          if (currentLevel < storyEntry.levelAfter || currentExp < storyEntry.expAfter) {
+            game.time.events.add(15, () => animate(currentExp, currentLevel));
+          }
+        }
+        
+        if (this.gameData.expGain) game.time.events.add(600, () => animate(currentExp, currentLevel));
+      }
+    }
+  }
+  
   showMenu() {
     this.navigationHint = new NavigationHint(1);
     
-    const menu = new CarouselMenu(108, 44, 80, 80, {
+    const height = this.gameData.character ? 72 : 80;
+    const y = this.gameData.character ? 53 : 64;
+    
+    const menu = new CarouselMenu(108, y, 80, height, {
       bgcolor: 'brown',
+      
       fgcolor: '#ffffff'
     });
     

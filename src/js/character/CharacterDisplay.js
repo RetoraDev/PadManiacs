@@ -3,7 +3,9 @@ class CharacterDisplay extends Phaser.Sprite {
     super(game, x, y);
     this.character = characterData;
     this.layers = {};
-    this.createLayers();
+    if (characterData) {
+      this.createLayers();
+    }
     game.add.existing(this);
   }
 

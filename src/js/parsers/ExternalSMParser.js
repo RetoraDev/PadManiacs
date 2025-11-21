@@ -1,4 +1,5 @@
 class ExternalSMParser {
+  // TODO: Make this class use SMFile
   parseSM(files, smContent) {
     let out = {};
     let isSSC = smContent.includes("#VERSION:");

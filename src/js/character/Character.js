@@ -21,10 +21,17 @@ class Character {
       perfectGames: 0,
       skillsUsed: 0
     };
+    this.experienceStory = [];
     this.lastSkillLevelUp = data.lastSkillLevelUp || 0;
   }
 
   addExperience(amount) {
+    const storyEntry = {
+      levelBefore: this.level,
+      expBefore: this.experience,
+      expGain: amount
+    };
+    
     this.experience += amount;
     const requiredExp = CHARACTER_SYSTEM.EXPERIENCE_CURVE(this.level);
     
@@ -32,6 +39,11 @@ class Character {
       this.levelUp();
       this.experience -= requiredExp;
     }
+    
+    storyEntry.expAfter = this.experience;
+    storyEntry.levelAfter = this.level;
+    
+    this.experienceStory.push(storyEntry);
   }
 
   levelUp() {

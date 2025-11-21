@@ -114,6 +114,7 @@ class Play {
     
     this.playerName = new Text(4, 8, "", FONTS.shaded, this.hud);
     this.playerName.write(this.currentCharacter.name, 4);
+    
     this.playerName.tint = this.currentCharacter.appearance.hairColor;
     
     this.skillBar = new SkillBar(6, 15);
@@ -252,7 +253,7 @@ class Play {
     this.startTime = game.time.now + FIXED_DELAY - chartOffset * 1000;
     
     setTimeout(() => {
-      this.audio.play();
+      this.audio?.play();
       this.started = true;
       if (window.recordNextGame) game.recorder.start(this.audio, 0);
     }, FIXED_DELAY + this.userOffset);
@@ -367,13 +368,16 @@ class Play {
       skillsUsed: this.skillSystem.getSkillsUsed()
     };
     
-    this.characterManager.updateCharacterStats(gameResults);
+    // Level up character and take experience gain
+    const expGain = this.autoplay ? 0 : this.characterManager.updateCharacterStats(gameResults);
     
     // Pass game data to Results state
     const gameData = {
       song: this.song,
       difficultyIndex: this.difficultyIndex,
-      player: this.player
+      character: this.currentCharacter,
+      player: this.player,
+      expGain, expGain
     };
     
     game.state.start("Results", true, false, gameData);
@@ -401,13 +405,8 @@ class Play {
     this.isPaused = false;
     this.totalPausedDuration += game.time.now - this.pauseStartTime;
     this.hidePauseMenu();
-    if (this.pendingSongStart) {
-      this.pendingSongStart = false;
-      this.songStart();
-    } else {
-      if (this.video.src) this.video?.play();
-      this.audio?.play();
-    }
+    if (this.video.src) this.video?.play();
+    this.audio?.play();
   }
   
   showPauseMenu() {

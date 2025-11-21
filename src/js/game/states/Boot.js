@@ -154,6 +154,16 @@ class Boot {
         type: "audio",
         url: "sfx/assist_tick.ogg"
       },
+      {
+        key: "level_up",
+        type: "audio",
+        url: "sfx/level_up.ogg"
+      },
+      {
+        key: "exp_up",
+        type: "audio",
+        url: "sfx/exp_up.ogg"
+      },
       // Chart assets
       {
         key: "arrows",
