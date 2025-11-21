@@ -980,81 +980,15 @@ class InteractiveInterface {
     // Build body content (source code)
     let bodyContent = '\n';
     
+    // Add debug initialization to body
+    bodyContent += new BuildSystem().getDebugScript(true);
+    
     // Add all source JS files in order to body
     buildSystem.fileOrder.forEach(filePath => {
       if (filePath.startsWith('js/')) {
         bodyContent += `  <script src="./src/${filePath}"></script>\n`;
       }
     });
-    
-    // Add debug initialization to body (after source files)
-    bodyContent += `
-    <script>
-      // Auto-enable debug mode for development
-      window.DEBUG = true;
-      
-      // Initialize eruda for development
-      if (typeof window.eruda !== 'undefined') {
-        eruda.init({
-          tool: ['console', 'elements', 'resources', 'snippets']
-        });
-        
-        const snippets = eruda.get('snippets');
-        snippets.clear();
-        
-        // Debug utilities
-        snippets.add("Start Recording", () => {
-          if (window.game && game.recorder) {
-            game.recorder.start();
-          } else {
-            console.warn('Game not initialized yet');
-          }
-        }, "Start recording the game");
-        
-        snippets.add("Stop Recording", () => {
-          if (window.game && game.recorder) {
-            game.recorder.stop();
-          }
-        }, "Stop recording and save video");
-        
-        snippets.add("Record Next Game", () => {
-          window.recordNextGame = true;
-          console.log('Recording will start on next game');
-        }, "Start recording next song, stop when it ends");
-        
-        snippets.add("Take Screenshot", () => {
-          if (window.game && game.recorder) {
-            game.recorder.screenshot();
-          }
-        }, "Take a screenshot");
-        
-        snippets.add("Auto Screenshots", () => {
-          const screenshot = () => {
-            if (window.game && game.recorder) {
-              game.recorder.screenshot();
-              setTimeout(screenshot, Phaser.Math.between(5000, 20000));
-            }
-          };
-          screenshot();
-        }, "Take screenshots randomly every 5-20 seconds");
-        
-        snippets.add("Add FPS Counter", () => {
-          if (window.game) {
-            addFpsText();
-          }
-        }, "Displays performance information");
-        
-        snippets.add("Reload Game", () => {
-          location.reload();
-        }, "Reload the game");
-        
-        snippets.add("Destroy Eruda", () => {
-          eruda.destroy();
-        }, "Remove debug panel");
-        
-        console.log('PadManiacs Development Mode Active');
-      }
-    </script>`;
     
     // Insert libraries in head
     htmlContent = htmlContent.replace('</head>', headContent + '\n</head>');

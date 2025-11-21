@@ -429,12 +429,30 @@ Minified: ${this.config.flags.minify}
       
       // Add debug initialization script if needed
       if (this.config.flags.debug) {
-        const debugScript = `
+        const debugScript = this.getDebugScript();
+        
+        // Insert before closing body tag
+        htmlContent = htmlContent.replace('</body>', debugScript + '\n</body>');
+      }
+      
+      fs.writeFileSync(htmlDest, htmlContent);
+      this.log('index.html processed', 'success');
+    } else {
+      // Create minimal index.html if source doesn't exist
+      const minimalHTML = getMinimalIndexHtml();
+      fs.writeFileSync(htmlDest, minimalHTML);
+      this.log('Created minimal index.html', 'success');
+    }
+  }
+  
+  getDebugScript(forceDebug) {
+    return `
   <script>
+    ${forceDebug ? `window.DEBUG = true; // Forced debug mode` : `
     // Auto-enable debug mode if URL has debug parameter
     if (location.search.includes('debug')) {
       window.DEBUG = true;
-    }
+    }`}
     
     // Debug initialization
     if (typeof window.eruda !== 'undefined' && (window.DEBUG || location.search.includes('debug'))) {
@@ -496,19 +514,12 @@ Minified: ${this.config.flags.minify}
       }, "Remove debug panel");
       
       console.log('PadManiacs Debug Mode Active');
-      console.log('Platform:', CURRENT_ENVIRONMENT);
     }
   </script>`;
-        
-        // Insert before closing body tag
-        htmlContent = htmlContent.replace('</body>', debugScript + '\n</body>');
-      }
-      
-      fs.writeFileSync(htmlDest, htmlContent);
-      this.log('index.html processed', 'success');
-    } else {
-      // Create minimal index.html if source doesn't exist
-      const minimalHTML = `<!DOCTYPE html>
+  }
+  
+  getMinimalIndexHtml() {
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -542,9 +553,6 @@ Minified: ${this.config.flags.minify}
   <div id="debug"></div>
 </body>
 </html>`;
-      fs.writeFileSync(htmlDest, minimalHTML);
-      this.log('Created minimal index.html', 'success');
-    }
   }
 
   copyDir(src, dest, exclude = []) {

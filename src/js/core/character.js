@@ -3,7 +3,7 @@ const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 6,
   DEFAULT_CHARACTER: "EIRI",
   MAX_SKILL_LEVEL: 5,
-  EXPERIENCE_CURVE: Math.floor(10 * Math.pow(level, 1.2)),
+  EXPERIENCE_CURVE: level => Math.floor(10 * Math.pow(level, 1.2)),
   SKILL_UNLOCK_CHANCE: 0.5,
   SKILL_LEVEL_UP_CHANCE: 0.5,
   MIN_LEVEL_FOR_SKILL: 4,
