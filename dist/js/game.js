@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.6 dev
- * Build: 11/20/2025, 12:48:32 PM
+ * Build: 11/21/2025, 6:58:12 AM
  * Platform: Development
  * Debug: true
  * Minified: false
@@ -129,32 +129,9 @@ const DEFAULT_ACCOUNT = {
       back: ["1"]
     },
     unlockedItems: ["school_uniform", "headphones"],
-    currentCharacter: "EIRI",
+    currentCharacter: DEFAULT_CHARACTER.name,
     list: [
-      {
-        name: "EIRI",
-        level: 1,
-        experience: 0,
-        skillLevel: 1,
-        unlockedSkills: ["safety_net", "focus_boost", "max_health_boost", "time_dilation"],
-        selectedSkill: "safety_net",
-        appearance: {
-          skinTone: 0,
-          hairColor: 0xFFFFFF,
-          frontHair: "1",
-          backHair: "1",
-          clothing: "school_uniform",
-          accessory: "headphones"
-        },
-        stats: {
-          gamesPlayed: 0,
-          totalScore: 0,
-          maxCombo: 0,
-          perfectGames: 0,
-          skillsUsed: 0
-        },
-        lastSkillLevelUp: 0
-      }
+      JSON.parse(JSON.stringify(DEFAULT_CHARACTER))
     ]
   },
   lastSong: null,
@@ -169,17 +146,42 @@ const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 4,
   DEFAULT_CHARACTER: "EIRI",
   MAX_SKILL_LEVEL: 5,
-  EXPERIENCE_CURVE: (level) => Math.floor(level * level * 10),
-  SKILL_UNLOCK_CHANCE: 0.25,
+  EXPERIENCE_CURVE: level => Math.floor(level * level * 10),
+  SKILL_UNLOCK_CHANCE: 0.5,
   SKILL_LEVEL_UP_CHANCE: 0.6,
   MIN_LEVEL_FOR_SKILL: 5,
   SKILL_COOLDOWN_LEVELS: 5,
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
   CLOSE_SHOT_CROP: { x: 32, y: 15, w: 36, h: 7 },
   HAIR_STYLES: {
-    front: 1,
-    back: 1
+    front: 2,
+    back: 2
   }
+};
+
+const DEFAULT_CHARACTER = {
+  name: "EIRI",
+  level: 1,
+  experience: 0,
+  skillLevel: 1,
+  unlockedSkills: ["focus_boost"],
+  selectedSkill: "focus_boost",
+  appearance: {
+    skinTone: 0,
+    hairColor: 0xffffff,
+    frontHair: "1",
+    backHair: "1",
+    clothing: "school_uniform",
+    accessory: "headphones"
+  },
+  stats: {
+    gamesPlayed: 0,
+    totalScore: 0,
+    maxCombo: 0,
+    perfectGames: 0,
+    skillsUsed: 0
+  },
+  lastSkillLevelUp: 0
 };
 
 // Character skills with modular effects
@@ -196,7 +198,7 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "focus_boost",
-    name: "Focus Boost", 
+    name: "Focus Boost",
     description: "Temporarily increases accuracy window by 20%",
     activationCondition: "on_combo",
     effect: "modify_judgement_window",
@@ -250,7 +252,7 @@ const CHARACTER_ITEMS = {
   accessories: [
     {
       id: "headphones",
-      name: "Headphones", 
+      name: "Headphones",
       description: "Music listening headphones",
       type: "accessory",
       unlocksAtLevel: 0

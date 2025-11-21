@@ -26,32 +26,9 @@ const DEFAULT_ACCOUNT = {
       back: ["1"]
     },
     unlockedItems: ["school_uniform", "headphones"],
-    currentCharacter: "EIRI",
+    currentCharacter: DEFAULT_CHARACTER.name,
     list: [
-      {
-        name: "EIRI",
-        level: 1,
-        experience: 0,
-        skillLevel: 1,
-        unlockedSkills: ["safety_net", "focus_boost", "max_health_boost", "time_dilation"],
-        selectedSkill: "safety_net",
-        appearance: {
-          skinTone: 0,
-          hairColor: 0xFFFFFF,
-          frontHair: "1",
-          backHair: "1",
-          clothing: "school_uniform",
-          accessory: "headphones"
-        },
-        stats: {
-          gamesPlayed: 0,
-          totalScore: 0,
-          maxCombo: 0,
-          perfectGames: 0,
-          skillsUsed: 0
-        },
-        lastSkillLevelUp: 0
-      }
+      JSON.parse(JSON.stringify(DEFAULT_CHARACTER))
     ]
   },
   lastSong: null,
