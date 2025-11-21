@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.6 dev
- * Build: 11/21/2025, 1:15:59 PM
+ * Build: 11/21/2025, 3:42:25 PM
  * Platform: Development
  * Debug: true
  * Minified: false
@@ -103,14 +103,14 @@ const ENABLE_UI_SFX = false;
 // ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
-  MAX_NAME_LENGTH: 4,
+  MAX_NAME_LENGTH: 6,
   DEFAULT_CHARACTER: "EIRI",
   MAX_SKILL_LEVEL: 5,
-  EXPERIENCE_CURVE: level => Math.floor(level * level * 10),
+  EXPERIENCE_CURVE: level => Math.floor(10 * Math.pow(level, 1.2)),
   SKILL_UNLOCK_CHANCE: 0.5,
-  SKILL_LEVEL_UP_CHANCE: 0.6,
-  MIN_LEVEL_FOR_SKILL: 5,
-  SKILL_COOLDOWN_LEVELS: 5,
+  SKILL_LEVEL_UP_CHANCE: 0.5,
+  MIN_LEVEL_FOR_SKILL: 4,
+  SKILL_COOLDOWN_LEVELS: 4,
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
   CLOSE_SHOT_CROP: { x: 32, y: 15, w: 36, h: 7 },
   HAIR_STYLES: {
@@ -128,7 +128,7 @@ const DEFAULT_CHARACTER = {
   selectedSkill: "focus_boost",
   appearance: {
     skinTone: 0,
-    hairColor: 0xffffff,
+    hairColor: 0x5d3e32,
     frontHair: "1",
     backHair: "1",
     clothing: "school_uniform",
@@ -625,19 +625,20 @@ class CharacterManager {
   }
 
   calculateExperienceGain(gameResults) {
-    let exp = 10; // Base experience
+    let exp = 1; // Base experience
     
     // Accuracy bonus
-    if (gameResults.accuracy >= 95) exp += 20;
-    else if (gameResults.accuracy >= 90) exp += 15;
-    else if (gameResults.accuracy >= 80) exp += 10;
+    if (gameResults.accuracy >= 95) exp += 3;
+    else if (gameResults.accuracy >= 90) exp += 2;
+    else if (gameResults.accuracy >= 80) exp += 1;
     
     // Combo bonus
-    if (gameResults.maxCombo >= 100) exp += 15;
-    else if (gameResults.maxCombo >= 50) exp += 10;
+    if (gameResults.maxCombo >= 500) exp += 3;
+    if (gameResults.maxCombo >= 100) exp += 2;
+    else if (gameResults.maxCombo >= 50) exp += 1;
     
     // Full combo bonus
-    if (gameResults.judgements.miss === 0) exp += 25;
+    if (gameResults.judgements.miss === 0) exp += 3;
     
     return exp;
   }
@@ -12905,25 +12906,28 @@ class ChartRenderer {
     
     this.speedMod = Account.settings.speedMod || 'X-MOD';
     
-    // Note color option
+    // Note color option (default to NOTE)
     this.noteColorOption = Account.settings.noteColorOption || 'NOTE';
     
     // Define color constants for spritesheet frames
     const COLORS = {
-      RED: 0,
-      BLUE: 1,
-      PURPLE: 2,
-      YELLOW: 3,
-      PINK: 4,
-      ORANGE: 5,
-      CYAN: 6,
-      GREEN: 7,
-      WHITE: 8,
-      SKYBLUE: 9,
-      OLIVE: 10,
-      GRAY: 11
+      // This is how spritesheet frames are colored
+      // They are ordered like NOTE color pattern in StepMania
+      RED: 0,      // 4th
+      BLUE: 1,     // 8th
+      PURPLE: 2,   // 12th
+      YELLOW: 3,   // 16th
+      PINK: 4,     // 24th
+      ORANGE: 5,   // 32nd
+      CYAN: 6,     // 48th
+      GREEN: 7,    // 64th
+      WHITE: 8,    // 96th
+      SKYBLUE: 9,  // 128th
+      OLIVE: 10,   // 192nd
+      GRAY: 11     // Anything faster
     };
     
+    // Color mappings for different options
     this.colorMappings = {
       NOTE: {
         4: COLORS.RED,
@@ -12940,46 +12944,49 @@ class ChartRenderer {
         default: COLORS.GRAY
       },
       VIVID: {
-        4: COLORS.YELLOW,
-        8: COLORS.RED,
-        12: COLORS.BLUE,
-        16: COLORS.CYAN,
-        24: COLORS.YELLOW,
-        32: COLORS.RED,
-        48: COLORS.BLUE,
-        64: COLORS.CYAN,
-        96: COLORS.YELLOW,
-        128: COLORS.RED,
-        192: COLORS.BLUE,
-        default: COLORS.CYAN
+        // VIVID: Color cycle per beat (Yellow, Maroon, Blue, Cyan)
+        4: COLORS.YELLOW,   // 4th - Yellow
+        8: COLORS.RED,      // 8th - Maroon (using RED as closest)
+        12: COLORS.BLUE,    // 12th - Blue
+        16: COLORS.CYAN,    // 16th - Cyan
+        24: COLORS.YELLOW,  // 24th - Yellow (cycle repeats)
+        32: COLORS.RED,     // 32nd - Maroon
+        48: COLORS.BLUE,    // 48th - Blue
+        64: COLORS.CYAN,    // 64th - Cyan
+        96: COLORS.YELLOW,  // 96th - Yellow
+        128: COLORS.RED,    // 128th - Maroon
+        192: COLORS.BLUE,   // 192nd - Blue
+        default: COLORS.CYAN // Ultra-fast - Cyan
       },
       FLAT: {
-        4: COLORS.YELLOW,
-        8: COLORS.YELLOW,
-        12: COLORS.YELLOW,
-        16: COLORS.YELLOW,
-        24: COLORS.YELLOW,
-        32: COLORS.YELLOW,
-        48: COLORS.YELLOW,
-        64: COLORS.YELLOW,
-        96: COLORS.YELLOW,
-        128: COLORS.YELLOW,
-        192: COLORS.YELLOW,
-        default: COLORS.YELLOW
+        // FLAT: All notes same color as VIVID 4th notes (Yellow)
+        4: COLORS.YELLOW,   // 4th - Yellow
+        8: COLORS.YELLOW,   // 8th - Yellow
+        12: COLORS.YELLOW,  // 12th - Yellow
+        16: COLORS.YELLOW,  // 16th - Yellow
+        24: COLORS.YELLOW,  // 24th - Yellow
+        32: COLORS.YELLOW,  // 32nd - Yellow
+        48: COLORS.YELLOW,  // 48th - Yellow
+        64: COLORS.YELLOW,  // 64th - Yellow
+        96: COLORS.YELLOW,  // 96th - Yellow
+        128: COLORS.YELLOW, // 128th - Yellow
+        192: COLORS.YELLOW, // 192nd - Yellow
+        default: COLORS.YELLOW // Ultra-fast - Yellow
       },
       RAINBOW: {
-        4: COLORS.ORANGE,
-        8: COLORS.BLUE,
-        12: COLORS.PINK,
-        16: COLORS.PINK,
-        24: COLORS.BLUE,
-        32: COLORS.ORANGE,
-        48: COLORS.PINK,
-        64: COLORS.BLUE,
-        96: COLORS.PINK,
-        128: COLORS.ORANGE,
-        192: COLORS.BLUE,
-        default: COLORS.PINK
+        // RAINBOW: Orange, Blue, Purple/Pink with color reuse
+        4: COLORS.ORANGE,   // 4th - Orange
+        8: COLORS.BLUE,     // 8th - Blue
+        12: COLORS.PINK,    // 12th - Purple/Pink
+        16: COLORS.PINK,    // 16th - Purple/Pink
+        24: COLORS.BLUE,    // 24th - Blue (reused)
+        32: COLORS.ORANGE,  // 32nd - Orange (reused)
+        48: COLORS.PINK,    // 48th - Purple/Pink
+        64: COLORS.BLUE,    // 64th - Blue (reused)
+        96: COLORS.PINK,    // 96th - Purple/Pink
+        128: COLORS.ORANGE, // 128th - Orange (reused)
+        192: COLORS.BLUE,   // 192nd - Blue (reused)
+        default: COLORS.PINK // Ultra-fast - Purple/Pink
       }
     };
 
@@ -13147,8 +13154,8 @@ class ChartRenderer {
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos > game.height) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.processJudgement) {
-          this.scene.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+          this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
 
@@ -13219,8 +13226,8 @@ class ChartRenderer {
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos < -this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.processJudgement) {
-          this.scene.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+          this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
 
@@ -13358,13 +13365,13 @@ class ChartRenderer {
     if (this.options.enableMissChecking && !note.miss && !note.holdActive) {
       if (direction === 'falling' && yPos > this.JUDGE_LINE + this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.processJudgement) {
-          this.scene.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+          this.scene.player.processJudgement(note, "miss", note.column);
         }
       } else if (direction === 'rising' && yPos < this.JUDGE_LINE - this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.processJudgement) {
-          this.scene.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+          this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
     }
@@ -13644,7 +13651,7 @@ class Player {
     // Copy receptors from renderer
     this.receptors = this.renderer.receptors;
     
-    // Create UI text elements (keep existing UI creation)
+    // Create UI text elements
     this.judgementText =
       this.scene.judgementText ||
       new Text(96, 20, "", {
@@ -13788,7 +13795,7 @@ class Player {
 
       this.createExplosion(closestNote);
       closestNote.sprite?.destroy();
-      this.processJudgement(closestNote, judgement, column);
+      !closestNote.hit && this.processJudgement(closestNote, judgement, column);
       closestNote.hit = true;
 
       this.lastNoteCheckBeats[column] = beat;
@@ -13817,6 +13824,8 @@ class Player {
     if (holdNote && this.lastNoteCheckBeats[column] !== beat) {
       const delta = Math.abs(holdNote.beat - beat);
       const judgement = this.getJudgement(delta);
+      
+      this.processJudgement(holdNote, judgement, column);
       
       this.activeHolds[column] = {
         note: holdNote,
@@ -13892,29 +13901,9 @@ class Player {
   }
   
   processJudgement(note, judgement, column, type = "normal") {
-    // Filter OK/N.G. judgements
-    let judgementKey = "";
-    
-    switch (judgement) {
-      case "ok":
-        judgementKey = "marvelous";
-        break;
-      case "n.g.":
-      case "ng":
-        judgementKey = "boo";
-        judgement = "n.g.";
-        break;
-    }
-    
-    // Judge marvelous if autoplay
-    if (this.autoplay) {
-      judgement = type == "normal" ? "marvelous" : "ok";
-      judgementKey = "marvelous";
-    }
-    
     // Check for skill activation based on judgement
     if (this.skillSystem) {
-      this.skillSystem.checkSkillActivation('on_miss', { judgement: judgementKey });
+      this.skillSystem.checkSkillActivation('on_miss', { judgement });
       
       // Check perfect streak
       if (this.perfectStreak > 0) {
@@ -13930,6 +13919,28 @@ class Player {
       if (conversion && judgement === conversion.from) {
         judgement = conversion.to;
       }
+    }
+    
+    // Filter OK/N.G. judgements
+    let judgementKey = "";
+    
+    switch (judgement) {
+      case "ok":
+        judgementKey = "marvelous";
+        break;
+      case "n.g.":
+      case "ng":
+        judgementKey = "boo";
+        judgement = "n.g.";
+        break;
+      default:
+        judgementKey = judgement;
+    }
+
+    // Judge marvelous if autoplay
+    if (this.autoplay) {
+      judgement = type == "normal" ? "marvelous" : "ok";
+      judgementKey = "marvelous";
     }
     
     const scoreValue = this.scene.SCORE_VALUES[judgementKey];
@@ -14128,7 +14139,7 @@ class Player {
   update() {
     const { now, beat } = this.scene.getCurrentTime();
 
-    // Input handling (keep existing input logic)
+    // Input handling
     if (!this.autoplay) {
       Object.keys(this.keymap).forEach(key => {
       if (gamepad.pressed[key]) this.handleInput(this.keymap[key], true);
@@ -14156,6 +14167,8 @@ class Player {
     
     // Check for skill activations
     if (this.skillSystem) {
+      this.skillSystem.update();
+      
       if (this.combo > 0) {
         this.skillSystem.checkSkillActivation('on_combo', { combo: this.combo });
         this.skillSystem.checkSkillActivation('on_high_combo', { combo: this.combo });
@@ -14166,7 +14179,7 @@ class Player {
       }
     }
 
-    // Update health (keep existing health logic)
+    // Update health
     if (this.health != this.previousHealth) {
       this.previousHealth = this.health;
       game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
@@ -14185,7 +14198,7 @@ class Player {
       }
     }
 
-    // Update active holds (keep existing hold logic)
+    // Update active holds
     Object.entries(this.activeHolds).forEach(([col, hold]) => {
       const { now } = this.scene.getCurrentTime();
       
@@ -14210,7 +14223,7 @@ class Player {
 
       hold.progress = now - hold.startTime;
       if (hold.progress >= hold.note.secLength) {
-        let judgement = "boo";
+        let judgement = "n.g.";
 
         if (hold.note.type === "2") {
           judgement = !hold.note.miss ? "ok" : "n.g.";
@@ -14237,351 +14250,6 @@ class Player {
     if (this.renderer) {
       this.renderer.destroy();
     }
-  }
-}
-
-class AAAAA {
-  renderFalling() {
-    if (!this.scene.startTime || this.scene.isPaused) return;
-
-    const { now, beat } = this.scene.getCurrentTime();
-    const leftOffset = this.calculateLeftOffset();
-
-    // Render notes
-    this.notes.forEach(note => {
-      let { pastSize, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
-      
-      const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
-
-      // Check for missed notes
-      if (note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos > game.height) {
-        note.miss = true;
-        this.processJudgement(note, "miss", note.column);
-      }
-
-      // Remove off-screen notes
-      if (yPos < -this.COLUMN_SIZE || yPos > game.height + bodyHeight) {
-        if (note.sprite) {
-          note.sprite.kill();
-          delete note.sprite;
-          if (note.holdParts) {
-            note.holdParts.body.destroy();
-            note.holdParts.end.destroy();
-            delete note.holdParts;
-          }
-        }
-        return;
-      }
-
-      const holdData = this.activeHolds[note.column];
-
-      if (note.type === "M") {
-        if (!note.sprite) {
-          note.sprite = this.minesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(x, yPos, "mine");
-            this.minesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
-          note.sprite.animations.play("blink");
-        }
-        note.sprite.anchor.set(0.5);
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
-      } else if (note.type === "2" || note.type === "4") {
-        if (!note.holdParts) {
-          const prefix = note.type === "2" ? "hold" : "roll";
-          
-          const getBody = () => {
-            const sprite = this.freezeBodyGroup.getFirstDead() || (() => {
-              const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, 0, `${prefix}_body`);
-              this.freezeBodyGroup.add(child);
-              return child;
-            })();
-            sprite.reset(x, -64);
-            sprite.loadTexture(`${prefix}_body`);
-            return sprite;
-          };
-          
-          const getEnd = () => {
-            const sprite = this.freezeEndGroup.getFirstDead() || (() => {
-              const child = game.add.sprite(0, 0);
-              this.freezeEndGroup.add(child);
-              return child;
-            })();
-            sprite.reset(x, -64);
-            sprite.loadTexture(`${prefix}_end`);
-            return sprite;
-          };
-          
-          note.holdParts = {
-            body: getBody(),
-            end: getEnd()
-          };
-          note.holdParts.body.anchor.y = 1;
-          note.holdParts.end.anchor.y = 1;
-          note.holdActive = false;
-        }
-        
-        const isActive = !note.finish && !note.miss && holdData?.note === note && holdData.active;
-        const isInactive = holdData?.note === note && holdData.inactive;
-
-        let visibleHeightIsSet = typeof note.visibleHeight != "undefined";
-        let visibleHeight = visibleHeightIsSet ? note.visibleHeight : bodyHeight; // OPTIMIZE: Avoid having tile sprites larger than game height.
-        
-        if (visibleHeight < 0) visibleHeight = 1;
-
-        if (isActive) {
-          const holdBottomY = yPos - bodyHeight;
-          const judgeLineY = this.JUDGE_LINE;
-
-          note.visibleHeight = Math.max(0, judgeLineY - holdBottomY);
-
-          if (yPos > judgeLineY - this.COLUMN_SIZE / 2) yPos = judgeLineY;
-
-          note.active = true;
-        } else if (typeof note.visibleHeight != "undefined") {
-          yPos -= bodyHeight - note.visibleHeight;
-          note.active = false;
-        }
-        
-        // Miss note when past judge line but keep it to don't mess the rhythm
-        if (!note.miss && !note.holdActive && yPos > this.JUDGE_LINE + this.COLUMN_SIZE) {
-          note.miss = true;
-          this.processJudgement(note, "miss", note.column);
-        }
-
-        let spritesVisible = !note.finish;
-         
-        let freezeYPos = Math.floor(yPos);
-        let freezeHeight = Math.floor(visibleHeight);
-        
-        note.holdParts.body.y = freezeYPos;
-        note.holdParts.body.height = freezeHeight;
-        note.holdParts.end.y = freezeYPos - freezeHeight;
-
-        note.holdParts.body.visible = spritesVisible;
-        note.holdParts.end.visible = spritesVisible;
-        
-        if (note.sprite) {
-          note.sprite.visible = !isActive && spritesVisible;
-        }
-
-        const frame = isActive ? 1 : 0;
-        const baseColor = note.type === "2" ? 0x00bb00 : 0x00eeee;
-        const tint = note.miss ? this.INACTIVE_COLOR : baseColor;
-        const alpha = note.miss ? 0.8 : 1;
-
-        note.holdParts.body.frame = frame;
-        note.holdParts.end.frame = frame;
-
-        note.holdParts.body.tint = tint;
-        note.holdParts.end.tint = tint;
-
-        note.holdParts.body.alpha = alpha;
-        note.holdParts.end.alpha = alpha;
-      }
-
-      // Show hold explosion when active
-      if (holdData?.active && !note.finish && !note.miss) {
-        this.toggleHoldExplosion(note.column, true);
-      }
-
-      if (note.type !== "M" && note.type !== "3") {
-        if (!note.sprite) {
-          note.sprite = this.notesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(0, 0);
-            this.notesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.loadTexture("arrows");
-          note.sprite.frame = this.getNoteFrame(note);
-          note.sprite.anchor.set(0.5);
-          note.sprite.angle = {
-            0: 90,
-            1: 0,
-            2: 180,
-            3: -90
-          }[note.column];
-        }
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
-      }
-    });
-  }
-  
-  renderRising() {
-    const { now, beat } = this.scene.getCurrentTime();
-    const leftOffset = this.calculateLeftOffset();
-    
-    // Render notes
-    this.notes.forEach(note => {
-      let { deltaNote, scalar, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
-      
-      const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
-      
-      // Check for missed notes - rising: notes are missed when they go above the screen
-      if (note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos < -this.COLUMN_SIZE) {
-        note.miss = true;
-        this.processJudgement(note, "miss", note.column);
-      }
-
-      // Remove off-screen notes - rising: remove when above screen or below with body
-      if (yPos > game.height + this.COLUMN_SIZE || yPos < -bodyHeight) {
-        if (note.sprite) {
-          note.sprite.kill();
-          delete note.sprite;
-          if (note.holdParts) {
-            note.holdParts.body.destroy();
-            note.holdParts.end.destroy();
-            delete note.holdParts;
-          }
-        }
-        return;
-      }
-
-      const holdData = this.activeHolds[note.column];
-
-      if (note.type === "M") {
-        if (!note.sprite) {
-          note.sprite = this.minesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(x, yPos, "mine");
-            this.notesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
-          note.sprite.animations.play("blink");
-        }
-        note.sprite.anchor.set(0.5);
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
-      } else if (note.type === "2" || note.type === "4") {
-        if (!note.holdParts) {
-          const prefix = note.type === "2" ? "hold" : "roll";
-          
-          const getBody = () => {
-            const sprite = this.freezeBodyGroup.getFirstDead() || (() => {
-              const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, `${prefix}_body`);
-              child.scale.y = -1;
-              child.anchor.y = 1;
-              this.freezeBodyGroup.add(child);
-              return child;
-            })();
-            sprite.reset(x, -64);
-            sprite.loadTexture(`${prefix}_body`);
-            return sprite;
-          };
-          
-          const getEnd = () => {
-            const sprite = this.freezeEndGroup.getFirstDead() || (() => {
-              const child = game.add.sprite(0, 0);
-              child.scale.y = -1;
-              child.anchor.y = 1;
-              this.freezeEndGroup.add(child);
-              return child;
-            })();
-            sprite.reset(x, -64);
-            sprite.loadTexture(`${prefix}_end`);
-            return sprite;
-          };
-          
-          note.holdParts = {
-            body: getBody(),
-            end: getEnd()
-          };
-          
-          note.holdActive = false;
-        }
-        
-        const isActive = !note.finish && !note.miss && holdData?.note === note && holdData.active;
-        const isInactive = holdData?.note === note && holdData.inactive;
-
-        let visibleHeightIsSet = typeof note.visibleHeight != "undefined";
-        let visibleHeight = visibleHeightIsSet ? note.visibleHeight : bodyHeight;
-
-        if (visibleHeight < 0) visibleHeight = 1;
-
-        if (isActive) {
-          const holdTopY = yPos + bodyHeight;
-          const judgeLineY = this.JUDGE_LINE;
-          note.visibleHeight = Math.max(0, holdTopY - judgeLineY);
-          
-          if (yPos < judgeLineY + this.COLUMN_SIZE / 2) yPos = judgeLineY;
-
-          note.active = true;
-        } else if (typeof note.visibleHeight != "undefined") {
-          yPos += bodyHeight - note.visibleHeight;
-          note.active = false;
-        }
-        
-        // Miss note when past judge line - rising: miss when above judge line
-        if (!note.miss && !note.holdActive && yPos < this.JUDGE_LINE - this.COLUMN_SIZE) {
-          note.miss = true;
-          this.processJudgement(note, "miss", note.column);
-        }
-
-        let spritesVisible = !note.finish;
-        
-        let freezeYPos = Math.floor(yPos);
-        let freezeHeight = Math.floor(visibleHeight);
-        
-        // Position hold parts for rising mode
-        note.holdParts.body.y = freezeYPos;
-        note.holdParts.body.height = freezeHeight;
-        note.holdParts.end.y = freezeYPos + freezeHeight;
-
-        note.holdParts.body.visible = spritesVisible;
-        note.holdParts.end.visible = spritesVisible;
-        
-        if (note.sprite) {
-          note.sprite.visible = !isActive && spritesVisible;
-        }
-
-        const frame = isActive ? 1 : 0;
-        const baseColor = note.type === "2" ? 0x00bb00 : 0x00eeee;
-        const tint = note.miss ? this.INACTIVE_COLOR : baseColor;
-        const alpha = note.miss ? 0.8 : 1;
-
-        note.holdParts.body.frame = frame;
-        note.holdParts.end.frame = frame;
-
-        note.holdParts.body.tint = tint;
-        note.holdParts.end.tint = tint;
-
-        note.holdParts.body.alpha = alpha;
-        note.holdParts.end.alpha = alpha;
-      }
-
-      // Show hold explosion when active
-      if (holdData?.active && !note.finish && !note.miss) {
-        this.toggleHoldExplosion(note.column, true);
-      }
-
-      if (note.type !== "M" && note.type !== "3") {
-        if (!note.sprite) {
-          note.sprite = this.notesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(0, 0);
-            this.notesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.loadTexture("arrows");
-          note.sprite.frame = this.getNoteFrame(note);
-          note.sprite.anchor.set(0.5);
-          note.sprite.angle = {
-            0: 90,
-            1: 0,
-            2: 180,
-            3: -90
-          }[note.column];
-        }
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
-      }
-    });
   }
 }
 
