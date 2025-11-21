@@ -1,13 +1,13 @@
 // Character system constants
 const CHARACTER_SYSTEM = {
-  MAX_NAME_LENGTH: 4,
+  MAX_NAME_LENGTH: 6,
   DEFAULT_CHARACTER: "EIRI",
   MAX_SKILL_LEVEL: 5,
-  EXPERIENCE_CURVE: level => Math.floor(level * level * 10),
+  EXPERIENCE_CURVE: Math.floor(10 * Math.pow(level, 1.2)),
   SKILL_UNLOCK_CHANCE: 0.5,
-  SKILL_LEVEL_UP_CHANCE: 0.6,
-  MIN_LEVEL_FOR_SKILL: 5,
-  SKILL_COOLDOWN_LEVELS: 5,
+  SKILL_LEVEL_UP_CHANCE: 0.5,
+  MIN_LEVEL_FOR_SKILL: 4,
+  SKILL_COOLDOWN_LEVELS: 4,
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
   CLOSE_SHOT_CROP: { x: 32, y: 15, w: 36, h: 7 },
   HAIR_STYLES: {
@@ -25,7 +25,7 @@ const DEFAULT_CHARACTER = {
   selectedSkill: "focus_boost",
   appearance: {
     skinTone: 0,
-    hairColor: 0xffffff,
+    hairColor: 0x5d3e32,
     frontHair: "1",
     backHair: "1",
     clothing: "school_uniform",
