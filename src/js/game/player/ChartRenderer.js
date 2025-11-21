@@ -32,25 +32,28 @@ class ChartRenderer {
     
     this.speedMod = Account.settings.speedMod || 'X-MOD';
     
-    // Note color option
+    // Note color option (default to NOTE)
     this.noteColorOption = Account.settings.noteColorOption || 'NOTE';
     
     // Define color constants for spritesheet frames
     const COLORS = {
-      RED: 0,
-      BLUE: 1,
-      PURPLE: 2,
-      YELLOW: 3,
-      PINK: 4,
-      ORANGE: 5,
-      CYAN: 6,
-      GREEN: 7,
-      WHITE: 8,
-      SKYBLUE: 9,
-      OLIVE: 10,
-      GRAY: 11
+      // This is how spritesheet frames are colored
+      // They are ordered like NOTE color pattern in StepMania
+      RED: 0,      // 4th
+      BLUE: 1,     // 8th
+      PURPLE: 2,   // 12th
+      YELLOW: 3,   // 16th
+      PINK: 4,     // 24th
+      ORANGE: 5,   // 32nd
+      CYAN: 6,     // 48th
+      GREEN: 7,    // 64th
+      WHITE: 8,    // 96th
+      SKYBLUE: 9,  // 128th
+      OLIVE: 10,   // 192nd
+      GRAY: 11     // Anything faster
     };
     
+    // Color mappings for different options
     this.colorMappings = {
       NOTE: {
         4: COLORS.RED,
@@ -67,46 +70,49 @@ class ChartRenderer {
         default: COLORS.GRAY
       },
       VIVID: {
-        4: COLORS.YELLOW,
-        8: COLORS.RED,
-        12: COLORS.BLUE,
-        16: COLORS.CYAN,
-        24: COLORS.YELLOW,
-        32: COLORS.RED,
-        48: COLORS.BLUE,
-        64: COLORS.CYAN,
-        96: COLORS.YELLOW,
-        128: COLORS.RED,
-        192: COLORS.BLUE,
-        default: COLORS.CYAN
+        // VIVID: Color cycle per beat (Yellow, Maroon, Blue, Cyan)
+        4: COLORS.YELLOW,   // 4th - Yellow
+        8: COLORS.RED,      // 8th - Maroon (using RED as closest)
+        12: COLORS.BLUE,    // 12th - Blue
+        16: COLORS.CYAN,    // 16th - Cyan
+        24: COLORS.YELLOW,  // 24th - Yellow (cycle repeats)
+        32: COLORS.RED,     // 32nd - Maroon
+        48: COLORS.BLUE,    // 48th - Blue
+        64: COLORS.CYAN,    // 64th - Cyan
+        96: COLORS.YELLOW,  // 96th - Yellow
+        128: COLORS.RED,    // 128th - Maroon
+        192: COLORS.BLUE,   // 192nd - Blue
+        default: COLORS.CYAN // Ultra-fast - Cyan
       },
       FLAT: {
-        4: COLORS.YELLOW,
-        8: COLORS.YELLOW,
-        12: COLORS.YELLOW,
-        16: COLORS.YELLOW,
-        24: COLORS.YELLOW,
-        32: COLORS.YELLOW,
-        48: COLORS.YELLOW,
-        64: COLORS.YELLOW,
-        96: COLORS.YELLOW,
-        128: COLORS.YELLOW,
-        192: COLORS.YELLOW,
-        default: COLORS.YELLOW
+        // FLAT: All notes same color as VIVID 4th notes (Yellow)
+        4: COLORS.YELLOW,   // 4th - Yellow
+        8: COLORS.YELLOW,   // 8th - Yellow
+        12: COLORS.YELLOW,  // 12th - Yellow
+        16: COLORS.YELLOW,  // 16th - Yellow
+        24: COLORS.YELLOW,  // 24th - Yellow
+        32: COLORS.YELLOW,  // 32nd - Yellow
+        48: COLORS.YELLOW,  // 48th - Yellow
+        64: COLORS.YELLOW,  // 64th - Yellow
+        96: COLORS.YELLOW,  // 96th - Yellow
+        128: COLORS.YELLOW, // 128th - Yellow
+        192: COLORS.YELLOW, // 192nd - Yellow
+        default: COLORS.YELLOW // Ultra-fast - Yellow
       },
       RAINBOW: {
-        4: COLORS.ORANGE,
-        8: COLORS.BLUE,
-        12: COLORS.PINK,
-        16: COLORS.PINK,
-        24: COLORS.BLUE,
-        32: COLORS.ORANGE,
-        48: COLORS.PINK,
-        64: COLORS.BLUE,
-        96: COLORS.PINK,
-        128: COLORS.ORANGE,
-        192: COLORS.BLUE,
-        default: COLORS.PINK
+        // RAINBOW: Orange, Blue, Purple/Pink with color reuse
+        4: COLORS.ORANGE,   // 4th - Orange
+        8: COLORS.BLUE,     // 8th - Blue
+        12: COLORS.PINK,    // 12th - Purple/Pink
+        16: COLORS.PINK,    // 16th - Purple/Pink
+        24: COLORS.BLUE,    // 24th - Blue (reused)
+        32: COLORS.ORANGE,  // 32nd - Orange (reused)
+        48: COLORS.PINK,    // 48th - Purple/Pink
+        64: COLORS.BLUE,    // 64th - Blue (reused)
+        96: COLORS.PINK,    // 96th - Purple/Pink
+        128: COLORS.ORANGE, // 128th - Orange (reused)
+        192: COLORS.BLUE,   // 192nd - Blue (reused)
+        default: COLORS.PINK // Ultra-fast - Purple/Pink
       }
     };
 
@@ -274,8 +280,8 @@ class ChartRenderer {
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos > game.height) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.processJudgement) {
-          this.scene.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+          this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
 
@@ -346,8 +352,8 @@ class ChartRenderer {
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos < -this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.processJudgement) {
-          this.scene.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+          this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
 
@@ -485,13 +491,13 @@ class ChartRenderer {
     if (this.options.enableMissChecking && !note.miss && !note.holdActive) {
       if (direction === 'falling' && yPos > this.JUDGE_LINE + this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.processJudgement) {
-          this.scene.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+          this.scene.player.processJudgement(note, "miss", note.column);
         }
       } else if (direction === 'rising' && yPos < this.JUDGE_LINE - this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.processJudgement) {
-          this.scene.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+          this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
     }

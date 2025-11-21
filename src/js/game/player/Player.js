@@ -75,7 +75,7 @@ class Player {
     // Copy receptors from renderer
     this.receptors = this.renderer.receptors;
     
-    // Create UI text elements (keep existing UI creation)
+    // Create UI text elements
     this.judgementText =
       this.scene.judgementText ||
       new Text(96, 20, "", {
@@ -219,7 +219,7 @@ class Player {
 
       this.createExplosion(closestNote);
       closestNote.sprite?.destroy();
-      this.processJudgement(closestNote, judgement, column);
+      !closestNote.hit && this.processJudgement(closestNote, judgement, column);
       closestNote.hit = true;
 
       this.lastNoteCheckBeats[column] = beat;
@@ -248,6 +248,8 @@ class Player {
     if (holdNote && this.lastNoteCheckBeats[column] !== beat) {
       const delta = Math.abs(holdNote.beat - beat);
       const judgement = this.getJudgement(delta);
+      
+      this.processJudgement(holdNote, judgement, column);
       
       this.activeHolds[column] = {
         note: holdNote,
@@ -323,29 +325,9 @@ class Player {
   }
   
   processJudgement(note, judgement, column, type = "normal") {
-    // Filter OK/N.G. judgements
-    let judgementKey = "";
-    
-    switch (judgement) {
-      case "ok":
-        judgementKey = "marvelous";
-        break;
-      case "n.g.":
-      case "ng":
-        judgementKey = "boo";
-        judgement = "n.g.";
-        break;
-    }
-    
-    // Judge marvelous if autoplay
-    if (this.autoplay) {
-      judgement = type == "normal" ? "marvelous" : "ok";
-      judgementKey = "marvelous";
-    }
-    
     // Check for skill activation based on judgement
     if (this.skillSystem) {
-      this.skillSystem.checkSkillActivation('on_miss', { judgement: judgementKey });
+      this.skillSystem.checkSkillActivation('on_miss', { judgement });
       
       // Check perfect streak
       if (this.perfectStreak > 0) {
@@ -361,6 +343,28 @@ class Player {
       if (conversion && judgement === conversion.from) {
         judgement = conversion.to;
       }
+    }
+    
+    // Filter OK/N.G. judgements
+    let judgementKey = "";
+    
+    switch (judgement) {
+      case "ok":
+        judgementKey = "marvelous";
+        break;
+      case "n.g.":
+      case "ng":
+        judgementKey = "boo";
+        judgement = "n.g.";
+        break;
+      default:
+        judgementKey = judgement;
+    }
+
+    // Judge marvelous if autoplay
+    if (this.autoplay) {
+      judgement = type == "normal" ? "marvelous" : "ok";
+      judgementKey = "marvelous";
     }
     
     const scoreValue = this.scene.SCORE_VALUES[judgementKey];
@@ -559,7 +563,7 @@ class Player {
   update() {
     const { now, beat } = this.scene.getCurrentTime();
 
-    // Input handling (keep existing input logic)
+    // Input handling
     if (!this.autoplay) {
       Object.keys(this.keymap).forEach(key => {
       if (gamepad.pressed[key]) this.handleInput(this.keymap[key], true);
@@ -587,6 +591,8 @@ class Player {
     
     // Check for skill activations
     if (this.skillSystem) {
+      this.skillSystem.update();
+      
       if (this.combo > 0) {
         this.skillSystem.checkSkillActivation('on_combo', { combo: this.combo });
         this.skillSystem.checkSkillActivation('on_high_combo', { combo: this.combo });
@@ -597,7 +603,7 @@ class Player {
       }
     }
 
-    // Update health (keep existing health logic)
+    // Update health
     if (this.health != this.previousHealth) {
       this.previousHealth = this.health;
       game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
@@ -616,7 +622,7 @@ class Player {
       }
     }
 
-    // Update active holds (keep existing hold logic)
+    // Update active holds
     Object.entries(this.activeHolds).forEach(([col, hold]) => {
       const { now } = this.scene.getCurrentTime();
       
@@ -641,7 +647,7 @@ class Player {
 
       hold.progress = now - hold.startTime;
       if (hold.progress >= hold.note.secLength) {
-        let judgement = "boo";
+        let judgement = "n.g.";
 
         if (hold.note.type === "2") {
           judgement = !hold.note.miss ? "ok" : "n.g.";
@@ -668,350 +674,5 @@ class Player {
     if (this.renderer) {
       this.renderer.destroy();
     }
-  }
-}
-
-class AAAAA {
-  renderFalling() {
-    if (!this.scene.startTime || this.scene.isPaused) return;
-
-    const { now, beat } = this.scene.getCurrentTime();
-    const leftOffset = this.calculateLeftOffset();
-
-    // Render notes
-    this.notes.forEach(note => {
-      let { pastSize, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
-      
-      const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
-
-      // Check for missed notes
-      if (note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos > game.height) {
-        note.miss = true;
-        this.processJudgement(note, "miss", note.column);
-      }
-
-      // Remove off-screen notes
-      if (yPos < -this.COLUMN_SIZE || yPos > game.height + bodyHeight) {
-        if (note.sprite) {
-          note.sprite.kill();
-          delete note.sprite;
-          if (note.holdParts) {
-            note.holdParts.body.destroy();
-            note.holdParts.end.destroy();
-            delete note.holdParts;
-          }
-        }
-        return;
-      }
-
-      const holdData = this.activeHolds[note.column];
-
-      if (note.type === "M") {
-        if (!note.sprite) {
-          note.sprite = this.minesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(x, yPos, "mine");
-            this.minesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
-          note.sprite.animations.play("blink");
-        }
-        note.sprite.anchor.set(0.5);
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
-      } else if (note.type === "2" || note.type === "4") {
-        if (!note.holdParts) {
-          const prefix = note.type === "2" ? "hold" : "roll";
-          
-          const getBody = () => {
-            const sprite = this.freezeBodyGroup.getFirstDead() || (() => {
-              const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, 0, `${prefix}_body`);
-              this.freezeBodyGroup.add(child);
-              return child;
-            })();
-            sprite.reset(x, -64);
-            sprite.loadTexture(`${prefix}_body`);
-            return sprite;
-          };
-          
-          const getEnd = () => {
-            const sprite = this.freezeEndGroup.getFirstDead() || (() => {
-              const child = game.add.sprite(0, 0);
-              this.freezeEndGroup.add(child);
-              return child;
-            })();
-            sprite.reset(x, -64);
-            sprite.loadTexture(`${prefix}_end`);
-            return sprite;
-          };
-          
-          note.holdParts = {
-            body: getBody(),
-            end: getEnd()
-          };
-          note.holdParts.body.anchor.y = 1;
-          note.holdParts.end.anchor.y = 1;
-          note.holdActive = false;
-        }
-        
-        const isActive = !note.finish && !note.miss && holdData?.note === note && holdData.active;
-        const isInactive = holdData?.note === note && holdData.inactive;
-
-        let visibleHeightIsSet = typeof note.visibleHeight != "undefined";
-        let visibleHeight = visibleHeightIsSet ? note.visibleHeight : bodyHeight; // OPTIMIZE: Avoid having tile sprites larger than game height.
-        
-        if (visibleHeight < 0) visibleHeight = 1;
-
-        if (isActive) {
-          const holdBottomY = yPos - bodyHeight;
-          const judgeLineY = this.JUDGE_LINE;
-
-          note.visibleHeight = Math.max(0, judgeLineY - holdBottomY);
-
-          if (yPos > judgeLineY - this.COLUMN_SIZE / 2) yPos = judgeLineY;
-
-          note.active = true;
-        } else if (typeof note.visibleHeight != "undefined") {
-          yPos -= bodyHeight - note.visibleHeight;
-          note.active = false;
-        }
-        
-        // Miss note when past judge line but keep it to don't mess the rhythm
-        if (!note.miss && !note.holdActive && yPos > this.JUDGE_LINE + this.COLUMN_SIZE) {
-          note.miss = true;
-          this.processJudgement(note, "miss", note.column);
-        }
-
-        let spritesVisible = !note.finish;
-         
-        let freezeYPos = Math.floor(yPos);
-        let freezeHeight = Math.floor(visibleHeight);
-        
-        note.holdParts.body.y = freezeYPos;
-        note.holdParts.body.height = freezeHeight;
-        note.holdParts.end.y = freezeYPos - freezeHeight;
-
-        note.holdParts.body.visible = spritesVisible;
-        note.holdParts.end.visible = spritesVisible;
-        
-        if (note.sprite) {
-          note.sprite.visible = !isActive && spritesVisible;
-        }
-
-        const frame = isActive ? 1 : 0;
-        const baseColor = note.type === "2" ? 0x00bb00 : 0x00eeee;
-        const tint = note.miss ? this.INACTIVE_COLOR : baseColor;
-        const alpha = note.miss ? 0.8 : 1;
-
-        note.holdParts.body.frame = frame;
-        note.holdParts.end.frame = frame;
-
-        note.holdParts.body.tint = tint;
-        note.holdParts.end.tint = tint;
-
-        note.holdParts.body.alpha = alpha;
-        note.holdParts.end.alpha = alpha;
-      }
-
-      // Show hold explosion when active
-      if (holdData?.active && !note.finish && !note.miss) {
-        this.toggleHoldExplosion(note.column, true);
-      }
-
-      if (note.type !== "M" && note.type !== "3") {
-        if (!note.sprite) {
-          note.sprite = this.notesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(0, 0);
-            this.notesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.loadTexture("arrows");
-          note.sprite.frame = this.getNoteFrame(note);
-          note.sprite.anchor.set(0.5);
-          note.sprite.angle = {
-            0: 90,
-            1: 0,
-            2: 180,
-            3: -90
-          }[note.column];
-        }
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
-      }
-    });
-  }
-  
-  renderRising() {
-    const { now, beat } = this.scene.getCurrentTime();
-    const leftOffset = this.calculateLeftOffset();
-    
-    // Render notes
-    this.notes.forEach(note => {
-      let { deltaNote, scalar, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
-      
-      const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
-      
-      // Check for missed notes - rising: notes are missed when they go above the screen
-      if (note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos < -this.COLUMN_SIZE) {
-        note.miss = true;
-        this.processJudgement(note, "miss", note.column);
-      }
-
-      // Remove off-screen notes - rising: remove when above screen or below with body
-      if (yPos > game.height + this.COLUMN_SIZE || yPos < -bodyHeight) {
-        if (note.sprite) {
-          note.sprite.kill();
-          delete note.sprite;
-          if (note.holdParts) {
-            note.holdParts.body.destroy();
-            note.holdParts.end.destroy();
-            delete note.holdParts;
-          }
-        }
-        return;
-      }
-
-      const holdData = this.activeHolds[note.column];
-
-      if (note.type === "M") {
-        if (!note.sprite) {
-          note.sprite = this.minesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(x, yPos, "mine");
-            this.notesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
-          note.sprite.animations.play("blink");
-        }
-        note.sprite.anchor.set(0.5);
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
-      } else if (note.type === "2" || note.type === "4") {
-        if (!note.holdParts) {
-          const prefix = note.type === "2" ? "hold" : "roll";
-          
-          const getBody = () => {
-            const sprite = this.freezeBodyGroup.getFirstDead() || (() => {
-              const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, `${prefix}_body`);
-              child.scale.y = -1;
-              child.anchor.y = 1;
-              this.freezeBodyGroup.add(child);
-              return child;
-            })();
-            sprite.reset(x, -64);
-            sprite.loadTexture(`${prefix}_body`);
-            return sprite;
-          };
-          
-          const getEnd = () => {
-            const sprite = this.freezeEndGroup.getFirstDead() || (() => {
-              const child = game.add.sprite(0, 0);
-              child.scale.y = -1;
-              child.anchor.y = 1;
-              this.freezeEndGroup.add(child);
-              return child;
-            })();
-            sprite.reset(x, -64);
-            sprite.loadTexture(`${prefix}_end`);
-            return sprite;
-          };
-          
-          note.holdParts = {
-            body: getBody(),
-            end: getEnd()
-          };
-          
-          note.holdActive = false;
-        }
-        
-        const isActive = !note.finish && !note.miss && holdData?.note === note && holdData.active;
-        const isInactive = holdData?.note === note && holdData.inactive;
-
-        let visibleHeightIsSet = typeof note.visibleHeight != "undefined";
-        let visibleHeight = visibleHeightIsSet ? note.visibleHeight : bodyHeight;
-
-        if (visibleHeight < 0) visibleHeight = 1;
-
-        if (isActive) {
-          const holdTopY = yPos + bodyHeight;
-          const judgeLineY = this.JUDGE_LINE;
-          note.visibleHeight = Math.max(0, holdTopY - judgeLineY);
-          
-          if (yPos < judgeLineY + this.COLUMN_SIZE / 2) yPos = judgeLineY;
-
-          note.active = true;
-        } else if (typeof note.visibleHeight != "undefined") {
-          yPos += bodyHeight - note.visibleHeight;
-          note.active = false;
-        }
-        
-        // Miss note when past judge line - rising: miss when above judge line
-        if (!note.miss && !note.holdActive && yPos < this.JUDGE_LINE - this.COLUMN_SIZE) {
-          note.miss = true;
-          this.processJudgement(note, "miss", note.column);
-        }
-
-        let spritesVisible = !note.finish;
-        
-        let freezeYPos = Math.floor(yPos);
-        let freezeHeight = Math.floor(visibleHeight);
-        
-        // Position hold parts for rising mode
-        note.holdParts.body.y = freezeYPos;
-        note.holdParts.body.height = freezeHeight;
-        note.holdParts.end.y = freezeYPos + freezeHeight;
-
-        note.holdParts.body.visible = spritesVisible;
-        note.holdParts.end.visible = spritesVisible;
-        
-        if (note.sprite) {
-          note.sprite.visible = !isActive && spritesVisible;
-        }
-
-        const frame = isActive ? 1 : 0;
-        const baseColor = note.type === "2" ? 0x00bb00 : 0x00eeee;
-        const tint = note.miss ? this.INACTIVE_COLOR : baseColor;
-        const alpha = note.miss ? 0.8 : 1;
-
-        note.holdParts.body.frame = frame;
-        note.holdParts.end.frame = frame;
-
-        note.holdParts.body.tint = tint;
-        note.holdParts.end.tint = tint;
-
-        note.holdParts.body.alpha = alpha;
-        note.holdParts.end.alpha = alpha;
-      }
-
-      // Show hold explosion when active
-      if (holdData?.active && !note.finish && !note.miss) {
-        this.toggleHoldExplosion(note.column, true);
-      }
-
-      if (note.type !== "M" && note.type !== "3") {
-        if (!note.sprite) {
-          note.sprite = this.notesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(0, 0);
-            this.notesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.loadTexture("arrows");
-          note.sprite.frame = this.getNoteFrame(note);
-          note.sprite.anchor.set(0.5);
-          note.sprite.angle = {
-            0: 90,
-            1: 0,
-            2: 180,
-            3: -90
-          }[note.column];
-        }
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
-      }
-    });
   }
 }
