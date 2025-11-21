@@ -37,7 +37,7 @@
     "clean": "rm -rf dist",
     "clean:all": "rm -rf dist && rm -f *.zip *.apk",
     
-    "test": "echo \"No tests specified\" && exit 0",
+    "test": "node test.js",
     "help": "node index.js --help"
   },
   "repository": {
