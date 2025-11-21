@@ -25,7 +25,7 @@ const DEFAULT_CHARACTER = {
   selectedSkill: "focus_boost",
   appearance: {
     skinTone: 0,
-    hairColor: 0x5d3e32,
+    hairColor: 0xa8705a,
     frontHair: "1",
     backHair: "1",
     clothing: "school_uniform",

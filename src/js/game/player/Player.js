@@ -200,8 +200,8 @@ class Player {
       }
   
       // Check for new holds and regular notes
-      const noteHit = this.checkRegularNotes(column, now, beat);
-      if (!noteHit) this.checkHoldStart(column, now, beat);
+      const regularNoteHit = this.checkRegularNotes(column, now, beat);
+      if (!hold && !regularNoteHit) this.checkHoldStart(column, now, beat);
     }
     // Handle key up events
     else {

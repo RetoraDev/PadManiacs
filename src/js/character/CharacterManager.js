@@ -73,7 +73,7 @@ class CharacterManager {
   }
 
   updateCharacterStats(gameResults) {
-    if (!this.currentCharacter) return;
+    if (!this.currentCharacter) return 0;
 
     const char = this.currentCharacter;
     char.stats.gamesPlayed++;
@@ -95,10 +95,12 @@ class CharacterManager {
     }
     
     saveAccount();
+    
+    return expGain;
   }
 
   calculateExperienceGain(gameResults) {
-    let exp = 1; // Base experience
+    let exp = 0; // Base experience
     
     // Accuracy bonus
     if (gameResults.accuracy >= 95) exp += 3;
@@ -106,12 +108,15 @@ class CharacterManager {
     else if (gameResults.accuracy >= 80) exp += 1;
     
     // Combo bonus
+    if (gameResults.maxCombo > 0) exp += 1;
     if (gameResults.maxCombo >= 500) exp += 3;
+    if (gameResults.maxCombo >= 1000) exp += 5;
+    if (gameResults.maxCombo >= 400) exp += 2;
     if (gameResults.maxCombo >= 100) exp += 2;
     else if (gameResults.maxCombo >= 50) exp += 1;
     
     // Full combo bonus
-    if (gameResults.judgements.miss === 0) exp += 3;
+    if (gameResults.maxCombo > 0 && gameResults.judgements.miss === 0) exp += 5;
     
     return exp;
   }

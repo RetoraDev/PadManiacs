@@ -25,3 +25,4 @@ const MAX_PARALLEL_ADDON_LOADS = 3;
 const ENABLE_ADDON_SAFE_MODE = true;
 
 const ENABLE_UI_SFX = false;
+const ENABLE_EXP_SFX = true;

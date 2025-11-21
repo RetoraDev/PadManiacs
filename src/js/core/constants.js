@@ -36,10 +36,10 @@ const DEFAULT_SONG_FOLDERS = [
 
 const JUDGE_WINDOWS = {
   marvelous: 0.20,
-  perfect: 0.25,
-  great: 0.30,
-  good: 0.35,
-  boo: 0.45
+  perfect: 0.22,
+  great: 0.24,
+  good: 0.27,
+  boo: 0.30
 };
 
 const SCORE_VALUES = {
