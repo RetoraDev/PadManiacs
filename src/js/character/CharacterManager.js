@@ -14,9 +14,13 @@ class CharacterManager {
       const character = new Character(charData);
       this.characters.set(character.name, character);
     });
-
-    this.currentCharacter = this.characters.get(Account.characters.currentCharacter) || 
-                           this.characters.values().next().value;
+    
+    if (Account.characters.currentCharacter) {
+      this.currentCharacter = this.characters.get(Account.characters.currentCharacter) || 
+                             this.characters.values().next().value;
+    } else {
+      this.currentCharacter = null;
+    }
   }
 
   createCharacter(name, appearance = {}) {
@@ -44,7 +48,7 @@ class CharacterManager {
   }
 
   deleteCharacter(name) {
-    if (this.characters.size <= 1) return false;
+    if (this.characters.size <= 1) this.unsetCharacter;
     
     const deleted = this.characters.delete(name);
     if (deleted) {
@@ -59,6 +63,12 @@ class CharacterManager {
     }
     
     return deleted;
+  }
+  
+  unsetCharacter() {
+    this.currentCharacter = null;
+    Account.characters.currentCharacter = null;
+    saveAccount();
   }
 
   setCurrentCharacter(name) {
@@ -149,9 +159,8 @@ class CharacterManager {
 
   saveToAccount() {
     Account.characters.list = this.getCharacterList().map(char => char.toJSON());
-    if (this.currentCharacter) {
-      Account.characters.currentCharacter = this.currentCharacter.name;
-    }
+    Account.characters.currentCharacter = this.currentCharacter ? this.currentCharacter.name : null;
+    console.log(Account.characters);
     saveAccount();
   }
 }
