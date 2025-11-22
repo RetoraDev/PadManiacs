@@ -5,14 +5,20 @@ const CHARACTER_SYSTEM = {
   MAX_SKILL_LEVEL: 5,
   EXPERIENCE_CURVE: level => Math.floor(10 * Math.pow(level, 1.2)),
   SKILL_UNLOCK_CHANCE: 0.5,
+  HAIR_UNLOCK_CHANCE: 0.4,
+  ITEM_UNLOCK_CHANCE: 0.3,
   SKILL_LEVEL_UP_CHANCE: 0.5,
   MIN_LEVEL_FOR_SKILL: 4,
+  MIN_LEVEL_FOR_HAIR: 1,
+  MIN_LEVEL_FOR_ITEM: 3,
   SKILL_COOLDOWN_LEVELS: 4,
+  HAIR_COOLDOWN_LEVELS: 3,
+  ITEM_COOLDOWN_LEVELS: 4,
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
   CLOSE_SHOT_CROP: { x: 32, y: 15, w: 36, h: 7 },
   HAIR_STYLES: {
-    front: 5,
-    back: 5
+    front: 8,
+    back: 8
   }
 };
 
