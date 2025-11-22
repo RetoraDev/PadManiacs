@@ -89,14 +89,17 @@ class CharacterSelect extends Phaser.State {
     
     // Name
     this.nameText.write(char ? char.name : "");
+    this.nameText.bringToTop();
     
     // Level and experience
     const expText = char ? `${char.experience}/${char.getRequiredExperience()}` : "";
     this.levelText.write(char ? `Lv. ${char.level}` : "");
+    this.levelText.bringToTop();
     
     // Update experience bar
     if (char) {
       this.expBar.setProgress(char.getExperienceProgress());
+      this.expBar.bringToTop();
       this.expBar.visible = true;
     } else {
       this.expBar.visible = false;
@@ -106,6 +109,7 @@ class CharacterSelect extends Phaser.State {
     if (char) {
       this.skillBar.value = char.skillLevel;
       this.skillBar.update();
+      this.skillBar.bringToTop();
       this.skillBar.visible = true;
     } else {
       this.skillBar.visible = false;
@@ -118,13 +122,17 @@ class CharacterSelect extends Phaser.State {
         this.selectedSkillText.write(skill.name);
         this.skillDescriptionText.write(skill.description);
         this.skillDescriptionText.wrapPreserveNewlines(70);
+        this.selectedSkillText.bringToTop();
+        this.skillDescriptionText.bringToTop();
       } else {
         this.selectedSkillText.write("");
         this.skillDescriptionText.write("< NO SKILL >");
+        this.skillDescriptionText.bringToTop();
       }
     } else {
       this.selectedSkillText.write("");
       this.skillDescriptionText.write(char ? "< NO SKILL >" : "< NO CHARACTER >");
+      this.selectedSkillText.bringToTop();
     }
   }
 
@@ -193,6 +201,8 @@ class CharacterSelect extends Phaser.State {
       this.selectCharacter(item.data.character || null);
     });
     
+    this.showCharacterDetails();
+    
     this.characterCarousel.onCancel.add(() => {
       game.state.start("MainMenu");
     });
@@ -200,11 +210,14 @@ class CharacterSelect extends Phaser.State {
 
   showActionMenu() {
     this.clearAllMenus();
+    this.hideCharacterDetails();
 
-    this.actionMenu = new CarouselMenu(60, 70, 72, 30, {
+    this.actionMenu = new CarouselMenu(60, 60, 72, 48, {
       bgcolor: "#34495e",
       fgcolor: "#ffffff",
-      align: "center"
+      align: "center",
+      activeAlpha: 1,
+      inactiveAlpha: 0.5
     });
 
     this.actionMenu.addItem("SELECT", () => this.confirmSelection());
@@ -338,6 +351,8 @@ class CharacterSelect extends Phaser.State {
     
     this.skillPreviewText.write(previewText);
     this.skillPreviewText.wrapPreserveNewlines(80);
+    
+    this.skillPreviewText.bringToTop();
   }
 
   customizeCharacter() {
@@ -347,10 +362,12 @@ class CharacterSelect extends Phaser.State {
   showCustomizationMenu() {
     this.clearAllMenus();
 
-    this.customizationMenu = new CarouselMenu(10, 70, 172, 30, {
+    this.customizationMenu = new CarouselMenu(10, 60, 172, 48, {
       bgcolor: "#2c3e50",
       fgcolor: "#ffffff",
-      align: "center"
+      align: "center",
+      activeAlpha: 1,
+      inactiveAlpha: 0.6
     });
 
     this.customizationMenu.addItem("SKIN TONE", () => this.customizeSkinTone());
@@ -370,9 +387,32 @@ class CharacterSelect extends Phaser.State {
     // Store original appearance for cancellation
     this.originalAppearance = { ...this.selectedCharacter.appearance };
   }
-
+  
+  createGradientBackground(x, y, width, height, color) {
+    const bitmap = game.add.bitmapData(width, height);
+    
+    const gradient = bitmap.context.createLinearGradient(width, 0, 0, 0);
+    
+    const bgcolor = color || "rgba(44, 90, 198, 0.6)";
+    
+    gradient.addColorStop(0, 'transparent');
+    gradient.addColorStop(0.3, bgcolor);
+    gradient.addColorStop(0.7, bgcolor);
+    gradient.addColorStop(1, 'transparent');
+    
+    bitmap.context.fillStyle = gradient;
+    bitmap.context.fillRect(0, 0, width, height);
+    
+    const sprite = game.add.sprite(x, y, bitmap);
+    return sprite;
+  }
+  
   customizeSkinTone() {
     const skinOptions = ["LIGHT", "DARK"];
+    
+    const background = this.createGradientBackground(92, 85, 92, 24);
+    background.anchor.set(0.5);
+    
     const skinText = new Text(96, 80, "SKIN TONE", FONTS.shaded);
     skinText.anchor.set(0.5);
 
@@ -392,6 +432,7 @@ class CharacterSelect extends Phaser.State {
       } else if (key === "a" || key === "b" || key === "start") {
         skinText.destroy();
         skinValueText.destroy();
+        background.destroy();
         gamepad.signals.pressed.any.remove(skinHandler);
         this.showCustomizationMenu();
         return;
@@ -408,6 +449,9 @@ class CharacterSelect extends Phaser.State {
     let r = (color >> 16) & 0xff;
     let g = (color >> 8) & 0xff;
     let b = color & 0xff;
+    
+    const background = this.createGradientBackground(92, 85, 92, 24);
+    background.anchor.set(0.5);
 
     const colorText = new Text(96, 80, "HAIR COLOR", FONTS.shaded);
     colorText.anchor.set(0.5);
@@ -445,6 +489,7 @@ class CharacterSelect extends Phaser.State {
         case "start":
           colorText.destroy();
           rgbText.destroy();
+          background.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
           this.showCustomizationMenu();
           return;
@@ -457,24 +502,20 @@ class CharacterSelect extends Phaser.State {
 
   customizeHairStyle(type) {
     const unlocked = Account.characters.unlockedHairs[type === "frontHair" ? "front" : "back"];
+    const options = unlocked.map(id => CHARACTER_SYSTEM.HAIR_STYLES[type === "frontHair" ? "front" : "back"][id-1]);
+    const values = [];
     
-    // For back hair, add "NONE" option
-    const options = type === "backHair" 
-      ? ["NONE", ...unlocked.map(id => `STYLE ${id}`)]
-      : unlocked.map(id => `STYLE ${id}`);
+    for (let i = 0; i < unlocked.length; i++) {
+      values.push(i + 1);
+    }
     
-    const values = type === "backHair" 
-      ? [null, ...unlocked]
-      : unlocked;
-
+    const background = this.createGradientBackground(92, 85, 92, 24);
+    background.anchor.set(0.5);
+    
     const hairText = new Text(96, 80, `${type.toUpperCase()}`, FONTS.shaded);
     hairText.anchor.set(0.5);
-
-    let currentIndex = type === "backHair" 
-      ? (this.selectedCharacter.appearance[type] ? values.indexOf(this.selectedCharacter.appearance[type]) : 0)
-      : unlocked.indexOf(this.selectedCharacter.appearance[type]);
     
-    if (currentIndex === -1) currentIndex = 0;
+    let currentIndex = this.selectedCharacter.appearance[type] - 1;
     
     const hairValueText = new Text(96, 90, options[currentIndex], FONTS.default);
     hairValueText.anchor.set(0.5);
@@ -491,6 +532,7 @@ class CharacterSelect extends Phaser.State {
         this.characterDisplay.updateAppearance({ [type]: values[currentIndex] });
         hairText.destroy();
         hairValueText.destroy();
+        background.destroy();
         gamepad.signals.pressed.any.remove(hairHandler);
         this.showCustomizationMenu();
         return;
@@ -508,6 +550,9 @@ class CharacterSelect extends Phaser.State {
       const item = CHARACTER_ITEMS.clothing.find(i => i.id === id);
       return item ? item.name : id;
     });
+    
+    const background = this.createGradientBackground(92, 85, 92, 24);
+    background.anchor.set(0.5);
 
     const clothingText = new Text(96, 80, "CLOTHING", FONTS.shaded);
     clothingText.anchor.set(0.5);
@@ -530,6 +575,7 @@ class CharacterSelect extends Phaser.State {
         this.characterDisplay.updateAppearance({ clothing: unlocked[currentIndex] });
         clothingText.destroy();
         clothingValueText.destroy();
+        background.destroy();
         gamepad.signals.pressed.any.remove(clothingHandler);
         this.showCustomizationMenu();
         return;
@@ -551,6 +597,9 @@ class CharacterSelect extends Phaser.State {
       })
     ];
 
+    const background = this.createGradientBackground(92, 85, 92, 24);
+    background.anchor.set(0.5);
+    
     const accessoryText = new Text(96, 80, "ACCESSORY", FONTS.shaded);
     accessoryText.anchor.set(0.5);
 
@@ -562,15 +611,16 @@ class CharacterSelect extends Phaser.State {
     const accessoryHandler = key => {
       if (key === "left") {
         selectedIndex = (selectedIndex - 1 + options.length) % options.length;
-        this.characterDisplay.updateAppearance({ accessory: unlocked[selectedIndex] });
+        this.characterDisplay.updateAppearance({ accessory: selectedIndex === 0 ? null : unlocked[selectedIndex - 1] });
       } else if (key === "right") {
         selectedIndex = (selectedIndex + 1) % options.length;
-        this.characterDisplay.updateAppearance({ accessory: unlocked[selectedIndex] });
+        this.characterDisplay.updateAppearance({ accessory: selectedIndex === 0 ? null : unlocked[selectedIndex - 1] });
       } else if (key === "a" || key === "b" || key === "start") {
         this.selectedCharacter.appearance.accessory = selectedIndex === 0 ? null : unlocked[selectedIndex - 1];
         this.characterDisplay.updateAppearance({ accessory: this.selectedCharacter.appearance.accessory });
         accessoryText.destroy();
         accessoryValueText.destroy();
+        background.destroy();
         gamepad.signals.pressed.any.remove(accessoryHandler);
         this.showCustomizationMenu();
         return;
@@ -699,6 +749,8 @@ class CharacterSelect extends Phaser.State {
       appearance: this.newCharacterAppearance
     });
     
+    this.creationWindowManager = new WindowManager();
+    
     this.showCreationStep();
   }
   
@@ -730,6 +782,9 @@ class CharacterSelect extends Phaser.State {
       this.creationText.destroy();
       this.creationText = null;
     }
+    if (this.creationWindow) {
+      this.creationWindowManager.remove(this.creationWindow, true);
+    }
     
     // Clear any existing input handlers
     gamepad.signals.pressed.any.removeAll();
@@ -747,7 +802,17 @@ class CharacterSelect extends Phaser.State {
     if (this.creationStep < steps.length) {
       const step = steps[this.creationStep];
       
-      this.creationText = new Text(96, 80, step.title, FONTS.shaded);
+      this.creationWindow = this.creationWindowManager.createWindow(12, 7, 10, 5, "1");
+      this.creationWindow.x -= (this.creationWindow.size.width / 2) * 8;
+      
+      this.creationWindow.offset = {
+        x: 20,
+        y: 8
+      };
+      
+      this.creationWindow.disableScrollBar = true;
+      
+      this.creationText = new Text(96, 70, step.title, FONTS.shaded);
       this.creationText.anchor.set(0.5);
       
       // Show customization interface first
@@ -759,38 +824,30 @@ class CharacterSelect extends Phaser.State {
   }
   
   showCreationNavigationMenu() {
-    this.creationMenu = new CarouselMenu(60, 90, 72, 20, {
-      bgcolor: "#34495e",
-      fgcolor: "#ffffff",
-      align: "center"
-    });
-    
-    this.creationMenu.addItem("NEXT", () => {
+    this.creationWindow.addItem("NEXT", "", () => {
       this.creationStep++;
       this.showCreationStep();
     });
     
     if (this.creationStep > 0) {
-      this.creationMenu.addItem("PREVIOUS", () => {
+      this.creationWindow.addItem("PREVIOUS", "", () => {
         this.creationStep--;
         this.showCreationStep();
-      });
+      }, true);
     }
     
-    this.creationMenu.addItem("CANCEL", () => {
+    this.creationWindow.addItem("CANCEL", "", () => {
       this.cancelCharacterCreation();
-    });
+    }, this.creationStep <= 0);
     
-    this.creationMenu.onCancel.add(() => {
-      this.cancelCharacterCreation();
-    });
+    this.creationWindowManager.focus(this.creationWindow);
   }
   
   creationCustomizeSkinTone(callback) {
     const skinOptions = ["LIGHT", "DARK"];
     let currentIndex = this.newCharacterAppearance.skinTone;
     
-    const skinText = new Text(96, 90, skinOptions[currentIndex], FONTS.default);
+    const skinText = new Text(96, 80, skinOptions[currentIndex], FONTS.default);
     skinText.anchor.set(0.5);
     
     const skinHandler = key => {
@@ -833,17 +890,29 @@ class CharacterSelect extends Phaser.State {
       return `R:${r} G:${g} B:${b}`;
     };
     
-    const rgbText = new Text(96, 90, updateColor(), FONTS.default);
+    const rgbText = new Text(96, 80, updateColor(), FONTS.default);
     rgbText.anchor.set(0.5);
     
     const colorHandler = key => {
       switch (key) {
-        case "left": r = Math.max(0x88, r - 32); break;
-        case "right": r = Math.min(255, r + 32); break;
-        case "up": g = Math.min(255, g + 32); break;
-        case "down": g = Math.max(0x88, g - 32); break;
-        case "a": b = Math.min(255, b + 32); break;
-        case "b": b = Math.max(0x88, b - 32); break;
+        case "left":
+          r = Math.max(0, r - 32);
+          break;
+        case "right":
+          r = Math.min(255, r + 32);
+          break;
+        case "up":
+          g = Math.min(255, g + 32);
+          break;
+        case "down":
+          g = Math.max(0, g - 32);
+          break;
+        case "a":
+          b = Math.min(255, b + 32);
+          break;
+        case "b":
+          b = Math.max(0, b - 32);
+          break;
         case "start":
           // Confirm selection
           rgbText.destroy();
@@ -866,25 +935,18 @@ class CharacterSelect extends Phaser.State {
   
   creationCustomizeHairStyle(type, callback) {
     const unlocked = Account.characters.unlockedHairs[type === "frontHair" ? "front" : "back"];
+    const options = unlocked.map(id => CHARACTER_SYSTEM.HAIR_STYLES[type === "frontHair" ? "front" : "back"][id-1]);
+    const values = [];
     
-    // For back hair, add "NONE" option at the beginning
-    const options = type === "backHair" 
-      ? ["NONE", ...unlocked.map(id => `STYLE ${id}`)]
-      : unlocked.map(id => `STYLE ${id}`);
+    for (let i = 0; i < unlocked.length; i++) {
+      values.push(i + 1);
+    }
     
-    const values = type === "backHair" 
-      ? [null, ...unlocked]
-      : unlocked;
+    let currentIndex = this.newCharacterAppearance[type] - 1;
     
-    let currentIndex = type === "backHair" 
-      ? (this.newCharacterAppearance[type] ? values.indexOf(this.newCharacterAppearance[type]) : 0)
-      : values.indexOf(this.newCharacterAppearance[type]);
-    
-    if (currentIndex === -1) currentIndex = 0;
-    
-    const hairText = new Text(96, 90, options[currentIndex], FONTS.default);
+    const hairText = new Text(96, 80, options[currentIndex], FONTS.default);
     hairText.anchor.set(0.5);
-    
+
     const updateHair = () => {
       this.newCharacterAppearance[type] = values[currentIndex];
       this.tempCharacterDisplay.updateAppearance({ [type]: values[currentIndex] });
@@ -913,10 +975,10 @@ class CharacterSelect extends Phaser.State {
       updateHair();
     };
     
+    updateHair();
     gamepad.signals.pressed.any.add(hairHandler);
-    updateHair(); // Initial update
   }
-  
+
   creationCustomizeClothing(callback) {
     const unlocked = Account.characters.unlockedItems.filter(itemId => 
       CHARACTER_ITEMS.clothing.some(item => item.id === itemId)
@@ -929,7 +991,7 @@ class CharacterSelect extends Phaser.State {
     let currentIndex = unlocked.indexOf(this.newCharacterAppearance.clothing);
     if (currentIndex === -1) currentIndex = 0;
     
-    const clothingText = new Text(96, 90, options[currentIndex], FONTS.default);
+    const clothingText = new Text(96, 80, options[currentIndex], FONTS.default);
     clothingText.anchor.set(0.5);
     
     const clothingHandler = key => {
@@ -974,7 +1036,7 @@ class CharacterSelect extends Phaser.State {
     let currentIndex = this.newCharacterAppearance.accessory ? 
       unlocked.indexOf(this.newCharacterAppearance.accessory) + 1 : 0;
     
-    const accessoryText = new Text(96, 90, options[currentIndex], FONTS.default);
+    const accessoryText = new Text(96, 80, options[currentIndex], FONTS.default);
     accessoryText.anchor.set(0.5);
     
     const accessoryHandler = key => {
@@ -1001,6 +1063,7 @@ class CharacterSelect extends Phaser.State {
       accessoryText.write(options[currentIndex]);
     };
     
+    accessoryHandler();
     gamepad.signals.pressed.any.add(accessoryHandler);
   }
   
@@ -1016,9 +1079,6 @@ class CharacterSelect extends Phaser.State {
     
     const nameText = new Text(96, 80, "ENTER CHARACTER NAME", FONTS.shaded);
     nameText.anchor.set(0.5);
-    
-    const instructionText = new Text(96, 90, "A: ADD LETTER  B: DELETE  START: CONFIRM", FONTS.default);
-    instructionText.anchor.set(0.5);
     
     new TextInput(
       "",
@@ -1048,7 +1108,6 @@ class CharacterSelect extends Phaser.State {
       () => {
         // Cancel creation
         nameText.destroy();
-        instructionText.destroy();
         this.cancelCharacterCreation();
       }
     );
@@ -1068,6 +1127,9 @@ class CharacterSelect extends Phaser.State {
       this.creationText.destroy();
       this.creationText = null;
     }
+    if (this.creationWindow) {
+      this.creationWindowManager.remove(this.creationWindow, true);
+    }
     
     // Return to home UI
     this.showHomeUI();
@@ -1075,6 +1137,10 @@ class CharacterSelect extends Phaser.State {
 
   update() {
     gamepad.update();
+    
+    if (this.creationWindowManager) {
+      this.creationWindowManager.update();
+    }
   }
 
   shutdown() {

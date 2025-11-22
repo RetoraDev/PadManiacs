@@ -243,7 +243,7 @@ class Boot {
       ...(() => {
         const resources = [];
         // Front hairs
-        for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.front; i++) {
+        for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.front.length; i++) {
           resources.push({
             key: `character_front_hair_${i}`,
             url: `character/front_hair_${i}.png`,
@@ -253,7 +253,7 @@ class Boot {
           });
         }
         // Back hairs
-        for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.back; i++) {
+        for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.back.length; i++) {
           resources.push({
             key: `character_back_hair_${i}`,
             url: `character/back_hair_${i}.png`,

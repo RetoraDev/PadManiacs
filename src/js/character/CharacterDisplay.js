@@ -11,7 +11,7 @@ class CharacterDisplay extends Phaser.Sprite {
 
   createLayers() {
     // Back hair layer (bottom)
-    this.layers.backHair = game.add.sprite(0, 0, `character_back_hair_${this.character.appearance.backHair}`, this.character.appearance.skinTone);
+    this.layers.backHair = game.add.sprite(0, 0, `character_back_hair_${this.character.appearance.backHair}`);
     this.layers.backHair.tint = this.character.appearance.hairColor;
     this.addChild(this.layers.backHair);
 
@@ -20,7 +20,7 @@ class CharacterDisplay extends Phaser.Sprite {
     this.addChild(this.layers.base);
 
     // Front hair layer
-    this.layers.frontHair = game.add.sprite(0, 0, `character_front_hair_${this.character.appearance.frontHair}`, this.character.appearance.skinTone);
+    this.layers.frontHair = game.add.sprite(0, 0, `character_front_hair_${this.character.appearance.frontHair}`);
     this.layers.frontHair.tint = this.character.appearance.hairColor;
     this.addChild(this.layers.frontHair);
 
@@ -30,12 +30,12 @@ class CharacterDisplay extends Phaser.Sprite {
     this.setupBlinking();
 
     // Clothing layer
-    this.layers.clothing = game.add.sprite(0, 0, `character_clothing_${this.character.appearance.clothing}`, this.character.appearance.skinTone);
+    this.layers.clothing = game.add.sprite(0, 0, `character_clothing_${this.character.appearance.clothing}`);
     this.addChild(this.layers.clothing);
 
     // Accessory layer (if equipped)
     if (this.character.appearance.accessory) {
-      this.layers.accessory = game.add.sprite(0, 0, `character_accessory_${this.character.appearance.accessory}`, this.character.appearance.skinTone);
+      this.layers.accessory = game.add.sprite(0, 0, `character_accessory_${this.character.appearance.accessory}`);
       this.addChild(this.layers.accessory);
     }
   }

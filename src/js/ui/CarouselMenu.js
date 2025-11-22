@@ -8,6 +8,8 @@ class CarouselMenu extends Phaser.Sprite {
       bgcolor: '#3498db',
       fgcolor: '#ffffff',
       disableScrollBar: false,
+      inactiveAlpha: 0.4,
+      activeAlpha: 0.9,
       ...config,
       margin: { top: 4, bottom: 4, left: 4, right: 4, ...(config.margin || {}) },
     };
@@ -71,7 +73,7 @@ class CarouselMenu extends Phaser.Sprite {
       data: data,
       index: index,
       originalX: this.config.align === 'right' ? this.config.margin.right : this.config.margin.left,
-      originalAlpha: .4,
+      originalAlpha: this.config.inactiveAlpha,
       isSelected: false,
       alphaTween: null
     };
@@ -92,7 +94,7 @@ class CarouselMenu extends Phaser.Sprite {
     item.initialY = null;
     
     const itemParent = new Phaser.Sprite(game, xPos, yPos);
-    itemParent.alpha = .4;
+    itemParent.alpha = this.config.inactiveAlpha;
     this.addChild(itemParent);
     
     const bgWidth = this.viewport.width - this.config.margin.left - this.config.margin.right;
@@ -229,6 +231,7 @@ class CarouselMenu extends Phaser.Sprite {
   selectIndex(index) {
     this.selectedIndex = index;
     this.updateSelection();
+    this.onSelect.dispatch(index, this.items[index]);
   }
   
   updateSelection() {
@@ -284,10 +287,10 @@ class CarouselMenu extends Phaser.Sprite {
       if (this.config.animate) {
         // Start yoyo animation for selected item
         item.alphaTween = game.add.tween(item.parent)
-          .to({ alpha: 0.9 }, 250, Phaser.Easing.Quadratic.InOut, true, 0, -1, true)
+          .to({ alpha: this.config.activeAlpha }, 250, Phaser.Easing.Quadratic.InOut, true, 0, -1, true)
           .yoyo(true, 500);
       } else {
-        item.parent.alpha = 0.9;
+        item.parent.alpha = this.config.activeAlpha;
       }
       if (item.text && item.textContent.length * 4 > this.viewport.width -16) {
         item.text.scrollwrite(item.textContent, Math.floor(this.viewport.width - 16) / 4);
@@ -308,9 +311,9 @@ class CarouselMenu extends Phaser.Sprite {
     if (item.parent) {
       if (this.config.animate) {
         game.add.tween(item.parent)
-          .to({ alpha: .4 }, 100, Phaser.Easing.Quadratic.Out, true);
+          .to({ alpha: this.config.inactiveAlpha }, 100, Phaser.Easing.Quadratic.Out, true);
       } else {
-        item.parent.alpha = .4;
+        item.parent.alpha = this.config.inactiveAlpha;
       }
       if (item.text && item.text.isScrolling()) {
         item.text.stopScrolling();
