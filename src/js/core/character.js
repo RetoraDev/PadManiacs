@@ -17,8 +17,8 @@ const CHARACTER_SYSTEM = {
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
   CLOSE_SHOT_CROP: { x: 32, y: 15, w: 36, h: 7 },
   HAIR_STYLES: {
-    front: 8,
-    back: 8
+    front: ["Casual", "Smart", "Daring", "Simple", "Bulky", "Afro", "Emotional", "Clean"],
+    back: ["Casual", "Smart", "Curly", "Ponytails", "Short", "Afro", "Diva", "Clean"],
   }
 };
 
@@ -32,8 +32,8 @@ const DEFAULT_CHARACTER = {
   appearance: {
     skinTone: 0,
     hairColor: 0xa8705a,
-    frontHair: "1",
-    backHair: "1",
+    frontHair: 1,
+    backHair: 1,
     clothing: "school_uniform",
     accessory: "headphones"
   },

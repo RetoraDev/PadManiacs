@@ -22,8 +22,8 @@ const DEFAULT_ACCOUNT = {
   },
   characters: {
     unlockedHairs: {
-      front: ["1"],
-      back: ["1"]
+      front: [1, 2, 3, 4, 5, 6, 7, 8],
+      back: [1, 2, 3, 4, 5, 6, 7, 8],
     },
     unlockedItems: ["school_uniform", "headphones"],
     currentCharacter: DEFAULT_CHARACTER.name,

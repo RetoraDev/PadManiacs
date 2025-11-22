@@ -20,6 +20,7 @@ class Window extends Phaser.Sprite {
     this.skin = skin;
     this.font = "default";
     this.fontTint = 0x76fcde;
+    this.disableScrollBar = false;
 
     if (parent) {
       parent.addChild(this);
@@ -172,11 +173,15 @@ class Window extends Phaser.Sprite {
 
     return text;
   }
+  
+  getVisibleHeight(excluding = 0) {
+    return (this.size.height * 8) - (10 + this.offset.y);
+  }
 
   update() {
     // Calculate visible items based on window height and item spacing
-    const availableHeight = (this.size.height * 8) - 10; // Subtract padding
-    this.visibleItems = Math.floor(availableHeight / 8); // Each item is 8px tall
+    const availableHeight = this.getVisibleHeight(); // Subtract padding
+    this.visibleItems = Math.floor(availableHeight / 8);// Each item is 8px tall
     
     // Ensure we don't show more items than we have
     this.visibleItems = Math.min(this.visibleItems, this.items.length);
@@ -224,6 +229,8 @@ class Window extends Phaser.Sprite {
   }
   
   updateScrollBar() {
+    if (this.disableScrollBar) return;
+    
     // Clear previous scroll bar
     this.scrollBar.clear();
     
