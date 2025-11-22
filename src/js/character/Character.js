@@ -23,6 +23,8 @@ class Character {
     };
     this.experienceStory = [];
     this.lastSkillLevelUp = data.lastSkillLevelUp || 0;
+    this.lastHairUnlockLevel = data.lastHairUnlockLevel || 0;
+    this.lastItemUnlockLevel = data.lastItemUnlockLevel || 0;
   }
 
   addExperience(amount) {
@@ -58,6 +60,28 @@ class Character {
       }
     }
     
+    // Check for hair style unlock
+    if (this.level >= CHARACTER_SYSTEM.MIN_LEVEL_FOR_HAIR &&
+        this.level - this.lastHairUnlockLevel >= CHARACTER_SYSTEM.HAIR_COOLDOWN_LEVELS &&
+        Math.random() < CHARACTER_SYSTEM.HAIR_UNLOCK_CHANCE) {
+      const unlockedHair = this.unlockRandomHairStyle();
+      if (unlockedHair) {
+        this.lastHairUnlockLevel = this.level;
+        notifications.show(`New hair style unlocked: ${unlockedHair.type} ${unlockedHair.id}`);
+      }
+    }
+    
+    // Check for item unlock
+    if (this.level >= CHARACTER_SYSTEM.MIN_LEVEL_FOR_ITEM &&
+        this.level - this.lastItemUnlockLevel >= CHARACTER_SYSTEM.ITEM_COOLDOWN_LEVELS &&
+        Math.random() < CHARACTER_SYSTEM.ITEM_UNLOCK_CHANCE) {
+      const unlockedItem = this.unlockRandomItem();
+      if (unlockedItem) {
+        this.lastItemUnlockLevel = this.level;
+        notifications.show(`New item unlocked: ${unlockedItem.name}`);
+      }
+    }
+    
     // Check for skill level up
     if (this.level - this.lastSkillLevelUp >= CHARACTER_SYSTEM.SKILL_COOLDOWN_LEVELS &&
         Math.random() < CHARACTER_SYSTEM.SKILL_LEVEL_UP_CHANCE &&
@@ -80,6 +104,109 @@ class Character {
     }
     
     return null;
+  }
+
+  unlockRandomHairStyle() {
+    const availableFrontHairs = [];
+    const availableBackHairs = [];
+    
+    // Find all front hair styles not yet unlocked
+    for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.front; i++) {
+      if (!Account.characters.unlockedHairs.front.includes(i.toString())) {
+        availableFrontHairs.push(i.toString());
+      }
+    }
+    
+    // Find all back hair styles not yet unlocked
+    for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.back; i++) {
+      if (!Account.characters.unlockedHairs.back.includes(i.toString())) {
+        availableBackHairs.push(i.toString());
+      }
+    }
+    
+    // Randomly choose between front or back hair unlock
+    const unlockType = Math.random() < 0.5 ? 'front' : 'back';
+    const availableHairs = unlockType === 'front' ? availableFrontHairs : availableBackHairs;
+    
+    if (availableHairs.length > 0) {
+      const randomHairId = availableHairs[Math.floor(Math.random() * availableHairs.length)];
+      
+      // Add to Account's unlocked hairs
+      Account.characters.unlockedHairs[unlockType].push(randomHairId);
+      
+      // Save to localStorage
+      localStorage.setItem("Account", JSON.stringify(Account));
+      
+      return {
+        type: unlockType,
+        id: randomHairId
+      };
+    }
+    
+    return null;
+  }
+
+  unlockRandomItem() {
+    const allItems = [
+      ...CHARACTER_ITEMS.clothing,
+      ...CHARACTER_ITEMS.accessories
+    ];
+    
+    const availableItems = allItems.filter(item => 
+      !Account.characters.unlockedItems.includes(item.id)
+    );
+    
+    if (availableItems.length > 0) {
+      const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+      
+      // Add to Account's unlocked items
+      Account.characters.unlockedItems.push(randomItem.id);
+      
+      // Save to localStorage
+      localStorage.setItem("Account", JSON.stringify(Account));
+      
+      return randomItem;
+    }
+    
+    return null;
+  }
+
+  getAvailableHairStyles() {
+    return {
+      front: Account.characters.unlockedHairs.front,
+      back: Account.characters.unlockedHairs.back
+    };
+  }
+
+  getAvailableItems() {
+    return Account.characters.unlockedItems;
+  }
+
+  changeHairStyle(type, hairId) {
+    if (type === 'front' && Account.characters.unlockedHairs.front.includes(hairId)) {
+      this.appearance.frontHair = hairId;
+      return true;
+    } else if (type === 'back' && Account.characters.unlockedHairs.back.includes(hairId)) {
+      this.appearance.backHair = hairId;
+      return true;
+    }
+    return false;
+  }
+
+  changeClothing(itemId) {
+    if (Account.characters.unlockedItems.includes(itemId)) {
+      const item = CHARACTER_ITEMS.clothing.find(i => i.id === itemId) || 
+                   CHARACTER_ITEMS.accessories.find(i => i.id === itemId);
+      if (item) {
+        if (item.type === 'clothing') {
+          this.appearance.clothing = itemId;
+        } else if (item.type === 'accessory') {
+          this.appearance.accessory = itemId;
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   getRequiredExperience() {
@@ -105,7 +232,9 @@ class Character {
       selectedSkill: this.selectedSkill,
       appearance: this.appearance,
       stats: this.stats,
-      lastSkillLevelUp: this.lastSkillLevelUp
+      lastSkillLevelUp: this.lastSkillLevelUp,
+      lastHairUnlockLevel: this.lastHairUnlockLevel,
+      lastItemUnlockLevel: this.lastItemUnlockLevel
     };
   }
 }
