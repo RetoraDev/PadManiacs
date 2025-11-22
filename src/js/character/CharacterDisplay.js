@@ -32,12 +32,26 @@ class CharacterDisplay extends Phaser.Sprite {
     // Clothing layer
     this.layers.clothing = game.add.sprite(0, 0, `character_clothing_${this.character.appearance.clothing}`);
     this.addChild(this.layers.clothing);
-
+    
     // Accessory layer (if equipped)
     if (this.character.appearance.accessory) {
       this.layers.accessory = game.add.sprite(0, 0, `character_accessory_${this.character.appearance.accessory}`);
       this.addChild(this.layers.accessory);
     }
+    
+    this.setClothingVisibility();
+  }
+
+  setClothingVisibility() {
+    const clothingItem = CHARACTER_ITEMS.clothing.find(item => item.id === this.character.appearance.clothing);
+    const visible = clothingItem.hideCharacter ? false : true;
+      
+    this.layers.backHair.visible = visible;
+    this.layers.base.visible = visible;
+    this.layers.frontHair.visible = visible;
+    this.layers.eyes.visible = visible;
+    this.layers.frontHair.visible = visible;
+    if (this.layers.accessory) this.layers.accessory.visible = visible;
   }
 
   setupBlinking() {
@@ -96,6 +110,8 @@ class CharacterDisplay extends Phaser.Sprite {
         this.addChild(this.layers.accessory);
       }
     }
+    
+    this.setClothingVisibility();
   }
 
   destroy() {

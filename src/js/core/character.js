@@ -35,7 +35,7 @@ const DEFAULT_CHARACTER = {
     frontHair: 1,
     backHair: 1,
     clothing: "school_uniform",
-    accessory: "headphones"
+    accessory: null
   },
   stats: {
     gamesPlayed: 0,
@@ -577,18 +577,85 @@ const CHARACTER_ITEMS = {
     {
       id: "school_uniform",
       name: "School Uniform",
-      description: "Standard school uniform",
-      type: "clothing",
-      unlocksAtLevel: 0
-    }
+      type: "clothing"
+    },
+    {
+      id: "teacher_clothing",
+      name: "Teacher Clothing",
+      type: "clothing"
+    },
+    {
+      id: "daring_clothing",
+      name: "Daring",
+      type: "clothing"
+    },
+    {
+      id: "short_dress_red",
+      name: "Short Dress (RED)",
+      type: "clothing"
+    },
+    {
+      id: "short_dress_black",
+      name: "Short Dress (BLACK)",
+      type: "clothing"
+    },
+    {
+      id: "short_dress_orange",
+      name: "Short Dress (ORANGE)",
+      type: "clothing"
+    },
+    {
+      id: "short_dress_blue",
+      name: "Short Dress (BLUE)",
+      type: "clothing"
+    },
+    {
+      id: "dubstep_dress_black",
+      name: "Dubstep Dress (BLACK)",
+      type: "clothing"
+    },
+    {
+      id: "dubstep_dress_blue",
+      name: "Dubstep Dress (BLUE)",
+      type: "clothing"
+    },
+    {
+      id: "pinkachu",
+      name: "Pinkachu :D",
+      hideCharacter: true,
+      type: "clothing"
+    },
+    {
+      id: "lencery",
+      name: "Lencery (Remove this! For the love of god!)",
+      type: "clothing"
+    },
   ],
   accessories: [
     {
       id: "headphones",
       name: "Headphones",
-      description: "Music listening headphones",
-      type: "accessory",
-      unlocksAtLevel: 0
-    }
+      type: "accessory"
+    },
+    {
+      id: "hair_ties_red",
+      name: "Hair Ties (RED)",
+      type: "accessory"
+    },
+    {
+      id: "hair_ties_black",
+      name: "Hair Ties (BLACK)",
+      type: "accessory"
+    },
+    {
+      id: "hair_ties_orange",
+      name: "Hair Ties (ORANGE)",
+      type: "accessory"
+    },
+    {
+      id: "hair_ties_blue",
+      name: "Hair Ties (BLUE)",
+      type: "accessory"
+    },
   ]
 };

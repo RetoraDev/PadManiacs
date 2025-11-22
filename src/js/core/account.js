@@ -22,10 +22,10 @@ const DEFAULT_ACCOUNT = {
   },
   characters: {
     unlockedHairs: {
-      front: [1, 2, 3, 4, 5, 6, 7, 8],
-      back: [1, 2, 3, 4, 5, 6, 7, 8],
+      front: [1],
+      back: [1],
     },
-    unlockedItems: ["school_uniform", "headphones"],
+    unlockedItems: ["school_uniform"],
     currentCharacter: DEFAULT_CHARACTER.name,
     list: [
       JSON.parse(JSON.stringify(DEFAULT_CHARACTER))
@@ -34,3 +34,4 @@ const DEFAULT_ACCOUNT = {
   lastSong: null,
   highScores: {}
 };
+

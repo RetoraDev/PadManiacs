@@ -529,7 +529,7 @@ class Player {
     let tintColor = colors[judgement.replace("n.g.", "ng")];
     
     if (type == "freeze") {
-      const text = new Text(this.renderer.receptors[column].x, this.renderer.JUDGE_LINE + 12 * this.renderer.DIRECTION, judgement, FONTS.shaded);
+      const text = new Text(this.renderer.receptors[column].x, this.renderer.JUDGE_LINE + 12 * this.renderer.DIRECTION, judgement, FONTS.stroke);
       text.tint = tintColor;
       text.anchor.setTo(0.5);
       game.add.tween(text).to({ alpha: 0, y: text.y + (8 * this.renderer.DIRECTION) }, 250, "Linear", true, 25).onComplete.addOnce(() => text.destroy());

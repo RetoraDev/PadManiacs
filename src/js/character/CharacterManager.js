@@ -113,20 +113,20 @@ class CharacterManager {
     let exp = 0; // Base experience
     
     // Accuracy bonus
-    if (gameResults.accuracy >= 95) exp += 3;
-    else if (gameResults.accuracy >= 90) exp += 2;
-    else if (gameResults.accuracy >= 80) exp += 1;
+    if (gameResults.accuracy >= 95) exp += 5;
+    else if (gameResults.accuracy >= 90) exp += 4;
+    else if (gameResults.accuracy >= 80) exp += 3;
     
     // Combo bonus
     if (gameResults.maxCombo > 0) exp += 1;
-    if (gameResults.maxCombo >= 500) exp += 3;
-    if (gameResults.maxCombo >= 1000) exp += 5;
-    if (gameResults.maxCombo >= 400) exp += 2;
-    if (gameResults.maxCombo >= 100) exp += 2;
-    else if (gameResults.maxCombo >= 50) exp += 1;
+    if (gameResults.maxCombo >= 500) exp += 5;
+    if (gameResults.maxCombo >= 1000) exp += 10;
+    if (gameResults.maxCombo >= 400) exp += 4;
+    if (gameResults.maxCombo >= 100) exp += 3;
+    else if (gameResults.maxCombo >= 50) exp += 2;
     
     // Full combo bonus
-    if (gameResults.maxCombo > 0 && gameResults.judgements.miss === 0) exp += 5;
+    if (gameResults.maxCombo > 0 && gameResults.judgements.miss === 0) exp += 8;
     
     return exp;
   }
