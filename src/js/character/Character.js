@@ -112,15 +112,15 @@ class Character {
     
     // Find all front hair styles not yet unlocked
     for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.front; i++) {
-      if (!Account.characters.unlockedHairs.front.includes(i.toString())) {
-        availableFrontHairs.push(i.toString());
+      if (!Account.characters.unlockedHairs.front.includes(i)) {
+        availableFrontHairs.push(i);
       }
     }
     
     // Find all back hair styles not yet unlocked
     for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.back; i++) {
-      if (!Account.characters.unlockedHairs.back.includes(i.toString())) {
-        availableBackHairs.push(i.toString());
+      if (!Account.characters.unlockedHairs.back.includes(i)) {
+        availableBackHairs.push(i);
       }
     }
     

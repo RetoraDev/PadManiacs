@@ -96,7 +96,30 @@ class CharacterSkillSystem {
   }
   
   notifySkillUsed(skill) {
-    // TODO: Notify skill used
+    // Notify what skill was used
+    const x = 4;
+    const y = 32;
+    const width = 40;
+    const height = 8;
+    const bgcolor = "rgba(44, 90, 198, 0.6)";
+    
+    const bitmap = game.add.bitmapData(width, height);
+    
+    const gradient = bitmap.context.createLinearGradient(width, 0, 0, 0);
+    
+    gradient.addColorStop(0, bgcolor);
+    gradient.addColorStop(0.7, bgcolor);
+    gradient.addColorStop(1, 'transparent');
+    
+    bitmap.context.fillStyle = gradient;
+    bitmap.context.fillRect(0, 0, width, height);
+    
+    const background = game.add.sprite(-width, y, bitmap);
+    background.alpha = 0;
+    
+    const text = new Text(4, 1, skill.name, FONTS.default, background);
+    
+    game.add.tween(background).to({ alpha: 1, x }, 350, Phaser.Easing.Quadratic.Out, true).yoyo(true).yoyoDelay(1000);
   }
 
   applySkillEffect(skill) {

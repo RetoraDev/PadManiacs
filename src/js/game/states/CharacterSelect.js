@@ -517,7 +517,8 @@ class CharacterSelect extends Phaser.State {
     
     let currentIndex = this.selectedCharacter.appearance[type] - 1;
     
-    const hairValueText = new Text(96, 90, options[currentIndex], FONTS.default);
+    const hairValueText = new Text(96, 90, "", FONTS.default);
+    hairValueText.write(options[currentIndex], 18);
     hairValueText.anchor.set(0.5);
 
     const hairHandler = key => {
@@ -538,7 +539,7 @@ class CharacterSelect extends Phaser.State {
         return;
       }
 
-      hairValueText.write(options[currentIndex]);
+      hairValueText.write(options[currentIndex], 18);
     };
 
     gamepad.signals.pressed.any.add(hairHandler);
@@ -560,7 +561,8 @@ class CharacterSelect extends Phaser.State {
     let currentIndex = unlocked.indexOf(this.selectedCharacter.appearance.clothing);
     if (currentIndex === -1) currentIndex = 0;
     
-    const clothingValueText = new Text(96, 90, options[currentIndex], FONTS.default);
+    const clothingValueText = new Text(96, 90, "", FONTS.default);
+    clothingValueText.write(options[currentIndex], 18)
     clothingValueText.anchor.set(0.5);
 
     const clothingHandler = key => {
@@ -581,7 +583,7 @@ class CharacterSelect extends Phaser.State {
         return;
       }
 
-      clothingValueText.write(options[currentIndex]);
+      clothingValueText.write(options[currentIndex], 18);
     };
 
     gamepad.signals.pressed.any.add(clothingHandler);
@@ -605,7 +607,8 @@ class CharacterSelect extends Phaser.State {
 
     const currentIndex = this.selectedCharacter.appearance.accessory ? unlocked.indexOf(this.selectedCharacter.appearance.accessory) + 1 : 0;
     let selectedIndex = currentIndex;
-    const accessoryValueText = new Text(96, 90, options[selectedIndex], FONTS.default);
+    const accessoryValueText = new Text(96, 90, "", FONTS.default);
+    accessoryValueText.write(options[selectedIndex], 18);
     accessoryValueText.anchor.set(0.5);
 
     const accessoryHandler = key => {
@@ -625,7 +628,7 @@ class CharacterSelect extends Phaser.State {
         this.showCustomizationMenu();
         return;
       }
-      accessoryValueText.write(options[selectedIndex]);
+      accessoryValueText.write(options[selectedIndex], 18);
     };
 
     gamepad.signals.pressed.any.add(accessoryHandler);
