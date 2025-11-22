@@ -66,7 +66,9 @@ class Player {
     // Skill system
     this.skillSystem = this.scene.skillSystem;
     this.perfectStreak = 0;
+    this.comboShieldActive = false;
     this.skillSystem.onHealthRegen = amount => this.onSkillHpRegen(amount);
+    this.skillSystem.onComboShield = () => this.onComboShield();
     
     // Calculate total notes for accuracy
     this.calculateTotalNotes();
@@ -183,7 +185,8 @@ class Player {
       this.heldColumns.add(column);
   
       // Reactivate inactive holds within forgiveness window
-      if (hold?.inactive && now - hold.lastRelease < this.HOLD_FORGIVENESS) {
+      const holdForgiveness = this.getHoldForgiveness();
+      if (hold?.inactive && now - hold.lastRelease < holdForgiveness) {
         hold.active = true;
         hold.inactive = false;
         hold.pressCount++;
@@ -237,8 +240,18 @@ class Player {
       this.createExplosion(mineNote, "mine");
       mineNote.hit = true;
       mineNote.sprite?.destroy();
-      this.health = Math.max(0, this.health - 10);
+      
+      // Apply mine damage reduction from skills
+      const mineDamageMultiplier = this.skillSystem ? this.skillSystem.getMineDamageMultiplier() : 1.0;
+      const damage = Math.floor(10 * mineDamageMultiplier);
+      
+      this.health = Math.max(0, this.health - damage);
       this.combo = 0;
+      
+      // Trigger mine hit skill activation
+      if (this.skillSystem) {
+        this.skillSystem.checkSkillActivation('on_mine_hit', {});
+      }
     }
   }
 
@@ -275,8 +288,9 @@ class Player {
       hold.lastRelease = now;
 
       if (hold.note.type === "2") {
+        const holdForgiveness = this.getHoldForgiveness();
         const remaining = hold.note.secLength - (now - hold.startTime);
-        if (remaining > this.HOLD_FORGIVENESS) {
+        if (remaining > holdForgiveness) {
           hold.active = false;
           hold.inactive = true;
           this.toggleHoldExplosion(column, false);
@@ -304,6 +318,18 @@ class Player {
     return baseWindows;
   }
 
+  getHoldForgiveness() {
+    const baseForgiveness = this.HOLD_FORGIVENESS;
+    const multiplier = this.skillSystem ? this.skillSystem.getHoldForgivenessMultiplier() : 1.0;
+    return baseForgiveness * multiplier;
+  }
+
+  getRollForgiveness() {
+    const baseForgiveness = this.ROLL_FORGIVENESS;
+    const multiplier = this.skillSystem ? this.skillSystem.getRollForgivenessMultiplier() : 1.0;
+    return baseForgiveness * multiplier;
+  }
+
   getJudgement(delta) {
     this.timingStory.push(delta);
     
@@ -325,6 +351,12 @@ class Player {
   }
   
   processJudgement(note, judgement, column, type = "normal") {
+    // Check for combo shield before processing miss
+    if (judgement === "miss" && this.comboShieldActive) {
+      judgement = "boo";
+      this.comboShieldActive = false;
+    }
+    
     // Check for skill activation based on judgement
     if (this.skillSystem) {
       this.skillSystem.checkSkillActivation('on_miss', { judgement });
@@ -367,7 +399,10 @@ class Player {
       judgementKey = "marvelous";
     }
     
-    const scoreValue = this.scene.SCORE_VALUES[judgementKey];
+    // Apply score multiplier from skills
+    const scoreMultiplier = this.skillSystem ? this.skillSystem.getScoreMultiplier(judgementKey) : 1.0;
+    const scoreValue = Math.floor(this.scene.SCORE_VALUES[judgementKey] * scoreMultiplier);
+    
     if (!this.gameOver) this.score += scoreValue;
     
     // Update judgement counts
@@ -378,7 +413,12 @@ class Player {
       this.health = Math.max(0, this.health - 5);
     } else {
       this.combo++;
-      if (!this.gameOver) this.health = Math.min(this.getMaxHealth(), this.health + 2);
+      
+      // Apply health gain multiplier from skills
+      const healthGainMultiplier = this.skillSystem ? this.skillSystem.getHealthGainMultiplier() : 1.0;
+      const healthGain = Math.floor(2 * healthGainMultiplier);
+      
+      if (!this.gameOver) this.health = Math.min(this.getMaxHealth(), this.health + healthGain);
       if (this.combo > this.maxCombo) {
         this.maxCombo = this.combo;
       }
@@ -535,6 +575,10 @@ class Player {
     }
   }
   
+  onComboShield() {
+    this.comboShieldActive = true;
+  }
+  
   getCurrentBPM(beat = 0) {
     return this.renderer.getCurrentBPM(beat);
   }
@@ -601,6 +645,11 @@ class Player {
       if (this.health <= 30) {
         this.skillSystem.checkSkillActivation('on_low_health', { health: this.health });
       }
+      
+      // Check critical health
+      if (this.health <= 15) {
+        this.skillSystem.checkSkillActivation('on_critical_health', { health: this.health });
+      }
     }
 
     // Update health
@@ -628,16 +677,18 @@ class Player {
       
       if (this.autoplay || hold.note.type === "2") {
         if (!hold.active) {
+          const holdForgiveness = this.getHoldForgiveness();
           const sinceRelease = now - hold.lastRelease;
-          if (sinceRelease > this.HOLD_FORGIVENESS) {
+          if (sinceRelease > holdForgiveness) {
             hold.inactive = true;
             hold.note.miss = true;
             this.toggleHoldExplosion(col, false);
           }
         }
       } else if (hold.note.type === "4") {
+        const rollForgiveness = this.getRollForgiveness();
         const sinceLastTap = now - hold.lastTap;
-        if (sinceLastTap > this.ROLL_FORGIVENESS) {
+        if (sinceLastTap > rollForgiveness) {
           hold.inactive = true;
           hold.active = false;
           hold.note.miss = true;
