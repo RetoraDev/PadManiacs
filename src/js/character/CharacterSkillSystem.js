@@ -10,7 +10,14 @@ class CharacterSkillSystem {
       judgementWindowMultiplier: 1.0,
       healthRegen: null,
       maxHealthBonus: 0,
-      noteSpeedMultiplier: 1.0
+      noteSpeedMultiplier: 1.0,
+      holdForgivenessMultiplier: 1.0,
+      rollForgivenessMultiplier: 1.0,
+      mineDamageMultiplier: 1.0,
+      scoreMultipliers: {},
+      healthGainMultiplier: 1.0,
+      comboShield: false,
+      inputLagReduction: 0
     };
   }
 
@@ -45,6 +52,10 @@ class CharacterSkillSystem {
         return params.combo >= (skill.effectParams.threshold || 100);
       case 'on_perfect_streak':
         return params.perfectStreak >= (skill.effectParams.threshold || 10);
+      case 'on_mine_hit':
+        return true;
+      case 'on_critical_health':
+        return params.health <= (skill.effectParams.threshold || 15);
       case 'custom':
         return skill.activationCheckFunction ? skill.activationCheckFunction() : false;
       default:
@@ -110,6 +121,52 @@ class CharacterSkillSystem {
         this.skillEffects.noteSpeedMultiplier = skill.effectParams.multiplier;
         this.scene.showGlitchAnimation(100);
         break;
+        
+      case 'modify_hold_forgiveness':
+        this.skillEffects.holdForgivenessMultiplier = skill.effectParams.multiplier;
+        break;
+        
+      case 'modify_roll_forgiveness':
+        this.skillEffects.rollForgivenessMultiplier = skill.effectParams.multiplier;
+        break;
+        
+      case 'reduce_mine_damage':
+        this.skillEffects.mineDamageMultiplier = skill.effectParams.multiplier;
+        break;
+        
+      case 'modify_score_gain':
+        this.skillEffects.scoreMultipliers[skill.effectParams.judgement] = skill.effectParams.multiplier;
+        break;
+        
+      case 'modify_health_gain':
+        this.skillEffects.healthGainMultiplier = skill.effectParams.multiplier;
+        break;
+        
+      case 'combo_shield':
+        this.skillEffects.comboShield = true;
+        if (this.onComboShield) {
+          this.onComboShield();
+        }
+        break;
+        
+      case 'modify_input_lag':
+        this.skillEffects.inputLagReduction = skill.effectParams.reduction;
+        break;
+        
+      case 'burst_health_regen':
+        if (this.onHealthRegen) {
+          this.onHealthRegen(skill.effectParams.amount);
+        }
+        break;
+        
+      case 'stabilize_judgement':
+        // This skill reduces timing variation - implemented in Player's timing calculations
+        break;
+        
+      case 'general_boost':
+        this.skillEffects.judgementWindowMultiplier = skill.effectParams.windowMultiplier;
+        this.skillEffects.healthGainMultiplier = skill.effectParams.healthMultiplier;
+        break;
     }
   }
 
@@ -139,6 +196,39 @@ class CharacterSkillSystem {
       case 'modify_note_speed':
         this.skillEffects.noteSpeedMultiplier = 1.0;
         this.scene.showGlitchAnimation(100);
+        break;
+        
+      case 'modify_hold_forgiveness':
+        this.skillEffects.holdForgivenessMultiplier = 1.0;
+        break;
+        
+      case 'modify_roll_forgiveness':
+        this.skillEffects.rollForgivenessMultiplier = 1.0;
+        break;
+        
+      case 'reduce_mine_damage':
+        this.skillEffects.mineDamageMultiplier = 1.0;
+        break;
+        
+      case 'modify_score_gain':
+        delete this.skillEffects.scoreMultipliers[skill.effectParams.judgement];
+        break;
+        
+      case 'modify_health_gain':
+        this.skillEffects.healthGainMultiplier = 1.0;
+        break;
+        
+      case 'combo_shield':
+        this.skillEffects.comboShield = false;
+        break;
+        
+      case 'modify_input_lag':
+        this.skillEffects.inputLagReduction = 0;
+        break;
+        
+      case 'general_boost':
+        this.skillEffects.judgementWindowMultiplier = 1.0;
+        this.skillEffects.healthGainMultiplier = 1.0;
         break;
     }
 
@@ -181,6 +271,30 @@ class CharacterSkillSystem {
 
   getNoteSpeedMultiplier() {
     return this.skillEffects.noteSpeedMultiplier;
+  }
+
+  getHoldForgivenessMultiplier() {
+    return this.skillEffects.holdForgivenessMultiplier;
+  }
+
+  getRollForgivenessMultiplier() {
+    return this.skillEffects.rollForgivenessMultiplier;
+  }
+
+  getMineDamageMultiplier() {
+    return this.skillEffects.mineDamageMultiplier;
+  }
+
+  getScoreMultiplier(judgement) {
+    return this.skillEffects.scoreMultipliers[judgement] || 1.0;
+  }
+
+  getHealthGainMultiplier() {
+    return this.skillEffects.healthGainMultiplier;
+  }
+
+  getInputLagReduction() {
+    return this.skillEffects.inputLagReduction;
   }
 
   update() {
@@ -226,7 +340,14 @@ class CharacterSkillSystem {
       judgementWindowMultiplier: 1.0,
       healthRegen: null,
       maxHealthBonus: 0,
-      noteSpeedMultiplier: 1.0
+      noteSpeedMultiplier: 1.0,
+      holdForgivenessMultiplier: 1.0,
+      rollForgivenessMultiplier: 1.0,
+      mineDamageMultiplier: 1.0,
+      scoreMultipliers: {},
+      healthGainMultiplier: 1.0,
+      comboShield: false,
+      inputLagReduction: 0
     };
     
     this.stopHealthRegen();

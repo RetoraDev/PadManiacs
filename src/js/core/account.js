@@ -10,7 +10,7 @@ const DEFAULT_ACCOUNT = {
     noteSpeedMult: 1,
     userOffset: 0,
     scrollDirection: 'falling',
-    visualizer: 'NONE',
+    visualizer: 'BPM',
     metronome: 'OFF',
     beatLines: false,
     beatsPerMeasure: 4, // TODO: Make this configurable
@@ -22,8 +22,8 @@ const DEFAULT_ACCOUNT = {
   },
   characters: {
     unlockedHairs: {
-      front: ["1", "2"],
-      back: ["1", "2"]
+      front: ["1", "2", "3", "4", "5"],
+      back: ["1", "2", "3", "4", "5"]
     },
     unlockedItems: ["school_uniform", "headphones"],
     currentCharacter: DEFAULT_CHARACTER.name,
