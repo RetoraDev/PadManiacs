@@ -88,21 +88,31 @@ class CharacterSelect extends Phaser.State {
     const char = this.selectedCharacter;
     
     // Name
-    this.nameText.write(char.name);
+    this.nameText.write(char ? char.name : "");
     
     // Level and experience
-    const expText = `${char.experience}/${char.getRequiredExperience()}`;
-    this.levelText.write(`Lv. ${char.level}`);
+    const expText = char ? `${char.experience}/${char.getRequiredExperience()}` : "";
+    this.levelText.write(char ? `Lv. ${char.level}` : "");
     
     // Update experience bar
-    this.expBar.setProgress(char.getExperienceProgress());
+    if (char) {
+      this.expBar.setProgress(char.getExperienceProgress());
+      this.expBar.visible = true;
+    } else {
+      this.expBar.visible = false;
+    }
     
     // Skill level
-    this.skillBar.value = char.skillLevel;
-    this.skillBar.update();
+    if (char) {
+      this.skillBar.value = char.skillLevel;
+      this.skillBar.update();
+      this.skillBar.visible = true;
+    } else {
+      this.skillBar.visible = false;
+    }
     
     // Selected skill info
-    if (char.selectedSkill) {
+    if (char && char.selectedSkill) {
       const skill = CHARACTER_SKILLS.find(s => s.id === char.selectedSkill);
       if (skill) {
         this.selectedSkillText.write(skill.name);
@@ -114,7 +124,7 @@ class CharacterSelect extends Phaser.State {
       }
     } else {
       this.selectedSkillText.write("");
-      this.skillDescriptionText.write("< NO SKILL >");
+      this.skillDescriptionText.write(char ? "< NO SKILL >" : "< NO CHARACTER >");
     }
   }
 
@@ -148,8 +158,9 @@ class CharacterSelect extends Phaser.State {
     });
 
     // Add characters to carousel
+    let index = 0;
     this.characterManager.getCharacterList().forEach(character => {
-      const isCurrent = character.name === this.selectedCharacter.name;
+      const isCurrent = this.selectedCharacter && character.name === this.selectedCharacter.name;
       this.characterCarousel.addItem(isCurrent ? `> ${character.name}` : `  ${character.name}`, () => {
         this.selectCharacter(character);
         this.showActionMenu();
@@ -157,14 +168,29 @@ class CharacterSelect extends Phaser.State {
         character: character,
         bgcolor: isCurrent ? "#e74c3c" : "#9b59b6"
       });
+      if (isCurrent) {
+        this.characterCarousel.selectIndex(index);
+      }
+      index++;
     });
-
+    
+    // Add Unselect option
+    this.characterCarousel.addItem("× NO CHARACTER", () => {
+      this.selectedCharacter = null;
+      this.characterManager.unsetCharacter();
+      this.showHomeUI();
+    }, {
+      bgcolor: this.selectedCharacter ? "#9b59b6" : "#e74c3c"
+    });
+    
+    if (!this.selectedCharacter) this.characterCarousel.selectIndex(index);
+    
     // Add "Add Character" option
     this.characterCarousel.addItem("+ ADD CHARACTER", () => this.startCharacterCreation());
 
     // Set up proper navigation
     this.characterCarousel.onSelect.add((index, item) => {
-      if (item.data.character) this.selectCharacter(item.data.character);
+      this.selectCharacter(item.data.character || null);
     });
     
     this.characterCarousel.onCancel.add(() => {
@@ -456,8 +482,10 @@ class CharacterSelect extends Phaser.State {
     const hairHandler = key => {
       if (key === "left") {
         currentIndex = (currentIndex - 1 + options.length) % options.length;
+        this.characterDisplay.updateAppearance({ [type]: values[currentIndex] });
       } else if (key === "right") {
         currentIndex = (currentIndex + 1) % options.length;
+        this.characterDisplay.updateAppearance({ [type]: values[currentIndex] });
       } else if (key === "a" || key === "b" || key === "start") {
         this.selectedCharacter.appearance[type] = values[currentIndex];
         this.characterDisplay.updateAppearance({ [type]: values[currentIndex] });
@@ -493,8 +521,10 @@ class CharacterSelect extends Phaser.State {
     const clothingHandler = key => {
       if (key === "left") {
         currentIndex = (currentIndex - 1 + options.length) % options.length;
+        this.characterDisplay.updateAppearance({ clothing: unlocked[currentIndex] });
       } else if (key === "right") {
         currentIndex = (currentIndex + 1) % options.length;
+        this.characterDisplay.updateAppearance({ clothing: unlocked[currentIndex] });
       } else if (key === "a" || key === "b" || key === "start") {
         this.selectedCharacter.appearance.clothing = unlocked[currentIndex];
         this.characterDisplay.updateAppearance({ clothing: unlocked[currentIndex] });
@@ -532,8 +562,10 @@ class CharacterSelect extends Phaser.State {
     const accessoryHandler = key => {
       if (key === "left") {
         selectedIndex = (selectedIndex - 1 + options.length) % options.length;
+        this.characterDisplay.updateAppearance({ accessory: unlocked[selectedIndex] });
       } else if (key === "right") {
         selectedIndex = (selectedIndex + 1) % options.length;
+        this.characterDisplay.updateAppearance({ accessory: unlocked[selectedIndex] });
       } else if (key === "a" || key === "b" || key === "start") {
         this.selectedCharacter.appearance.accessory = selectedIndex === 0 ? null : unlocked[selectedIndex - 1];
         this.characterDisplay.updateAppearance({ accessory: this.selectedCharacter.appearance.accessory });
@@ -555,17 +587,19 @@ class CharacterSelect extends Phaser.State {
   }
 
   deleteCharacter() {
-    if (this.characterManager.getCharacterList().length <= 1) {
-      notifications.show("Cannot delete last character");
-      return;
-    }
-  
     this.confirm(
       "DELETE CHARACTER?",
       () => {
         // Confirm callback
         this.characterManager.deleteCharacter(this.selectedCharacter.name);
-        this.selectedCharacter = this.characterManager.getCharacterList()[0];
+        
+        // Equip another character or leave unequiped
+        if (this.characterManager.getCharacterList().length <= 1) {
+          this.selectedCharacter = null;
+          this.characterManager.unsetCharacter();
+        } else {
+          this.selectedCharacter = this.characterManager.getCharacterList()[0];
+        }
         this.showHomeUI();
       },
       () => {

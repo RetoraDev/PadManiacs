@@ -206,7 +206,7 @@ class Results {
           }
           expBar.setProgress(currentExp / expCurve(currentLevel));
           if (currentLevel < storyEntry.levelAfter || currentExp < storyEntry.expAfter) {
-            game.time.events.add(15, () => animate(currentExp, currentLevel));
+            game.time.events.add(100, () => animate(currentExp, currentLevel));
           }
         }
         
@@ -219,11 +219,10 @@ class Results {
     this.navigationHint = new NavigationHint(1);
     
     const height = this.gameData.character ? 72 : 80;
-    const y = this.gameData.character ? 53 : 64;
+    const y = this.gameData.character ? 53 : 40;
     
     const menu = new CarouselMenu(108, y, 80, height, {
       bgcolor: 'brown',
-      
       fgcolor: '#ffffff'
     });
     

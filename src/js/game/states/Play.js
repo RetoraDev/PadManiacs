@@ -113,12 +113,14 @@ class Play {
     this.songTitleText.write(title, 28);
     
     this.playerName = new Text(4, 8, "", FONTS.shaded, this.hud);
-    this.playerName.write(this.currentCharacter.name, 4);
+    this.playerName.write(this.currentCharacter ? this.currentCharacter.name : "NONE", 4);
     
-    this.playerName.tint = this.currentCharacter.appearance.hairColor;
+    this.playerName.tint = this.currentCharacter ? this.currentCharacter.appearance.hairColor : 0xffffff;
     
     this.skillBar = new SkillBar(6, 15);
     this.hud.addChild(this.skillBar);
+    
+    if (!this.currentCharacter) this.skillBar.visible = false;
     
     this.scoreText = new Text(22, 12, "0".repeat(9), null, this.hud);
     

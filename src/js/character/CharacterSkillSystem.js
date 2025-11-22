@@ -16,7 +16,7 @@ class CharacterSkillSystem {
 
   // Main method to check and activate skills
   checkSkillActivation(condition, params = {}) {
-    if (this.exhausted) return;
+    if (!this.character || this.exhausted) return;
 
     const availableSkills = this.character.unlockedSkills
       .map(skillId => CHARACTER_SKILLS.find(s => s.id === skillId));
@@ -185,6 +185,9 @@ class CharacterSkillSystem {
 
   update() {
     const currentTime = game.time.now;
+    
+    // Abort if no character
+    if (!this.character) return;
     
     // Update exhausted state
     this.exhausted = this.skillsUsedThisGame >= this.character.skillLevel
