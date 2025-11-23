@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.6 dev
- * Build: 11/23/2025, 1:52:26 AM
+ * Build: 11/23/2025, 2:00:59 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -14675,17 +14675,15 @@ class Player {
     
     const { now, beat } = this.scene.getCurrentTime();
     
-    const sensibility = 0.05;
-    
     // Process regular notes for auto-play
     for (let column = 0; column < 4; column++) {
       const closestNote = this.findClosestNote(column, beat, "1");
       
       if (closestNote) {
-        const delta = Math.abs(closestNote.beat - beat);
+        const delta = closestNote.beat - beat;
         
         // Check if note is within window
-        if (delta <= sensibility && !this.inputStates[column]) {
+        if (delta <= 0 && !this.inputStates[column]) {
           // Simulate perfect input - press and immediately release
           this.handleInput(column, true);
           this.handleInput(column, false);
@@ -14698,8 +14696,8 @@ class Player {
       const holdNote = this.findClosestNote(column, beat, ["2", "4"]);
       
       if (holdNote && !this.autoplayActiveHolds.has(column)) {
-        const delta = Math.abs(holdNote.beat - beat);
-        if (delta <= sensibility) {
+        const delta = holdNote.beat - beat;
+        if (delta <= 0) {
           // Start hold
           this.handleInput(column, true);
           this.autoplayActiveHolds.add(column);
