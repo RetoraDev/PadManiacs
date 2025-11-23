@@ -110,26 +110,81 @@ class CharacterManager {
   }
 
   calculateExperienceGain(gameResults) {
-    let exp = 0; // Base experience
+    let exp = 0;
     
-    // Accuracy bonus
-    if (gameResults.accuracy >= 95) exp += 5;
-    else if (gameResults.accuracy >= 90) exp += 4;
-    else if (gameResults.accuracy >= 80) exp += 3;
+    // Minimum performance requirements - no experience for giving up early
+    const totalNotes = Object.values(gameResults.judgements).reduce((a, b) => a + b, 0);
     
-    // Combo bonus
-    if (gameResults.maxCombo > 0) exp += 1;
-    if (gameResults.maxCombo >= 500) exp += 5;
-    if (gameResults.maxCombo >= 1000) exp += 10;
-    if (gameResults.maxCombo >= 400) exp += 4;
-    if (gameResults.maxCombo >= 100) exp += 3;
-    else if (gameResults.maxCombo >= 50) exp += 2;
+    // Require at least 25 notes played to get any experience
+    if (totalNotes < 25) {
+      return 0;
+    }
     
-    // Full combo bonus
-    if (gameResults.maxCombo > 0 && gameResults.judgements.miss === 0) exp += 8;
+    // Require minimum accuracy threshold (50%) to get any experience
+    if (gameResults.accuracy < 50) {
+      return 0;
+    }
+    
+    // Base completion bonus (only if player completed meaningful portion of song)
+    if (gameResults.accuracy >= 70) {
+      exp += 2;
+    }
+    
+    // Accuracy bonuses (only for decent to excellent performance)
+    if (gameResults.accuracy >= 100) exp += 8;    // Impeccable 
+    else if (gameResults.accuracy >= 99) exp += 6; // Nearly perfect
+    else if (gameResults.accuracy >= 97) exp += 5; // Excellent
+    else if (gameResults.accuracy >= 95) exp += 4; // Great
+    else if (gameResults.accuracy >= 90) exp += 3; // Good
+    else if (gameResults.accuracy >= 85) exp += 2; // Decent
+    else if (gameResults.accuracy >= 80) exp += 1; // Okay
+    // 70-79% gets base completion only
+    
+    // Combo milestones (only meaningful chains)
+    if (gameResults.maxCombo >= 1000) exp += 8;   // Incredible
+    else if (gameResults.maxCombo >= 500) exp += 6; // Amazing
+    else if (gameResults.maxCombo >= 250) exp += 4; // Impressive
+    else if (gameResults.maxCombo >= 100) exp += 3; // Solid
+    else if (gameResults.maxCombo >= 50) exp += 2;  // Good chain
+    // No bonus for chains under 50
+    
+    // Full combo bonus (significant reward for perfect play)
+    if (gameResults.maxCombo > 0 && gameResults.judgements.miss === 0) {
+      exp += 8;
+      
+      // Perfect game bonus (all marvelous/perfect)
+      const perfectNotes = (gameResults.judgements.marvelous || 0) + (gameResults.judgements.perfect || 0);
+      if (perfectNotes === totalNotes) {
+        exp += 4; // Perfect game bonus
+      }
+    }
+    
+    // Judgement quality bonus (only for high precision)
+    if (totalNotes > 0) {
+      const marvelousRate = (gameResults.judgements.marvelous || 0) / totalNotes;
+      const perfectRate = (gameResults.judgements.perfect || 0) / totalNotes;
+      
+      if (marvelousRate >= 0.8) exp += 3;        // Mostly marvelous
+      else if (marvelousRate >= 0.6) exp += 2;   // Many marvelous
+      else if (perfectRate >= 0.9) exp += 2;     // Very consistent
+      // No bonus for lower precision rates
+    }
+    
+    // Difficulty multiplier (scaled down)
+    if (gameResults.difficultyRating) {
+      if (gameResults.difficultyRating >= 15) exp += 3;    // Expert
+      else if (gameResults.difficultyRating >= 12) exp += 2; // Hard
+      else if (gameResults.difficultyRating >= 9) exp += 1;  // Medium
+      // Easy gets no extra bonus
+    }
+    
+    // Skill usage bonus (small incentive)
+    if (gameResults.skillsUsed > 0) {
+      exp += Math.min(2, gameResults.skillsUsed); // Up to 2 exp for skill usage
+    }
     
     return exp;
-  }
+}
 
   unlockHair(type, id) {
     if (!Account.characters.unlockedHairs[type].includes(id)) {
