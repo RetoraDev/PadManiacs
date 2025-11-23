@@ -167,21 +167,17 @@ class Player {
     
     const { now, beat } = this.scene.getCurrentTime();
     
+    const sensibility = 0.05;
+    
     // Process regular notes for auto-play
     for (let column = 0; column < 4; column++) {
-      const closestNote = this.notes.find(n => 
-        !n.hit && 
-        n.column === column && 
-        n.type === "1"
-      );
+      const closestNote = this.findClosestNote(column, beat, "1");
       
       if (closestNote) {
-        const noteTime = closestNote.sec;
-        const timeDelta = noteTime - now;
-        const absTimeDelta = Math.abs(timeDelta);
+        const delta = Math.abs(closestNote.beat - beat);
         
-        // Check if note is within marvelous window (convert to seconds)
-        if (absTimeDelta <= (this.scene.JUDGE_WINDOWS.marvelous / 1000) && !this.inputStates[column]) {
+        // Check if note is within window
+        if (delta <= sensibility && !this.inputStates[column]) {
           // Simulate perfect input - press and immediately release
           this.handleInput(column, true);
           this.handleInput(column, false);
@@ -195,7 +191,7 @@ class Player {
       
       if (holdNote && !this.autoplayActiveHolds.has(column)) {
         const delta = Math.abs(holdNote.beat - beat);
-        if (delta <= this.scene.JUDGE_WINDOWS.marvelous) {
+        if (delta <= sensibility) {
           // Start hold
           this.handleInput(column, true);
           this.autoplayActiveHolds.add(column);
@@ -268,7 +264,6 @@ class Player {
     
     if (closestNote) {
       return this.processNoteIfInWindow(closestNote, now, column, (note, timeDelta) => {
-        console.log("Time delta:", timeDelta * 1000, "ms");
         const judgement = this.getJudgement(timeDelta);
   
         this.createExplosion(note);

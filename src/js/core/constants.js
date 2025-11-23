@@ -35,8 +35,8 @@ const DEFAULT_SONG_FOLDERS = [
 ];
 
 const JUDGE_WINDOWS = {
-  marvelous: 33,      // ~22.5ms (extended to ~33ms in PadManiacs)
-  perfect: 45,        // 45ms  
+  marvelous: 44,      // ~22.5ms (extended to 44ms)
+  perfect: 60,        // 45ms (extended to 60ms)  
   great: 90,          // 90ms
   good: 135,          // 135ms
   boo: 180            // 180ms
