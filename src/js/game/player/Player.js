@@ -38,7 +38,6 @@ class Player {
     this.lastNoteCheckBeats = [0, 0, 0, 0];
     this.score = 0;
     this.combo = 0;
-    this.acurracy = 0;
     this.maxCombo = 0;
     this.maxHealth = 100;
     this.health = this.maxHealth;
@@ -114,6 +113,54 @@ class Player {
     return (192 - totalWidth) / 2;
   }
   
+  findClosestNote(column, beat, noteTypes, searchRangeSeconds = 0.5) {
+    // Convert search range from seconds to beats for initial filtering
+    const currentTime = this.scene.getCurrentTime().now;
+    const searchRangeBeats = searchRangeSeconds * (this.getCurrentBPM(beat) / 60);
+    
+    const candidateNotes = this.notes.filter(n => 
+      !n.hit && 
+      n.column === column && 
+      noteTypes.includes(n.type) && 
+      Math.abs(n.beat - beat) <= searchRangeBeats
+    );
+  
+    if (candidateNotes.length === 0) return null;
+  
+    // Find closest by time, not beats
+    return candidateNotes.reduce((closest, current) => {
+      const currentTimeDelta = Math.abs(current.sec - currentTime);
+      const closestTimeDelta = Math.abs(closest.sec - currentTime);
+      return currentTimeDelta < closestTimeDelta ? current : closest;
+    });
+  }
+
+  findNotesInJudgeWindow(column, beat, noteTypes, judgeWindow) {
+    // Find all notes of specified types within judge window
+    return this.notes.filter(n => 
+      !n.hit && 
+      n.column === column && 
+      noteTypes.includes(n.type) && 
+      Math.abs(n.beat - beat) <= judgeWindow
+    );
+  }
+
+  processNoteIfInWindow(note, currentTime, column, callback) {
+    // Calculate time delta in seconds
+    const noteTime = note.sec;
+    const timeDelta = noteTime - currentTime;
+    
+    // Convert judge window to seconds for comparison
+    const maxWindowSeconds = this.scene.JUDGE_WINDOWS.boo / 1000;
+    
+    if (Math.abs(timeDelta) <= maxWindowSeconds && this.lastNoteCheckBeats[column] !== note.beat) {
+      callback(note, timeDelta);
+      this.lastNoteCheckBeats[column] = note.beat;
+      return true;
+    }
+    return false;
+  }
+
   // AI autoplay method
   autoPlay() {
     if (!this.scene.startTime || this.scene.isPaused) return;
@@ -125,31 +172,34 @@ class Player {
       const closestNote = this.notes.find(n => 
         !n.hit && 
         n.column === column && 
-        n.type === "1" && 
-        n.beat - beat <= 0.005
+        n.type === "1"
       );
       
-      if (closestNote && !this.inputStates[column]) {
-        // Simulate perfect input - press and immediately release
-        this.handleInput(column, true);
-        this.handleInput(column, false);
+      if (closestNote) {
+        const noteTime = closestNote.sec;
+        const timeDelta = noteTime - now;
+        const absTimeDelta = Math.abs(timeDelta);
+        
+        // Check if note is within marvelous window (convert to seconds)
+        if (absTimeDelta <= (this.scene.JUDGE_WINDOWS.marvelous / 1000) && !this.inputStates[column]) {
+          // Simulate perfect input - press and immediately release
+          this.handleInput(column, true);
+          this.handleInput(column, false);
+        }
       }
     }
     
     // Process freezes for auto-play
     for (let column = 0; column < 4; column++) {
-      const holdNote = this.notes.find(n => 
-        (n.type === "2" || n.type === "4") && 
-        n.column === column && 
-        !n.hit && 
-        !n.holdActive && // Only process if not already active
-        Math.abs(n.beat - beat) <= this.scene.JUDGE_WINDOWS.marvelous
-      );
+      const holdNote = this.findClosestNote(column, beat, ["2", "4"]);
       
       if (holdNote && !this.autoplayActiveHolds.has(column)) {
-        // Start hold
-        this.handleInput(column, true);
-        this.autoplayActiveHolds.add(column);
+        const delta = Math.abs(holdNote.beat - beat);
+        if (delta <= this.scene.JUDGE_WINDOWS.marvelous) {
+          // Start hold
+          this.handleInput(column, true);
+          this.autoplayActiveHolds.add(column);
+        }
       }
       
       // Check if we should release completed holds
@@ -214,71 +264,90 @@ class Player {
   }
   
   checkRegularNotes(column, now, beat) {
-    const closestNote = this.notes.find(n => !n.hit && n.column === column && n.type === "1" && Math.abs(n.beat - beat) <= this.scene.JUDGE_WINDOWS.boo);
-
-    if (closestNote && this.lastNoteCheckBeats[column] !== beat) {
-      const delta = Math.abs(closestNote.beat - beat);
-      const judgement = this.getJudgement(delta);
-
-      this.createExplosion(closestNote);
-      closestNote.sprite?.destroy();
-      !closestNote.hit && this.processJudgement(closestNote, judgement, column);
-      closestNote.hit = true;
-
-      this.lastNoteCheckBeats[column] = beat;
-      
-      return true;
-    } else {
-      return false;
+    const closestNote = this.findClosestNote(column, beat, ["1"]);
+    
+    if (closestNote) {
+      return this.processNoteIfInWindow(closestNote, now, column, (note, timeDelta) => {
+        console.log("Time delta:", timeDelta * 1000, "ms");
+        const judgement = this.getJudgement(timeDelta);
+  
+        this.createExplosion(note);
+        note.sprite?.destroy();
+        !note.hit && this.processJudgement(note, judgement, column);
+        note.hit = true;
+      });
     }
+    return false;
   }
 
   checkMines(column, now, beat) {
-    const mineNote = this.notes.find(n => n.type === "M" && n.column === column && !n.hit && Math.abs(n.beat - beat) <= this.scene.JUDGE_WINDOWS.marvelous);
-
-    if (mineNote) {
-      this.createExplosion(mineNote, "mine");
-      mineNote.hit = true;
-      mineNote.sprite?.destroy();
+    // Find mine notes that are very close to the current beat (at judgment line)
+    const mineNotes = this.notes.filter(n => 
+      !n.hit && 
+      n.column === column && 
+      n.type === "M" && 
+      Math.abs(n.beat - beat) <= 0.1 // Small beat window
+    );
+  
+    let hitMine = false;
+    
+    for (const mineNote of mineNotes) {
+      // Double-check using the renderer's position calculation
+      const { yPos } = this.renderer.calculateVerticalPosition(mineNote, now, beat);
+      const judgmentLine = this.renderer.JUDGE_LINE;
       
-      // Apply mine damage reduction from skills
-      const mineDamageMultiplier = this.skillSystem ? this.skillSystem.getMineDamageMultiplier() : 1.0;
-      const damage = Math.floor(10 * mineDamageMultiplier);
-      
-      this.health = Math.max(0, this.health - damage);
-      this.combo = 0;
-      
-      // Trigger mine hit skill activation
-      if (this.skillSystem) {
-        this.skillSystem.checkSkillActivation('on_mine_hit', {});
+      if (Math.abs(yPos - judgmentLine) <= 12) { // 12 pixel tolerance
+        this.triggerMine(mineNote);
+        hitMine = true;
       }
+    }
+    
+    return hitMine;
+  }
+  
+  triggerMine(mineNote) {
+    this.createExplosion(mineNote, "mine");
+    mineNote.hit = true;
+    mineNote.sprite?.destroy();
+    
+    // Apply mine damage reduction from skills
+    const mineDamageMultiplier = this.skillSystem ? this.skillSystem.getMineDamageMultiplier() : 1.0;
+    const damage = Math.floor(10 * mineDamageMultiplier);
+    
+    this.health = Math.max(0, this.health - damage);
+    this.combo = 0;
+    
+    // Trigger mine hit skill activation
+    if (this.skillSystem) {
+      this.skillSystem.checkSkillActivation('on_mine_hit', {});
     }
   }
 
   checkHoldStart(column, now, beat) {
-    const holdNote = this.notes.find(n => (n.type === "2" || n.type === "4") && n.column === column && !n.hit && Math.abs(n.beat - beat) <= this.scene.JUDGE_WINDOWS.boo);
-
-    if (holdNote && this.lastNoteCheckBeats[column] !== beat) {
-      const delta = Math.abs(holdNote.beat - beat);
-      const judgement = this.getJudgement(delta);
-      
-      this.processJudgement(holdNote, judgement, column);
-      
-      this.activeHolds[column] = {
-        note: holdNote,
-        startTime: now,
-        progress: 0,
-        tapped: 0,
-        pressCount: 0,
-        active: true,
-        inactive: false,
-        lastPress: now,
-        lastRelease: null,
-        lastTap: now
-      };
-      holdNote.holdActive = true;
-      
-      this.toggleHoldExplosion(column, true);
+    const closestHold = this.findClosestNote(column, beat, ["2", "4"]);
+    
+    if (closestHold) {
+      this.processNoteIfInWindow(closestHold, now, column, (note, timeDelta) => {
+        const judgement = this.getJudgement(timeDelta);
+        
+        this.processJudgement(note, judgement, column);
+        
+        this.activeHolds[column] = {
+          note: note,
+          startTime: now,
+          progress: 0,
+          tapped: 0,
+          pressCount: 0,
+          active: true,
+          inactive: false,
+          lastPress: now,
+          lastRelease: null,
+          lastTap: now
+        };
+        note.holdActive = true;
+        
+        this.toggleHoldExplosion(column, true);
+      });
     }
   }
 
@@ -330,14 +399,16 @@ class Player {
     return baseForgiveness * multiplier;
   }
 
-  getJudgement(delta) {
-    this.timingStory.push(delta);
+  getJudgement(timeDelta) {
+    this.timingStory.push(timeDelta);
     
-    // Use adjusted judgement windows
+    // Use adjusted judgement windows (now in milliseconds)
     const judgeWindows = this.getAdjustedJudgementWindows();
     
+    const absTimeDelta = Math.abs(timeDelta * 1000); // Convert to milliseconds
+    
     for (const [judgement, window] of Object.entries(judgeWindows)) {
-      if (delta <= window) {
+      if (absTimeDelta <= window) {
         // Update perfect streak
         if (judgement === 'marvelous' || judgement === 'perfect') {
           this.perfectStreak++;
@@ -349,7 +420,7 @@ class Player {
     }
     return "miss";
   }
-  
+    
   processJudgement(note, judgement, column, type = "normal") {
     // Check for combo shield before processing miss
     if (judgement === "miss" && this.comboShieldActive) {
@@ -451,7 +522,7 @@ class Player {
     
     const weights = {
       marvelous: 1.0,
-      perfect: 1.0,
+      perfect: 0.9,
       great: 0.8,
       good: 0.5,
       boo: 0.25,
@@ -481,9 +552,9 @@ class Player {
     this.accuracy = Phaser.Math.clamp(this.accuracy, 0, 100);
     
     // Update accuracy bar in HUD if it exists
-    if (this.scene.acurracyBar) {
+    if (this.scene.accuracyBar) {
       const accuracyWidth = Math.floor(Math.max(1, (this.accuracy / 100) * 150));
-      this.scene.acurracyBar.crop(new Phaser.Rectangle(0, 0, accuracyWidth, 2));
+      this.scene.accuracyBar.crop(new Phaser.Rectangle(0, 0, accuracyWidth, 2));
     }
   }
 
@@ -610,15 +681,16 @@ class Player {
     // Input handling
     if (!this.autoplay) {
       Object.keys(this.keymap).forEach(key => {
-      if (gamepad.pressed[key]) this.handleInput(this.keymap[key], true);
-      else if (gamepad.released[key]) this.handleInput(this.keymap[key], false);
+        if (gamepad.pressed[key]) this.handleInput(this.keymap[key], true);
+        else if (gamepad.released[key]) this.handleInput(this.keymap[key], false);
+      });
+      
+      // Check mines for currently pressed columns
       for (let column = 0; column < 4; column++) {
-        let pressed = this.inputStates[column];
-        if (pressed) {
+        if (this.inputStates[column]) {
           this.checkMines(column, now, beat);
         }
       }
-    });
     } else {
       this.autoPlay();
     }
@@ -663,11 +735,11 @@ class Player {
       this.healthText.write(this.health.toString());
     }
     this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
-    if (this.scene.acurracyBar) {
+    if (this.scene.accuracyBar) {
       if (this.accuracy <= 0) {
-        this.scene.acurracyBar.visible = false;
+        this.scene.accuracyBar.visible = false;
       } else {
-        this.scene.acurracyBar.visible = true;
+        this.scene.accuracyBar.visible = true;
       }
     }
 

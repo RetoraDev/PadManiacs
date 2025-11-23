@@ -142,8 +142,8 @@ class Play {
     this.judgementText = new Text(game.width / 2, 60, "", FONTS.shaded);
     this.judgementText.anchor.set(0.5);
     
-    this.acurracyBar = game.add.sprite(41, 108, "ui_acurracy_bar");
-    this.hud.addChild(this.acurracyBar);
+    this.accuracyBar = game.add.sprite(41, 108, "ui_accuracy_bar");
+    this.hud.addChild(this.accuracyBar);
     
     this.comboText = new Text(191, 106, "0", FONTS.combo);
     this.comboText.anchor.set(1);
@@ -165,7 +165,7 @@ class Play {
 
     // Create new visualizer based on setting
     switch (this.visualizerType) {
-      case 'ACURRACY':
+      case 'ACCURACY':
         this.visualizer = new AccuracyVisualizer(this, visualizerX, visualizerY, visualizerWidth, visualizerHeight);
         break;
       case 'AUDIO':

@@ -110,8 +110,8 @@ class Boot {
         frameHeight: 2
       },
       {
-        key: "ui_acurracy_bar",
-        url: "ui/acurracy_bar.png"
+        key: "ui_accuracy_bar",
+        url: "ui/accuracy_bar.png"
       },
       {
         key: "ui_jukebox_pause_toggle",
