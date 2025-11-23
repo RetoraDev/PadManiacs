@@ -141,7 +141,7 @@ class MainMenu {
         index = 2;
       }
       
-      const visualizerOptions = ['NONE', 'BPM', 'ACURRACY', 'AUDIO'];
+      const visualizerOptions = ['NONE', 'BPM', 'ACCURACY', 'AUDIO'];
       const currentVisualizer = Account.settings.visualizer || 'NONE';
       const currentVisualizerIndex = visualizerOptions.indexOf(currentVisualizer);
       

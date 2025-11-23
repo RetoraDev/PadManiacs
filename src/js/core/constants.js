@@ -35,11 +35,11 @@ const DEFAULT_SONG_FOLDERS = [
 ];
 
 const JUDGE_WINDOWS = {
-  marvelous: 0.20,
-  perfect: 0.22,
-  great: 0.24,
-  good: 0.27,
-  boo: 0.30
+  marvelous: 33,      // ~22.5ms (extended to ~33ms in PadManiacs)
+  perfect: 45,        // 45ms  
+  great: 90,          // 90ms
+  good: 135,          // 135ms
+  boo: 180            // 180ms
 };
 
 const SCORE_VALUES = {
