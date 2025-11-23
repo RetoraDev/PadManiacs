@@ -367,11 +367,17 @@ class Play {
       accuracy: this.player.accuracy,
       maxCombo: this.player.maxCombo,
       judgements: { ...this.player.judgementCounts },
-      skillsUsed: this.skillSystem.getSkillsUsed()
+      skillsUsed: this.skillSystem.getSkillsUsed(),
+      difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
     };
     
-    // Level up character and take experience gain
-    const expGain = this.autoplay ? 0 : this.characterManager.updateCharacterStats(gameResults);
+    // Calculate experience gain (0 if autoplay is enabled)
+    const expGain = this.autoplay ? 0 : this.characterManager.calculateExperienceGain(gameResults);
+    
+    // Update character with experience and stats
+    if (!this.autoplay) {
+      this.characterManager.updateCharacterStats(gameResults, expGain);
+    }
     
     // Pass game data to Results state
     const gameData = {
@@ -379,7 +385,8 @@ class Play {
       difficultyIndex: this.difficultyIndex,
       character: this.currentCharacter,
       player: this.player,
-      expGain, expGain
+      expGain: expGain,
+      gameResults: gameResults
     };
     
     game.state.start("Results", true, false, gameData);
