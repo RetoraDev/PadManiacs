@@ -35,10 +35,10 @@ const DEFAULT_SONG_FOLDERS = [
 ];
 
 const JUDGE_WINDOWS = {
-  marvelous: 44,      // ~22.5ms (extended to 44ms)
-  perfect: 60,        // 45ms (extended to 60ms)  
-  great: 90,          // 90ms
-  good: 135,          // 135ms
+  marvelous: 55,      // ~22.5ms (extended 55ms)
+  perfect: 75,        // 45ms (extended to 75ms)  
+  great: 99,          // 90ms (extended to 99ms)
+  good: 140,          // 135ms (extended to 140ms)
   boo: 180            // 180ms
 };
 
