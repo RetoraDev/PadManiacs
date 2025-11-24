@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.6 dev
- * Build: 11/24/2025, 4:54:35 PM
+ * Build: 11/24/2025, 5:03:59 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -48,10 +48,10 @@ const DEFAULT_SONG_FOLDERS = [
 ];
 
 const JUDGE_WINDOWS = {
-  marvelous: 44,      // ~22.5ms (extended to 44ms)
-  perfect: 60,        // 45ms (extended to 60ms)  
-  great: 90,          // 90ms
-  good: 135,          // 135ms
+  marvelous: 55,      // ~22.5ms (extended 55ms)
+  perfect: 75,        // 45ms (extended to 75ms)  
+  great: 99,          // 90ms (extended to 99ms)
+  good: 140,          // 135ms (extended to 140ms)
   boo: 180            // 180ms
 };
 
