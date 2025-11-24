@@ -99,13 +99,13 @@ class CharacterSkillSystem {
     // Notify what skill was used
     const x = 4;
     const y = 32;
-    const width = 40;
+    const width = 8 + skill.name.length * 4;
     const height = 8;
     const bgcolor = "rgba(44, 90, 198, 0.6)";
     
     const bitmap = game.add.bitmapData(width, height);
     
-    const gradient = bitmap.context.createLinearGradient(width, 0, 0, 0);
+    const gradient = bitmap.context.createLinearGradient(0, 0, width, 0);
     
     gradient.addColorStop(0, bgcolor);
     gradient.addColorStop(0.7, bgcolor);
