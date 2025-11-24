@@ -215,7 +215,6 @@ class CharacterManager {
   saveToAccount() {
     Account.characters.list = this.getCharacterList().map(char => char.toJSON());
     Account.characters.currentCharacter = this.currentCharacter ? this.currentCharacter.name : null;
-    console.log(Account.characters);
     saveAccount();
   }
 }
