@@ -5,7 +5,7 @@ class AchievementsMenu {
     new FuturisticLines();
     new BackgroundGradient();
     
-    this.navigationHint = new NavigationHint(1);
+    this.navigationHint = new NavigationHint(6);
     
     this.showingUnlocked = true;
     
@@ -25,7 +25,7 @@ class AchievementsMenu {
     const carouselWidth = game.width / 2;
     const carouselHeight = game.height - 12;
     
-    this.carousel = new CarouselMenu(0, 10, carouselWidth, carouselHeight, {
+    this.carousel = new CarouselMenu(0, 8, carouselWidth, carouselHeight, {
       bgcolor: '#9b59b6',
       fgcolor: '#ffffff',
       align: 'left',
