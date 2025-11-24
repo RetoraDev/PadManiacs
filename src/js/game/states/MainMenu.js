@@ -329,6 +329,8 @@ class MainMenu {
       if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) carousel.addItem("Addon Manager", () => this.addonManager());
       carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
       carousel.addItem("Jukebox", () => jukebox());
+      carousel.addItem("Player Stats", () => this.showStats());
+      carousel.addItem("Achievements", () => this.showAchievements());
       carousel.addItem("Credits", () => this.showCredits());
       game.onMenuIn.dispatch('extras', carousel);
       carousel.addItem("< Back", () => home());
@@ -576,6 +578,12 @@ class MainMenu {
     }
     
     showInstalledAddons();
+  }
+  showAchievements() {
+    game.state.start("AchievementsMenu");
+  }
+  showStats() {
+    game.state.start("StatsMenu");
   }
   showCredits() {
     game.state.start("Credits", true, false, "MainMenu");
