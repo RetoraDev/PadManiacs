@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.6 dev
- * Build: 11/23/2025, 2:00:59 AM
+ * Build: 11/24/2025, 2:02:24 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -98,10 +98,10 @@ const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 6,
   DEFAULT_CHARACTER: "EIRI",
   MAX_SKILL_LEVEL: 5,
-  EXPERIENCE_CURVE: level => Math.floor(10 * Math.pow(level, 1.2)),
-  SKILL_UNLOCK_CHANCE: 0.5,
-  HAIR_UNLOCK_CHANCE: 0.4,
-  ITEM_UNLOCK_CHANCE: 0.3,
+  EXPERIENCE_CURVE: level => Math.floor(5 * Math.pow(level, 1.2)),
+  SKILL_UNLOCK_CHANCE: 0.7,
+  HAIR_UNLOCK_CHANCE: 0.5,
+  ITEM_UNLOCK_CHANCE: 0.4,
   SKILL_LEVEL_UP_CHANCE: 0.5,
   MIN_LEVEL_FOR_SKILL: 4,
   MIN_LEVEL_FOR_HAIR: 1,

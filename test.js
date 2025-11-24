@@ -1,4 +1,4 @@
-const curve = level => Math.floor(10 * Math.pow(level, 1.2));
+const curve = level => Math.floor(5 * Math.pow(level, 1.2));
 
 const levelsToPrint = 25;
 
@@ -10,18 +10,8 @@ function printLevels() {
   }
 }
 
-function printSkillUnlockChances() {
-  console.log('Printing skill unlock chances');
-  
-  let attempts = 20;
-  while(attempts--) {
-    let dice = Math.random();
-    console.log(' ', 20 - attempts, '→', dice.toFixed(2), 0.5 < dice ? "✓" : "");
-  }
-}
-
 async function main() {
-  printSkillUnlockChances();
+  printLevels();
 }
 
 main();

@@ -146,7 +146,6 @@ class NotificationSystem {
 
   processPendingNotifications() {
     if (this.queue.length > 0 && !this.isShowing) {
-      console.log(`📢 Processing ${this.queue.length} pending notifications`);
       this.processNext();
     }
   }
@@ -156,7 +155,6 @@ class NotificationSystem {
     const stateName = currentState?.constructor?.name || '';
     
     if (!this.isStateAllowed(stateName)) {
-      console.log(`📢 Processing blocked in restricted state: ${stateName}`);
       return;
     }
     
@@ -169,7 +167,6 @@ class NotificationSystem {
     const notification = this.queue.shift();
     this.currentNotification = notification;
 
-    console.log(`📢 Showing notification: "${notification.originalText}"`);
     this.displayNotification(notification.text);
 
     game.time.events.add(notification.duration, () => {
@@ -196,7 +193,6 @@ class NotificationSystem {
       const stateName = currentState?.constructor?.name || '';
       
       if (!this.isStateAllowed(stateName)) {
-        console.log(`📢 Restore blocked in restricted state: ${stateName}`);
         return;
       }
       
