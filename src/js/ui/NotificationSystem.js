@@ -48,7 +48,7 @@ class NotificationSystem {
   }
 
   // Main show method for regular text notifications
-  show(text, duration = 3000) {
+  show(text, duration = 2000) {
     const currentState = game.state.getCurrentState();
     const stateName = currentState?.constructor?.name || '';
     
@@ -76,8 +76,8 @@ class NotificationSystem {
     this.queue.push({
       type: 'achievement',
       text: `Achievement Unlocked!\n${achievement.name}\n${achievement.description.achieved}`,
-      duration: 4000, // Longer for achievements
-      endTime: Date.now() + 4000,
+      duration: 2500, // Longer for achievements
+      endTime: Date.now() + 2500,
       queuedInState: stateName
     });
     

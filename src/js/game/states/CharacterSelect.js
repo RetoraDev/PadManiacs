@@ -450,6 +450,8 @@ class CharacterSelect extends Phaser.State {
     let g = (color >> 8) & 0xff;
     let b = color & 0xff;
     
+    this.navigationHint.change(4);
+    
     const background = this.createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
 
@@ -491,12 +493,13 @@ class CharacterSelect extends Phaser.State {
           rgbText.destroy();
           background.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
+          this.navigationHint.change(0);
           this.showCustomizationMenu();
           return;
       }
       updateColor();
     };
-
+    
     gamepad.signals.pressed.any.add(colorHandler);
   }
 
@@ -921,17 +924,21 @@ class CharacterSelect extends Phaser.State {
           rgbText.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
           callback();
+          this.navigationHint.change(0);
           return;
         case "select":
           // Go back to navigation
           rgbText.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
+          this.navigationHint.change(0);
           this.showCreationNavigationMenu();
           return;
       }
       
       rgbText.write(updateColor());
     };
+    
+    this.navigationHint.change(4);
     
     gamepad.signals.pressed.any.add(colorHandler);
   }
@@ -1079,9 +1086,14 @@ class CharacterSelect extends Phaser.State {
       this.creationText.destroy();
       this.creationText = null;
     }
+    if (this.creationWindow) {
+      this.creationWindow.visible = false;
+    }
     
     const nameText = new Text(96, 80, "ENTER CHARACTER NAME", FONTS.shaded);
     nameText.anchor.set(0.5);
+    
+    this.navigationHint.change(5);
     
     new TextInput(
       "",
@@ -1092,7 +1104,7 @@ class CharacterSelect extends Phaser.State {
         if (newChar) {
           this.selectedCharacter = newChar;
           nameText.destroy();
-          instructionText.destroy();
+          this.navigationHint.change(0);
           
           // Clean up temporary display
           if (this.tempCharacterDisplay) {
@@ -1104,6 +1116,7 @@ class CharacterSelect extends Phaser.State {
           this.showHomeUI();
         } else {
           notifications.show("Character name already exists");
+          this.navigationHint.change(0);
           // Retry naming
           this.creationNameCharacter(callback);
         }
@@ -1111,6 +1124,7 @@ class CharacterSelect extends Phaser.State {
       () => {
         // Cancel creation
         nameText.destroy();
+        this.navigationHint.change(0);
         this.cancelCharacterCreation();
       }
     );
