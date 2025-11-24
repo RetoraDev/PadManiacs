@@ -33,7 +33,22 @@ class Play {
       title: song.chart.title,
       artist: song.chart.artist,
       sampleStart: song.chart.sampleStart || 0,
-      isExternal: song.chart.files !== undefined // Flag for external songs
+      isExternal: song.chart.files !== undefined, // Flag for external songs
+      score: 0,
+      accuracy: 0,
+      maxCombo: 0,
+      judgements: {
+        marvelous: 0,
+        perfect: 0,
+        great: 0,
+        good: 0,
+        boo: 0,
+        miss: 0
+      },
+      totalNotes: 0,
+      skillsUsed: 0,
+      difficultyRating: song.chart.difficulties[song.difficultyIndex].rating,
+      complete: false
     };
     saveAccount();
     
@@ -369,10 +384,15 @@ class Play {
       score: this.player.score,
       accuracy: this.player.accuracy,
       maxCombo: this.player.maxCombo,
+      complete: true,
       judgements: { ...this.player.judgementCounts },
+      totalNotes: this.song.chart.notes.length,
       skillsUsed: this.skillSystem.getSkillsUsed(),
       difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
     };
+    
+    // Save last song details
+    Object.asign(Account.lastSong, gameResults);
     
     // Calculate experience gain (0 if autoplay is enabled)
     const expGain = this.autoplay ? 0 : this.characterManager.calculateExperienceGain(gameResults);
@@ -405,6 +425,10 @@ class Play {
     Account.stats.totalGamesPlayed++;
     Account.stats.totalScore += this.player.score;
     Account.stats.maxCombo = Math.max(Account.stats.maxCombo, this.player.maxCombo);
+    
+    const difficultyType = this.song.chart.difficulties[this.song.difficultyIndex].type;
+    
+    Account.stats[`total${difficultyType}GamesPlayed`] += 1;
     
     if (this.player.accuracy >= 100) {
       Account.stats.perfectGames++;

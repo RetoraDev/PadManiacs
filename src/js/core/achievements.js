@@ -24,7 +24,7 @@ const ACHIEVEMENT_CATEGORIES = {
 
 // Achievement definitions
 const ACHIEVEMENT_DEFINITIONS = [
-  // ===== GAMEPLAY ACHIEVEMENTS (30) =====
+  // Gameplay Achievements
   {
     id: "first_game",
     name: "First Steps",
@@ -38,87 +38,75 @@ const ACHIEVEMENT_DEFINITIONS = [
     hidden: false
   },
   {
-    id: "combo_10",
-    name: "Getting the Rhythm",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Reach 10 combo",
-      achieved: "You reached 10 combo!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.maxCombo >= 10,
-    hidden: false
-  },
-  {
-    id: "combo_25",
-    name: "Chain Starter",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Reach 25 combo",
-      achieved: "You reached 25 combo!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.maxCombo >= 25,
-    hidden: false
-  },
-  {
-    id: "combo_50",
-    name: "Combo Builder",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Reach 50 combo",
-      achieved: "You reached 50 combo!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.maxCombo >= 50,
-    hidden: false
-  },
-  {
     id: "combo_100",
-    name: "Chain Master",
+    name: "Getting the Rhythm",
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
       unachieved: "Reach 100 combo",
       achieved: "You reached 100 combo!"
     },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: (stats) => stats.maxCombo >= 100,
     hidden: false
   },
   {
-    id: "combo_250",
-    name: "Rhythm Savant",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Reach 250 combo",
-      achieved: "You reached 250 combo!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.maxCombo >= 250,
-    hidden: false
-  },
-  {
     id: "combo_500",
-    name: "Unbreakable Chain",
+    name: "Combo Builder",
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
       unachieved: "Reach 500 combo",
       achieved: "You reached 500 combo!"
     },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: (stats) => stats.maxCombo >= 500,
     hidden: false
   },
   {
     id: "combo_1000",
-    name: "Perfect Flow",
+    name: "Chain Master",
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
       unachieved: "Reach 1000 combo",
       achieved: "You reached 1000 combo!"
     },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: (stats) => stats.maxCombo >= 1000,
+    hidden: false
+  },
+  {
+    id: "combo_1500",
+    name: "Rhythm Savant",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Reach 1500 combo",
+      achieved: "You reached 1500 combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.maxCombo >= 1500,
+    hidden: false
+  },
+  {
+    id: "combo_2000",
+    name: "Unbreakable Chain",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Reach 2000 combo",
+      achieved: "You reached 2000 combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.maxCombo >= 2000,
+    hidden: false
+  },
+  {
+    id: "combo_3000",
+    name: "Perfect Flow",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Reach 3000 combo",
+      achieved: "You reached 3000 combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.maxCombo >= 3000,
     hidden: false
   },
   {
@@ -158,63 +146,39 @@ const ACHIEVEMENT_DEFINITIONS = [
     hidden: false
   },
   {
-    id: "marvelous_50",
+    id: "marvelous_500",
     name: "Marvelous Master",
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 50 Marvelous judgements in one game",
-      achieved: "You got 50 Marvelous judgements!"
+      unachieved: "Get 500 Marvelous judgements in one game",
+      achieved: "You got 500 Marvelous judgements!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.maxMarvelousInGame >= 50,
+    condition: (stats) => stats.maxMarvelousInGame >= 500,
     hidden: false
   },
   {
-    id: "marvelous_100",
+    id: "marvelous_1000",
     name: "Precision Expert",
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 100 Marvelous judgements in one game",
-      achieved: "You got 100 Marvelous judgements!"
+      unachieved: "Get 1000 Marvelous judgements in one game",
+      achieved: "You got 1000 Marvelous judgements!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.maxMarvelousInGame >= 100,
+    condition: (stats) => stats.maxMarvelousInGame >= 1000,
     hidden: false
   },
   {
-    id: "marvelous_250",
+    id: "marvelous_1500",
     name: "Timing Virtuoso",
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 250 Marvelous judgements in one game",
-      achieved: "You got 250 Marvelous judgements!"
+      unachieved: "Get 1500 Marvelous judgements in one game",
+      achieved: "You got 1500 Marvelous judgements!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.maxMarvelousInGame >= 250,
-    hidden: false
-  },
-  {
-    id: "no_miss_game",
-    name: "No Mistakes",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Complete a song without any misses",
-      achieved: "You completed a song without any misses!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.perfectGames >= 1,
-    hidden: false
-  },
-  {
-    id: "full_combo",
-    name: "Full Combo",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Maintain combo through entire song",
-      achieved: "You maintained combo through entire song!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.perfectGames >= 1,
+    condition: (stats) => stats.maxMarvelousInGame >= 1500,
     hidden: false
   },
   {
@@ -226,31 +190,8 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You got only Marvelous judgements in a song!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (_, song) => song.judgements.marvelous >= song.totalNotes,
     condition: (stats) => stats.perfectGames >= 1 && stats.maxMarvelousInGame >= 50,
-    hidden: false
-  },
-  {
-    id: "first_100k",
-    name: "Six Figures",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Score 100,000 points in one game",
-      achieved: "You scored 100,000 points in one game!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalScore >= 100000,
-    hidden: false
-  },
-  {
-    id: "first_500k",
-    name: "Half Million",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Score 500,000 points in one game",
-      achieved: "You scored 500,000 points in one game!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalScore >= 500000,
     hidden: false
   },
   {
@@ -262,7 +203,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You scored 1,000,000 points in one game!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalScore >= 1000000,
+    condition: (_, song) => song.score >= 1000000,
     hidden: false
   },
   {
@@ -274,7 +215,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You achieved 90% accuracy in a song!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.perfectGames >= 1,
+    condition: (_, song) => song.accuracy >= 90,
     hidden: false
   },
   {
@@ -286,7 +227,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You achieved 95% accuracy in a song!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.perfectGames >= 1,
+    condition: (_, song) => song.accuracy >= 95,
     hidden: false
   },
   {
@@ -298,7 +239,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You achieved 99% accuracy in a song!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.perfectGames >= 1,
+    condition: (_, song) => song.accuracy >= 99,
     hidden: false
   },
   {
@@ -310,7 +251,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed a song without any Boo judgements!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.perfectGames >= 1,
+    condition: (_, song) => song.complete && song.judgements.boo <= 0,
     hidden: false
   },
   {
@@ -322,55 +263,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You got only Marvelous and Perfect judgements!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.perfectGames >= 1,
-    hidden: false
-  },
-  {
-    id: "first_hold",
-    name: "Hold It!",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Complete your first hold note",
-      achieved: "You completed your first hold note!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalNotesHit >= 10,
-    hidden: false
-  },
-  {
-    id: "first_roll",
-    name: "Rolling Start",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Complete your first roll note",
-      achieved: "You completed your first roll note!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalNotesHit >= 20,
-    hidden: false
-  },
-  {
-    id: "mine_dodger",
-    name: "Mine Dodger",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Avoid 10 mines in one song",
-      achieved: "You avoided 10 mines in one song!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 5,
-    hidden: false
-  },
-  {
-    id: "mine_master",
-    name: "Mine Master",
-    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
-    description: {
-      unachieved: "Avoid 50 mines in one song",
-      achieved: "You avoided 50 mines in one song!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalGamesPlayed >= 10,
+    condition: (_, song) => song.complete && song.judgements.marvelous + song.judgements.perfect >= song.totalNotes,
     hidden: false
   },
   {
@@ -382,11 +275,11 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed a song on maximum note speed!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalGamesPlayed >= 15,
+    condition: (_, song) => song.complete && Account.settings.noteSpeedMult >= 6,
     hidden: false
   },
 
-  // ===== CHARACTER ACHIEVEMENTS (20) =====
+  // Character Achievements
   {
     id: "first_character",
     name: "New Identity",
@@ -628,7 +521,7 @@ const ACHIEVEMENT_DEFINITIONS = [
     hidden: false
   },
 
-  // ===== PROGRESSION ACHIEVEMENTS (20) =====
+  // Progression Achievements
   {
     id: "games_10",
     name: "Dedicated Player",
@@ -638,7 +531,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 10 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 10,
+    condition: (stats) => stats.totalGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -674,7 +567,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 100 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalGamesPlayed >= 100,
+    condition: (stats) => stats.totalGamesPlayed >= 250,
     hidden: false
   },
   {
@@ -870,7 +763,7 @@ const ACHIEVEMENT_DEFINITIONS = [
     hidden: false
   },
 
-  // ===== TIME ACHIEVEMENTS (15) =====
+  // Time Achievements
   {
     id: "time_1_hour",
     name: "Hour of Rhythm",
@@ -1052,7 +945,7 @@ const ACHIEVEMENT_DEFINITIONS = [
     hidden: true
   },
 
-  // ===== MASTERY ACHIEVEMENTS (15) =====
+  // Mastery Achievements
   {
     id: "all_difficulties",
     name: "Versatile Player",
@@ -1062,7 +955,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed songs on all difficulty types!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.difficultiesCompleted >= 5,
+    condition: (stats) => stats.totalBeginnerGamesPlayed && stats.totalEasyGamesPlayed && stats.totalMediumGamesPlayed && stats.totalHardGamesPlayed && stats.totalChallengeGamesPlayed && stats.totalEditGamesPlayed,
     hidden: false
   },
   {
@@ -1070,11 +963,11 @@ const ACHIEVEMENT_DEFINITIONS = [
     name: "Beginner Master",
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 10 Beginner difficulty songs",
-      achieved: "You completed 10 Beginner difficulty songs!"
+      unachieved: "Complete 25 Beginner difficulty charts",
+      achieved: "You completed 25 Beginner difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 10,
+    condition: (stats) => stats.totalBeginnerGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1082,11 +975,11 @@ const ACHIEVEMENT_DEFINITIONS = [
     name: "Easy Master",
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 10 Easy difficulty songs",
-      achieved: "You completed 10 Easy difficulty songs!"
+      unachieved: "Complete 25 Easy difficulty charts",
+      achieved: "You completed 25 Easy difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 15,
+    condition: (stats) => stats.totalEasyGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1094,11 +987,11 @@ const ACHIEVEMENT_DEFINITIONS = [
     name: "Medium Master",
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 10 Medium difficulty songs",
-      achieved: "You completed 10 Medium difficulty songs!"
+      unachieved: "Complete 25 Medium difficulty charts",
+      achieved: "You completed 25 Medium difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 20,
+    condition: (stats) => stats.totalMediumGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1106,11 +999,11 @@ const ACHIEVEMENT_DEFINITIONS = [
     name: "Hard Master",
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 10 Hard difficulty songs",
-      achieved: "You completed 10 Hard difficulty songs!"
+      unachieved: "Complete 25 Hard difficulty charts",
+      achieved: "You completed 25 Hard difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalGamesPlayed >= 25,
+    condition: (stats) => stats.totalHardGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1118,59 +1011,35 @@ const ACHIEVEMENT_DEFINITIONS = [
     name: "Challenge Master",
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 10 Challenge difficulty songs",
-      achieved: "You completed 10 Challenge difficulty songs!"
+      unachieved: "Complete 25 Challenge difficulty charts",
+      achieved: "You completed 25 Challenge difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalGamesPlayed >= 30,
+    condition: (stats) => stats.totalChallengeGamesPlayed >= 25,
+    hidden: false
+  },
+  {
+    id: "difficulty_11",
+    name: "Expert Player",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Complete a difficulty 11 chart",
+      achieved: "You completed a difficulty 11 chart!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (_, song) => song.complete && song.difficultyRating >= 11,
     hidden: false
   },
   {
     id: "difficulty_15",
-    name: "Expert Player",
+    name: "Master Player",
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
       unachieved: "Complete a difficulty 15 song",
       achieved: "You completed a difficulty 15 song!"
     },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalGamesPlayed >= 20,
-    hidden: false
-  },
-  {
-    id: "difficulty_20",
-    name: "Master Player",
-    category: ACHIEVEMENT_CATEGORIES.MASTERY,
-    description: {
-      unachieved: "Complete a difficulty 20 song",
-      achieved: "You completed a difficulty 20 song!"
-    },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalGamesPlayed >= 30,
-    hidden: false
-  },
-  {
-    id: "all_songs",
-    name: "Song Completionist",
-    category: ACHIEVEMENT_CATEGORIES.MASTERY,
-    description: {
-      unachieved: "Complete all available songs",
-      achieved: "You completed all available songs!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.totalGamesPlayed >= 50,
-    hidden: false
-  },
-  {
-    id: "perfect_all_songs",
-    name: "Perfect Completionist",
-    category: ACHIEVEMENT_CATEGORIES.MASTERY,
-    description: {
-      unachieved: "Perfect complete all songs",
-      achieved: "You perfect completed all songs!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.perfectGames >= 50,
+    condition: (_, song) => song.complete && song.difficultyRating >= 15,
     hidden: false
   },
   {
@@ -1195,42 +1064,6 @@ const ACHIEVEMENT_DEFINITIONS = [
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: (stats) => stats.maxSkillsInGame >= 10,
-    hidden: false
-  },
-  {
-    id: "skill_mastery",
-    name: "Skill Mastery",
-    category: ACHIEVEMENT_CATEGORIES.MASTERY,
-    description: {
-      unachieved: "Use every skill at least once",
-      achieved: "You used every skill at least once!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.skillsUnlocked >= 10,
-    hidden: false
-  },
-  {
-    id: "offset_master",
-    name: "Offset Master",
-    category: ACHIEVEMENT_CATEGORIES.MASTERY,
-    description: {
-      unachieved: "Perfect your global offset setting",
-      achieved: "You perfected your global offset setting!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 10,
-    hidden: false
-  },
-  {
-    id: "visualizer_master",
-    name: "Visualizer Master",
-    category: ACHIEVEMENT_CATEGORIES.MASTERY,
-    description: {
-      unachieved: "Try all visualizer types",
-      achieved: "You tried all visualizer types!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 5,
     hidden: false
   }
 ];

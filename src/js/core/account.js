@@ -36,6 +36,12 @@ const DEFAULT_ACCOUNT = {
   stats: {
     // Gameplay stats
     totalGamesPlayed: 0,
+    totalBeginnerGamesPlayed: 0,
+    totalEasyGamesPlayed: 0,
+    totalMediumGamesPlayed: 0,
+    totalHardGamesPlayed: 0,
+    totalChallengeGamesPlayed: 0,
+    totalEditGamesPlayed: 0,
     totalTimePlayed: 0, // in seconds
     totalScore: 0,
     maxCombo: 0,
@@ -78,7 +84,7 @@ const DEFAULT_ACCOUNT = {
     totalGreat: 0,
     totalGood: 0,
     totalBoo: 0,
-    totalMiss: 0
+    totalMiss: 0,
   },
   achievements: {
     unlocked: {},
