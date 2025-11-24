@@ -26,6 +26,10 @@ class Character {
     this.lastHairUnlockLevel = data.lastHairUnlockLevel || 0;
     this.lastItemUnlockLevel = data.lastItemUnlockLevel || 0;
   }
+  
+  getLastExperienceStoryEntry() {
+    return this.experienceStory.length ? this.experienceStory[this.experienceStory.length - 1] : null;
+  }
 
   addExperience(amount) {
     const storyEntry = {

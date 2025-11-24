@@ -26,6 +26,7 @@ class BuildSystem {
       'js/core/environment.js', 
       'js/core/character.js',
       'js/core/account.js',
+      'js/core/achievements.js',
       
       // Character System
       'js/character/Character.js',
@@ -35,6 +36,9 @@ class BuildSystem {
       'js/character/CharacterCloseShot.js',
       'js/character/CharacterManager.js',
       'js/character/CharacterSkillSystem.js',
+      
+      // Achievements System
+      'js/achievements/AchievementsManager.js',
       
       // UI Components
       'js/ui/Text.js',
@@ -94,6 +98,8 @@ class BuildSystem {
       'js/game/states/MainMenu.js',
       'js/game/states/SongSelect.js',
       'js/game/states/CharacterSelect.js',
+      'js/game/states/AchievementsMenu.js',
+      'js/game/states/StatsMenu.js',
       'js/game/states/Play.js',
       'js/game/states/Results.js',
       'js/game/states/Jukebox.js',

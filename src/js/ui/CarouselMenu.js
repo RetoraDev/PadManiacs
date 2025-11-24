@@ -8,6 +8,8 @@ class CarouselMenu extends Phaser.Sprite {
       bgcolor: '#3498db',
       fgcolor: '#ffffff',
       disableScrollBar: false,
+      disableConfirm: false,
+      disableCancel: false,
       inactiveAlpha: 0.4,
       activeAlpha: 0.9,
       ...config,
@@ -426,7 +428,7 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   confirm() {
-    if (this.items.length === 0 || this.isAnimating) return;
+    if (this.items.length === 0 || this.isAnimating || this.config.disableConfirm) return;
     
     const selectedItem = this.items[this.selectedIndex];
     this.inputEnabled = false;
@@ -513,7 +515,7 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   cancel() {
-    if (!this.isAnimating && this.onCancel.getNumListeners() > 0) {
+    if (!this.isAnimating && this.onCancel.getNumListeners() > 0 || this.config.disableCancel) {
       ENABLE_UI_SFX && Audio.play('ui_cancel');
       this.animateCancel(() => {
         this.onCancel.dispatch();

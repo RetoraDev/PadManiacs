@@ -32,6 +32,57 @@ const DEFAULT_ACCOUNT = {
     ]
   },
   lastSong: null,
-  highScores: {}
+  highScores: {},
+  stats: {
+    // Gameplay stats
+    totalGamesPlayed: 0,
+    totalTimePlayed: 0, // in seconds
+    totalScore: 0,
+    maxCombo: 0,
+    perfectGames: 0,
+    maxMarvelousInGame: 0,
+    
+    // Character stats
+    charactersCreated: 0,
+    maxCharacterLevel: 1,
+    skillsUnlocked: 0,
+    
+    // Progression stats
+    currentStreak: 0,
+    longestStreak: 0,
+    lastPlayedDate: null,
+    
+    // Mastery stats
+    difficultiesCompleted: 0,
+    highScoresSet: 0,
+    
+    // Time-based stats
+    totalPlaySessions: 0,
+    averageSessionTime: 0,
+    longestSession: 0, // in seconds
+    currentSessionStart: null,
+    
+    // Time achievement flags
+    playedAtNight: false,
+    playedEarlyMorning: false,
+    playedWeekend: false,
+    playedHoliday: false,
+    
+    // Miscellaneous stats
+    maxSkillsInGame: 0,
+    
+    // Detailed tracking
+    totalNotesHit: 0,
+    totalMarvelous: 0,
+    totalPerfect: 0,
+    totalGreat: 0,
+    totalGood: 0,
+    totalBoo: 0,
+    totalMiss: 0
+  },
+  achievements: {
+    unlocked: {},
+    progress: {}
+  }
 };
 

@@ -1,4 +1,4 @@
-let game, gamepad, backgroundMusic, notifications, addonManager;
+let game, gamepad, backgroundMusic, notifications, addonManager, sidebarNotifications, achievementsManager;
 
 let Account = {
   ...DEFAULT_ACCOUNT,

@@ -5,17 +5,20 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.6 dev
- * Build: 11/24/2025, 2:02:24 AM
+ * Build: 11/24/2025, 4:42:57 AM
  * Platform: Development
- * Debug: false
+ * Debug: true
  * Minified: false
  */
 
+
+
+// ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2025";
 
 const VERSION = "v0.0.6 dev";
 
-window.DEBUG = false;
+window.DEBUG = true;
 
 const FONTS = {
   default: { font: "font_tiny" },
@@ -64,6 +67,9 @@ const SCORE_VALUES = {
   miss: 0
 };
 
+
+
+// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -93,6 +99,9 @@ const ENABLE_ADDON_SAFE_MODE = true;
 const ENABLE_UI_SFX = false;
 const ENABLE_EXP_SFX = true;
 
+
+
+// ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 6,
@@ -755,6 +764,9 @@ const CHARACTER_ITEMS = {
   ]
 };
 
+
+
+// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
   settings: {
     volume: 3,
@@ -789,10 +801,1304 @@ const DEFAULT_ACCOUNT = {
     ]
   },
   lastSong: null,
-  highScores: {}
+  highScores: {},
+  stats: {
+    // Gameplay stats
+    totalGamesPlayed: 0,
+    totalTimePlayed: 0, // in seconds
+    totalScore: 0,
+    maxCombo: 0,
+    perfectGames: 0,
+    maxMarvelousInGame: 0,
+    
+    // Character stats
+    charactersCreated: 0,
+    maxCharacterLevel: 1,
+    skillsUnlocked: 0,
+    
+    // Progression stats
+    currentStreak: 0,
+    longestStreak: 0,
+    lastPlayedDate: null,
+    
+    // Mastery stats
+    difficultiesCompleted: 0,
+    highScoresSet: 0,
+    
+    // Time-based stats
+    totalPlaySessions: 0,
+    averageSessionTime: 0,
+    longestSession: 0, // in seconds
+    currentSessionStart: null,
+    
+    // Time achievement flags
+    playedAtNight: false,
+    playedEarlyMorning: false,
+    playedWeekend: false,
+    playedHoliday: false,
+    
+    // Miscellaneous stats
+    maxSkillsInGame: 0,
+    
+    // Detailed tracking
+    totalNotesHit: 0,
+    totalMarvelous: 0,
+    totalPerfect: 0,
+    totalGreat: 0,
+    totalGood: 0,
+    totalBoo: 0,
+    totalMiss: 0
+  },
+  achievements: {
+    unlocked: {},
+    progress: {}
+  }
 };
 
 
+
+
+// ======== js/core/achievements.js ========
+// Achievements system constants
+const ACHIEVEMENTS = {
+  MAX_VISIBLE_NOTIFICATIONS: 3,
+  NOTIFICATION_DURATION: 3000,
+  NOTIFICATION_DELAY: 100,
+  NOTIFICATION_SPACING: 1,
+  EXPERIENCE_VALUES: {
+    COMMON: 5,
+    UNCOMMON: 10,
+    RARE: 20,
+    EPIC: 35,
+    LEGENDARY: 64
+  }
+};
+
+// Achievement categories
+const ACHIEVEMENT_CATEGORIES = {
+  GAMEPLAY: 'Gameplay',
+  CHARACTER: 'Character',
+  PROGRESSION: 'Progression',
+  MASTERY: 'Mastery',
+  MISC: 'Miscellaneous'
+};
+
+// Achievement definitions
+const ACHIEVEMENT_DEFINITIONS = [
+  // ===== GAMEPLAY ACHIEVEMENTS (30) =====
+  {
+    id: "first_game",
+    name: "First Steps",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete your first game",
+      achieved: "You completed your first game!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.totalGamesPlayed >= 1,
+    hidden: false
+  },
+  {
+    id: "combo_10",
+    name: "Getting the Rhythm",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Reach 10 combo",
+      achieved: "You reached 10 combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.maxCombo >= 10,
+    hidden: false
+  },
+  {
+    id: "combo_25",
+    name: "Chain Starter",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Reach 25 combo",
+      achieved: "You reached 25 combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.maxCombo >= 25,
+    hidden: false
+  },
+  {
+    id: "combo_50",
+    name: "Combo Builder",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Reach 50 combo",
+      achieved: "You reached 50 combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.maxCombo >= 50,
+    hidden: false
+  },
+  {
+    id: "combo_100",
+    name: "Chain Master",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Reach 100 combo",
+      achieved: "You reached 100 combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.maxCombo >= 100,
+    hidden: false
+  },
+  {
+    id: "combo_250",
+    name: "Rhythm Savant",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Reach 250 combo",
+      achieved: "You reached 250 combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.maxCombo >= 250,
+    hidden: false
+  },
+  {
+    id: "combo_500",
+    name: "Unbreakable Chain",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Reach 500 combo",
+      achieved: "You reached 500 combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.maxCombo >= 500,
+    hidden: false
+  },
+  {
+    id: "combo_1000",
+    name: "Perfect Flow",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Reach 1000 combo",
+      achieved: "You reached 1000 combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.maxCombo >= 1000,
+    hidden: false
+  },
+  {
+    id: "perfect_game",
+    name: "Flawless Performance",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete a song with 100% accuracy",
+      achieved: "You completed a song with 100% accuracy!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.perfectGames >= 1,
+    hidden: false
+  },
+  {
+    id: "perfect_games_5",
+    name: "Consistent Perfection",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete 5 songs with 100% accuracy",
+      achieved: "You completed 5 songs with 100% accuracy!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.perfectGames >= 5,
+    hidden: false
+  },
+  {
+    id: "perfect_games_25",
+    name: "Perfection Master",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete 25 songs with 100% accuracy",
+      achieved: "You completed 25 songs with 100% accuracy!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.perfectGames >= 25,
+    hidden: false
+  },
+  {
+    id: "marvelous_50",
+    name: "Marvelous Master",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 50 Marvelous judgements in one game",
+      achieved: "You got 50 Marvelous judgements!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.maxMarvelousInGame >= 50,
+    hidden: false
+  },
+  {
+    id: "marvelous_100",
+    name: "Precision Expert",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 100 Marvelous judgements in one game",
+      achieved: "You got 100 Marvelous judgements!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.maxMarvelousInGame >= 100,
+    hidden: false
+  },
+  {
+    id: "marvelous_250",
+    name: "Timing Virtuoso",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 250 Marvelous judgements in one game",
+      achieved: "You got 250 Marvelous judgements!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.maxMarvelousInGame >= 250,
+    hidden: false
+  },
+  {
+    id: "no_miss_game",
+    name: "No Mistakes",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete a song without any misses",
+      achieved: "You completed a song without any misses!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.perfectGames >= 1,
+    hidden: false
+  },
+  {
+    id: "full_combo",
+    name: "Full Combo",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Maintain combo through entire song",
+      achieved: "You maintained combo through entire song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.perfectGames >= 1,
+    hidden: false
+  },
+  {
+    id: "all_marvelous",
+    name: "Absolute Precision",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get only Marvelous judgements in a song",
+      achieved: "You got only Marvelous judgements in a song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.perfectGames >= 1 && stats.maxMarvelousInGame >= 50,
+    hidden: false
+  },
+  {
+    id: "first_100k",
+    name: "Six Figures",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Score 100,000 points in one game",
+      achieved: "You scored 100,000 points in one game!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.totalScore >= 100000,
+    hidden: false
+  },
+  {
+    id: "first_500k",
+    name: "Half Million",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Score 500,000 points in one game",
+      achieved: "You scored 500,000 points in one game!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.totalScore >= 500000,
+    hidden: false
+  },
+  {
+    id: "first_million",
+    name: "Millionaire",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Score 1,000,000 points in one game",
+      achieved: "You scored 1,000,000 points in one game!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.totalScore >= 1000000,
+    hidden: false
+  },
+  {
+    id: "accuracy_90",
+    name: "A Grade",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Achieve 90% accuracy in a song",
+      achieved: "You achieved 90% accuracy in a song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.perfectGames >= 1,
+    hidden: false
+  },
+  {
+    id: "accuracy_95",
+    name: "S Grade",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Achieve 95% accuracy in a song",
+      achieved: "You achieved 95% accuracy in a song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.perfectGames >= 1,
+    hidden: false
+  },
+  {
+    id: "accuracy_99",
+    name: "SS Grade",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Achieve 99% accuracy in a song",
+      achieved: "You achieved 99% accuracy in a song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.perfectGames >= 1,
+    hidden: false
+  },
+  {
+    id: "no_boo_game",
+    name: "Clean Play",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete a song without any Boo judgements",
+      achieved: "You completed a song without any Boo judgements!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.perfectGames >= 1,
+    hidden: false
+  },
+  {
+    id: "only_perfect_plus",
+    name: "Perfect+ Only",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get only Marvelous and Perfect judgements",
+      achieved: "You got only Marvelous and Perfect judgements!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.perfectGames >= 1,
+    hidden: false
+  },
+  {
+    id: "first_hold",
+    name: "Hold It!",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete your first hold note",
+      achieved: "You completed your first hold note!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.totalNotesHit >= 10,
+    hidden: false
+  },
+  {
+    id: "first_roll",
+    name: "Rolling Start",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete your first roll note",
+      achieved: "You completed your first roll note!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.totalNotesHit >= 20,
+    hidden: false
+  },
+  {
+    id: "mine_dodger",
+    name: "Mine Dodger",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Avoid 10 mines in one song",
+      achieved: "You avoided 10 mines in one song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.totalGamesPlayed >= 5,
+    hidden: false
+  },
+  {
+    id: "mine_master",
+    name: "Mine Master",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Avoid 50 mines in one song",
+      achieved: "You avoided 50 mines in one song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.totalGamesPlayed >= 10,
+    hidden: false
+  },
+  {
+    id: "speed_challenge",
+    name: "Speed Demon",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete a song on maximum note speed",
+      achieved: "You completed a song on maximum note speed!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.totalGamesPlayed >= 15,
+    hidden: false
+  },
+
+  // ===== CHARACTER ACHIEVEMENTS (20) =====
+  {
+    id: "first_character",
+    name: "New Identity",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Create your first character",
+      achieved: "You created your first character!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.charactersCreated >= 1,
+    hidden: false
+  },
+  {
+    id: "character_collector",
+    name: "Character Collector",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Create 5 different characters",
+      achieved: "You created 5 different characters!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.charactersCreated >= 5,
+    hidden: false
+  },
+  {
+    id: "character_archivist",
+    name: "Character Archivist",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Create 10 different characters",
+      achieved: "You created 10 different characters!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.charactersCreated >= 10,
+    hidden: false
+  },
+  {
+    id: "character_level_5",
+    name: "Apprentice Dancer",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Reach character level 5",
+      achieved: "You reached character level 5!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.maxCharacterLevel >= 5,
+    hidden: false
+  },
+  {
+    id: "character_level_10",
+    name: "Seasoned Performer",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Reach character level 10",
+      achieved: "You reached character level 10!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.maxCharacterLevel >= 10,
+    hidden: false
+  },
+  {
+    id: "character_level_20",
+    name: "Experienced Artist",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Reach character level 20",
+      achieved: "You reached character level 20!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.maxCharacterLevel >= 20,
+    hidden: false
+  },
+  {
+    id: "character_level_30",
+    name: "Veteran Dancer",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Reach character level 30",
+      achieved: "You reached character level 30!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.maxCharacterLevel >= 30,
+    hidden: false
+  },
+  {
+    id: "character_level_50",
+    name: "Rhythm Legend",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Reach character level 50",
+      achieved: "You reached character level 50!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.maxCharacterLevel >= 50,
+    hidden: false
+  },
+  {
+    id: "first_skill",
+    name: "First Skill",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Unlock your first skill",
+      achieved: "You unlocked your first skill!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.skillsUnlocked >= 1,
+    hidden: false
+  },
+  {
+    id: "skill_collector",
+    name: "Skill Collector",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Unlock 5 different skills",
+      achieved: "You unlocked 5 different skills!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.skillsUnlocked >= 5,
+    hidden: false
+  },
+  {
+    id: "skill_master",
+    name: "Skill Master",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Unlock 10 different skills",
+      achieved: "You unlocked 10 different skills!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.skillsUnlocked >= 10,
+    hidden: false
+  },
+  {
+    id: "skill_grandmaster",
+    name: "Skill Grandmaster",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Unlock 20 different skills",
+      achieved: "You unlocked 20 different skills!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.skillsUnlocked >= 20,
+    hidden: false
+  },
+  {
+    id: "skill_legend",
+    name: "Skill Legend",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Unlock 30 different skills",
+      achieved: "You unlocked 30 different skills!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.skillsUnlocked >= 30,
+    hidden: false
+  },
+  {
+    id: "first_hair_style",
+    name: "New Look",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Unlock a new hair style",
+      achieved: "You unlocked a new hair style!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.charactersCreated >= 1,
+    hidden: false
+  },
+  {
+    id: "fashion_collector",
+    name: "Fashion Collector",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Unlock 5 different clothing items",
+      achieved: "You unlocked 5 different clothing items!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.charactersCreated >= 2,
+    hidden: false
+  },
+  {
+    id: "fashion_icon",
+    name: "Fashion Icon",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Unlock 10 different clothing items",
+      achieved: "You unlocked 10 different clothing items!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.charactersCreated >= 3,
+    hidden: false
+  },
+  {
+    id: "accessory_hunter",
+    name: "Accessory Hunter",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Unlock 5 different accessories",
+      achieved: "You unlocked 5 different accessories!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.charactersCreated >= 2,
+    hidden: false
+  },
+  {
+    id: "max_skill_level",
+    name: "Maxed Out",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Reach maximum skill level with a character",
+      achieved: "You reached maximum skill level with a character!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.maxCharacterLevel >= CHARACTER_SYSTEM.MAX_SKILL_LEVEL,
+    hidden: false
+  },
+  {
+    id: "character_perfection",
+    name: "Character Perfection",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Max out all character stats",
+      achieved: "You maxed out all character stats!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.maxCharacterLevel >= 50 && stats.skillsUnlocked >= 30,
+    hidden: false
+  },
+  {
+    id: "name_master",
+    name: "Name Master",
+    category: ACHIEVEMENT_CATEGORIES.CHARACTER,
+    description: {
+      unachieved: "Create a character with maximum name length",
+      achieved: "You created a character with maximum name length!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.charactersCreated >= 1,
+    hidden: false
+  },
+
+  // ===== PROGRESSION ACHIEVEMENTS (20) =====
+  {
+    id: "games_10",
+    name: "Dedicated Player",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Play 10 games",
+      achieved: "You played 10 games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.totalGamesPlayed >= 10,
+    hidden: false
+  },
+  {
+    id: "games_25",
+    name: "Regular Player",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Play 25 games",
+      achieved: "You played 25 games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.totalGamesPlayed >= 25,
+    hidden: false
+  },
+  {
+    id: "games_50",
+    name: "Rhythm Enthusiast",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Play 50 games",
+      achieved: "You played 50 games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.totalGamesPlayed >= 50,
+    hidden: false
+  },
+  {
+    id: "games_100",
+    name: "Addicted to Rhythm",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Play 100 games",
+      achieved: "You played 100 games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.totalGamesPlayed >= 100,
+    hidden: false
+  },
+  {
+    id: "games_250",
+    name: "Rhythm Addict",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Play 250 games",
+      achieved: "You played 250 games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.totalGamesPlayed >= 250,
+    hidden: false
+  },
+  {
+    id: "streak_3",
+    name: "Consistent Player",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Maintain a 3-day play streak",
+      achieved: "You maintained a 3-day play streak!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.currentStreak >= 3,
+    hidden: false
+  },
+  {
+    id: "streak_7",
+    name: "Weekly Warrior",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Maintain a 7-day play streak",
+      achieved: "You maintained a 7-day play streak!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.currentStreak >= 7,
+    hidden: false
+  },
+  {
+    id: "streak_14",
+    name: "Fortnight Fanatic",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Maintain a 14-day play streak",
+      achieved: "You maintained a 14-day play streak!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.currentStreak >= 14,
+    hidden: false
+  },
+  {
+    id: "streak_30",
+    name: "Monthly Master",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Maintain a 30-day play streak",
+      achieved: "You maintained a 30-day play streak!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.currentStreak >= 30,
+    hidden: false
+  },
+  {
+    id: "streak_90",
+    name: "Seasoned Veteran",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Maintain a 90-day play streak",
+      achieved: "You maintained a 90-day play streak!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.currentStreak >= 90,
+    hidden: false
+  },
+  {
+    id: "first_high_score",
+    name: "High Scorer",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Set your first high score",
+      achieved: "You set your first high score!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.highScoresSet >= 1,
+    hidden: false
+  },
+  {
+    id: "high_score_master",
+    name: "High Score Hunter",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Set 10 high scores",
+      achieved: "You set 10 high scores!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.highScoresSet >= 10,
+    hidden: false
+  },
+  {
+    id: "high_score_expert",
+    name: "High Score Expert",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Set 25 high scores",
+      achieved: "You set 25 high scores!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.highScoresSet >= 25,
+    hidden: false
+  },
+  {
+    id: "high_score_legend",
+    name: "High Score Legend",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Set 50 high scores",
+      achieved: "You set 50 high scores!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.highScoresSet >= 50,
+    hidden: false
+  },
+  {
+    id: "total_score_1m",
+    name: "Million Points",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Reach 1 million total score",
+      achieved: "You reached 1 million total score!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.totalScore >= 1000000,
+    hidden: false
+  },
+  {
+    id: "total_score_10m",
+    name: "Ten Million Points",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Reach 10 million total score",
+      achieved: "You reached 10 million total score!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.totalScore >= 10000000,
+    hidden: false
+  },
+  {
+    id: "total_score_100m",
+    name: "Hundred Million Points",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Reach 100 million total score",
+      achieved: "You reached 100 million total score!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.totalScore >= 100000000,
+    hidden: false
+  },
+  {
+    id: "notes_1000",
+    name: "Thousand Notes",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Hit 1000 notes total",
+      achieved: "You hit 1000 notes total!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.totalNotesHit >= 1000,
+    hidden: false
+  },
+  {
+    id: "notes_10000",
+    name: "Ten Thousand Notes",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Hit 10,000 notes total",
+      achieved: "You hit 10,000 notes total!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.totalNotesHit >= 10000,
+    hidden: false
+  },
+  {
+    id: "notes_100000",
+    name: "Hundred Thousand Notes",
+    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
+    description: {
+      unachieved: "Hit 100,000 notes total",
+      achieved: "You hit 100,000 notes total!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.totalNotesHit >= 100000,
+    hidden: false
+  },
+
+  // ===== TIME ACHIEVEMENTS (15) =====
+  {
+    id: "time_1_hour",
+    name: "Hour of Rhythm",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play for 1 hour total",
+      achieved: "You played for 1 hour total!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.totalTimePlayed >= 3600,
+    hidden: false
+  },
+  {
+    id: "time_5_hours",
+    name: "Rhythm Enthusiast",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play for 5 hours total",
+      achieved: "You played for 5 hours total!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.totalTimePlayed >= 18000,
+    hidden: false
+  },
+  {
+    id: "time_10_hours",
+    name: "Dedicated Dancer",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play for 10 hours total",
+      achieved: "You played for 10 hours total!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.totalTimePlayed >= 36000,
+    hidden: false
+  },
+  {
+    id: "time_24_hours",
+    name: "Rhythm Marathon",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play for 24 hours total",
+      achieved: "You played for 24 hours total!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.totalTimePlayed >= 86400,
+    hidden: false
+  },
+  {
+    id: "time_100_hours",
+    name: "Rhythm Master",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play for 100 hours total",
+      achieved: "You played for 100 hours total!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.totalTimePlayed >= 360000,
+    hidden: false
+  },
+  {
+    id: "session_30_min",
+    name: "Focused Session",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play a single session for 30 minutes",
+      achieved: "You played a single session for 30 minutes!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.longestSession >= 1800,
+    hidden: false
+  },
+  {
+    id: "session_1_hour",
+    name: "Extended Session",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play a single session for 1 hour",
+      achieved: "You played a single session for 1 hour!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.longestSession >= 3600,
+    hidden: false
+  },
+  {
+    id: "session_2_hours",
+    name: "Marathon Session",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play a single session for 2 hours",
+      achieved: "You played a single session for 2 hours!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.longestSession >= 7200,
+    hidden: false
+  },
+  {
+    id: "session_4_hours",
+    name: "Ultra Marathon",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play a single session for 4 hours",
+      achieved: "You played a single session for 4 hours!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.longestSession >= 14400,
+    hidden: false
+  },
+  {
+    id: "early_bird",
+    name: "Early Bird",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play between 5 AM and 9 AM",
+      achieved: "You played between 5 AM and 9 AM!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.playedEarlyMorning,
+    hidden: true
+  },
+  {
+    id: "night_owl",
+    name: "Night Owl",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play between midnight and 4 AM",
+      achieved: "You played between midnight and 4 AM!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.playedAtNight,
+    hidden: true
+  },
+  {
+    id: "weekend_warrior",
+    name: "Weekend Warrior",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play on a weekend",
+      achieved: "You played on a weekend!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.playedWeekend,
+    hidden: false
+  },
+  {
+    id: "holiday_player",
+    name: "Holiday Player",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play on a holiday",
+      achieved: "You played on a holiday!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.playedHoliday,
+    hidden: true
+  },
+  {
+    id: "new_years_player",
+    name: "New Year's Rhythm",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play on New Year's Day",
+      achieved: "You played on New Year's Day!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.playedHoliday,
+    hidden: true
+  },
+  {
+    id: "valentines_player",
+    name: "Valentine's Beat",
+    category: ACHIEVEMENT_CATEGORIES.TIME,
+    description: {
+      unachieved: "Play on Valentine's Day",
+      achieved: "You played on Valentine's Day!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.playedHoliday,
+    hidden: true
+  },
+
+  // ===== MASTERY ACHIEVEMENTS (15) =====
+  {
+    id: "all_difficulties",
+    name: "Versatile Player",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Complete songs on all difficulty types",
+      achieved: "You completed songs on all difficulty types!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.difficultiesCompleted >= 5,
+    hidden: false
+  },
+  {
+    id: "beginner_master",
+    name: "Beginner Master",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Complete 10 Beginner difficulty songs",
+      achieved: "You completed 10 Beginner difficulty songs!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.totalGamesPlayed >= 10,
+    hidden: false
+  },
+  {
+    id: "easy_master",
+    name: "Easy Master",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Complete 10 Easy difficulty songs",
+      achieved: "You completed 10 Easy difficulty songs!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.totalGamesPlayed >= 15,
+    hidden: false
+  },
+  {
+    id: "medium_master",
+    name: "Medium Master",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Complete 10 Medium difficulty songs",
+      achieved: "You completed 10 Medium difficulty songs!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.totalGamesPlayed >= 20,
+    hidden: false
+  },
+  {
+    id: "hard_master",
+    name: "Hard Master",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Complete 10 Hard difficulty songs",
+      achieved: "You completed 10 Hard difficulty songs!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.totalGamesPlayed >= 25,
+    hidden: false
+  },
+  {
+    id: "challenge_master",
+    name: "Challenge Master",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Complete 10 Challenge difficulty songs",
+      achieved: "You completed 10 Challenge difficulty songs!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.totalGamesPlayed >= 30,
+    hidden: false
+  },
+  {
+    id: "difficulty_15",
+    name: "Expert Player",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Complete a difficulty 15 song",
+      achieved: "You completed a difficulty 15 song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.totalGamesPlayed >= 20,
+    hidden: false
+  },
+  {
+    id: "difficulty_20",
+    name: "Master Player",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Complete a difficulty 20 song",
+      achieved: "You completed a difficulty 20 song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (stats) => stats.totalGamesPlayed >= 30,
+    hidden: false
+  },
+  {
+    id: "all_songs",
+    name: "Song Completionist",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Complete all available songs",
+      achieved: "You completed all available songs!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.totalGamesPlayed >= 50,
+    hidden: false
+  },
+  {
+    id: "perfect_all_songs",
+    name: "Perfect Completionist",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Perfect complete all songs",
+      achieved: "You perfect completed all songs!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: (stats) => stats.perfectGames >= 50,
+    hidden: false
+  },
+  {
+    id: "skill_spammer",
+    name: "Skill Spammer",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Use 5 skills in a single game",
+      achieved: "You used 5 skills in a single game!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.maxSkillsInGame >= 5,
+    hidden: false
+  },
+  {
+    id: "skill_expert",
+    name: "Skill Expert",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Use 10 skills in a single game",
+      achieved: "You used 10 skills in a single game!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.maxSkillsInGame >= 10,
+    hidden: false
+  },
+  {
+    id: "skill_mastery",
+    name: "Skill Mastery",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Use every skill at least once",
+      achieved: "You used every skill at least once!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: (stats) => stats.skillsUnlocked >= 10,
+    hidden: false
+  },
+  {
+    id: "offset_master",
+    name: "Offset Master",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Perfect your global offset setting",
+      achieved: "You perfected your global offset setting!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.totalGamesPlayed >= 10,
+    hidden: false
+  },
+  {
+    id: "visualizer_master",
+    name: "Visualizer Master",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Try all visualizer types",
+      achieved: "You tried all visualizer types!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.totalGamesPlayed >= 5,
+    hidden: false
+  }
+];
+
+
+
+// ======== js/character/Character.js ========
 class Character {
   constructor(data) {
     this.name = data.name;
@@ -820,6 +2126,10 @@ class Character {
     this.lastSkillLevelUp = data.lastSkillLevelUp || 0;
     this.lastHairUnlockLevel = data.lastHairUnlockLevel || 0;
     this.lastItemUnlockLevel = data.lastItemUnlockLevel || 0;
+  }
+  
+  getLastExperienceStoryEntry() {
+    return this.experienceStory.length ? this.experienceStory[this.experienceStory.length - 1] : null;
   }
 
   addExperience(amount) {
@@ -1034,6 +2344,9 @@ class Character {
   }
 }
 
+
+
+// ======== js/character/CharacterDisplay.js ========
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
@@ -1159,6 +2472,9 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/character/CharacterCroppedDisplay.js ========
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
@@ -1187,18 +2503,27 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
+
+
+// ======== js/character/CharacterPortrait.js ========
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
+
+
+// ======== js/character/CharacterCloseShot.js ========
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
+
+
+// ======== js/character/CharacterManager.js ========
 class CharacterManager {
   constructor() {
     this.characters = new Map();
@@ -1421,6 +2746,9 @@ class CharacterManager {
   }
 }
 
+
+
+// ======== js/character/CharacterSkillSystem.js ========
 class CharacterSkillSystem {
   constructor(scene, character) {
     this.scene = scene;
@@ -1522,13 +2850,13 @@ class CharacterSkillSystem {
     // Notify what skill was used
     const x = 4;
     const y = 32;
-    const width = 40;
+    const width = 8 + skill.name.length * 4;
     const height = 8;
     const bgcolor = "rgba(44, 90, 198, 0.6)";
     
     const bitmap = game.add.bitmapData(width, height);
     
-    const gradient = bitmap.context.createLinearGradient(width, 0, 0, 0);
+    const gradient = bitmap.context.createLinearGradient(0, 0, width, 0);
     
     gradient.addColorStop(0, bgcolor);
     gradient.addColorStop(0.7, bgcolor);
@@ -1804,6 +3132,504 @@ class CharacterSkillSystem {
   }
 }
 
+
+
+// ======== js/achievements/AchievementsManager.js ========
+class AchievementsManager {
+  constructor() {
+    this.newAchievements = [];
+    
+    // Time tracking properties
+    this.timeUpdateInterval = null;
+    this.sessionStartTime = null;
+    this.lastUpdateTime = null;
+    this.isTracking = false;
+    
+    // Session recovery
+    this.lastSaveTime = null;
+    this.autoSaveInterval = 10000; // Save every 10 seconds for recovery
+  }
+
+  initialize() {
+    // Initialize achievements progress if not exists
+    if (!Account.achievements) {
+      Account.achievements = {
+        unlocked: {},
+        progress: {}
+      };
+    }
+    
+    // Initialize stats if not exists
+    if (!Account.stats) {
+      Account.stats = JSON.parse(JSON.stringify(DEFAULT_ACCOUNT.stats));
+    }
+    
+    // Initialize all achievements progress
+    ACHIEVEMENT_DEFINITIONS.forEach(achievement => {
+      if (!Account.achievements.progress[achievement.id]) {
+        Account.achievements.progress[achievement.id] = 0;
+      }
+    });
+    
+    // Recover any lost session time
+    this.recoverSessionTime();
+    
+    // Start new session
+    this.startSession();
+    
+    // Start time tracking
+    this.startTimeTracking();
+    
+    // Set up auto-save for session recovery
+    this.startAutoSave();
+    
+    // Set up window event listeners for session management
+    this.setupWindowEvents();
+    
+    // Update sub systems
+    setInterval(() => this.update(), 2);
+    
+    console.log('Achievements Manager initialized');
+  }
+
+  recoverSessionTime() {
+    // Check if there was an unfinished session
+    if (Account.stats.currentSessionStart) {
+      const sessionStart = Account.stats.currentSessionStart;
+      const now = Date.now();
+      const lostSessionTime = Math.floor((now - sessionStart) / 1000);
+      
+      if (lostSessionTime > 0 && lostSessionTime < 86400) { // Less than 24 hours
+        console.log(`Recovered ${lostSessionTime} seconds of lost session time`);
+        Account.stats.totalTimePlayed += lostSessionTime;
+        
+        // Update longest session if needed
+        if (lostSessionTime > Account.stats.longestSession) {
+          Account.stats.longestSession = lostSessionTime;
+        }
+      }
+      
+      // Clear the interrupted session
+      Account.stats.currentSessionStart = null;
+    }
+  }
+
+  startSession() {
+    this.sessionStartTime = Date.now();
+    this.lastUpdateTime = this.sessionStartTime;
+    
+    // Only count as new session if not resuming
+    if (!Account.stats.currentSessionStart) {
+      Account.stats.totalPlaySessions++;
+      Account.stats.currentSessionStart = this.sessionStartTime;
+    }
+    
+    this.updatePlayStreak();
+    this.checkTimeBasedConditions();
+    
+    console.log('New play session started');
+  }
+
+  startTimeTracking() {
+    if (this.timeUpdateInterval) {
+      clearInterval(this.timeUpdateInterval);
+    }
+    
+    this.timeUpdateInterval = setInterval(() => {
+      this.updateTimeStats();
+    }, 1000);
+    
+    this.isTracking = true;
+  }
+
+  updateTimeStats() {
+    if (!this.isTracking || !this.sessionStartTime) return;
+    
+    const now = Date.now();
+    const elapsedSeconds = Math.floor((now - this.lastUpdateTime) / 1000);
+    
+    if (elapsedSeconds > 0) {
+      // Update total time played
+      Account.stats.totalTimePlayed += elapsedSeconds;
+      
+      // Update current session duration for longest session tracking
+      const currentSessionDuration = Math.floor((now - this.sessionStartTime) / 1000);
+      if (currentSessionDuration > Account.stats.longestSession) {
+        Account.stats.longestSession = currentSessionDuration;
+      }
+      
+      this.lastUpdateTime = now;
+      
+      // Check for time-based achievements every minute
+      if (elapsedSeconds >= 60 || this.lastUpdateTime % 60000 < 1000) {
+        this.checkTimeBasedAchievements();
+      }
+    }
+  }
+
+  updatePlayStreak() {
+    const now = new Date();
+    const today = now.toDateString();
+    const lastPlayed = Account.stats.lastPlayedDate;
+    
+    if (!lastPlayed) {
+      // First time playing
+      Account.stats.currentStreak = 1;
+      Account.stats.longestStreak = Math.max(Account.stats.longestStreak, 1);
+    } else {
+      const lastPlayedDate = new Date(lastPlayed);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      if (lastPlayedDate.toDateString() === yesterday.toDateString()) {
+        // Consecutive day
+        Account.stats.currentStreak++;
+        Account.stats.longestStreak = Math.max(Account.stats.longestStreak, Account.stats.currentStreak);
+      } else if (lastPlayedDate.toDateString() !== today) {
+        // Streak broken
+        Account.stats.currentStreak = 1;
+      }
+    }
+    
+    Account.stats.lastPlayedDate = today;
+  }
+
+  checkTimeBasedConditions() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentDay = now.getDay(); // 0 = Sunday, 6 = Saturday
+    
+    // Early morning (5 AM - 9 AM)
+    if (currentHour >= 5 && currentHour < 9) {
+      Account.stats.playedEarlyMorning = true;
+    }
+    
+    // Night (midnight - 4 AM)
+    if (currentHour >= 0 && currentHour < 4) {
+      Account.stats.playedAtNight = true;
+    }
+    
+    // Weekend (Saturday or Sunday)
+    if (currentDay === 0 || currentDay === 6) {
+      Account.stats.playedWeekend = true;
+    }
+    
+    // Holiday detection
+    const month = now.getMonth();
+    const date = now.getDate();
+    const isHoliday = this.isHoliday(month, date);
+    if (isHoliday) {
+      Account.stats.playedHoliday = true;
+    }
+  }
+
+  checkTimeBasedAchievements() {
+    // Check achievements that depend on total time played
+    this.checkAchievements();
+  }
+
+  isHoliday(month, date) {
+    // Comprehensive holiday detection (US holidays)
+    const holidays = {
+      0: [1],    // January: New Year's Day (1st)
+      1: [14],   // February: Valentine's Day (14th)
+      2: [17],   // March: St. Patrick's Day (17th)
+      4: [5],    // May: Cinco de Mayo (5th)
+      5: [14],   // June: Flag Day (14th)
+      6: [4],    // July: Independence Day (4th)
+      8: [11],   // September: 9/11 Memorial
+      9: [31],   // October: Halloween (31st)
+      10: [11, 25], // November: Veterans Day (11th), Thanksgiving (25th-ish)
+      11: [24, 25, 31] // December: Christmas Eve, Christmas, New Year's Eve
+    };
+    
+    return holidays[month] && holidays[month].includes(date);
+  }
+
+  startAutoSave() {
+    setInterval(() => {
+      this.saveSessionState();
+    }, this.autoSaveInterval);
+  }
+
+  saveSessionState() {
+    this.lastSaveTime = Date.now();
+    
+    // Save current session state for recovery
+    if (Account.stats.currentSessionStart) {
+      Account.stats.lastSessionSave = this.lastSaveTime;
+    }
+  }
+
+  setupWindowEvents() {
+    // Handle page visibility changes
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.onPageHide();
+      } else {
+        this.onPageShow();
+      }
+    });
+    
+    // Handle page unload
+    window.addEventListener('beforeunload', () => {
+      this.endSession();
+    });
+    
+    // Handle page freeze (some mobile browsers)
+    document.addEventListener('freeze', () => {
+      this.onPageHide();
+    });
+    
+    document.addEventListener('resume', () => {
+      this.onPageShow();
+    });
+  }
+
+  onPageHide() {
+    // Page is being hidden - pause time tracking
+    this.isTracking = false;
+    this.saveSessionState();
+    console.log('Page hidden - time tracking paused');
+  }
+
+  onPageShow() {
+    // Page is visible again - resume time tracking
+    if (!this.isTracking) {
+      this.lastUpdateTime = Date.now();
+      this.isTracking = true;
+      console.log('Page visible - time tracking resumed');
+    }
+  }
+
+  endSession() {
+    // Final time update
+    this.updateTimeStats();
+    
+    // Clear intervals
+    if (this.timeUpdateInterval) {
+      clearInterval(this.timeUpdateInterval);
+      this.timeUpdateInterval = null;
+    }
+    
+    // Update average session time
+    if (Account.stats.totalPlaySessions > 0) {
+      Account.stats.averageSessionTime = Math.floor(
+        Account.stats.totalTimePlayed / Account.stats.totalPlaySessions
+      );
+    }
+    
+    // Clear current session
+    Account.stats.currentSessionStart = null;
+    Account.stats.lastSessionSave = null;
+    
+    this.isTracking = false;
+    this.sessionStartTime = null;
+    
+    console.log('Play session ended');
+  }
+
+  updateStats(gameResults = null) {
+    if (!Account.stats) return;
+    
+    if (gameResults) {
+      this.updateGameStats(gameResults);
+    }
+    
+    // Update play streak periodically (once per minute)
+    const now = Date.now();
+    if (!this.lastStreakUpdate || now - this.lastStreakUpdate > 60000) {
+      this.updatePlayStreak();
+      this.lastStreakUpdate = now;
+    }
+    
+    // Check for new achievements
+    const newAchievements = this.checkAchievements();
+    
+    if (newAchievements.length > 0) {
+      console.log(`Unlocked ${newAchievements.length} new achievements`);
+    }
+    
+    return newAchievements;
+  }
+
+  updateGameStats(gameResults) {
+    if (Account.settings.autoplay) return;
+    
+    Account.stats.totalGamesPlayed++;
+    Account.stats.totalScore += gameResults.score;
+    Account.stats.maxCombo = Math.max(Account.stats.maxCombo, gameResults.maxCombo);
+    
+    if (gameResults.accuracy >= 100) {
+      Account.stats.perfectGames++;
+    }
+    
+    // Update judgement counts
+    const judgements = gameResults.judgements || {};
+    Account.stats.totalNotesHit += Object.values(judgements).reduce((a, b) => a + b, 0);
+    Account.stats.totalMarvelous += judgements.marvelous || 0;
+    Account.stats.totalPerfect += judgements.perfect || 0;
+    Account.stats.totalGreat += judgements.great || 0;
+    Account.stats.totalGood += judgements.good || 0;
+    Account.stats.totalBoo += judgements.boo || 0;
+    Account.stats.totalMiss += judgements.miss || 0;
+    
+    // Update max values
+    Account.stats.maxMarvelousInGame = Math.max(
+      Account.stats.maxMarvelousInGame, 
+      judgements.marvelous || 0
+    );
+    
+    Account.stats.maxSkillsInGame = Math.max(
+      Account.stats.maxSkillsInGame,
+      gameResults.skillsUsed || 0
+    );
+    
+    // Update character stats if available
+    if (gameResults.character) {
+      Account.stats.maxCharacterLevel = Math.max(
+        Account.stats.maxCharacterLevel,
+        gameResults.character.level || 1
+      );
+      
+      Account.stats.skillsUnlocked = Math.max(
+        Account.stats.skillsUnlocked,
+        gameResults.character.unlockedSkills?.length || 0
+      );
+    }
+  }
+
+  checkAchievements() {
+    const newlyUnlocked = [];
+    
+    ACHIEVEMENT_DEFINITIONS.forEach(achievement => {
+      if (!Account.achievements.unlocked[achievement.id]) {
+        const progress = achievement.condition(Account.stats);
+        
+        if (progress && !Account.achievements.unlocked[achievement.id]) {
+          // Unlock achievement
+          Account.achievements.unlocked[achievement.id] = {
+            unlockedAt: Date.now(),
+            expReward: achievement.expReward
+          };
+          
+          newlyUnlocked.push(achievement);
+          
+          saveAccount();
+          
+          // Show notification
+          notifications.showAchievement(achievement);
+          
+          // Award experience to current character if available
+          this.awardAchievementExp(achievement);
+        }
+      }
+    });
+    
+    this.newAchievements = newlyUnlocked;
+    return newlyUnlocked;
+  }
+
+  awardAchievementExp(achievement) {
+    if (achievement.expReward > 0) {
+      const characterManager = new CharacterManager();
+      const currentCharacter = characterManager.getCurrentCharacter();
+      
+      if (currentCharacter) {
+        currentCharacter.addExperience(achievement.expReward);
+        
+        const { levelBefore, levelAfter, expBefore, expAfter } = currentCharacter.getLastExperienceStoryEntry();
+        
+        // Show exp gain notification
+        //notifications.showExpGain(currentCharacter, achievement.expReward, levelBefore, levelAfter, expBefore, expAfter);
+        
+        characterManager.saveToAccount();
+      }
+    }
+  }
+
+  getUnlockedAchievements() {
+    return ACHIEVEMENT_DEFINITIONS.filter(achievement => 
+      Account.achievements.unlocked[achievement.id]
+    );
+  }
+
+  getLockedAchievements() {
+    return ACHIEVEMENT_DEFINITIONS.filter(achievement => 
+      !Account.achievements.unlocked[achievement.id] && !achievement.hidden
+    );
+  }
+
+  getHiddenAchievements() {
+    return ACHIEVEMENT_DEFINITIONS.filter(achievement => 
+      achievement.hidden && !Account.achievements.unlocked[achievement.id]
+    );
+  }
+
+  getAchievementProgress(achievementId) {
+    return Account.achievements.progress[achievementId] || 0;
+  }
+
+  getTotalUnlockedCount() {
+    return Object.keys(Account.achievements.unlocked).length;
+  }
+
+  getTotalAchievementsCount() {
+    return ACHIEVEMENT_DEFINITIONS.length;
+  }
+
+  getCompletionPercentage() {
+    const total = this.getTotalAchievementsCount();
+    const unlocked = this.getTotalUnlockedCount();
+    return total > 0 ? Math.floor((unlocked / total) * 100) : 0;
+  }
+
+  getTimePlayedFormatted() {
+    return this.formatTime(Account.stats.totalTimePlayed);
+  }
+
+  formatTime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  }
+
+  getCurrentSessionTime() {
+    if (!this.sessionStartTime) return 0;
+    return Math.floor((Date.now() - this.sessionStartTime) / 1000);
+  }
+
+  update() {}
+
+  forceSave() {
+    this.saveSessionState();
+  }
+
+  destroy() {
+    this.endSession();
+    
+    // Clean up event listeners
+    document.removeEventListener('visibilitychange', this.onPageHide);
+    document.removeEventListener('visibilitychange', this.onPageShow);
+    document.removeEventListener('freeze', this.onPageHide);
+    document.removeEventListener('resume', this.onPageShow);
+    window.removeEventListener('beforeunload', this.endSession);
+    
+    console.log('Achievements Manager destroyed');
+  }
+}
+
+
+
+// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config, parent) {
     config = {
@@ -2110,6 +3936,9 @@ class Text extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -2536,6 +4365,9 @@ class Window extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
@@ -2687,6 +4519,9 @@ class WindowManager {
   }
 }
 
+
+
+// ======== js/ui/CarouselMenu.js ========
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -2697,6 +4532,8 @@ class CarouselMenu extends Phaser.Sprite {
       bgcolor: '#3498db',
       fgcolor: '#ffffff',
       disableScrollBar: false,
+      disableConfirm: false,
+      disableCancel: false,
       inactiveAlpha: 0.4,
       activeAlpha: 0.9,
       ...config,
@@ -3115,7 +4952,7 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   confirm() {
-    if (this.items.length === 0 || this.isAnimating) return;
+    if (this.items.length === 0 || this.isAnimating || this.config.disableConfirm) return;
     
     const selectedItem = this.items[this.selectedIndex];
     this.inputEnabled = false;
@@ -3202,7 +5039,7 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   cancel() {
-    if (!this.isAnimating && this.onCancel.getNumListeners() > 0) {
+    if (!this.isAnimating && this.onCancel.getNumListeners() > 0 || this.config.disableCancel) {
       ENABLE_UI_SFX && Audio.play('ui_cancel');
       this.animateCancel(() => {
         this.onCancel.dispatch();
@@ -3248,6 +5085,9 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/BackgroundGradient.js ========
 class BackgroundGradient extends Phaser.Sprite {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, "ui_background_gradient");
@@ -3260,6 +5100,9 @@ class BackgroundGradient extends Phaser.Sprite {
   }
 } 
 
+
+
+// ======== js/ui/Background.js ========
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, key);
@@ -3272,6 +5115,9 @@ class Background extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -3459,6 +5305,9 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -3472,6 +5321,9 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -3521,6 +5373,9 @@ class Logo extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(frame = 0) {
     super(game, 0, 0);
@@ -3548,6 +5403,9 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 4, text, FONTS.default);
@@ -3556,6 +5414,9 @@ class ProgressText extends Text {
   }
 }
 
+
+
+// ======== js/ui/ExperienceBar.js ========
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
@@ -3603,6 +5464,9 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/SkillBar.js ========
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
@@ -3630,6 +5494,9 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/TextInput.js ========
 class TextInput extends Phaser.Sprite {
   constructor(text = "", maxLength = 6, onConfirm, onCancel) {
     super(game, 96, 28);
@@ -3746,6 +5613,9 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -3754,14 +5624,14 @@ class NotificationSystem {
     this.duration = 3000;
     this.lineHeight = 8;
     this.padding = 8;
-    this.maxLineWidth = 160; // Maximum width for text before wrapping (in pixels)
-    this.charWidth = 4; // Approximate width per character
+    this.maxLineWidth = 160;
+    this.charWidth = 4;
     
     this.notificationWindow = null;
     this.notificationTexts = null;
     
     this.restrictedStates = new Set(['Title', 'Play', 'Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
-    this.allowedStates = new Set(['MainMenu', 'SongSelect', 'Results', 'CharacterSelect', 'Jukebox']);
+    this.allowedStates = new Set(['MainMenu', 'SongSelect', 'Results', 'CharacterSelect', 'Jukebox', 'AchievementsMenu', 'StatsMenu']);
     
     this.setupStateChangeHandling();
   }
@@ -3795,16 +5665,17 @@ class NotificationSystem {
     });
   }
 
+  // Main show method for regular text notifications
   show(text, duration = 3000) {
     const currentState = game.state.getCurrentState();
     const stateName = currentState?.constructor?.name || '';
     
-    // Wrap text before queuing
     const wrappedText = this.wrapText(text);
     
     this.queue.push({ 
+      type: 'text',
       text: wrappedText, 
-      originalText: text, // Keep original for debugging
+      originalText: text,
       duration,
       endTime: Date.now() + duration,
       queuedInState: stateName
@@ -3815,86 +5686,49 @@ class NotificationSystem {
     }
   }
 
-  wrapText(text) {
-    const lines = text.split('\n');
-    const wrappedLines = [];
+  // Show achievement notification
+  showAchievement(achievement, expGain = 0) {
+    const currentState = game.state.getCurrentState();
+    const stateName = currentState?.constructor?.name || '';
     
-    for (let line of lines) {
-      // If line is already within limits, keep it as is
-      if (this.getTextWidth(line) <= this.maxLineWidth) {
-        wrappedLines.push(line);
-        continue;
-      }
-      
-      // Split long line into multiple wrapped lines
-      let currentLine = '';
-      const words = line.split(' ');
-      
-      for (let word of words) {
-        // If word itself is too long, break it
-        if (this.getTextWidth(word) > this.maxLineWidth) {
-          // If we have content in current line, push it first
-          if (currentLine) {
-            wrappedLines.push(currentLine.trim());
-            currentLine = '';
-          }
-          // Break the long word
-          const brokenWord = this.breakLongWord(word);
-          wrappedLines.push(...brokenWord);
-          continue;
-        }
-        
-        // Test if adding this word would exceed the limit
-        const testLine = currentLine ? `${currentLine} ${word}` : word;
-        if (this.getTextWidth(testLine) <= this.maxLineWidth) {
-          currentLine = testLine;
-        } else {
-          // Push current line and start new one
-          if (currentLine) {
-            wrappedLines.push(currentLine.trim());
-          }
-          currentLine = word;
-        }
-      }
-      
-      // Push the last line
-      if (currentLine) {
-        wrappedLines.push(currentLine.trim());
-      }
+    this.queue.push({
+      type: 'achievement',
+      text: `Achievement Unlocked!\n${achievement.name}\n${achievement.description.achieved}`,
+      duration: 4000, // Longer for achievements
+      endTime: Date.now() + 4000,
+      queuedInState: stateName
+    });
+    
+    if (this.isStateAllowed(stateName) && !this.isShowing) {
+      this.processNext();
     }
-    
-    return wrappedLines.join('\n');
   }
 
-  breakLongWord(word) {
-    const chunks = [];
-    let currentChunk = '';
+  // Show experience gain notification with animation
+  showExpGain(character, expGain, levelBefore, levelAfter, expBefore, expAfter) {
+    const currentState = game.state.getCurrentState();
+    const stateName = currentState?.constructor?.name || '';
     
-    for (let i = 0; i < word.length; i++) {
-      currentChunk += word[i];
-      
-      // Check if adding next character would exceed limit
-      if (this.getTextWidth(currentChunk + (word[i + 1] || '')) > this.maxLineWidth) {
-        chunks.push(currentChunk);
-        currentChunk = '';
-      }
+    this.queue.push({
+      type: 'exp',
+      character: character,
+      expGain: expGain,
+      levelBefore: levelBefore,
+      levelAfter: levelAfter,
+      expBefore: expBefore,
+      expAfter: expAfter,
+      duration: 5000, // Longer for exp animations
+      endTime: Date.now() + 5000,
+      queuedInState: stateName
+    });
+    
+    if (this.isStateAllowed(stateName) && !this.isShowing) {
+      this.processNext();
     }
-    
-    if (currentChunk) {
-      chunks.push(currentChunk);
-    }
-    
-    return chunks;
-  }
-
-  getTextWidth(text) {
-    // Simple approximation based on character count and average width
-    return text.length * this.charWidth;
   }
 
   processPendingNotifications() {
     if (this.queue.length > 0 && !this.isShowing) {
-      console.log(`📢 Processing ${this.queue.length} pending notifications`);
       this.processNext();
     }
   }
@@ -3904,7 +5738,6 @@ class NotificationSystem {
     const stateName = currentState?.constructor?.name || '';
     
     if (!this.isStateAllowed(stateName)) {
-      console.log(`📢 Processing blocked in restricted state: ${stateName}`);
       return;
     }
     
@@ -3917,64 +5750,29 @@ class NotificationSystem {
     const notification = this.queue.shift();
     this.currentNotification = notification;
 
-    console.log(`📢 Showing notification: "${notification.originalText}"`);
-    this.displayNotification(notification.text);
+    // Handle different notification types
+    switch (notification.type) {
+      case 'achievement':
+        this.displayTextNotification(notification.text);
+        break;
+      case 'exp':
+        this.displayExpNotification(notification);
+        break;
+      case 'text':
+      default:
+        this.displayTextNotification(notification.text);
+        break;
+    }
 
     game.time.events.add(notification.duration, () => {
       this.hideCurrent();
     });
   }
 
-  preserveCurrentNotification() {
-    if (this.currentNotification && this.notificationWindow) {
-      this.preservedNotification = {
-        text: this.currentNotification.text,
-        originalText: this.currentNotification.originalText,
-        duration: this.currentNotification.duration,
-        remainingTime: this.currentNotification.endTime - Date.now()
-      };
-      
-      this.cleanupUI();
-    }
-  }
-
-  restorePreservedNotification() {
-    if (this.preservedNotification) {
-      const currentState = game.state.getCurrentState();
-      const stateName = currentState?.constructor?.name || '';
-      
-      if (!this.isStateAllowed(stateName)) {
-        console.log(`📢 Restore blocked in restricted state: ${stateName}`);
-        return;
-      }
-      
-      const preserved = this.preservedNotification;
-      
-      this.displayNotification(preserved.text);
-      this.isShowing = true;
-      
-      const remainingDuration = Math.max(500, preserved.remainingTime);
-      
-      game.time.events.add(remainingDuration, () => {
-        this.hideCurrent();
-      });
-      
-      this.currentNotification = {
-        text: preserved.text,
-        originalText: preserved.originalText,
-        duration: remainingDuration,
-        endTime: Date.now() + remainingDuration
-      };
-      
-      this.preservedNotification = null;
-    }
-  }
-
-  displayNotification(text) {
+  displayTextNotification(text) {
     const lines = text.split('\n');
     const lineCount = lines.length;
     
-    // Calculate window dimensions based on wrapped text
     const maxLineWidth = Math.min(this.maxLineWidth, Math.max(...lines.map(line => this.getTextWidth(line))));
     const windowWidth = Math.floor(Math.min(180, maxLineWidth + this.padding * 2));
     const windowHeight = Math.floor((lineCount * this.lineHeight) + this.padding * 2);
@@ -4006,9 +5804,269 @@ class NotificationSystem {
     this.notificationWindow.alpha = 0;
     game.add.tween(this.notificationWindow).to({ alpha: 1 }, 300, "Linear", true);
   }
+  
+  displayExpNotification(notification) {
+    const windowWidth = 140;
+    const windowHeight = 40;
+    const x = (game.width - windowWidth) / 2;
+    const y = 4;
+
+    this.notificationWindow = new Window(x / 8, y / 8, windowWidth / 8, windowHeight / 8, "1");
+    this.notificationWindow.focus = false;
+    this.notificationWindow.selector.visible = false;
+    
+    // Title
+    const titleText = new Text(
+      windowWidth / 2,
+      7,
+      "EXPERIENCE GAIN!",
+      {
+        ...FONTS.default,
+        tint: 0x76FCDE
+      }
+    );
+    titleText.anchor.set(0.5);
+    this.notificationWindow.addChild(titleText);
+
+    // Character name and level
+    const charText = new Text(
+      windowWidth / 2,
+      14,
+      `${notification.character.name} - Level ${notification.levelBefore}`,
+      {
+        ...FONTS.default,
+        tint: 0xFFFFFF
+      }
+    );
+    charText.anchor.set(0.5);
+    this.notificationWindow.addChild(charText);
+
+    // Experience amount
+    const expText = new Text(
+      windowWidth / 2,
+      22,
+      `+${notification.expGain} EXP`,
+      {
+        ...FONTS.default,
+        tint: 0xFFFFFF
+      }
+    );
+    expText.anchor.set(0.5);
+    this.notificationWindow.addChild(expText);
+
+    // Experience bar background
+    const barBg = game.add.graphics(20, 30);
+    barBg.beginFill(0x333333);
+    barBg.drawRect(0, 0, windowWidth - 40, 4);
+    barBg.endFill();
+    this.notificationWindow.addChild(barBg);
+
+    // Experience bar foreground
+    const expBar = game.add.graphics(20, 30);
+    expBar.beginFill(0x76FCDE);
+    this.notificationWindow.addChild(expBar);
+
+    this.notificationWindow.alpha = 0;
+    game.add.tween(this.notificationWindow).to({ alpha: 1 }, 300, "Linear", true);
+
+    // Animate experience gain
+    this.animateExpBar(notification, expBar, windowWidth - 40);
+  }
+
+  animateExpBar(notification, expBar, barWidth) {
+    const expCurve = CHARACTER_SYSTEM.EXPERIENCE_CURVE;
+    let currentExp = notification.expBefore;
+    let currentLevel = notification.levelBefore;
+    const targetExp = notification.expAfter;
+    const targetLevel = notification.levelAfter;
+    
+    const animate = () => {
+      if (currentLevel < targetLevel || currentExp < targetExp) {
+        if (currentExp < expCurve(currentLevel)) {
+          currentExp++;
+        } else {
+          currentExp = 0;
+          currentLevel++;
+          
+          // Level up effect
+          this.showLevelUpEffect(currentLevel);
+        }
+        
+        // Update exp bar
+        const progress = currentExp / expCurve(currentLevel);
+        expBar.clear();
+        expBar.beginFill(0x76FCDE);
+        expBar.drawRect(0, 0, barWidth * progress, 4);
+        expBar.endFill();
+        
+        game.time.events.add(30, animate);
+      }
+    };
+    
+    game.time.events.add(500, animate);
+  }
+
+  showLevelUpEffect(level) {
+    // Create level up text effect
+    const levelText = new Text(
+      game.width / 2,
+      game.height / 2,
+      `LEVEL UP! ${level}`,
+      {
+        ...FONTS.shaded,
+        tint: 0xFFD700
+      }
+    );
+    levelText.anchor.set(0.5);
+    levelText.alpha = 0;
+    levelText.scale.set(1.5);
+    
+    game.world.add(levelText);
+    
+    // Animate level up text
+    const levelTween = game.add.tween(levelText).to({ 
+      alpha: 1,
+      scale: { x: 2, y: 2 }
+    }, 400, Phaser.Easing.Back.Out, true);
+    
+    levelTween.onComplete.add(() => {
+      game.add.tween(levelText).to({ 
+        alpha: 0,
+        y: levelText.y - 20
+      }, 600, Phaser.Easing.Cubic.In, true).onComplete.add(() => {
+        levelText.destroy();
+      });
+    });
+    
+    // Play level up sound if available
+    if (ENABLE_UI_SFX) {
+      Audio.play('level_up', 0.7);
+    }
+  }
+
+  // Existing helper methods
+  wrapText(text) {
+    const lines = text.split('\n');
+    const wrappedLines = [];
+    
+    for (let line of lines) {
+      if (this.getTextWidth(line) <= this.maxLineWidth) {
+        wrappedLines.push(line);
+        continue;
+      }
+      
+      let currentLine = '';
+      const words = line.split(' ');
+      
+      for (let word of words) {
+        if (this.getTextWidth(word) > this.maxLineWidth) {
+          if (currentLine) {
+            wrappedLines.push(currentLine.trim());
+            currentLine = '';
+          }
+          const brokenWord = this.breakLongWord(word);
+          wrappedLines.push(...brokenWord);
+          continue;
+        }
+        
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        if (this.getTextWidth(testLine) <= this.maxLineWidth) {
+          currentLine = testLine;
+        } else {
+          if (currentLine) {
+            wrappedLines.push(currentLine.trim());
+          }
+          currentLine = word;
+        }
+      }
+      
+      if (currentLine) {
+        wrappedLines.push(currentLine.trim());
+      }
+    }
+    
+    return wrappedLines.join('\n');
+  }
+
+  breakLongWord(word) {
+    const chunks = [];
+    let currentChunk = '';
+    
+    for (let i = 0; i < word.length; i++) {
+      currentChunk += word[i];
+      if (this.getTextWidth(currentChunk + (word[i + 1] || '')) > this.maxLineWidth) {
+        chunks.push(currentChunk);
+        currentChunk = '';
+      }
+    }
+    
+    if (currentChunk) {
+      chunks.push(currentChunk);
+    }
+    
+    return chunks;
+  }
+
+  getTextWidth(text) {
+    return text.length * this.charWidth;
+  }
+
+  preserveCurrentNotification() {
+    if (this.currentNotification && this.notificationWindow) {
+      this.preservedNotification = {
+        ...this.currentNotification,
+        remainingTime: this.currentNotification.endTime - Date.now()
+      };
+      
+      this.cleanupUI();
+    }
+  }
+
+  restorePreservedNotification() {
+    if (this.preservedNotification) {
+      const currentState = game.state.getCurrentState();
+      const stateName = currentState?.constructor?.name || '';
+      
+      if (!this.isStateAllowed(stateName)) {
+        return;
+      }
+      
+      const preserved = this.preservedNotification;
+      
+      // Re-display based on type
+      switch (preserved.type) {
+        case 'achievement':
+          this.displayAchievementNotification(preserved);
+          break;
+        case 'exp':
+          this.displayExpNotification(preserved);
+          break;
+        case 'text':
+        default:
+          this.displayTextNotification(preserved.text);
+          break;
+      }
+      
+      this.isShowing = true;
+      
+      const remainingDuration = Math.max(500, preserved.remainingTime);
+      
+      game.time.events.add(remainingDuration, () => {
+        this.hideCurrent();
+      });
+      
+      this.currentNotification = {
+        ...preserved,
+        duration: remainingDuration,
+        endTime: Date.now() + remainingDuration
+      };
+      
+      this.preservedNotification = null;
+    }
+  }
 
   hideCurrent() {
-    if (this.currentNotification) {
+    if (this.currentNotification && this.notificationWindow) {
       const tween = game.add.tween(this.notificationWindow).to({ alpha: 0 }, 300, "Linear", true);
       tween.onComplete.add(() => {
         this.cleanupUI();
@@ -4035,61 +6093,8 @@ class NotificationSystem {
     }
   }
 
-  isStateRestricted(stateName) {
-    return this.restrictedStates.has(stateName) || 
-           (!this.allowedStates.has(stateName) && stateName !== '');
-  }
-
   isStateAllowed(stateName) {
     return this.allowedStates.has(stateName);
-  }
-
-  canShowInCurrentState() {
-    const currentState = game.state.getCurrentState();
-    const stateName = currentState?.constructor?.name || '';
-    return this.isStateAllowed(stateName);
-  }
-
-  // Method to adjust text wrapping settings
-  setWrappingSettings(maxLineWidth = 160, charWidth = 4) {
-    this.maxLineWidth = maxLineWidth;
-    this.charWidth = charWidth;
-  }
-
-  // Method to force a specific number of lines (for testing)
-  wrapTextToLines(text, maxLines = 3) {
-    const wrapped = this.wrapText(text);
-    const lines = wrapped.split('\n');
-    
-    if (lines.length <= maxLines) {
-      return wrapped;
-    }
-    
-    // Truncate and add ellipsis
-    const truncated = lines.slice(0, maxLines - 1).join('\n');
-    const lastLine = lines[maxLines - 1];
-    
-    // Shorten last line to fit ellipsis
-    let shortenedLine = lastLine;
-    while (this.getTextWidth(shortenedLine + '...') > this.maxLineWidth && shortenedLine.length > 3) {
-      shortenedLine = shortenedLine.slice(0, -1);
-    }
-    
-    return truncated + '\n' + shortenedLine + '...';
-  }
-
-  getQueueStatus() {
-    const currentState = game.state.getCurrentState();
-    const stateName = currentState?.constructor?.name || '';
-    
-    return {
-      queueLength: this.queue.length,
-      isShowing: this.isShowing,
-      currentState: stateName,
-      isStateAllowed: this.isStateAllowed(stateName),
-      hasPreserved: !!this.preservedNotification,
-      maxLineWidth: this.maxLineWidth
-    };
   }
 
   clear() {
@@ -4100,23 +6105,15 @@ class NotificationSystem {
     this.preservedNotification = null;
   }
 
-  hasActiveNotifications() {
-    return this.isShowing || this.queue.length > 0 || this.preservedNotification;
-  }
-
-  getNotificationCount() {
-    let count = this.queue.length;
-    if (this.isShowing) count++;
-    if (this.preservedNotification) count++;
-    return count;
-  }
-
   destroy() {
     this.clear();
     game.state.onStateChange.remove(this.onStateChange, this);
   }
 }
 
+
+
+// ======== js/ui/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -4280,6 +6277,9 @@ class Lyrics {
   }
 }
 
+
+
+// ======== js/ui/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -4575,6 +6575,9 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -4670,6 +6673,9 @@ class FileSystemTools {
   }
 }
 
+
+
+// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -5079,6 +7085,9 @@ class NodeFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -5194,6 +7203,9 @@ class CordovaFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -5237,7 +7249,10 @@ class FallbackFileSystem {
   }
 }
 
-let game, gamepad, backgroundMusic, notifications, addonManager;
+
+
+// ======== js/game/game.js ========
+let game, gamepad, backgroundMusic, notifications, addonManager, sidebarNotifications, achievementsManager;
 
 let Account = {
   ...DEFAULT_ACCOUNT,
@@ -5325,6 +7340,9 @@ const Audio = {
   }
 };
 
+
+
+// ======== js/utils/Gamepad.js ========
 class Gamepad {
   constructor(game) {
     this.game = game;
@@ -5826,6 +7844,9 @@ class Gamepad {
   }
 }
 
+
+
+// ======== js/utils/ScreenRecorder.js ========
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -6195,6 +8216,9 @@ class ScreenRecorder {
   }
 }
 
+
+
+// ======== js/utils/Metronome.js ========
 class Metronome {
   constructor(scene) {
     this.scene = scene;
@@ -6357,6 +8381,9 @@ class Metronome {
   }
 }
 
+
+
+// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -6592,6 +8619,9 @@ class BackgroundMusic {
   }
 }
 
+
+
+// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -6616,6 +8646,9 @@ class Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -6656,6 +8689,9 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -6722,6 +8758,9 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -6814,6 +8853,9 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -7172,6 +9214,9 @@ class FullScreenAudioVisualizer {
   }
 }
 
+
+
+// ======== js/parsers/SMFile.js ========
 class SMFile {
   static generateSMContent(songData) {
     let smContent = "";
@@ -7510,6 +9555,9 @@ class SMFile {
   }
 }
 
+
+
+// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   // TODO: Make this class use SMFile
   constructor() {
@@ -7811,6 +9859,9 @@ class LocalSMParser {
   }
 }
 
+
+
+// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   parseSM(files, smContent) {
@@ -8269,6 +10320,9 @@ class ExternalSMParser {
   }
 }
 
+
+
+// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -8654,6 +10708,9 @@ class AddonManager {
   }
 }
 
+
+
+// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -8674,6 +10731,9 @@ class Boot {
     gamepad = new Gamepad(game);
 
     notifications = new NotificationSystem();
+    
+    achievementsManager = new AchievementsManager();
+    achievementsManager.initialize();
 
     game.time.advancedTiming = true;
 
@@ -8691,6 +10751,8 @@ class Boot {
     game.state.add("MainMenu", MainMenu);
     game.state.add("SongSelect", SongSelect);
     game.state.add("CharacterSelect", CharacterSelect);
+    game.state.add("AchievementsMenu", AchievementsMenu);
+    game.state.add("StatsMenu", StatsMenu);
     game.state.add("Play", Play);
     game.state.add("Results", Results);
     game.state.add("Jukebox", Jukebox);
@@ -8984,6 +11046,9 @@ class Boot {
   }
 }
 
+
+
+// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -9596,6 +11661,9 @@ class LoadSongFolder {
   }
 }
 
+
+
+// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -9639,6 +11707,9 @@ class Title {
   }
 }
 
+
+
+// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -9970,6 +12041,8 @@ class MainMenu {
       if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) carousel.addItem("Addon Manager", () => this.addonManager());
       carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
       carousel.addItem("Jukebox", () => jukebox());
+      carousel.addItem("Player Stats", () => this.showStats());
+      carousel.addItem("Achievements", () => this.showAchievements());
       carousel.addItem("Credits", () => this.showCredits());
       game.onMenuIn.dispatch('extras', carousel);
       carousel.addItem("< Back", () => home());
@@ -10218,6 +12291,12 @@ class MainMenu {
     
     showInstalledAddons();
   }
+  showAchievements() {
+    game.state.start("AchievementsMenu");
+  }
+  showStats() {
+    game.state.start("StatsMenu");
+  }
   showCredits() {
     game.state.start("Credits", true, false, "MainMenu");
   }
@@ -10233,6 +12312,9 @@ class MainMenu {
   }
 }
 
+
+
+// ======== js/game/states/SongSelect.js ========
 class SongSelect {
   init(songs, index, autoSelect) {
     this.songs = songs || [];
@@ -10573,6 +12655,9 @@ class SongSelect {
   }
 }
 
+
+
+// ======== js/game/states/CharacterSelect.js ========
 class CharacterSelect extends Phaser.State {
   create() {
     game.camera.fadeIn(0x000000);
@@ -11726,6 +13811,237 @@ class CharacterSelect extends Phaser.State {
   }
 }
 
+
+
+// ======== js/game/states/AchievementsMenu.js ========
+class AchievementsMenu {
+  create() {
+    game.camera.fadeIn(0x000000);
+    
+    new FuturisticLines();
+    new BackgroundGradient();
+    
+    this.navigationHint = new NavigationHint(1);
+    
+    this.showingUnlocked = true;
+    
+    // Initialize details text first
+    this.detailsText = new Text(game.width / 2 + 8, 10, "");
+    
+    this.createMenu();
+    
+    // Execute addon behaviors for this state
+    addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+
+  createMenu() {
+    const achievementsManager = new AchievementsManager();
+    
+    // Left side - Carousel menu
+    const carouselWidth = game.width / 2;
+    const carouselHeight = game.height - 12;
+    
+    this.carousel = new CarouselMenu(0, 10, carouselWidth, carouselHeight, {
+      bgcolor: '#9b59b6',
+      fgcolor: '#ffffff',
+      align: 'left',
+      animate: true,
+      disableConfirm: true,
+      disableCancel: true
+    });
+    
+    // Toggle button
+    this.toggleText = new Text(4, 4, "SHOWING: UNLOCKED");
+    
+    game.onMenuIn.dispatch('achievements', this.carousel);
+    
+    this.updateAchievementsList();
+  }
+
+  updateAchievementsList() {
+    const achievementsManager = new AchievementsManager();
+    
+    const achievements = this.showingUnlocked ? 
+      achievementsManager.getUnlockedAchievements() : 
+      achievementsManager.getLockedAchievements();
+    
+    this.carousel.clear();
+    
+    if (achievements.length === 0) {
+      this.carousel.addItem(
+        this.showingUnlocked ? "No achievements unlocked" : "No achievements available",
+        null,
+        { bgcolor: '#34495e' }
+      );
+      if (this.detailsText) {
+        this.detailsText.write("");
+      }
+    } else {
+      achievements.forEach(achievement => {
+        const status = this.showingUnlocked ? "✓" : "○";
+        const displayName = `${status} ${achievement.name}`;
+        
+        this.carousel.addItem(
+          displayName,
+          null,
+          { 
+            achievement: achievement,
+            bgcolor: this.showingUnlocked ? '#27ae60' : '#e74c3c'
+          }
+        );
+      });
+      
+      // Show first achievement details
+      if (achievements.length > 0 && this.detailsText) {
+        this.showAchievementDetails(achievements[0]);
+      }
+    }
+    
+    if (this.toggleText) {
+      this.toggleText.write(`SHOWING: ${this.showingUnlocked ? 'UNLOCKED' : 'LOCKED'}`);
+    }
+    
+    // Handle carousel selection
+    this.carousel.onSelect.add((index, item) => {
+      if (item.data && item.data.achievement) {
+        this.showAchievementDetails(item.data.achievement);
+      }
+    });
+    
+    this.carousel.onCancel.add(() => {
+      game.state.start("MainMenu");
+    });
+    
+  }
+
+  showAchievementDetails(achievement) {
+    if (!this.detailsText) return;
+    
+    const achievementsManager = new AchievementsManager();
+    const isUnlocked = Account.achievements.unlocked[achievement.id];
+    
+    let details = `${achievement.name}\n`;
+    details += `Category: ${achievement.category}\n\n`;
+    
+    if (isUnlocked) {
+      details += achievement.description.achieved + '\n\n';
+      const unlockData = Account.achievements.unlocked[achievement.id];
+      const unlockDate = new Date(unlockData.unlockedAt);
+      details += `Unlocked: ${unlockDate.toLocaleDateString()}\n`;
+      details += `Experience: +${unlockData.expReward}`;
+    } else {
+      details += achievement.description.unachieved + '\n\n';
+      if (achievement.hidden) {
+        details += "???\n(Hidden Achievement)";
+      } else {
+        details += `Experience: +${achievement.expReward}`;
+      }
+    }
+    
+    this.detailsText.write(details).wrapPreserveNewlines(game.width / 2 - 16);
+  }
+
+  update() {
+    gamepad.update();
+    
+    // Toggle between unlocked/locked with Select button
+    if (gamepad.pressed.select && !this.lastSelect) {
+      this.showingUnlocked = !this.showingUnlocked;
+      this.updateAchievementsList();
+    }
+    this.lastSelect = gamepad.pressed.select;
+  }
+}
+
+
+
+// ======== js/game/states/StatsMenu.js ========
+class StatsMenu {
+  create() {
+    game.camera.fadeIn(0x000000);
+    
+    new FuturisticLines();
+    new BackgroundGradient();
+    
+    this.statsText = new Text(40, 8, "");
+    this.updateStatsText();
+    
+    // Update stats every 500ms for real-time updates
+    this.updateTimer = game.time.events.loop(500, this.updateStatsText, this);
+    
+    // Execute addon behaviors for this state
+    addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+
+  formatTime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  formatSessionTime(seconds) {
+    if (seconds < 60) {
+      return `${seconds}s`;
+    } else if (seconds < 3600) {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${minutes}m ${secs}s`;
+    } else {
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      return `${hours}h ${minutes}m`;
+    }
+  }
+
+  updateStatsText() {
+    if (!Account.stats) return;
+    
+    const stats = Account.stats;
+    
+    let text = "PLAYER STATISTICS\n\n";
+    
+    // Left column - General Stats
+    text += `Games Played: ${stats.totalGamesPlayed}\n`;
+    text += `Total Score: ${stats.totalScore.toLocaleString()}\n`;
+    text += `Max Combo: ${stats.maxCombo}\n`;
+    text += `Perfect Games: ${stats.perfectGames}\n`;
+    text += `Characters: ${stats.charactersCreated}\n`;
+    text += `Max Level: ${stats.maxCharacterLevel}\n`;
+    text += `Skills Unlocked: ${stats.skillsUnlocked}\n\n`;
+    
+    // Right column - Time & Progression Stats
+    text += `Total Time: ${this.formatTime(stats.totalTimePlayed)}\n`;
+    text += `Play Sessions: ${stats.totalPlaySessions}\n`;
+    text += `Avg Session: ${this.formatSessionTime(stats.averageSessionTime)}\n`;
+    text += `Longest Session: ${this.formatSessionTime(stats.longestSession)}\n`;
+    text += `Current Streak: ${stats.currentStreak} days\n`;
+    text += `Longest Streak: ${stats.longestStreak} days\n`;
+    text += `High Scores: ${stats.highScoresSet}\n`;
+
+    this.statsText.write(text);
+  }
+
+  update() {
+    gamepad.update();
+    
+    // Press any key to go back
+    if (gamepad.pressed.any) {
+      game.state.start("MainMenu");
+    }
+  }
+  
+  shutdown() {
+    if (this.updateTimer) {
+      game.time.events.remove(this.updateTimer);
+    }
+  }
+}
+
+
+
+// ======== js/game/states/Play.js ========
 class Play {
   init(song, difficultyIndex) {
     this.song = song;
@@ -12089,6 +14405,9 @@ class Play {
   }
   
   songEnd() {
+    // Update user stats
+    this.updateUserStats();
+    
     // Update character stats
     const gameResults = {
       score: this.player.score,
@@ -12118,6 +14437,46 @@ class Play {
     };
     
     game.state.start("Results", true, false, gameData);
+  }
+  
+  updateUserStats() {
+    if (Account.settings.autoplay) return;
+    
+    if (!Account.stats) {
+      Account.stats = { ...DEFAULT_ACCOUNT.stats };
+    }
+    
+    Account.stats.totalGamesPlayed++;
+    Account.stats.totalScore += this.player.score;
+    Account.stats.maxCombo = Math.max(Account.stats.maxCombo, this.player.maxCombo);
+    
+    if (this.player.accuracy >= 100) {
+      Account.stats.perfectGames++;
+    }
+    
+    // Update judgement counts
+    Account.stats.totalNotesHit += Object.values(this.player.judgementCounts).reduce((a, b) => a + b, 0);
+    Account.stats.totalMarvelous += this.player.judgementCounts.marvelous || 0;
+    Account.stats.totalPerfect += this.player.judgementCounts.perfect || 0;
+    Account.stats.totalGreat += this.player.judgementCounts.great || 0;
+    Account.stats.totalGood += this.player.judgementCounts.good || 0;
+    Account.stats.totalBoo += this.player.judgementCounts.boo || 0;
+    Account.stats.totalMiss += this.player.judgementCounts.miss || 0;
+    
+    // Update max values
+    Account.stats.maxMarvelousInGame = Math.max(
+      Account.stats.maxMarvelousInGame, 
+      this.player.judgementCounts.marvelous || 0
+    );
+    
+    Account.stats.maxSkillsInGame = Math.max(
+      Account.stats.maxSkillsInGame,
+      this.skillSystem.getSkillsUsed()
+    );
+    
+    // Update achievements
+    const achievementsManager = new AchievementsManager();
+    achievementsManager.updateStats();
   }
   
   togglePause() {
@@ -12335,6 +14694,9 @@ class Play {
   }
 }
 
+
+
+// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData;
@@ -12519,7 +14881,7 @@ class Results {
     if (this.gameData.character) {
       nameText.write(this.gameData.character.name);
       
-      const storyEntry = this.gameData.character.experienceStory[0];
+      const storyEntry = this.gameData.character.getLastExperienceStoryEntry();
       const expCurve = CHARACTER_SYSTEM.EXPERIENCE_CURVE;
       
       if (storyEntry) {
@@ -12616,6 +14978,9 @@ class Results {
   }
 }
 
+
+
+// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
@@ -13501,6 +15866,9 @@ class Jukebox {
   }
 }
 
+
+
+// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
@@ -13807,6 +16175,9 @@ class Credits {
   }
 }
 
+
+
+// ======== js/game/player/ChartRenderer.js ========
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -14506,6 +16877,9 @@ class ChartRenderer {
   }
 }
 
+
+
+// ======== js/game/player/Player.js ========
 class Player {
   constructor(scene) {
     this.scene = scene

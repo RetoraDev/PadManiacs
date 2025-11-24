@@ -18,6 +18,9 @@ class Boot {
     gamepad = new Gamepad(game);
 
     notifications = new NotificationSystem();
+    
+    achievementsManager = new AchievementsManager();
+    achievementsManager.initialize();
 
     game.time.advancedTiming = true;
 
@@ -35,6 +38,8 @@ class Boot {
     game.state.add("MainMenu", MainMenu);
     game.state.add("SongSelect", SongSelect);
     game.state.add("CharacterSelect", CharacterSelect);
+    game.state.add("AchievementsMenu", AchievementsMenu);
+    game.state.add("StatsMenu", StatsMenu);
     game.state.add("Play", Play);
     game.state.add("Results", Results);
     game.state.add("Jukebox", Jukebox);

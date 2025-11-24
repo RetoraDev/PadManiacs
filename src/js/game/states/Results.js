@@ -182,7 +182,7 @@ class Results {
     if (this.gameData.character) {
       nameText.write(this.gameData.character.name);
       
-      const storyEntry = this.gameData.character.experienceStory[0];
+      const storyEntry = this.gameData.character.getLastExperienceStoryEntry();
       const expCurve = CHARACTER_SYSTEM.EXPERIENCE_CURVE;
       
       if (storyEntry) {

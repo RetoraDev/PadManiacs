@@ -361,6 +361,9 @@ class Play {
   }
   
   songEnd() {
+    // Update user stats
+    this.updateUserStats();
+    
     // Update character stats
     const gameResults = {
       score: this.player.score,
@@ -390,6 +393,46 @@ class Play {
     };
     
     game.state.start("Results", true, false, gameData);
+  }
+  
+  updateUserStats() {
+    if (Account.settings.autoplay) return;
+    
+    if (!Account.stats) {
+      Account.stats = { ...DEFAULT_ACCOUNT.stats };
+    }
+    
+    Account.stats.totalGamesPlayed++;
+    Account.stats.totalScore += this.player.score;
+    Account.stats.maxCombo = Math.max(Account.stats.maxCombo, this.player.maxCombo);
+    
+    if (this.player.accuracy >= 100) {
+      Account.stats.perfectGames++;
+    }
+    
+    // Update judgement counts
+    Account.stats.totalNotesHit += Object.values(this.player.judgementCounts).reduce((a, b) => a + b, 0);
+    Account.stats.totalMarvelous += this.player.judgementCounts.marvelous || 0;
+    Account.stats.totalPerfect += this.player.judgementCounts.perfect || 0;
+    Account.stats.totalGreat += this.player.judgementCounts.great || 0;
+    Account.stats.totalGood += this.player.judgementCounts.good || 0;
+    Account.stats.totalBoo += this.player.judgementCounts.boo || 0;
+    Account.stats.totalMiss += this.player.judgementCounts.miss || 0;
+    
+    // Update max values
+    Account.stats.maxMarvelousInGame = Math.max(
+      Account.stats.maxMarvelousInGame, 
+      this.player.judgementCounts.marvelous || 0
+    );
+    
+    Account.stats.maxSkillsInGame = Math.max(
+      Account.stats.maxSkillsInGame,
+      this.skillSystem.getSkillsUsed()
+    );
+    
+    // Update achievements
+    const achievementsManager = new AchievementsManager();
+    achievementsManager.updateStats();
   }
   
   togglePause() {
