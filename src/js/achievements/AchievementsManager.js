@@ -100,7 +100,7 @@ class AchievementsManager {
     
     this.timeUpdateInterval = setInterval(() => {
       this.updateTimeStats();
-    }, 1000);
+    }, 100);
     
     this.isTracking = true;
   }

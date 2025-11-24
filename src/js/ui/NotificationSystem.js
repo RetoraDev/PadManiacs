@@ -418,7 +418,7 @@ class NotificationSystem {
       // Re-display based on type
       switch (preserved.type) {
         case 'achievement':
-          this.displayAchievementNotification(preserved);
+          this.displayTextNotification(preserved.text);
           break;
         case 'exp':
           this.displayExpNotification(preserved);

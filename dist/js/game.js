@@ -5,20 +5,17 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.6 dev
- * Build: 11/24/2025, 4:42:57 AM
+ * Build: 11/24/2025, 2:48:55 PM
  * Platform: Development
- * Debug: true
+ * Debug: false
  * Minified: false
  */
 
-
-
-// ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2025";
 
 const VERSION = "v0.0.6 dev";
 
-window.DEBUG = true;
+window.DEBUG = false;
 
 const FONTS = {
   default: { font: "font_tiny" },
@@ -67,9 +64,6 @@ const SCORE_VALUES = {
   miss: 0
 };
 
-
-
-// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -99,15 +93,12 @@ const ENABLE_ADDON_SAFE_MODE = true;
 const ENABLE_UI_SFX = false;
 const ENABLE_EXP_SFX = true;
 
-
-
-// ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 6,
   DEFAULT_CHARACTER: "EIRI",
   MAX_SKILL_LEVEL: 5,
-  EXPERIENCE_CURVE: level => Math.floor(5 * Math.pow(level, 1.2)),
+  EXPERIENCE_CURVE: level => Math.floor(8 * Math.pow(level, 1.2)),
   SKILL_UNLOCK_CHANCE: 0.7,
   HAIR_UNLOCK_CHANCE: 0.5,
   ITEM_UNLOCK_CHANCE: 0.4,
@@ -764,9 +755,6 @@ const CHARACTER_ITEMS = {
   ]
 };
 
-
-
-// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
   settings: {
     volume: 3,
@@ -856,9 +844,6 @@ const DEFAULT_ACCOUNT = {
 };
 
 
-
-
-// ======== js/core/achievements.js ========
 // Achievements system constants
 const ACHIEVEMENTS = {
   MAX_VISIBLE_NOTIFICATIONS: 3,
@@ -2096,9 +2081,6 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
-
-
-// ======== js/character/Character.js ========
 class Character {
   constructor(data) {
     this.name = data.name;
@@ -2344,9 +2326,6 @@ class Character {
   }
 }
 
-
-
-// ======== js/character/CharacterDisplay.js ========
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
@@ -2472,9 +2451,6 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/character/CharacterCroppedDisplay.js ========
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
@@ -2503,27 +2479,18 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterPortrait.js ========
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterCloseShot.js ========
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterManager.js ========
 class CharacterManager {
   constructor() {
     this.characters = new Map();
@@ -2741,14 +2708,10 @@ class CharacterManager {
   saveToAccount() {
     Account.characters.list = this.getCharacterList().map(char => char.toJSON());
     Account.characters.currentCharacter = this.currentCharacter ? this.currentCharacter.name : null;
-    console.log(Account.characters);
     saveAccount();
   }
 }
 
-
-
-// ======== js/character/CharacterSkillSystem.js ========
 class CharacterSkillSystem {
   constructor(scene, character) {
     this.scene = scene;
@@ -3132,9 +3095,6 @@ class CharacterSkillSystem {
   }
 }
 
-
-
-// ======== js/achievements/AchievementsManager.js ========
 class AchievementsManager {
   constructor() {
     this.newAchievements = [];
@@ -3237,7 +3197,7 @@ class AchievementsManager {
     
     this.timeUpdateInterval = setInterval(() => {
       this.updateTimeStats();
-    }, 1000);
+    }, 100);
     
     this.isTracking = true;
   }
@@ -3627,9 +3587,6 @@ class AchievementsManager {
   }
 }
 
-
-
-// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config, parent) {
     config = {
@@ -3936,9 +3893,6 @@ class Text extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -4365,9 +4319,6 @@ class Window extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
@@ -4519,9 +4470,6 @@ class WindowManager {
   }
 }
 
-
-
-// ======== js/ui/CarouselMenu.js ========
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -5085,9 +5033,6 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/BackgroundGradient.js ========
 class BackgroundGradient extends Phaser.Sprite {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, "ui_background_gradient");
@@ -5100,9 +5045,6 @@ class BackgroundGradient extends Phaser.Sprite {
   }
 } 
 
-
-
-// ======== js/ui/Background.js ========
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, key);
@@ -5115,9 +5057,6 @@ class Background extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -5305,9 +5244,6 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -5321,9 +5257,6 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -5373,9 +5306,6 @@ class Logo extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(frame = 0) {
     super(game, 0, 0);
@@ -5403,9 +5333,6 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 4, text, FONTS.default);
@@ -5414,9 +5341,6 @@ class ProgressText extends Text {
   }
 }
 
-
-
-// ======== js/ui/ExperienceBar.js ========
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
@@ -5464,9 +5388,6 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/SkillBar.js ========
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
@@ -5494,9 +5415,6 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/TextInput.js ========
 class TextInput extends Phaser.Sprite {
   constructor(text = "", maxLength = 6, onConfirm, onCancel) {
     super(game, 96, 28);
@@ -5613,9 +5531,6 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -6036,7 +5951,7 @@ class NotificationSystem {
       // Re-display based on type
       switch (preserved.type) {
         case 'achievement':
-          this.displayAchievementNotification(preserved);
+          this.displayTextNotification(preserved.text);
           break;
         case 'exp':
           this.displayExpNotification(preserved);
@@ -6111,9 +6026,6 @@ class NotificationSystem {
   }
 }
 
-
-
-// ======== js/ui/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -6277,9 +6189,6 @@ class Lyrics {
   }
 }
 
-
-
-// ======== js/ui/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -6575,9 +6484,6 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -6673,9 +6579,6 @@ class FileSystemTools {
   }
 }
 
-
-
-// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -7085,9 +6988,6 @@ class NodeFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -7203,9 +7103,6 @@ class CordovaFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -7249,9 +7146,6 @@ class FallbackFileSystem {
   }
 }
 
-
-
-// ======== js/game/game.js ========
 let game, gamepad, backgroundMusic, notifications, addonManager, sidebarNotifications, achievementsManager;
 
 let Account = {
@@ -7340,9 +7234,6 @@ const Audio = {
   }
 };
 
-
-
-// ======== js/utils/Gamepad.js ========
 class Gamepad {
   constructor(game) {
     this.game = game;
@@ -7844,9 +7735,6 @@ class Gamepad {
   }
 }
 
-
-
-// ======== js/utils/ScreenRecorder.js ========
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -8216,9 +8104,6 @@ class ScreenRecorder {
   }
 }
 
-
-
-// ======== js/utils/Metronome.js ========
 class Metronome {
   constructor(scene) {
     this.scene = scene;
@@ -8381,9 +8266,6 @@ class Metronome {
   }
 }
 
-
-
-// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -8619,9 +8501,6 @@ class BackgroundMusic {
   }
 }
 
-
-
-// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -8646,9 +8525,6 @@ class Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -8689,9 +8565,6 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -8758,9 +8631,6 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -8853,9 +8723,6 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -9214,9 +9081,6 @@ class FullScreenAudioVisualizer {
   }
 }
 
-
-
-// ======== js/parsers/SMFile.js ========
 class SMFile {
   static generateSMContent(songData) {
     let smContent = "";
@@ -9555,9 +9419,6 @@ class SMFile {
   }
 }
 
-
-
-// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   // TODO: Make this class use SMFile
   constructor() {
@@ -9859,9 +9720,6 @@ class LocalSMParser {
   }
 }
 
-
-
-// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   parseSM(files, smContent) {
@@ -10320,9 +10178,6 @@ class ExternalSMParser {
   }
 }
 
-
-
-// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -10708,9 +10563,6 @@ class AddonManager {
   }
 }
 
-
-
-// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -11046,9 +10898,6 @@ class Boot {
   }
 }
 
-
-
-// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -11661,9 +11510,6 @@ class LoadSongFolder {
   }
 }
 
-
-
-// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -11707,9 +11553,6 @@ class Title {
   }
 }
 
-
-
-// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -12312,9 +12155,6 @@ class MainMenu {
   }
 }
 
-
-
-// ======== js/game/states/SongSelect.js ========
 class SongSelect {
   init(songs, index, autoSelect) {
     this.songs = songs || [];
@@ -12655,9 +12495,6 @@ class SongSelect {
   }
 }
 
-
-
-// ======== js/game/states/CharacterSelect.js ========
 class CharacterSelect extends Phaser.State {
   create() {
     game.camera.fadeIn(0x000000);
@@ -13811,9 +13648,6 @@ class CharacterSelect extends Phaser.State {
   }
 }
 
-
-
-// ======== js/game/states/AchievementsMenu.js ========
 class AchievementsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -13953,9 +13787,6 @@ class AchievementsMenu {
   }
 }
 
-
-
-// ======== js/game/states/StatsMenu.js ========
 class StatsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -13963,11 +13794,22 @@ class StatsMenu {
     new FuturisticLines();
     new BackgroundGradient();
     
-    this.statsText = new Text(40, 8, "");
+    this.titleText = new Text(92, 8, "PLAYER STATISTICS");
+    this.titleText.anchor.x = 0.5;
+    
+    this.leftColumn = new Text(8, 56, "");
+    this.leftColumn.anchor.y = 0.5;
+    
+    this.rightColumn = new Text(92, 56, "");
+    this.rightColumn.anchor.y = 0.5;
+    
+    this.instructionText = new Text(92, 92, "PRESS ANY KEY TO LEAVE");
+    this.instructionText.anchor.x = 0.5;
+    
     this.updateStatsText();
     
-    // Update stats every 500ms for real-time updates
-    this.updateTimer = game.time.events.loop(500, this.updateStatsText, this);
+    // Update stats for real-time updates
+    this.updateTimer = game.time.events.loop(100, this.updateStatsText, this);
     
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
@@ -14000,27 +13842,29 @@ class StatsMenu {
     
     const stats = Account.stats;
     
-    let text = "PLAYER STATISTICS\n\n";
+    let leftColumnText = "";
+    let rightColumnText = "";
     
     // Left column - General Stats
-    text += `Games Played: ${stats.totalGamesPlayed}\n`;
-    text += `Total Score: ${stats.totalScore.toLocaleString()}\n`;
-    text += `Max Combo: ${stats.maxCombo}\n`;
-    text += `Perfect Games: ${stats.perfectGames}\n`;
-    text += `Characters: ${stats.charactersCreated}\n`;
-    text += `Max Level: ${stats.maxCharacterLevel}\n`;
-    text += `Skills Unlocked: ${stats.skillsUnlocked}\n\n`;
+    leftColumnText += `Games Played: ${stats.totalGamesPlayed}\n`;
+    leftColumnText += `Total Score: ${stats.totalScore.toLocaleString()}\n`;
+    leftColumnText += `Max Combo: ${stats.maxCombo}\n`;
+    leftColumnText += `Perfect Games: ${stats.perfectGames}\n`;
+    leftColumnText += `Characters: ${stats.charactersCreated}\n`;
+    leftColumnText += `Max Level: ${stats.maxCharacterLevel}\n`;
+    leftColumnText += `Skills Unlocked: ${stats.skillsUnlocked}\n`;
     
     // Right column - Time & Progression Stats
-    text += `Total Time: ${this.formatTime(stats.totalTimePlayed)}\n`;
-    text += `Play Sessions: ${stats.totalPlaySessions}\n`;
-    text += `Avg Session: ${this.formatSessionTime(stats.averageSessionTime)}\n`;
-    text += `Longest Session: ${this.formatSessionTime(stats.longestSession)}\n`;
-    text += `Current Streak: ${stats.currentStreak} days\n`;
-    text += `Longest Streak: ${stats.longestStreak} days\n`;
-    text += `High Scores: ${stats.highScoresSet}\n`;
+    rightColumnText += `Total Time: ${this.formatTime(stats.totalTimePlayed)}\n`;
+    rightColumnText += `Play Sessions: ${stats.totalPlaySessions}\n`;
+    rightColumnText += `Avg Session: ${this.formatSessionTime(stats.averageSessionTime)}\n`;
+    rightColumnText += `Longest Session: ${this.formatSessionTime(stats.longestSession)}\n`;
+    rightColumnText += `Current Streak: ${stats.currentStreak} days\n`;
+    rightColumnText += `Longest Streak: ${stats.longestStreak} days\n`;
+    rightColumnText += `High Scores: ${stats.highScoresSet}\n`;
 
-    this.statsText.write(text);
+    this.leftColumn.write(leftColumnText);
+    this.rightColumn.write(rightColumnText);
   }
 
   update() {
@@ -14039,9 +13883,6 @@ class StatsMenu {
   }
 }
 
-
-
-// ======== js/game/states/Play.js ========
 class Play {
   init(song, difficultyIndex) {
     this.song = song;
@@ -14694,9 +14535,6 @@ class Play {
   }
 }
 
-
-
-// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData;
@@ -14978,9 +14816,6 @@ class Results {
   }
 }
 
-
-
-// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
@@ -15866,9 +15701,6 @@ class Jukebox {
   }
 }
 
-
-
-// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
@@ -16175,9 +16007,6 @@ class Credits {
   }
 }
 
-
-
-// ======== js/game/player/ChartRenderer.js ========
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -16877,9 +16706,6 @@ class ChartRenderer {
   }
 }
 
-
-
-// ======== js/game/player/Player.js ========
 class Player {
   constructor(scene) {
     this.scene = scene
