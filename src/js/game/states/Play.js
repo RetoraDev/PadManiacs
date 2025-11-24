@@ -376,29 +376,26 @@ class Play {
   }
   
   songEnd() {
-    // Update user stats
-    this.updateUserStats();
-    
     // Update character stats
     const gameResults = {
       score: this.player.score,
       accuracy: this.player.accuracy,
       maxCombo: this.player.maxCombo,
-      complete: true,
+      complete: this.song.chart.notes.length >= Object.values(this.player.judgementCounts).reduce((a, b) => a + b, 0) && !this.autoplay,
       judgements: { ...this.player.judgementCounts },
       totalNotes: this.song.chart.notes.length,
       skillsUsed: this.skillSystem.getSkillsUsed(),
       difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
     };
     
-    // Save last song details
-    Object.asign(Account.lastSong, gameResults);
-    
     // Calculate experience gain (0 if autoplay is enabled)
     const expGain = this.autoplay ? 0 : this.characterManager.calculateExperienceGain(gameResults);
     
     // Update character with experience and stats
     if (!this.autoplay) {
+      // Save last song details
+      Object.assign(Account.lastSong, gameResults);
+      this.updateUserStats(gameResults);
       this.characterManager.updateCharacterStats(gameResults, expGain);
     }
     
@@ -415,20 +412,18 @@ class Play {
     game.state.start("Results", true, false, gameData);
   }
   
-  updateUserStats() {
-    if (Account.settings.autoplay) return;
-    
+  updateUserStats(gameResults) {
     if (!Account.stats) {
       Account.stats = { ...DEFAULT_ACCOUNT.stats };
     }
     
-    Account.stats.totalGamesPlayed++;
+    if (gameResults.complete) {
+      Account.stats.totalGamesPlayed++;
+      const difficultyType = this.song.chart.difficulties[this.song.difficultyIndex].type;
+      Account.stats[`total${difficultyType}GamesPlayed`] += 1;
+    }
     Account.stats.totalScore += this.player.score;
     Account.stats.maxCombo = Math.max(Account.stats.maxCombo, this.player.maxCombo);
-    
-    const difficultyType = this.song.chart.difficulties[this.song.difficultyIndex].type;
-    
-    Account.stats[`total${difficultyType}GamesPlayed`] += 1;
     
     if (this.player.accuracy >= 100) {
       Account.stats.perfectGames++;
