@@ -24,7 +24,7 @@ class SMFile {
     if (songData.bpmChanges && songData.bpmChanges.length > 0) {
       smContent += `#BPMS:${songData.bpmChanges.map(bpm => `${bpm.beat.toFixed(3)}=${bpm.bpm.toFixed(3)}`).join(",")};\n`;
     } else {
-      smContent += `#BPMS:0.000=120.000;\n`;
+      smContent += `#BPMS:;\n`;
     }
     
     // Stops

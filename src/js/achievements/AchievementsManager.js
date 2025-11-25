@@ -22,6 +22,34 @@ class AchievementsManager {
     if (!Account.stats) {
       Account.stats = JSON.parse(JSON.stringify(DEFAULT_ACCOUNT.stats));
     }
+    
+    // Add holidays to achievement definitions
+    const holidays = this.getHolidays();
+    for (let monthId = 0; monthId <= 11; monthId ++) {
+      const month = holidays[monthId];
+      
+      if (!month) continue;
+      
+      for (let dateId = 0; dateId <= 31; dateId ++) {
+        const dateName = month[dateId];
+        
+        if (dateName) ACHIEVEMENT_DEFINITIONS.push({
+          id: `holiday_day_${monthId}_${dateId}`,
+          name: dateName,
+          category: ACHIEVEMENT_CATEGORIES.HOLIDAYS,
+          description: {
+            unachieved: `Play on ${dateName} (${dateId}/${monthId})`,
+            achieved: `You played on ${dateName}!`
+          },
+          expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+          condition: () => {
+            const { month, date } = this.getDate();
+            return monthId === month && dateId === date;
+          },
+          hidden: false
+        });
+      }
+    }
 
     // Initialize all achievements progress
     ACHIEVEMENT_DEFINITIONS.forEach(achievement => {
@@ -91,9 +119,9 @@ class AchievementsManager {
 
       this.lastUpdateTime = now;
 
-      // Check for time-based achievements every minute
+      // Update Achievements every minute
       if (elapsedSeconds >= 60 || this.lastUpdateTime % 60000 < 1000) {
-        this.checkTimeBasedAchievements();
+        this.checkAchievements();
       }
     }
   }
@@ -126,10 +154,8 @@ class AchievementsManager {
   }
 
   checkTimeBasedConditions() {
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentDay = now.getDay(); // 0 = Sunday, 6 = Saturday
-
+    const { now, currentHour, currentDay, month, date } = this.getDate();
+        
     // Early morning (5 AM - 9 AM)
     if (currentHour >= 5 && currentHour < 9) {
       Account.stats.playedEarlyMorning = true;
@@ -146,35 +172,95 @@ class AchievementsManager {
     }
 
     // Holiday detection
-    const month = now.getMonth();
-    const date = now.getDate();
     const isHoliday = this.isHoliday(month, date);
     if (isHoliday) {
       Account.stats.playedHoliday = true;
     }
   }
+  
+  getDate() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentDay = now.getDay(); // 0 = Sunday, 6 = Saturday
+    const month = now.getMonth();
+    const date = now.getDate();
+    return { now, currentHour, currentDay, month, date };
+  }
 
-  checkTimeBasedAchievements() {
-    // Check achievements that depend on total time played
-    this.checkAchievements();
+  getHolidays() {
+    // Comprehensive holiday calendary (US holidays)
+    // TODO: Region specific holidays
+    return {
+      0: {
+        // January
+        1: "New Year's Day"
+      },
+      1: {
+        // February
+        14: "Valentine's Day"
+      },
+      2: {
+        // March
+        17: "St. Patrick's Day"
+      },
+      3: {
+        // April
+      },
+      4: {
+        // May
+        5: "Cinco de Mayo"
+      },
+      5: {
+        // June
+        14: "Flag Day"
+      },
+      6: {
+        // July
+        4: "Independence Day"
+      },
+      7: {
+        // August
+      },
+      8: {
+        // September
+        11: "9/11 Memorial"
+      },
+      9: {
+        // October
+        26: "PadManiacs Day", // First release of the game
+        31: "Halloween"
+      },
+      10: {
+        // November
+        11: "Veterans Day",
+        25: "39 Giving" // Thanksgiving, Renamed to "39 Giving" by DECO*27's song: 39
+      },
+      11: {
+        // December
+        24: "Christmas Eve",
+        25: "Christmas",
+        31: "New Year's Eve"
+      } 
+    }
+  }
+  
+  getHolidayName(month, date) {
+    const holidays = this.getHolidays();
+    if (holidays[month]) {
+      const currentDate = holidays[month][date];
+      if (currentDate) {
+        return currentDate;
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
   }
 
   isHoliday(month, date) {
-    // Comprehensive holiday detection (US holidays)
-    const holidays = {
-      0: [1], // January: New Year's Day (1st)
-      1: [14], // February: Valentine's Day (14th)
-      2: [17], // March: St. Patrick's Day (17th)
-      4: [5], // May: Cinco de Mayo (5th)
-      5: [14], // June: Flag Day (14th)
-      6: [4], // July: Independence Day (4th)
-      8: [11], // September: 9/11 Memorial
-      9: [31], // October: Halloween (31st)
-      10: [11, 25], // November: Veterans Day (11th), Thanksgiving (25th-ish)
-      11: [24, 25, 31] // December: Christmas Eve, Christmas, New Year's Eve
-    };
-
-    return holidays[month] && holidays[month].includes(date);
+    const holidays = this.getHolidays();
+    return holidays[month] && holidays[month][date] !== undefined;
   }
 
   setupWindowEvents() {

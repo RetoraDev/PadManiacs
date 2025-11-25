@@ -104,6 +104,7 @@ class BuildSystem {
       'js/game/states/Results.js',
       'js/game/states/Jukebox.js',
       'js/game/states/Credits.js',
+      'js/game/states/ErrorScreen.js',
       
       // Note Rendering and Player
       'js/game/player/ChartRenderer.js',

@@ -58,7 +58,7 @@ class StatsMenu {
     
     // Left column - General Stats
     leftColumnText += `Games Played: ${stats.totalGamesPlayed}\n`;
-    leftColumnText += `Total Score: ${stats.totalScore.toLocaleString()}\n`;
+    leftColumnText += `Score: ${stats.totalScore}\n`;
     leftColumnText += `Max Combo: ${stats.maxCombo}\n`;
     leftColumnText += `Perfect Games: ${stats.perfectGames}\n`;
     leftColumnText += `Characters: ${stats.charactersCreated}\n`;

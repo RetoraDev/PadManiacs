@@ -1,9 +1,5 @@
 // Achievements system constants
 const ACHIEVEMENTS = {
-  MAX_VISIBLE_NOTIFICATIONS: 3,
-  NOTIFICATION_DURATION: 3000,
-  NOTIFICATION_DELAY: 100,
-  NOTIFICATION_SPACING: 1,
   EXPERIENCE_VALUES: {
     COMMON: 5,
     UNCOMMON: 10,
@@ -19,6 +15,8 @@ const ACHIEVEMENT_CATEGORIES = {
   CHARACTER: 'Character',
   PROGRESSION: 'Progression',
   MASTERY: 'Mastery',
+  TIME: 'Time',
+  HOLIDAYS: 'Holidays',
   MISC: 'Miscellaneous'
 };
 
@@ -882,7 +880,7 @@ const ACHIEVEMENT_DEFINITIONS = [
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: (stats) => stats.playedEarlyMorning,
-    hidden: true
+    hidden: false
   },
   {
     id: "night_owl",
@@ -894,7 +892,7 @@ const ACHIEVEMENT_DEFINITIONS = [
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: (stats) => stats.playedAtNight,
-    hidden: true
+    hidden: false
   },
   {
     id: "weekend_warrior",
@@ -911,38 +909,14 @@ const ACHIEVEMENT_DEFINITIONS = [
   {
     id: "holiday_player",
     name: "Holiday Player",
-    category: ACHIEVEMENT_CATEGORIES.TIME,
+    category: ACHIEVEMENT_CATEGORIES.HOLIDAYS,
     description: {
       unachieved: "Play on a holiday",
       achieved: "You played on a holiday!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: (stats) => stats.playedHoliday,
-    hidden: true
-  },
-  {
-    id: "new_years_player",
-    name: "New Year's Rhythm",
-    category: ACHIEVEMENT_CATEGORIES.TIME,
-    description: {
-      unachieved: "Play on New Year's Day",
-      achieved: "You played on New Year's Day!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.playedHoliday,
-    hidden: true
-  },
-  {
-    id: "valentines_player",
-    name: "Valentine's Beat",
-    category: ACHIEVEMENT_CATEGORIES.TIME,
-    description: {
-      unachieved: "Play on Valentine's Day",
-      achieved: "You played on Valentine's Day!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.playedHoliday,
-    hidden: true
+    hidden: false
   },
 
   // Mastery Achievements
@@ -1037,6 +1011,18 @@ const ACHIEVEMENT_DEFINITIONS = [
     description: {
       unachieved: "Complete a difficulty 15 song",
       achieved: "You completed a difficulty 15 song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: (_, song) => song.complete && song.difficultyRating >= 15,
+    hidden: false
+  },
+  {
+    id: "difficulty_25",
+    name: "Just... Don't know what to say",
+    category: ACHIEVEMENT_CATEGORIES.MASTERY,
+    description: {
+      unachieved: "Complete a difficulty 25 song",
+      achieved: "You completed a difficulty 25 song!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: (_, song) => song.complete && song.difficultyRating >= 15,

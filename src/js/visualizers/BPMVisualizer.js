@@ -32,7 +32,7 @@ class BPMVisualizer extends Visualizer {
     this.currentBpm = this.getLastBpm();
     
     if (this.currentBpm != this.previusBpm) {
-      this.text.write(this.currentBpm.toFixed(3));
+      this.text.write(`${parseFloat(this.currentBpm.toFixed(3))}`);
       this.text.alpha = 1;
       game.add.tween(this.text).to({ alpha: 0.5 }, 100, "Linear", true);
     }

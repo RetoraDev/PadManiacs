@@ -85,3 +85,15 @@ const Audio = {
     }
   }
 };
+
+// Register recovery listener
+const script = document.createElement("script");
+script.text = `
+window.onerror = (details, file, line) => {
+  // TODO: Implement recovery from JavaScript freeze correctly
+  const filename = file.split('/').pop();
+  const message = details + "Error On Line " + line + " of " + filename;
+  game.state.add('ErrorScreen', ErrorScreen);
+  game.state.start('ErrorScreen', false, false, message, 'Boot');
+};`;
+document.head.appendChild(script);

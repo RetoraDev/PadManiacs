@@ -327,7 +327,7 @@ class CharacterSkillSystem {
     if (!this.character) return;
     
     // Update exhausted state
-    this.exhausted = this.skillsUsedThisGame >= this.character.skillLevel
+    this.exhausted = this.skillsUsedThisGame >= this.character.skillLevel;
     
     // Update active skills
     for (const [skillId, skillData] of this.activeSkills) {
@@ -342,7 +342,7 @@ class CharacterSkillSystem {
         this.skillCooldowns.delete(skillId);
       }
     }
-  
+    
     // Update skill bar
     this.scene.skillBar.value = (5 - (5 - this.character.skillLevel)) - this.getSkillsUsed();
     this.scene.skillBar.visibleParts = this.character.skillLevel;

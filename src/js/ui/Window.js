@@ -151,7 +151,7 @@ class Window extends Phaser.Sprite {
     this.update();
     return item;
   }
-
+  
   static processMultilingual(text) {
     // Translate text only
     if (typeof text !== 'string') {
