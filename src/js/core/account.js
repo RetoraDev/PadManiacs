@@ -15,6 +15,7 @@ const DEFAULT_ACCOUNT = {
     beatLines: false,
     beatsPerMeasure: 4, // TODO: Make this configurable
     speedMod: 'X-MOD',
+    hapticFeedback: false,
     // Addon system settings
     safeMode: false, 
     enabledAddons: [],

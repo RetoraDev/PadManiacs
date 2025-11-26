@@ -452,6 +452,91 @@ class Gamepad {
 
     return { x, y };
   }
+  
+  vibrate(duration = 100) {
+    // Do not vibrate if the last input source was keyboard
+    if (this.lastInputSource === 'keyboard') {
+      return false;
+    }
+  
+    let vibrationExecuted = false;
+  
+    // Vibrate according to the last input source detected
+    switch (this.lastInputSource) {
+      case 'touch':
+        // Only vibrate on cordova for touch screen
+        if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA && typeof navigator.vibrate === "function") {
+          navigator.vibrate(duration);
+          vibrationExecuted = true;
+        }
+        break;
+  
+      case 'gamepad':
+        // Vibrate HTML5 gamepads if available and support vibration
+        if (navigator.getGamepads && this.game.input.gamepad.supported) {
+          const gamepads = navigator.getGamepads();
+          
+          for (let i = 0; i < gamepads.length; i++) {
+            const gamepad = gamepads[i];
+            if (gamepad && 
+                gamepad.connected && 
+                gamepad.vibrationActuator && 
+                typeof gamepad.vibrationActuator.playEffect === 'function') {
+              
+              try {
+                gamepad.vibrationActuator.playEffect("dual-rumble", {
+                  startDelay: 0,
+                  duration: duration,
+                  weakMagnitude: 0.8,
+                  strongMagnitude: 0.8
+                });
+                vibrationExecuted = true;
+                break; // Vibrate only the first pad found
+              } catch (error) {
+                console.warn(`Error al vibrar mando ${i}:`, error);
+              }
+            }
+          }
+        }
+        break;
+  
+      case 'none':
+      default:
+        // For 'none' or unknown input source, try both methods
+        if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA && typeof navigator.vibrate === "function") {
+          navigator.vibrate(duration);
+          vibrationExecuted = true;
+        } else if (navigator.getGamepads && this.game.input.gamepad.supported) {
+          // Try to vibrate gamepads if any are connected
+          const gamepads = navigator.getGamepads();
+          
+          for (let i = 0; i < gamepads.length; i++) {
+            const gamepad = gamepads[i];
+            if (gamepad && 
+                gamepad.connected && 
+                gamepad.vibrationActuator && 
+                typeof gamepad.vibrationActuator.playEffect === 'function') {
+              
+              try {
+                gamepad.vibrationActuator.playEffect("dual-rumble", {
+                  startDelay: 0,
+                  duration: duration,
+                  weakMagnitude: 0.8,
+                  strongMagnitude: 0.8
+                });
+                vibrationExecuted = true;
+                break; // Vibrate only the first pad found
+              } catch (error) {
+                console.warn(`Error al vibrar mando ${i}:`, error);
+              }
+            }
+          }
+        }
+        break;
+    }
+  
+    return vibrationExecuted;
+  }
 
   reset() {
     this.releaseAll();

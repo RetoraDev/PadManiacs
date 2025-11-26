@@ -208,6 +208,15 @@ class MainMenu {
       );
       
       settingsWindow.addSettingItem(
+        "Haptic Feedback",
+        ["OFF", "ON"], Account.settings.hapticFeedback ? 1 : 0,
+        index => {
+          Account.settings.hapticFeedback = index === 1;
+          saveAccount();
+        }
+      );
+
+      settingsWindow.addSettingItem(
         "Beat Lines",
         ["YES", "NO"],
         Account.settings.beatLines ? 0 : 1,
