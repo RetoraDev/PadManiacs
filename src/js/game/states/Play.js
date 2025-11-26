@@ -381,10 +381,9 @@ class Play {
       score: this.player.score,
       accuracy: this.player.accuracy,
       maxCombo: this.player.maxCombo,
-      complete: this.song.chart.notes.length >= Object.values(this.player.judgementCounts).reduce((a, b) => a + b, 0) && !this.autoplay,
+      complete: !this.autoplay && this.player.accuracy >= 40,
       judgements: { ...this.player.judgementCounts },
       totalNotes: this.song.chart.notes.length,
-      isExternal: Account.lastSong.isExternal,
       skillsUsed: this.skillSystem.getSkillsUsed(),
       difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
     };
