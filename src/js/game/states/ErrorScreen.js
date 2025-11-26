@@ -17,7 +17,7 @@ ${this.message}
 
 Please Report The Developer Immediately!
 
-Press Any Key To Recover`);
+=== Press Any Key To Recover ===`);
     text.wrapPreserveNewlines(188);
 
     text.anchor.set(0.5);

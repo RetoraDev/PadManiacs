@@ -147,6 +147,7 @@ class Player {
 
   processNoteIfInWindow(note, currentTime, column, callback) {
     // Calculate time delta in seconds
+    // TODO: Fix notes under 0 time not being detected
     const noteTime = note.sec;
     const timeDelta = noteTime - currentTime;
     
