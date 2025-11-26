@@ -121,7 +121,7 @@ class CharacterManager {
     }
     
     // Require minimum accuracy threshold (50%) to get any experience
-    if (gameResults.accuracy < 50) {
+    if (gameResults.accuracy < 40) {
       return 0;
     }
     
@@ -172,15 +172,15 @@ class CharacterManager {
     
     // Difficulty multiplier (scaled down)
     if (gameResults.difficultyRating) {
-      if (gameResults.difficultyRating >= 15) exp += 3;    // Expert
-      else if (gameResults.difficultyRating >= 12) exp += 2; // Hard
-      else if (gameResults.difficultyRating >= 9) exp += 1;  // Medium
+      if (gameResults.difficultyRating >= 11) exp += 3;    // Expert
+      else if (gameResults.difficultyRating >= 9) exp += 2; // Hard
+      else if (gameResults.difficultyRating >= 5) exp += 1;  // Medium
       // Easy gets no extra bonus
     }
     
     // Skill usage bonus (small incentive)
     if (gameResults.skillsUsed > 0) {
-      exp += Math.min(2, gameResults.skillsUsed); // Up to 2 exp for skill usage
+      exp += gameResults.skillsUsed; // Up to 5 exp for skill usage
     }
     
     return exp;

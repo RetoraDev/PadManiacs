@@ -71,7 +71,8 @@ class Character {
       const unlockedHair = this.unlockRandomHairStyle();
       if (unlockedHair) {
         this.lastHairUnlockLevel = this.level;
-        notifications.show(`New hair style unlocked: ${unlockedHair.type} ${unlockedHair.id}`);
+        
+        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id]}`);
       }
     }
     
@@ -115,14 +116,14 @@ class Character {
     const availableBackHairs = [];
     
     // Find all front hair styles not yet unlocked
-    for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.front; i++) {
+    for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.front.length; i++) {
       if (!Account.characters.unlockedHairs.front.includes(i)) {
         availableFrontHairs.push(i);
       }
     }
     
     // Find all back hair styles not yet unlocked
-    for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.back; i++) {
+    for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.back.length; i++) {
       if (!Account.characters.unlockedHairs.back.includes(i)) {
         availableBackHairs.push(i);
       }
