@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 11/26/2025, 5:49:40 PM
+ * Build: 11/26/2025, 6:01:45 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -16089,6 +16089,8 @@ class ChartRenderer {
     this.COLUMN_SEPARATION = 4;
     this.INACTIVE_COLOR = 0x888888;
     
+    this.noteSpeedMultiplier = this.NOTE_SPEED_MULTIPLIER;
+    
     this.speedMod = Account.settings.speedMod || 'X-MOD';
     
     // Note color option (default to NOTE)
@@ -16268,18 +16270,18 @@ class ChartRenderer {
     
     if (this.speedMod === 'C-MOD') {
       const constantDeltaNote = note.sec - now;
-      pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier;
       
       if (note.beatLength) {
         const freezeDuration = note.secLength || (note.beatLength * 60 / this.getCurrentBPM());
-        bodyHeight = Math.max(this.COLUMN_SIZE, freezeDuration * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER);
+        bodyHeight = Math.max(this.COLUMN_SIZE, freezeDuration * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier);
       }
     } else {
       const deltaNote = note.beat - beat;
-      pastSize = deltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      pastSize = deltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier;
       
       if (note.beatLength) {
-        bodyHeight = Math.max(this.COLUMN_SIZE, note.beatLength * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER);
+        bodyHeight = Math.max(this.COLUMN_SIZE, note.beatLength * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier);
       }
     }
     
@@ -16630,13 +16632,13 @@ class ChartRenderer {
     if (this.speedMod === 'C-MOD') {
       const targetSec = this.beatToSec(targetBeat);
       const constantDeltaNote = targetSec - now;
-      const pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      const pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier;
       yPos = this.scrollDirection === 'falling' ?
         this.JUDGE_LINE - pastSize :
         this.JUDGE_LINE + pastSize;
     } else {
       const deltaBeat = targetBeat - beat;
-      const pastSize = deltaBeat * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.NOTE_SPEED_MULTIPLIER;
+      const pastSize = deltaBeat * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier;
       yPos = this.scrollDirection === 'falling' ?
         this.JUDGE_LINE - pastSize :
         this.JUDGE_LINE + pastSize;
@@ -17263,7 +17265,7 @@ class Player {
   }
   
   getNoteSpeedMultiplier() {
-    const baseMultiplier = this.NOTE_SPEED_MULTIPLIER;
+    const baseMultiplier = this.renderer.NOTE_SPEED_MULTIPLIER;
     const skillMultiplier = this.skillSystem ? this.skillSystem.getNoteSpeedMultiplier() : 1.0;
     return baseMultiplier * skillMultiplier;
   }
@@ -17493,6 +17495,9 @@ class Player {
         this.scene.accuracyBar.visible = true;
       }
     }
+    
+    // Update rendered note speed
+    this.renderer.noteSpeedMultiplier = this.getNoteSpeedMultiplier();
 
     // Update active holds
     Object.entries(this.activeHolds).forEach(([col, hold]) => {

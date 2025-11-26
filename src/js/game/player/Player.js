@@ -505,7 +505,7 @@ class Player {
   }
   
   getNoteSpeedMultiplier() {
-    const baseMultiplier = this.NOTE_SPEED_MULTIPLIER;
+    const baseMultiplier = this.renderer.NOTE_SPEED_MULTIPLIER;
     const skillMultiplier = this.skillSystem ? this.skillSystem.getNoteSpeedMultiplier() : 1.0;
     return baseMultiplier * skillMultiplier;
   }
@@ -735,6 +735,9 @@ class Player {
         this.scene.accuracyBar.visible = true;
       }
     }
+    
+    // Update rendered note speed
+    this.renderer.noteSpeedMultiplier = this.getNoteSpeedMultiplier();
 
     // Update active holds
     Object.entries(this.activeHolds).forEach(([col, hold]) => {
