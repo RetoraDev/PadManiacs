@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.6 dev
- * Build: 11/25/2025, 12:26:04 PM
+ * Build: 11/26/2025, 11:42:46 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -92,6 +92,10 @@ const ENABLE_ADDON_SAFE_MODE = true;
 
 const ENABLE_UI_SFX = false;
 const ENABLE_EXP_SFX = true;
+
+const REGULAR_VIBRATION_INTENSITY = 75;
+const WEAK_VIBRATION_INTENSITY = 50;
+const STRONG_VIBRATION_INTENSITY = 50;
 
 // Character system constants
 const CHARACTER_SYSTEM = {
@@ -772,6 +776,7 @@ const DEFAULT_ACCOUNT = {
     beatLines: false,
     beatsPerMeasure: 4, // TODO: Make this configurable
     speedMod: 'X-MOD',
+    hapticFeedback: false,
     // Addon system settings
     safeMode: false, 
     enabledAddons: [],
@@ -7106,12 +7111,12 @@ const Audio = {
 };
 
 // Register recovery listener
+// TODO: Implement recovery from JavaScript freeze correctly
 const script = document.createElement("script");
 script.text = `
 window.onerror = (details, file, line) => {
-  // TODO: Implement recovery from JavaScript freeze correctly
-  const filename = file.split('/').pop();
-  const message = details + "Error On Line " + line + " of " + filename;
+  const filename = file ? file.split('/').pop() : 'unknown file';
+  const message = details + " On Line " + line + " of " + filename;
   game.state.add('ErrorScreen', ErrorScreen);
   game.state.start('ErrorScreen', false, false, message, 'Boot');
 };`;
@@ -7570,6 +7575,91 @@ class Gamepad {
     }
 
     return { x, y };
+  }
+  
+  vibrate(duration = 100) {
+    // Do not vibrate if the last input source was keyboard
+    if (this.lastInputSource === 'keyboard') {
+      return false;
+    }
+  
+    let vibrationExecuted = false;
+  
+    // Vibrate according to the last input source detected
+    switch (this.lastInputSource) {
+      case 'touch':
+        // Only vibrate on cordova for touch screen
+        if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA && typeof navigator.vibrate === "function") {
+          navigator.vibrate(duration);
+          vibrationExecuted = true;
+        }
+        break;
+  
+      case 'gamepad':
+        // Vibrate HTML5 gamepads if available and support vibration
+        if (navigator.getGamepads && this.game.input.gamepad.supported) {
+          const gamepads = navigator.getGamepads();
+          
+          for (let i = 0; i < gamepads.length; i++) {
+            const gamepad = gamepads[i];
+            if (gamepad && 
+                gamepad.connected && 
+                gamepad.vibrationActuator && 
+                typeof gamepad.vibrationActuator.playEffect === 'function') {
+              
+              try {
+                gamepad.vibrationActuator.playEffect("dual-rumble", {
+                  startDelay: 0,
+                  duration: duration,
+                  weakMagnitude: 0.8,
+                  strongMagnitude: 0.8
+                });
+                vibrationExecuted = true;
+                break; // Vibrate only the first pad found
+              } catch (error) {
+                console.warn(`Error al vibrar mando ${i}:`, error);
+              }
+            }
+          }
+        }
+        break;
+  
+      case 'none':
+      default:
+        // For 'none' or unknown input source, try both methods
+        if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA && typeof navigator.vibrate === "function") {
+          navigator.vibrate(duration);
+          vibrationExecuted = true;
+        } else if (navigator.getGamepads && this.game.input.gamepad.supported) {
+          // Try to vibrate gamepads if any are connected
+          const gamepads = navigator.getGamepads();
+          
+          for (let i = 0; i < gamepads.length; i++) {
+            const gamepad = gamepads[i];
+            if (gamepad && 
+                gamepad.connected && 
+                gamepad.vibrationActuator && 
+                typeof gamepad.vibrationActuator.playEffect === 'function') {
+              
+              try {
+                gamepad.vibrationActuator.playEffect("dual-rumble", {
+                  startDelay: 0,
+                  duration: duration,
+                  weakMagnitude: 0.8,
+                  strongMagnitude: 0.8
+                });
+                vibrationExecuted = true;
+                break; // Vibrate only the first pad found
+              } catch (error) {
+                console.warn(`Error al vibrar mando ${i}:`, error);
+              }
+            }
+          }
+        }
+        break;
+    }
+  
+    return vibrationExecuted;
   }
 
   reset() {
@@ -11645,6 +11735,15 @@ class MainMenu {
         }
       );
       
+      settingsWindow.addSettingItem(
+        "Haptic Feedback",
+        ["OFF", "ON"], Account.settings.hapticFeedback ? 1 : 0,
+        index => {
+          Account.settings.hapticFeedback = index === 1;
+          saveAccount();
+        }
+      );
+
       settingsWindow.addSettingItem(
         "Beat Lines",
         ["YES", "NO"],
@@ -15942,7 +16041,7 @@ ${this.message}
 
 Please Report The Developer Immediately!
 
-Press Any Key To Recover`);
+=== Press Any Key To Recover ===`);
     text.wrapPreserveNewlines(188);
 
     text.anchor.set(0.5);
@@ -16693,7 +16792,7 @@ class Player {
     this.activeHolds = {};
     this.heldColumns = new Set();
     this.judgementHistory = [];
-    this.lastNoteCheckBeats = [0, 0, 0, 0];
+    this.lastNoteCheckBeats = [null, null, null, null];
     this.score = 0;
     this.combo = 0;
     this.maxCombo = 0;
@@ -16814,12 +16913,13 @@ class Player {
     if (Math.abs(timeDelta) <= maxWindowSeconds && this.lastNoteCheckBeats[column] !== note.beat) {
       callback(note, timeDelta);
       this.lastNoteCheckBeats[column] = note.beat;
+      this.vibrate(REGULAR_VIBRATION_INTENSITY);
       return true;
     }
     return false;
   }
 
-  // AI autoplay method
+  // AI autolay method
   autoPlay() {
     if (!this.scene.startTime || this.scene.isPaused) return;
     
@@ -16888,20 +16988,15 @@ class Player {
   
       // Reactivate inactive holds within forgiveness window
       const holdForgiveness = this.getHoldForgiveness();
-      if (hold?.inactive && now - hold.lastRelease < holdForgiveness) {
-        hold.active = true;
-        hold.inactive = false;
-        hold.pressCount++;
-        hold.lastPress = now;
-        this.toggleHoldExplosion(column, true);
-      }
-  
+
       // Handle roll note tapping
       if (hold?.note.type === "4") {
         hold.tapped++;
         hold.lastTap = now;
         hold.active = true;
         hold.inactive = false;
+        this.toggleHoldExplosion(column, true);
+        this.vibrate(WEAK_VIBRATION_INTENSITY);
       }
   
       // Check for new holds and regular notes
@@ -17025,6 +17120,10 @@ class Player {
 
   toggleHoldExplosion(column, visible) {
     this.renderer.toggleHoldExplosion(column, visible);
+  }
+  
+  vibrate(duration = 25) {
+    Account.settings.hapticFeedback && gamepad.vibrate(duration);
   }
   
   getAdjustedJudgementWindows() {
@@ -17435,6 +17534,8 @@ class Player {
         }
       
         hold.note.finish = true;
+        
+        this.vibrate(REGULAR_VIBRATION_INTENSITY)
 
         this.processJudgement(hold.note, judgement, Number(col), "freeze");
         hold.note.hit = true;

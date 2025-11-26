@@ -35,7 +35,7 @@ class Player {
     this.activeHolds = {};
     this.heldColumns = new Set();
     this.judgementHistory = [];
-    this.lastNoteCheckBeats = [0, 0, 0, 0];
+    this.lastNoteCheckBeats = [null, null, null, null];
     this.score = 0;
     this.combo = 0;
     this.maxCombo = 0;
@@ -147,7 +147,6 @@ class Player {
 
   processNoteIfInWindow(note, currentTime, column, callback) {
     // Calculate time delta in seconds
-    // TODO: Fix notes under 0 time not being detected
     const noteTime = note.sec;
     const timeDelta = noteTime - currentTime;
     
@@ -157,12 +156,13 @@ class Player {
     if (Math.abs(timeDelta) <= maxWindowSeconds && this.lastNoteCheckBeats[column] !== note.beat) {
       callback(note, timeDelta);
       this.lastNoteCheckBeats[column] = note.beat;
+      this.vibrate(REGULAR_VIBRATION_INTENSITY);
       return true;
     }
     return false;
   }
 
-  // AI autoplay method
+  // AI autolay method
   autoPlay() {
     if (!this.scene.startTime || this.scene.isPaused) return;
     
@@ -231,20 +231,15 @@ class Player {
   
       // Reactivate inactive holds within forgiveness window
       const holdForgiveness = this.getHoldForgiveness();
-      if (hold?.inactive && now - hold.lastRelease < holdForgiveness) {
-        hold.active = true;
-        hold.inactive = false;
-        hold.pressCount++;
-        hold.lastPress = now;
-        this.toggleHoldExplosion(column, true);
-      }
-  
+
       // Handle roll note tapping
       if (hold?.note.type === "4") {
         hold.tapped++;
         hold.lastTap = now;
         hold.active = true;
         hold.inactive = false;
+        this.toggleHoldExplosion(column, true);
+        this.vibrate(WEAK_VIBRATION_INTENSITY);
       }
   
       // Check for new holds and regular notes
@@ -368,6 +363,10 @@ class Player {
 
   toggleHoldExplosion(column, visible) {
     this.renderer.toggleHoldExplosion(column, visible);
+  }
+  
+  vibrate(duration = 25) {
+    Account.settings.hapticFeedback && gamepad.vibrate(duration);
   }
   
   getAdjustedJudgementWindows() {
@@ -778,6 +777,8 @@ class Player {
         }
       
         hold.note.finish = true;
+        
+        this.vibrate(REGULAR_VIBRATION_INTENSITY)
 
         this.processJudgement(hold.note, judgement, Number(col), "freeze");
         hold.note.hit = true;

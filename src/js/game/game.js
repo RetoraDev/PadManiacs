@@ -91,7 +91,7 @@ const Audio = {
 const script = document.createElement("script");
 script.text = `
 window.onerror = (details, file, line) => {
-  const filename = file ? file.split('/').pop() : 'unknown file;
+  const filename = file ? file.split('/').pop() : 'unknown file';
   const message = details + " On Line " + line + " of " + filename;
   game.state.add('ErrorScreen', ErrorScreen);
   game.state.start('ErrorScreen', false, false, message, 'Boot');
