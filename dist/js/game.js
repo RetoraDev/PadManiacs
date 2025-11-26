@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 11/26/2025, 11:48:31 AM
+ * Build: 11/26/2025, 12:27:50 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -102,7 +102,7 @@ const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 6,
   DEFAULT_CHARACTER: "EIRI",
   MAX_SKILL_LEVEL: 5,
-  EXPERIENCE_CURVE: level => Math.floor(8 * Math.pow(level, 1.02)),
+  EXPERIENCE_CURVE: level => Math.floor(10 * Math.pow(level, 1.03)),
   SKILL_UNLOCK_CHANCE: 0.7,
   HAIR_UNLOCK_CHANCE: 0.6,
   ITEM_UNLOCK_CHANCE: 0.5,
@@ -110,7 +110,7 @@ const CHARACTER_SYSTEM = {
   MIN_LEVEL_FOR_SKILL: 4,
   MIN_LEVEL_FOR_HAIR: 1,
   MIN_LEVEL_FOR_ITEM: 3,
-  SKILL_COOLDOWN_LEVELS: 2,
+  SKILL_COOLDOWN_LEVELS: 1,
   HAIR_COOLDOWN_LEVELS: 2,
   ITEM_COOLDOWN_LEVELS: 2,
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
@@ -893,6 +893,18 @@ const ACHIEVEMENT_DEFINITIONS = [
     hidden: false
   },
   {
+    id: "first_extra_songs_game",
+    name: "Love My Charts",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete your first external song",
+      achieved: "You completed your first external song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (_, song) => song.complete && song.isExternal,
+    hidden: false
+  },
+  {
     id: "combo_100",
     name: "Getting the Rhythm",
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
@@ -1422,18 +1434,6 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 100 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalGamesPlayed >= 250,
-    hidden: false
-  },
-  {
-    id: "games_250",
-    name: "Rhythm Addict",
-    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
-    description: {
-      unachieved: "Play 250 games",
-      achieved: "You played 250 games!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: (stats) => stats.totalGamesPlayed >= 250,
     hidden: false
   },
@@ -14265,6 +14265,7 @@ class Play {
       complete: this.song.chart.notes.length >= Object.values(this.player.judgementCounts).reduce((a, b) => a + b, 0) && !this.autoplay,
       judgements: { ...this.player.judgementCounts },
       totalNotes: this.song.chart.notes.length,
+      isExternal: Account.lastSong.isExternal,
       skillsUsed: this.skillSystem.getSkillsUsed(),
       difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
     };

@@ -384,6 +384,7 @@ class Play {
       complete: this.song.chart.notes.length >= Object.values(this.player.judgementCounts).reduce((a, b) => a + b, 0) && !this.autoplay,
       judgements: { ...this.player.judgementCounts },
       totalNotes: this.song.chart.notes.length,
+      isExternal: Account.lastSong.isExternal,
       skillsUsed: this.skillSystem.getSkillsUsed(),
       difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
     };

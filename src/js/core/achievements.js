@@ -36,6 +36,18 @@ const ACHIEVEMENT_DEFINITIONS = [
     hidden: false
   },
   {
+    id: "first_extra_songs_game",
+    name: "Love My Charts",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete your first external song",
+      achieved: "You completed your first external song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (_, song) => song.complete && song.isExternal,
+    hidden: false
+  },
+  {
     id: "combo_100",
     name: "Getting the Rhythm",
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
@@ -565,18 +577,6 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 100 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalGamesPlayed >= 250,
-    hidden: false
-  },
-  {
-    id: "games_250",
-    name: "Rhythm Addict",
-    category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
-    description: {
-      unachieved: "Play 250 games",
-      achieved: "You played 250 games!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: (stats) => stats.totalGamesPlayed >= 250,
     hidden: false
   },

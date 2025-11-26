@@ -1,4 +1,4 @@
-const curve = level => Math.floor(8 * Math.pow(level, 1.02));
+const curve = level => Math.floor(10 * Math.pow(level, 1.03));
 
 const levelsToPrint = 25;
 
