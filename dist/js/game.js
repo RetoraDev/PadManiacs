@@ -5,20 +5,17 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 11/26/2025, 11:19:48 PM
+ * Build: 11/27/2025, 12:46:01 AM
  * Platform: Development
- * Debug: true
+ * Debug: false
  * Minified: false
  */
 
-
-
-// ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2025";
 
 const VERSION = "v0.0.7 dev";
 
-window.DEBUG = true;
+window.DEBUG = false;
 
 const FONTS = {
   default: { font: "font_tiny" },
@@ -71,9 +68,6 @@ const FEEDBACK_REVIEW_URL = "https://retora.itch.io/padmaniacs/rate";
 const FEEDBACK_FEATURE_REQUEST_URL = "https://itch.io/t/5585472/feature-requests";
 const FEEDBACK_BUG_REPORT_URL = "https://itch.io/t/5585499/bug-reports";
 
-
-
-// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -107,9 +101,6 @@ const REGULAR_VIBRATION_INTENSITY = 75;
 const WEAK_VIBRATION_INTENSITY = 50;
 const STRONG_VIBRATION_INTENSITY = 50;
 
-
-
-// ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 6,
@@ -772,9 +763,6 @@ const CHARACTER_ITEMS = {
   ]
 };
 
-
-
-// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
   settings: {
     volume: 3,
@@ -871,9 +859,6 @@ const DEFAULT_ACCOUNT = {
 };
 
 
-
-
-// ======== js/core/achievements.js ========
 // Achievements system constants
 const ACHIEVEMENTS = {
   EXPERIENCE_VALUES: {
@@ -1930,9 +1915,6 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
-
-
-// ======== js/character/Character.js ========
 class Character {
   constructor(data) {
     this.name = data.name;
@@ -2179,9 +2161,6 @@ class Character {
   }
 }
 
-
-
-// ======== js/character/CharacterDisplay.js ========
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
@@ -2307,9 +2286,6 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/character/CharacterCroppedDisplay.js ========
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
@@ -2338,27 +2314,18 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterPortrait.js ========
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterCloseShot.js ========
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterManager.js ========
 class CharacterManager {
   constructor() {
     this.characters = new Map();
@@ -2580,9 +2547,6 @@ class CharacterManager {
   }
 }
 
-
-
-// ======== js/character/CharacterSkillSystem.js ========
 class CharacterSkillSystem {
   constructor(scene, character) {
     this.scene = scene;
@@ -2966,9 +2930,6 @@ class CharacterSkillSystem {
   }
 }
 
-
-
-// ======== js/achievements/AchievementsManager.js ========
 class AchievementsManager {
   constructor() {
     this.newAchievements = [];
@@ -3502,9 +3463,6 @@ class AchievementsManager {
   }
 }
 
-
-
-// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config, parent) {
     config = {
@@ -3811,9 +3769,6 @@ class Text extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -4240,9 +4195,6 @@ class Window extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
@@ -4394,9 +4346,455 @@ class WindowManager {
   }
 }
 
+class DialogWindow extends Phaser.Sprite {
+  constructor(text, options = {}) {
+    const {
+      x = game.width / 2,
+      y = game.height / 2,
+      anchorX = 0.5,
+      anchorY = 0.5,
+      maxWidth = 180,
+      maxHeight = 80,
+      buttons = ['OK'],
+      defaultButton = 0,
+      enableTextScroll = true,
+      parent = null
+    } = options;
 
+    super(game, x, y);
+    
+    this.anchor.set(anchorX, anchorY);
 
-// ======== js/ui/CarouselMenu.js ========
+    this.text = text;
+    this.buttons = buttons;
+    this.selectedButton = defaultButton;
+    this.enableTextScroll = enableTextScroll;
+    this.currentScroll = 0;
+    this.maxScroll = 0;
+    this.fontTint = 0x76fcde;
+    this.isActive = true;
+    
+    if (parent) {
+      parent.addChild(this);
+    } else {
+      game.add.existing(this);
+    }
+
+    this.createDialog();
+  }
+
+  createDialog() {
+    // Create window background using Window class
+    const { width, height, wrappedText } = this.calculateWindowSize();
+    
+    this.window = new Window(0, 0, width, height, "1", this);
+    this.window.x -= this.window.size.width * 8 * this.anchor.x;
+    this.window.y -= this.window.size.height * 8 * this.anchor.y;
+    this.window.focus = false;
+    this.window.selector.visible = false;
+    
+    // Create text content
+    this.createTextContent(wrappedText);
+    
+    // Create buttons
+    this.createButtonElements();
+    
+    // Set up input handling
+    this.setupInputHandling();
+  }
+
+  calculateWindowSize() {
+    // Wrap the text
+    const wrappedText = this.wrapText(this.text);
+    const lineCount = wrappedText.length;
+    
+    // Calculate required dimensions - ensure minimum height for text
+    const textHeight = Math.max(lineCount * 6, 6) + 16; // At least one line height + padding
+    const buttonHeight = 12;
+    const totalHeight = textHeight + buttonHeight;
+    
+    // Ensure minimum window height to prevent text cutoff
+    const minHeightInUnits = Math.ceil((6 * 3 + 16 + 12) / 8); // At least 3 lines of text
+    const calculatedHeight = Math.floor(totalHeight / 8);
+    const finalHeight = Math.max(minHeightInUnits, calculatedHeight);
+    
+    const width = Math.floor(180 / 8); // Convert to 8px units
+    
+    return {
+      width: width,
+      height: finalHeight,
+      wrappedText: wrappedText
+    };
+  }
+
+  wrapText(text) {
+    const maxLineWidth = 160; // pixels
+    const charWidth = 4;
+    const charsPerLine = Math.floor(maxLineWidth / charWidth);
+    
+    const lines = text.split('\n');
+    const wrappedLines = [];
+    
+    for (let line of lines) {
+      if (this.getTextWidth(line) <= maxLineWidth) {
+        wrappedLines.push(line);
+        continue;
+      }
+      
+      let currentLine = '';
+      const words = line.split(' ');
+      
+      for (let word of words) {
+        if (this.getTextWidth(word) > maxLineWidth) {
+          if (currentLine) {
+            wrappedLines.push(currentLine.trim());
+            currentLine = '';
+          }
+          const brokenWord = this.breakLongWord(word, charsPerLine);
+          wrappedLines.push(...brokenWord);
+          continue;
+        }
+        
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        if (this.getTextWidth(testLine) <= maxLineWidth) {
+          currentLine = testLine;
+        } else {
+          if (currentLine) {
+            wrappedLines.push(currentLine.trim());
+          }
+          currentLine = word;
+        }
+      }
+      
+      if (currentLine) {
+        wrappedLines.push(currentLine.trim());
+      }
+    }
+    
+    return wrappedLines;
+  }
+
+  breakLongWord(word, charsPerLine) {
+    const chunks = [];
+    let currentChunk = '';
+    
+    for (let i = 0; i < word.length; i++) {
+      currentChunk += word[i];
+      if (currentChunk.length >= charsPerLine || i === word.length - 1) {
+        chunks.push(currentChunk);
+        currentChunk = '';
+      }
+    }
+    
+    return chunks;
+  }
+
+  getTextWidth(text) {
+    return text.length * 4; // 4px per character
+  }
+
+  createTextContent(wrappedText) {
+    this.textLines = [];
+    this.allTextLines = wrappedText;
+    
+    const startY = 8;
+    const textAreaHeight = (this.window.size.height * 8) - 28; // Total available height for text (window height - padding - buttons)
+    const lineHeight = 6;
+    this.maxVisibleLines = Math.floor(textAreaHeight / lineHeight);
+    
+    this.maxScroll = Math.max(0, wrappedText.length - this.maxVisibleLines);
+    const visibleLines = wrappedText.slice(this.currentScroll, this.currentScroll + this.maxVisibleLines);
+    
+    visibleLines.forEach((line, index) => {
+      const text = new Text(8, startY + (index * lineHeight), line, {
+        ...FONTS.default,
+        tint: this.fontTint
+      });
+      this.window.addChild(text);
+      this.textLines.push(text);
+    });
+    
+    this.updateScrollIndicator();
+    this.updateScrollBar(); // Add scrollbar
+  }
+
+  createButtonElements() {
+    this.buttonTexts = [];
+    const buttonAreaY = this.window.size.height * 8 - 12;
+    const totalButtonWidth = this.buttons.length * 40;
+    const startX = (this.window.size.width * 8 - totalButtonWidth) / 2;
+    
+    this.buttons.forEach((buttonText, index) => {
+      const buttonX = startX + (index * 40);
+      const button = new Text(buttonX, buttonAreaY, buttonText, {
+        ...FONTS.default,
+        tint: this.fontTint
+      });
+      button.anchor.x = 0.5;
+      this.window.addChild(button);
+      this.buttonTexts.push(button);
+    });
+    
+    this.updateButtonSelection();
+  }
+
+  updateButtonSelection() {
+    this.buttonTexts.forEach((button, index) => {
+      button.selected = index === this.selectedButton;
+    });
+  }
+
+  updateScrollIndicator() {
+    // Remove existing scroll indicator
+    if (this.scrollIndicator) {
+      this.scrollIndicator.destroy();
+    }
+    
+    // Show scroll indicator if text can be scrolled
+    if (this.enableTextScroll && this.maxScroll > 0) {
+      const indicatorX = this.window.size.width * 8 - 8;
+      const indicatorY = this.window.size.height * 8 - 20;
+      
+      this.scrollIndicator = new Text(indicatorX, indicatorY, ">", {
+        ...FONTS.default,
+        tint: this.fontTint
+      });
+      this.scrollIndicator.anchor.set(1, 0.5);
+      this.window.addChild(this.scrollIndicator);
+      
+      // Blink animation for scroll indicator
+      game.add.tween(this.scrollIndicator).to({ alpha: 0 }, 500, "Linear", true, 0, -1).yoyo(true);
+    }
+  }
+  
+  updateScrollBar() {
+    // Remove existing scroll bar
+    if (this.scrollBar) {
+      this.scrollBar.destroy();
+    }
+    
+    // Only show scroll bar if text can be scrolled
+    if (this.enableTextScroll && this.maxScroll > 0) {
+      const scrollBarX = this.window.size.width * 8 - 4;
+      const textAreaY = 8;
+      const textAreaHeight = (this.window.size.height * 8) - 28;
+      
+      // Calculate scroll bar dimensions
+      const totalTextHeight = this.allTextLines.length * 6;
+      const visibleRatio = textAreaHeight / totalTextHeight;
+      const scrollBarHeight = Math.max(8, textAreaHeight * visibleRatio);
+      
+      // Calculate scroll bar position
+      const scrollRange = this.maxScroll;
+      const scrollProgress = this.currentScroll / scrollRange;
+      const availableScrollSpace = textAreaHeight - scrollBarHeight;
+      const scrollBarY = textAreaY + (scrollProgress * availableScrollSpace);
+      
+      // Create scroll bar graphics
+      this.scrollBar = game.add.graphics(scrollBarX, scrollBarY);
+      this.scrollBar.beginFill(this.fontTint, 0.8);
+      this.scrollBar.drawRect(0, 0, 2, scrollBarHeight);
+      this.scrollBar.endFill();
+      this.window.addChild(this.scrollBar);
+    }
+  }
+
+  setupInputHandling() {
+    this.onConfirm = new Phaser.Signal();
+    this.onCancel = new Phaser.Signal();
+    
+    // Use gamepad signals instead of checking pressed states
+    this.setupGamepadSignals();
+  }
+
+  setupGamepadSignals() {
+    // Store the original signal handlers to restore later
+    this.originalLeftHandler = gamepad.signals.pressed.left;
+    this.originalRightHandler = gamepad.signals.pressed.right;
+    this.originalUpHandler = gamepad.signals.pressed.up;
+    this.originalDownHandler = gamepad.signals.pressed.down;
+    this.originalAHandler = gamepad.signals.pressed.a;
+    this.originalBHandler = gamepad.signals.pressed.b;
+    
+    // Override the signals for dialog navigation
+    gamepad.signals.pressed.left.add(this.onLeftPressed, this);
+    gamepad.signals.pressed.right.add(this.onRightPressed, this);
+    gamepad.signals.pressed.up.add(this.onUpPressed, this);
+    gamepad.signals.pressed.down.add(this.onDownPressed, this);
+    gamepad.signals.pressed.a.add(this.onAPressed, this);
+    gamepad.signals.pressed.b.add(this.onBPressed, this);
+  }
+
+  onLeftPressed() {
+    if (!this.isActive) return;
+    
+    this.selectedButton = Math.max(0, this.selectedButton - 1);
+    this.updateButtonSelection();
+    ENABLE_UI_SFX && Audio.play('ui_nav');
+  }
+
+  onRightPressed() {
+    if (!this.isActive) return;
+    
+    this.selectedButton = Math.min(this.buttons.length - 1, this.selectedButton + 1);
+    this.updateButtonSelection();
+    ENABLE_UI_SFX && Audio.play('ui_nav');
+  }
+
+  onUpPressed() {
+    if (!this.isActive || !this.enableTextScroll) return;
+    
+    if (this.currentScroll > 0) {
+      this.currentScroll--;
+      this.refreshTextContent();
+      ENABLE_UI_SFX && Audio.play('ui_nav');
+    }
+  }
+
+  onDownPressed() {
+    if (!this.isActive || !this.enableTextScroll) return;
+    
+    if (this.currentScroll < this.maxScroll) {
+      this.currentScroll++;
+      this.refreshTextContent();
+      ENABLE_UI_SFX && Audio.play('ui_nav');
+    }
+  }
+
+  onAPressed() {
+    if (!this.isActive) return;
+    
+    this.confirm();
+  }
+
+  onBPressed() {
+    if (!this.isActive) return;
+    
+    this.cancel();
+  }
+
+  refreshTextContent() {
+    // Remove existing text lines
+    this.textLines.forEach(text => text.destroy());
+    this.textLines = [];
+    
+    // Remove existing scroll bar
+    if (this.scrollBar) {
+      this.scrollBar.destroy();
+      this.scrollBar = null;
+    }
+    
+    // Create new text content with current scroll
+    const startY = 8;
+    const lineHeight = 6;
+    const visibleLines = this.allTextLines.slice(this.currentScroll, this.currentScroll + this.maxVisibleLines);
+    
+    visibleLines.forEach((line, index) => {
+      const text = new Text(8, startY + (index * lineHeight), line, {
+        ...FONTS.default,
+        tint: this.fontTint
+      });
+      this.window.addChild(text);
+      this.textLines.push(text);
+    });
+    
+    this.updateScrollIndicator();
+    this.updateScrollBar(); // Update scrollbar position
+  }
+
+  confirm() {
+    if (!this.isActive) return;
+    
+    this.isActive = false;
+    this.onConfirm.dispatch(this.selectedButton, this.buttons[this.selectedButton]);
+    ENABLE_UI_SFX && Audio.play('ui_select');
+    this.cleanup();
+  }
+
+  cancel() {
+    if (!this.isActive) return;
+    
+    this.isActive = false;
+    // Find cancel button (usually "No" or "Cancel")
+    const cancelIndex = this.buttons.findIndex(btn => 
+      btn.toUpperCase().includes('NO') || 
+      btn.toUpperCase().includes('CANCEL') ||
+      btn.toUpperCase().includes('BACK')
+    );
+    
+    if (cancelIndex !== -1) {
+      this.selectedButton = cancelIndex;
+      this.onConfirm.dispatch(this.selectedButton, this.buttons[this.selectedButton]);
+      ENABLE_UI_SFX && Audio.play('ui_select');
+    } else {
+      this.onCancel.dispatch(this.selectedButton);
+      ENABLE_UI_SFX && Audio.play('ui_cancel');
+    }
+    this.cleanup();
+  }
+  
+  update() {
+    // Update button animations
+    if (this.buttonTexts) {
+      const time = game.time.now * 0.01; // Slow down the animation
+      this.buttonTexts.forEach((button, index) => {
+        if (index === this.selectedButton) {
+          // Sine wave alpha animation: oscillates between 0.5 and 1.0
+          const alpha = 0.75 + Math.sin(time) * 0.25;
+          button.alpha = Math.max(0.5, Math.min(1.0, alpha));
+        } else {
+          // Non-selected buttons are fully opaque
+          button.alpha = 1.0;
+        }
+      });
+    }
+  }
+
+  cleanup() {
+    // Restore original gamepad signal handlers
+    this.restoreGamepadSignals();
+  }
+
+  restoreGamepadSignals() {
+    gamepad.signals.pressed.left.remove(this.onLeftPressed, this);
+    gamepad.signals.pressed.right.remove(this.onRightPressed, this);
+    gamepad.signals.pressed.up.remove(this.onUpPressed, this);
+    gamepad.signals.pressed.down.remove(this.onDownPressed, this);
+    gamepad.signals.pressed.a.remove(this.onAPressed, this);
+    gamepad.signals.pressed.b.remove(this.onBPressed, this);
+    
+    // Restore original handlers if they existed
+    if (this.originalLeftHandler) {
+      gamepad.signals.pressed.left.add(this.originalLeftHandler);
+    }
+    if (this.originalRightHandler) {
+      gamepad.signals.pressed.right.add(this.originalRightHandler);
+    }
+    if (this.originalUpHandler) {
+      gamepad.signals.pressed.up.add(this.originalUpHandler);
+    }
+    if (this.originalDownHandler) {
+      gamepad.signals.pressed.down.add(this.originalDownHandler);
+    }
+    if (this.originalAHandler) {
+      gamepad.signals.pressed.a.add(this.originalAHandler);
+    }
+    if (this.originalBHandler) {
+      gamepad.signals.pressed.b.add(this.originalBHandler);
+    }
+  }
+
+  destroy() {
+    if (this.isActive) {
+      this.cleanup();
+    }
+    if (this.window) {
+      this.window.destroy();
+    }
+    super.destroy();
+  }
+}
+
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -4960,9 +5358,6 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/BackgroundGradient.js ========
 class BackgroundGradient extends Phaser.Sprite {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, "ui_background_gradient");
@@ -4975,9 +5370,6 @@ class BackgroundGradient extends Phaser.Sprite {
   }
 } 
 
-
-
-// ======== js/ui/Background.js ========
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, key);
@@ -4990,9 +5382,6 @@ class Background extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -5180,9 +5569,6 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -5196,9 +5582,6 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -5248,9 +5631,6 @@ class Logo extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(frame = 0) {
     super(game, 0, 0);
@@ -5283,9 +5663,6 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 4, text, FONTS.default);
@@ -5294,9 +5671,6 @@ class ProgressText extends Text {
   }
 }
 
-
-
-// ======== js/ui/ExperienceBar.js ========
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
@@ -5344,9 +5718,6 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/SkillBar.js ========
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
@@ -5374,9 +5745,6 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/TextInput.js ========
 class TextInput extends Phaser.Sprite {
   constructor(text = "", maxLength = 6, onConfirm, onCancel) {
     super(game, 96, 28);
@@ -5493,9 +5861,6 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -5991,9 +6356,6 @@ class NotificationSystem {
   }
 }
 
-
-
-// ======== js/ui/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -6157,9 +6519,6 @@ class Lyrics {
   }
 }
 
-
-
-// ======== js/ui/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -6455,9 +6814,6 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -6553,9 +6909,6 @@ class FileSystemTools {
   }
 }
 
-
-
-// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -6965,9 +7318,6 @@ class NodeFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -7083,9 +7433,6 @@ class CordovaFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -7129,9 +7476,6 @@ class FallbackFileSystem {
   }
 }
 
-
-
-// ======== js/game/game.js ========
 let game, gamepad, backgroundMusic, notifications, addonManager, sidebarNotifications, achievementsManager;
 
 let Account = {
@@ -7234,9 +7578,6 @@ window.onerror = (details, file, line) => {
 };`;
 document.head.appendChild(script);
 
-
-
-// ======== js/utils/Gamepad.js ========
 class Gamepad {
   constructor(game) {
     this.game = game;
@@ -7823,9 +8164,6 @@ class Gamepad {
   }
 }
 
-
-
-// ======== js/utils/ScreenRecorder.js ========
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -8195,9 +8533,6 @@ class ScreenRecorder {
   }
 }
 
-
-
-// ======== js/utils/Metronome.js ========
 class Metronome {
   constructor(scene) {
     this.scene = scene;
@@ -8360,9 +8695,6 @@ class Metronome {
   }
 }
 
-
-
-// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -8598,9 +8930,6 @@ class BackgroundMusic {
   }
 }
 
-
-
-// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -8625,9 +8954,6 @@ class Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -8668,9 +8994,6 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -8737,9 +9060,6 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -8832,9 +9152,6 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -9193,9 +9510,6 @@ class FullScreenAudioVisualizer {
   }
 }
 
-
-
-// ======== js/parsers/SMFile.js ========
 class SMFile {
   static generateSMContent(songData) {
     let smContent = "";
@@ -9534,9 +9848,6 @@ class SMFile {
   }
 }
 
-
-
-// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   // TODO: Make this class use SMFile
   constructor() {
@@ -9838,9 +10149,6 @@ class LocalSMParser {
   }
 }
 
-
-
-// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   parseSM(files, smContent) {
@@ -10299,9 +10607,6 @@ class ExternalSMParser {
   }
 }
 
-
-
-// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -10687,9 +10992,6 @@ class AddonManager {
   }
 }
 
-
-
-// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -11025,9 +11327,6 @@ class Boot {
   }
 }
 
-
-
-// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -11640,9 +11939,6 @@ class LoadSongFolder {
   }
 }
 
-
-
-// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -11686,17 +11982,12 @@ class Title {
   }
 }
 
-
-
-// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
     
     this.futuristicLines = new FuturisticLines();
-    
     this.backgroundGradient = new BackgroundGradient();
-    
     this.navigationHint = new NavigationHint(0);
     
     this.menu();
@@ -11719,605 +12010,783 @@ class MainMenu {
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
+
   menu() {
     const manager = new WindowManager();
     this.manager = manager;
     
-    const home = () => {
-      const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
-        align: 'left',
-        bgcolor: 'brown',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      carousel.addItem("Rhythm Game", () => startGame());
-      carousel.addItem("Character Select", () => {
-        this.keepBackgroundMusic = true;
-        game.state.start("CharacterSelect");
-      });
-      carousel.addItem("Settings", () => settings());
-      carousel.addItem("Extras", () => extras());
-      
-      game.onMenuIn.dispatch('home', carousel);
-      
-      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
-        carousel.addItem("Exit", () => exit());
-        carousel.onCancel.add(() => exit());
-      }
-    };
-    
-    const startGame = () => {
-      const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
-        align: 'left',
-        bgcolor: 'brown',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      carousel.addItem("Free Play", () => this.freePlay());
-      carousel.addItem("Extra Songs", () => extraSongs());
-      game.onMenuIn.dispatch('startGame', carousel);
-      carousel.addItem("< Back", () => home());
-      carousel.onCancel.add(() => home());
-    };
-    
-    const extraSongs = () => {
-      const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
-        align: 'left',
-        bgcolor: 'brown',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      
-      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) carousel.addItem("User Songs", () => this.loadExternalSongs());
-      carousel.addItem("Load Single Song", () => this.loadSingleSong());
-      if (window.externalSongs && (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS)) {
-        carousel.addItem("Reload User Songs", () => {
-          backgroundMusic.refreshCache();
-          window.externalSongs = undefined;
-          this.loadExternalSongs();
-        });
-      }
-      game.onMenuIn.dispatch('extraSongs', carousel);
-      carousel.addItem("< Back", () => startGame());
-      carousel.onCancel.add(() => startGame());
-    };
-    
-    let settingsWindow;
-    
-    const settings = () => {
-      // TODO: Clean settings code
-      
-      settingsWindow = manager.createWindow(3, 1, 18, 12, "1");
-      settingsWindow.fontTint = 0x76fcde;
-      
-      settingsWindow.addSettingItem(
-        "Volume",
-        ["0%", "25%", "50%", "75%", "100%"], Account.settings.volume,
-        index => {
-          Account.settings.volume = index;
-          saveAccount();
-          backgroundMusic.audio.volume = [0,25,50,75,100][index] / 100;
-        }
-      );
-      
-      settingsWindow.addSettingItem(
-        "Auto-play",
-        ["OFF", "ON"], Account.settings.autoplay ? 1 : 0,
-        index => {
-          Account.settings.autoplay = index === 1;
-          saveAccount();
-        }
-      );
-      
-      const metronomeOptions = ['OFF', 'Note', 'Quarters', 'Eighths', 'Sixteenths', 'Thirty-seconds'];
-      const currentMetronome = Account.settings.metronome || 'OFF';
-      const currentMetronomeIndex = metronomeOptions.indexOf(currentMetronome);
-      
-      settingsWindow.addSettingItem(
-        "Metronome",
-        metronomeOptions,
-        currentMetronomeIndex,
-        index => {
-          const selectedOption = metronomeOptions[index];
-          Account.settings.metronome = selectedOption;
-          saveAccount();
-        }
-      );
-      
-      let index = 0;
-      if (Account.settings.enableMenuMusic) {
-        index = Account.settings.randomSong ? 1 : 0;
-      } else {
-        index = 2;
-      }
-      
-      const visualizerOptions = ['NONE', 'BPM', 'ACCURACY', 'AUDIO'];
-      const currentVisualizer = Account.settings.visualizer || 'NONE';
-      const currentVisualizerIndex = visualizerOptions.indexOf(currentVisualizer);
-      
-      settingsWindow.addSettingItem(
-        "Visualizer",
-        visualizerOptions,
-        currentVisualizerIndex,
-        index => {
-          const selectedVisualizer = visualizerOptions[index];
-          Account.settings.visualizer = selectedVisualizer;
-          saveAccount();
-        }
-      );
-      
-      settingsWindow.addSettingItem(
-        "Scroll Direction",
-        ["FALLING", "RISING"],
-        Account.settings.scrollDirection === 'falling' ? 0 : 1,
-        index => {
-          Account.settings.scrollDirection = index === 0 ? 'falling' : 'rising';
-          saveAccount();
-        }
-      );
-      
-      const noteOptions = [
-        { value: 'NOTE', display: 'NOTE' },
-        { value: 'VIVID', display: 'VIVID' },
-        { value: 'FLAT', display: 'FLAT' },
-        { value: 'RAINBOW', display: 'RAINBOW' }
-      ];
-      
-      const currentNoteOption = Account.settings.noteColorOption || 'NOTE';
-      const currentNoteIndex = noteOptions.findIndex(opt => opt.value === currentNoteOption);
-      
-      settingsWindow.addSettingItem(
-        "Note Colors",
-        noteOptions.map(opt => opt.display),
-        currentNoteIndex,
-        index => {
-          const selectedOption = noteOptions[index].value;
-          Account.settings.noteColorOption = selectedOption;
-          saveAccount();
-        }
-      );
+    this.showHomeMenu();
+  }
 
-      settingsWindow.addSettingItem(
-        "Note Speed",
-        ["Normal", "Double", "Triple", "Insane", "Sound Barrier", "Light Speed", "Faster than light"],
-        Account.settings.noteSpeedMult - 1,
-        index => {
-          Account.settings.noteSpeedMult = index + 1;
-          saveAccount();
-        }
-      );
-      
-      settingsWindow.addSettingItem(
-        "Speed Mod",
-        ["X-MOD", "C-MOD"],
-        Account.settings.speedMod === 'C-MOD' ? 1 : 0,
-        index => {
-          Account.settings.speedMod = index === 1 ? 'C-MOD' : 'X-MOD';
-          saveAccount();
-        }
-      );
-      
-      settingsWindow.addSettingItem(
-        "Haptic Feedback",
-        ["OFF", "ON"], Account.settings.hapticFeedback ? 1 : 0,
-        index => {
-          Account.settings.hapticFeedback = index === 1;
-          saveAccount();
-        }
-      );
+  showHomeMenu() {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
+      align: 'left',
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+    
+    carousel.addItem("Rhythm Game", () => this.startGame());
+    carousel.addItem("Character Select", () => {
+      this.keepBackgroundMusic = true;
+      game.state.start("CharacterSelect");
+    });
+    carousel.addItem("Settings", () => this.showSettings());
+    carousel.addItem("Extras", () => this.showExtras());
+    
+    game.onMenuIn.dispatch('home', carousel);
+    
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+      carousel.addItem("Exit", () => this.confirmExit());
+      carousel.onCancel.add(() => this.confirmExit());
+    }
+  }
 
-      settingsWindow.addSettingItem(
-        "Beat Lines",
-        ["YES", "NO"],
-        Account.settings.beatLines ? 0 : 1,
-        index => {
-          Account.settings.beatLines = index === 0;
-          saveAccount();
-        }
-      );
-      
-      const offsetOptions = [];
-      for (let ms = -1000; ms <= 1000; ms += 25) {
-        offsetOptions.push(`${ms}ms`);
-      }
-      
-      const currentOffset = Account.settings.userOffset || 0;
-      const currentOffsetIndex = (currentOffset + 1000) / 25;
-      
-      settingsWindow.addSettingItem(
-        "Global Offset",
-        offsetOptions,
-        currentOffsetIndex,
-        index => {
-          const newOffset = (index * 25) - 1000;
-          Account.settings.userOffset = newOffset;
-          saveAccount();
-        }
-      );
-      
-      settingsWindow.addSettingItem(
-        "Menu Music",
-        ["LAST SONG", "RANDOM SONG", "OFF"],
-        index,
-        index => {
-          switch (index) {
-            case 0:
-              Account.settings.randomSong = false;
-              Account.settings.enableMenuMusic = true;
-              break;
-            case 1:
-              Account.settings.randomSong = true;
-              Account.settings.enableMenuMusic = true;
-              break;
-            case 2:
-              Account.settings.enableMenuMusic = false;
-              break;
-          }
-          saveAccount();
-        }
-      );
-      
-      let restartNeeded = false;
-      
-      settingsWindow.addSettingItem(
-        "Renderer",
-        ["AUTO", "CANVAS", "WEBGL"],
-        Account.settings.renderer,
-        index => {
-          Account.settings.renderer = index;
-          saveAccount();
-          restartNeeded = true;
-        }
-      );
-      
-      settingsWindow.addSettingItem(
-        "Pixelated",
-        ["YES", "NO"],
-        Account.settings.pixelated ? 0 : 1,
-        index => {
-          Account.settings.pixelated = index == 0 ? true : false;
-          restartNeeded = true;
-          saveAccount();
-        }
-      );
-      
-      settingsWindow.addSettingItem(
-        "Safe Mode",
-        ["ENABLED", "DISABLED"],
-        Account.settings.safeMode ? 0 : 1,
-        index => {
-          restartNeeded = true;
-          const enabled = index == 0;
-          addonManager?.setSafeMode(enabled);
-          saveAccount();
-        }
-      );
-      
-      settingsWindow.addItem(
-        "Erase Highscores",
-        "",
-        () => eraseHighscores()
-      );
-      
-      game.onMenuIn.dispatch('settings', settingsWindow);
-      
-      settingsWindow.addItem(
-        "Restore Default Settings",
-        "",
-        () => restoreDefaultSettings()
-      );
-      
-      settingsWindow.addItem("APPLY", "", () => {
-        manager.remove(settingsWindow, true);
-        if (restartNeeded) {
-          reload();
-        } else {
-          home();
-        }
-      }, true);
-    };
+  startGame() {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
+      align: 'left',
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
     
-    const extras = () => {
-      const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
-        align: 'left',
-        bgcolor: 'brown',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
+    carousel.addItem("Free Play", () => this.freePlay());
+    carousel.addItem("Extra Songs", () => this.showExtraSongs());
+    game.onMenuIn.dispatch('startGame', carousel);
+    carousel.addItem("< Back", () => this.showHomeMenu());
+    carousel.onCancel.add(() => this.showHomeMenu());
+  }
+
+  showExtraSongs() {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
+      align: 'left',
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+    
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+      carousel.addItem("User Songs", () => this.loadExternalSongs());
+    }
+    carousel.addItem("Load Single Song", () => this.loadSingleSong());
+    
+    if (window.externalSongs && (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS)) {
+      carousel.addItem("Reload User Songs", () => {
+        backgroundMusic.refreshCache();
+        window.externalSongs = undefined;
+        this.loadExternalSongs();
       });
-      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) carousel.addItem("Addon Manager", () => this.addonManager());
-      carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
-      carousel.addItem("Jukebox", () => jukebox());
-      carousel.addItem("Player Stats", () => this.showStats());
-      carousel.addItem("Achievements", () => this.showAchievements());
-      carousel.addItem("Credits", () => this.showCredits());
-      carousel.addItem("Feedback", () => feedback());
-      game.onMenuIn.dispatch('extras', carousel);
-      carousel.addItem("< Back", () => home());
-      carousel.onCancel.add(() => home());
-    };
-    
-    const jukebox = () => {
-      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
-        if (!window.externalSongs) {
-          confirm("Load extra songs from external storage?", () => {
-            game.state.start("LoadExternalSongs", true, false, "Jukebox", [undefined, undefined]);
-          }, () => {
-            game.state.start("Jukebox");
-          });
-        } else {
-          game.state.start("Jukebox");
-        }
-      } else {
-        game.state.start("Jukebox");
-      }
-    };
-    
-    const feedback = () => {
-      const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
-        align: 'left',
-        bgcolor: 'brown',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      const openLink = url => {
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.click();
-        feedback();
-      };
-      carousel.addItem("Leave A Review", () => openLink(FEEDBACK_REVIEW_URL));
-      carousel.addItem("Feature Request", () => openLink(FEEDBACK_FEATURE_REQUEST_URL));
-      carousel.addItem("Bug Report", () => openLink(FEEDBACK_BUG_REPORT_URL));
-      game.onMenuIn.dispatch('feedback', carousel);
-      carousel.addItem("< Back", () => extras());
-      carousel.onCancel.add(() => extras());
-    };
-    
-    const confirm = (message, onConfirm, onCancel) => {
-      manager.remove(settingsWindow, true);
-      
-      const text = new Text(game.width / 2, 40, message || "You sure?", FONTS.shaded);
-      text.anchor.x = 0.5;
-      
-      const window = manager.createWindow(10, 7, 5, 4, "1");
-      window.fontTint = 0x76fcde;
-      
-      window.offset = {
-        x: 7,
-        y: 0
-      };
-      
-      window.addItem("Yes", "", () => {
-        text.destroy();
-        manager.remove(window, true);
-        onConfirm?.()
-      });
-      window.addItem("No", "", () => {
-        text.destroy();
-        manager.remove(window, true);
-        onCancel?.();
-      }, true);
     }
     
-    const eraseHighscores = () => confirm("Permanently erase hight scores?", () => {
-      Account.highScores = {};
-      saveAccount();
-      settings();
-    }, () => settings());
+    game.onMenuIn.dispatch('extraSongs', carousel);
+    carousel.addItem("< Back", () => this.startGame());
+    carousel.onCancel.add(() => this.startGame());
+  }
+
+  showSettings() {
+    const settingsWindow = this.manager.createWindow(3, 1, 18, 12, "1");
+    settingsWindow.fontTint = 0x76fcde;
     
-    const restoreDefaultSettings = () => {
-      confirm("All settings will be restored to default.\nA refresh is needed", () => {
+    // Volume setting
+    settingsWindow.addSettingItem(
+      "Volume",
+      ["0%", "25%", "50%", "75%", "100%"], 
+      Account.settings.volume,
+      index => {
+        Account.settings.volume = index;
+        saveAccount();
+        backgroundMusic.audio.volume = [0,25,50,75,100][index] / 100;
+      }
+    );
+    
+    // Auto-play setting
+    settingsWindow.addSettingItem(
+      "Auto-play",
+      ["OFF", "ON"], 
+      Account.settings.autoplay ? 1 : 0,
+      index => {
+        Account.settings.autoplay = index === 1;
+        saveAccount();
+      }
+    );
+    
+    // Metronome setting
+    const metronomeOptions = ['OFF', 'Note', 'Quarters', 'Eighths', 'Sixteenths', 'Thirty-seconds'];
+    const currentMetronomeIndex = metronomeOptions.indexOf(Account.settings.metronome || 'OFF');
+    settingsWindow.addSettingItem(
+      "Metronome",
+      metronomeOptions,
+      currentMetronomeIndex,
+      index => {
+        Account.settings.metronome = metronomeOptions[index];
+        saveAccount();
+      }
+    );
+    
+    // Visualizer setting
+    const visualizerOptions = ['NONE', 'BPM', 'ACCURACY', 'AUDIO'];
+    const currentVisualizerIndex = visualizerOptions.indexOf(Account.settings.visualizer || 'NONE');
+    settingsWindow.addSettingItem(
+      "Visualizer",
+      visualizerOptions,
+      currentVisualizerIndex,
+      index => {
+        Account.settings.visualizer = visualizerOptions[index];
+        saveAccount();
+      }
+    );
+    
+    // Scroll direction
+    settingsWindow.addSettingItem(
+      "Scroll Direction",
+      ["FALLING", "RISING"],
+      Account.settings.scrollDirection === 'falling' ? 0 : 1,
+      index => {
+        Account.settings.scrollDirection = index === 0 ? 'falling' : 'rising';
+        saveAccount();
+      }
+    );
+    
+    // Note colors
+    const noteOptions = [
+      { value: 'NOTE', display: 'NOTE' },
+      { value: 'VIVID', display: 'VIVID' },
+      { value: 'FLAT', display: 'FLAT' },
+      { value: 'RAINBOW', display: 'RAINBOW' }
+    ];
+    const currentNoteIndex = noteOptions.findIndex(opt => opt.value === Account.settings.noteColorOption);
+    settingsWindow.addSettingItem(
+      "Note Colors",
+      noteOptions.map(opt => opt.display),
+      currentNoteIndex,
+      index => {
+        Account.settings.noteColorOption = noteOptions[index].value;
+        saveAccount();
+      }
+    );
+
+    // Note speed
+    settingsWindow.addSettingItem(
+      "Note Speed",
+      ["Normal", "Double", "Triple", "Insane", "Sound Barrier", "Light Speed", "Faster than light"],
+      Account.settings.noteSpeedMult - 1,
+      index => {
+        Account.settings.noteSpeedMult = index + 1;
+        saveAccount();
+      }
+    );
+    
+    // Speed mod
+    settingsWindow.addSettingItem(
+      "Speed Mod",
+      ["X-MOD", "C-MOD"],
+      Account.settings.speedMod === 'C-MOD' ? 1 : 0,
+      index => {
+        Account.settings.speedMod = index === 1 ? 'C-MOD' : 'X-MOD';
+        saveAccount();
+      }
+    );
+    
+    // Haptic feedback
+    settingsWindow.addSettingItem(
+      "Haptic Feedback",
+      ["OFF", "ON"], 
+      Account.settings.hapticFeedback ? 1 : 0,
+      index => {
+        Account.settings.hapticFeedback = index === 1;
+        saveAccount();
+      }
+    );
+
+    // Beat lines
+    settingsWindow.addSettingItem(
+      "Beat Lines",
+      ["YES", "NO"],
+      Account.settings.beatLines ? 0 : 1,
+      index => {
+        Account.settings.beatLines = index === 0;
+        saveAccount();
+      }
+    );
+    
+    // Global offset
+    const offsetOptions = [];
+    for (let ms = -1000; ms <= 1000; ms += 25) {
+      offsetOptions.push(`${ms}ms`);
+    }
+    const currentOffsetIndex = (Account.settings.userOffset + 1000) / 25;
+    settingsWindow.addSettingItem(
+      "Global Offset",
+      offsetOptions,
+      currentOffsetIndex,
+      index => {
+        Account.settings.userOffset = (index * 25) - 1000;
+        saveAccount();
+      }
+    );
+    
+    // Menu music
+    let menuMusicIndex = 0;
+    if (Account.settings.enableMenuMusic) {
+      menuMusicIndex = Account.settings.randomSong ? 1 : 0;
+    } else {
+      menuMusicIndex = 2;
+    }
+    settingsWindow.addSettingItem(
+      "Menu Music",
+      ["LAST SONG", "RANDOM SONG", "OFF"],
+      menuMusicIndex,
+      index => {
+        switch (index) {
+          case 0:
+            Account.settings.randomSong = false;
+            Account.settings.enableMenuMusic = true;
+            break;
+          case 1:
+            Account.settings.randomSong = true;
+            Account.settings.enableMenuMusic = true;
+            break;
+          case 2:
+            Account.settings.enableMenuMusic = false;
+            break;
+        }
+        saveAccount();
+      }
+    );
+    
+    // Renderer
+    let restartNeeded = false;
+    settingsWindow.addSettingItem(
+      "Renderer",
+      ["AUTO", "CANVAS", "WEBGL"],
+      Account.settings.renderer,
+      index => {
+        Account.settings.renderer = index;
+        saveAccount();
+        restartNeeded = true;
+      }
+    );
+    
+    // Pixelated
+    settingsWindow.addSettingItem(
+      "Pixelated",
+      ["YES", "NO"],
+      Account.settings.pixelated ? 0 : 1,
+      index => {
+        Account.settings.pixelated = index == 0;
+        restartNeeded = true;
+        saveAccount();
+      }
+    );
+    
+    // Safe Mode
+    settingsWindow.addSettingItem(
+      "Safe Mode",
+      ["ENABLED", "DISABLED"],
+      Account.settings.safeMode ? 0 : 1,
+      index => {
+        restartNeeded = true;
+        const enabled = index == 0;
+        addonManager?.setSafeMode(enabled);
+        saveAccount();
+      }
+    );
+    
+    // Dangerous actions
+    settingsWindow.addItem("Erase Highscores", "", () => this.confirmEraseHighscores());
+    settingsWindow.addItem("Restore Default Settings", "", () => this.confirmRestoreDefaults());
+    
+    game.onMenuIn.dispatch('settings', settingsWindow);
+    
+    settingsWindow.addItem("APPLY", "", () => {
+      this.manager.remove(settingsWindow, true);
+      if (restartNeeded) {
+        this.confirmRestart();
+      } else {
+        this.showHomeMenu();
+      }
+    }, true);
+  }
+
+  showExtras() {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
+      align: 'left',
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+    
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+      carousel.addItem("Addon Manager", () => this.showAddonManager());
+    }
+    carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
+    carousel.addItem("Jukebox", () => this.startJukebox());
+    carousel.addItem("Player Stats", () => this.showStats());
+    carousel.addItem("Achievements", () => this.showAchievements());
+    carousel.addItem("Credits", () => this.showCredits());
+    carousel.addItem("Feedback", () => this.showFeedback());
+    
+    game.onMenuIn.dispatch('extras', carousel);
+    carousel.addItem("< Back", () => this.showHomeMenu());
+    carousel.onCancel.add(() => this.showHomeMenu());
+  }
+
+  showFeedback() {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
+      align: 'left',
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+    
+    const openLink = url => {
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.click();
+      this.showFeedback();
+    };
+    
+    carousel.addItem("Leave A Review", () => openLink(FEEDBACK_REVIEW_URL));
+    carousel.addItem("Feature Request", () => openLink(FEEDBACK_FEATURE_REQUEST_URL));
+    carousel.addItem("Bug Report", () => openLink(FEEDBACK_BUG_REPORT_URL));
+    
+    game.onMenuIn.dispatch('feedback', carousel);
+    carousel.addItem("< Back", () => this.showExtras());
+    carousel.onCancel.add(() => this.showExtras());
+  }
+  
+  showAddonManager() {
+    // Clear existing UI
+    this.manager?.removeAll();
+    
+    // Create addon manager interface
+    this.createAddonManagerInterface();
+  }
+
+  createAddonManagerInterface() {
+    const manager = new WindowManager();
+    this.manager = manager;
+
+    // Title
+    const titleText = new Text(game.width / 2, 8, "ADDON MANAGER", {
+      ...FONTS.shaded,
+      tint: 0x76fcde
+    });
+    titleText.anchor.x = 0.5;
+
+    // Addon list on left
+    this.addonList = new CarouselMenu(2, 4, 12, 10, {
+      align: 'left',
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+
+    // Details panel on right
+    this.detailsPanel = this.createDetailsPanel();
+    
+    // Preview area
+    this.previewArea = this.createPreviewArea();
+
+    // Load addons
+    this.loadAddonList();
+
+    // Set up navigation
+    this.setupAddonManagerNavigation();
+  }
+
+  createDetailsPanel() {
+    const panel = game.add.group();
+    panel.x = 104;
+    panel.y = 16;
+
+    // Background
+    const bg = new Window(0, 0, 10, 10, "1", panel);
+    bg.focus = false;
+
+    // Details text
+    this.detailsText = new Text(8, 8, "Select an addon to view details", {
+      ...FONTS.default,
+      tint: 0x76fcde
+    });
+    bg.addChild(this.detailsText);
+
+    return panel;
+  }
+
+  createPreviewArea() {
+    const preview = game.add.sprite(140, 80);
+    preview.scale.set(2);
+    
+    // Preview canvas for addon icons
+    this.previewCanvas = document.createElement("canvas");
+    this.previewCanvas.width = 25;
+    this.previewCanvas.height = 25;
+    this.previewCtx = this.previewCanvas.getContext("2d");
+    this.previewImg = new Image();
+    
+    return preview;
+  }
+
+  loadAddonList() {
+    const addons = addonManager.getAddonList();
+    this.addonList.clear();
+
+    if (addons.length === 0) {
+      this.addonList.addItem("No addons installed", () => {});
+      this.updateAddonDetails(null);
+      return;
+    }
+
+    addons.forEach((addon, index) => {
+      const statusColor = this.getAddonStatusColor(addon);
+      this.addonList.addItem(
+        addon.name,
+        () => this.showAddonActions(addon),
+        { addon, bgcolor: statusColor }
+      );
+    });
+
+    // Select first addon by default
+    if (addons.length > 0) {
+      this.addonList.selectedIndex = 0;
+      this.selectAddon(addons[0]);
+    }
+
+    this.addonList.onSelect.add((index, item) => {
+      if (item.data && item.data.addon) {
+        this.selectAddon(item.data.addon);
+      }
+    });
+  }
+
+  getAddonStatusColor(addon) {
+    if (addon.isHibernating) return "gray";
+    return addon.isEnabled ? "#00cc00" : "brown";
+  }
+
+  selectAddon(addon) {
+    this.selectedAddon = addon;
+    this.updateAddonDetails(addon);
+    this.updateAddonPreview(addon);
+  }
+
+  updateAddonDetails(addon) {
+    if (!addon) {
+      this.detailsText.write("Select an addon to view details");
+      return;
+    }
+
+    const details = [
+      `Name: ${addon.name}`,
+      `Version: ${addon.version}`,
+      `Author: ${addon.author}`,
+      `Behaviors: ${addon.behaviors ? Object.keys(addon.behaviors).length : 0}`,
+      `Assets: ${addon.assets ? addon.assets.length : 0}`,
+      ``,
+      `${addon.description}`,
+      ``,
+      `Status: ${this.getAddonStatusText(addon)}`
+    ].join('\n');
+
+    this.detailsText.write(details).wrap(80);
+  }
+
+  getAddonStatusText(addon) {
+    if (addon.isHibernating) return 'HIBERNATING';
+    return addon.isEnabled ? 'ENABLED' : 'DISABLED';
+  }
+
+  updateAddonPreview(addon) {
+    if (addon.icon) {
+      this.previewImg.onload = () => {
+        this.previewCtx.clearRect(0, 0, 25, 25);
+        this.previewCtx.drawImage(this.previewImg, 0, 0, 25, 25);
+        this.previewArea.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
+      };
+      this.previewImg.src = addon.icon;
+    } else {
+      this.previewArea.loadTexture(null);
+    }
+  }
+
+  showAddonActions(addon) {
+    const actionsWindow = this.manager.createWindow(6, 4, 12, 8, "1");
+    actionsWindow.fontTint = 0x76fcde;
+
+    if (addon.isHibernating) {
+      actionsWindow.addItem("Wake Addon", "", () => {
+        this.performAddonAction(() => addonManager.wakeAddon(addon.id));
+      });
+    } else if (addon.isEnabled) {
+      actionsWindow.addItem("Disable Addon", "", () => {
+        this.performAddonAction(() => addonManager.disableAddon(addon.id));
+      });
+      actionsWindow.addItem("Hibernate Addon", "", () => {
+        this.performAddonAction(() => addonManager.hibernateAddon(addon.id));
+      });
+    } else {
+      actionsWindow.addItem("Enable Addon", "", () => {
+        this.performAddonAction(() => addonManager.enableAddon(addon.id));
+      });
+    }
+
+    actionsWindow.addItem("Uninstall Addon", "", () => {
+      this.confirmUninstallAddon(addon);
+    });
+
+    actionsWindow.addItem("< Back", "", () => {
+      this.manager.remove(actionsWindow, true);
+    }, true);
+
+    actionsWindow.onCancel.add(() => {
+      this.manager.remove(actionsWindow, true);
+    });
+  }
+
+  performAddonAction(action) {
+    action();
+    this.refreshAddonManager();
+    
+    // Show feedback
+    notifications.show("Addon updated successfully!");
+  }
+
+  confirmUninstallAddon(addon) {
+    this.confirmDialog(
+      `Uninstall "${addon.name}"?\n\nThe addon folder will be permanently removed. This action cannot be undone.`,
+      () => {
+        addonManager.uninstallAddon(addon.id);
+        this.refreshAddonManager();
+        notifications.show("Addon uninstalled!");
+      },
+      () => this.showAddonActions(addon),
+      "Uninstall",
+      "Cancel"
+    );
+  }
+
+  refreshAddonManager() {
+    this.loadAddonList();
+    if (this.selectedAddon) {
+      // Update selected addon if it still exists
+      const addons = addonManager.getAddonList();
+      const updatedAddon = addons.find(a => a.id === this.selectedAddon.id);
+      if (updatedAddon) {
+        this.selectAddon(updatedAddon);
+      } else {
+        this.selectAddon(null);
+      }
+    }
+  }
+
+  setupAddonManagerNavigation() {
+    // Back button
+    const backCarousel = new CarouselMenu(2, 15, 12, 2, {
+      align: 'left',
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+
+    backCarousel.addItem("< Back to Menu", () => this.returnToMainMenu());
+    backCarousel.addItem("Apply Changes", () => this.applyAddonChanges());
+
+    backCarousel.onCancel.add(() => this.returnToMainMenu());
+  }
+
+  returnToMainMenu() {
+    if (addonManager.needsReload()) {
+      this.confirmAddonRestart();
+    } else {
+      this.cleanupAddonManager();
+      this.showHomeMenu();
+    }
+  }
+
+  applyAddonChanges() {
+    if (addonManager.needsReload()) {
+      this.confirmAddonRestart();
+    } else {
+      notifications.show("No changes requiring restart detected.");
+    }
+  }
+
+  confirmAddonRestart() {
+    this.confirmDialog(
+      "Some addon changes require a restart to take effect.\n\nRestart the game now?",
+      () => {
+        location.reload();
+      },
+      () => {
+        // Continue without restart
+        this.cleanupAddonManager();
+        this.showHomeMenu();
+      },
+      "Restart Now",
+      "Continue"
+    );
+  }
+
+  cleanupAddonManager() {
+    // Clean up resources
+    if (this.previewArea) {
+      this.previewArea.destroy();
+    }
+    if (this.detailsPanel) {
+      this.detailsPanel.destroy();
+    }
+    if (this.addonList) {
+      this.addonList.destroy();
+    }
+    this.manager?.removeAll();
+  }
+
+  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+    const dialog = new DialogWindow(message, {
+      buttons: [confirmText, cancelText],
+      defaultButton: 1 // Default to "No" for safety
+    });
+    
+    dialog.onConfirm.add((buttonIndex, buttonText) => {
+      if (buttonIndex === 0) {
+        onConfirm?.();
+      } else {
+        onCancel?.();
+      }
+      dialog.destroy();
+    });
+    
+    dialog.onCancel.add(() => {
+      onCancel?.();
+      dialog.destroy();
+    });
+    
+    return dialog;
+  }
+
+  confirmExit() {
+    this.confirmDialog(
+      "Are you sure you want to exit the game?",
+      () => {
+        switch (CURRENT_ENVIRONMENT) {
+          case ENVIRONMENT.CORDOVA:
+            navigator.app.exitApp();
+            break;
+          case ENVIRONMENT.NWJS:
+            nw?.App?.quit?.();
+            break;
+        }
+      },
+      () => this.showHomeMenu(),
+      "Exit",
+      "Cancel"
+    );
+  }
+
+  confirmEraseHighscores() {
+    this.confirmDialog(
+      "This will permanently erase all your high scores.\nThis action cannot be undone!\n\nAre you sure?",
+      () => {
+        Account.highScores = {};
+        saveAccount();
+        notifications.show("High scores erased!");
+        this.showSettings();
+      },
+      () => this.showSettings(),
+      "Erase",
+      "Cancel"
+    );
+  }
+
+  confirmRestoreDefaults() {
+    this.confirmDialog(
+      "All settings will be restored to their default values.\nThe game will need to restart.\n\nContinue?",
+      () => {
         Account.settings = DEFAULT_ACCOUNT.settings;
         saveAccount();
         window.location.reload();
-      }, () => settings());
-    }
-    
-    const reload = () => confirm("Restart Now?", () => location.reload(), () => settings());
-    
-    const exit = () => confirm("Sure? Exit?", () => {
-      switch (CURRENT_ENVIRONMENT) {
-        case ENVIRONMENT.CORDOVA:
-          navigator.app.exitApp();
-          break;
-        case ENVIRONMENT.NWJS:
-          nw?.App?.quit?.();
-          break;
-      }
-    }, () => home());
-    
-    home();
+      },
+      () => this.showSettings(),
+      "Restore",
+      "Cancel"
+    );
   }
+
+  confirmRestart() {
+    this.confirmDialog(
+      "Settings changed require a restart to take effect.\nRestart now?",
+      () => location.reload(),
+      () => this.showHomeMenu(),
+      "Restart",
+      "Later"
+    );
+  }
+
   freePlay() {
     game.state.start("SongSelect", true, false, window.localSongs);
   }
+
   startOffsetAssistant() {
-    // Create and start the offset assistant
     const offsetAssistant = new OffsetAssistant(game);
     game.add.existing(offsetAssistant);
   }
+
   loadExternalSongs() {
     game.state.start("LoadExternalSongs");
   }
+
   loadSingleSong() {
     game.state.start("LoadSongFolder");
   }
-  addonManager() {
-    const detailText = new Text(4, 4, "");
-    
-    const preview = game.add.sprite(112, 4);
-      
-    const showInstalledAddons = () => {
-      const addons = addonManager.getAddonList();
-      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
-        align: 'left',
-        bgcolor: 'brown',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      
-      if (addons.length === 0) {
-        carousel.addItem("No addons installed", () => {});
+
+  startJukebox() {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+      if (!window.externalSongs) {
+        this.confirmDialog(
+          "Load extra songs from external storage?",
+          () => {
+            game.state.start("LoadExternalSongs", true, false, "Jukebox", [undefined, undefined]);
+          },
+          () => {
+            game.state.start("Jukebox");
+          },
+          "Load Songs",
+          "Skip"
+        );
       } else {
-        addons.forEach(addon => {
-          const statusColor = addon.isHibernating ? "gray" : (addon.isEnabled ? "#00cc00" : "brown")
-          carousel.addItem(
-            `${addon.name} v${addon.version}`,
-            () => showAddonDetails(addon),
-            { addon, bgcolor: statusColor }
-          );
-        });
-        
-        carousel.onSelect.add((index, item) => {
-          if (item.data && item.data.addon) {
-            previewAddon(item.data.addon);
-          }
-        });
-        
-        previewAddon(addons[0]);
+        game.state.start("Jukebox");
       }
-      
-      game.onMenuIn.dispatch('addons', carousel);
-      
-      carousel.addItem("< Back", () => applyChanges());
-      carousel.onCancel.add(() => applyChanges());
-    };
-    
-    let needsReload = false;
-    
-    const previewAddon = (addon) => {
-      detailText.write(
-        `${addon.name}\n` +
-        `V${addon.version}\n` +
-        `By ${addon.author}\n` +
-        `BEHAVIORS:${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
-        `ASSETS:${addon.assets ? addon.assets.length : 0}\n\n` +
-        `${addon.description}\n` +
-        'STATE: ' + 
-        (addon.isHibernating ?
-          'Hybernating'
-          :
-        (addon.isEnabled ?
-          'Enabled' : 'Disabled')) + '\n'
-      ).wrap(112);
-      if (addon.icon) {
-        this.previewImg.src = addon.icon;
-        this.previewImg.onload = () => {
-          this.previewCtx.drawImage(this.previewImg, 0, 0, 50, 50);
-          preview.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
-        };
-      }
+    } else {
+      game.state.start("Jukebox");
     }
-    
-    const showAddonDetails = (addon) => {
-      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
-        align: 'left',
-        bgcolor: '#9b59b6',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      
-      if (addon.isHibernating) {
-        carousel.addItem("Wake Addon", () => {
-          addonManager.wakeAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-      } else if (addon.isEnabled) {
-        carousel.addItem("Disable Addon", () => {
-          addonManager.disableAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-        carousel.addItem("Hibernate Addon", () => {
-          addonManager.hibernateAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-      } else {
-        carousel.addItem("Enable Addon", () => {
-          addonManager.enableAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-      }
-      
-      carousel.addItem("Uninstall Addon", () => confirm("The addon folder will be removed. Continue?", () => {
-        addonManager.uninstallAddon(addon.id);
-        needsReload = true;
-        showInstalledAddons();
-      }, () => showInstalledAddons()));
-      
-      game.onMenuIn.dispatch('addonDetails', carousel);
-      
-      carousel.addItem("< Back", () => showInstalledAddons());
-      carousel.onCancel.add(() => showInstalledAddons());
-    };
-    
-    const applyChanges = () => {
-      if (needsReload || addonManager.needsReload()) {
-        confirm("Reload required. Restart now?", () => {
-          location.reload();
-        }, () => {
-          this.menu();
-        });
-      } else {
-        preview.destroy();
-        detailText.destroy();
-        this.menu();
-      }
-    };
-    
-    const confirm = (message, onConfirm, onCancel) => {
-      const text = new Text(game.width / 2, 40, message || "You sure?", FONTS.shaded);
-      text.anchor.x = 0.5;
-      
-      preview.destroy();
-      detailText.destroy();
-      
-      const window = this.manager.createWindow(10, 7, 5, 4, "1");
-      window.fontTint = 0x76fcde;
-      
-      window.offset = {
-        x: 7,
-        y: 0
-      };
-      
-      window.addItem("Yes", "", () => {
-        text.destroy();
-        this.manager.remove(window, true);
-        onConfirm?.()
-      });
-      window.addItem("No", "", () => {
-        text.destroy();
-        this.manager.remove(window, true);
-        onCancel?.();
-      }, true);
-    }
-    
-    showInstalledAddons();
   }
+
   showAchievements() {
     game.state.start("AchievementsMenu");
   }
+
   showStats() {
     game.state.start("StatsMenu");
   }
+
   showCredits() {
     game.state.start("Credits", true, false, "MainMenu");
   }
+
   update() {
     gamepad.update();
     this.manager?.update();
   }
+
   shutdown() {
     if (backgroundMusic && !this.keepBackgroundMusic) {
       backgroundMusic.destroy();
@@ -12326,9 +12795,6 @@ class MainMenu {
   }
 }
 
-
-
-// ======== js/game/states/SongSelect.js ========
 class SongSelect {
   init(songs, index, autoSelect) {
     this.songs = songs || [];
@@ -12669,9 +13135,6 @@ class SongSelect {
   }
 }
 
-
-
-// ======== js/game/states/CharacterSelect.js ========
 class CharacterSelect extends Phaser.State {
   create() {
     game.camera.fadeIn(0x000000);
@@ -13878,9 +14341,6 @@ class CharacterSelect extends Phaser.State {
   }
 }
 
-
-
-// ======== js/game/states/AchievementsMenu.js ========
 class AchievementsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -14020,9 +14480,6 @@ class AchievementsMenu {
   }
 }
 
-
-
-// ======== js/game/states/StatsMenu.js ========
 class StatsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -14119,9 +14576,6 @@ class StatsMenu {
   }
 }
 
-
-
-// ======== js/game/states/Play.js ========
 class Play {
   init(song, difficultyIndex) {
     this.song = song;
@@ -14793,9 +15247,6 @@ class Play {
   }
 }
 
-
-
-// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData;
@@ -15077,9 +15528,6 @@ class Results {
   }
 }
 
-
-
-// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
@@ -15965,9 +16413,6 @@ class Jukebox {
   }
 }
 
-
-
-// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
@@ -16274,9 +16719,6 @@ class Credits {
   }
 }
 
-
-
-// ======== js/game/states/ErrorScreen.js ========
 class ErrorScreen {
   init(message, recoverStateKey) {
     this.message = message || "The causes of this failure are unknown yet";
@@ -16311,9 +16753,6 @@ Please Report The Developer Immediately!
   }
 }
 
-
-
-// ======== js/game/player/ChartRenderer.js ========
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -17015,9 +17454,6 @@ class ChartRenderer {
   }
 }
 
-
-
-// ======== js/game/player/Player.js ========
 class Player {
   constructor(scene) {
     this.scene = scene
