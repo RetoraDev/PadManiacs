@@ -90,13 +90,15 @@ class MainMenu {
         });
       }
       game.onMenuIn.dispatch('extraSongs', carousel);
-      carousel.addItem("< Back", () => home());
-      carousel.onCancel.add(() => home());
+      carousel.addItem("< Back", () => startGame());
+      carousel.onCancel.add(() => startGame());
     };
     
     let settingsWindow;
     
     const settings = () => {
+      // TODO: Clean settings code
+      
       settingsWindow = manager.createWindow(3, 1, 18, 12, "1");
       settingsWindow.fontTint = 0x76fcde;
       
@@ -341,6 +343,7 @@ class MainMenu {
       carousel.addItem("Player Stats", () => this.showStats());
       carousel.addItem("Achievements", () => this.showAchievements());
       carousel.addItem("Credits", () => this.showCredits());
+      carousel.addItem("Feedback", () => feedback());
       game.onMenuIn.dispatch('extras', carousel);
       carousel.addItem("< Back", () => home());
       carousel.onCancel.add(() => home());
@@ -360,6 +363,29 @@ class MainMenu {
       } else {
         game.state.start("Jukebox");
       }
+    };
+    
+    const feedback = () => {
+      const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
+        align: 'left',
+        bgcolor: 'brown',
+        fgcolor: '#ffffff',
+        animate: true,
+        crop: false
+      });
+      const openLink = url => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.click();
+        feedback();
+      };
+      carousel.addItem("Leave A Review", () => openLink(FEEDBACK_REVIEW_URL));
+      carousel.addItem("Feature Request", () => openLink(FEEDBACK_FEATURE_REQUEST_URL));
+      carousel.addItem("Bug Report", () => openLink(FEEDBACK_BUG_REPORT_URL));
+      game.onMenuIn.dispatch('feedback', carousel);
+      carousel.addItem("< Back", () => extras());
+      carousel.onCancel.add(() => extras());
     };
     
     const confirm = (message, onConfirm, onCancel) => {

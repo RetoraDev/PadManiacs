@@ -72,7 +72,7 @@ class Character {
       if (unlockedHair) {
         this.lastHairUnlockLevel = this.level;
         
-        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id]}`);
+        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1]}`);
       }
     }
     

@@ -7,7 +7,7 @@ const CHARACTER_SYSTEM = {
   SKILL_UNLOCK_CHANCE: 0.7,
   HAIR_UNLOCK_CHANCE: 0.6,
   ITEM_UNLOCK_CHANCE: 0.5,
-  SKILL_LEVEL_UP_CHANCE: 0.5,
+  SKILL_LEVEL_UP_CHANCE: 0.4,
   MIN_LEVEL_FOR_SKILL: 4,
   MIN_LEVEL_FOR_HAIR: 1,
   MIN_LEVEL_FOR_ITEM: 3,
@@ -112,7 +112,7 @@ const CHARACTER_SKILLS = [
   {
     id: "combo_shield",
     name: "Combo Shield",
-    description: "Next miss won't break combo (one-time use)",
+    description: "Next miss won't break combo",
     activationCondition: "on_high_combo",
     effect: "combo_shield",
     effectParams: { threshold: 75 },

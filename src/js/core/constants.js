@@ -50,3 +50,7 @@ const SCORE_VALUES = {
   boo: 50,
   miss: 0
 };
+
+const FEEDBACK_REVIEW_URL = "https://retora.itch.io/padmaniacs/rate";
+const FEEDBACK_FEATURE_REQUEST_URL = "https://itch.io/t/5585472/feature-requests";
+const FEEDBACK_BUG_REPORT_URL = "https://itch.io/t/5585499/bug-reports";

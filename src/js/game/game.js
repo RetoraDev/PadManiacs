@@ -91,8 +91,10 @@ const Audio = {
 const script = document.createElement("script");
 script.text = `
 window.onerror = (details, file, line) => {
+  if (typeof window.eruda !== "undefined") eruda.init(); 
   const filename = file ? file.split('/').pop() : 'unknown file';
   const message = details + " On Line " + line + " of " + filename;
+  console.error(message);
   game.state.add('ErrorScreen', ErrorScreen);
   game.state.start('ErrorScreen', false, false, message, 'Boot');
 };`;

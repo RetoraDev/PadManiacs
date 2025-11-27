@@ -319,6 +319,36 @@ class CharacterSelect extends Phaser.State {
       case 'modify_note_speed':
         previewText += `• Note speed ×${skill.effectParams.multiplier}\n`;
         break;
+      case 'modify_hold_forgiveness':
+        previewText += `• Hold forgiveness ×${skill.effectParams.multiplier}\n`;
+        break;
+      case 'modify_roll_forgiveness':
+        previewText += `• Roll forgiveness ×${skill.effectParams.multiplier}\n`;
+        break;
+      case 'reduce_mine_damage':
+        previewText += `• Reduces mine damage by ×${100 - 100 * skill.effectParams.multiplier}%\n`;
+        break;
+      case 'modify_score_gain':
+        previewText += `• ${skill.effectParams.judgement} Score ×${skill.effectParams.multiplier}\n`;
+        break;
+      case 'modify_health_gain':
+        previewText += `• Health gain ×${skill.effectParams.multiplier}\n`;
+        break;
+      case 'combo_shield':
+        previewText += `• Enables Combo Shield\n`;
+        break;
+      case 'modify_input_lag':
+        previewText += `• Modifies Input Lag\n`;
+        break;
+      case 'burst_health_regen':
+        previewText += `• Gives ${skill.effectParams.amount}% Burts health regeneration\n`;
+        break;
+      case 'stabilize_judgement':
+        previewText += `• Judgement Stabilization\n`;
+        break;
+      case 'general_boost':
+        previewText += `• General Boost\n`;
+        break;
     }
     
     // Add activation details
@@ -338,6 +368,15 @@ class CharacterSelect extends Phaser.State {
         break;
       case 'on_perfect_streak':
         previewText += `• After ${skill.effectParams.threshold} perfect notes in a row\n`;
+        break;
+      case 'on_critical_health':
+        previewText += `• When health drops below ${skill.effectParams.threshold}%\n`;
+        break;
+      case 'on_mine_hit':
+        previewText += `• Before hitting a mine\n`;
+        break;
+      case 'custom':
+        previewText += `• ${skill.activationText || 'Custom'}`;
         break;
     }
     
