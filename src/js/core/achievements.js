@@ -1051,5 +1051,43 @@ const ACHIEVEMENT_DEFINITIONS = [
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: (stats) => stats.maxSkillsInGame >= 10,
     hidden: false
+  },
+  
+  // Miscellaneous
+  {
+    id: "submit_bug_report",
+    name: "Crash Tester",
+    category: ACHIEVEMENT_CATEGORIES.MISC,
+    description: {
+      unachieved: "Submit a bug report",
+      achieved: "You submitted a bug report!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.submittedBugReport,
+    hidden: false
+  },
+  {
+    id: "submit_rating",
+    name: "Review it!",
+    category: ACHIEVEMENT_CATEGORIES.MISC,
+    description: {
+      unachieved: "Submit a review about this game",
+      achieved: "You submitted a review! Thank you!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.gameRated,
+    hidden: false
+  },
+  {
+    id: "submit_feature_request",
+    name: "Hmm... Maybe add this",
+    category: ACHIEVEMENT_CATEGORIES.MISC,
+    description: {
+      unachieved: "Request a feature ",
+      achieved: "You requested a feature! I'll take it into account"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.featureRequestPrompted,
+    hidden: false
   }
 ];

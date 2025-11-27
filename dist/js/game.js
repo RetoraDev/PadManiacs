@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 11/27/2025, 1:35:29 AM
+ * Build: 11/27/2025, 12:35:33 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -7522,6 +7522,23 @@ const addFpsText = () => {
   game.time.events.loop(100, () => text.write(`${game.time.fps} (${game.renderer.renderSession.drawCount - 1})`));
 };
 
+const openExternalUrl = url => {
+  switch (CURRENT_ENVIRONMENT) {
+    case ENVIRONMENT.CORDOVA:
+      navigator.app.loadUrl(url, { openExternal: true });
+      break;
+    case ENVIRONMENT.NWJS:
+      // TODO: Better implementation for NWJS
+    case ENVIRONMENT.WEB:
+    default:
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.click();
+      break;
+  }
+};
+
 const Audio = {
   pool: {},
   add: function (key, volume = 1, loop = false, reset = true) {
@@ -12048,10 +12065,7 @@ class MainMenu {
       "Could you quickly report what you were doing when it crashed?\n",
       () => {
         // Open bug report page
-        const a = document.createElement('a');
-        a.href = FEEDBACK_BUG_REPORT_URL;
-        a.target = '_blank';
-        a.click();
+        openExternalUrl(FEEDBACK_BUG_REPORT_URL);
         
         // Clear the flag and show menu
         Account.stats.lastCrashed = false;
@@ -12076,10 +12090,7 @@ class MainMenu {
       "Would you mind leaving a quick rating?\n",
       () => {
         // Rate Now
-        const a = document.createElement('a');
-        a.href = FEEDBACK_REVIEW_URL;
-        a.target = '_blank';
-        a.click();
+        openExternalUrl(FEEDBACK_REVIEW_URL);
         
         Account.stats.gameRated = true;
         saveAccount();
@@ -12103,11 +12114,8 @@ class MainMenu {
       "Got any feature requests or suggestions?\n" +
       "What would you like to see in the game?\n",
       () => {
-        // Share Ideas
-        const a = document.createElement('a');
-        a.href = FEEDBACK_FEATURE_REQUEST_URL;
-        a.target = '_blank';
-        a.click();
+        // Share ideas
+        openExternalUrl(FEEDBACK_FEATURE_REQUEST_URL);
         
         Account.stats.featureRequestPrompted = true;
         saveAccount();
@@ -12458,10 +12466,7 @@ class MainMenu {
     });
     
     const openLink = url => {
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.click();
+      openExternalUrl(url);
       this.showFeedback();
     };
     

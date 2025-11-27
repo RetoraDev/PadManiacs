@@ -75,9 +75,6 @@ const DEFAULT_ACCOUNT = {
     playedWeekend: false,
     playedHoliday: false,
     
-    // Miscellaneous stats
-    maxSkillsInGame: 0,
-    
     // Detailed tracking
     totalNotesHit: 0,
     totalMarvelous: 0,
@@ -88,9 +85,11 @@ const DEFAULT_ACCOUNT = {
     totalMiss: 0,
     
     // Miscellaneous
+    maxSkillsInGame: 0,
     gameRated: false,
     featureRequestPrompted: false,
-    lastCrashed: false
+    lastCrashed: false,
+    submittedBugReport: false
   },
   achievements: {
     unlocked: {},

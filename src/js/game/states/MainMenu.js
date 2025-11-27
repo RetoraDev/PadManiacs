@@ -59,13 +59,11 @@ class MainMenu {
       "Could you quickly report what you were doing when it crashed?\n",
       () => {
         // Open bug report page
-        const a = document.createElement('a');
-        a.href = FEEDBACK_BUG_REPORT_URL;
-        a.target = '_blank';
-        a.click();
+        openExternalUrl(FEEDBACK_BUG_REPORT_URL);
         
         // Clear the flag and show menu
         Account.stats.lastCrashed = false;
+        Account.stats.submittedBugReport = true;
         saveAccount();
         this.menu();
       },
@@ -87,10 +85,7 @@ class MainMenu {
       "Would you mind leaving a quick rating?\n",
       () => {
         // Rate Now
-        const a = document.createElement('a');
-        a.href = FEEDBACK_REVIEW_URL;
-        a.target = '_blank';
-        a.click();
+        openExternalUrl(FEEDBACK_REVIEW_URL);
         
         Account.stats.gameRated = true;
         saveAccount();
@@ -114,11 +109,8 @@ class MainMenu {
       "Got any feature requests or suggestions?\n" +
       "What would you like to see in the game?\n",
       () => {
-        // Share Ideas
-        const a = document.createElement('a');
-        a.href = FEEDBACK_FEATURE_REQUEST_URL;
-        a.target = '_blank';
-        a.click();
+        // Share ideas
+        openExternalUrl(FEEDBACK_FEATURE_REQUEST_URL);
         
         Account.stats.featureRequestPrompted = true;
         saveAccount();
@@ -469,10 +461,7 @@ class MainMenu {
     });
     
     const openLink = url => {
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.click();
+      openExternalUrl(url);
       this.showFeedback();
     };
     

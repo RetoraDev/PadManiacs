@@ -54,6 +54,27 @@ const addFpsText = () => {
   game.time.events.loop(100, () => text.write(`${game.time.fps} (${game.renderer.renderSession.drawCount - 1})`));
 };
 
+const openExternalUrl = url => {
+  // Ensure URL is properly encoded
+  const encodedUrl = encodeURI(url);
+  
+  switch (CURRENT_ENVIRONMENT) {
+    case ENVIRONMENT.CORDOVA:
+      navigator.app.loadUrl(encodedUrl, { openExternal: true });
+      break;
+    case ENVIRONMENT.NWJS:
+      nw.Shell.openExternal(encodedUrl);
+      break;
+    case ENVIRONMENT.WEB:
+    default:
+      const a = document.createElement('a');
+      a.href = encodedUrl;
+      a.target = '_blank';
+      a.click();
+      break;
+  }
+};
+
 const Audio = {
   pool: {},
   add: function (key, volume = 1, loop = false, reset = true) {
