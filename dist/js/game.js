@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 11/27/2025, 12:46:01 AM
+ * Build: 11/27/2025, 1:35:29 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -67,6 +67,9 @@ const SCORE_VALUES = {
 const FEEDBACK_REVIEW_URL = "https://retora.itch.io/padmaniacs/rate";
 const FEEDBACK_FEATURE_REQUEST_URL = "https://itch.io/t/5585472/feature-requests";
 const FEEDBACK_BUG_REPORT_URL = "https://itch.io/t/5585499/bug-reports";
+
+const RATING_PROMPT_MIN_PLAYTIME = 30 * 60; // 30 minutes in seconds
+const FEATURE_REQUEST_MIN_PLAYTIME = 60 * 60; // 60 minutes in seconds
 
 // Environment detection constants
 const ENVIRONMENT = {
@@ -851,6 +854,11 @@ const DEFAULT_ACCOUNT = {
     totalGood: 0,
     totalBoo: 0,
     totalMiss: 0,
+    
+    // Miscellaneous
+    gameRated: false,
+    featureRequestPrompted: false,
+    lastCrashed: false
   },
   achievements: {
     unlocked: {},
@@ -4357,7 +4365,7 @@ class DialogWindow extends Phaser.Sprite {
       maxHeight = 80,
       buttons = ['OK'],
       defaultButton = 0,
-      enableTextScroll = true,
+      enableTextScroll = false,
       parent = null
     } = options;
 
@@ -4521,23 +4529,33 @@ class DialogWindow extends Phaser.Sprite {
   createButtonElements() {
     this.buttonTexts = [];
     const buttonAreaY = this.window.size.height * 8 - 12;
-    const totalButtonWidth = this.buttons.length * 40;
-    const startX = (this.window.size.width * 8 - totalButtonWidth) / 2;
     
+    // Calculate actual button widths based on text content
+    const buttonWidths = this.buttons.map(buttonText => {
+      return buttonText.length * 4 + 16; // Text width + padding
+    });
+    
+    const totalButtonWidth = buttonWidths.reduce((sum, width) => sum + width, 0);
+    const buttonSpacing = 8; // Space between buttons
+    const startX = (this.window.size.width * 8 - totalButtonWidth - (buttonSpacing * (this.buttons.length - 1))) / 2;
+    
+    let currentX = startX;
     this.buttons.forEach((buttonText, index) => {
-      const buttonX = startX + (index * 40);
-      const button = new Text(buttonX, buttonAreaY, buttonText, {
+      const button = new Text(currentX + (buttonWidths[index] / 2), buttonAreaY, buttonText, {
         ...FONTS.default,
         tint: this.fontTint
       });
       button.anchor.x = 0.5;
       this.window.addChild(button);
       this.buttonTexts.push(button);
+      
+      // Move to next button position
+      currentX += buttonWidths[index] + buttonSpacing;
     });
     
     this.updateButtonSelection();
   }
-
+  
   updateButtonSelection() {
     this.buttonTexts.forEach((button, index) => {
       button.selected = index === this.selectedButton;
@@ -4608,15 +4626,7 @@ class DialogWindow extends Phaser.Sprite {
   }
 
   setupGamepadSignals() {
-    // Store the original signal handlers to restore later
-    this.originalLeftHandler = gamepad.signals.pressed.left;
-    this.originalRightHandler = gamepad.signals.pressed.right;
-    this.originalUpHandler = gamepad.signals.pressed.up;
-    this.originalDownHandler = gamepad.signals.pressed.down;
-    this.originalAHandler = gamepad.signals.pressed.a;
-    this.originalBHandler = gamepad.signals.pressed.b;
-    
-    // Override the signals for dialog navigation
+    // Add signals for dialog navigation
     gamepad.signals.pressed.left.add(this.onLeftPressed, this);
     gamepad.signals.pressed.right.add(this.onRightPressed, this);
     gamepad.signals.pressed.up.add(this.onUpPressed, this);
@@ -4751,37 +4761,17 @@ class DialogWindow extends Phaser.Sprite {
   }
 
   cleanup() {
-    // Restore original gamepad signal handlers
-    this.restoreGamepadSignals();
+    // Remove original gamepad signal handlers
+    this.removeGamepadSignals();
   }
 
-  restoreGamepadSignals() {
+  removeGamepadSignals() {
     gamepad.signals.pressed.left.remove(this.onLeftPressed, this);
     gamepad.signals.pressed.right.remove(this.onRightPressed, this);
     gamepad.signals.pressed.up.remove(this.onUpPressed, this);
     gamepad.signals.pressed.down.remove(this.onDownPressed, this);
     gamepad.signals.pressed.a.remove(this.onAPressed, this);
     gamepad.signals.pressed.b.remove(this.onBPressed, this);
-    
-    // Restore original handlers if they existed
-    if (this.originalLeftHandler) {
-      gamepad.signals.pressed.left.add(this.originalLeftHandler);
-    }
-    if (this.originalRightHandler) {
-      gamepad.signals.pressed.right.add(this.originalRightHandler);
-    }
-    if (this.originalUpHandler) {
-      gamepad.signals.pressed.up.add(this.originalUpHandler);
-    }
-    if (this.originalDownHandler) {
-      gamepad.signals.pressed.down.add(this.originalDownHandler);
-    }
-    if (this.originalAHandler) {
-      gamepad.signals.pressed.a.add(this.originalAHandler);
-    }
-    if (this.originalBHandler) {
-      gamepad.signals.pressed.b.add(this.originalBHandler);
-    }
   }
 
   destroy() {
@@ -7569,6 +7559,7 @@ const Audio = {
 const script = document.createElement("script");
 script.text = `
 window.onerror = (details, file, line) => {
+  localStorage.setItem('gameLastCrashed', 'true');
   if (typeof window.eruda !== "undefined") eruda.init(); 
   const filename = file ? file.split('/').pop() : 'unknown file';
   const message = details + " On Line " + line + " of " + filename;
@@ -11007,6 +10998,20 @@ class Boot {
       this.load.spritesheet(`ui_window_${key}`, `ui/window_${key}.png`, 8, 8);
       this.keys.push(`ui_window_${key}`);
     });
+    
+    // Check if game crashed last time
+    this.checkForCrashRecovery();
+  }
+  checkForCrashRecovery() {
+    const lastCrashed = localStorage.getItem('gameLastCrashed');
+    if (lastCrashed === 'true') {
+      // Clear the flag
+      localStorage.removeItem('gameLastCrashed');
+      
+      // Set flag in account to show bug report dialog later
+      Account.stats.lastCrashed = true;
+      saveAccount();
+    }
   }
   create() {
     gamepad = new Gamepad(game);
@@ -11990,7 +11995,8 @@ class MainMenu {
     this.backgroundGradient = new BackgroundGradient();
     this.navigationHint = new NavigationHint(0);
     
-    this.menu();
+    // Check for feedback dialogs before showing menu
+    this.checkFeedbackDialogs();
     
     this.previewCanvas = document.createElement("canvas");
     this.previewCtx = this.previewCanvas.getContext("2d");
@@ -12009,6 +12015,113 @@ class MainMenu {
     
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+  
+  checkFeedbackDialogs() {
+    // Check for bug report first (highest priority)
+    if (Account.stats.lastCrashed) {
+      this.showBugReportDialog();
+      return;
+    }
+
+    // Check for rating dialog
+    if (!Account.stats.gameRated && Account.stats.totalTimePlayed >= RATING_PROMPT_MIN_PLAYTIME / 1000) {
+      this.showRatingDialog();
+      return;
+    }
+
+    // Check for feature request dialog
+    if (!Account.stats.featureRequestPrompted && Account.stats.totalTimePlayed >= FEATURE_REQUEST_MIN_PLAYTIME / 1000) {
+      this.showFeatureRequestDialog();
+      return;
+    }
+
+    // No dialogs to show, proceed with normal menu
+    this.menu();
+  }
+
+  showBugReportDialog() {
+    this.confirmDialog(
+      "Seems like the game crashed last time.\n" +
+      "Sorry about that!!\n\n" +
+      "As a solo developer, crash reports are super helpful for fixing issues.\n\n" +
+      "Could you quickly report what you were doing when it crashed?\n",
+      () => {
+        // Open bug report page
+        const a = document.createElement('a');
+        a.href = FEEDBACK_BUG_REPORT_URL;
+        a.target = '_blank';
+        a.click();
+        
+        // Clear the flag and show menu
+        Account.stats.lastCrashed = false;
+        saveAccount();
+        this.menu();
+      },
+      () => {
+        // User chose "Maybe Later" - just clear flag and show menu
+        Account.stats.lastCrashed = false;
+        saveAccount();
+        this.menu();
+      },
+      "Report Bug",
+      "Maybe Later"
+    );
+  }
+
+  showRatingDialog() {
+    this.confirmDialog(
+      "Hey! You've been playing a while!\n\n" +
+      "Do you like the game? Ratings really help keep me motivated.\n\n" +
+      "Would you mind leaving a quick rating?\n",
+      () => {
+        // Rate Now
+        const a = document.createElement('a');
+        a.href = FEEDBACK_REVIEW_URL;
+        a.target = '_blank';
+        a.click();
+        
+        Account.stats.gameRated = true;
+        saveAccount();
+        this.menu();
+      },
+      () => {
+        // No Thanks - never ask again
+        Account.stats.gameRated = true;
+        saveAccount();
+        this.menu();
+      },
+      "Rate Now", 
+      "No Thanks"
+    );
+  }
+
+  showFeatureRequestDialog() {
+    this.confirmDialog(
+      "Thanks for playing!\n\n" +
+      "I'm a solo developer, so hearing your ideas directly is incredibly valuable.\n\n" +
+      "Got any feature requests or suggestions?\n" +
+      "What would you like to see in the game?\n",
+      () => {
+        // Share Ideas
+        const a = document.createElement('a');
+        a.href = FEEDBACK_FEATURE_REQUEST_URL;
+        a.target = '_blank';
+        a.click();
+        
+        Account.stats.featureRequestPrompted = true;
+        saveAccount();
+        this.menu();
+      },
+      () => {
+        // Not Now - ask again after more playtime
+        Account.stats.totalTimePlayed = FEATURE_REQUEST_MIN_PLAYTIME - (30 * 60); // Ask again in 30 min
+        saveAccount();
+        this.menu();
+      },
+      "Share Ideas",
+      "Not Now"
+    );
   }
 
   menu() {
@@ -12652,8 +12765,7 @@ class MainMenu {
 
   confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
     const dialog = new DialogWindow(message, {
-      buttons: [confirmText, cancelText],
-      defaultButton: 1 // Default to "No" for safety
+      buttons: [confirmText, cancelText]
     });
     
     dialog.onConfirm.add((buttonIndex, buttonText) => {

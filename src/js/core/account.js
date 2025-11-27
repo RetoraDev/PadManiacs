@@ -86,6 +86,11 @@ const DEFAULT_ACCOUNT = {
     totalGood: 0,
     totalBoo: 0,
     totalMiss: 0,
+    
+    // Miscellaneous
+    gameRated: false,
+    featureRequestPrompted: false,
+    lastCrashed: false
   },
   achievements: {
     unlocked: {},

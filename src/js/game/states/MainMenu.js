@@ -6,7 +6,8 @@ class MainMenu {
     this.backgroundGradient = new BackgroundGradient();
     this.navigationHint = new NavigationHint(0);
     
-    this.menu();
+    // Check for feedback dialogs before showing menu
+    this.checkFeedbackDialogs();
     
     this.previewCanvas = document.createElement("canvas");
     this.previewCtx = this.previewCanvas.getContext("2d");
@@ -25,6 +26,113 @@ class MainMenu {
     
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+  
+  checkFeedbackDialogs() {
+    // Check for bug report first (highest priority)
+    if (Account.stats.lastCrashed) {
+      this.showBugReportDialog();
+      return;
+    }
+
+    // Check for rating dialog
+    if (!Account.stats.gameRated && Account.stats.totalTimePlayed >= RATING_PROMPT_MIN_PLAYTIME / 1000) {
+      this.showRatingDialog();
+      return;
+    }
+
+    // Check for feature request dialog
+    if (!Account.stats.featureRequestPrompted && Account.stats.totalTimePlayed >= FEATURE_REQUEST_MIN_PLAYTIME / 1000) {
+      this.showFeatureRequestDialog();
+      return;
+    }
+
+    // No dialogs to show, proceed with normal menu
+    this.menu();
+  }
+
+  showBugReportDialog() {
+    this.confirmDialog(
+      "Seems like the game crashed last time.\n" +
+      "Sorry about that!!\n\n" +
+      "As a solo developer, crash reports are super helpful for fixing issues.\n\n" +
+      "Could you quickly report what you were doing when it crashed?\n",
+      () => {
+        // Open bug report page
+        const a = document.createElement('a');
+        a.href = FEEDBACK_BUG_REPORT_URL;
+        a.target = '_blank';
+        a.click();
+        
+        // Clear the flag and show menu
+        Account.stats.lastCrashed = false;
+        saveAccount();
+        this.menu();
+      },
+      () => {
+        // User chose "Maybe Later" - just clear flag and show menu
+        Account.stats.lastCrashed = false;
+        saveAccount();
+        this.menu();
+      },
+      "Report Bug",
+      "Maybe Later"
+    );
+  }
+
+  showRatingDialog() {
+    this.confirmDialog(
+      "Hey! You've been playing a while!\n\n" +
+      "Do you like the game? Ratings really help keep me motivated.\n\n" +
+      "Would you mind leaving a quick rating?\n",
+      () => {
+        // Rate Now
+        const a = document.createElement('a');
+        a.href = FEEDBACK_REVIEW_URL;
+        a.target = '_blank';
+        a.click();
+        
+        Account.stats.gameRated = true;
+        saveAccount();
+        this.menu();
+      },
+      () => {
+        // No Thanks - never ask again
+        Account.stats.gameRated = true;
+        saveAccount();
+        this.menu();
+      },
+      "Rate Now", 
+      "No Thanks"
+    );
+  }
+
+  showFeatureRequestDialog() {
+    this.confirmDialog(
+      "Thanks for playing!\n\n" +
+      "I'm a solo developer, so hearing your ideas directly is incredibly valuable.\n\n" +
+      "Got any feature requests or suggestions?\n" +
+      "What would you like to see in the game?\n",
+      () => {
+        // Share Ideas
+        const a = document.createElement('a');
+        a.href = FEEDBACK_FEATURE_REQUEST_URL;
+        a.target = '_blank';
+        a.click();
+        
+        Account.stats.featureRequestPrompted = true;
+        saveAccount();
+        this.menu();
+      },
+      () => {
+        // Not Now - ask again after more playtime
+        Account.stats.totalTimePlayed = FEATURE_REQUEST_MIN_PLAYTIME - (30 * 60); // Ask again in 30 min
+        saveAccount();
+        this.menu();
+      },
+      "Share Ideas",
+      "Not Now"
+    );
   }
 
   menu() {
@@ -668,8 +776,7 @@ class MainMenu {
 
   confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
     const dialog = new DialogWindow(message, {
-      buttons: [confirmText, cancelText],
-      defaultButton: 1 // Default to "No" for safety
+      buttons: [confirmText, cancelText]
     });
     
     dialog.onConfirm.add((buttonIndex, buttonText) => {

@@ -9,7 +9,7 @@ class DialogWindow extends Phaser.Sprite {
       maxHeight = 80,
       buttons = ['OK'],
       defaultButton = 0,
-      enableTextScroll = true,
+      enableTextScroll = false,
       parent = null
     } = options;
 
@@ -173,23 +173,33 @@ class DialogWindow extends Phaser.Sprite {
   createButtonElements() {
     this.buttonTexts = [];
     const buttonAreaY = this.window.size.height * 8 - 12;
-    const totalButtonWidth = this.buttons.length * 40;
-    const startX = (this.window.size.width * 8 - totalButtonWidth) / 2;
     
+    // Calculate actual button widths based on text content
+    const buttonWidths = this.buttons.map(buttonText => {
+      return buttonText.length * 4 + 16; // Text width + padding
+    });
+    
+    const totalButtonWidth = buttonWidths.reduce((sum, width) => sum + width, 0);
+    const buttonSpacing = 8; // Space between buttons
+    const startX = (this.window.size.width * 8 - totalButtonWidth - (buttonSpacing * (this.buttons.length - 1))) / 2;
+    
+    let currentX = startX;
     this.buttons.forEach((buttonText, index) => {
-      const buttonX = startX + (index * 40);
-      const button = new Text(buttonX, buttonAreaY, buttonText, {
+      const button = new Text(currentX + (buttonWidths[index] / 2), buttonAreaY, buttonText, {
         ...FONTS.default,
         tint: this.fontTint
       });
       button.anchor.x = 0.5;
       this.window.addChild(button);
       this.buttonTexts.push(button);
+      
+      // Move to next button position
+      currentX += buttonWidths[index] + buttonSpacing;
     });
     
     this.updateButtonSelection();
   }
-
+  
   updateButtonSelection() {
     this.buttonTexts.forEach((button, index) => {
       button.selected = index === this.selectedButton;
@@ -260,15 +270,7 @@ class DialogWindow extends Phaser.Sprite {
   }
 
   setupGamepadSignals() {
-    // Store the original signal handlers to restore later
-    this.originalLeftHandler = gamepad.signals.pressed.left;
-    this.originalRightHandler = gamepad.signals.pressed.right;
-    this.originalUpHandler = gamepad.signals.pressed.up;
-    this.originalDownHandler = gamepad.signals.pressed.down;
-    this.originalAHandler = gamepad.signals.pressed.a;
-    this.originalBHandler = gamepad.signals.pressed.b;
-    
-    // Override the signals for dialog navigation
+    // Add signals for dialog navigation
     gamepad.signals.pressed.left.add(this.onLeftPressed, this);
     gamepad.signals.pressed.right.add(this.onRightPressed, this);
     gamepad.signals.pressed.up.add(this.onUpPressed, this);
@@ -403,37 +405,17 @@ class DialogWindow extends Phaser.Sprite {
   }
 
   cleanup() {
-    // Restore original gamepad signal handlers
-    this.restoreGamepadSignals();
+    // Remove original gamepad signal handlers
+    this.removeGamepadSignals();
   }
 
-  restoreGamepadSignals() {
+  removeGamepadSignals() {
     gamepad.signals.pressed.left.remove(this.onLeftPressed, this);
     gamepad.signals.pressed.right.remove(this.onRightPressed, this);
     gamepad.signals.pressed.up.remove(this.onUpPressed, this);
     gamepad.signals.pressed.down.remove(this.onDownPressed, this);
     gamepad.signals.pressed.a.remove(this.onAPressed, this);
     gamepad.signals.pressed.b.remove(this.onBPressed, this);
-    
-    // Restore original handlers if they existed
-    if (this.originalLeftHandler) {
-      gamepad.signals.pressed.left.add(this.originalLeftHandler);
-    }
-    if (this.originalRightHandler) {
-      gamepad.signals.pressed.right.add(this.originalRightHandler);
-    }
-    if (this.originalUpHandler) {
-      gamepad.signals.pressed.up.add(this.originalUpHandler);
-    }
-    if (this.originalDownHandler) {
-      gamepad.signals.pressed.down.add(this.originalDownHandler);
-    }
-    if (this.originalAHandler) {
-      gamepad.signals.pressed.a.add(this.originalAHandler);
-    }
-    if (this.originalBHandler) {
-      gamepad.signals.pressed.b.add(this.originalBHandler);
-    }
   }
 
   destroy() {

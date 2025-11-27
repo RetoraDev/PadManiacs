@@ -13,6 +13,20 @@ class Boot {
       this.load.spritesheet(`ui_window_${key}`, `ui/window_${key}.png`, 8, 8);
       this.keys.push(`ui_window_${key}`);
     });
+    
+    // Check if game crashed last time
+    this.checkForCrashRecovery();
+  }
+  checkForCrashRecovery() {
+    const lastCrashed = localStorage.getItem('gameLastCrashed');
+    if (lastCrashed === 'true') {
+      // Clear the flag
+      localStorage.removeItem('gameLastCrashed');
+      
+      // Set flag in account to show bug report dialog later
+      Account.stats.lastCrashed = true;
+      saveAccount();
+    }
   }
   create() {
     gamepad = new Gamepad(game);
