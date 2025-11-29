@@ -545,11 +545,7 @@ class CharacterSelect extends Phaser.State {
   customizeHairStyle(type) {
     const unlocked = Account.characters.unlockedHairs[type === "frontHair" ? "front" : "back"];
     const options = unlocked.map(id => CHARACTER_SYSTEM.HAIR_STYLES[type === "frontHair" ? "front" : "back"][id-1]);
-    const values = [];
-    
-    for (let i = 0; i < unlocked.length; i++) {
-      values.push(i + 1);
-    }
+    const values = unlocked;
     
     const background = this.createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);

@@ -465,6 +465,7 @@ class Play {
   }
   
   pause() {
+    if (!this.startTime) return;
     this.isPaused = true;
     this.pauseStartTime = game.time.now;
     this.audio?.pause();
