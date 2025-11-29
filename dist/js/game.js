@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 11/29/2025, 12:13:09 PM
+ * Build: 11/29/2025, 2:32:56 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -7539,7 +7539,7 @@ const bootGame = () => {
     roundPixels: true,
     touch: false,
     transparent: false,
-    parent: "game",
+    parent: "canvas_parent",
     state: {
       create() {
         game.state.add('Boot', Boot);
@@ -7794,7 +7794,7 @@ class Gamepad {
 
   setupTouch() {
     // Get controller elements
-    this.controllerElement = document.getElementById('controller');
+    this.controllerElement = document.getElementById('controller_parent');
     
     if (!this.controllerElement) {
       return;
@@ -11945,7 +11945,7 @@ class LoadSongFolder {
     };
     
     fileInput.oncancel = e => {
-      this.showError("Nothing was selected")
+      this.showError("Nothing selected");
     };
 
     // Add a fallback for non-webkit browsers

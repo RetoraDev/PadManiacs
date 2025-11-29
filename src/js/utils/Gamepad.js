@@ -165,7 +165,7 @@ class Gamepad {
 
   setupTouch() {
     // Get controller elements
-    this.controllerElement = document.getElementById('controller');
+    this.controllerElement = document.getElementById('controller_parent');
     
     if (!this.controllerElement) {
       return;

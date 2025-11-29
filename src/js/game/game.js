@@ -34,7 +34,7 @@ const bootGame = () => {
     roundPixels: true,
     touch: false,
     transparent: false,
-    parent: "game",
+    parent: "canvas_parent",
     state: {
       create() {
         game.state.add('Boot', Boot);

@@ -9,9 +9,7 @@
 </head>
 
 <body>
-  <div id="game"></div>
-  
-  <!-- Controller -->
+  <!-- Controller --
   <div id="controller">
     <div id="controller_dpad">
       <div id="controller_left"></div>
@@ -30,9 +28,31 @@
     <div id="controller_b" class="roundBtn">B</div>
     <div id="controller_a" class="roundBtn">A</div>
   </div>
+  -->
   
-  <!-- Debug Panel -->
-  <div id="debug"></div>
+  <div id="game">
+    <div id="canvas_parent"></div>
+      <div id="controller_parent">
+        <div id="controller">
+          <div id="controller_dpad">
+            <div id="controller_left"></div>
+            <div id="controller_right"></div>
+            <div id="controller_up"></div>
+            <div id="controller_down"></div>
+          </div>
+          <div id="controller_rhythm_pad">
+            <div id="controller_rhythm_left" class="capsuleBtn squareBtn"></div>
+            <div id="controller_rhythm_down" class="capsuleBtn squareBtn"></div>
+            <div id="controller_rhythm_up" class="capsuleBtn squareBtn"></div>
+            <div id="controller_rhythm_right" class="capsuleBtn squareBtn"></div>
+          </div>
+          <div id="controller_select" class="capsuleBtn">Select</div>
+          <div id="controller_start" class="capsuleBtn">Start</div>
+          <div id="controller_b" class="roundBtn">B</div>
+          <div id="controller_a" class="roundBtn">A</div>
+        </div>
+      </div>
+  </div>
 </body>
 
 </html>

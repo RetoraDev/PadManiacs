@@ -17,7 +17,7 @@ class LoadSongFolder {
     };
     
     fileInput.oncancel = e => {
-      this.showError("Nothing was selected")
+      this.showError("Nothing selected");
     };
 
     // Add a fallback for non-webkit browsers
