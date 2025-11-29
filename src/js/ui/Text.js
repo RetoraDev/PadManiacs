@@ -38,6 +38,7 @@ class Text extends Phaser.Sprite {
   }
 
   write(text, max) {
+    if (!text) return this;
     if (max && text.length > max) {
       this.scrollwrite(text, max);
     } else {

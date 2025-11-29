@@ -83,6 +83,9 @@ class Play {
     this.visibilityChangeListener = () => {
       if (document.hidden) {
         if (!this.isPaused) this.pause();
+        this.audio.volume = 0;
+      } else {
+        this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
       }
     };
     
@@ -465,7 +468,7 @@ class Play {
   }
   
   pause() {
-    if (!this.startTime) return;
+    if (!this.started) return;
     this.isPaused = true;
     this.pauseStartTime = game.time.now;
     this.audio?.pause();

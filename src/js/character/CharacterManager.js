@@ -90,7 +90,7 @@ class CharacterManager {
     char.stats.totalScore += gameResults.score;
     char.stats.maxCombo = Math.max(char.stats.maxCombo, gameResults.maxCombo);
     
-    if (gameResults.accuracy >= 100) {
+    if (gameResults.accuracy >= 99) {
       char.stats.perfectGames++;
     }
 

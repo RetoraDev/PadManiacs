@@ -981,12 +981,8 @@ class CharacterSelect extends Phaser.State {
   creationCustomizeHairStyle(type, callback) {
     const unlocked = Account.characters.unlockedHairs[type === "frontHair" ? "front" : "back"];
     const options = unlocked.map(id => CHARACTER_SYSTEM.HAIR_STYLES[type === "frontHair" ? "front" : "back"][id-1]);
-    const values = [];
-    
-    for (let i = 0; i < unlocked.length; i++) {
-      values.push(i + 1);
-    }
-    
+    const values = unlocked;
+
     let currentIndex = this.newCharacterAppearance[type] - 1;
     
     const hairText = new Text(96, 80, options[currentIndex], FONTS.default);

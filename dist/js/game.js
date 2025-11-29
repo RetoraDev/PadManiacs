@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 11/29/2025, 3:27:52 PM
+ * Build: 11/29/2025, 4:43:05 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -2463,7 +2463,7 @@ class CharacterManager {
     char.stats.totalScore += gameResults.score;
     char.stats.maxCombo = Math.max(char.stats.maxCombo, gameResults.maxCombo);
     
-    if (gameResults.accuracy >= 100) {
+    if (gameResults.accuracy >= 99) {
       char.stats.perfectGames++;
     }
 
@@ -3548,6 +3548,7 @@ class Text extends Phaser.Sprite {
   }
 
   write(text, max) {
+    if (!text) return this;
     if (max && text.length > max) {
       this.scrollwrite(text, max);
     } else {
@@ -14281,12 +14282,8 @@ class CharacterSelect extends Phaser.State {
   creationCustomizeHairStyle(type, callback) {
     const unlocked = Account.characters.unlockedHairs[type === "frontHair" ? "front" : "back"];
     const options = unlocked.map(id => CHARACTER_SYSTEM.HAIR_STYLES[type === "frontHair" ? "front" : "back"][id-1]);
-    const values = [];
-    
-    for (let i = 0; i < unlocked.length; i++) {
-      values.push(i + 1);
-    }
-    
+    const values = unlocked;
+
     let currentIndex = this.newCharacterAppearance[type] - 1;
     
     const hairText = new Text(96, 80, options[currentIndex], FONTS.default);
@@ -14820,6 +14817,9 @@ class Play {
     this.visibilityChangeListener = () => {
       if (document.hidden) {
         if (!this.isPaused) this.pause();
+        this.audio.volume = 0;
+      } else {
+        this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
       }
     };
     
@@ -15202,7 +15202,7 @@ class Play {
   }
   
   pause() {
-    if (!this.startTime) return;
+    if (!this.started) return;
     this.isPaused = true;
     this.pauseStartTime = game.time.now;
     this.audio?.pause();
