@@ -1083,8 +1083,8 @@ const ACHIEVEMENT_DEFINITIONS = [
     name: "Hmm... Maybe add this",
     category: ACHIEVEMENT_CATEGORIES.MISC,
     description: {
-      unachieved: "Request a feature ",
-      achieved: "You requested a feature! I'll take it into account"
+      unachieved: "Request a feature",
+      achieved: "You requested a feature!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: (stats) => stats.featureRequestPrompted,

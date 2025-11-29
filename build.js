@@ -95,6 +95,11 @@ class BuildSystem {
       // Game states
       'js/game/states/Boot.js',
       'js/game/states/Load.js',
+      'js/game/states/LoadCordova.js',
+      'js/game/states/LoadAddons.js',
+      'js/game/states/LoadLocalSongs.js',
+      'js/game/states/LoadExternalSongs.js',
+      'js/game/states/LoadSongFolder.js',
       'js/game/states/Title.js',
       'js/game/states/MainMenu.js',
       'js/game/states/SongSelect.js',

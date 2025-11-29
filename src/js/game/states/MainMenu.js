@@ -36,13 +36,13 @@ class MainMenu {
     }
 
     // Check for rating dialog
-    if (!Account.stats.gameRated && Account.stats.totalTimePlayed >= RATING_PROMPT_MIN_PLAYTIME / 1000) {
+    if (!Account.stats.gameRated && Account.stats.totalTimePlayed >= RATING_PROMPT_MIN_PLAYTIME) {
       this.showRatingDialog();
       return;
     }
 
     // Check for feature request dialog
-    if (!Account.stats.featureRequestPrompted && Account.stats.totalTimePlayed >= FEATURE_REQUEST_MIN_PLAYTIME / 1000) {
+    if (!Account.stats.featureRequestPrompted && Account.stats.totalTimePlayed >= FEATURE_REQUEST_MIN_PLAYTIME) {
       this.showFeatureRequestDialog();
       return;
     }

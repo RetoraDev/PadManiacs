@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 11/27/2025, 12:35:33 PM
+ * Build: 11/29/2025, 12:13:09 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -68,8 +68,8 @@ const FEEDBACK_REVIEW_URL = "https://retora.itch.io/padmaniacs/rate";
 const FEEDBACK_FEATURE_REQUEST_URL = "https://itch.io/t/5585472/feature-requests";
 const FEEDBACK_BUG_REPORT_URL = "https://itch.io/t/5585499/bug-reports";
 
-const RATING_PROMPT_MIN_PLAYTIME = 30 * 60; // 30 minutes in seconds
-const FEATURE_REQUEST_MIN_PLAYTIME = 60 * 60; // 60 minutes in seconds
+const RATING_PROMPT_MIN_PLAYTIME = 15 * 60;
+const FEATURE_REQUEST_MIN_PLAYTIME = 30 * 60;
 
 // Environment detection constants
 const ENVIRONMENT = {
@@ -843,9 +843,6 @@ const DEFAULT_ACCOUNT = {
     playedWeekend: false,
     playedHoliday: false,
     
-    // Miscellaneous stats
-    maxSkillsInGame: 0,
-    
     // Detailed tracking
     totalNotesHit: 0,
     totalMarvelous: 0,
@@ -856,9 +853,11 @@ const DEFAULT_ACCOUNT = {
     totalMiss: 0,
     
     // Miscellaneous
+    maxSkillsInGame: 0,
     gameRated: false,
     featureRequestPrompted: false,
-    lastCrashed: false
+    lastCrashed: false,
+    submittedBugReport: false
   },
   achievements: {
     unlocked: {},
@@ -1919,6 +1918,44 @@ const ACHIEVEMENT_DEFINITIONS = [
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: (stats) => stats.maxSkillsInGame >= 10,
+    hidden: false
+  },
+  
+  // Miscellaneous
+  {
+    id: "submit_bug_report",
+    name: "Crash Tester",
+    category: ACHIEVEMENT_CATEGORIES.MISC,
+    description: {
+      unachieved: "Submit a bug report",
+      achieved: "You submitted a bug report!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.submittedBugReport,
+    hidden: false
+  },
+  {
+    id: "submit_rating",
+    name: "Review it!",
+    category: ACHIEVEMENT_CATEGORIES.MISC,
+    description: {
+      unachieved: "Submit a review about this game",
+      achieved: "You submitted a review! Thank you!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.gameRated,
+    hidden: false
+  },
+  {
+    id: "submit_feature_request",
+    name: "Hmm... Maybe add this",
+    category: ACHIEVEMENT_CATEGORIES.MISC,
+    description: {
+      unachieved: "Request a feature",
+      achieved: "You requested a feature!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: (stats) => stats.featureRequestPrompted,
     hidden: false
   }
 ];
@@ -7523,16 +7560,20 @@ const addFpsText = () => {
 };
 
 const openExternalUrl = url => {
+  // Ensure URL is properly encoded
+  const encodedUrl = encodeURI(url);
+  
   switch (CURRENT_ENVIRONMENT) {
     case ENVIRONMENT.CORDOVA:
-      navigator.app.loadUrl(url, { openExternal: true });
+      navigator.app.loadUrl(encodedUrl, { openExternal: true });
       break;
     case ENVIRONMENT.NWJS:
-      // TODO: Better implementation for NWJS
+      nw.Shell.openExternal(encodedUrl);
+      break;
     case ENVIRONMENT.WEB:
     default:
       const a = document.createElement('a');
-      a.href = url;
+      a.href = encodedUrl;
       a.target = '_blank';
       a.click();
       break;
@@ -11902,6 +11943,10 @@ class LoadSongFolder {
     fileInput.onchange = e => {
       this.processFiles(e.target.files);
     };
+    
+    fileInput.oncancel = e => {
+      this.showError("Nothing was selected")
+    };
 
     // Add a fallback for non-webkit browsers
     if (!fileInput.webkitdirectory) {
@@ -11943,7 +11988,7 @@ class LoadSongFolder {
       this.showError("Failed to load song");
     }
   }
-
+  
   readFileContent(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -12042,13 +12087,13 @@ class MainMenu {
     }
 
     // Check for rating dialog
-    if (!Account.stats.gameRated && Account.stats.totalTimePlayed >= RATING_PROMPT_MIN_PLAYTIME / 1000) {
+    if (!Account.stats.gameRated && Account.stats.totalTimePlayed >= RATING_PROMPT_MIN_PLAYTIME) {
       this.showRatingDialog();
       return;
     }
 
     // Check for feature request dialog
-    if (!Account.stats.featureRequestPrompted && Account.stats.totalTimePlayed >= FEATURE_REQUEST_MIN_PLAYTIME / 1000) {
+    if (!Account.stats.featureRequestPrompted && Account.stats.totalTimePlayed >= FEATURE_REQUEST_MIN_PLAYTIME) {
       this.showFeatureRequestDialog();
       return;
     }
@@ -12069,6 +12114,7 @@ class MainMenu {
         
         // Clear the flag and show menu
         Account.stats.lastCrashed = false;
+        Account.stats.submittedBugReport = true;
         saveAccount();
         this.menu();
       },
