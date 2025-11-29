@@ -231,9 +231,21 @@ class Player {
   
       // Reactivate inactive holds within forgiveness window
       const holdForgiveness = this.getHoldForgiveness();
-
+      
+      // Handle hold note reactivation forgiveness
+      if (hold && hold.note.type === "2" && hold.inactive) {
+        if (now - hold.lastRelease < this.HOLD_FORGIVENESS) {
+          if (isKeyDown) {
+            hold.active = true;
+            hold.inactive = false;
+            hold.lastPress = now;
+            this.toggleHoldExplosion(column, true);
+          }
+        }
+      }
+      
       // Handle roll note tapping
-      if (hold?.note.type === "4") {
+      if (hold && hold.note.type === "4") {
         hold.tapped++;
         hold.lastTap = now;
         hold.active = true;
@@ -748,6 +760,7 @@ class Player {
           const holdForgiveness = this.getHoldForgiveness();
           const sinceRelease = now - hold.lastRelease;
           if (sinceRelease > holdForgiveness) {
+            hold.active = false;
             hold.inactive = true;
             hold.note.miss = true;
             this.toggleHoldExplosion(col, false);
