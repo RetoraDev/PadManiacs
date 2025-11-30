@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 11/29/2025, 4:43:05 PM
+ * Build: 11/30/2025, 12:14:46 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -91,8 +91,8 @@ const ADDONS_DIRECTORY = "Addons";
 const SCREENSHOTS_DIRECTORY = "Screenshots";
 const SONGS_DIRECTORY = "Songs";
 
-const ENABLE_PARALLEL_LOADING = false;
-const MAX_PARALLEL_DOWNLOADS = 16;
+const ENABLE_PARALLEL_LOADING = true;
+const MAX_PARALLEL_DOWNLOADS = 128;
 
 const MAX_PARALLEL_ADDON_LOADS = 3;
 const ENABLE_ADDON_SAFE_MODE = true;
@@ -801,6 +801,10 @@ const DEFAULT_ACCOUNT = {
     ]
   },
   lastSong: null,
+  songSelectStartingIndex: {
+    local: 0,
+    external: 0
+  },
   highScores: {},
   stats: {
     // Gameplay stats
@@ -3300,6 +3304,8 @@ class AchievementsManager {
 
     this.isTracking = false;
     this.sessionStartTime = null;
+    
+    saveAccount();
 
     console.log("Play session ended");
   }
@@ -7619,7 +7625,7 @@ const script = document.createElement("script");
 script.text = `
 window.onerror = (details, file, line) => {
   localStorage.setItem('gameLastCrashed', 'true');
-  if (typeof window.eruda !== "undefined") eruda.init(); 
+  if (!window.DEBUG && typeof window.eruda !== "undefined") eruda.init(); 
   const filename = file ? file.split('/').pop() : 'unknown file';
   const message = details + " On Line " + line + " of " + filename;
   console.error(message);
@@ -11614,6 +11620,7 @@ class LoadExternalSongs {
     
     this.songs = [];
     this.parser = new ExternalSMParser();
+    this.currentIndex = 0;
     this.loadedCount = 0;
     this.failedCount = 0;
     this.totalCount = 0;
@@ -11628,16 +11635,12 @@ class LoadExternalSongs {
 
   async loadSongsFromStorage() {
     try {
-      console.log("Loading songs from external storage...");
-      
       const rootDir = await this.fileSystem.getDirectory(EXTERNAL_DIRECTORY + SONGS_DIRECTORY);
       const allDirs = await this.fileSystem.listAllDirectories(rootDir);
       allDirs.unshift(rootDir);
 
       this.totalCount = allDirs.length;
       this.updateProgress();
-
-      console.log(`Found ${this.totalCount} directories to scan`);
 
       if (ENABLE_PARALLEL_LOADING) {
         await this.loadDirectoriesParallel(allDirs);
@@ -11648,7 +11651,7 @@ class LoadExternalSongs {
       this.finish();
       
     } catch (error) {
-      console.error("Error loading external songs:", error);
+      console.warn("Error loading external songs:", error);
       this.showError("Failed to load external songs: " + error.message);
     }
   }
@@ -11677,6 +11680,9 @@ class LoadExternalSongs {
   }
 
   async processSongDirectoryWithTracking(dirEntry) {
+    const index = this.currentIndex;
+    this.currentIndex ++;
+    
     if (ENABLE_PARALLEL_LOADING && this.currentlyLoading.size >= MAX_PARALLEL_DOWNLOADS) {
       await new Promise(resolve => {
         const checkInterval = setInterval(() => {
@@ -11693,13 +11699,14 @@ class LoadExternalSongs {
 
     try {
       const song = await this.processSongDirectory(dirEntry);
+      song.index = index;
       if (song) {
+        // Song loaded successfully!
         this.songs.push(song);
         this.loadedCount++;
-        console.log(`✓ Loaded: ${song.title || dirName}`);
       } else {
+        // Failed to load song
         this.failedCount++;
-        console.log(`✗ Failed: ${dirName} (no valid chart found)`);
       }
     } catch (error) {
       console.warn(`✗ Error in ${dirName}:`, error);
@@ -11725,29 +11732,30 @@ class LoadExternalSongs {
       );
 
       if (chartFileNames.length === 0) {
-        console.log(`No chart files found in ${dirEntry.name}`);
+        // No chart files the folder is empty or is not a chart folder
         return null;
       }
 
       for (const smFileName of chartFileNames) {
         try {
-          console.log(`Trying to parse ${smFileName} in ${dirEntry.name}`);
+          // Try to parse the chart file
           const content = await this.fileSystem.readFileContent(chartFiles[smFileName]);
           const chart = this.parser.parseSM(chartFiles, content);
           
           if (chart && chart.difficulties && chart.difficulties.length > 0) {
-            chart.folderName = dirEntry.name || "External Song";
+            // Chart file parsed successfully
+            chart.folderName = dirEntry.name || `External_Song_${smFileName}`;
             chart.loaded = true;
-            console.log(`✓ Successfully parsed ${smFileName}`);
             return chart;
           }
         } catch (parseError) {
+          // Failed to parse, continue loading next chart
           console.warn(`Failed to parse ${smFileName}:`, parseError);
           continue;
         }
       }
 
-      console.log(`No valid chart files in ${dirEntry.name}`);
+      // All charts failed to load
       return null;
       
     } catch (error) {
@@ -11807,7 +11815,7 @@ class LoadExternalSongs {
       this.finish();
       
     } catch (error) {
-      console.error("Error processing file input:", error);
+      console.warn("Error processing file input:", error);
       this.showError("Failed to load songs from files: " + error.message);
     }
   }
@@ -11836,6 +11844,9 @@ class LoadExternalSongs {
   }
 
   async processSongFilesWithTracking(files, folderName) {
+    const index = this.currentIndex;
+    this.currentIndex ++;
+    
     if (ENABLE_PARALLEL_LOADING && this.currentlyLoading.size >= MAX_PARALLEL_DOWNLOADS) {
       await new Promise(resolve => {
         const checkInterval = setInterval(() => {
@@ -11851,14 +11862,13 @@ class LoadExternalSongs {
 
     try {
       const song = await this.processSongFiles(files, folderName);
+      song.index = index;
       if (song) {
         this.songs.push(song);
         this.loadedCount++;
-        console.log(`✓ Loaded: ${song.title || folderName}`);
       } else {
         this.failedCount++;
-        console.log(`✗ Failed: ${folderName} (no valid chart found)`);
-      }
+    }
     } catch (error) {
       console.warn(`✗ Error in ${folderName}:`, error);
       this.failedCount++;
@@ -11874,20 +11884,17 @@ class LoadExternalSongs {
     );
     
     if (chartFileNames.length === 0) {
-      console.log(`No chart files found in ${folderName}`);
       return null;
     }
 
     for (const smFileName of chartFileNames) {
       try {
-        console.log(`Trying to parse ${smFileName} in ${folderName}`);
         const content = await this.fileSystem.readFileContent(files[smFileName]);
         const chart = this.parser.parseSM(files, content);
         
         if (chart && chart.difficulties && chart.difficulties.length > 0) {
           chart.folderName = folderName;
           chart.loaded = true;
-          console.log(`✓ Successfully parsed ${smFileName}`);
           return chart;
         }
       } catch (parseError) {
@@ -11896,7 +11903,6 @@ class LoadExternalSongs {
       }
     }
 
-    console.log(`No valid chart files in ${folderName}`);
     return null;
   }
   
@@ -11908,19 +11914,19 @@ class LoadExternalSongs {
   }
   
   finish(resetIndex = 0) {
-    console.log(`Loading complete: ${this.loadedCount} songs loaded, ${this.failedCount} failed`);
-    
     if (this.songs.length === 0) {
       this.showError("No external songs found");
       return;
     }
+    
+    this.songs = this.songs.sort((a, b) => a.index - b.index)
     
     window.externalSongs = this.songs;
     
     if (this.nextStateParams.length) {
       game.state.start(this.nextState, true, false, ...this.nextStateParams);
     } else {
-      game.state.start(this.nextState, true, false,  this.songs);
+      game.state.start(this.nextState, true, false,  this.songs, null, false, "external");
     }
     
     setTimeout(() => window.lastExternalSongIndex = window.selectStartingIndex)
@@ -12896,7 +12902,7 @@ class MainMenu {
   }
 
   freePlay() {
-    game.state.start("SongSelect", true, false, window.localSongs);
+    game.state.start("SongSelect", true, false, window.localSongs, null, false, "local");
   }
 
   startOffsetAssistant() {
@@ -12960,18 +12966,28 @@ class MainMenu {
 }
 
 class SongSelect {
-  init(songs, index, autoSelect) {
-    this.songs = songs || [];
-    this.songs = songs ?
-      songs :
-      window.selectedSongs || []
-    ;
+  init(songs, index, autoSelect, type = "local") {
+    this.type = type;
+    
+    switch (type) {
+      case "local":
+        this.songs = songs || window.localSongs || [];
+        this.startingIndex = index || Account.songSelectStartingIndex.local || 0;
+        break;
+      case "external":
+        this.songs = songs || window.externalSongs || [];
+        this.startingIndex = index || Account.songSelectStartingIndex.external || 0;
+        break;
+      default:
+        this.songs = songs || window.selectedSongs || [];
+        this.startingIndex = index || window.selectStartingIndex || 0;
+        break;
+    }
+    
     window.selectedSongs = this.songs;
-    this.startingIndex = index ?
-      index :
-      window.selectStartingIndex || 0
-    ;
+    
     this.autoSelect = autoSelect || false;
+    
     if (this.startingIndex + 1 > this.songs.length) {
       this.startingIndex = 0;
     } 
@@ -12996,7 +13012,6 @@ class SongSelect {
     this.previewAudio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
     
     this.bannerImg = document.createElement("img");
-    this.cdtitleImg = document.createElement("img");
     
     this.previewCanvas = document.createElement("canvas");
     this.previewCtx = this.previewCanvas.getContext("2d");
@@ -13078,6 +13093,8 @@ class SongSelect {
     this.songCarousel.onSelect.add((index, item) => {
       if (item.data && item.data.song) {
         this.previewSong(item.data.song);
+        
+        
       }
     });
 
@@ -13093,13 +13110,16 @@ class SongSelect {
 
   previewSong(song) {
     if (!this.autoSelect) this.loadingDots.visible = true;
+    
     let index = this.songCarousel.selectedIndex;
+    
     if (song.audioUrl) {
       // Load and play preview
       this.previewAudio.src = song.audioUrl;
       this.previewAudio.currentTime = song.sampleStart || 0;
       this.previewAudio.play();
     }
+    
     if (song.banner) {
       this.bannerImg.src = song.banner;
       this.bannerImg.onload = () => {
@@ -13113,10 +13133,20 @@ class SongSelect {
       };
       this.bannerImg.onerror = () => this.loadingDots.visible = false;
     }
+    
     this.metadataText.write(this.getMetadataText(song));
     this.metadataText.wrapPreserveNewlines(80);
+    
     this.displayHighScores(song);
-    this.startingIndex = window.selectStartingIndex = this.songCarousel.selectedIndex;
+    
+    this.startingIndex = this.songCarousel.selectedIndex;
+    window.selectStartingIndex = this.startingIndex;
+    
+    if (this.type === "local") {
+      Account.songSelectStartingIndex.local = this.startingIndex;
+    } else {
+      Account.songSelectStartingIndex.external = this.startingIndex;
+    }
   }
   
   displayHighScores(song) {
@@ -13200,6 +13230,14 @@ class SongSelect {
       align: "center",
       animate: true
     });
+    
+    this.difficultyCarousel.onSelect.add((index) => {
+      song.lastDifficultySelectedIndex = index;
+    });
+    
+    if (song.lastDifficultySelectedIndex) {
+      this.difficultyCarousel.selectIndex(song.lastDifficultySelectedIndex);
+    }
     
     game.onMenuIn.dispatch('difficulty', this.songCarousel);
     
@@ -13295,6 +13333,10 @@ class SongSelect {
     this.previewAudio.pause();
     this.previewAudio.src = null;
     this.previewAudio = null;
+    this.bannerImg.src = "";
+    this.bannerImg = null;
+    this.previewCanvas = null;
+    this.previewCtx = null;
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
   }
 }
@@ -15075,6 +15117,7 @@ class Play {
     this.video.src = url;
     this.video.play();
     this.backgroundGradient.visible = false;
+    this.video.addEventListener("error", () => this.backgroundGradient.visible = true, { once: true })
   }
   
   clearBackgroundImage() {
@@ -15118,6 +15161,7 @@ class Play {
       score: this.player.score,
       accuracy: this.player.accuracy,
       maxCombo: this.player.maxCombo,
+      character: this.currentCharacter,
       complete: !this.autoplay && this.player.accuracy >= 40,
       judgements: { ...this.player.judgementCounts },
       totalNotes: this.song.chart.notes.length,
@@ -15188,7 +15232,7 @@ class Play {
     
     // Update achievements
     const achievementsManager = new AchievementsManager();
-    achievementsManager.updateStats();
+    achievementsManager.updateStats(gameResults);
   }
   
   togglePause() {
@@ -15387,8 +15431,8 @@ class Play {
     if (this.video.src) {
       this.video.pause();
       this.video.src = "";
-      this.video = null;
     }
+    this.video = null;
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
     if (this.visualizer) {
       this.visualizer.destroy();
@@ -15517,7 +15561,6 @@ class Results {
     
     // Banner
     this.bannerImg = document.createElement("img");
-    this.cdtitleImg = document.createElement("img");
     
     this.bannerCanvas = document.createElement("canvas");
     this.bannerCtx = this.bannerCanvas.getContext("2d");
@@ -15684,6 +15727,10 @@ class Results {
     this.previewAudio.pause();
     this.previewAudio.src = null;
     this.previewAudio = null;
+    this.bannerImg.src = "";
+    this.bannerImg = null;
+    this.bannerCanvas = null;
+    this.bannerCtx = null;
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
   }
 }

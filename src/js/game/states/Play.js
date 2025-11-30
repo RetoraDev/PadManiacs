@@ -341,6 +341,7 @@ class Play {
     this.video.src = url;
     this.video.play();
     this.backgroundGradient.visible = false;
+    this.video.addEventListener("error", () => this.backgroundGradient.visible = true, { once: true })
   }
   
   clearBackgroundImage() {
@@ -384,6 +385,7 @@ class Play {
       score: this.player.score,
       accuracy: this.player.accuracy,
       maxCombo: this.player.maxCombo,
+      character: this.currentCharacter,
       complete: !this.autoplay && this.player.accuracy >= 40,
       judgements: { ...this.player.judgementCounts },
       totalNotes: this.song.chart.notes.length,
@@ -454,7 +456,7 @@ class Play {
     
     // Update achievements
     const achievementsManager = new AchievementsManager();
-    achievementsManager.updateStats();
+    achievementsManager.updateStats(gameResults);
   }
   
   togglePause() {
@@ -653,8 +655,8 @@ class Play {
     if (this.video.src) {
       this.video.pause();
       this.video.src = "";
-      this.video = null;
     }
+    this.video = null;
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
     if (this.visualizer) {
       this.visualizer.destroy();

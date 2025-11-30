@@ -108,7 +108,6 @@ class Results {
     
     // Banner
     this.bannerImg = document.createElement("img");
-    this.cdtitleImg = document.createElement("img");
     
     this.bannerCanvas = document.createElement("canvas");
     this.bannerCtx = this.bannerCanvas.getContext("2d");
@@ -275,6 +274,10 @@ class Results {
     this.previewAudio.pause();
     this.previewAudio.src = null;
     this.previewAudio = null;
+    this.bannerImg.src = "";
+    this.bannerImg = null;
+    this.bannerCanvas = null;
+    this.bannerCtx = null;
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
   }
 }

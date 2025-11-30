@@ -844,7 +844,7 @@ class MainMenu {
   }
 
   freePlay() {
-    game.state.start("SongSelect", true, false, window.localSongs);
+    game.state.start("SongSelect", true, false, window.localSongs, null, false, "local");
   }
 
   startOffsetAssistant() {

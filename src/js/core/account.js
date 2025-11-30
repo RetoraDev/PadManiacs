@@ -33,6 +33,10 @@ const DEFAULT_ACCOUNT = {
     ]
   },
   lastSong: null,
+  songSelectStartingIndex: {
+    local: 0,
+    external: 0
+  },
   highScores: {},
   stats: {
     // Gameplay stats

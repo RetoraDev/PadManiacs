@@ -1,16 +1,26 @@
 class SongSelect {
-  init(songs, index, autoSelect) {
-    this.songs = songs || [];
-    this.songs = songs ?
-      songs :
-      window.selectedSongs || []
-    ;
+  init(songs, index, autoSelect, type = "local") {
+    this.type = type;
+    
+    switch (type) {
+      case "local":
+        this.songs = songs || window.localSongs || [];
+        this.startingIndex = index || Account.songSelectStartingIndex.local || 0;
+        break;
+      case "external":
+        this.songs = songs || window.externalSongs || [];
+        this.startingIndex = index || Account.songSelectStartingIndex.external || 0;
+        break;
+      default:
+        this.songs = songs || window.selectedSongs || [];
+        this.startingIndex = index || window.selectStartingIndex || 0;
+        break;
+    }
+    
     window.selectedSongs = this.songs;
-    this.startingIndex = index ?
-      index :
-      window.selectStartingIndex || 0
-    ;
+    
     this.autoSelect = autoSelect || false;
+    
     if (this.startingIndex + 1 > this.songs.length) {
       this.startingIndex = 0;
     } 
@@ -35,7 +45,6 @@ class SongSelect {
     this.previewAudio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
     
     this.bannerImg = document.createElement("img");
-    this.cdtitleImg = document.createElement("img");
     
     this.previewCanvas = document.createElement("canvas");
     this.previewCtx = this.previewCanvas.getContext("2d");
@@ -117,6 +126,8 @@ class SongSelect {
     this.songCarousel.onSelect.add((index, item) => {
       if (item.data && item.data.song) {
         this.previewSong(item.data.song);
+        
+        
       }
     });
 
@@ -132,13 +143,16 @@ class SongSelect {
 
   previewSong(song) {
     if (!this.autoSelect) this.loadingDots.visible = true;
+    
     let index = this.songCarousel.selectedIndex;
+    
     if (song.audioUrl) {
       // Load and play preview
       this.previewAudio.src = song.audioUrl;
       this.previewAudio.currentTime = song.sampleStart || 0;
       this.previewAudio.play();
     }
+    
     if (song.banner) {
       this.bannerImg.src = song.banner;
       this.bannerImg.onload = () => {
@@ -152,10 +166,20 @@ class SongSelect {
       };
       this.bannerImg.onerror = () => this.loadingDots.visible = false;
     }
+    
     this.metadataText.write(this.getMetadataText(song));
     this.metadataText.wrapPreserveNewlines(80);
+    
     this.displayHighScores(song);
-    this.startingIndex = window.selectStartingIndex = this.songCarousel.selectedIndex;
+    
+    this.startingIndex = this.songCarousel.selectedIndex;
+    window.selectStartingIndex = this.startingIndex;
+    
+    if (this.type === "local") {
+      Account.songSelectStartingIndex.local = this.startingIndex;
+    } else {
+      Account.songSelectStartingIndex.external = this.startingIndex;
+    }
   }
   
   displayHighScores(song) {
@@ -239,6 +263,14 @@ class SongSelect {
       align: "center",
       animate: true
     });
+    
+    this.difficultyCarousel.onSelect.add((index) => {
+      song.lastDifficultySelectedIndex = index;
+    });
+    
+    if (song.lastDifficultySelectedIndex) {
+      this.difficultyCarousel.selectIndex(song.lastDifficultySelectedIndex);
+    }
     
     game.onMenuIn.dispatch('difficulty', this.songCarousel);
     
@@ -334,6 +366,10 @@ class SongSelect {
     this.previewAudio.pause();
     this.previewAudio.src = null;
     this.previewAudio = null;
+    this.bannerImg.src = "";
+    this.bannerImg = null;
+    this.previewCanvas = null;
+    this.previewCtx = null;
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
   }
 }

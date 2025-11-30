@@ -323,6 +323,8 @@ class AchievementsManager {
 
     this.isTracking = false;
     this.sessionStartTime = null;
+    
+    saveAccount();
 
     console.log("Play session ended");
   }
