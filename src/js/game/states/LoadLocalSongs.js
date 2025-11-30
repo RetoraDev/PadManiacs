@@ -81,6 +81,8 @@ class LoadLocalSongs {
   }
   finish() {
     window.localSongs = this.songs;
-    game.state.start("Title");
+    game.state.start("Editor", true, false, {
+      chart: this.songs[0]
+    });
   }
 }

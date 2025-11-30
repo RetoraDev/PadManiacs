@@ -32,7 +32,6 @@ body {
   -webkit-touch-callout: none;
   user-select: none;
   -webkit-user-select: none;
-  overflow: hidden;
 }
 
 #game {
@@ -41,6 +40,7 @@ body {
   width: 100%;
   height: 100%;
   touch-action: none;
+  overflow: hidden;
 }
 
 #canvas_parent {

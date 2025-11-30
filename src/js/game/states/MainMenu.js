@@ -439,10 +439,11 @@ class MainMenu {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       carousel.addItem("Addon Manager", () => this.showAddonManager());
     }
-    carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
+    carousel.addItem("Song Editor", () => this.openEditor());
     carousel.addItem("Jukebox", () => this.startJukebox());
-    carousel.addItem("Player Stats", () => this.showStats());
+    //carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
     carousel.addItem("Achievements", () => this.showAchievements());
+    carousel.addItem("Player Stats", () => this.showStats());
     carousel.addItem("Credits", () => this.showCredits());
     carousel.addItem("Feedback", () => this.showFeedback());
     
@@ -880,6 +881,10 @@ class MainMenu {
     } else {
       game.state.start("Jukebox");
     }
+  }
+  
+  openEditor() {
+    game.state.start("Editor");
   }
 
   showAchievements() {

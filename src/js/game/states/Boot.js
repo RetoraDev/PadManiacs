@@ -56,6 +56,7 @@ class Boot {
     game.state.add("StatsMenu", StatsMenu);
     game.state.add("Play", Play);
     game.state.add("Results", Results);
+    game.state.add("Editor", Editor);
     game.state.add("Jukebox", Jukebox);
     game.state.add("Credits", Credits);
 
