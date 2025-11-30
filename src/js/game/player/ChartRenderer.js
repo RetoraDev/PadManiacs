@@ -13,6 +13,7 @@ class ChartRenderer {
       enableReceptors: true,
       enableBeatLines: false,
       enableSpeedRendering: false,
+      enableBGRendering: false,
       judgeLineYFalling: 90,
       judgeLineYRising: 30,
       ...options
@@ -41,20 +42,20 @@ class ChartRenderer {
     const COLORS = {
       // This is how spritesheet frames are colored
       // They are ordered like NOTE color pattern in StepMania
-      RED: 0, // 4th
-      BLUE: 1, // 8th
-      PURPLE: 2, // 12th
-      YELLOW: 3, // 16th
-      PINK: 4, // 24th
-      ORANGE: 5, // 32nd
-      CYAN: 6, // 48th
-      GREEN: 7, // 64th
-      WHITE: 8, // 96th
-      SKYBLUE: 9, // 128th
-      OLIVE: 10, // 192nd
-      GRAY: 11 // Anything faster
+      RED: 0,      // 4th
+      BLUE: 1,     // 8th
+      PURPLE: 2,   // 12th
+      YELLOW: 3,   // 16th
+      PINK: 4,     // 24th
+      ORANGE: 5,   // 32nd
+      CYAN: 6,     // 48th
+      GREEN: 7,    // 64th
+      WHITE: 8,    // 96th
+      SKYBLUE: 9,  // 128th
+      OLIVE: 10,   // 192nd
+      GRAY: 11     // Anything faster
     };
-
+    
     // Color mappings for different options
     this.colorMappings = {
       NOTE: {
@@ -73,52 +74,55 @@ class ChartRenderer {
       },
       VIVID: {
         // VIVID: Color cycle per beat (Yellow, Maroon, Blue, Cyan)
-        4: COLORS.YELLOW, // 4th - Yellow
-        8: COLORS.RED, // 8th - Maroon (using RED as closest)
-        12: COLORS.BLUE, // 12th - Blue
-        16: COLORS.CYAN, // 16th - Cyan
-        24: COLORS.YELLOW, // 24th - Yellow (cycle repeats)
-        32: COLORS.RED, // 32nd - Maroon
-        48: COLORS.BLUE, // 48th - Blue
-        64: COLORS.CYAN, // 64th - Cyan
-        96: COLORS.YELLOW, // 96th - Yellow
-        128: COLORS.RED, // 128th - Maroon
-        192: COLORS.BLUE, // 192nd - Blue
+        4: COLORS.YELLOW,   // 4th - Yellow
+        8: COLORS.RED,      // 8th - Maroon (using RED as closest)
+        12: COLORS.BLUE,    // 12th - Blue
+        16: COLORS.CYAN,    // 16th - Cyan
+        24: COLORS.YELLOW,  // 24th - Yellow (cycle repeats)
+        32: COLORS.RED,     // 32nd - Maroon
+        48: COLORS.BLUE,    // 48th - Blue
+        64: COLORS.CYAN,    // 64th - Cyan
+        96: COLORS.YELLOW,  // 96th - Yellow
+        128: COLORS.RED,    // 128th - Maroon
+        192: COLORS.BLUE,   // 192nd - Blue
         default: COLORS.CYAN // Ultra-fast - Cyan
       },
       FLAT: {
         // FLAT: All notes same color as VIVID 4th notes (Yellow)
-        4: COLORS.YELLOW, // 4th - Yellow
-        8: COLORS.YELLOW, // 8th - Yellow
-        12: COLORS.YELLOW, // 12th - Yellow
-        16: COLORS.YELLOW, // 16th - Yellow
-        24: COLORS.YELLOW, // 24th - Yellow
-        32: COLORS.YELLOW, // 32nd - Yellow
-        48: COLORS.YELLOW, // 48th - Yellow
-        64: COLORS.YELLOW, // 64th - Yellow
-        96: COLORS.YELLOW, // 96th - Yellow
+        4: COLORS.YELLOW,   // 4th - Yellow
+        8: COLORS.YELLOW,   // 8th - Yellow
+        12: COLORS.YELLOW,  // 12th - Yellow
+        16: COLORS.YELLOW,  // 16th - Yellow
+        24: COLORS.YELLOW,  // 24th - Yellow
+        32: COLORS.YELLOW,  // 32nd - Yellow
+        48: COLORS.YELLOW,  // 48th - Yellow
+        64: COLORS.YELLOW,  // 64th - Yellow
+        96: COLORS.YELLOW,  // 96th - Yellow
         128: COLORS.YELLOW, // 128th - Yellow
         192: COLORS.YELLOW, // 192nd - Yellow
         default: COLORS.YELLOW // Ultra-fast - Yellow
       },
       RAINBOW: {
         // RAINBOW: Orange, Blue, Purple/Pink with color reuse
-        4: COLORS.ORANGE, // 4th - Orange
-        8: COLORS.BLUE, // 8th - Blue
-        12: COLORS.PINK, // 12th - Purple/Pink
-        16: COLORS.PINK, // 16th - Purple/Pink
-        24: COLORS.BLUE, // 24th - Blue (reused)
-        32: COLORS.ORANGE, // 32nd - Orange (reused)
-        48: COLORS.PINK, // 48th - Purple/Pink
-        64: COLORS.BLUE, // 64th - Blue (reused)
-        96: COLORS.PINK, // 96th - Purple/Pink
+        4: COLORS.ORANGE,   // 4th - Orange
+        8: COLORS.BLUE,     // 8th - Blue
+        12: COLORS.PINK,    // 12th - Purple/Pink
+        16: COLORS.PINK,    // 16th - Purple/Pink
+        24: COLORS.BLUE,    // 24th - Blue (reused)
+        32: COLORS.ORANGE,  // 32nd - Orange (reused)
+        48: COLORS.PINK,    // 48th - Purple/Pink
+        64: COLORS.BLUE,    // 64th - Blue (reused)
+        96: COLORS.PINK,    // 96th - Purple/Pink
         128: COLORS.ORANGE, // 128th - Orange (reused)
-        192: COLORS.BLUE, // 192nd - Blue (reused)
+        192: COLORS.BLUE,   // 192nd - Blue (reused)
         default: COLORS.PINK // Ultra-fast - Purple/Pink
       }
     };
 
     this.speedModGraphics = game.add.graphics(0, 0);
+    this.bgChangeGraphics = game.add.graphics(0, 0);
+    
+    this.tags = {};
 
     // Groups for pooling
     this.linesGroup = new Phaser.SpriteBatch(game);
@@ -128,6 +132,7 @@ class ChartRenderer {
     this.notesGroup = this.options.enableGameplayLogic ? new Phaser.SpriteBatch(game) : new Phaser.Group(game);
     this.minesGroup = new Phaser.Group(game);
     this.explosionsGroup = new Phaser.SpriteBatch(game);
+    this.tagsGroup = new Phaser.Group(game);
 
     this.receptors = [];
     this.initialize();
@@ -144,6 +149,7 @@ class ChartRenderer {
     this.notes = this.chart.notes[this.difficulty.type + this.difficulty.rating];
     this.bpmChanges = this.chart.bpmChanges;
     this.stops = this.chart.stops;
+    this.backgrounds = this.chart.backgrounds || [];
   }
 
   initialize() {
@@ -154,12 +160,7 @@ class ChartRenderer {
       const receptor = game.add.sprite(leftOffset + i * (this.COLUMN_SIZE + this.COLUMN_SEPARATION) + this.COLUMN_SIZE / 2, this.JUDGE_LINE, "receptor", 2);
       receptor.anchor.set(0.5);
 
-      receptor.angle = {
-        0: 90,
-        1: 0,
-        2: 180,
-        3: -90
-      }[i];
+      receptor.angle = {0: 90, 1: 0, 2: 180, 3: -90}[i];
       
       if (!this.options.enableReceptors) receptor.visible = false;
 
@@ -230,7 +231,7 @@ class ChartRenderer {
       pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier;
 
       if (note.beatLength) {
-        const freezeDuration = note.secLength || (note.beatLength * 60) / this.getCurrentBPM();
+        const freezeDuration = note.secLength || (note.beatLength * 60) / this.getCurrentBPM(beat);
         bodyHeight = Math.max(this.COLUMN_SIZE, freezeDuration * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier);
       }
     } else {
@@ -248,10 +249,17 @@ class ChartRenderer {
   }
 
   getCurrentBPM(beat = 0) {
-    const bpmChange = this.bpmChanges.find((bpm, index, array) => {
-      return index === array.length - 1 || array[index + 1].beat > beat;
-    });
-    return bpmChange ? bpmChange.bpm : 120;
+    if (!this.bpmChanges || this.bpmChanges.length === 0) return 120;
+    
+    let currentBPM = this.bpmChanges[0].bpm;
+    for (let i = 1; i < this.bpmChanges.length; i++) {
+      if (this.bpmChanges[i].beat <= beat) {
+        currentBPM = this.bpmChanges[i].bpm;
+      } else {
+        break;
+      }
+    }
+    return currentBPM;
   }
 
   getLastBpm(time, valueType) {
@@ -259,6 +267,8 @@ class ChartRenderer {
   }
 
   beatToSec(beat) {
+    if (!this.bpmChanges || this.bpmChanges.length === 0) return beat * 60 / 120;
+    
     let b = this.getLastBpm(beat, "beat");
     let x = ((beat - b.beat) / b.bpm) * 60 + b.sec;
     let s = this.stops.filter(({ beat: i }) => i >= b.beat && i < beat).map(i => i.len);
@@ -267,6 +277,8 @@ class ChartRenderer {
   }
 
   secToBeat(sec) {
+    if (!this.bpmChanges || this.bpmChanges.length === 0) return sec * 120 / 60;
+    
     let b = this.getLastBpm(sec, "sec");
     let s = this.stops.filter(({ sec: i }) => i >= b.sec && i < sec).map(i => (i.sec + i.len > sec ? sec - i.sec : i.len));
     for (let i in s) sec -= s[i];
@@ -284,12 +296,17 @@ class ChartRenderer {
       this.renderTimeLines(now, beat);
     }
     if (this.options.enableSpeedRendering) {
-      this.renderSpeed(now, beat);
+      this.renderSpeedChanges(now, beat);
     }
+    if (this.options.enableBGRendering) {
+      this.renderBGChanges(now, beat);
+    }
+    this.cleanupTags();
   }
 
   renderFalling(now, beat) {
     const leftOffset = this.calculateLeftOffset();
+    const notesToRender = [];
 
     this.notes.forEach(note => {
       let { pastSize, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
@@ -299,7 +316,7 @@ class ChartRenderer {
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos > game.height) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
           this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
@@ -311,55 +328,43 @@ class ChartRenderer {
       }
 
       if (note.type === "M") {
-        if (!note.sprite) {
-          note.sprite =
-            this.minesGroup.getFirstDead() ||
-            (() => {
-              const sprite = game.add.sprite(x, yPos, "mine");
-              this.minesGroup.add(sprite);
-              return sprite;
-            })();
-          note.sprite.reset(0, -32);
-          note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
-          note.sprite.animations.play("blink");
-        }
-        note.sprite.anchor.set(0.5);
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
+        this.renderMine(note, x, yPos);
       } else if (note.type === "2" || note.type === "4") {
         yPos = this.renderHoldNote(note, x, yPos, bodyHeight, now, beat, "falling");
       }
 
       if (note.type !== "M" && note.type !== "3") {
-        if (!note.sprite) {
-          note.sprite =
-            this.notesGroup.getFirstDead() ||
-            (() => {
-              const sprite = game.add.sprite(0, 0);
-              this.notesGroup.add(sprite);
-              return sprite;
-            })();
-          note.sprite.reset(0, -32);
-          note.sprite.loadTexture("arrows");
-          note.sprite.frame = this.getNoteFrame(note);
-          note.sprite.anchor.set(0.5);
-          note.sprite.angle = {
-            0: 90,
-            1: 0,
-            2: 180,
-            3: -90
-          }[note.column];
-        }
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
+        this.renderArrow(note, x, yPos);
       }
       
-      const alpha = 1 * (0.5 + 0.5 * Math.sin(Date.now() * 0.01));
+      // Store for sorting
+      notesToRender.push({note, yPos});
+    });
+    
+    // Sort notes by Y position (falling: lowest Y first, rising: highest Y first)
+    notesToRender.sort((a, b) => {
+      if (this.scrollDirection === "falling") {
+        return a.yPos - b.yPos; // Lowest Y first
+      } else {
+        return b.yPos - a.yPos; // Highest Y first
+      }
+    });
+    
+    // Reorder sprites based on sorted Y positions
+    notesToRender.forEach((item, index) => {
+      if (item.note.sprite) {
+        this.notesGroup.bringToTop(item.note.sprite);
+      }
+      if (item.note.holdParts) {
+        this.freezeBodyGroup.bringToTop(item.note.holdParts.body);
+        this.freezeEndGroup.bringToTop(item.note.holdParts.end);
+      }
     });
   }
 
   renderRising(now, beat) {
     const leftOffset = this.calculateLeftOffset();
+    const notesToRender = [];
 
     this.notes.forEach(note => {
       let { pastSize, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
@@ -369,7 +374,7 @@ class ChartRenderer {
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos < -this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
           this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
@@ -381,49 +386,71 @@ class ChartRenderer {
       }
 
       if (note.type === "M") {
-        if (!note.sprite) {
-          note.sprite =
-            this.minesGroup.getFirstDead() ||
-            (() => {
-              const sprite = game.add.sprite(x, yPos, "mine");
-              this.notesGroup.add(sprite);
-              return sprite;
-            })();
-          note.sprite.reset(0, -32);
-          note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
-          note.sprite.animations.play("blink");
-        }
-        note.sprite.anchor.set(0.5);
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
+        this.renderMine(note, x, yPos);
       } else if (note.type === "2" || note.type === "4") {
         yPos = this.renderHoldNote(note, x, yPos, bodyHeight, now, beat, "rising");
       }
 
       if (note.type !== "M" && note.type !== "3") {
-        if (!note.sprite) {
-          note.sprite =
-            this.notesGroup.getFirstDead() ||
-            (() => {
-              const sprite = game.add.sprite(0, 0);
-              this.notesGroup.add(sprite);
-              return sprite;
-            })();
-          note.sprite.reset(0, -32);
-          note.sprite.loadTexture("arrows");
-          note.sprite.frame = this.getNoteFrame(note);
-          note.sprite.anchor.set(0.5);
-          note.sprite.angle = {
-            0: 90,
-            1: 0,
-            2: 180,
-            3: -90
-          }[note.column];
-        }
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
+        this.renderArrow(note, x, yPos);
+      }
+      
+      // Store for sorting
+      notesToRender.push({note, yPos});
+    });
+    
+    // Sort notes by Y position
+    notesToRender.sort((a, b) => {
+      if (this.scrollDirection === "falling") {
+        return a.yPos - b.yPos;
+      } else {
+        return b.yPos - a.yPos;
       }
     });
+    
+    // Reorder sprites
+    notesToRender.forEach((item, index) => {
+      if (item.note.sprite) {
+        this.notesGroup.bringToTop(item.note.sprite);
+      }
+      if (item.note.holdParts) {
+        this.freezeBodyGroup.bringToTop(item.note.holdParts.body);
+        this.freezeEndGroup.bringToTop(item.note.holdParts.end);
+      }
+    });
+  }
+
+  renderMine(note, x, yPos) {
+    if (!note.sprite) {
+      note.sprite = this.minesGroup.getFirstDead() || (() => {
+        const sprite = game.add.sprite(x, yPos, "mine");
+        this.minesGroup.add(sprite);
+        return sprite;
+      })();
+      note.sprite.reset(0, -32);
+      note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
+      note.sprite.animations.play("blink");
+    }
+    note.sprite.anchor.set(0.5);
+    note.sprite.x = x + this.COLUMN_SIZE / 2;
+    note.sprite.y = yPos;
+  }
+
+  renderArrow(note, x, yPos) {
+    if (!note.sprite) {
+      note.sprite = this.notesGroup.getFirstDead() || (() => {
+        const sprite = game.add.sprite(0, 0);
+        this.notesGroup.add(sprite);
+        return sprite;
+      })();
+      note.sprite.reset(0, -32);
+      note.sprite.loadTexture("arrows");
+      note.sprite.frame = this.getNoteFrame(note);
+      note.sprite.anchor.set(0.5);
+      note.sprite.angle = {0: 90, 1: 0, 2: 180, 3: -90}[note.column];
+    }
+    note.sprite.x = x + this.COLUMN_SIZE / 2;
+    note.sprite.y = yPos;
   }
 
   renderHoldNote(note, x, yPos, bodyHeight, now, beat, direction) {
@@ -431,47 +458,40 @@ class ChartRenderer {
       const prefix = note.type === "2" ? "hold" : "roll";
 
       const getBody = () => {
-        const sprite =
-          this.freezeBodyGroup.getFirstDead() ||
-          (() => {
-            const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, 0, `${prefix}_body`);
-            if (direction === "rising") {
-              child.scale.y = -1;
-              child.anchor.y = 1;
-            } else {
-              child.anchor.y = 1;
-            }
-            this.freezeBodyGroup.add(child);
-            return child;
-          })();
+        const sprite = this.freezeBodyGroup.getFirstDead() || (() => {
+          const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, 0, `${prefix}_body`);
+          if (direction === "rising") {
+            child.scale.y = -1;
+            child.anchor.y = 1;
+          } else {
+            child.anchor.y = 1;
+          }
+          this.freezeBodyGroup.add(child);
+          return child;
+        })();
         sprite.reset(x, -64);
         sprite.loadTexture(`${prefix}_body`);
         return sprite;
       };
 
       const getEnd = () => {
-        const sprite =
-          this.freezeEndGroup.getFirstDead() ||
-          (() => {
-            const child = game.add.sprite(0, 0);
-            if (direction === "rising") {
-              child.scale.y = -1;
-              child.anchor.y = 1;
-            } else {
-              child.anchor.y = 1;
-            }
-            this.freezeEndGroup.add(child);
-            return child;
-          })();
+        const sprite = this.freezeEndGroup.getFirstDead() || (() => {
+          const child = game.add.sprite(0, 0);
+          if (direction === "rising") {
+            child.scale.y = -1;
+            child.anchor.y = 1;
+          } else {
+            child.anchor.y = 1;
+          }
+          this.freezeEndGroup.add(child);
+          return child;
+        })();
         sprite.reset(x, -64);
         sprite.loadTexture(`${prefix}_end`);
         return sprite;
       };
 
-      note.holdParts = {
-        body: getBody(),
-        end: getEnd()
-      };
+      note.holdParts = { body: getBody(), end: getEnd() };
       note.holdActive = false;
     }
 
@@ -508,12 +528,12 @@ class ChartRenderer {
     if (this.options.enableMissChecking && !note.miss && !note.holdActive) {
       if (direction === "falling" && yPos > this.JUDGE_LINE + this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
           this.scene.player.processJudgement(note, "miss", note.column);
         }
       } else if (direction === "rising" && yPos < this.JUDGE_LINE - this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
           this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
@@ -578,35 +598,116 @@ class ChartRenderer {
     }
 
     this.cleanupInvisibleLines(currentVisibleBeats);
+    this.cleanupStuckLines();
   }
   
-  renderSpeed(now, beat) {
+  renderSpeedChanges(now, beat) {
     this.speedModGraphics.clear();
     
-    const x = this.calculateLeftOffset()
+    const x = this.calculateLeftOffset();
     const width = this.calculateFullWidth();
     
+    // Render BPM changes
     this.bpmChanges.forEach(bpmChange => {
       const y = this.getYPos(now, beat, bpmChange.beat);
       
       if (y >= -this.COLUMN_SIZE && y <= game.height + this.COLUMN_SIZE) {
-        // BPM change marker
+        // BPM change line
         this.speedModGraphics.beginFill(0xFFFF00, 0.8);
         this.speedModGraphics.drawRect(x, y, width, 1);
         this.speedModGraphics.endFill();
+        
+        // BPM tag
+        this.drawTag(bpmChange.beat, 'bpm', `${bpmChange.bpm}`, x + width + 2, y - 3, 0xFFFF00);
+      } else {
+        this.removeTag(bpmChange.beat, 'bpm');
       }
     });
     
+    // Render stops
     this.stops.forEach(stop => {
       const y = this.getYPos(now, beat, stop.beat);
       
       if (y >= -this.COLUMN_SIZE && y <= game.height + this.COLUMN_SIZE) {
-        // Stop marker
+        // Stop line
         this.speedModGraphics.beginFill(0xFF0000, 0.8);
         this.speedModGraphics.drawRect(x, y, width, 1);
         this.speedModGraphics.endFill();
+        
+        // Stop tag
+        this.drawTag(stop.beat, 'stop', `${stop.len.toFixed(2)}`, x + width + 2 + 16, y - 3, 0xFF0000);
+      } else {
+        this.removeTag(stop.beat, 'stop');
       }
     });
+  }
+  
+  renderBGChanges(now, beat) {
+    this.bgChangeGraphics.clear();
+    
+    const x = this.calculateLeftOffset();
+    const width = this.calculateFullWidth();
+    
+    this.backgrounds.forEach(bgChange => {
+      const y = this.getYPos(now, beat, bgChange.beat);
+      
+      if (y >= -this.COLUMN_SIZE && y <= game.height + this.COLUMN_SIZE) {
+        // BG change line
+        this.bgChangeGraphics.beginFill(0x00FF00, 0.8);
+        this.bgChangeGraphics.drawRect(x, y, width, 1);
+        this.bgChangeGraphics.endFill();
+        
+        // BG tag
+        const fileName = bgChange.file ? bgChange.file.split('/').pop() : 'No file';
+        this.drawTag(bgChange.beat, 'bg', 'BG', x + width + 2 + 16 + 16, y - 3, 0x00FF00);
+      } else {
+        this.removeTag(bgChange.beat, 'bg');
+      }
+    });
+  }
+  
+  createTag(beat, type, x, y) {
+    const existingChild = this.tagsGroup.getFirstDead();
+
+    const tagText = existingChild || new Text(x, y, "---", {
+      font: "font_tiny",
+      fontMap: " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\"`•<>=%",
+      fontWidth: 4,
+      fontHeight: 6
+    }, this.tagsGroup);
+    
+    if (!tagText.alive) tagText.revive();
+    
+    this.tags[`${type}_${beat}`] = { beat, text: '', type, color: 0xFFFFFF, x, y, tagText };
+  }
+  
+  removeTag(beat, type) {
+    const tag = this.tags[`${type}_${beat}`];
+    
+    if (tag) {
+      tag.tagText.kill();
+      this.tags[`${type}_${beat}`] = null;
+      delete this.tags[`${type}_${beat}`];
+    }
+  }
+  
+  drawTag(beat, type, text, x, y, color) {
+    const existingTag = this.tags[`${type}_${beat}`];
+    
+    if (existingTag) {
+      existingTag.x = x;
+      existingTag.y = y;
+      existingTag.tagText.x = x;
+      existingTag.tagText.y = y;
+      
+      if (existingTag.text != text) existingTag.tagText.write(text);
+      if (existingTag.color != color) existingTag.tagText.tint = color;
+      
+      existingTag.text = text;
+      existingTag.color = color;
+    } else {
+      this.createTag(beat, type, x, y);
+    }
   }
 
   killNote(note, forever) {
@@ -619,6 +720,43 @@ class ChartRenderer {
         note.holdParts = null;
       }
     }
+  }
+  
+  cleanupTags() {
+    // Cleanup tags that lost their purpose
+    Object.entries(this.tags).forEach(tag => {
+      let shouldRemove = true;
+      
+      switch (tag.type) {
+        case "bpm":
+          this.bpmChanges.forEach(bpmChange => {
+            if (bpmChange.beat === tag.beat) {
+              shouldRemove = false;
+            }
+          });
+          break;
+        case "stop":
+          this.stops.forEach(stop => {
+            if (stop.beat === tag.beat) {
+              shouldRemove = false;
+            }
+          });
+          break;
+        case "bg":
+          this.backgrounds.forEach(bg => {
+            if (bg.beat === bg.beat) {
+              shouldRemove = false;
+            }
+          });
+          break;
+      }
+      
+      if (shouldRemove) this.removeTag(tag.beat, tag.type)
+    });
+  }
+  
+  getXPos(note) {
+    return this.calculateLeftOffset() + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
   }
   
   getYPos(now, beat, targetBeat) {
@@ -656,6 +794,8 @@ class ChartRenderer {
         line.alpha = alpha;
         line.revive();
       }
+      
+      line.lastUpdateTime = game.time.now;
 
       return line;
     }
@@ -681,14 +821,12 @@ class ChartRenderer {
 
     const existingChild = this.explosionsGroup.getFirstDead();
 
-    const explosion =
-      existingChild ||
-      (() => {
-        const child = game.add.sprite(-64, -64);
-        child.anchor.set(0.5);
-        this.explosionsGroup.add(child);
-        return child;
-      })();
+    const explosion = existingChild || (() => {
+      const child = game.add.sprite(-64, -64);
+      child.anchor.set(0.5);
+      this.explosionsGroup.add(child);
+      return child;
+    })();
 
     explosion.loadTexture(type == "normal" ? "explosion" : "mineexplosion");
     explosion.reset(receptor.x, receptor.y);
@@ -734,20 +872,29 @@ class ChartRenderer {
       }
     }
   }
+  
+  cleanupStuckLines() {
+    const aliveLines = this.linesGroup.getAll("alive", true);
+
+    for (let i = 0; i < aliveLines.length; i++) {
+      const line = aliveLines[i];
+      if (game.time.now - line.lastUpdateTime > 60) {
+        line.kill();
+      }
+    }
+  }
 
   createLine(y, alpha) {
     const existingChild = this.linesGroup.getFirstDead();
 
-    const line =
-      existingChild ||
-      (() => {
-        const bmd = game.add.bitmapData(1, 1);
-        bmd.fill(255, 255, 255);
-        const child = game.add.sprite(this.calculateLeftOffset(), y, bmd);
-        child.width = this.calculateFullWidth();
-        this.linesGroup.add(child);
-        return child;
-      })();
+    const line = existingChild || (() => {
+      const bmd = game.add.bitmapData(1, 1);
+      bmd.fill(255, 255, 255);
+      const child = game.add.sprite(this.calculateLeftOffset(), y, bmd);
+      child.width = this.calculateFullWidth();
+      this.linesGroup.add(child);
+      return child;
+    })();
 
     line.y = y;
     line.alpha = alpha;
@@ -764,5 +911,8 @@ class ChartRenderer {
     this.notesGroup.destroy(true);
     this.minesGroup.destroy(true);
     this.explosionsGroup.destroy(true);
+    this.tagsGroup.destroy(true);
+    this.speedModGraphics.destroy();
+    this.bgChangeGraphics.destroy();
   }
 }

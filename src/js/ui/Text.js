@@ -10,7 +10,7 @@ class Text extends Phaser.Sprite {
       ...config
     };
     
-    super(game, x, y);
+    super(game, x, y, null);
     
     this.config = config;
 
