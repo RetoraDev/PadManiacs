@@ -81,6 +81,7 @@ class LoadLocalSongs {
   }
   finish() {
     window.localSongs = this.songs;
-    game.state.start("Title");
+    //game.state.start("Title");
+    game.state.start("Editor");
   }
 }

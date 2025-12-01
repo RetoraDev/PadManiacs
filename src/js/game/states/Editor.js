@@ -24,12 +24,15 @@ class Editor {
     this.menuVisible = false;
     this.freezePreview = null;
 
+    // TODO: Initialize base64 content
     this.files = {
       audio: null,
       background: null,
       banner: null,
       extra: []
     };
+    
+    window.e = this;
 
     this.divisions = [4, 8, 12, 16, 24, 32, 48, 64, 96, 192];
 
@@ -134,10 +137,9 @@ class Editor {
     });
 
     this.mainCarousel.addItem("File", () => this.showFileMenu());
-    this.mainCarousel.addItem("Project", () => this.showProjectMenu());
     this.mainCarousel.addItem("Edit", () => this.showEditMenu());
     this.mainCarousel.addItem("Playtest", () => this.playtest());
-    this.mainCarousel.addItem("Export", () => this.exportSong());
+    this.mainCarousel.addItem("Export", () => this.showExportMenu());
 
     game.onMenuIn.dispatch("editorMain", this.mainCarousel);
 
@@ -146,19 +148,26 @@ class Editor {
     this.songInfoText.wrapPreserveNewlines(rightWidth - 8);
 
     this.updateInfoText();
-
-    // Banner display
-    if (this.song.chart.banner && this.song.chart.banner !== "no-media") {
-      this.bannerSprite = game.add.sprite(8, 56, null);
-      this.loadBanner(this.song.chart.banner);
-    }
-
-    //Update background
-    this.updateBackground();
   }
   
-  updateBackground() {
-    if (this.song.chart.background && this.song.chart.background !== "no-media") {
+  updateBanner(url = null) {
+    if (url && url !== "no-media") {
+      const img = new Image();
+      img.on = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 86;
+        canvas.height = 32;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, 86, 32);
+        const texture = PIXI.Texture.fromCanvas(canvas);
+        this.bannerSprite.loadTexture(texture);
+      };
+      img.src = url;
+    }
+  }
+  
+  updateBackground(url = null) {
+    if (url) {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
@@ -169,7 +178,7 @@ class Editor {
         const texture = PIXI.Texture.fromCanvas(canvas);
         this.backgroundSprite.loadTexture(texture);
       };
-      img.src = this.song.chart.background;
+      img.src = url;
     } else {
       this.backgroundSprite.loadTexture(null);
     }
@@ -183,36 +192,58 @@ class Editor {
       animate: true
     });
 
-    carousel.addItem("Load Audio", () => this.pickFile("audio/*", this.loadAudioFile.bind(this)));
-    carousel.addItem("Load Background", () => this.pickFile("image/*,video/*", this.loadBackgroundFile.bind(this)));
-    carousel.addItem("Load Banner", () => this.pickFile("image/*", this.loadBannerFile.bind(this)));
+    carousel.addItem("Load Audio", () => this.pickFile("audio/*", e => this.loadAudioFile(e.target.files[0]), () => this.showFileMenu()));
+    carousel.addItem("Load Background", () => this.pickFile("image/*", e => this.loadBackgroundFile(e.target.files[0]), () => this.showFileMenu()));
+    carousel.addItem("Load Banner", () => this.pickFile("image/*", e => this.loadBannerFile(e.target.files[0]), () => this.showFileMenu()));
     if (this.song.chart.backgrounds && this.song.chart.backgrounds.length > 0) {
       carousel.addItem("Edit BG Changes", () => this.editBGChangeFiles());
     }
     carousel.addItem("New Song", () => this.createNewSongAndReload());
     carousel.addItem("Load Song", () => this.loadSong());
+    carousel.addItem("Import Project", () => this.importProject());
 
     game.onMenuIn.dispatch("editorFile", carousel);
 
     carousel.addItem("< Back", () => this.showMetadataScreen());
     carousel.onCancel.add(() => this.showMetadataScreen());
   }
-
-  loadSong() {
+  
+  pickFolder(accept = "*", onConfirm, onCancel) {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
+    fileInput.accept = accept;
     fileInput.webkitdirectory = true;
     fileInput.multiple = true;
 
-    fileInput.onchange = e => {
-      this.processFiles(e.target.files);
-    };
+    fileInput.onchange = e => onConfirm?.(e);
 
-    fileInput.oncancel = e => {
-      this.showFileMenu();
-    };
+    fileInput.oncancel = e => onCancel?.(e);
 
     fileInput.click();
+  }
+  
+  pickFile(accept = "*", onConfirm, onCancel) {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = accept;
+    
+    fileInput.onchange = e => onConfirm?.(e);
+
+    fileInput.oncancel = e => onCancel?.(e);
+
+    fileInput.click();
+  }
+  
+  pickFileOld(accept, callback) {
+    this.fileInput.accept = accept;
+    this.currentFileCallback = callback;
+    this.fileInput.webkitdirectory = true;
+    this.fileInput.multiple = true;
+    this.fileInput.click();
+  }
+
+  loadSong() {
+    this.pickFolder("*", e => this.processFiles(e.target.files), e => this.showFileMenu());
   }
 
   async processFiles(files) {
@@ -269,8 +300,8 @@ class Editor {
     carousel.addItem("< Back", () => this.showMetadataScreen());
     carousel.onCancel.add(() => this.showMetadataScreen());
   }
-  
-  showProjectMenu() {
+
+  showExportMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
       bgcolor: "#e67e22",
@@ -278,7 +309,8 @@ class Editor {
       animate: true
     });
 
-    carousel.addItem("Export", () => this.exportProject());
+    carousel.addItem("Export Project File", () => this.exportProject());
+    carousel.addItem("Export StepMania Song", () => this.exportSong());
 
     game.onMenuIn.dispatch("editorProject", carousel);
 
@@ -976,12 +1008,6 @@ SAMPLE LENGTH: ${chart.sampleLength}
     `.trim();
   }
 
-  pickFile(accept, callback) {
-    this.fileInput.accept = accept;
-    this.currentFileCallback = callback;
-    this.fileInput.click();
-  }
-
   handleFileSelect(event) {
     const file = event.target.files[0];
     if (file && this.currentFileCallback) {
@@ -990,43 +1016,59 @@ SAMPLE LENGTH: ${chart.sampleLength}
     this.fileInput.value = "";
   }
 
-  getBase64(dataUrl) {
-    return dataUrl.replace("data:", "").replace(/^.+,/, "");
-  }
-
-  loadAudioFile(file) {
+  async loadAudioFile(file) {
     try {
       const url = URL.createObjectURL(file);
       this.song.chart.audio = file.name;
       this.song.chart.audioUrl = url;
-      this.files.audio = this.getBase64(url);
-      this.audio.src = url;
-      this.showMetadataScreen();
+
+      // Convert file to base64 and store it
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.files.audio = FileTools.extractBase64(reader.result);
+        this.audio.src = url;
+        this.showMetadataScreen();
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error loading audio:", error);
+      this.showMetadataScreen();
     }
   }
 
-  loadBackgroundFile(file) {
+  async loadBackgroundFile(file) {
     try {
       const url = URL.createObjectURL(file);
       this.song.chart.background = file.name;
-      this.files.background = this.getBase64(url);
-      this.updateBackground();
-      this.showMetadataScreen();
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.files.background = FileTools.extractBase64(reader.result);
+        this.updateBackground(url);
+        this.showMetadataScreen();
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error loading background:", error);
+      this.showMetadataScreen();
     }
   }
 
-  loadBannerFile(file) {
+  async loadBannerFile(file) {
     try {
       const url = URL.createObjectURL(file);
       this.song.chart.banner = file.name;
-      this.files.banner = this.getBase64(url);
-      this.showMetadataScreen();
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.files.banner = FileTools.extractBase64(reader.result);
+        this.updateBanner(url);
+        this.showMetadataScreen();
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error loading banner:", error);
+      this.showMetadataScreen();
     }
   }
 
@@ -1065,37 +1107,392 @@ SAMPLE LENGTH: ${chart.sampleLength}
       true
     );
   }
-  
+
   async importProject() {
-    // TODO: Import project data from zip
-    // Will be capable of importing
-    // - A folder containing song data (already implemented)
-    // - A folder containing PadManiacs project json and project files
-    // - A single SM or project json file ignoring required files
-    // - A zip file containing StepMania .SM, audio, images and videos
-    // - A zip file with .zip or .pmz extension contains PadManiacs project json and it's files
-    
-    this.showMetadataScreen();
+    this.pickFile(".zip,.pmz,.sm,application/zip", async file => {
+      try {
+        notifications.show("Importing project...");
+
+        if (file.name.endsWith(".zip") || file.name.endsWith(".pmz")) {
+          // Import from ZIP file
+          await this.importFromZip(file);
+        } else if (file.name.endsWith(".sm")) {
+          // Import single SM file
+          await this.importSMFile(file);
+        } else {
+          notifications.show("Unsupported file format");
+        }
+
+        this.showMetadataScreen();
+      } catch (error) {
+        console.error("Import failed:", error);
+        notifications.show("Import failed!");
+
+        this.showMetadataScreen();
+      }
+    }, () => this.showFileMenu());
   }
-  
-  async exportProject() {
-    // TODO: Export project as PadManiacs ZIP file (.pmz) containing edited data and currently loaded files
-    // - Need to take into account that only plain objects can be serialized with JSON.stringify. It's important to remove all note sprites before serializing the JSON
-    // - Take in account audio files need to be converted to base64 to be saved as files in zip. The actual implementation should be 
-    //   modified tostore file urls, then convert them to base64 with a special method
-    // - The urlToBase64 method should work no matter if a data url or normal file:// or http(s):// url
-    
+
+  async importFromZip(file) {
+    const JSZip = window.JSZip;
+    if (!JSZip) {
+      throw new Error("JSZip library not loaded");
+    }
+
+    const zip = new JSZip();
+    const zipContent = await zip.loadAsync(file);
+
+    // Check if it's a PadManiacs project (.pmz)
+    const hasProjectJson = zipContent.file("project.json") || zipContent.file("project.PadManiacs.json");
+
+    if (hasProjectJson) {
+      // Import PadManiacs project
+      await this.importPadManiacsProject(zipContent);
+    } else {
+      // Import StepMania song package
+      await this.importStepManiaSong(zipContent);
+    }
+
     this.showMetadataScreen();
   }
 
+  async importPadManiacsProject(zipContent) {
+    // Find project JSON file
+    let projectFile = zipContent.file("project.json");
+    if (!projectFile) {
+      projectFile = zipContent.file("project.padmaniacs.json");
+    }
+
+    if (!projectFile) {
+      throw new Error("No project.json found in ZIP");
+    }
+
+    const projectJson = await projectFile.async("text");
+    const project = JSON.parse(projectJson);
+
+    // Load song data
+    this.song = { chart: project.chart };
+
+    // Extract files from ZIP
+    this.files = {
+      audio: null,
+      background: null,
+      banner: null,
+      extra: {}
+    };
+
+    // Helper function to extract file
+    const extractFile = async (filename, targetProp) => {
+      if (filename && filename !== "no-media") {
+        const fileEntry = zipContent.file(filename);
+        if (fileEntry) {
+          const blob = await fileEntry.async("blob");
+          const dataUrl = await new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+          this.files[targetProp] = dataUrl;
+
+          const objectUrl = URL.createObjectURL(blob);
+
+          // Update URL in chart
+          if (targetProp === "audio") {
+            this.song.chart.audioUrl = objectUrl;
+            this.audio.src = this.song.chart.audioUrl;
+          } else if (targetProp === "background") {
+            this.song.chart.background = filename;
+            this.updateBackground(objectUrl);
+          } else if (targetProp === "banner") {
+            this.song.chart.banner = filename;
+            this.updateBanner(objectUrl);
+          }
+        }
+      }
+    };
+
+    // Extract main files
+    await extractFile(this.song.chart.audio, "audio");
+    await extractFile(this.song.chart.background, "background");
+    await extractFile(this.song.chart.banner, "banner");
+
+    // Extract BG change files
+    if (this.song.chart.backgrounds) {
+      for (const bg of this.song.chart.backgrounds) {
+        if (bg.file) {
+          const fileEntry = zipContent.file(bg.file);
+          if (fileEntry) {
+            const blob = await fileEntry.async("blob");
+            const dataUrl = await new Promise(resolve => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.readAsDataURL(blob);
+            });
+            this.files.extra[bg.file] = dataUrl;
+          }
+        }
+      }
+    }
+
+    notifications.show("PadManiacs project imported!");
+  }
+
+  async importStepManiaSong(zipContent) {
+    // Find .sm file
+    let smFile = null;
+    let smFilename = null;
+
+    zipContent.forEach((relativePath, file) => {
+      if (relativePath.toLowerCase().endsWith(".sm") && !smFile) {
+        smFile = file;
+        smFilename = relativePath;
+      }
+    });
+
+    if (!smFile) {
+      throw new Error("No .sm file found in ZIP");
+    }
+
+    // Parse SM file
+    const smContent = await smFile.async("text");
+    const basePath = smFilename.split("/").slice(0, -1).join("/");
+    const chart = SMFile.parseSM(smContent, basePath);
+
+    this.song = { chart };
+    this.files = {
+      audio: null,
+      background: null,
+      banner: null,
+      extra: {}
+    };
+
+    // Helper function to find and load file from ZIP
+    const loadFileFromZip = async (filename, targetProp) => {
+      if (!filename) return null;
+
+      // Try to find the file in ZIP
+      let fileEntry = zipContent.file(filename);
+
+      // If not found, try with relative path
+      if (!fileEntry && basePath) {
+        fileEntry = zipContent.file(basePath + "/" + filename);
+      }
+
+      // If still not found, search case-insensitive
+      if (!fileEntry) {
+        zipContent.forEach((relativePath, file) => {
+          if (relativePath.toLowerCase().includes(filename.toLowerCase())) {
+            fileEntry = file;
+          }
+        });
+      }
+
+      if (fileEntry) {
+        const blob = await fileEntry.async("blob");
+        const dataUrl = await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+
+        this.files[targetProp] = dataUrl;
+
+        // Create object URL for immediate use
+        const objectUrl = URL.createObjectURL(blob);
+
+        if (targetProp === "audio") {
+          this.song.chart.audioUrl = objectUrl;
+          this.audio.src = objectUrl;
+        } else if (targetProp === "background") {
+          this.song.chart.background = filename;
+          this.updateBackground(objectUrl);
+        } else if (targetProp === "banner") {
+          this.song.chart.banner = filename;
+          this.updateBanner(objectUrl);
+        }
+
+        return dataUrl;
+      }
+
+      return null;
+    };
+
+    // Load main files
+    await loadFileFromZip(this.song.chart.audio, "audio");
+    await loadFileFromZip(this.song.chart.background, "background");
+    await loadFileFromZip(this.song.chart.banner, "banner");
+
+    // Load BG change files
+    if (this.song.chart.backgrounds) {
+      for (const bg of this.song.chart.backgrounds) {
+        if (bg.file) {
+          await loadFileFromZip(bg.file, "extra");
+        }
+      }
+    }
+
+    notifications.show("StepMania song imported!");
+  }
+
+  async importSMFile(file) {
+    const content = await this.readTextFileContent(file);
+    const chart = SMFile.parseSM(content);
+
+    this.song = { chart };
+
+    // Try to load associated files from the same directory
+    this.files = {
+      audio: null,
+      background: null,
+      banner: null,
+      extra: {}
+    };
+
+    // For single .sm file import, we can't get other files easily
+    // User will need to load them manually
+
+    notifications.show("SM file imported! Load audio/background files manually.");
+  }
+
+  async exportProject() {
+    try {
+      notifications.show("Exporting project...");
+
+      // Prepare song data without sprite references
+      const songData = await FileTools.prepareSongForExport(this.song, this.files);
+
+      // Create project JSON
+      const projectData = {
+        version: VERSION,
+        type: "PadManiacs Project",
+        exportDate: new Date().toISOString(),
+        chart: songData,
+        files: {
+          audio: this.song.chart.audio || "",
+          background: this.song.chart.background || "",
+          banner: this.song.chart.banner || "",
+          extra: this.song.chart.backgrounds?.map(bg => bg.file).filter(Boolean) || []
+        }
+      };
+
+      const projectJson = JSON.stringify(projectData, null, 2);
+
+      // Create ZIP file
+      const JSZip = window.JSZip;
+      if (!JSZip) {
+        throw new Error("JSZip library not loaded");
+      }
+
+      const zip = new JSZip();
+
+      // Add project JSON
+      zip.file("project.padmaniacs.json", projectJson);
+
+      // Add SM file for compatibility
+      const smContent = SMFile.generateSM(songData);
+      zip.file(`${songData.title || "song"}.sm`, smContent);
+
+      this.addSongResourcesToZip(songData, zip);
+
+      // Generate ZIP file
+      const blob = await zip.generateAsync({
+        type: "blob",
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 }
+      });
+
+      // Save file
+      const fileName = `${songData.title || "song"}_PadManiacs_${VERSION.replace(/[^a-z0-9]/gi, "_")}.pmz`;
+      this.saveFile(blob, fileName);
+
+      this.showMetadataScreen();
+      notifications.show("Project exported successfully!");
+    } catch (error) {
+      console.error("Export failed:", error);
+      this.showMetadataScreen();
+      notifications.show("Export failed!");
+    }
+  }
+
   async exportSong() {
-    // TODO: Export StepMania ZIP (.zip) file containing song files and chart data in StepMania .SM format
-    // - Need to take into account audio files need to be converted to base64 to be saved as files in zip. The actual implementation should be 
-    // - Need to take into that SM content generation methods inside SMFIle are buggy. Specially the method to generate measures section. Should be fixed before inplementing this
-    //   modified tostore file urls, then convert them to base64 with a special method
-    // - The urlToBase64 method should work no matter if a data url or normal file:// or http(s):// url
-    
-    this.showMetadataScreen();
+    try {
+      notifications.show("Exporting song...");
+
+      // Prepare song data
+      const songData = await FileTools.prepareSongForExport(this.song, this.files);
+
+      // Generate SM content
+      const smContent = SMFile.generateSM(songData);
+
+      // Create ZIP file
+      const JSZip = window.JSZip;
+      if (!JSZip) {
+        throw new Error("JSZip library not loaded");
+      }
+
+      const zip = new JSZip();
+
+      // Add SM file
+      const smFilename = `${songData.title || "song"}.sm`;
+      zip.file(smFilename, smContent);
+
+      // Add resources
+      this.addSongResourcesToZip(songData, zip);
+
+      // Generate ZIP file
+      const blob = await zip.generateAsync({
+        type: "blob",
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 }
+      });
+
+      // Save file
+      const fileName = `${songData.title || "song"}.zip`;
+      this.saveFile(blob, fileName);
+
+      this.showMetadataScreen();
+      notifications.show("Song exported successfully!");
+    } catch (error) {
+      console.error("Export failed:", error);
+      this.showMetadataScreen();
+      notifications.show("Export failed!");
+    }
+  }
+
+  addSongResourcesToZip(songData, zip) {
+    // Add main files
+    zip.file(songData.audio, this.files.audio, { base64: true });
+    zip.file(songData.background, this.files.background, { base64: true });
+    zip.file(songData.banner, this.files.banner, { base64: true });
+
+    // Add BG change files
+    if (songData.backgrounds) {
+      for (const bg of songData.backgrounds) {
+        if (bg.file && this.files.extra[bg.file]) {
+          zip.file(bg.file, this.files.extra[bg.file], { base64: true });
+        }
+      }
+    }
+
+    return zip;
+  }
+
+  saveFile(blob, filename) {
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.WEB) {
+      // Download in browser
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA) {
+      this.saveCordovaFile(blob, filename);
+    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+      this.saveNWJSFile(blob, filename);
+    }
   }
 
   saveToExternalStorage(blob, filename) {
@@ -1114,11 +1511,11 @@ SAMPLE LENGTH: ${chart.sampleLength}
         editsDir.getFile(filename, { create: true }, fileEntry => {
           fileEntry.createWriter(fileWriter => {
             fileWriter.onwriteend = () => {
-              notifications.add("Song saved to Edits folder!");
+              notifications.show("Song saved to Edits folder!");
             };
             fileWriter.onerror = e => {
               console.error("Error saving song:", e);
-              notifications.add("Save failed!");
+              notifications.show("Save failed!");
             };
             fileWriter.write(blob);
           });
@@ -1143,9 +1540,9 @@ SAMPLE LENGTH: ${chart.sampleLength}
       fs.writeFile(filePath, buffer, err => {
         if (err) {
           console.error("Error saving song:", err);
-          notifications.add("Save failed!");
+          notifications.show("Save failed!");
         } else {
-          notifications.add("Song saved to Edits folder!");
+          notifications.show("Song saved to Edits folder!");
         }
       });
     };
@@ -1359,9 +1756,9 @@ SAMPLE LENGTH: ${chart.sampleLength}
       carousel.addItem(`BG ${index + 1}: ${fileName}`, () => {
         this.pickFile("image/*,video/*", async file => {
           bg.file = file.name;
-          this.files.extra[file.name] = this.getBase64(URL.createObjectURL(file));
+          this.files.extra[file.name] = FileTools.extractBase64(URL.createObjectURL(file));
           this.editBGChangeFiles();
-        });
+        }, () => editBGChangeFiles());
       });
     });
 
@@ -1406,22 +1803,6 @@ SAMPLE LENGTH: ${chart.sampleLength}
     }
   }
 
-  loadBanner(url) {
-    if (url && url !== "no-media") {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = 86;
-        canvas.height = 32;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, 86, 32);
-        const texture = PIXI.Texture.fromCanvas(canvas);
-        this.bannerSprite.loadTexture(texture);
-      };
-      img.src = url;
-    }
-  }
-
   // BPM/Stop/BG change methods
   calculateBPM(beats) {
     if (beats.length < 3) {
@@ -1453,45 +1834,47 @@ SAMPLE LENGTH: ${chart.sampleLength}
   detectBPMHere() {
     const audioElement = document.createElement("audio");
     audioElement.src = this.audio.src;
-    
+
     this.menuVisible = true;
-        
+
     // Create background
     const background = game.add.graphics(0, 0);
     background.beginFill(0x000000, 0.8);
     background.drawRect(0, 0, game.width, game.height);
     background.endFill();
-    
+
     // Create instruction text
     const instructionText = new Text(game.width / 2, game.height / 2 - 20, "TAP TO THE BEAT TO CALCULATE BPM");
     instructionText.anchor.set(0.5);
-    
+
     // Create offset display text
     const valueText = new Text(game.width / 2, game.height / 2 + 10, "BPM: 0", FONTS.default);
     valueText.tint = 0xffff00;
     valueText.anchor.set(0.5);
+    
+    const startTime = this.audio.currentTime;
 
     const beats = [];
-    
-    this.startPlayback();
-    
+
+    this.stopPlayback();
+    audioElement.play();
+
     const inputHandler = key => {
       if (key == "a") {
-        beats.push(this.audio.currentTime);
+        beats.push(audioElement.currentTime);
         valueText.write(`BPM: ${this.calculateBPM(beats)}`);
-        game.add.tween(valueText.scale)
-          .to({ x: 1.1, y: 1.1 }, 50, Phaser.Easing.Quadratic.Out, true)
-          .yoyo(true);
+        game.add.tween(valueText.scale).to({ x: 1.1, y: 1.1 }, 50, Phaser.Easing.Quadratic.Out, true).yoyo(true);
       } else if (key == "b") {
         background.destroy();
         instructionText.destroy();
         valueText.destroy();
-        this.stopPlayback();
+        audioElement.pause();
+        audioElement.src = "";
         gamepad.signals.pressed.any.remove(inputHandler);
         this.menuVisible = false;
       }
     };
-    
+
     gamepad.signals.pressed.any.add(inputHandler);
   }
 
@@ -1584,10 +1967,10 @@ SAMPLE LENGTH: ${chart.sampleLength}
         type: fileType
       });
       this.song.chart.backgrounds.sort((a, b) => a.beat - b.beat);
-      this.files.extra[file.name] = this.getBase64(URL.createObjectURL(file));
+      this.files.extra[file.name] = FileTools.extractBase64(URL.createObjectURL(file));
       this.updateInfoText();
       this.menuVisible = false;
-    });
+    }, () => this.menuVisible = false);
   }
 
   getBGChange() {
