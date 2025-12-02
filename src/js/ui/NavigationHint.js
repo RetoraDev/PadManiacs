@@ -10,7 +10,6 @@ class NavigationHint extends Phaser.Sprite {
   change(value) {
     this.defaultFrame = value;
     this.frame = value;
-    console.log(value);
   }
   hide() {
     this.visible = false;

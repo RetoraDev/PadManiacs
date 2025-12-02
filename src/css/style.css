@@ -161,7 +161,7 @@ body {
 
 #controller_rhythm_pad {
   display: flex;
-  gap: 5px;
+  gap: 10px;
   flex-direction: row;
   position: absolute;
   top: 172px;

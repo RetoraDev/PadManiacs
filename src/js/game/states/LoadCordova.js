@@ -36,6 +36,7 @@ class LoadCordova {
       await fileSystem.createDirectory(gameDir, ADDONS_DIRECTORY);
       await fileSystem.createDirectory(gameDir, SCREENSHOTS_DIRECTORY);
       await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
+      await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
     }
     this.continue();
   }

@@ -27,9 +27,12 @@ class ExternalSMParser {
     out.notes = {};
     out.backgrounds = [];
     out.banner = "no-media";
+    out.bannerUrl = "";
     out.difficulties = [];
     out.background = "no-media";
-    out.cdtitle = null;
+    out.backgroundUrl = "";
+    out.cdtitle = "no-media";
+    out.cdtitleUrl = "";
     out.audioUrl = null;
     out.videoUrl = null;
     out.files = files;
@@ -109,8 +112,9 @@ class ExternalSMParser {
         case "#BANNER":
           if (p[1] && files[p[1].toLowerCase()]) {
             const file = files[p[1].toLowerCase()];
-            out.banner = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.banner = out.banner
+            out.banner = p[1];
+            out.bannerUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
+            out.bannerUrl = out.bannerUrl
               .replace('cdvfile://', 'file://')
               .replace('localhost/persistent/', '/storage/emulated/0/');
           }
@@ -118,8 +122,9 @@ class ExternalSMParser {
         case "#CDTITLE":
           if (p[1] && files[p[1].toLowerCase()]) {
             const file = files[p[1].toLowerCase()];
-            out.cdtitle = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.cdtitle = out.cdtitle
+            out.cdtitle = p[1];
+            out.cdtitleUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
+            out.cdtitleUrl = out.cdtitleUrl
               .replace('cdvfile://', 'file://')
               .replace('localhost/persistent/', '/storage/emulated/0/');
           }
@@ -133,17 +138,9 @@ class ExternalSMParser {
         case "#BACKGROUND":
           if (p[1] && files[p[1].toLowerCase()]) {
             const file = files[p[1].toLowerCase()];
-            out.background = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.background = out.background
-              .replace('cdvfile://', 'file://')
-              .replace('localhost/persistent/', '/storage/emulated/0/');
-          }
-          break;
-        case "#VIDEO":
-          if (p[1] && files[p[1].toLowerCase()]) {
-            const file = files[p[1].toLowerCase()];
-            out.videoUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.videoUrl = out.videoUrl
+            out.background = p[1];
+            out.backgroundUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
+            out.backgroundUrl = out.backgroundUrl
               .replace('cdvfile://', 'file://')
               .replace('localhost/persistent/', '/storage/emulated/0/');
           }
@@ -330,13 +327,15 @@ class ExternalSMParser {
     // Get banner
     if (headerTags.BANNER && files[headerTags.BANNER.toLowerCase()]) {
       const bannerFile = files[headerTags.BANNER.toLowerCase()];
-      out.banner = bannerFile.localURL ? bannerFile.localURL : URL.createObjectURL(bannerFile);
+      out.banner = bannerFile.name;
+      out.bannerUrl = bannerFile.localURL ? bannerFile.localURL : URL.createObjectURL(bannerFile);
     }
 
     // Get background
     if (headerTags.BACKGROUND && files[headerTags.BACKGROUND.toLowerCase()]) {
       const bgFile = files[headerTags.BACKGROUND.toLowerCase()];
-      out.background = bgFile.localURL ? bgFile.localURL : URL.createObjectURL(bgFile);
+      out.background = bgFile.name;
+      out.backgroundUrl = bgFile.localURL ? bgFile.localURL : URL.createObjectURL(bgFile);
     }
 
     // Parse BPMs

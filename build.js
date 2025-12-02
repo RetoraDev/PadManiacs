@@ -439,7 +439,8 @@ Minified: ${this.config.flags.minify}
       // Add phaser from lib (always first)
       scriptTags += `  <script src="./lib/${this.config.flags.debug ? 'phaser.js' : 'phaser.min.js'}"></script>\n`;
       
-      // Add eruda too
+      // Add eruda too and jszip
+      scriptTags += '  <script src="./lib/jszip.js"></script>\n';
       scriptTags += '  <script src="./lib/eruda.js"></script>\n';
       
       // Add the concatenated game.js

@@ -1,6 +1,11 @@
 class FileTools {
   static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
+      if (typeof url !== "string") {
+        resolve("");
+        return;
+      }
+      
       // Handle data URLs
       if (url.startsWith('data:')) {
         resolve(url);
@@ -15,7 +20,6 @@ class FileTools {
         
         xhr.onload = function() {
           if (this.status === 200) {
-            console.log(xhr);
             const reader = new FileReader();
             reader.onload = function() {
               resolve(reader.result);
@@ -23,7 +27,7 @@ class FileTools {
             reader.onerror = reject;
             reader.readAsDataURL(xhr.response);
           } else {
-            reject(new Error(`Failed to load file: ${this.status}`));
+            resolve("");
           }
         };
         xhr.onerror = reject;
@@ -31,15 +35,33 @@ class FileTools {
         return;
       }
       
-      reject(new Error("Unsupported URL"));
+      resolve("");
     });
   }
   
   static extractBase64(dataUrl) {
-    if (!dataUrl || !dataUrl.startsWith('data:')) {
+    if (typeof dataUrl === "string") {
+      if (!dataUrl.startsWith('data:')) {
+        return dataUrl;
+      } else {
+        return dataUrl.replace(/^data:[^;]+;base64,/, '');
+      }
+    } else {
       return null;
     }
-    return dataUrl.replace(/^data:[^;]+;base64,/, '');
+  }
+  
+  static async urlToBase64(url) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const dataUrl = await this.urlToDataURL(url);
+        const base64 = this.extractBase64(dataUrl);
+        resolve(base64);
+      } catch (error) {
+        resolve(null);
+        throw new Error(error);
+      }
+    });
   }
   
   static async prepareSongForExport(song, files) {

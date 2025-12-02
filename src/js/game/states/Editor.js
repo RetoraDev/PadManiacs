@@ -1,6 +1,7 @@
 class Editor {
   init(song = null) {
     this.song = song || this.createNewSong();
+    this.initializedWithSong = song ? true : false;
     this.currentScreen = "metadata";
     this.currentDifficultyIndex = 0;
     this.snapDivision = 8;
@@ -24,7 +25,6 @@ class Editor {
     this.menuVisible = false;
     this.freezePreview = null;
 
-    // TODO: Initialize base64 content
     this.files = {
       audio: null,
       background: null,
@@ -32,30 +32,27 @@ class Editor {
       extra: []
     };
     
-    window.e = this;
+    // For debugging
+    window.editorState = this;
 
-    this.divisions = [4, 8, 12, 16, 24, 32, 48, 64, 96, 192];
+    this.divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 192];
 
     // File input element
     this.fileInput = document.createElement("input");
     this.fileInput.type = "file";
-    this.fileInput.style.display = "none";
-    this.fileInput.onchange = e => this.handleFileSelect(e);
-    document.body.appendChild(this.fileInput);
   }
 
   create() {
     game.camera.fadeIn(0x000000);
 
-    new FuturisticLines();
     new BackgroundGradient();
-
-    this.navigationHint = new NavigationHint(3);
 
     // Background elements
     this.backgroundLayer = game.add.group();
     this.backgroundSprite = game.add.sprite(0, 0, null, 0, this.backgroundLayer);
     this.backgroundSprite.alpha = 0.3;
+
+    this.navigationHint = new NavigationHint(0);
 
     this.chartRenderer = new ChartRenderer(this, this.song, this.currentDifficultyIndex, {
       enableGameplayLogic: false,
@@ -75,19 +72,34 @@ class Editor {
     this.selectionRect = game.add.graphics(0, 0);
     this.freezePreviewSprite = game.add.graphics(0, 0);
     this.updateCursorPosition();
+    
+    this.bannerSprite = game.add.sprite(4, 56, null);
 
     this.infoText = new Text(4, 4, "");
     this.updateInfoText();
-
+    
     // Create play/pause audio
     this.audio = document.createElement("audio");
     if (this.song.chart.audioUrl) {
       this.audio.src = this.song.chart.audioUrl;
     }
 
-    this.showMetadataScreen();
+    this.initalSetup();
 
     addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+  
+  async initalSetup() {
+    if (this.initializedWithSong) {
+      this.showLoadingScreen("Setting up");
+      this.files.audio = await FileTools.urlToBase64(this.song.chart.audioUrl);
+      this.files.banner = await FileTools.urlToBase64(this.song.chart.bannerUrl);
+      this.files.background = await FileTools.urlToBase64(this.song.chart.backgroundUrl);
+      this.updateBanner(this.song.chart.bannerUrl);
+      this.updateBackground(this.song.chart.backgroundUrl);
+      this.hideLoadingScreen();
+    }
+    this.showHomeScreen();
   }
 
   createNewSong() {
@@ -102,9 +114,12 @@ class Editor {
         genre: "",
         credit: "",
         banner: "no-media",
+        bannerUrl: "",
         background: "no-media",
+        backgroundUrl: "",
         lyrics: null,
-        cdtitle: null,
+        cdtitle: "no-media",
+        cdtitleUrl: "",
         audio: "",
         audioUrl: "",
         offset: 0,
@@ -120,11 +135,13 @@ class Editor {
     };
   }
 
-  showMetadataScreen() {
+  showHomeScreen() {
     this.currentScreen = "metadata";
     this.clearUI();
     this.stopPlayback();
-
+    this.navigationHint.change(0);
+    this.bannerSprite.visible = true;
+    
     const leftWidth = game.width / 2;
     const rightWidth = game.width / 2;
 
@@ -140,6 +157,9 @@ class Editor {
     this.mainCarousel.addItem("Edit", () => this.showEditMenu());
     this.mainCarousel.addItem("Playtest", () => this.playtest());
     this.mainCarousel.addItem("Export", () => this.showExportMenu());
+    this.mainCarousel.addItem("< Exit", () => this.exitEditor());
+
+    this.mainCarousel.onCancel.add(() => this.exitEditor());
 
     game.onMenuIn.dispatch("editorMain", this.mainCarousel);
 
@@ -153,7 +173,7 @@ class Editor {
   updateBanner(url = null) {
     if (url && url !== "no-media") {
       const img = new Image();
-      img.on = () => {
+      img.onload = () => {
         const canvas = document.createElement("canvas");
         canvas.width = 86;
         canvas.height = 32;
@@ -161,13 +181,14 @@ class Editor {
         ctx.drawImage(img, 0, 0, 86, 32);
         const texture = PIXI.Texture.fromCanvas(canvas);
         this.bannerSprite.loadTexture(texture);
+        this.bannerSprite.bringToTop();
       };
       img.src = url;
     }
   }
   
   updateBackground(url = null) {
-    if (url) {
+    if (url && url !== "no-media") {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
@@ -200,48 +221,73 @@ class Editor {
     }
     carousel.addItem("New Song", () => this.createNewSongAndReload());
     carousel.addItem("Load Song", () => this.loadSong());
-    carousel.addItem("Import Project", () => this.importProject());
 
     game.onMenuIn.dispatch("editorFile", carousel);
 
-    carousel.addItem("< Back", () => this.showMetadataScreen());
-    carousel.onCancel.add(() => this.showMetadataScreen());
+    carousel.addItem("< Back", () => this.showHomeScreen());
+    carousel.onCancel.add(() => this.showHomeScreen());
   }
   
   pickFolder(accept = "*", onConfirm, onCancel) {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = accept;
-    fileInput.webkitdirectory = true;
-    fileInput.multiple = true;
+    this.fileInput.accept = accept;
+    this.fileInput.webkitdirectory = true;
+    this.fileInput.multiple = true;
 
-    fileInput.onchange = e => onConfirm?.(e);
+    this.fileInput.onchange = (e) => {
+      onConfirm?.(e);
+      this.fileInput.value = "";
+    };
 
-    fileInput.oncancel = e => onCancel?.(e);
+    this.fileInput.oncancel = (e) => {
+      onCancel?.(e);
+      this.fileInput.value = "";
+    };
 
-    fileInput.click();
+    this.fileInput.click();
   }
   
   pickFile(accept = "*", onConfirm, onCancel) {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = accept;
-    
-    fileInput.onchange = e => onConfirm?.(e);
-
-    fileInput.oncancel = e => onCancel?.(e);
-
-    fileInput.click();
-  }
-  
-  pickFileOld(accept, callback) {
     this.fileInput.accept = accept;
-    this.currentFileCallback = callback;
-    this.fileInput.webkitdirectory = true;
-    this.fileInput.multiple = true;
+    this.fileInput.webkitdirectory = false;
+    this.fileInput.multiple = false;
+
+    this.fileInput.onchange = (e) => {
+      onConfirm?.(e);
+      this.fileInput.value = "";
+    };
+
+    this.fileInput.oncancel = (e) => {
+      onCancel?.(e);
+      this.fileInput.value = "";
+    };
+
     this.fileInput.click();
   }
+  
+  showLoadingScreen(text) {
+    // Destroy any existing loading screen
+    if (this.loadingScreen) {
+      this.loadingScreen.destroy();
+    }
+    
+    // Create a new loading screen
+    this.loadingScreen = game.add.graphics(0, 0);
+    this.loadingScreen.beginFill(0x000000, 1);
+    this.loadingScreen.drawRect(0, 0, game.width, game.height);
+    this.loadingScreen.endFill();
 
+    // Create loading screen conteng
+    this.loadingDots = new LoadingDots();
+    this.loadingScreen.addChild(this.loadingDots);
+    
+    this.progressText = new ProgressText(text);
+    this.loadingScreen.addChild(this.progressText);
+  }
+  
+  hideLoadingScreen() {
+    this.loadingScreen?.destroy();
+  }
+  
   loadSong() {
     this.pickFolder("*", e => this.processFiles(e.target.files), e => this.showFileMenu());
   }
@@ -253,10 +299,19 @@ class Editor {
         fileMap[files[i].name.toLowerCase()] = files[i];
       }
 
+      const packageFileNames = Object.keys(fileMap).filter(name => name.endsWith(".zip") || name.endsWith(".pmz"));
       const chartFileNames = Object.keys(fileMap).filter(name => name.endsWith(".sm"));
+
+      if (packageFileNames.length > 0) {
+        const zipFileName = packageFileNames[0];
+        const zipFile = fileMap[zipFileName];
+        this.importFromZip(zipFile);
+        return;
+      }
 
       if (chartFileNames.length === 0) {
         this.showFileMenu();
+        notifications.notify("No chart files found");
         return;
       }
 
@@ -266,9 +321,21 @@ class Editor {
       const chart = new ExternalSMParser().parseSM(fileMap, content);
       chart.folderName = `Single_External_${smFileName}`;
       chart.loaded = true;
+      
+      this.showLoadingScreen("Processing Files");
+      
+      this.files.audio = await FileTools.urlToBase64(chart.audioUrl);
+      this.files.banner = await FileTools.urlToBase64(chart.bannerUrl);
+      this.files.background = await FileTools.urlToBase64(chart.backgroundUrl);
+      
+      this.hideLoadingScreen();
+      
+      this.audio.src = chart.audioUrl;
+      this.updateBanner(chart.bannerUrl);
+      this.updateBackground(chart.backgroundUrl);
 
       this.song = { chart };
-      this.showMetadataScreen();
+      this.showHomeScreen();
     } catch (error) {
       console.error("Error loading song:", error);
       this.showFileMenu();
@@ -297,8 +364,8 @@ class Editor {
 
     game.onMenuIn.dispatch("editorEdit", carousel);
 
-    carousel.addItem("< Back", () => this.showMetadataScreen());
-    carousel.onCancel.add(() => this.showMetadataScreen());
+    carousel.addItem("< Back", () => this.showHomeScreen());
+    carousel.onCancel.add(() => this.showHomeScreen());
   }
 
   showExportMenu() {
@@ -314,8 +381,8 @@ class Editor {
 
     game.onMenuIn.dispatch("editorProject", carousel);
 
-    carousel.addItem("< Back", () => this.showMetadataScreen());
-    carousel.onCancel.add(() => this.showMetadataScreen());
+    carousel.addItem("< Back", () => this.showHomeScreen());
+    carousel.onCancel.add(() => this.showHomeScreen());
   }
 
   showChartsMenu() {
@@ -364,18 +431,77 @@ class Editor {
     this.selectedNotes = [];
     this.clearUI();
     this.stopPlayback();
+    this.bannerSprite.visible = false;
+    this.navigationHint.change(7);
 
     this.chartRenderer.load(this.song, this.currentDifficultyIndex);
 
     this.updateInfoText();
+  }
+  
+  playtest() {
+    const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
+      align: "left",
+      bgcolor: "#2ecc71",
+      fgcolor: "#ffffff",
+      animate: true
+    });
+
+    this.song.chart.difficulties.forEach((diff, index) => {
+      const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
+      carousel.addItem(`${diff.type} (${diff.rating}) - ${noteCount} notes`, () => this.startPlaytest(index), { difficulty: diff, index: index });
+    });
+
+    game.onMenuIn.dispatch("editorPlaytest", carousel);
+
+    carousel.addItem("< Back", () => this.showHomeScreen());
+    carousel.onCancel.add(() => this.showHomeScreen());
+  }
+  
+  startPlaytest(difficultyIndex) {
+    // Clean up any note sprites before switching to play state
+    this.getCurrentChartNotes().forEach(note => this.chartRenderer.killNote(note));
+
+    game.state.start(
+      "Play",
+      true,
+      false,
+      {
+        chart: this.song.chart,
+        difficultyIndex
+      },
+      0,
+      true
+    );
   }
 
   updateInfoText() {
     if (this.currentScreen === "chartEdit") {
       const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
       const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
+      const currentTime = this.audio.currentTime;
+      const minutes = Math.floor(currentTime / 60);
+      const seconds = Math.floor(currentTime % 60);
+      const formatedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      const currentBpm = this.chartRenderer ? this.chartRenderer.getCurrentBPM(this.cursorBeat) : "---";
 
-      this.infoText.write(`EDITING: ${diff.type} (${diff.rating})\n` + `SNAP: 1/${this.snapDivision}\n` + `BEAT: ${this.cursorBeat.toFixed(3)}\n` + `COLUMN: ${this.cursorColumn}\n` + `NOTES: ${noteCount}\n` + `SELECTED: ${this.selectedNotes.length}\n` + `STATUS: ${this.isPlaying ? "PLAYING" : "PAUSED"}`);
+      const text = this.isPlaying
+        ?
+          "Playing\n" +
+          `TIME: ${formatedTime}\n` +
+          `BEAT: ${this.cursorBeat.toFixed(0)}\n` +
+          `BPM: ${currentBpm}`
+        :
+          `EDITING: ${diff.type} (${diff.rating})\n` +
+          `SNAP: 1/${this.snapDivision}\n` +
+          `TIME: ${formatedTime}\n` +
+          `BEAT: ${this.cursorBeat.toFixed(3)}\n` +
+          `BPM: ${currentBpm}\n` +
+          `NOTES: ${noteCount}\n` +
+          `SELECTED: ${this.selectedNotes.length}`;
+      
+      if (text != this.infoText.texture.text) this.infoText.write(text);
+      
       this.infoText.visible = true;
     } else {
       this.infoText.visible = false;
@@ -422,7 +548,7 @@ class Editor {
   updateFreezePreview() {
     this.freezePreviewSprite.clear();
 
-    if (gamepad.held.b && this.holdBStartTime !== null) {
+    if (!this.isPlaying && gamepad.held.b && this.holdBStartTime !== null) {
       const currentBeat = this.getCurrentTime().beat;
       const startBeat = this.holdBStartTime;
       const duration = currentBeat - startBeat;
@@ -573,6 +699,7 @@ class Editor {
     this.isPlaying = true;
     this.playStartTime = game.time.now;
     this.playOffset = this.chartRenderer.beatToSec(this.cursorBeat);
+    this.navigationHint.visible = false;
 
     this.getCurrentChartNotes().forEach(note => (note.hitEffectShown = false));
 
@@ -584,6 +711,7 @@ class Editor {
 
   stopPlayback() {
     this.isPlaying = false;
+    this.navigationHint.visible = true;
 
     if (this.audio.src) {
       this.audio.pause();
@@ -840,7 +968,7 @@ class Editor {
 
     this.menuVisible = true;
 
-    const contextMenu = new CarouselMenu(0, 48, 80, 64, {
+    const contextMenu = new CarouselMenu(0, 48, 80, 56, {
       bgcolor: "#34495e",
       fgcolor: "#ffffff",
       align: "left",
@@ -870,7 +998,7 @@ class Editor {
       } else {
         contextMenu.addItem("Remove BG Change", () => this.removeBGChange());
       }
-
+      
       contextMenu.addItem("Detect BPM Here", () => this.detectBPMHere());
     } else if (this.selectedNotes.length === 1) {
       const note = this.selectedNotes[0];
@@ -979,6 +1107,9 @@ class Editor {
 
   getCurrentChartNotes() {
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
+    
+    if (!diff) return [];
+    
     return this.song.chart.notes[diff.type + diff.rating] || [];
   }
 
@@ -1021,18 +1152,20 @@ SAMPLE LENGTH: ${chart.sampleLength}
       const url = URL.createObjectURL(file);
       this.song.chart.audio = file.name;
       this.song.chart.audioUrl = url;
-
-      // Convert file to base64 and store it
+      
+      this.showLoadingScreen("Processing Audio");
+      
       const reader = new FileReader();
       reader.onload = () => {
         this.files.audio = FileTools.extractBase64(reader.result);
         this.audio.src = url;
-        this.showMetadataScreen();
+        this.hideLoadingScreen();
+        this.showHomeScreen();
       };
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error loading audio:", error);
-      this.showMetadataScreen();
+      this.showHomeScreen();
     }
   }
 
@@ -1040,17 +1173,21 @@ SAMPLE LENGTH: ${chart.sampleLength}
     try {
       const url = URL.createObjectURL(file);
       this.song.chart.background = file.name;
+      this.song.chart.backgroundUrl = url;
 
+      this.showLoadingScreen("Processing Background");
+      
       const reader = new FileReader();
       reader.onload = () => {
         this.files.background = FileTools.extractBase64(reader.result);
         this.updateBackground(url);
-        this.showMetadataScreen();
+        this.hideLoadingScreen();
+        this.showHomeScreen();
       };
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error loading background:", error);
-      this.showMetadataScreen();
+      this.showHomeScreen();
     }
   }
 
@@ -1058,60 +1195,32 @@ SAMPLE LENGTH: ${chart.sampleLength}
     try {
       const url = URL.createObjectURL(file);
       this.song.chart.banner = file.name;
-
+      this.song.chart.bannerUrl = url;
+      
+      this.showLoadingScreen("Processing Banner");
+      
+      this.updateBanner(url);
+      
       const reader = new FileReader();
       reader.onload = () => {
         this.files.banner = FileTools.extractBase64(reader.result);
-        this.updateBanner(url);
-        this.showMetadataScreen();
+        this.hideLoadingScreen();
+        this.showHomeScreen();
       };
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error loading banner:", error);
-      this.showMetadataScreen();
+      this.showHomeScreen();
     }
   }
 
-  playtest() {
-    const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
-      align: "left",
-      bgcolor: "#2ecc71",
-      fgcolor: "#ffffff",
-      animate: true
-    });
-
-    this.song.chart.difficulties.forEach((diff, index) => {
-      const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
-      carousel.addItem(`${diff.type} (${diff.rating}) - ${noteCount} notes`, () => this.startPlaytest(index), { difficulty: diff, index: index });
-    });
-
-    game.onMenuIn.dispatch("editorPlaytest", carousel);
-
-    carousel.addItem("< Back", () => this.showMetadataScreen());
-    carousel.onCancel.add(() => this.showMetadataScreen());
-  }
-
-  startPlaytest(difficultyIndex) {
-    // Clean up any note sprites before switching to play state
-    this.getCurrentChartNotes().forEach(note => this.chartRenderer.killNote(note));
-
-    game.state.start(
-      "Play",
-      true,
-      false,
-      {
-        chart: this.song.chart,
-        difficultyIndex
-      },
-      0,
-      true
-    );
-  }
-
   async importProject() {
-    this.pickFile(".zip,.pmz,.sm,application/zip", async file => {
+    // NOTE: Not really used, might be removed in the future 
+    this.pickFile(".zip,.pmz,.sm,application/zip", async event => {
       try {
-        notifications.show("Importing project...");
+        this.showLoadingScreen("Importing project...");
+        
+        const file = event.target.files[0];
 
         if (file.name.endsWith(".zip") || file.name.endsWith(".pmz")) {
           // Import from ZIP file
@@ -1123,12 +1232,13 @@ SAMPLE LENGTH: ${chart.sampleLength}
           notifications.show("Unsupported file format");
         }
 
-        this.showMetadataScreen();
+        this.hideLoadingScreen();
+        this.showHomeScreen();
       } catch (error) {
         console.error("Import failed:", error);
         notifications.show("Import failed!");
 
-        this.showMetadataScreen();
+        this.showHomeScreen();
       }
     }, () => this.showFileMenu());
   }
@@ -1136,9 +1246,15 @@ SAMPLE LENGTH: ${chart.sampleLength}
   async importFromZip(file) {
     const JSZip = window.JSZip;
     if (!JSZip) {
+      this.showHomeScreen();
       throw new Error("JSZip library not loaded");
     }
-
+    
+    if (!file) {
+      this.showHomeScreen();
+      throw new Error("Undefined .zip file");
+    }
+    
     const zip = new JSZip();
     const zipContent = await zip.loadAsync(file);
 
@@ -1147,13 +1263,16 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
     if (hasProjectJson) {
       // Import PadManiacs project
+      this.showLoadingScreen("Loading PadManiacs Project");
       await this.importPadManiacsProject(zipContent);
     } else {
       // Import StepMania song package
+      this.showLoadingScreen("Loading Song Package");
       await this.importStepManiaSong(zipContent);
     }
-
-    this.showMetadataScreen();
+    
+    this.hideLoadingScreen();
+    this.showHomeScreen();
   }
 
   async importPadManiacsProject(zipContent) {
@@ -1198,13 +1317,16 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
           // Update URL in chart
           if (targetProp === "audio") {
+            this.song.chart.audio = filename
             this.song.chart.audioUrl = objectUrl;
             this.audio.src = this.song.chart.audioUrl;
           } else if (targetProp === "background") {
             this.song.chart.background = filename;
+            this.song.chart.backgroundUrl = objectUrl;
             this.updateBackground(objectUrl);
           } else if (targetProp === "banner") {
             this.song.chart.banner = filename;
+            this.song.chart.bannerUrl = objectUrl;
             this.updateBanner(objectUrl);
           }
         }
@@ -1256,7 +1378,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     // Parse SM file
     const smContent = await smFile.async("text");
     const basePath = smFilename.split("/").slice(0, -1).join("/");
-    const chart = SMFile.parseSM(smContent, basePath);
+    const chart = await new LocalSMParser().parseSM(smContent, basePath);
 
     this.song = { chart };
     this.files = {
@@ -1301,13 +1423,16 @@ SAMPLE LENGTH: ${chart.sampleLength}
         const objectUrl = URL.createObjectURL(blob);
 
         if (targetProp === "audio") {
+          this.song.chart.audio = filename;
           this.song.chart.audioUrl = objectUrl;
           this.audio.src = objectUrl;
         } else if (targetProp === "background") {
           this.song.chart.background = filename;
+          this.song.chart.backgroundUrl = objectUrl;
           this.updateBackground(objectUrl);
         } else if (targetProp === "banner") {
           this.song.chart.banner = filename;
+          this.song.chart.bannerUrl = objectUrl;
           this.updateBanner(objectUrl);
         }
 
@@ -1336,7 +1461,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
   async importSMFile(file) {
     const content = await this.readTextFileContent(file);
-    const chart = SMFile.parseSM(content);
+    const chart = await new LocalSMParser().parseSM(content);
 
     this.song = { chart };
 
@@ -1347,16 +1472,13 @@ SAMPLE LENGTH: ${chart.sampleLength}
       banner: null,
       extra: {}
     };
-
-    // For single .sm file import, we can't get other files easily
-    // User will need to load them manually
-
+    
     notifications.show("SM file imported! Load audio/background files manually.");
   }
 
   async exportProject() {
     try {
-      notifications.show("Exporting project...");
+      this.showLoadingScreen("Exporting project");
 
       // Prepare song data without sprite references
       const songData = await FileTools.prepareSongForExport(this.song, this.files);
@@ -1395,28 +1517,26 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.addSongResourcesToZip(songData, zip);
 
       // Generate ZIP file
-      const blob = await zip.generateAsync({
-        type: "blob",
-        compression: "DEFLATE",
-        compressionOptions: { level: 6 }
-      });
+      const blob = await zip.generateAsync({ type: "blob" });
 
       // Save file
       const fileName = `${songData.title || "song"}_PadManiacs_${VERSION.replace(/[^a-z0-9]/gi, "_")}.pmz`;
       this.saveFile(blob, fileName);
 
-      this.showMetadataScreen();
+      this.hideLoadingScreen();
+      this.showHomeScreen();
       notifications.show("Project exported successfully!");
     } catch (error) {
       console.error("Export failed:", error);
-      this.showMetadataScreen();
+      this.hideLoadingScreen();
+      this.showHomeScreen();
       notifications.show("Export failed!");
     }
   }
 
   async exportSong() {
     try {
-      notifications.show("Exporting song...");
+      this.showLoadingScreen("Exporting song");
 
       // Prepare song data
       const songData = await FileTools.prepareSongForExport(this.song, this.files);
@@ -1440,30 +1560,28 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.addSongResourcesToZip(songData, zip);
 
       // Generate ZIP file
-      const blob = await zip.generateAsync({
-        type: "blob",
-        compression: "DEFLATE",
-        compressionOptions: { level: 6 }
-      });
+      const blob = await zip.generateAsync({ type: "blob" });
 
       // Save file
       const fileName = `${songData.title || "song"}.zip`;
-      this.saveFile(blob, fileName);
+      await this.saveFile(blob, fileName);
 
-      this.showMetadataScreen();
+      this.hideLoadingScreen();
+      this.showHomeScreen();
       notifications.show("Song exported successfully!");
     } catch (error) {
       console.error("Export failed:", error);
-      this.showMetadataScreen();
+      this.hideLoadingScreen();
+      this.showHomeScreen();
       notifications.show("Export failed!");
     }
   }
 
   addSongResourcesToZip(songData, zip) {
     // Add main files
-    zip.file(songData.audio, this.files.audio, { base64: true });
-    zip.file(songData.background, this.files.background, { base64: true });
-    zip.file(songData.banner, this.files.banner, { base64: true });
+    songData.audio !== "no-media" && zip.file(songData.audio, this.files.audio, { base64: true });
+    songData.background !== "no-media" && zip.file(songData.background, this.files.background, { base64: true });
+    songData.banner !== "no-media" && zip.file(songData.banner, this.files.banner, { base64: true });
 
     // Add BG change files
     if (songData.backgrounds) {
@@ -1477,7 +1595,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     return zip;
   }
 
-  saveFile(blob, filename) {
+  async saveFile(blob, filename) {
     if (CURRENT_ENVIRONMENT === ENVIRONMENT.WEB) {
       // Download in browser
       const url = URL.createObjectURL(blob);
@@ -1488,10 +1606,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA) {
-      this.saveCordovaFile(blob, filename);
-    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
-      this.saveNWJSFile(blob, filename);
+    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+      await this.saveFileToFilesystem(blob, filename);
     }
   }
 
@@ -1504,51 +1620,15 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.exportSong();
     }
   }
-
-  saveCordovaFile(blob, filename) {
-    window.resolveLocalFileSystemURL(cordova.file.externalDataDirectory, dir => {
-      dir.getDirectory("Edits", { create: true }, editsDir => {
-        editsDir.getFile(filename, { create: true }, fileEntry => {
-          fileEntry.createWriter(fileWriter => {
-            fileWriter.onwriteend = () => {
-              notifications.show("Song saved to Edits folder!");
-            };
-            fileWriter.onerror = e => {
-              console.error("Error saving song:", e);
-              notifications.show("Save failed!");
-            };
-            fileWriter.write(blob);
-          });
-        });
-      });
-    });
+  
+  async saveFileToFilesystem(blob, filename) {
+    const fileSystem = new FileSystemTools();
+    
+    const outputDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + EDITOR_OUTPUT_DIRECTORY);
+    
+    await fileSystem.saveFile(outputDir, blob, filename);
   }
-
-  saveNWJSFile(blob, filename) {
-    const fs = require("fs");
-    const path = require("path");
-
-    const editsDir = path.join(nw.App.dataPath, "Edits");
-    if (!fs.existsSync(editsDir)) {
-      fs.mkdirSync(editsDir, { recursive: true });
-    }
-
-    const filePath = path.join(editsDir, filename);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const buffer = Buffer.from(reader.result);
-      fs.writeFile(filePath, buffer, err => {
-        if (err) {
-          console.error("Error saving song:", err);
-          notifications.show("Save failed!");
-        } else {
-          notifications.show("Song saved to Edits folder!");
-        }
-      });
-    };
-    reader.readAsArrayBuffer(blob);
-  }
-
+  
   setDifficultyType(difficultyIndex) {
     const types = ["Beginner", "Easy", "Medium", "Hard", "Challenge"];
     const currentType = this.song.chart.difficulties[difficultyIndex].type;
@@ -1781,11 +1861,11 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
   createNewSongAndReload() {
     this.song = this.createNewSong();
-    this.showMetadataScreen();
+    this.showHomeScreen();
   }
 
   saveAndExit() {
-    this.showMetadataScreen();
+    this.showHomeScreen();
   }
 
   clearUI() {
@@ -1798,8 +1878,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.songInfoText = null;
     }
     if (this.bannerSprite) {
-      this.bannerSprite.destroy();
-      this.bannerSprite = null;
+      this.bannerSprite.visible = false;
     }
   }
 
@@ -1834,6 +1913,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
   detectBPMHere() {
     const audioElement = document.createElement("audio");
     audioElement.src = this.audio.src;
+    audioElement.currentTime = this.audio.currentTime;
 
     this.menuVisible = true;
 
@@ -1910,6 +1990,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     const bpmChange = this.getBPMChange();
     if (bpmChange) {
       const index = this.song.chart.bpmChanges.indexOf(bpmChange);
+      this.chartRenderer.removeTag(bpmChange.beat, 'bpm');
       this.song.chart.bpmChanges.splice(index, 1);
     }
     this.updateInfoText();
@@ -1948,13 +2029,12 @@ SAMPLE LENGTH: ${chart.sampleLength}
     if (stop) {
       const index = this.song.chart.stops.indexOf(stop);
       this.song.chart.stops.splice(index, 1);
+      this.chartRenderer.removeTag(stop.beat, 'stop');
     }
     this.updateInfoText();
   }
 
   addBGChange() {
-    this.menuVisible = true;
-
     this.pickFile("image/*,video/*", async file => {
       const fileType = file.type.includes("video") ? "video" : "image";
       this.song.chart.backgrounds.push({
@@ -1969,8 +2049,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.song.chart.backgrounds.sort((a, b) => a.beat - b.beat);
       this.files.extra[file.name] = FileTools.extractBase64(URL.createObjectURL(file));
       this.updateInfoText();
-      this.menuVisible = false;
-    }, () => this.menuVisible = false);
+    });
   }
 
   getBGChange() {
@@ -1982,12 +2061,16 @@ SAMPLE LENGTH: ${chart.sampleLength}
     if (bgChange) {
       const index = this.song.chart.backgrounds.indexOf(bgChange);
       this.song.chart.backgrounds.splice(index, 1);
+      this.chartRenderer.removeTag(bgChange.beat, 'bg');
     }
     this.updateInfoText();
   }
 
   update() {
     gamepad.update();
+    
+    const { now, beat } = this.getCurrentTime();
+    this.chartRenderer.render(now, beat);
 
     if (this.currentScreen === "metadata") {
       if (this.mainCarousel) {
@@ -1996,13 +2079,11 @@ SAMPLE LENGTH: ${chart.sampleLength}
     } else if (this.currentScreen === "chartEdit") {
       this.handleChartEditInput();
 
-      const { now, beat } = this.getCurrentTime();
-      this.chartRenderer.render(now, beat);
-
       if (this.isPlaying) {
         this.cursorBeat = beat;
         this.updateCursorPosition();
-
+        this.updateInfoText();
+        
         // Show hit effects when notes reach judge line
         this.showHitEffects(now, beat);
       }
@@ -2028,46 +2109,30 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
   showHitEffects(now, beat) {
     const notes = this.getCurrentChartNotes();
-    const judgeWindow = 0.1; // seconds
 
     notes.forEach(note => {
-      if (!note.hitEffectShown && Math.abs(note.sec - now) < judgeWindow) {
+      if (!note.hitEffectShown && note.sec - now <= 0 && note.sec - now > -1) {
         this.playExplosionEffect(note.column);
         note.hitEffectShown = true;
       }
     });
   }
+  
+  exitEditor() {
+    game.state.start("MainMenu");
+  }
 
   shutdown() {
-    if (this.chartRenderer) {
-      this.chartRenderer.destroy();
-    }
-    this.clearUI();
-    if (this.cursorSprite) {
-      this.cursorSprite.destroy();
-    }
-    if (this.selectionRect) {
-      this.selectionRect.destroy();
-    }
-    if (this.freezePreviewSprite) {
-      this.freezePreviewSprite.destroy();
-    }
-    if (this.infoText) {
-      this.infoText.destroy();
-    }
-    if (this.backgroundSprite) {
-      this.backgroundSprite.destroy();
-    }
-    if (this.backgroundLayer) {
-      this.backgroundLayer.destroy();
-    }
     if (this.fileInput) {
-      document.body.removeChild(this.fileInput);
+      this.fileInput.value = "";
+      this.fileInput = null;
     }
     this.stopPlayback();
     if (this.audio) {
       this.audio.pause();
       this.audio.src = "";
+      this.audio = null;
     }
+    window.editorSongData = this.song;
   }
 }

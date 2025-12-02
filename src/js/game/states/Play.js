@@ -168,11 +168,6 @@ class Play {
     this.comboText.anchor.set(1);
     
     this.createVisualizer();
-    
-    if (this.playtestMode) {
-      this.hud.exists = false;
-      this.overHud.exists = false;
-    }
   }
   
   createVisualizer() {
@@ -259,8 +254,8 @@ class Play {
   
   setBackground() {
     // Set initial background
-    if (this.song.chart.background && this.song.chart.background !== "no-media") {
-      this.loadBackgroundImage(this.song.chart.background);
+    if (this.song.chart.backgroundUrl && this.song.chart.backgroundUrl !== "no-media") {
+      this.loadBackgroundImage(this.song.chart.backgroundUrl);
     } else {
       // Default black background
       this.backgroundCtx.fillStyle = "#000000";
@@ -524,7 +519,7 @@ class Play {
         game.state.start("SongSelect", true, false, null, null, true);
       });
     }
-    this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex));
+    this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode));
     this.pauseCarousel.addItem(this.playtestMode ? "BACK TO EDITOR" : "GIVE UP", () => this.songEnd());
     
     game.onMenuIn.dispatch('pause', this.pauseCarousel);

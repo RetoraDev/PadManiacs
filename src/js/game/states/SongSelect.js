@@ -153,8 +153,8 @@ class SongSelect {
       this.previewAudio.play();
     }
     
-    if (song.banner) {
-      this.bannerImg.src = song.banner;
+    if (song.bannerUrl) {
+      this.bannerImg.src = song.bannerUrl;
       this.bannerImg.onload = () => {
         if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
         

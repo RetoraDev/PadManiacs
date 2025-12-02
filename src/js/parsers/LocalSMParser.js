@@ -33,9 +33,12 @@ class LocalSMParser {
     out.notes = {};
     out.backgrounds = [];
     out.banner = "no-media";
+    out.bannerUrl = "";
     out.difficulties = [];
     out.background = "no-media";
-    out.cdtitle = null;
+    out.backgroundUrl = "";
+    out.cdtitle = "";
+    out.cdtitleUrl = "";
     out.audioUrl = null;
     out.videoUrl = null;
     out.sampleStart = 0;
@@ -94,7 +97,7 @@ class LocalSMParser {
               if (bgEntry.file) {
                 const ext = bgEntry.file.split(".").pop().toLowerCase();
                 bgEntry.type = ["mp4", "avi", "mov"].includes(ext) ? "video" : "image";
-                bgEntry.url = this.resolveFileUrl(bgEntry.file);
+                bgEntry.url = this.resolveFileUrl(bgEntry.file, baseUrl);
               }
 
               // Calculate timing
@@ -108,13 +111,19 @@ class LocalSMParser {
           }
           break;
         case "#BANNER":
-          if (p[1]) out.banner = this.resolveFileUrl(p[1]);
+          if (p[1]) {
+            out.banner = p[1];
+            out.bannerUrl = this.resolveFileUrl(p[1], baseUrl);
+          }
           break;
         case "#CDTITLE":
-          if (p[1]) out.cdtitle = this.resolveFileUrl(p[1]);
+          if (p[1]) {
+            out.cdtitle = p[1];
+            out.cdtitleUrl = this.resolveFileUrl(p[1], baseUrl);
+          }
           break;
         case "#LYRICSPATH":
-          if (p[1]) out.lyrics = this.resolveFileUrl(p[1]);
+          if (p[1]) out.lyrics = this.resolveFileUrl(p[1], baseUrl);
           break;
         case "#SAMPLESTART":
           if (p[1]) out.sampleStart = parseFloat(p[1]);
@@ -123,15 +132,15 @@ class LocalSMParser {
           if (p[1]) out.sampleLength = parseFloat(p[1]);
           break;
         case "#BACKGROUND":
-          if (p[1]) out.background = this.resolveFileUrl(p[1]);
+          if (p[1]) {
+            out.background = p[1];
+            out.backgroundUrl = this.resolveFileUrl(p[1], baseUrl);
+          }
           break;
-        case "#VIDEO":
-          if (p[1]) out.videoUrl = this.resolveFileUrl(p[1]);
-          break;
-        case "#MUSIC":
+          case "#MUSIC":
           if (p[1]) {
             out.audio = p[1];
-            out.audioUrl = this.resolveFileUrl(p[1]);
+            out.audioUrl = this.resolveFileUrl(p[1], baseUrl);
           }
           break;
         case "#OFFSET":
@@ -232,13 +241,15 @@ class LocalSMParser {
     return out;
   }
 
-  resolveFileUrl(filename) {
-    if (!filename) return null;
+  resolveFileUrl(filename, baseUrl) {
+    if (!filename) return "";
     // Handle absolute URLs and relative paths
     if (filename.startsWith('http') || filename.startsWith('//')) {
       return filename;
     }
-    return this.baseUrl + filename;
+    if (!baseUrl) baseUrl = this.baseUrl || "";
+    if (!baseUrl.endsWith("/") && !filename.startsWith("/")) baseUrl = baseUrl + "/"
+    return baseUrl + filename;
   }
 
   getLastBpm(bpmChanges, time, valueType) {
@@ -254,7 +265,6 @@ class LocalSMParser {
   }
 
   parseSSC(sscContent, baseUrl) {
-    // Simplified SSC parser - you can expand this as needed
     const sections = sscContent.split(/\/\/-+/);
     const headerSection = sections[0];
     
