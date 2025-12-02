@@ -15,8 +15,6 @@ PadManiacs is a lightweight rhythm game that brings the StepMania experience to 
 
 [Play Stable Version on Itch.io](https://retora.itch.io/padmaniacs)
 
-## Controls
-
 ### Keyboard Controls
 
 **Directional Inputs:**
@@ -30,18 +28,9 @@ PadManiacs is a lightweight rhythm game that brings the StepMania experience to 
 - **Shift**, **Tab**, or **Space Bar**: Select button
 - **Enter**, **Escape**, or **P**: Start button
 
-### Gamepad
-Standard gamepad layout with D-pad for directional inputs and face buttons for actions. Use **LEFT/DOWN/A/B** to play with a dance pad layout
+Gamepad and touchscreen are supported
 
-### Touch Controls
-Virtual controls appear automatically on mobile devices. Tap anywhere on the screen to show touch controls if they are hidden.
-
-## Song Loading
-
-### Built-in Songs
-The game includes several default songs available in Free Play mode.
-
-### External Songs
+## Loading Your StepMania charts
 
 **Desktop/Local Files:**
 Place song folders in: `Path/To/PadManiacs/data/Songs/`
@@ -49,31 +38,32 @@ Place song folders in: `Path/To/PadManiacs/data/Songs/`
 **Android Devices:**
 Place song folders in: `Internal Storage/PadManiacs/Songs/`
 
-**Song Folder Structure:**
-Each song folder should contain:
-- StepMania .sm chart file (required)
-- Audio file (MP3, OGG, etc.)
-- Optional banner and background images
+Then go to user songs menu and hit "Load External Songs"
 
 You can add as many songs as desired.
 
-### Loading Individual Songs
-Use "Load Single Song" from the Extra Songs menu. Select the entire folder containing the chart files when prompted. This method works on both desktop and mobile for quick testing of individual songs.
+> Note in browser you can't load songs this way. Use "Load Single Song" instead
 
 ## Character System
 
-Customize and level up your own avatar with RPG-style progression. Create characters with unique appearances, unlock skills that activate automatically during gameplay, and watch them grow as you play.
+You can customize and level up your own avatar with RPG-style progression. Create characters with unique appearances, unlock items, skills, and watch them grow as you play.
 
-## Screenshots & Recording
-You can capture the screen using keyboard shortcuts:
-- **F8**: Take Screenshot
-- **F9**: Start/Stop Recording (It has extremely low quality so it's recommended to use an external recorder)
+## Chart Editor
 
-Screenshots and recordings are saved in `Screenshots/` folder in local storage folder:
-- **Desktop**: `Path/To/PadManiacs/data/Screenshots/`
-- **Android**: `Internal Storage/PadManiacs/Screenshots/`
+The game includes a very complete chart editor similar to Arrow Vortex. You can easily create/import, edit, playtest and export charts in StepMania format or project file format.
 
-Note Web platform can't save files.
+Editor controls:
+- **UP/DOWN**: Navigate in time
+- **LEFT/RIGHT**: Change column
+- **A**: Add note under cursor to selection
+- **B**: Place/Remove not
+- **Hold A + UP/DOWN**: Area selection
+- **Hold A + LEFT/RIGHT**: Change beat snap
+- **Hold B + UP/DOWN**: Place hold note, release to create it
+- **SELECT**: Toggle playback
+- **START**: Show context menu
+
+The editor is accessible from Extras menu
 
 ## Modding & Add-ons
 
@@ -84,24 +74,12 @@ PadManiacs supports community-created modifications through an add-on system. Ad
 
 See [Modding API Documentation](https://retoradev.github.io/PadManiacsDocumentation/) for complete modding information.
 
-### Add-on Manager
+### The Add-on Manager
 Accessible from the main menu, the Add-on Manager allows you to:
 - Install add-ons from ZIP files
 - Enable/disable installed add-ons
 - Hibernate add-ons to prevent loading
 - Toggle safe mode to disable all add-ons
-
-## Platform Support
-
-- **Web browsers** (desktop and mobile)
-- **Android devices** (via Cordova)
-- **Desktop applications** (via NW.js with full file system access)
-
-## Format Support
-
-- **StepMania (.sm)**: Fully supported
-- **StepMania SSC (.ssc)**: Not currently supported
-- **Background Videos**: Supported, but .AVI format is not compatible with HTML5 video players
 
 ## Known Limitations
 
@@ -112,6 +90,7 @@ Accessible from the main menu, the Add-on Manager allows you to:
 - Most mobile file browsers may require selecting individual files one by one
 - Input mapping is not implented
 - Recordings have extremely low quality
+- Editor can't handle BG changes correctly
 
 ## License
 

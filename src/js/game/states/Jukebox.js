@@ -341,7 +341,7 @@ class Jukebox {
     this.songCredit.write(song.credit || "", 21);
     
     // Load banner
-    if (song.banner && song.banner !== "no-media") {
+    if (song.bannerUrl && song.bannerUrl !== "no-media") {
       const bannerImg = new Image();
       bannerImg.onload = () => {
         const canvas = document.createElement('canvas');
@@ -352,7 +352,7 @@ class Jukebox {
         const texture = PIXI.Texture.fromCanvas(canvas);
         this.bannerSprite.loadTexture(texture);
       };
-      bannerImg.src = song.banner;
+      bannerImg.src = song.bannerUrl;
     } else {
       this.bannerSprite.loadTexture(null);
     }
@@ -366,7 +366,7 @@ class Jukebox {
     this.videoElement.src = "";
     
     // Load song background
-    if (this.currentSong.background && this.currentSong.background !== "no-media") {
+    if (this.currentSong.backgroundUrl && this.currentSong.backgroundUrl !== "no-media") {
       const bgImg = new Image();
       bgImg.onload = () => {
         const canvas = document.createElement('canvas');
@@ -377,7 +377,7 @@ class Jukebox {
         const texture = PIXI.Texture.fromCanvas(canvas);
         this.backgroundSprite.loadTexture(texture);
       };
-      bgImg.src = this.currentSong.background;
+      bgImg.src = this.currentSong.backgroundUrl;
     }
     
     // Handle background videos

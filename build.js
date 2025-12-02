@@ -56,6 +56,7 @@ class BuildSystem {
       'js/ui/ExperienceBar.js',
       'js/ui/SkillBar.js',
       'js/ui/TextInput.js',
+      'js/ui/ValueInput.js',
       'js/ui/NotificationSystem.js',
       'js/ui/Lyrics.js',
       'js/ui/OffsetAssistant.js',
@@ -86,6 +87,7 @@ class BuildSystem {
       
       // Parsers
       'js/parsers/SMFile.js',
+      'js/parsers/FileTools.js',
       'js/parsers/LocalSMParser.js',
       'js/parsers/ExternalSMParser.js',
       
@@ -109,6 +111,7 @@ class BuildSystem {
       'js/game/states/Play.js',
       'js/game/states/Results.js',
       'js/game/states/Jukebox.js',
+      'js/game/states/Editor.js',
       'js/game/states/Credits.js',
       'js/game/states/ErrorScreen.js',
       
@@ -389,6 +392,14 @@ Minified: ${this.config.flags.minify}
       fs.copyFileSync(erudaSrc, erudaDest);
       this.log('eruda.js copied to lib/', 'success');
     }
+    
+    // Copy jszip.js
+    const jszipSrc = path.join(this.config.libDir, 'jszip.js');
+    const jszipDest = path.join(libDest, 'jszip.js');
+    if (fs.existsSync(jszipSrc)) {
+      fs.copyFileSync(jszipSrc, jszipDest);
+      this.log('jszip.js copied to lib/', 'success');
+    }
   }
 
   copyStaticFiles() {
@@ -428,7 +439,8 @@ Minified: ${this.config.flags.minify}
       // Add phaser from lib (always first)
       scriptTags += `  <script src="./lib/${this.config.flags.debug ? 'phaser.js' : 'phaser.min.js'}"></script>\n`;
       
-      // Add eruda too
+      // Add eruda too and jszip
+      scriptTags += '  <script src="./lib/jszip.js"></script>\n';
       scriptTags += '  <script src="./lib/eruda.js"></script>\n';
       
       // Add the concatenated game.js

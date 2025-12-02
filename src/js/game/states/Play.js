@@ -1,7 +1,7 @@
 class Play {
-  init(song, difficultyIndex) {
+  init(song, difficultyIndex, playtestMode) {
     this.song = song;
-    this.difficultyIndex = difficultyIndex;
+    this.difficultyIndex = difficultyIndex || song.difficultyIndex;
     this.player = null;
     this.backgroundQueue = [];
     this.currentBackground = null;
@@ -21,6 +21,7 @@ class Play {
     this.lastVisualizerUpdateTime = 0;
     this.metronome = null;
     this.gameRecorder = null;
+    this.playtestMode = playtestMode;
     
     // Initialize character system
     this.characterManager = new CharacterManager();
@@ -253,8 +254,8 @@ class Play {
   
   setBackground() {
     // Set initial background
-    if (this.song.chart.background && this.song.chart.background !== "no-media") {
-      this.loadBackgroundImage(this.song.chart.background);
+    if (this.song.chart.backgroundUrl && this.song.chart.backgroundUrl !== "no-media") {
+      this.loadBackgroundImage(this.song.chart.backgroundUrl);
     } else {
       // Default black background
       this.backgroundCtx.fillStyle = "#000000";
@@ -380,6 +381,12 @@ class Play {
   }
   
   songEnd() {
+    // Return to editor if on playtest mode
+    if (this.playtestMode) {
+      game.state.start("Editor", true, false, this.song);
+      return;
+    }
+    
     // Update character stats
     const gameResults = {
       score: this.player.score,
@@ -506,18 +513,20 @@ class Play {
     });
     
     this.pauseCarousel.addItem("CONTINUE", () => this.resume());
-    if (Account.settings.autoplay) {
+    if (Account.settings.autoplay && !this.playtestMode) {
       this.pauseCarousel.addItem("DISABLE AUTOPLAY", () => {
         Account.settings.autoplay = false;
         game.state.start("SongSelect", true, false, null, null, true);
       });
     }
-    this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex));
-    this.pauseCarousel.addItem("GIVE UP", () => this.songEnd());
+    this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode));
+    this.pauseCarousel.addItem(this.playtestMode ? "BACK TO EDITOR" : "GIVE UP", () => this.songEnd());
     
     game.onMenuIn.dispatch('pause', this.pauseCarousel);
     
-    this.pauseCarousel.addItem("QUIT", () => game.state.start("MainMenu"));
+    if (!this.playtestMode) {
+      this.pauseCarousel.addItem("QUIT", () => game.state.start("MainMenu"));
+    }
     
     this.pauseCarousel.onCancel.add(() => this.resume());
   }

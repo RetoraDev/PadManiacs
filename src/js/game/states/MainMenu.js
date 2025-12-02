@@ -135,7 +135,7 @@ class MainMenu {
   }
 
   showHomeMenu() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -148,6 +148,7 @@ class MainMenu {
       this.keepBackgroundMusic = true;
       game.state.start("CharacterSelect");
     });
+    carousel.addItem("Chart Editor", () => this.openEditor());
     carousel.addItem("Settings", () => this.showSettings());
     carousel.addItem("Extras", () => this.showExtras());
     
@@ -160,7 +161,7 @@ class MainMenu {
   }
 
   startGame() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -176,7 +177,7 @@ class MainMenu {
   }
 
   showExtraSongs() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -428,7 +429,7 @@ class MainMenu {
   }
 
   showExtras() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -439,10 +440,10 @@ class MainMenu {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       carousel.addItem("Addon Manager", () => this.showAddonManager());
     }
-    carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
     carousel.addItem("Jukebox", () => this.startJukebox());
-    carousel.addItem("Player Stats", () => this.showStats());
+    carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
     carousel.addItem("Achievements", () => this.showAchievements());
+    carousel.addItem("Player Stats", () => this.showStats());
     carousel.addItem("Credits", () => this.showCredits());
     carousel.addItem("Feedback", () => this.showFeedback());
     
@@ -452,7 +453,7 @@ class MainMenu {
   }
 
   showFeedback() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 112 / 2, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -475,292 +476,137 @@ class MainMenu {
   }
   
   showAddonManager() {
-    // Clear existing UI
-    this.manager?.removeAll();
+    // TODO: Clean addon manager interface and logic 
+    const detailText = new Text(4, 4, "");
     
-    // Create addon manager interface
-    this.createAddonManagerInterface();
-  }
-
-  createAddonManagerInterface() {
-    const manager = new WindowManager();
-    this.manager = manager;
-
-    // Title
-    const titleText = new Text(game.width / 2, 8, "ADDON MANAGER", {
-      ...FONTS.shaded,
-      tint: 0x76fcde
-    });
-    titleText.anchor.x = 0.5;
-
-    // Addon list on left
-    this.addonList = new CarouselMenu(2, 4, 12, 10, {
-      align: 'left',
-      bgcolor: 'brown',
-      fgcolor: '#ffffff',
-      animate: true,
-      crop: false
-    });
-
-    // Details panel on right
-    this.detailsPanel = this.createDetailsPanel();
-    
-    // Preview area
-    this.previewArea = this.createPreviewArea();
-
-    // Load addons
-    this.loadAddonList();
-
-    // Set up navigation
-    this.setupAddonManagerNavigation();
-  }
-
-  createDetailsPanel() {
-    const panel = game.add.group();
-    panel.x = 104;
-    panel.y = 16;
-
-    // Background
-    const bg = new Window(0, 0, 10, 10, "1", panel);
-    bg.focus = false;
-
-    // Details text
-    this.detailsText = new Text(8, 8, "Select an addon to view details", {
-      ...FONTS.default,
-      tint: 0x76fcde
-    });
-    bg.addChild(this.detailsText);
-
-    return panel;
-  }
-
-  createPreviewArea() {
-    const preview = game.add.sprite(140, 80);
-    preview.scale.set(2);
-    
-    // Preview canvas for addon icons
-    this.previewCanvas = document.createElement("canvas");
-    this.previewCanvas.width = 25;
-    this.previewCanvas.height = 25;
-    this.previewCtx = this.previewCanvas.getContext("2d");
-    this.previewImg = new Image();
-    
-    return preview;
-  }
-
-  loadAddonList() {
-    const addons = addonManager.getAddonList();
-    this.addonList.clear();
-
-    if (addons.length === 0) {
-      this.addonList.addItem("No addons installed", () => {});
-      this.updateAddonDetails(null);
-      return;
-    }
-
-    addons.forEach((addon, index) => {
-      const statusColor = this.getAddonStatusColor(addon);
-      this.addonList.addItem(
-        addon.name,
-        () => this.showAddonActions(addon),
-        { addon, bgcolor: statusColor }
-      );
-    });
-
-    // Select first addon by default
-    if (addons.length > 0) {
-      this.addonList.selectedIndex = 0;
-      this.selectAddon(addons[0]);
-    }
-
-    this.addonList.onSelect.add((index, item) => {
-      if (item.data && item.data.addon) {
-        this.selectAddon(item.data.addon);
-      }
-    });
-  }
-
-  getAddonStatusColor(addon) {
-    if (addon.isHibernating) return "gray";
-    return addon.isEnabled ? "#00cc00" : "brown";
-  }
-
-  selectAddon(addon) {
-    this.selectedAddon = addon;
-    this.updateAddonDetails(addon);
-    this.updateAddonPreview(addon);
-  }
-
-  updateAddonDetails(addon) {
-    if (!addon) {
-      this.detailsText.write("Select an addon to view details");
-      return;
-    }
-
-    const details = [
-      `Name: ${addon.name}`,
-      `Version: ${addon.version}`,
-      `Author: ${addon.author}`,
-      `Behaviors: ${addon.behaviors ? Object.keys(addon.behaviors).length : 0}`,
-      `Assets: ${addon.assets ? addon.assets.length : 0}`,
-      ``,
-      `${addon.description}`,
-      ``,
-      `Status: ${this.getAddonStatusText(addon)}`
-    ].join('\n');
-
-    this.detailsText.write(details).wrap(80);
-  }
-
-  getAddonStatusText(addon) {
-    if (addon.isHibernating) return 'HIBERNATING';
-    return addon.isEnabled ? 'ENABLED' : 'DISABLED';
-  }
-
-  updateAddonPreview(addon) {
-    if (addon.icon) {
-      this.previewImg.onload = () => {
-        this.previewCtx.clearRect(0, 0, 25, 25);
-        this.previewCtx.drawImage(this.previewImg, 0, 0, 25, 25);
-        this.previewArea.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
-      };
-      this.previewImg.src = addon.icon;
-    } else {
-      this.previewArea.loadTexture(null);
-    }
-  }
-
-  showAddonActions(addon) {
-    const actionsWindow = this.manager.createWindow(6, 4, 12, 8, "1");
-    actionsWindow.fontTint = 0x76fcde;
-
-    if (addon.isHibernating) {
-      actionsWindow.addItem("Wake Addon", "", () => {
-        this.performAddonAction(() => addonManager.wakeAddon(addon.id));
-      });
-    } else if (addon.isEnabled) {
-      actionsWindow.addItem("Disable Addon", "", () => {
-        this.performAddonAction(() => addonManager.disableAddon(addon.id));
-      });
-      actionsWindow.addItem("Hibernate Addon", "", () => {
-        this.performAddonAction(() => addonManager.hibernateAddon(addon.id));
-      });
-    } else {
-      actionsWindow.addItem("Enable Addon", "", () => {
-        this.performAddonAction(() => addonManager.enableAddon(addon.id));
-      });
-    }
-
-    actionsWindow.addItem("Uninstall Addon", "", () => {
-      this.confirmUninstallAddon(addon);
-    });
-
-    actionsWindow.addItem("< Back", "", () => {
-      this.manager.remove(actionsWindow, true);
-    }, true);
-
-    actionsWindow.onCancel.add(() => {
-      this.manager.remove(actionsWindow, true);
-    });
-  }
-
-  performAddonAction(action) {
-    action();
-    this.refreshAddonManager();
-    
-    // Show feedback
-    notifications.show("Addon updated successfully!");
-  }
-
-  confirmUninstallAddon(addon) {
-    this.confirmDialog(
-      `Uninstall "${addon.name}"?\n\nThe addon folder will be permanently removed. This action cannot be undone.`,
-      () => {
-        addonManager.uninstallAddon(addon.id);
-        this.refreshAddonManager();
-        notifications.show("Addon uninstalled!");
-      },
-      () => this.showAddonActions(addon),
-      "Uninstall",
-      "Cancel"
-    );
-  }
-
-  refreshAddonManager() {
-    this.loadAddonList();
-    if (this.selectedAddon) {
-      // Update selected addon if it still exists
+    const preview = game.add.sprite(112, 4);
+      
+    const showInstalledAddons = () => {
       const addons = addonManager.getAddonList();
-      const updatedAddon = addons.find(a => a.id === this.selectedAddon.id);
-      if (updatedAddon) {
-        this.selectAddon(updatedAddon);
+      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
+        align: 'left',
+        bgcolor: 'brown',
+        fgcolor: '#ffffff',
+        animate: true,
+        crop: false
+      });
+      
+      if (addons.length === 0) {
+        carousel.addItem("No addons installed", () => {});
       } else {
-        this.selectAddon(null);
+        addons.forEach(addon => {
+          const statusColor = addon.isHibernating ? "gray" : (addon.isEnabled ? "#00cc00" : "brown")
+          carousel.addItem(
+            `${addon.name} v${addon.version}`,
+            () => showAddonDetails(addon),
+            { addon, bgcolor: statusColor }
+          );
+        });
+        
+        carousel.onSelect.add((index, item) => {
+          if (item.data && item.data.addon) {
+            previewAddon(item.data.addon);
+          }
+        });
+        
+        previewAddon(addons[0]);
+      }
+      
+      game.onMenuIn.dispatch('addons', carousel);
+      
+      carousel.addItem("< Back", () => applyChanges());
+      carousel.onCancel.add(() => applyChanges());
+    };
+    
+    let needsReload = false;
+    
+    const previewAddon = (addon) => {
+      detailText.write(
+        `${addon.name}\n` +
+        `V${addon.version}\n` +
+        `By ${addon.author}\n` +
+        `BEHAVIORS:${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
+        `ASSETS:${addon.assets ? addon.assets.length : 0}\n\n` +
+        `${addon.description}\n` +
+        'STATE: ' + 
+        (addon.isHibernating ?
+          'Hybernating'
+          :
+        (addon.isEnabled ?
+          'Enabled' : 'Disabled')) + '\n'
+      ).wrap(112);
+      if (addon.icon) {
+        this.previewImg.src = addon.icon;
+        this.previewImg.onload = () => {
+          this.previewCtx.drawImage(this.previewImg, 0, 0, 50, 50);
+          preview.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
+        };
       }
     }
-  }
-
-  setupAddonManagerNavigation() {
-    // Back button
-    const backCarousel = new CarouselMenu(2, 15, 12, 2, {
-      align: 'left',
-      bgcolor: 'brown',
-      fgcolor: '#ffffff',
-      animate: true,
-      crop: false
-    });
-
-    backCarousel.addItem("< Back to Menu", () => this.returnToMainMenu());
-    backCarousel.addItem("Apply Changes", () => this.applyAddonChanges());
-
-    backCarousel.onCancel.add(() => this.returnToMainMenu());
-  }
-
-  returnToMainMenu() {
-    if (addonManager.needsReload()) {
-      this.confirmAddonRestart();
-    } else {
-      this.cleanupAddonManager();
-      this.showHomeMenu();
-    }
-  }
-
-  applyAddonChanges() {
-    if (addonManager.needsReload()) {
-      this.confirmAddonRestart();
-    } else {
-      notifications.show("No changes requiring restart detected.");
-    }
-  }
-
-  confirmAddonRestart() {
-    this.confirmDialog(
-      "Some addon changes require a restart to take effect.\n\nRestart the game now?",
-      () => {
-        location.reload();
-      },
-      () => {
-        // Continue without restart
-        this.cleanupAddonManager();
-        this.showHomeMenu();
-      },
-      "Restart Now",
-      "Continue"
-    );
-  }
-
-  cleanupAddonManager() {
-    // Clean up resources
-    if (this.previewArea) {
-      this.previewArea.destroy();
-    }
-    if (this.detailsPanel) {
-      this.detailsPanel.destroy();
-    }
-    if (this.addonList) {
-      this.addonList.destroy();
-    }
-    this.manager?.removeAll();
+    
+    const showAddonDetails = (addon) => {
+      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
+        align: 'left',
+        bgcolor: '#9b59b6',
+        fgcolor: '#ffffff',
+        animate: true,
+        crop: false
+      });
+      
+      if (addon.isHibernating) {
+        carousel.addItem("Wake Addon", () => {
+          addonManager.wakeAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+      } else if (addon.isEnabled) {
+        carousel.addItem("Disable Addon", () => {
+          addonManager.disableAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+        carousel.addItem("Hibernate Addon", () => {
+          addonManager.hibernateAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+      } else {
+        carousel.addItem("Enable Addon", () => {
+          addonManager.enableAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+      }
+      
+      carousel.addItem("Uninstall Addon", () => this.confirmDialog("The addon folder will be removed. Continue?", () => {
+        addonManager.uninstallAddon(addon.id);
+        needsReload = true;
+        showInstalledAddons();
+      }, () => showInstalledAddons()));
+      
+      game.onMenuIn.dispatch('addonDetails', carousel);
+      
+      carousel.addItem("< Back", () => showInstalledAddons());
+      carousel.onCancel.add(() => showInstalledAddons());
+    };
+    
+    const applyChanges = () => {
+      if (needsReload || addonManager.needsReload()) {
+        this.confirmDialog("Reload required. Restart now?", () => {
+          location.reload();
+        }, () => {
+          preview.destroy();
+          detailText.destroy();
+          this.menu();
+        });
+      } else {
+        preview.destroy();
+        detailText.destroy();
+        this.menu();
+      }
+    };
+    
+    showInstalledAddons();
   }
 
   confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
@@ -880,6 +726,10 @@ class MainMenu {
     } else {
       game.state.start("Jukebox");
     }
+  }
+  
+  openEditor() {
+    game.state.start("Editor", true, false, window.editorSongData || null);
   }
 
   showAchievements() {

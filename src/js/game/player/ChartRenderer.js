@@ -1,42 +1,43 @@
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
-    this.song = song;
-    this.difficultyIndex = difficultyIndex;
-    this.chart = song.chart;
-    this.difficulty = this.chart.difficulties[difficultyIndex];
-    this.notes = this.chart.notes[this.difficulty.type + this.difficulty.rating];
-    this.bpmChanges = this.chart.bpmChanges;
-    this.stops = this.chart.stops;
     
+    this.load(song, difficultyIndex);
+
     this.options = {
       enableGameplayLogic: true,
       enableJudgement: true,
       enableInput: true,
       enableHealth: true,
       enableMissChecking: true,
+      enableReceptors: true,
+      enableBeatLines: false,
+      enableSpeedRendering: false,
+      enableBGRendering: false,
+      judgeLineYFalling: 90,
+      judgeLineYRising: 30,
       ...options
     };
 
-    this.scrollDirection = Account.settings.scrollDirection || 'falling';
+    this.scrollDirection = Account.settings.scrollDirection || "falling";
 
     // Visual constants
     this.VERTICAL_SEPARATION = 1.25;
     this.SCREEN_CONSTANT = Account.settings.speedMod === "C-MOD" ? 240 / 60 : 1;
     this.NOTE_SPEED_MULTIPLIER = Account.settings.noteSpeedMult + this.SCREEN_CONSTANT;
-    this.JUDGE_LINE = this.scrollDirection === 'falling' ? 90 : 30;
-    this.DIRECTION = this.scrollDirection === 'falling' ? -1 : 1;
+    this.JUDGE_LINE = this.scrollDirection === "falling" ? this.options.judgeLineYFalling : this.options.judgeLineYRising;
+    this.DIRECTION = this.scrollDirection === "falling" ? -1 : 1;
     this.COLUMN_SIZE = 16;
     this.COLUMN_SEPARATION = 4;
     this.INACTIVE_COLOR = 0x888888;
-    
+
     this.noteSpeedMultiplier = this.NOTE_SPEED_MULTIPLIER;
-    
-    this.speedMod = Account.settings.speedMod || 'X-MOD';
+
+    this.speedMod = Account.settings.speedMod || "X-MOD";
     
     // Note color option (default to NOTE)
-    this.noteColorOption = Account.settings.noteColorOption || 'NOTE';
-    
+    this.noteColorOption = Account.settings.noteColorOption || "NOTE";
+
     // Define color constants for spritesheet frames
     const COLORS = {
       // This is how spritesheet frames are colored
@@ -118,17 +119,37 @@ class ChartRenderer {
       }
     };
 
+    this.speedModGraphics = game.add.graphics(0, 0);
+    this.bgChangeGraphics = game.add.graphics(0, 0);
+    
+    this.tags = {};
+
     // Groups for pooling
     this.linesGroup = new Phaser.SpriteBatch(game);
     this.receptorsGroup = new Phaser.SpriteBatch(game);
     this.freezeBodyGroup = new Phaser.Group(game);
-    this.freezeEndGroup = new Phaser.Group(game); 
-    this.notesGroup = new Phaser.SpriteBatch(game);
+    this.freezeEndGroup = new Phaser.Group(game);
+    this.notesGroup = this.options.enableGameplayLogic ? new Phaser.SpriteBatch(game) : new Phaser.Group(game);
     this.minesGroup = new Phaser.Group(game);
     this.explosionsGroup = new Phaser.SpriteBatch(game);
-    
+    this.tagsGroup = new Phaser.Group(game);
+
     this.receptors = [];
     this.initialize();
+  }
+  
+  load(song, difficultyIndex) {
+    if (this.notes) {
+      this.notes.forEach(note => this.killNote(note));
+    }
+    this.song = song;
+    this.difficultyIndex = difficultyIndex;
+    this.chart = song.chart;
+    this.difficulty = this.chart.difficulties[difficultyIndex];
+    this.notes = this.chart.notes[this.difficulty.type + this.difficulty.rating];
+    this.bpmChanges = this.chart.bpmChanges;
+    this.stops = this.chart.stops;
+    this.backgrounds = this.chart.backgrounds || [];
   }
 
   initialize() {
@@ -136,21 +157,13 @@ class ChartRenderer {
 
     // Create receptors
     for (let i = 0; i < 4; i++) {
-      const receptor = game.add.sprite(
-        leftOffset + i * (this.COLUMN_SIZE + this.COLUMN_SEPARATION) + this.COLUMN_SIZE / 2, 
-        this.JUDGE_LINE, 
-        "receptor", 
-        2
-      );
+      const receptor = game.add.sprite(leftOffset + i * (this.COLUMN_SIZE + this.COLUMN_SEPARATION) + this.COLUMN_SIZE / 2, this.JUDGE_LINE, "receptor", 2);
       receptor.anchor.set(0.5);
+
+      receptor.angle = {0: 90, 1: 0, 2: 180, 3: -90}[i];
       
-      receptor.angle = {
-        0: 90,
-        1: 0,
-        2: 180,
-        3: -90
-      }[i];
-      
+      if (!this.options.enableReceptors) receptor.visible = false;
+
       if (this.options.enableInput) {
         receptor.inputEnabled = true;
         receptor.down = false;
@@ -180,22 +193,26 @@ class ChartRenderer {
     const totalWidth = 4 * this.COLUMN_SIZE + 3 * this.COLUMN_SEPARATION;
     return (192 - totalWidth) / 2;
   }
+  
+  calculateFullWidth() {
+    return this.COLUMN_SIZE * 4 + this.COLUMN_SEPARATION * 3;
+  }
 
   getNoteFrame(note) {
     const beat = note.beat;
     const colorMapping = this.colorMappings[this.noteColorOption];
-    
+
     const divisions = Object.keys(colorMapping)
-      .filter(key => key !== 'default')
+      .filter(key => key !== "default")
       .map(Number)
       .sort((a, b) => a - b);
-    
+
     for (const division of divisions) {
       if (this.isBeatDivision(beat, division)) {
         return colorMapping[division];
       }
     }
-    
+
     return colorMapping.default;
   }
 
@@ -208,36 +225,41 @@ class ChartRenderer {
   calculateVerticalPosition(note, now, beat) {
     let pastSize;
     let bodyHeight = 0;
-    
-    if (this.speedMod === 'C-MOD') {
+
+    if (this.speedMod === "C-MOD") {
       const constantDeltaNote = note.sec - now;
       pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier;
-      
+
       if (note.beatLength) {
-        const freezeDuration = note.secLength || (note.beatLength * 60 / this.getCurrentBPM());
+        const freezeDuration = note.secLength || (note.beatLength * 60) / this.getCurrentBPM(beat);
         bodyHeight = Math.max(this.COLUMN_SIZE, freezeDuration * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier);
       }
     } else {
       const deltaNote = note.beat - beat;
       pastSize = deltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier;
-      
+
       if (note.beatLength) {
         bodyHeight = Math.max(this.COLUMN_SIZE, note.beatLength * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier);
       }
     }
-    
-    const yPos = this.scrollDirection === 'falling' ?
-      this.JUDGE_LINE - pastSize :
-      this.JUDGE_LINE + pastSize;
-    
+
+    const yPos = this.scrollDirection === "falling" ? this.JUDGE_LINE - pastSize : this.JUDGE_LINE + pastSize;
+
     return { pastSize, bodyHeight, yPos };
   }
 
   getCurrentBPM(beat = 0) {
-    const bpmChange = this.bpmChanges.find((bpm, index, array) => {
-      return index === array.length - 1 || array[index + 1].beat > beat;
-    });
-    return bpmChange ? bpmChange.bpm : 120;
+    if (!this.bpmChanges || this.bpmChanges.length === 0) return 120;
+    
+    let currentBPM = this.bpmChanges[0].bpm;
+    for (let i = 1; i < this.bpmChanges.length; i++) {
+      if (this.bpmChanges[i].beat <= beat) {
+        currentBPM = this.bpmChanges[i].bpm;
+      } else {
+        break;
+      }
+    }
+    return currentBPM;
   }
 
   getLastBpm(time, valueType) {
@@ -245,6 +267,8 @@ class ChartRenderer {
   }
 
   beatToSec(beat) {
+    if (!this.bpmChanges || this.bpmChanges.length === 0) return beat * 60 / 120;
+    
     let b = this.getLastBpm(beat, "beat");
     let x = ((beat - b.beat) / b.bpm) * 60 + b.sec;
     let s = this.stops.filter(({ beat: i }) => i >= b.beat && i < beat).map(i => i.len);
@@ -253,6 +277,8 @@ class ChartRenderer {
   }
 
   secToBeat(sec) {
+    if (!this.bpmChanges || this.bpmChanges.length === 0) return sec * 120 / 60;
+    
     let b = this.getLastBpm(sec, "sec");
     let s = this.stops.filter(({ sec: i }) => i >= b.sec && i < sec).map(i => (i.sec + i.len > sec ? sec - i.sec : i.len));
     for (let i in s) sec -= s[i];
@@ -260,169 +286,181 @@ class ChartRenderer {
   }
 
   render(now, beat) {
-    if (this.scrollDirection === 'falling') {
+    if (this.scrollDirection === "falling") {
       this.renderFalling(now, beat);
     } else {
       this.renderRising(now, beat);
     }
-    
-    if (Account.settings.beatLines) {
+
+    if (Account.settings.beatLines || this.options.enableBeatLines) {
       this.renderTimeLines(now, beat);
     }
+    if (this.options.enableSpeedRendering) {
+      this.renderSpeedChanges(now, beat);
+    }
+    if (this.options.enableBGRendering) {
+      this.renderBGChanges(now, beat);
+    }
+    this.cleanupTags();
   }
 
   renderFalling(now, beat) {
     const leftOffset = this.calculateLeftOffset();
+    const notesToRender = [];
 
     this.notes.forEach(note => {
       let { pastSize, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
-      
+
       const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
 
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos > game.height) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
           this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
 
       // Remove off-screen notes
       if (yPos < -this.COLUMN_SIZE || yPos > game.height + bodyHeight) {
-        if (note.sprite) {
-          note.sprite.kill();
-          delete note.sprite;
-          if (note.holdParts) {
-            note.holdParts.body.destroy();
-            note.holdParts.end.destroy();
-            delete note.holdParts;
-          }
-        }
+        this.killNote(note);
         return;
       }
 
       if (note.type === "M") {
-        if (!note.sprite) {
-          note.sprite = this.minesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(x, yPos, "mine");
-            this.minesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
-          note.sprite.animations.play("blink");
-        }
-        note.sprite.anchor.set(0.5);
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
+        this.renderMine(note, x, yPos);
       } else if (note.type === "2" || note.type === "4") {
-        yPos = this.renderHoldNote(note, x, yPos, bodyHeight, now, beat, 'falling');
+        yPos = this.renderHoldNote(note, x, yPos, bodyHeight, now, beat, "falling");
       }
 
       if (note.type !== "M" && note.type !== "3") {
-        if (!note.sprite) {
-          note.sprite = this.notesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(0, 0);
-            this.notesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.loadTexture("arrows");
-          note.sprite.frame = this.getNoteFrame(note);
-          note.sprite.anchor.set(0.5);
-          note.sprite.angle = {
-            0: 90,
-            1: 0,
-            2: 180,
-            3: -90
-          }[note.column];
-        }
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
+        this.renderArrow(note, x, yPos);
+      }
+      
+      // Store for sorting
+      notesToRender.push({note, yPos});
+    });
+    
+    // Sort notes by Y position (falling: lowest Y first, rising: highest Y first)
+    notesToRender.sort((a, b) => {
+      if (this.scrollDirection === "falling") {
+        return a.yPos - b.yPos; // Lowest Y first
+      } else {
+        return b.yPos - a.yPos; // Highest Y first
+      }
+    });
+    
+    // Reorder sprites based on sorted Y positions
+    notesToRender.forEach((item, index) => {
+      if (item.note.sprite) {
+        this.notesGroup.bringToTop(item.note.sprite);
+      }
+      if (item.note.holdParts) {
+        this.freezeBodyGroup.bringToTop(item.note.holdParts.body);
+        this.freezeEndGroup.bringToTop(item.note.holdParts.end);
       }
     });
   }
 
   renderRising(now, beat) {
     const leftOffset = this.calculateLeftOffset();
-    
+    const notesToRender = [];
+
     this.notes.forEach(note => {
       let { pastSize, bodyHeight, yPos } = this.calculateVerticalPosition(note, now, beat);
-      
+
       const x = leftOffset + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
-      
+
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos < -this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
           this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
 
       // Remove off-screen notes
       if (yPos > game.height + this.COLUMN_SIZE || yPos < -bodyHeight) {
-        if (note.sprite) {
-          note.sprite.kill();
-          delete note.sprite;
-          if (note.holdParts) {
-            note.holdParts.body.destroy();
-            note.holdParts.end.destroy();
-            delete note.holdParts;
-          }
-        }
+        this.killNote(note);
         return;
       }
 
       if (note.type === "M") {
-        if (!note.sprite) {
-          note.sprite = this.minesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(x, yPos, "mine");
-            this.notesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
-          note.sprite.animations.play("blink");
-        }
-        note.sprite.anchor.set(0.5);
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
+        this.renderMine(note, x, yPos);
       } else if (note.type === "2" || note.type === "4") {
-        yPos = this.renderHoldNote(note, x, yPos, bodyHeight, now, beat, 'rising');
+        yPos = this.renderHoldNote(note, x, yPos, bodyHeight, now, beat, "rising");
       }
 
       if (note.type !== "M" && note.type !== "3") {
-        if (!note.sprite) {
-          note.sprite = this.notesGroup.getFirstDead() || (() => {
-            const sprite = game.add.sprite(0, 0);
-            this.notesGroup.add(sprite);
-            return sprite;
-          })();
-          note.sprite.reset(0, -32);
-          note.sprite.loadTexture("arrows");
-          note.sprite.frame = this.getNoteFrame(note);
-          note.sprite.anchor.set(0.5);
-          note.sprite.angle = {
-            0: 90,
-            1: 0,
-            2: 180,
-            3: -90
-          }[note.column];
-        }
-        note.sprite.x = x + this.COLUMN_SIZE / 2;
-        note.sprite.y = yPos;
+        this.renderArrow(note, x, yPos);
+      }
+      
+      // Store for sorting
+      notesToRender.push({note, yPos});
+    });
+    
+    // Sort notes by Y position
+    notesToRender.sort((a, b) => {
+      if (this.scrollDirection === "falling") {
+        return a.yPos - b.yPos;
+      } else {
+        return b.yPos - a.yPos;
       }
     });
+    
+    // Reorder sprites
+    notesToRender.forEach((item, index) => {
+      if (item.note.sprite) {
+        this.notesGroup.bringToTop(item.note.sprite);
+      }
+      if (item.note.holdParts) {
+        this.freezeBodyGroup.bringToTop(item.note.holdParts.body);
+        this.freezeEndGroup.bringToTop(item.note.holdParts.end);
+      }
+    });
+  }
+
+  renderMine(note, x, yPos) {
+    if (!note.sprite) {
+      note.sprite = this.minesGroup.getFirstDead() || (() => {
+        const sprite = game.add.sprite(x, yPos, "mine");
+        this.minesGroup.add(sprite);
+        return sprite;
+      })();
+      note.sprite.reset(0, -32);
+      note.sprite.animations.add("blink", [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
+      note.sprite.animations.play("blink");
+    }
+    note.sprite.anchor.set(0.5);
+    note.sprite.x = x + this.COLUMN_SIZE / 2;
+    note.sprite.y = yPos;
+  }
+
+  renderArrow(note, x, yPos) {
+    if (!note.sprite) {
+      note.sprite = this.notesGroup.getFirstDead() || (() => {
+        const sprite = game.add.sprite(0, 0);
+        this.notesGroup.add(sprite);
+        return sprite;
+      })();
+      note.sprite.reset(0, -32);
+      note.sprite.loadTexture("arrows");
+      note.sprite.frame = this.getNoteFrame(note);
+      note.sprite.anchor.set(0.5);
+      note.sprite.angle = {0: 90, 1: 0, 2: 180, 3: -90}[note.column];
+    }
+    note.sprite.x = x + this.COLUMN_SIZE / 2;
+    note.sprite.y = yPos;
   }
 
   renderHoldNote(note, x, yPos, bodyHeight, now, beat, direction) {
     if (!note.holdParts) {
       const prefix = note.type === "2" ? "hold" : "roll";
-      
+
       const getBody = () => {
         const sprite = this.freezeBodyGroup.getFirstDead() || (() => {
           const child = game.add.tileSprite(-64, -64, this.COLUMN_SIZE, 0, `${prefix}_body`);
-          if (direction === 'rising') {
+          if (direction === "rising") {
             child.scale.y = -1;
             child.anchor.y = 1;
           } else {
@@ -435,11 +473,11 @@ class ChartRenderer {
         sprite.loadTexture(`${prefix}_body`);
         return sprite;
       };
-      
+
       const getEnd = () => {
         const sprite = this.freezeEndGroup.getFirstDead() || (() => {
           const child = game.add.sprite(0, 0);
-          if (direction === 'rising') {
+          if (direction === "rising") {
             child.scale.y = -1;
             child.anchor.y = 1;
           } else {
@@ -452,23 +490,20 @@ class ChartRenderer {
         sprite.loadTexture(`${prefix}_end`);
         return sprite;
       };
-      
-      note.holdParts = {
-        body: getBody(),
-        end: getEnd()
-      };
+
+      note.holdParts = { body: getBody(), end: getEnd() };
       note.holdActive = false;
     }
-    
+
     const isActive = this.options.enableGameplayLogic && !note.finish && !note.miss && this.scene.activeHolds && this.scene.activeHolds[note.column]?.note === note && this.scene.activeHolds[note.column].active;
 
     let visibleHeightIsSet = typeof note.visibleHeight != "undefined";
     let visibleHeight = visibleHeightIsSet ? note.visibleHeight : bodyHeight;
-    
+
     if (visibleHeight < 0) visibleHeight = 1;
 
     if (isActive && this.options.enableGameplayLogic) {
-      if (direction === 'falling') {
+      if (direction === "falling") {
         const holdBottomY = yPos - bodyHeight;
         const judgeLineY = this.JUDGE_LINE;
         note.visibleHeight = Math.max(0, judgeLineY - holdBottomY);
@@ -481,35 +516,35 @@ class ChartRenderer {
       }
       note.active = true;
     } else if (this.options.enableGameplayLogic && typeof note.visibleHeight != "undefined") {
-      if (direction === 'falling') {
+      if (direction === "falling") {
         yPos -= bodyHeight - note.visibleHeight;
       } else {
         yPos += bodyHeight - note.visibleHeight;
       }
       note.active = false;
     }
-    
+
     // Miss checking for holds
     if (this.options.enableMissChecking && !note.miss && !note.holdActive) {
-      if (direction === 'falling' && yPos > this.JUDGE_LINE + this.COLUMN_SIZE) {
+      if (direction === "falling" && yPos > this.JUDGE_LINE + this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
           this.scene.player.processJudgement(note, "miss", note.column);
         }
-      } else if (direction === 'rising' && yPos < this.JUDGE_LINE - this.COLUMN_SIZE) {
+      } else if (direction === "rising" && yPos < this.JUDGE_LINE - this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player.processJudgement) {
+        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
           this.scene.player.processJudgement(note, "miss", note.column);
         }
       }
     }
 
     let spritesVisible = !note.finish;
-    
+
     let freezeYPos = Math.floor(yPos);
     let freezeHeight = Math.floor(visibleHeight);
-    
-    if (direction === 'falling') {
+
+    if (direction === "falling") {
       note.holdParts.body.y = freezeYPos;
       note.holdParts.body.height = freezeHeight;
       note.holdParts.end.y = freezeYPos - freezeHeight;
@@ -521,7 +556,7 @@ class ChartRenderer {
 
     note.holdParts.body.visible = spritesVisible;
     note.holdParts.end.visible = spritesVisible;
-    
+
     if (note.sprite) {
       note.sprite.visible = !isActive && spritesVisible;
     }
@@ -539,57 +574,216 @@ class ChartRenderer {
 
     note.holdParts.body.alpha = alpha;
     note.holdParts.end.alpha = alpha;
-    
+
     return yPos;
   }
 
   renderTimeLines(now, beat) {
-    if (!Account.settings.beatLines) return;
-
     const beatsPerMeasure = Account.settings.beatsPerMeasure || 4;
     const startMeasure = Math.floor(beat / beatsPerMeasure);
     const endMeasure = startMeasure + 8;
-    
+
     const currentVisibleBeats = new Set();
-    
+
     for (let measure = startMeasure; measure <= endMeasure; measure++) {
       const measureBeat = measure * beatsPerMeasure;
       this.updateTimeLine(measureBeat, 0.9, now, beat);
       currentVisibleBeats.add(measureBeat);
-      
+
       for (let beatOffset = 1; beatOffset < beatsPerMeasure; beatOffset++) {
         const currentBeat = measureBeat + beatOffset;
         this.updateTimeLine(currentBeat, 0.35, now, beat);
         currentVisibleBeats.add(currentBeat);
       }
     }
-    
+
     this.cleanupInvisibleLines(currentVisibleBeats);
+    this.cleanupStuckLines();
+  }
+  
+  renderSpeedChanges(now, beat) {
+    this.speedModGraphics.clear();
+    
+    const x = this.calculateLeftOffset();
+    const width = this.calculateFullWidth();
+    
+    // Render BPM changes
+    this.bpmChanges.forEach(bpmChange => {
+      const y = this.getYPos(now, beat, bpmChange.beat);
+      
+      if (y >= -this.COLUMN_SIZE && y <= game.height + this.COLUMN_SIZE) {
+        // BPM change line
+        this.speedModGraphics.beginFill(0xFFFF00, 0.8);
+        this.speedModGraphics.drawRect(x, y, width, 1);
+        this.speedModGraphics.endFill();
+        
+        // BPM tag
+        this.drawTag(bpmChange.beat, 'bpm', `${bpmChange.bpm}`, x + width + 2, y - 3, 0xFFFF00);
+      } else {
+        this.removeTag(bpmChange.beat, 'bpm');
+      }
+    });
+    
+    // Render stops
+    this.stops.forEach(stop => {
+      const y = this.getYPos(now, beat, stop.beat);
+      
+      if (y >= -this.COLUMN_SIZE && y <= game.height + this.COLUMN_SIZE) {
+        // Stop line
+        this.speedModGraphics.beginFill(0xFF0000, 0.8);
+        this.speedModGraphics.drawRect(x, y, width, 1);
+        this.speedModGraphics.endFill();
+        
+        // Stop tag
+        this.drawTag(stop.beat, 'stop', `${stop.len.toFixed(2)}`, x + width + 2 + 16, y - 3, 0xFF0000);
+      } else {
+        this.removeTag(stop.beat, 'stop');
+      }
+    });
+  }
+  
+  renderBGChanges(now, beat) {
+    this.bgChangeGraphics.clear();
+    
+    const x = this.calculateLeftOffset();
+    const width = this.calculateFullWidth();
+    
+    this.backgrounds.forEach(bgChange => {
+      const y = this.getYPos(now, beat, bgChange.beat);
+      
+      if (y >= -this.COLUMN_SIZE && y <= game.height + this.COLUMN_SIZE) {
+        // BG change line
+        this.bgChangeGraphics.beginFill(0x00FF00, 0.8);
+        this.bgChangeGraphics.drawRect(x, y, width, 1);
+        this.bgChangeGraphics.endFill();
+        
+        // BG tag
+        const fileName = bgChange.file ? bgChange.file.split('/').pop() : 'No file';
+        this.drawTag(bgChange.beat, 'bg', 'BG', x + width + 2 + 16 + 16, y - 3, 0x00FF00);
+      } else {
+        this.removeTag(bgChange.beat, 'bg');
+      }
+    });
+  }
+  
+  createTag(beat, type, x, y) {
+    const existingChild = this.tagsGroup.getFirstDead();
+
+    const tagText = existingChild || new Text(x, y, "---", {
+      font: "font_tiny",
+      fontMap: " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\"`•<>=%",
+      fontWidth: 4,
+      fontHeight: 6
+    }, this.tagsGroup);
+    
+    if (!tagText.alive) tagText.revive();
+    
+    this.tags[`${type}_${beat}`] = { beat, text: '', type, color: 0xFFFFFF, x, y, tagText };
+  }
+  
+  removeTag(beat, type) {
+    const tag = this.tags[`${type}_${beat}`];
+    
+    if (tag) {
+      tag.tagText.kill();
+      this.tags[`${type}_${beat}`] = null;
+      delete this.tags[`${type}_${beat}`];
+    }
+  }
+  
+  drawTag(beat, type, text, x, y, color) {
+    const existingTag = this.tags[`${type}_${beat}`];
+    
+    if (existingTag) {
+      existingTag.x = x;
+      existingTag.y = y;
+      existingTag.tagText.x = x;
+      existingTag.tagText.y = y;
+      
+      if (existingTag.text != text) existingTag.tagText.write(text);
+      if (existingTag.color != color) existingTag.tagText.tint = color;
+      
+      existingTag.text = text;
+      existingTag.color = color;
+    } else {
+      this.createTag(beat, type, x, y);
+    }
   }
 
-  updateTimeLine(targetBeat, alpha, now, beat) {
+  killNote(note, forever) {
+    if (note.sprite) {
+      note.sprite.kill();
+      note.sprite = null;
+      if (note.holdParts) {
+        note.holdParts.body.kill();
+        note.holdParts.end.kill();
+        note.holdParts = null;
+      }
+    }
+  }
+  
+  cleanupTags() {
+    // Cleanup tags that lost their purpose
+    Object.entries(this.tags).forEach(tag => {
+      let shouldRemove = true;
+      
+      switch (tag.type) {
+        case "bpm":
+          this.bpmChanges.forEach(bpmChange => {
+            if (bpmChange.beat === tag.beat) {
+              shouldRemove = false;
+            }
+          });
+          break;
+        case "stop":
+          this.stops.forEach(stop => {
+            if (stop.beat === tag.beat) {
+              shouldRemove = false;
+            }
+          });
+          break;
+        case "bg":
+          this.backgrounds.forEach(bg => {
+            if (bg.beat === bg.beat) {
+              shouldRemove = false;
+            }
+          });
+          break;
+      }
+      
+      if (shouldRemove) this.removeTag(tag.beat, tag.type)
+    });
+  }
+  
+  getXPos(note) {
+    return this.calculateLeftOffset() + note.column * (this.COLUMN_SIZE + this.COLUMN_SEPARATION);
+  }
+  
+  getYPos(now, beat, targetBeat) {
     let yPos;
     
-    if (this.speedMod === 'C-MOD') {
+    if (this.speedMod === "C-MOD") {
       const targetSec = this.beatToSec(targetBeat);
       const constantDeltaNote = targetSec - now;
       const pastSize = constantDeltaNote * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier;
-      yPos = this.scrollDirection === 'falling' ?
-        this.JUDGE_LINE - pastSize :
-        this.JUDGE_LINE + pastSize;
+      yPos = this.scrollDirection === "falling" ? this.JUDGE_LINE - pastSize : this.JUDGE_LINE + pastSize;
     } else {
       const deltaBeat = targetBeat - beat;
       const pastSize = deltaBeat * this.COLUMN_SIZE * this.VERTICAL_SEPARATION * this.noteSpeedMultiplier;
-      yPos = this.scrollDirection === 'falling' ?
-        this.JUDGE_LINE - pastSize :
-        this.JUDGE_LINE + pastSize;
+      yPos = this.scrollDirection === "falling" ? this.JUDGE_LINE - pastSize : this.JUDGE_LINE + pastSize;
     }
     
+    return yPos;
+  }
+
+  updateTimeLine(targetBeat, alpha, now, beat) {
+    let yPos = this.getYPos(now, beat, targetBeat);
+
     const isVisible = yPos >= -this.COLUMN_SIZE && yPos <= game.height + this.COLUMN_SIZE;
-    
+
     if (isVisible) {
       let line = this.findLineForBeat(targetBeat);
-      
+
       if (!line) {
         line = this.createLine(yPos, alpha);
         if (line) {
@@ -601,52 +795,53 @@ class ChartRenderer {
         line.revive();
       }
       
+      line.lastUpdateTime = game.time.now;
+
       return line;
     }
-    
+
     return null;
   }
 
   findLineForBeat(targetBeat) {
-    const aliveLines = this.linesGroup.getAll('alive', true);
-    
+    const aliveLines = this.linesGroup.getAll("alive", true);
+
     for (let i = 0; i < aliveLines.length; i++) {
       const line = aliveLines[i];
       if (line.targetBeat === targetBeat) {
         return line;
       }
     }
-    
+
     return null;
   }
-  
+
   createExplosion(note, type = "normal") {
     const receptor = this.receptors[note.column];
-    
+
     const existingChild = this.explosionsGroup.getFirstDead();
-    
+
     const explosion = existingChild || (() => {
       const child = game.add.sprite(-64, -64);
       child.anchor.set(0.5);
       this.explosionsGroup.add(child);
       return child;
     })();
-    
+
     explosion.loadTexture(type == "normal" ? "explosion" : "mineexplosion");
     explosion.reset(receptor.x, receptor.y);
     explosion.alpha = 1;
     explosion.scale.set(1);
     explosion.angle = receptor.angle;
-    
+
     const duration = 200;
-    game.add.tween(explosion.scale)
-      .to({ x: 2, y: 2 }, duration, "Linear", true);
+    game.add.tween(explosion.scale).to({ x: 2, y: 2 }, duration, "Linear", true);
     game.add
       .tween(explosion)
       .to({ alpha: 0 }, duration, "Linear", true)
       .onComplete.add(() => explosion.kill());
   }
-  
+
   toggleHoldExplosion(column, visible) {
     const explosion = this.receptors[column].explosion;
     explosion.visible = visible;
@@ -655,15 +850,35 @@ class ChartRenderer {
     }
   }
 
+  cleanupAllLines() {
+    const aliveLines = this.linesGroup.getAll("alive", true);
+
+    for (let i = 0; i < aliveLines.length; i++) {
+      const line = aliveLines[i];
+      line.kill();
+    }
+  }
+
   cleanupInvisibleLines(currentVisibleBeats) {
-    const aliveLines = this.linesGroup.getAll('alive', true);
-    
+    const aliveLines = this.linesGroup.getAll("alive", true);
+
     for (let i = 0; i < aliveLines.length; i++) {
       const line = aliveLines[i];
       const buffer = this.COLUMN_SIZE * 2;
       const isOffScreen = line.y < -buffer || line.y > game.height + buffer;
-      
+
       if (isOffScreen) {
+        line.kill();
+      }
+    }
+  }
+  
+  cleanupStuckLines() {
+    const aliveLines = this.linesGroup.getAll("alive", true);
+
+    for (let i = 0; i < aliveLines.length; i++) {
+      const line = aliveLines[i];
+      if (game.time.now - line.lastUpdateTime > 60) {
         line.kill();
       }
     }
@@ -671,20 +886,20 @@ class ChartRenderer {
 
   createLine(y, alpha) {
     const existingChild = this.linesGroup.getFirstDead();
-    
+
     const line = existingChild || (() => {
       const bmd = game.add.bitmapData(1, 1);
       bmd.fill(255, 255, 255);
       const child = game.add.sprite(this.calculateLeftOffset(), y, bmd);
-      child.width = (this.COLUMN_SIZE * 4) + (this.COLUMN_SEPARATION * 3);
+      child.width = this.calculateFullWidth();
       this.linesGroup.add(child);
       return child;
     })();
-    
+
     line.y = y;
     line.alpha = alpha;
     line.revive();
-    
+
     return line;
   }
 
@@ -696,5 +911,8 @@ class ChartRenderer {
     this.notesGroup.destroy(true);
     this.minesGroup.destroy(true);
     this.explosionsGroup.destroy(true);
+    this.tagsGroup.destroy(true);
+    this.speedModGraphics.destroy();
+    this.bgChangeGraphics.destroy();
   }
 }
