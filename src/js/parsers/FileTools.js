@@ -89,6 +89,12 @@ class FileTools {
     return songCopy;
   }
   
+  static getFilename(url) {
+    if (!url || url === "no-media") return "";
+    const parts = url.split(/[\\/]/);
+    return parts[parts.length - 1] || "";
+  }
+  
   static async getFileData(filename, files) {
     if (!files[filename]) {
       return null;
