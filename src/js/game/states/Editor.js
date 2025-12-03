@@ -1193,7 +1193,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
       if (chartFileNames.length === 0) {
         this.showFileMenu();
-        notifications.notify("No chart files found");
+        notifications.show("No chart files found");
         return;
       }
 
@@ -1309,7 +1309,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
       
       const reader = new FileReader();
       reader.onload = () => {
-        this.song.chart.lyrics = reader.result;
+        this.song.chart.lyrics = file.name;
+        this.song.chart.lyricsContent = reader.result;
         this.files.lyrics = reader.result;
         this.refreshLyrics();
         this.hideLoadingScreen();

@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 12/3/2025, 11:39:59 AM
+ * Build: 12/3/2025, 12:45:14 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -15210,10 +15210,16 @@ class Play {
       const { url, type } = background;
       const element = type == "video" ? document.createElement("video") : document.createElement("img");
       element.src = url;
-      element.muted = true;
-      element.loop = true;
-      element.onload = () => resolve(element);
-      element.onerror = () => resolve(element);
+      if (type == "image") {
+        element.onload = () => resolve(element);
+        element.onerror = () => resolve(element);
+      } else {
+        element.muted = true;
+        element.volume = 0;
+        element.loop = true;
+        element.addEventListener("canplaythrough", () => resolve(element));
+        element.onerror = () => resolve(element);
+      }
     });
   }
   
@@ -15361,7 +15367,7 @@ class Play {
   setInitialBackground() {
     // Set initial background
     if (this.song.chart.backgroundUrl && this.song.chart.backgroundUrl !== "no-media") {
-      this.loadBackgroundImage(this.song.chart.backgroundUrl);
+      this.loadBackgroundImage("", this.song.chart.backgroundUrl);
     } else {
       // Default black background
       this.backgroundCtx.fillStyle = "#000000";
@@ -15445,11 +15451,9 @@ class Play {
     this.backgroundSprite.loadTexture(texture);
   }
   
-  loadBackgroundImage(url) {
+  loadBackgroundImage(filename, url) {
     // Pause any existing video
     if (this.video) this.video.pause();
-    
-    const filename = FileTools.getFilename(url);
     
     // Check if there is already a background preloaded
     if (this.preloadedBackgrounds[filename]) {
@@ -15466,11 +15470,9 @@ class Play {
     this.backgroundGradient.visible = true;
   }
   
-  loadBackgroundVideo(url) {
+  loadBackgroundVideo(filename, url) {
     // Pause any existing video
-    if (this.video) this.video.pause();
-    
-    const filename = FileTools.getFilename(url);
+    if (this.video && this.video != this.preloadedBackgrounds[filename]) this.video.pause();
     
     // Check if there is already a background preloaded
     if (this.preloadedBackgrounds[filename]) {
@@ -15482,6 +15484,10 @@ class Play {
       video.src = url;
       this.preloadedBackgrounds[filename] = video;
       this.video = video;
+      this.video.muted = true;
+      this.video.volume = 0;
+      this.video.loop = true;
+      console.warn("Couldn't find video:", filename);
     }
     
     this.video.play();
@@ -15499,9 +15505,9 @@ class Play {
     if (bg.file == '-nosongbg-') {
       this.clearBackgroundImage();
     } else if (bg.type == 'video') {
-      this.loadBackgroundVideo(bg.url);
+      this.loadBackgroundVideo(bg.file, bg.url);
     } else {
-      this.loadBackgroundImage(bg.url);
+      this.loadBackgroundImage(bg.file, bg.url);
     }
     this.currentBackground = bg;
     this.applyBgEffects(bg);
@@ -15782,7 +15788,7 @@ class Play {
     
     this.player.update();
     
-    this.updateBackgrounds();
+    if (this.started) this.updateBackgrounds();
     
     this.hud.bringToTop();
     this.hud.alpha = this.player.gameOver ? 0.5 : 1;
@@ -18177,7 +18183,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
       if (chartFileNames.length === 0) {
         this.showFileMenu();
-        notifications.notify("No chart files found");
+        notifications.show("No chart files found");
         return;
       }
 
@@ -18293,7 +18299,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
       
       const reader = new FileReader();
       reader.onload = () => {
-        this.song.chart.lyrics = reader.result;
+        this.song.chart.lyrics = file.name;
+        this.song.chart.lyricsContent = reader.result;
         this.files.lyrics = reader.result;
         this.refreshLyrics();
         this.hideLoadingScreen();
