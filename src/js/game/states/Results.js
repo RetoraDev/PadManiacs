@@ -120,8 +120,8 @@ class Results {
       this.previewAudio.currentTime = song.chart.sampleStart || 0;
       this.previewAudio.play();
     }
-    if (song.chart.banner) {
-      this.bannerImg.src = song.chart.banner;
+    if (song.chart.bannerUrl) {
+      this.bannerImg.src = song.chart.bannerUrl;
       this.bannerImg.onload = () => {
         this.bannerCtx.drawImage(this.bannerImg, 0, 0, 72, 28);
         this.bannerSprite.loadTexture(PIXI.Texture.fromCanvas(this.bannerCanvas));

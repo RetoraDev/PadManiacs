@@ -37,13 +37,13 @@ class LoadLocalSongs {
     try {
       // Try to load .sm file with same name as folder
       let smUrl = baseUrl + folderName + '.sm';
-      let smContent = await this.loadTextFile(smUrl);
+      let smContent = await this.parser.loadTextFile(smUrl);
       
       // If that fails, look for any .sm file in the folder
       if (!smContent) {
         const alternativeNames = ['song.sm', 'chart.sm', 'steps.sm'];
         for (const name of alternativeNames) {
-          smContent = await this.loadTextFile(baseUrl + name);
+          smContent = await this.parser.loadTextFile(baseUrl + name);
           if (smContent) break;
         }
       }
@@ -63,21 +63,6 @@ class LoadLocalSongs {
       console.warn(`Could not load song ${folderName}:`, error);
       return null;
     }
-  }
-  async loadTextFile(url) {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          resolve(xhr.responseText);
-        } else {
-          resolve(null);
-        }
-      };
-      xhr.onerror = () => resolve(null);
-      xhr.send();
-    });
   }
   finish() {
     window.localSongs = this.songs;

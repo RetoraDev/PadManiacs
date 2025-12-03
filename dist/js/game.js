@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 12/2/2025, 1:42:00 PM
+ * Build: 12/3/2025, 11:39:59 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -857,6 +857,13 @@ const DEFAULT_ACCOUNT = {
     totalBoo: 0,
     totalMiss: 0,
     
+    // Editor stats
+    totalPlacedArrows: 0,
+    totalPlacedFreezes: 0,
+    totalPlacedMines: 0,
+    totalImportedSongs: 0,
+    totalExportedSongs: 0,
+    
     // Miscellaneous
     maxSkillsInGame: 0,
     gameRated: false,
@@ -884,13 +891,14 @@ const ACHIEVEMENTS = {
 
 // Achievement categories
 const ACHIEVEMENT_CATEGORIES = {
-  GAMEPLAY: 'Gameplay',
-  CHARACTER: 'Character',
-  PROGRESSION: 'Progression',
-  MASTERY: 'Mastery',
-  TIME: 'Time',
-  HOLIDAYS: 'Holidays',
-  MISC: 'Miscellaneous'
+  GAMEPLAY: "Gameplay",
+  CHARACTER: "Character",
+  PROGRESSION: "Progression",
+  MASTERY: "Mastery",
+  TIME: "Time",
+  HOLIDAYS: "Holidays",
+  EDITOR: "Editor",
+  MISC: "Miscellaneous"
 };
 
 // Achievement definitions
@@ -905,7 +913,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed your first game!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 1,
+    condition: stats => stats.totalGamesPlayed >= 1,
     hidden: false
   },
   {
@@ -929,7 +937,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 100 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.maxCombo >= 100,
+    condition: stats => stats.maxCombo >= 100,
     hidden: false
   },
   {
@@ -941,7 +949,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 500 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.maxCombo >= 500,
+    condition: stats => stats.maxCombo >= 500,
     hidden: false
   },
   {
@@ -953,7 +961,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 1000 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.maxCombo >= 1000,
+    condition: stats => stats.maxCombo >= 1000,
     hidden: false
   },
   {
@@ -965,7 +973,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 1500 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.maxCombo >= 1500,
+    condition: stats => stats.maxCombo >= 1500,
     hidden: false
   },
   {
@@ -977,7 +985,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 2000 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.maxCombo >= 2000,
+    condition: stats => stats.maxCombo >= 2000,
     hidden: false
   },
   {
@@ -989,7 +997,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 3000 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.maxCombo >= 3000,
+    condition: stats => stats.maxCombo >= 3000,
     hidden: false
   },
   {
@@ -1001,7 +1009,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed a song with 100% accuracy!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.perfectGames >= 1,
+    condition: stats => stats.perfectGames >= 1,
     hidden: false
   },
   {
@@ -1013,7 +1021,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 5 songs with 100% accuracy!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.perfectGames >= 5,
+    condition: stats => stats.perfectGames >= 5,
     hidden: false
   },
   {
@@ -1025,7 +1033,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 songs with 100% accuracy!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.perfectGames >= 25,
+    condition: stats => stats.perfectGames >= 25,
     hidden: false
   },
   {
@@ -1037,7 +1045,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You got 500 Marvelous judgements!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.maxMarvelousInGame >= 500,
+    condition: stats => stats.maxMarvelousInGame >= 500,
     hidden: false
   },
   {
@@ -1049,7 +1057,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You got 1000 Marvelous judgements!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.maxMarvelousInGame >= 1000,
+    condition: stats => stats.maxMarvelousInGame >= 1000,
     hidden: false
   },
   {
@@ -1061,7 +1069,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You got 1500 Marvelous judgements!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.maxMarvelousInGame >= 1500,
+    condition: stats => stats.maxMarvelousInGame >= 1500,
     hidden: false
   },
   {
@@ -1074,7 +1082,7 @@ const ACHIEVEMENT_DEFINITIONS = [
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: (_, song) => song.judgements.marvelous >= song.totalNotes,
-    condition: (stats) => stats.perfectGames >= 1 && stats.maxMarvelousInGame >= 50,
+    condition: stats => stats.perfectGames >= 1 && stats.maxMarvelousInGame >= 50,
     hidden: false
   },
   {
@@ -1172,7 +1180,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You created your first character!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.charactersCreated >= 1,
+    condition: stats => stats.charactersCreated >= 1,
     hidden: false
   },
   {
@@ -1184,7 +1192,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You created 5 different characters!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.charactersCreated >= 5,
+    condition: stats => stats.charactersCreated >= 5,
     hidden: false
   },
   {
@@ -1196,7 +1204,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You created 10 different characters!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.charactersCreated >= 10,
+    condition: stats => stats.charactersCreated >= 10,
     hidden: false
   },
   {
@@ -1208,7 +1216,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached character level 5!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.maxCharacterLevel >= 5,
+    condition: stats => stats.maxCharacterLevel >= 5,
     hidden: false
   },
   {
@@ -1220,7 +1228,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached character level 10!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.maxCharacterLevel >= 10,
+    condition: stats => stats.maxCharacterLevel >= 10,
     hidden: false
   },
   {
@@ -1232,7 +1240,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached character level 20!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.maxCharacterLevel >= 20,
+    condition: stats => stats.maxCharacterLevel >= 20,
     hidden: false
   },
   {
@@ -1244,7 +1252,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached character level 30!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.maxCharacterLevel >= 30,
+    condition: stats => stats.maxCharacterLevel >= 30,
     hidden: false
   },
   {
@@ -1256,7 +1264,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached character level 50!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.maxCharacterLevel >= 50,
+    condition: stats => stats.maxCharacterLevel >= 50,
     hidden: false
   },
   {
@@ -1268,7 +1276,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked your first skill!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.skillsUnlocked >= 1,
+    condition: stats => stats.skillsUnlocked >= 1,
     hidden: false
   },
   {
@@ -1280,7 +1288,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 5 different skills!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.skillsUnlocked >= 5,
+    condition: stats => stats.skillsUnlocked >= 5,
     hidden: false
   },
   {
@@ -1292,7 +1300,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 10 different skills!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.skillsUnlocked >= 10,
+    condition: stats => stats.skillsUnlocked >= 10,
     hidden: false
   },
   {
@@ -1304,7 +1312,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 20 different skills!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.skillsUnlocked >= 20,
+    condition: stats => stats.skillsUnlocked >= 20,
     hidden: false
   },
   {
@@ -1316,7 +1324,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 30 different skills!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.skillsUnlocked >= 30,
+    condition: stats => stats.skillsUnlocked >= 30,
     hidden: false
   },
   {
@@ -1328,7 +1336,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked a new hair style!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.charactersCreated >= 1,
+    condition: stats => stats.charactersCreated >= 1,
     hidden: false
   },
   {
@@ -1340,7 +1348,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 5 different clothing items!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.charactersCreated >= 2,
+    condition: stats => stats.charactersCreated >= 2,
     hidden: false
   },
   {
@@ -1352,7 +1360,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 10 different clothing items!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.charactersCreated >= 3,
+    condition: stats => stats.charactersCreated >= 3,
     hidden: false
   },
   {
@@ -1364,7 +1372,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 5 different accessories!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.charactersCreated >= 2,
+    condition: stats => stats.charactersCreated >= 2,
     hidden: false
   },
   {
@@ -1376,7 +1384,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached maximum skill level with a character!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.maxCharacterLevel >= CHARACTER_SYSTEM.MAX_SKILL_LEVEL,
+    condition: stats => stats.maxCharacterLevel >= CHARACTER_SYSTEM.MAX_SKILL_LEVEL,
     hidden: false
   },
   {
@@ -1388,7 +1396,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maxed out all character stats!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.maxCharacterLevel >= 50 && stats.skillsUnlocked >= 30,
+    condition: stats => stats.maxCharacterLevel >= 50 && stats.skillsUnlocked >= 30,
     hidden: false
   },
   {
@@ -1400,7 +1408,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You created a character with maximum name length!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.charactersCreated >= 1,
+    condition: stats => stats.charactersCreated >= 1,
     hidden: false
   },
 
@@ -1414,7 +1422,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 10 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 25,
+    condition: stats => stats.totalGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1426,7 +1434,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 25 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 25,
+    condition: stats => stats.totalGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1438,7 +1446,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 50 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalGamesPlayed >= 50,
+    condition: stats => stats.totalGamesPlayed >= 50,
     hidden: false
   },
   {
@@ -1450,7 +1458,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 100 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalGamesPlayed >= 250,
+    condition: stats => stats.totalGamesPlayed >= 250,
     hidden: false
   },
   {
@@ -1462,7 +1470,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maintained a 3-day play streak!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.currentStreak >= 3,
+    condition: stats => stats.currentStreak >= 3,
     hidden: false
   },
   {
@@ -1474,7 +1482,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maintained a 7-day play streak!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.currentStreak >= 7,
+    condition: stats => stats.currentStreak >= 7,
     hidden: false
   },
   {
@@ -1486,7 +1494,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maintained a 14-day play streak!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.currentStreak >= 14,
+    condition: stats => stats.currentStreak >= 14,
     hidden: false
   },
   {
@@ -1498,7 +1506,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maintained a 30-day play streak!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.currentStreak >= 30,
+    condition: stats => stats.currentStreak >= 30,
     hidden: false
   },
   {
@@ -1510,7 +1518,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maintained a 90-day play streak!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.currentStreak >= 90,
+    condition: stats => stats.currentStreak >= 90,
     hidden: false
   },
   {
@@ -1522,7 +1530,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You set your first high score!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.highScoresSet >= 1,
+    condition: stats => stats.highScoresSet >= 1,
     hidden: false
   },
   {
@@ -1534,7 +1542,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You set 10 high scores!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.highScoresSet >= 10,
+    condition: stats => stats.highScoresSet >= 10,
     hidden: false
   },
   {
@@ -1546,7 +1554,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You set 25 high scores!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.highScoresSet >= 25,
+    condition: stats => stats.highScoresSet >= 25,
     hidden: false
   },
   {
@@ -1558,7 +1566,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You set 50 high scores!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.highScoresSet >= 50,
+    condition: stats => stats.highScoresSet >= 50,
     hidden: false
   },
   {
@@ -1570,7 +1578,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 1 million total score!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalScore >= 1000000,
+    condition: stats => stats.totalScore >= 1000000,
     hidden: false
   },
   {
@@ -1582,7 +1590,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 10 million total score!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalScore >= 10000000,
+    condition: stats => stats.totalScore >= 10000000,
     hidden: false
   },
   {
@@ -1594,7 +1602,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 100 million total score!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalScore >= 100000000,
+    condition: stats => stats.totalScore >= 100000000,
     hidden: false
   },
   {
@@ -1606,7 +1614,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You hit 1000 notes total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalNotesHit >= 1000,
+    condition: stats => stats.totalNotesHit >= 1000,
     hidden: false
   },
   {
@@ -1618,7 +1626,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You hit 10,000 notes total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalNotesHit >= 10000,
+    condition: stats => stats.totalNotesHit >= 10000,
     hidden: false
   },
   {
@@ -1630,7 +1638,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You hit 100,000 notes total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalNotesHit >= 100000,
+    condition: stats => stats.totalNotesHit >= 100000,
     hidden: false
   },
 
@@ -1644,7 +1652,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played for 1 hour total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalTimePlayed >= 3600,
+    condition: stats => stats.totalTimePlayed >= 3600,
     hidden: false
   },
   {
@@ -1656,7 +1664,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played for 5 hours total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalTimePlayed >= 18000,
+    condition: stats => stats.totalTimePlayed >= 18000,
     hidden: false
   },
   {
@@ -1668,7 +1676,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played for 10 hours total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalTimePlayed >= 36000,
+    condition: stats => stats.totalTimePlayed >= 36000,
     hidden: false
   },
   {
@@ -1680,7 +1688,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played for 24 hours total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalTimePlayed >= 86400,
+    condition: stats => stats.totalTimePlayed >= 86400,
     hidden: false
   },
   {
@@ -1692,7 +1700,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played for 100 hours total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.totalTimePlayed >= 360000,
+    condition: stats => stats.totalTimePlayed >= 360000,
     hidden: false
   },
   {
@@ -1704,7 +1712,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played a single session for 30 minutes!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.longestSession >= 1800,
+    condition: stats => stats.longestSession >= 1800,
     hidden: false
   },
   {
@@ -1716,7 +1724,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played a single session for 1 hour!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.longestSession >= 3600,
+    condition: stats => stats.longestSession >= 3600,
     hidden: false
   },
   {
@@ -1728,7 +1736,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played a single session for 2 hours!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.longestSession >= 7200,
+    condition: stats => stats.longestSession >= 7200,
     hidden: false
   },
   {
@@ -1740,7 +1748,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played a single session for 4 hours!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.longestSession >= 14400,
+    condition: stats => stats.longestSession >= 14400,
     hidden: false
   },
   {
@@ -1752,7 +1760,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played between 5 AM and 9 AM!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.playedEarlyMorning,
+    condition: stats => stats.playedEarlyMorning,
     hidden: false
   },
   {
@@ -1764,7 +1772,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played between midnight and 4 AM!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.playedAtNight,
+    condition: stats => stats.playedAtNight,
     hidden: false
   },
   {
@@ -1776,7 +1784,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played on a weekend!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.playedWeekend,
+    condition: stats => stats.playedWeekend,
     hidden: false
   },
   {
@@ -1788,8 +1796,346 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played on a holiday!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.playedHoliday,
+    condition: stats => stats.playedHoliday,
     hidden: false
+  },
+
+  // Editor Achievements
+  {
+    id: "first_arrow_placed",
+    name: "First Step",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place your first arrow in the editor",
+      achieved: "You placed your first arrow!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.totalPlacedArrows >= 1,
+    hidden: false
+  },
+  {
+    id: "arrow_master",
+    name: "Arrow Architect",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 100 arrows in the editor",
+      achieved: "You placed 100 arrows!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.totalPlacedArrows >= 100,
+    hidden: false
+  },
+  {
+    id: "arrow_expert",
+    name: "Pattern Weaver",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 500 arrows in the editor",
+      achieved: "You placed 500 arrows!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.totalPlacedArrows >= 500,
+    hidden: false
+  },
+  {
+    id: "arrow_legend",
+    name: "Stepchart Legend",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 1000 arrows in the editor",
+      achieved: "You placed 1000 arrows!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.totalPlacedArrows >= 1000,
+    hidden: false
+  },
+  {
+    id: "first_freeze_placed",
+    name: "Hold On",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place your first freeze arrow",
+      achieved: "You placed your first freeze arrow!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.totalPlacedFreezes >= 1,
+    hidden: false
+  },
+  {
+    id: "freeze_master",
+    name: "Hold Master",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 50 freeze arrows",
+      achieved: "You placed 50 freeze arrows!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.totalPlacedFreezes >= 50,
+    hidden: false
+  },
+  {
+    id: "freeze_artist",
+    name: "Sustain Artist",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 200 freeze arrows",
+      achieved: "You placed 200 freeze arrows!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.totalPlacedFreezes >= 200,
+    hidden: false
+  },
+  {
+    id: "first_mine_placed",
+    name: "Danger Zone",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place your first mine",
+      achieved: "You placed your first mine!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.totalPlacedMines >= 1,
+    hidden: false
+  },
+  {
+    id: "mine_layer",
+    name: "Mine Layer",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 25 mines",
+      achieved: "You placed 25 mines!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.totalPlacedMines >= 25,
+    hidden: false
+  },
+  {
+    id: "mine_expert",
+    name: "Trap Master",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 100 mines",
+      achieved: "You placed 100 mines!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.totalPlacedMines >= 100,
+    hidden: false
+  },
+  {
+    id: "first_chart_created",
+    name: "Chart Creator",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Create your first complete chart",
+      achieved: "You created your first complete chart!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.chartsCreated >= 1,
+    hidden: false
+  },
+  {
+    id: "chart_creator",
+    name: "Prolific Creator",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Create 5 complete charts",
+      achieved: "You created 5 complete charts!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.chartsCreated >= 5,
+    hidden: false
+  },
+  {
+    id: "chart_master",
+    name: "Chart Master",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Create 10 complete charts",
+      achieved: "You created 10 complete charts!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.chartsCreated >= 10,
+    hidden: false
+  },
+  {
+    id: "first_song_imported",
+    name: "Music Importer",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Import your first song",
+      achieved: "You imported your first song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.totalImportedSongs >= 1,
+    hidden: false
+  },
+  {
+    id: "song_collector",
+    name: "Music Collector",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Import 5 songs",
+      achieved: "You imported 5 songs!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.totalImportedSongs >= 5,
+    hidden: false
+  },
+  {
+    id: "music_archivist",
+    name: "Music Archivist",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Import 10 songs",
+      achieved: "You imported 10 songs!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.totalImportedSongs >= 10,
+    hidden: false
+  },
+  {
+    id: "first_song_exported",
+    name: "Chart Exporter",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Export your first chart",
+      achieved: "You exported your first chart!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.totalExportedSongs >= 1,
+    hidden: false
+  },
+  {
+    id: "song_exporter",
+    name: "Content Creator",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Export 5 charts",
+      achieved: "You exported 5 charts!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.totalExportedSongs >= 5,
+    hidden: false
+  },
+  {
+    id: "chart_publisher",
+    name: "Chart Publisher",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Export 10 charts",
+      achieved: "You exported 10 charts!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.totalExportedSongs >= 10,
+    hidden: false
+  },
+  {
+    id: "editor_time_1_hour",
+    name: "Editor Apprentice",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Spend 1 hour in the editor",
+      achieved: "You spent 1 hour in the editor!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.editorTimeSpent >= 3600,
+    hidden: false
+  },
+  {
+    id: "editor_time_5_hours",
+    name: "Editor Enthusiast",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Spend 5 hours in the editor",
+      achieved: "You spent 5 hours in the editor!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.editorTimeSpent >= 18000,
+    hidden: false
+  },
+  {
+    id: "editor_time_10_hours",
+    name: "Editor Veteran",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Spend 10 hours in the editor",
+      achieved: "You spent 10 hours in the editor!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.editorTimeSpent >= 36000,
+    hidden: false
+  },
+  {
+    id: "editor_time_24_hours",
+    name: "Editor Master",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Spend 24 hours in the editor",
+      achieved: "You spent 24 hours in the editor!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.editorTimeSpent >= 86400,
+    hidden: false
+  },
+  {
+    id: "complex_chart",
+    name: "Complexity Creator",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Create a chart with 1000+ notes",
+      achieved: "You created a chart with 1000+ notes!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.createdChartWith1000Notes,
+    hidden: false
+  },
+  {
+    id: "difficulty_setter",
+    name: "Difficulty Designer",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Set difficulty ratings for 5 charts",
+      achieved: "You set difficulty ratings for 5 charts!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.chartsWithDifficultySet >= 5,
+    hidden: false
+  },
+  {
+    id: "all_note_types",
+    name: "Note Variety Expert",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Use all note types in a single chart",
+      achieved: "You used all note types in a single chart!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.usedAllNoteTypesInChart,
+    hidden: false
+  },
+  {
+    id: "chart_test_play",
+    name: "Quality Tester",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Test play your own chart",
+      achieved: "You test played your own chart!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.chartsTestPlayed >= 1,
+    hidden: false
+  },
+  {
+    id: "editor_completionist",
+    name: "Editor Completionist",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Complete all basic editor achievements",
+      achieved: "You completed all basic editor achievements!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: stats => stats.totalPlacedArrows >= 1000 && stats.totalPlacedFreezes >= 200 && stats.totalPlacedMines >= 100 && stats.chartsCreated >= 10 && stats.totalExportedSongs >= 10 && stats.editorTimeSpent >= 36000,
+    hidden: true
   },
 
   // Mastery Achievements
@@ -1802,7 +2148,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed songs on all difficulty types!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalBeginnerGamesPlayed && stats.totalEasyGamesPlayed && stats.totalMediumGamesPlayed && stats.totalHardGamesPlayed && stats.totalChallengeGamesPlayed && stats.totalEditGamesPlayed,
+    condition: stats => stats.totalBeginnerGamesPlayed && stats.totalEasyGamesPlayed && stats.totalMediumGamesPlayed && stats.totalHardGamesPlayed && stats.totalChallengeGamesPlayed && stats.totalEditGamesPlayed,
     hidden: false
   },
   {
@@ -1814,7 +2160,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 Beginner difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalBeginnerGamesPlayed >= 25,
+    condition: stats => stats.totalBeginnerGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1826,7 +2172,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 Easy difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalEasyGamesPlayed >= 25,
+    condition: stats => stats.totalEasyGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1838,7 +2184,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 Medium difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalMediumGamesPlayed >= 25,
+    condition: stats => stats.totalMediumGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1850,7 +2196,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 Hard difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalHardGamesPlayed >= 25,
+    condition: stats => stats.totalHardGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1862,7 +2208,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 Challenge difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalChallengeGamesPlayed >= 25,
+    condition: stats => stats.totalChallengeGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1910,7 +2256,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You used 5 skills in a single game!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.maxSkillsInGame >= 5,
+    condition: stats => stats.maxSkillsInGame >= 5,
     hidden: false
   },
   {
@@ -1922,10 +2268,10 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You used 10 skills in a single game!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.maxSkillsInGame >= 10,
+    condition: stats => stats.maxSkillsInGame >= 10,
     hidden: false
   },
-  
+
   // Miscellaneous
   {
     id: "submit_bug_report",
@@ -1936,7 +2282,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You submitted a bug report!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.submittedBugReport,
+    condition: stats => stats.submittedBugReport,
     hidden: false
   },
   {
@@ -1948,7 +2294,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You submitted a review! Thank you!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.gameRated,
+    condition: stats => stats.gameRated,
     hidden: false
   },
   {
@@ -1960,7 +2306,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You requested a feature!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.featureRequestPrompted,
+    condition: stats => stats.featureRequestPrompted,
     hidden: false
   }
 ];
@@ -3555,7 +3901,7 @@ class Text extends Phaser.Sprite {
   }
 
   write(text, max) {
-    if (!text) return this;
+    if (typeof text != "string") return this;
     if (max && text.length > max) {
       this.scrollwrite(text, max);
     } else {
@@ -9672,11 +10018,11 @@ class SMFile {
     smContent += `#ARTISTTRANSLIT:${songData.artistTranslit || ""};\n`;
     smContent += `#GENRE:${songData.genre || ""};\n`;
     smContent += `#CREDIT:${songData.credit || ""};\n`;
-    smContent += `#BANNER:${this.getFilename(songData.banner)};\n`;
-    smContent += `#BACKGROUND:${this.getFilename(songData.background)};\n`;
-    smContent += `#LYRICSPATH:${this.getFilename(songData.lyrics)};\n`;
-    smContent += `#CDTITLE:${this.getFilename(songData.cdtitle)};\n`;
-    smContent += `#MUSIC:${this.getFilename(songData.audio)};\n`;
+    smContent += `#BANNER:${FileTools.getFilename(songData.banner)};\n`;
+    smContent += `#BACKGROUND:${FileTools.getFilename(songData.background)};\n`;
+    smContent += `#LYRICSPATH:${songData.lyrics || ""};\n`;
+    smContent += `#CDTITLE:${FileTools.getFilename(songData.cdtitle)};\n`;
+    smContent += `#MUSIC:${FileTools.getFilename(songData.audio)};\n`;
     smContent += `#OFFSET:${(songData.offset || 0).toFixed(6)};\n`;
     smContent += `#SAMPLESTART:${(songData.sampleStart || 0).toFixed(6)};\n`;
     smContent += `#SAMPLELENGTH:${(songData.sampleLength || 10).toFixed(6)};\n`;
@@ -9717,12 +10063,6 @@ class SMFile {
     }
     
     return smContent;
-  }
-  
-  static getFilename(url) {
-    if (!url || url === "no-media") return "";
-    const parts = url.split(/[\\/]/);
-    return parts[parts.length - 1] || "";
   }
   
   static generateNotesSection(difficulty, notes) {
@@ -10027,6 +10367,12 @@ class FileTools {
     return songCopy;
   }
   
+  static getFilename(url) {
+    if (!url || url === "no-media") return "";
+    const parts = url.split(/[\\/]/);
+    return parts[parts.length - 1] || "";
+  }
+  
   static async getFileData(filename, files) {
     if (!files[filename]) {
       return null;
@@ -10049,7 +10395,6 @@ class FileTools {
 }
 
 class LocalSMParser {
-  // TODO: Make this class use SMFile
   constructor() {
     this.baseUrl = "";
   }
@@ -10058,11 +10403,6 @@ class LocalSMParser {
     this.baseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
     
     let out = {};
-    let isSSC = smContent.includes("#VERSION:");
-
-    if (isSSC) {
-      return this.parseSSC(smContent, baseUrl);
-    }
 
     // Clean and parse SM content
     let sm = smContent
@@ -10089,6 +10429,8 @@ class LocalSMParser {
     out.backgroundUrl = "";
     out.cdtitle = "";
     out.cdtitleUrl = "";
+    out.lyrics = "";
+    out.lyricsContent = null;
     out.audioUrl = null;
     out.videoUrl = null;
     out.sampleStart = 0;
@@ -10173,7 +10515,10 @@ class LocalSMParser {
           }
           break;
         case "#LYRICSPATH":
-          if (p[1]) out.lyrics = this.resolveFileUrl(p[1], baseUrl);
+          if (p[1]) {
+            out.lyrics = p[1];
+            out.lyricsContent = await this.loadTextFile(baseUrl + p[1]);
+          }
           break;
         case "#SAMPLESTART":
           if (p[1]) out.sampleStart = parseFloat(p[1]);
@@ -10290,6 +10635,22 @@ class LocalSMParser {
 
     return out;
   }
+  
+  async loadTextFile(url) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          resolve(xhr.responseText);
+        } else {
+          resolve(null);
+        }
+      };
+      xhr.onerror = () => resolve(null);
+      xhr.send();
+    });
+  }
 
   resolveFileUrl(filename, baseUrl) {
     if (!filename) return "";
@@ -10313,55 +10674,11 @@ class LocalSMParser {
     for (let i in s) x += s[i];
     return x;
   }
-
-  parseSSC(sscContent, baseUrl) {
-    const sections = sscContent.split(/\/\/-+/);
-    const headerSection = sections[0];
-    
-    const out = {
-      bpmChanges: [],
-      stops: [],
-      notes: {},
-      backgrounds: [],
-      banner: "no-media",
-      difficulties: [],
-      background: "no-media",
-      cdtitle: null,
-      audioUrl: null,
-      videoUrl: null,
-      sampleStart: 0,
-      sampleLength: 10,
-      baseUrl: baseUrl
-    };
-
-    // Parse header tags
-    const lines = headerSection.split('\n');
-    for (let line of lines) {
-      if (line.startsWith('#')) {
-        const [key, ...valueParts] = line.slice(1).split(':');
-        const value = valueParts.join(':').trim();
-        
-        switch(key) {
-          case 'TITLE': out.title = value; break;
-          case 'ARTIST': out.artist = value; break;
-          case 'BANNER': out.banner = this.resolveFileUrl(value); break;
-          case 'BACKGROUND': out.background = this.resolveFileUrl(value); break;
-          case 'MUSIC': 
-            out.audio = value;
-            out.audioUrl = this.resolveFileUrl(value);
-            break;
-          // Add more tags as needed
-        }
-      }
-    }
-
-    return out;
-  }
 }
 
 class ExternalSMParser {
   // TODO: Make this class use SMFile
-  parseSM(files, smContent) {
+  async parseSM(files, smContent) {
     let out = {};
     let isSSC = smContent.includes("#VERSION:");
 
@@ -10394,6 +10711,8 @@ class ExternalSMParser {
     out.backgroundUrl = "";
     out.cdtitle = "no-media";
     out.cdtitleUrl = "";
+    out.lyrics = "";
+    out.lyricsContent = null;
     out.audioUrl = null;
     out.videoUrl = null;
     out.files = files;
@@ -10509,10 +10828,8 @@ class ExternalSMParser {
         case "#LYRICSPATH":
           if (p[1] && files[p[1].toLowerCase()]) {
             const file = files[p[1].toLowerCase()];
-            out.lyrics = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.lyrics = out.lyrics
-              .replace('cdvfile://', 'file://')
-              .replace('localhost/persistent/', '/storage/emulated/0/');
+            out.lyrics = p[1];
+            out.lyricsContent = await this.readFileContent(file);
           }
           break;
         case "#MUSIC":
@@ -10624,6 +10941,15 @@ class ExternalSMParser {
     }
 
     return out;
+  }
+  
+  readFileContent(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
   }
 
   parseSSC(files, sscContent) {
@@ -11286,6 +11612,13 @@ class Boot {
         url: "ui/hud_background.png"
       },
       {
+        key: "ui_editor_icons",
+        url: "ui/editor_icons.png",
+        type: "spritesheet",
+        frameWidth: 8,
+        frameHeight: 8
+      },
+      {
         key: "ui_lobby_background",
         url: "ui/lobby_background.png"
       },
@@ -11706,13 +12039,13 @@ class LoadLocalSongs {
     try {
       // Try to load .sm file with same name as folder
       let smUrl = baseUrl + folderName + '.sm';
-      let smContent = await this.loadTextFile(smUrl);
+      let smContent = await this.parser.loadTextFile(smUrl);
       
       // If that fails, look for any .sm file in the folder
       if (!smContent) {
         const alternativeNames = ['song.sm', 'chart.sm', 'steps.sm'];
         for (const name of alternativeNames) {
-          smContent = await this.loadTextFile(baseUrl + name);
+          smContent = await this.parser.loadTextFile(baseUrl + name);
           if (smContent) break;
         }
       }
@@ -11732,21 +12065,6 @@ class LoadLocalSongs {
       console.warn(`Could not load song ${folderName}:`, error);
       return null;
     }
-  }
-  async loadTextFile(url) {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          resolve(xhr.responseText);
-        } else {
-          resolve(null);
-        }
-      };
-      xhr.onerror = () => resolve(null);
-      xhr.send();
-    });
   }
   finish() {
     window.localSongs = this.songs;
@@ -12137,9 +12455,9 @@ class LoadSongFolder {
       }
 
       const smFileName = chartFileNames[0];
-      const content = await this.readFileContent(fileMap[smFileName]);
+      const content = await this.parser.readFileContent(fileMap[smFileName]);
 
-      const chart = this.parser.parseSM(fileMap, content);
+      const chart = await this.parser.parseSM(fileMap, content);
       chart.folderName = `Single_External_${smFileName}`;
       chart.loaded = true;
 
@@ -12151,15 +12469,6 @@ class LoadSongFolder {
     }
   }
   
-  readFileContent(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsText(file);
-    });
-  }
-
   showError(message) {
     this.progressText.write(message);
     game.time.events.add(3000, () => {
@@ -12243,7 +12552,7 @@ class MainMenu {
   
   checkFeedbackDialogs() {
     // Check for bug report first (highest priority)
-    if (Account.stats.lastCrashed) {
+    if (!window.DEBUG && Account.stats.lastCrashed) {
       this.showBugReportDialog();
       return;
     }
@@ -12348,7 +12657,7 @@ class MainMenu {
   }
 
   showHomeMenu() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -12374,7 +12683,7 @@ class MainMenu {
   }
 
   startGame() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -12390,7 +12699,7 @@ class MainMenu {
   }
 
   showExtraSongs() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -12642,7 +12951,7 @@ class MainMenu {
   }
 
   showExtras() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -12666,7 +12975,7 @@ class MainMenu {
   }
 
   showFeedback() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -13291,29 +13600,10 @@ class SongSelect {
 
   startGame(song, difficultyIndex) {
     // Start gameplay with selected song
-    const resources = [];
-    
-    if (song.lyrics) {
-      resources.push({
-        type: "text",
-        key: 'song_lyrics',
-        url: song.lyrics
-      })
-    }
-    
-    this.load.baseURL = "";
-    
-    if (!resources.length) {
-      game.state.start("Play", true, false, {
-        chart: song,
-        difficultyIndex
-      });
-    } else {
-      game.state.start("Load", true, false, resources, "Play", {
-        chart: song,
-        difficultyIndex
-      });
-    }
+    game.state.start("Play", true, false, {
+      chart: song,
+      difficultyIndex
+    });
   }
 
   update() {
@@ -13329,6 +13619,7 @@ class SongSelect {
     
     if (gamepad.pressed.select) {
       Account.settings.autoplay = !Account.settings.autoplay;
+      console.log(Account.settings.autoplay)
     }
     
     this.autoplayText.write(Account.settings.autoplay ? "AUTOPLAY" : "");
@@ -14534,6 +14825,8 @@ class CharacterSelect extends Phaser.State {
   update() {
     gamepad.update();
     
+    if (notifications.notificationWindow) notifications.notificationWindow.bringToTop();
+    
     if (this.creationWindowManager) {
       this.creationWindowManager.update();
     }
@@ -14780,11 +15073,12 @@ class StatsMenu {
 }
 
 class Play {
-  init(song, difficultyIndex, playtestMode) {
+  init(song, difficultyIndex, playtestMode, autoplay) {
     this.song = song;
     this.difficultyIndex = difficultyIndex || song.difficultyIndex;
     this.player = null;
     this.backgroundQueue = [];
+    this.preloadedBackgrounds = {};
     this.currentBackground = null;
     this.isPaused = false;
     this.pauseStartTime = 0;
@@ -14793,11 +15087,11 @@ class Play {
     this.audioEndListener = null;
     this.started = false;
     this.startTime = 0;
-    this.autoplay = Account.settings.autoplay;
+    this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
     this.userOffset = Account.settings.userOffset;
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
-    this.hasLyricsFile = song.chart.lyrics ? true : false;
+    this.hasLyricsFile = song.chart.lyricsContent ? true : false;
     this.visualizerType = Account.settings.visualizer || 'NONE';
     this.lastVisualizerUpdateTime = 0;
     this.metronome = null;
@@ -14834,6 +15128,9 @@ class Play {
     };
     saveAccount();
     
+    // For debugging
+    window.p = this;
+    
     // Game constants
     this.JUDGE_WINDOWS = JUDGE_WINDOWS;
     
@@ -14857,11 +15154,6 @@ class Play {
     this.backgroundCanvas.height = 112;
     this.backgroundCtx = this.backgroundCanvas.getContext("2d");
     
-    // Create audio element
-    this.audio = document.createElement("audio");
-    this.audio.src = this.song.chart.audioUrl;
-    this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
-    
     this.visibilityChangeListener = () => {
       if (document.hidden) {
         if (!this.isPaused) this.pause();
@@ -14873,11 +15165,6 @@ class Play {
     
     window.addEventListener('visibilitychange', this.visibilityChangeListener);
     
-    // Create video element for background videos
-    this.video = document.createElement("video");
-    this.video.muted = true;
-    this.video.loop = true;
-    
     this.createHud();
     
     this.setupLyrics();
@@ -14886,10 +15173,48 @@ class Play {
     
     this.metronome = new Metronome(this);
     
-    this.songStart();
+    this.initialSetup();
     
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+  
+  async initialSetup() {
+    const dots = new LoadingDots();
+    dots.x -= 4;
+    dots.y -= 8;
+    this.song.chart.backgrounds.forEach(async bg => {
+      if (bg.file !== "-nosongbg-" && !this.preloadedBackgrounds[bg.file]) {
+        const element = await this.preloadBackground(bg);
+        this.preloadedBackgrounds[bg.file] = element;
+      }
+    });
+    await this.setupAudio();
+    dots.destroy();
+    this.songStart();
+  }
+  
+  setupAudio() {
+    return new Promise(resolve => {
+      // Create audio element and wait for it to load
+      this.audio = document.createElement("audio");
+      this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
+      this.audio.src = this.song.chart.audioUrl;
+      this.audio.addEventListener("canplaythrough", e => resolve());
+      this.audio.addEventListener("error", e => resolve());
+    });
+  }
+  
+  preloadBackground(background) {
+    return new Promise((resolve, reject) => {
+      const { url, type } = background;
+      const element = type == "video" ? document.createElement("video") : document.createElement("img");
+      element.src = url;
+      element.muted = true;
+      element.loop = true;
+      element.onload = () => resolve(element);
+      element.onerror = () => resolve(element);
+    });
   }
   
   createHud() {
@@ -14988,8 +15313,8 @@ class Play {
   }
   
   setupLyrics() {
-    if (this.hasLyricsFile && game.cache.checkTextKey('song_lyrics')) {
-      const lrcContent = game.cache.getText('song_lyrics');
+    if (this.hasLyricsFile) {
+      const lrcContent = this.song.chart.lyricsContent; 
       
       // Create lyrics text element
       this.lyricsText = new Text(game.width / 2, 72, "", FONTS.stroke);
@@ -15033,7 +15358,7 @@ class Play {
     }[type];
   }
   
-  setBackground() {
+  setInitialBackground() {
     // Set initial background
     if (this.song.chart.backgroundUrl && this.song.chart.backgroundUrl !== "no-media") {
       this.loadBackgroundImage(this.song.chart.backgroundUrl);
@@ -15046,7 +15371,7 @@ class Play {
   }
   
   songStart() {
-    this.setBackground();
+    this.setInitialBackground();
     
     const FIXED_DELAY = 2000; 
     
@@ -15110,20 +15435,59 @@ class Play {
     this.overHud.addChild(glitch);
   }
   
+  drawBackground(element) {
+    this.backgroundCtx.drawImage(element, 0, 0, 192, 112);
+    this.updateBackgroundTexture();
+  }
+  
+  updateBackgroundTexture() {
+    const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
+    this.backgroundSprite.loadTexture(texture);
+  }
+  
   loadBackgroundImage(url) {
-    const img = new Image();
-    img.onload = () => {
-      this.backgroundCtx.drawImage(img, 0, 0, 192, 112);
-      this.updateBackgroundTexture();
-    };
-    img.src = url;
+    // Pause any existing video
+    if (this.video) this.video.pause();
+    
+    const filename = FileTools.getFilename(url);
+    
+    // Check if there is already a background preloaded
+    if (this.preloadedBackgrounds[filename]) {
+      // Use the preloaded background
+      this.drawBackground(this.preloadedBackgrounds[filename]);
+    } else {
+      // Load the background in real time instead
+      const img = document.createElement("img");
+      img.onload = () => this.drawBackground(img);
+      img.src = url;
+      this.preloadedBackgrounds[filename] = img;
+    }
+    
+    this.backgroundGradient.visible = true;
   }
   
   loadBackgroundVideo(url) {
-    this.video.src = url;
+    // Pause any existing video
+    if (this.video) this.video.pause();
+    
+    const filename = FileTools.getFilename(url);
+    
+    // Check if there is already a background preloaded
+    if (this.preloadedBackgrounds[filename]) {
+      // Use the preloaded background
+      this.video = this.preloadedBackgrounds[filename];
+    } else {
+      // Load the background in real time instead
+      const video = document.createElement("video");
+      video.src = url;
+      this.preloadedBackgrounds[filename] = video;
+      this.video = video;
+    }
+    
     this.video.play();
+    
     this.backgroundGradient.visible = false;
-    this.video.addEventListener("error", () => this.backgroundGradient.visible = true, { once: true })
+    this.video.addEventListener("error", () => this.backgroundGradient.visible = true, { once: true });
   }
   
   clearBackgroundImage() {
@@ -15138,8 +15502,6 @@ class Play {
       this.loadBackgroundVideo(bg.url);
     } else {
       this.loadBackgroundImage(bg.url);
-      this.video.src = "";
-      this.backgroundGradient.visible = true;
     }
     this.currentBackground = bg;
     this.applyBgEffects(bg);
@@ -15154,11 +15516,6 @@ class Play {
     }
     
     // TODO: When applying bg effects take in account bg.fadeOut and bg.effect
-  }
-  
-  updateBackgroundTexture() {
-    const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
-    this.backgroundSprite.loadTexture(texture);
   }
   
   songEnd() {
@@ -15262,16 +15619,16 @@ class Play {
     this.isPaused = true;
     this.pauseStartTime = game.time.now;
     this.audio?.pause();
-    if (this.video.src) this.video?.pause();
+    this.video?.pause();
     this.showPauseMenu();
   }
   
   resume() {
     this.isPaused = false;
     this.totalPausedDuration += game.time.now - this.pauseStartTime;
-    this.hidePauseMenu();
-    if (this.video.src) this.video?.play();
+    this.video?.play();
     this.audio?.play();
+    this.hidePauseMenu();
   }
   
   showPauseMenu() {
@@ -15294,11 +15651,18 @@ class Play {
     });
     
     this.pauseCarousel.addItem("CONTINUE", () => this.resume());
-    if (Account.settings.autoplay && !this.playtestMode) {
+    if (this.autoplay && !this.playtestMode) {
       this.pauseCarousel.addItem("DISABLE AUTOPLAY", () => {
         Account.settings.autoplay = false;
         game.state.start("SongSelect", true, false, null, null, true);
       });
+    }
+    if (this.playtestMode) {
+      if (this.autoplay) {
+        this.pauseCarousel.addItem("DISABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false));
+      } else {
+        this.pauseCarousel.addItem("ENABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
+      }
     }
     this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode));
     this.pauseCarousel.addItem(this.playtestMode ? "BACK TO EDITOR" : "GIVE UP", () => this.songEnd());
@@ -15362,10 +15726,9 @@ class Play {
   }
   
   updateVideo() {
-    if (this.currentBackground && this.currentBackground.type == "video" && game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
+    if (this.video && this.currentBackground && this.currentBackground.type == "video" && game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
       this.lastVideoUpdateTime = game.time.now;
-      this.backgroundCtx.drawImage(this.video, 0, 0, 192, 112);
-      this.updateBackgroundTexture();
+      this.drawBackground(this.video);
     }
   }
   
@@ -15442,11 +15805,11 @@ class Play {
     this.audio.pause();
     this.audio.src = "";
     this.audio = null;
-    if (this.video.src) {
+    if (this.video) {
       this.video.pause();
       this.video.src = "";
+      this.video = null;
     }
-    this.video = null;
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
     if (this.visualizer) {
       this.visualizer.destroy();
@@ -15456,6 +15819,7 @@ class Play {
       this.metronome.destroy();
       this.metronome = null;
     }
+    Object.entries(this.preloadedBackgrounds).forEach(element => element.src = "");
     
     // Stop recording and show video
     if (window.recordNextGame) {
@@ -15587,8 +15951,8 @@ class Results {
       this.previewAudio.currentTime = song.chart.sampleStart || 0;
       this.previewAudio.play();
     }
-    if (song.chart.banner) {
-      this.bannerImg.src = song.chart.banner;
+    if (song.chart.bannerUrl) {
+      this.bannerImg.src = song.chart.bannerUrl;
       this.bannerImg.onload = () => {
         this.bannerCtx.drawImage(this.bannerImg, 0, 0, 72, 28);
         this.bannerSprite.loadTexture(PIXI.Texture.fromCanvas(this.bannerCanvas));
@@ -15969,29 +16333,15 @@ class Jukebox {
   setupLyrics() {
     // Check if current song has lyrics
     if (this.currentSong.lyrics) {
-      this.loadLyrics(this.currentSong.lyrics);
+      this.loadLyrics(this.currentSong.lyricsContent);
     } else {
       this.lyrics = null;
       this.hasLyrics = false;
     }
   }
 
-  async loadLyrics(lyricsUrl) {
-    try {
-      const lrcContent = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', lyricsUrl);
-        xhr.onload = () => {
-          if (xhr.status === 200 || xhr.status === 0) { // 0 for file:// protocol
-            resolve(xhr.responseText);
-          } else {
-            reject(new Error(`Failed to load lyrics: ${xhr.status}`));
-          }
-        };
-        xhr.onerror = () => reject(new Error('Network error loading lyrics'));
-        xhr.send();
-      });
-      
+  loadLyrics(lrcContent) {
+    if (lrcContent && lrcContent != "") {
       this.lyrics = new Lyrics({
         textElement: this.lyricsText,
         maxLineLength: 25,
@@ -15999,9 +16349,7 @@ class Jukebox {
       });
       
       this.hasLyrics = true;
-      
-    } catch (error) {
-      console.warn("Could not load lyrics:", error);
+    } else {
       this.lyrics = null;
       this.hasLyrics = false;
     }
@@ -16665,11 +17013,12 @@ class Editor {
       audio: null,
       background: null,
       banner: null,
-      extra: []
+      lyrics: null,
+      extra: {}
     };
     
     // For debugging
-    window.editorState = this;
+    window.e = this;
 
     this.divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 192];
 
@@ -16687,9 +17036,7 @@ class Editor {
     this.backgroundLayer = game.add.group();
     this.backgroundSprite = game.add.sprite(0, 0, null, 0, this.backgroundLayer);
     this.backgroundSprite.alpha = 0.3;
-
-    this.navigationHint = new NavigationHint(0);
-
+    
     this.chartRenderer = new ChartRenderer(this, this.song, this.currentDifficultyIndex, {
       enableGameplayLogic: false,
       enableJudgement: false,
@@ -16704,14 +17051,42 @@ class Editor {
       judgeLineYRising: 50
     });
 
+    this.homeOverlay = game.add.graphics(0, 0);
+    this.homeOverlay.beginFill(0x000000, 0.5);
+    this.homeOverlay.drawRect(0, 0, game.width, game.height);
+    this.homeOverlay.endFill();
+    this.homeOverlay.visible = false;
+
+    this.navigationHint = new NavigationHint(0);
+
     this.cursorSprite = game.add.graphics(0, 0);
     this.selectionRect = game.add.graphics(0, 0);
     this.freezePreviewSprite = game.add.graphics(0, 0);
     this.updateCursorPosition();
     
-    this.bannerSprite = game.add.sprite(4, 56, null);
+    this.lyricsText = new Text(game.width / 2, 85, "", FONTS.stroke);
+    this.lyricsText.anchor.set(0.5);
+    this.lyricsText.visible = true;
+    
+    this.bannerSprite = game.add.sprite(8, 56, null);
+    
+    this.icons = game.add.sprite(8, 90);
+    
+    this.audioIcon = game.add.sprite(0, 0, "ui_editor_icons", 0);
+    this.bgIcon = game.add.sprite(9, 0, "ui_editor_icons", 1);
+    this.bnIcon = game.add.sprite(9 + 9, 0, "ui_editor_icons", 2);
+    this.lrcIcon = game.add.sprite(9 + 9 + 9, 0, "ui_editor_icons", 3);
+    this.extraIcon = game.add.sprite(9 + 9 + 9 + 9, 0, "ui_editor_icons", 4);
+
+    this.icons.addChild(this.audioIcon);
+    this.icons.addChild(this.bgIcon);
+    this.icons.addChild(this.bnIcon);
+    this.icons.addChild(this.lrcIcon);
+    this.icons.addChild(this.extraIcon);
 
     this.infoText = new Text(4, 4, "");
+    this.bgInfoText = new Text(0, 90, "", null, this.infoText);
+    
     this.updateInfoText();
     
     // Create play/pause audio
@@ -16731,8 +17106,16 @@ class Editor {
       this.files.audio = await FileTools.urlToBase64(this.song.chart.audioUrl);
       this.files.banner = await FileTools.urlToBase64(this.song.chart.bannerUrl);
       this.files.background = await FileTools.urlToBase64(this.song.chart.backgroundUrl);
+      this.files.lyrics = this.song.chart.lyricsContent;
+      this.song.chart.backgrounds.forEach(async bg => {
+        if (bg.file != "" && bg.file != "-nosongbg-") {
+          const fileContent = await FileTools.urlToBase64(bg.url);
+          if (fileContent && fileContent != "") this.files.extra[bg.file] = fileContent;
+        }
+      });
       this.updateBanner(this.song.chart.bannerUrl);
       this.updateBackground(this.song.chart.backgroundUrl);
+      this.refreshLyrics();
       this.hideLoadingScreen();
     }
     this.showHomeScreen();
@@ -16753,7 +17136,8 @@ class Editor {
         bannerUrl: "",
         background: "no-media",
         backgroundUrl: "",
-        lyrics: null,
+        lyrics: "",
+        lyricsContent: null,
         cdtitle: "no-media",
         cdtitleUrl: "",
         audio: "",
@@ -16776,6 +17160,7 @@ class Editor {
     this.clearUI();
     this.stopPlayback();
     this.navigationHint.change(0);
+    this.homeOverlay.visible = true;
     this.bannerSprite.visible = true;
     
     const leftWidth = game.width / 2;
@@ -16840,6 +17225,14 @@ class Editor {
       this.backgroundSprite.loadTexture(null);
     }
   }
+  
+  refreshLyrics() {
+    this.lyrics = new Lyrics({
+      textElement: this.lyricsText,
+      maxLineLength: 25,
+      lrc: this.files.lyrics || this.song.chart.lyrics || ""
+    });
+  }
 
   showFileMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
@@ -16852,6 +17245,7 @@ class Editor {
     carousel.addItem("Load Audio", () => this.pickFile("audio/*", e => this.loadAudioFile(e.target.files[0]), () => this.showFileMenu()));
     carousel.addItem("Load Background", () => this.pickFile("image/*", e => this.loadBackgroundFile(e.target.files[0]), () => this.showFileMenu()));
     carousel.addItem("Load Banner", () => this.pickFile("image/*", e => this.loadBannerFile(e.target.files[0]), () => this.showFileMenu()));
+    carousel.addItem("Load Lyrics", () => this.pickFile(".lrc", e => this.loadLyricsFile(e.target.files[0]), () => this.showFileMenu()));
     if (this.song.chart.backgrounds && this.song.chart.backgrounds.length > 0) {
       carousel.addItem("Edit BG Changes", () => this.editBGChangeFiles());
     }
@@ -16926,56 +17320,8 @@ class Editor {
   
   loadSong() {
     this.pickFolder("*", e => this.processFiles(e.target.files), e => this.showFileMenu());
-  }
-
-  async processFiles(files) {
-    try {
-      const fileMap = {};
-      for (let i = 0; i < files.length; i++) {
-        fileMap[files[i].name.toLowerCase()] = files[i];
-      }
-
-      const packageFileNames = Object.keys(fileMap).filter(name => name.endsWith(".zip") || name.endsWith(".pmz"));
-      const chartFileNames = Object.keys(fileMap).filter(name => name.endsWith(".sm"));
-
-      if (packageFileNames.length > 0) {
-        const zipFileName = packageFileNames[0];
-        const zipFile = fileMap[zipFileName];
-        this.importFromZip(zipFile);
-        return;
-      }
-
-      if (chartFileNames.length === 0) {
-        this.showFileMenu();
-        notifications.notify("No chart files found");
-        return;
-      }
-
-      const smFileName = chartFileNames[0];
-      const content = await this.readTextFileContent(fileMap[smFileName]);
-
-      const chart = new ExternalSMParser().parseSM(fileMap, content);
-      chart.folderName = `Single_External_${smFileName}`;
-      chart.loaded = true;
-      
-      this.showLoadingScreen("Processing Files");
-      
-      this.files.audio = await FileTools.urlToBase64(chart.audioUrl);
-      this.files.banner = await FileTools.urlToBase64(chart.bannerUrl);
-      this.files.background = await FileTools.urlToBase64(chart.backgroundUrl);
-      
-      this.hideLoadingScreen();
-      
-      this.audio.src = chart.audioUrl;
-      this.updateBanner(chart.bannerUrl);
-      this.updateBackground(chart.backgroundUrl);
-
-      this.song = { chart };
-      this.showHomeScreen();
-    } catch (error) {
-      console.error("Error loading song:", error);
-      this.showFileMenu();
-    }
+    
+    Account.stats.totalImportedSongs ++;
   }
 
   readTextFileContent(file) {
@@ -17012,7 +17358,6 @@ class Editor {
       animate: true
     });
 
-    carousel.addItem("Export Project File", () => this.exportProject());
     carousel.addItem("Export StepMania Song", () => this.exportSong());
 
     game.onMenuIn.dispatch("editorProject", carousel);
@@ -17067,6 +17412,7 @@ class Editor {
     this.selectedNotes = [];
     this.clearUI();
     this.stopPlayback();
+    this.homeOverlay.visible = false;
     this.bannerSprite.visible = false;
     this.navigationHint.change(7);
 
@@ -17136,12 +17482,30 @@ class Editor {
           `NOTES: ${noteCount}\n` +
           `SELECTED: ${this.selectedNotes.length}`;
       
+      const bgText = `BG: ${this.getCurrentBgFileName()}`;
+      
       if (text != this.infoText.texture.text) this.infoText.write(text);
+      if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 180);
       
       this.infoText.visible = true;
     } else {
       this.infoText.visible = false;
     }
+  }
+  
+  getCurrentBgFileName() {
+    let filename = this.song.chart.background;
+    
+    const queue = [];
+    
+    // Check for background(s) needed for this beat
+    this.song.chart.backgrounds.forEach(bg => {
+      if (this.cursorBeat >= bg.beat) {
+        queue.push(bg.file);
+      }
+    });
+    
+    return queue.pop() || filename;
   }
 
   updateCursorPosition() {
@@ -17282,9 +17646,16 @@ class Editor {
         this.startAreaSelection();
       }
     } else if (gamepad.held.a && (gamepad.pressed.left || gamepad.pressed.right)) {
-      if (game.time.now - this.holdADirectionTime > 200) {
+      if (!this.isAreaSelecting) {
         this.changeSnapDivision(gamepad.pressed.left ? -1 : 1);
         this.holdADirectionTime = game.time.now;
+      } else {
+        if (gamepad.pressed.left) {
+          this.moveCursor(-1, 0);
+        }
+        if (gamepad.pressed.right) {
+          this.moveCursor(1, 0);
+        }
       }
     } else {
       if (gamepad.pressed.left) {
@@ -17425,6 +17796,7 @@ class Editor {
 
     this.selectedNotes = notes.filter(note => note.beat >= startBeat && note.beat <= endBeat && note.column >= startCol && note.column <= endCol);
 
+    this.updateCursorPosition();
     this.updateInfoText();
   }
 
@@ -17441,6 +17813,8 @@ class Editor {
       } else {
         this.selectedNotes.push(noteAtCursor);
       }
+    } else {
+      this.selectedNotes = [];
     }
 
     this.updateInfoText();
@@ -17486,7 +17860,9 @@ class Editor {
       this.playExplosionEffect(this.cursorColumn);
       this.previewNote(newNote);
     }
-
+    
+    Account.stats.totalPlacedArrows ++;
+    
     this.sortNotes();
     this.updateInfoText();
   }
@@ -17517,6 +17893,8 @@ class Editor {
     };
     notes.push(newNote);
     this.previewNote(newNote);
+    
+    Account.stats.totalPlacedFreezes ++;
 
     this.sortNotes();
     this.updateInfoText();
@@ -17544,6 +17922,8 @@ class Editor {
     };
     notes.push(newNote);
     this.previewNote(newNote);
+    
+    Account.stats.totalPlacedMines ++;
 
     this.sortNotes();
     this.updateInfoText();
@@ -17551,26 +17931,7 @@ class Editor {
   }
 
   placeQuickHold() {
-    if (this.isPlaying) return;
-
-    const notes = this.getCurrentChartNotes();
-
-    const newNote = {
-      type: "2",
-      beat: this.cursorBeat,
-      sec: this.chartRenderer.beatToSec(this.cursorBeat),
-      column: this.cursorColumn,
-      beatLength: 1,
-      secLength: 60 / this.chartRenderer.getCurrentBPM(this.cursorBeat),
-      beatEnd: this.cursorBeat + 1,
-      secEnd: this.chartRenderer.beatToSec(this.cursorBeat + 1)
-    };
-    notes.push(newNote);
-    this.previewNote(newNote);
-
-    this.sortNotes();
-    this.updateInfoText();
-    this.playExplosionEffect(this.cursorColumn);
+    this.placeFreeze(this.cursorBeat, 1, "2");
   }
 
   playExplosionEffect(column) {
@@ -17620,18 +17981,22 @@ class Editor {
       if (!this.getBPMChange()) {
         contextMenu.addItem("Add BPM Change", () => this.addBPMChange());
       } else {
+        contextMenu.addItem("Edit BPM Value", () => this.editBPMChange());
         contextMenu.addItem("Remove BPM Change", () => this.removeBPMChange());
       }
 
       if (!this.getStop()) {
         contextMenu.addItem("Add Stop", () => this.addStop());
       } else {
+        contextMenu.addItem("Edit Stop Duration", () => this.editStop());
         contextMenu.addItem("Remove Stop", () => this.removeStop());
       }
 
       if (!this.getBGChange()) {
         contextMenu.addItem("Add BG Change", () => this.addBGChange());
+        contextMenu.addItem("Add -nosongbg-", () => this.addNoSongBgChange());
       } else {
+        contextMenu.addItem("Edit BG Change", () => this.editBGChange());
         contextMenu.addItem("Remove BG Change", () => this.removeBGChange());
       }
       
@@ -17685,6 +18050,7 @@ class Editor {
   convertNoteType(newType) {
     if (this.selectedNotes.length === 1) {
       this.selectedNotes[0].type = newType;
+      this.refreshSelectedNotes();
     }
   }
 
@@ -17692,11 +18058,13 @@ class Editor {
     this.selectedNotes.forEach(note => {
       note.type = newType;
     });
+    this.refreshSelectedNotes();
   }
 
   convertFreezeType(newType) {
     if (this.selectedNotes.length === 1 && (this.selectedNotes[0].type === "2" || this.selectedNotes[0].type === "4")) {
       this.selectedNotes[0].type = newType;
+      this.refreshSelectedNotes();
     }
   }
 
@@ -17706,6 +18074,7 @@ class Editor {
         note.type = newType;
       }
     });
+    this.refreshSelectedNotes();
   }
 
   alignToBeatDivision() {
@@ -17713,6 +18082,7 @@ class Editor {
       const note = this.selectedNotes[0];
       note.beat = this.getSnappedBeat(note.beat);
       note.sec = this.chartRenderer.beatToSec(note.beat);
+      this.refreshSelectedNotes();
       this.sortNotes();
     }
   }
@@ -17722,9 +18092,14 @@ class Editor {
       note.beat = this.getSnappedBeat(note.beat);
       note.sec = this.chartRenderer.beatToSec(note.beat);
     });
+    this.refreshSelectedNotes();
     this.sortNotes();
   }
-
+  
+  refreshSelectedNotes() {
+    this.selectedNotes.forEach(note => this.chartRenderer.killNote(note)); // the renderer will automatically recreate the note visuals
+  }
+  
   deleteSelectedNotes() {
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
     const notes = this.song.chart.notes[diff.type + diff.rating] || [];
@@ -17781,6 +18156,68 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.currentFileCallback(file);
     }
     this.fileInput.value = "";
+  }
+  
+  async processFiles(files) {
+    try {
+      const fileMap = {};
+      for (let i = 0; i < files.length; i++) {
+        fileMap[files[i].name.toLowerCase()] = files[i];
+      }
+
+      const packageFileNames = Object.keys(fileMap).filter(name => name.endsWith(".zip") || name.endsWith(".pmz"));
+      const chartFileNames = Object.keys(fileMap).filter(name => name.endsWith(".sm"));
+
+      if (packageFileNames.length > 0) {
+        const zipFileName = packageFileNames[0];
+        const zipFile = fileMap[zipFileName];
+        this.importFromZip(zipFile);
+        return;
+      }
+
+      if (chartFileNames.length === 0) {
+        this.showFileMenu();
+        notifications.notify("No chart files found");
+        return;
+      }
+
+      const smFileName = chartFileNames[0];
+      const content = await this.readTextFileContent(fileMap[smFileName.toLowerCase()]);
+
+      const chart = await new ExternalSMParser().parseSM(fileMap, content);
+      chart.folderName = `Single_External_${smFileName}`;
+      chart.loaded = true;
+      
+      this.showLoadingScreen("Processing Files");
+      
+      // Load main files
+      this.files.audio = await FileTools.urlToBase64(chart.audioUrl);
+      this.files.banner = await FileTools.urlToBase64(chart.bannerUrl);
+      this.files.background = await FileTools.urlToBase64(chart.backgroundUrl);
+      this.files.lyrics = chart.lyricsContent;
+      
+      // Load BG change files
+      if (chart.backgrounds) {
+        for (const bg of chart.backgrounds) {
+          if (bg.file != "" && bg.file != "-nosongbg-") {
+            const file = fileMap[bg.file.toLowerCase()] || "";
+            this.files.extra[bg.file] = file || "";
+          }
+        }
+      }
+      
+      this.hideLoadingScreen();
+      
+      this.audio.src = chart.audioUrl;
+      this.updateBanner(chart.bannerUrl);
+      this.updateBackground(chart.backgroundUrl);
+
+      this.song = { chart };
+      this.showHomeScreen();
+    } catch (error) {
+      console.error("Error loading song:", error);
+      this.showFileMenu();
+    }
   }
 
   async loadAudioFile(file) {
@@ -17849,34 +18286,24 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.showHomeScreen();
     }
   }
-
-  async importProject() {
-    // NOTE: Not really used, might be removed in the future 
-    this.pickFile(".zip,.pmz,.sm,application/zip", async event => {
-      try {
-        this.showLoadingScreen("Importing project...");
-        
-        const file = event.target.files[0];
-
-        if (file.name.endsWith(".zip") || file.name.endsWith(".pmz")) {
-          // Import from ZIP file
-          await this.importFromZip(file);
-        } else if (file.name.endsWith(".sm")) {
-          // Import single SM file
-          await this.importSMFile(file);
-        } else {
-          notifications.show("Unsupported file format");
-        }
-
+  
+  async loadLyricsFile(file) {
+    try {
+      this.showLoadingScreen("Processing Lyrics");
+      
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.song.chart.lyrics = reader.result;
+        this.files.lyrics = reader.result;
+        this.refreshLyrics();
         this.hideLoadingScreen();
         this.showHomeScreen();
-      } catch (error) {
-        console.error("Import failed:", error);
-        notifications.show("Import failed!");
-
-        this.showHomeScreen();
-      }
-    }, () => this.showFileMenu());
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      console.error("Error loading banner:", error);
+      this.showHomeScreen();
+    }
   }
 
   async importFromZip(file) {
@@ -17894,105 +18321,13 @@ SAMPLE LENGTH: ${chart.sampleLength}
     const zip = new JSZip();
     const zipContent = await zip.loadAsync(file);
 
-    // Check if it's a PadManiacs project (.pmz)
-    const hasProjectJson = zipContent.file("project.json") || zipContent.file("project.PadManiacs.json");
-
-    if (hasProjectJson) {
-      // Import PadManiacs project
-      this.showLoadingScreen("Loading PadManiacs Project");
-      await this.importPadManiacsProject(zipContent);
-    } else {
-      // Import StepMania song package
-      this.showLoadingScreen("Loading Song Package");
-      await this.importStepManiaSong(zipContent);
-    }
+    // Import the project
+    await this.importStepManiaSong(zipContent);
     
     this.hideLoadingScreen();
     this.showHomeScreen();
-  }
-
-  async importPadManiacsProject(zipContent) {
-    // Find project JSON file
-    let projectFile = zipContent.file("project.json");
-    if (!projectFile) {
-      projectFile = zipContent.file("project.padmaniacs.json");
-    }
-
-    if (!projectFile) {
-      throw new Error("No project.json found in ZIP");
-    }
-
-    const projectJson = await projectFile.async("text");
-    const project = JSON.parse(projectJson);
-
-    // Load song data
-    this.song = { chart: project.chart };
-
-    // Extract files from ZIP
-    this.files = {
-      audio: null,
-      background: null,
-      banner: null,
-      extra: {}
-    };
-
-    // Helper function to extract file
-    const extractFile = async (filename, targetProp) => {
-      if (filename && filename !== "no-media") {
-        const fileEntry = zipContent.file(filename);
-        if (fileEntry) {
-          const blob = await fileEntry.async("blob");
-          const dataUrl = await new Promise(resolve => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.readAsDataURL(blob);
-          });
-          this.files[targetProp] = dataUrl;
-
-          const objectUrl = URL.createObjectURL(blob);
-
-          // Update URL in chart
-          if (targetProp === "audio") {
-            this.song.chart.audio = filename
-            this.song.chart.audioUrl = objectUrl;
-            this.audio.src = this.song.chart.audioUrl;
-          } else if (targetProp === "background") {
-            this.song.chart.background = filename;
-            this.song.chart.backgroundUrl = objectUrl;
-            this.updateBackground(objectUrl);
-          } else if (targetProp === "banner") {
-            this.song.chart.banner = filename;
-            this.song.chart.bannerUrl = objectUrl;
-            this.updateBanner(objectUrl);
-          }
-        }
-      }
-    };
-
-    // Extract main files
-    await extractFile(this.song.chart.audio, "audio");
-    await extractFile(this.song.chart.background, "background");
-    await extractFile(this.song.chart.banner, "banner");
-
-    // Extract BG change files
-    if (this.song.chart.backgrounds) {
-      for (const bg of this.song.chart.backgrounds) {
-        if (bg.file) {
-          const fileEntry = zipContent.file(bg.file);
-          if (fileEntry) {
-            const blob = await fileEntry.async("blob");
-            const dataUrl = await new Promise(resolve => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result);
-              reader.readAsDataURL(blob);
-            });
-            this.files.extra[bg.file] = dataUrl;
-          }
-        }
-      }
-    }
-
-    notifications.show("PadManiacs project imported!");
+    
+    Account.stats.totalImportedSongs ++;
   }
 
   async importStepManiaSong(zipContent) {
@@ -18021,6 +18356,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       audio: null,
       background: null,
       banner: null,
+      lyrics: null,
       extra: {}
     };
 
@@ -18061,15 +18397,25 @@ SAMPLE LENGTH: ${chart.sampleLength}
         if (targetProp === "audio") {
           this.song.chart.audio = filename;
           this.song.chart.audioUrl = objectUrl;
+          this.files.audio = FileTools.extractBase64(objectUrl);
           this.audio.src = objectUrl;
         } else if (targetProp === "background") {
           this.song.chart.background = filename;
           this.song.chart.backgroundUrl = objectUrl;
+          this.files.background = FileTools.extractBase64(objectUrl);
           this.updateBackground(objectUrl);
         } else if (targetProp === "banner") {
           this.song.chart.banner = filename;
           this.song.chart.bannerUrl = objectUrl;
+          this.files.banner = FileTools.extractBase64(objectUrl);
           this.updateBanner(objectUrl);
+        } else if (targetProp === "lyrics") {
+          this.files.lyrics = await fileEntry.async("text");
+          this.song.chart.lyrics = filename;
+          this.song.chart.lyricsContent = this.files.lyrics;
+          this.refreshLyrics();
+        } else if (targetProp === "extra") {
+          this.files.extra[filename] = FileTools.extractBase64(objectUrl);
         }
 
         return dataUrl;
@@ -18082,11 +18428,12 @@ SAMPLE LENGTH: ${chart.sampleLength}
     await loadFileFromZip(this.song.chart.audio, "audio");
     await loadFileFromZip(this.song.chart.background, "background");
     await loadFileFromZip(this.song.chart.banner, "banner");
+    await loadFileFromZip(this.song.chart.lyrics, "lyrics");
 
     // Load BG change files
     if (this.song.chart.backgrounds) {
       for (const bg of this.song.chart.backgrounds) {
-        if (bg.file) {
+        if (bg.file != "" && bg.file != "-nosongbg-") {
           await loadFileFromZip(bg.file, "extra");
         }
       }
@@ -18110,64 +18457,6 @@ SAMPLE LENGTH: ${chart.sampleLength}
     };
     
     notifications.show("SM file imported! Load audio/background files manually.");
-  }
-
-  async exportProject() {
-    try {
-      this.showLoadingScreen("Exporting project");
-
-      // Prepare song data without sprite references
-      const songData = await FileTools.prepareSongForExport(this.song, this.files);
-
-      // Create project JSON
-      const projectData = {
-        version: VERSION,
-        type: "PadManiacs Project",
-        exportDate: new Date().toISOString(),
-        chart: songData,
-        files: {
-          audio: this.song.chart.audio || "",
-          background: this.song.chart.background || "",
-          banner: this.song.chart.banner || "",
-          extra: this.song.chart.backgrounds?.map(bg => bg.file).filter(Boolean) || []
-        }
-      };
-
-      const projectJson = JSON.stringify(projectData, null, 2);
-
-      // Create ZIP file
-      const JSZip = window.JSZip;
-      if (!JSZip) {
-        throw new Error("JSZip library not loaded");
-      }
-
-      const zip = new JSZip();
-
-      // Add project JSON
-      zip.file("project.padmaniacs.json", projectJson);
-
-      // Add SM file for compatibility
-      const smContent = SMFile.generateSM(songData);
-      zip.file(`${songData.title || "song"}.sm`, smContent);
-
-      this.addSongResourcesToZip(songData, zip);
-
-      // Generate ZIP file
-      const blob = await zip.generateAsync({ type: "blob" });
-
-      // Save file
-      const fileName = `${songData.title || "song"}_PadManiacs_${VERSION.replace(/[^a-z0-9]/gi, "_")}.pmz`;
-      this.saveFile(blob, fileName);
-
-      this.hideLoadingScreen();
-      this.showHomeScreen();
-      notifications.show("Project exported successfully!");
-    } catch (error) {
-      console.error("Export failed:", error);
-      this.hideLoadingScreen();
-      this.showHomeScreen();
-      notifications.show("Export failed!");
-    }
   }
 
   async exportSong() {
@@ -18201,6 +18490,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
       // Save file
       const fileName = `${songData.title || "song"}.zip`;
       await this.saveFile(blob, fileName);
+      
+      Account.stats.totalExportedSongs ++;
 
       this.hideLoadingScreen();
       this.showHomeScreen();
@@ -18218,6 +18509,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     songData.audio !== "no-media" && zip.file(songData.audio, this.files.audio, { base64: true });
     songData.background !== "no-media" && zip.file(songData.background, this.files.background, { base64: true });
     songData.banner !== "no-media" && zip.file(songData.banner, this.files.banner, { base64: true });
+    songData.lyricsContent && zip.file(songData.lyrics, this.files.lyrics);
 
     // Add BG change files
     if (songData.backgrounds) {
@@ -18244,16 +18536,6 @@ SAMPLE LENGTH: ${chart.sampleLength}
       URL.revokeObjectURL(url);
     } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       await this.saveFileToFilesystem(blob, filename);
-    }
-  }
-
-  saveToExternalStorage(blob, filename) {
-    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA) {
-      this.saveCordovaFile(blob, filename);
-    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
-      this.saveNWJSFile(blob, filename);
-    } else {
-      this.exportSong();
     }
   }
   
@@ -18470,25 +18752,13 @@ SAMPLE LENGTH: ${chart.sampleLength}
     this.song.chart.backgrounds.forEach((bg, index) => {
       const fileName = bg.file ? bg.file.split("/").pop() : "No file";
       carousel.addItem(`BG ${index + 1}: ${fileName}`, () => {
-        this.pickFile("image/*,video/*", async file => {
+        this.pickFile("image/*,video/*", async event => {
+          const file = event.target.files[0];
           bg.file = file.name;
           this.files.extra[file.name] = FileTools.extractBase64(URL.createObjectURL(file));
           this.editBGChangeFiles();
         }, () => editBGChangeFiles());
       });
-    });
-
-    carousel.addItem("+ Add BG Change", () => {
-      this.song.chart.backgrounds.push({
-        beat: 0,
-        file: "",
-        opacity: 1,
-        fadeIn: 0,
-        fadeOut: 0,
-        effect: 0,
-        type: "image"
-      });
-      this.editBGChangeFiles();
     });
 
     carousel.addItem("< Back", () => this.showFileMenu());
@@ -18497,7 +18767,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
   createNewSongAndReload() {
     this.song = this.createNewSong();
-    this.showHomeScreen();
+    game.state.start("Editor");
   }
 
   saveAndExit() {
@@ -18549,7 +18819,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
   detectBPMHere() {
     const audioElement = document.createElement("audio");
     audioElement.src = this.audio.src;
-    audioElement.currentTime = this.audio.currentTime;
+    audioElement.currentTime = this.chartRenderer.beatToSec(this.cursorBeat);
 
     this.menuVisible = true;
 
@@ -18597,11 +18867,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
   addBPMChange() {
     this.menuVisible = true;
 
-    new ValueInput(
-      120,
-      0,
-      1000,
-      1,
+    new ValueInput(120, 0, 1000, 1,
       value => {
         this.song.chart.bpmChanges.push({
           beat: this.cursorBeat,
@@ -18622,6 +18888,29 @@ SAMPLE LENGTH: ${chart.sampleLength}
     return this.song.chart.bpmChanges.find(bpm => Math.abs(bpm.beat - this.cursorBeat) < 0.001);
   }
 
+  editBPMChange() {
+    const bpmChange = this.getBPMChange();
+    if (bpmChange) {
+      this.menuVisible = true;
+      
+      new ValueInput(
+        120,
+        0,
+        1000,
+        1,
+        bpm => {
+          const index = this.song.chart.bpmChanges.indexOf(bpmChange);
+          if (index != -1) this.song.chart.bpmChanges[index].bpm = bpm;
+          this.updateInfoText();
+          this.menuVisible = false;
+        },
+        () => {
+          this.menuVisible = false;
+        }
+      );
+    }
+  }
+  
   removeBPMChange() {
     const bpmChange = this.getBPMChange();
     if (bpmChange) {
@@ -18655,9 +18944,32 @@ SAMPLE LENGTH: ${chart.sampleLength}
       }
     );
   }
-
+  
   getStop() {
     return this.song.chart.stops.find(s => Math.abs(s.beat - this.cursorBeat) < 0.001);
+  }
+
+  editStop() {
+    const stop = this.getStop();
+    if (stop) {
+      this.menuVisible = true;
+      
+      new ValueInput(
+        1,
+        0,
+        360,
+        0.1,
+        length => {
+          const index = this.song.chart.stops.indexOf(stop);
+          if (index != -1) this.song.chart.stops[index].len = length;
+          this.updateInfoText();
+          this.menuVisible = false;
+        },
+        () => {
+          this.menuVisible = false;
+        }
+      );
+    }
   }
 
   removeStop() {
@@ -18671,11 +18983,14 @@ SAMPLE LENGTH: ${chart.sampleLength}
   }
 
   addBGChange() {
-    this.pickFile("image/*,video/*", async file => {
+    this.pickFile("image/*,video/*", async event => {
+      const file = event.target.files[0];
       const fileType = file.type.includes("video") ? "video" : "image";
+      const url = URL.createObjectURL(file);
       this.song.chart.backgrounds.push({
         beat: this.cursorBeat,
         file: file.name,
+        url: url,
         opacity: 1,
         fadeIn: 0,
         fadeOut: 0,
@@ -18683,21 +18998,53 @@ SAMPLE LENGTH: ${chart.sampleLength}
         type: fileType
       });
       this.song.chart.backgrounds.sort((a, b) => a.beat - b.beat);
-      this.files.extra[file.name] = FileTools.extractBase64(URL.createObjectURL(file));
+      this.files.extra[file.name] = FileTools.extractBase64(url);
       this.updateInfoText();
     });
+  }
+  
+  addNoSongBgChange() {
+    this.song.chart.backgrounds.push({
+      beat: this.cursorBeat,
+      file: "-nosongbg-",
+      url: "",
+      opacity: 1,
+      fadeIn: 0,
+      fadeOut: 0,
+      effect: 0,
+      type: "image"
+    });
+    this.song.chart.backgrounds.sort((a, b) => a.beat - b.beat);
   }
 
   getBGChange() {
     return this.song.chart.backgrounds.find(bg => Math.abs(bg.beat - this.cursorBeat) < 0.001);
   }
-
+  
+  editBGChange() {
+    const bgChange = this.getBGChange();
+    if (bgChange) {
+      this.pickFile("image/*,video/*", async event => {
+        const file = event.target.files[0];
+        const fileType = file.type.includes("video") ? "video" : "image";
+        const url = URL.createObjectURL(file);
+        const index = this.song.chart.backgrounds.indexOf(bgChange);
+        this.song.chart.backgrounds[index].file = file.name;
+        this.song.chart.backgrounds[index].url = url;
+        this.files.extra[file.name] = FileTools.extractBase64(url);
+        this.updateInfoText();
+      });
+    }
+    this.updateInfoText();
+  }
+  
   removeBGChange() {
     const bgChange = this.getBGChange();
     if (bgChange) {
       const index = this.song.chart.backgrounds.indexOf(bgChange);
       this.song.chart.backgrounds.splice(index, 1);
       this.chartRenderer.removeTag(bgChange.beat, 'bg');
+      delete this.files.extra[bgChange.file];
     }
     this.updateInfoText();
   }
@@ -18707,18 +19054,31 @@ SAMPLE LENGTH: ${chart.sampleLength}
     
     const { now, beat } = this.getCurrentTime();
     this.chartRenderer.render(now, beat);
+    
+    if (notifications.notificationWindow) notifications.notificationWindow.bringToTop();
 
     if (this.currentScreen === "metadata") {
-      if (this.mainCarousel) {
-        this.mainCarousel.update();
-      }
+      this.lyricsText.visible = false;
+      this.icons.visible = true;
+      
+      const updateIconTint = (icon, enabled) => icon.tint = enabled ? 0xffffff : 0x888888;
+      
+      updateIconTint(this.audioIcon, this.files.audio);
+      updateIconTint(this.bgIcon, this.files.background && this.files.background !== "");
+      updateIconTint(this.bnIcon, this.files.banner && this.files.banner !== "");
+      updateIconTint(this.lrcIcon, this.files.lyrics && this.files.lyrics.length);
+      updateIconTint(this.extraIcon, this.files.extra && Object.entries(this.files.extra).length);
     } else if (this.currentScreen === "chartEdit") {
       this.handleChartEditInput();
+      this.icons.visible = false;
+      this.lyricsText.visible = this.isPlaying;
 
       if (this.isPlaying) {
         this.cursorBeat = beat;
         this.updateCursorPosition();
         this.updateInfoText();
+        
+        if (this.lyrics) this.lyrics.move(now);
         
         // Show hit effects when notes reach judge line
         this.showHitEffects(now, beat);
@@ -19130,7 +19490,7 @@ class ChartRenderer {
       enableSpeedRendering: false,
       enableBGRendering: false,
       judgeLineYFalling: 90,
-      judgeLineYRising: 30,
+      judgeLineYRising: 25,
       ...options
     };
 
@@ -19399,7 +19759,7 @@ class ChartRenderer {
     for (let i in s) sec -= s[i];
     return ((sec - b.sec) * b.bpm) / 60 + b.beat;
   }
-
+  
   render(now, beat) {
     if (this.scrollDirection === "falling") {
       this.renderFalling(now, beat);
@@ -20137,9 +20497,17 @@ class Player {
   }
   
   calculateTotalNotes() {
-    this.totalNotes = this.notes.filter(note => 
-      note.type === "1" || note.type === "2" || note.type === "4"
-    ).length;
+    const noteValues = {
+      "1": 1,
+      "2": 2,
+      "4": 2,
+      "M": 0
+    };
+    this.totalNotes = 0;
+    this.notes.forEach(note => {
+      const value = noteValues[note.type] || 0;
+      this.totalNotes += value;
+    });
   }
   
   calculateLeftOffset() {
@@ -20766,14 +21134,14 @@ class Player {
     // Update health
     if (this.health != this.previousHealth) {
       this.previousHealth = this.health;
-      game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
+      const tween = game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
+      tween.onUpdateCallback = () => this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
       if (this.health <= 0) {
         this.gameOver = true;
         this.health = 0;
       }
       this.healthText.write(this.health.toString());
     }
-    this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
     if (this.scene.accuracyBar) {
       if (this.accuracy <= 0) {
         this.scene.accuracyBar.visible = false;

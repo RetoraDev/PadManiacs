@@ -47,9 +47,9 @@ class LoadSongFolder {
       }
 
       const smFileName = chartFileNames[0];
-      const content = await this.readFileContent(fileMap[smFileName]);
+      const content = await this.parser.readFileContent(fileMap[smFileName]);
 
-      const chart = this.parser.parseSM(fileMap, content);
+      const chart = await this.parser.parseSM(fileMap, content);
       chart.folderName = `Single_External_${smFileName}`;
       chart.loaded = true;
 
@@ -61,15 +61,6 @@ class LoadSongFolder {
     }
   }
   
-  readFileContent(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsText(file);
-    });
-  }
-
   showError(message) {
     this.progressText.write(message);
     game.time.events.add(3000, () => {

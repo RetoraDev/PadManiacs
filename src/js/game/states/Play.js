@@ -13,11 +13,11 @@ class Play {
     this.audioEndListener = null;
     this.started = false;
     this.startTime = 0;
-    this.autoplay = autoplay || Account.settings.autoplay;
+    this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
     this.userOffset = Account.settings.userOffset;
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
-    this.hasLyricsFile = song.chart.lyrics ? true : false;
+    this.hasLyricsFile = song.chart.lyricsContent ? true : false;
     this.visualizerType = Account.settings.visualizer || 'NONE';
     this.lastVisualizerUpdateTime = 0;
     this.metronome = null;
@@ -80,11 +80,6 @@ class Play {
     this.backgroundCanvas.height = 112;
     this.backgroundCtx = this.backgroundCanvas.getContext("2d");
     
-    // Create audio element
-    this.audio = document.createElement("audio");
-    this.audio.src = this.song.chart.audioUrl;
-    this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
-    
     this.visibilityChangeListener = () => {
       if (document.hidden) {
         if (!this.isPaused) this.pause();
@@ -110,16 +105,30 @@ class Play {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
-  initialSetup() {
+  async initialSetup() {
     const dots = new LoadingDots();
+    dots.x -= 4;
+    dots.y -= 8;
     this.song.chart.backgrounds.forEach(async bg => {
       if (bg.file !== "-nosongbg-" && !this.preloadedBackgrounds[bg.file]) {
         const element = await this.preloadBackground(bg);
         this.preloadedBackgrounds[bg.file] = element;
       }
     });
+    await this.setupAudio();
     dots.destroy();
     this.songStart();
+  }
+  
+  setupAudio() {
+    return new Promise(resolve => {
+      // Create audio element and wait for it to load
+      this.audio = document.createElement("audio");
+      this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
+      this.audio.src = this.song.chart.audioUrl;
+      this.audio.addEventListener("canplaythrough", e => resolve());
+      this.audio.addEventListener("error", e => resolve());
+    });
   }
   
   preloadBackground(background) {
@@ -230,8 +239,8 @@ class Play {
   }
   
   setupLyrics() {
-    if (this.hasLyricsFile && game.cache.checkTextKey('song_lyrics')) {
-      const lrcContent = game.cache.getText('song_lyrics');
+    if (this.hasLyricsFile) {
+      const lrcContent = this.song.chart.lyricsContent; 
       
       // Create lyrics text element
       this.lyricsText = new Text(game.width / 2, 72, "", FONTS.stroke);

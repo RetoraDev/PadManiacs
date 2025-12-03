@@ -29,7 +29,8 @@ class Editor {
       audio: null,
       background: null,
       banner: null,
-      extra: []
+      lyrics: null,
+      extra: {}
     };
     
     // For debugging
@@ -79,7 +80,25 @@ class Editor {
     this.freezePreviewSprite = game.add.graphics(0, 0);
     this.updateCursorPosition();
     
+    this.lyricsText = new Text(game.width / 2, 85, "", FONTS.stroke);
+    this.lyricsText.anchor.set(0.5);
+    this.lyricsText.visible = true;
+    
     this.bannerSprite = game.add.sprite(8, 56, null);
+    
+    this.icons = game.add.sprite(8, 90);
+    
+    this.audioIcon = game.add.sprite(0, 0, "ui_editor_icons", 0);
+    this.bgIcon = game.add.sprite(9, 0, "ui_editor_icons", 1);
+    this.bnIcon = game.add.sprite(9 + 9, 0, "ui_editor_icons", 2);
+    this.lrcIcon = game.add.sprite(9 + 9 + 9, 0, "ui_editor_icons", 3);
+    this.extraIcon = game.add.sprite(9 + 9 + 9 + 9, 0, "ui_editor_icons", 4);
+
+    this.icons.addChild(this.audioIcon);
+    this.icons.addChild(this.bgIcon);
+    this.icons.addChild(this.bnIcon);
+    this.icons.addChild(this.lrcIcon);
+    this.icons.addChild(this.extraIcon);
 
     this.infoText = new Text(4, 4, "");
     this.bgInfoText = new Text(0, 90, "", null, this.infoText);
@@ -103,11 +122,16 @@ class Editor {
       this.files.audio = await FileTools.urlToBase64(this.song.chart.audioUrl);
       this.files.banner = await FileTools.urlToBase64(this.song.chart.bannerUrl);
       this.files.background = await FileTools.urlToBase64(this.song.chart.backgroundUrl);
+      this.files.lyrics = this.song.chart.lyricsContent;
       this.song.chart.backgrounds.forEach(async bg => {
-        this.files.extra[bg.file] = await FileTools.urlToBase64(bg.url);
+        if (bg.file != "" && bg.file != "-nosongbg-") {
+          const fileContent = await FileTools.urlToBase64(bg.url);
+          if (fileContent && fileContent != "") this.files.extra[bg.file] = fileContent;
+        }
       });
       this.updateBanner(this.song.chart.bannerUrl);
       this.updateBackground(this.song.chart.backgroundUrl);
+      this.refreshLyrics();
       this.hideLoadingScreen();
     }
     this.showHomeScreen();
@@ -128,7 +152,8 @@ class Editor {
         bannerUrl: "",
         background: "no-media",
         backgroundUrl: "",
-        lyrics: null,
+        lyrics: "",
+        lyricsContent: null,
         cdtitle: "no-media",
         cdtitleUrl: "",
         audio: "",
@@ -216,6 +241,14 @@ class Editor {
       this.backgroundSprite.loadTexture(null);
     }
   }
+  
+  refreshLyrics() {
+    this.lyrics = new Lyrics({
+      textElement: this.lyricsText,
+      maxLineLength: 25,
+      lrc: this.files.lyrics || this.song.chart.lyrics || ""
+    });
+  }
 
   showFileMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
@@ -228,6 +261,7 @@ class Editor {
     carousel.addItem("Load Audio", () => this.pickFile("audio/*", e => this.loadAudioFile(e.target.files[0]), () => this.showFileMenu()));
     carousel.addItem("Load Background", () => this.pickFile("image/*", e => this.loadBackgroundFile(e.target.files[0]), () => this.showFileMenu()));
     carousel.addItem("Load Banner", () => this.pickFile("image/*", e => this.loadBannerFile(e.target.files[0]), () => this.showFileMenu()));
+    carousel.addItem("Load Lyrics", () => this.pickFile(".lrc", e => this.loadLyricsFile(e.target.files[0]), () => this.showFileMenu()));
     if (this.song.chart.backgrounds && this.song.chart.backgrounds.length > 0) {
       carousel.addItem("Edit BG Changes", () => this.editBGChangeFiles());
     }
@@ -306,56 +340,6 @@ class Editor {
     Account.stats.totalImportedSongs ++;
   }
 
-  async processFiles(files) {
-    try {
-      const fileMap = {};
-      for (let i = 0; i < files.length; i++) {
-        fileMap[files[i].name.toLowerCase()] = files[i];
-      }
-
-      const packageFileNames = Object.keys(fileMap).filter(name => name.endsWith(".zip") || name.endsWith(".pmz"));
-      const chartFileNames = Object.keys(fileMap).filter(name => name.endsWith(".sm"));
-
-      if (packageFileNames.length > 0) {
-        const zipFileName = packageFileNames[0];
-        const zipFile = fileMap[zipFileName];
-        this.importFromZip(zipFile);
-        return;
-      }
-
-      if (chartFileNames.length === 0) {
-        this.showFileMenu();
-        notifications.notify("No chart files found");
-        return;
-      }
-
-      const smFileName = chartFileNames[0];
-      const content = await this.readTextFileContent(fileMap[smFileName]);
-
-      const chart = new ExternalSMParser().parseSM(fileMap, content);
-      chart.folderName = `Single_External_${smFileName}`;
-      chart.loaded = true;
-      
-      this.showLoadingScreen("Processing Files");
-      
-      this.files.audio = await FileTools.urlToBase64(chart.audioUrl);
-      this.files.banner = await FileTools.urlToBase64(chart.bannerUrl);
-      this.files.background = await FileTools.urlToBase64(chart.backgroundUrl);
-      
-      this.hideLoadingScreen();
-      
-      this.audio.src = chart.audioUrl;
-      this.updateBanner(chart.bannerUrl);
-      this.updateBackground(chart.backgroundUrl);
-
-      this.song = { chart };
-      this.showHomeScreen();
-    } catch (error) {
-      console.error("Error loading song:", error);
-      this.showFileMenu();
-    }
-  }
-
   readTextFileContent(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -390,7 +374,6 @@ class Editor {
       animate: true
     });
 
-    carousel.addItem("Export Project File", () => this.exportProject());
     carousel.addItem("Export StepMania Song", () => this.exportSong());
 
     game.onMenuIn.dispatch("editorProject", carousel);
@@ -518,7 +501,7 @@ class Editor {
       const bgText = `BG: ${this.getCurrentBgFileName()}`;
       
       if (text != this.infoText.texture.text) this.infoText.write(text);
-      if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 192 - 8);
+      if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 180);
       
       this.infoText.visible = true;
     } else {
@@ -1029,6 +1012,7 @@ class Editor {
         contextMenu.addItem("Add BG Change", () => this.addBGChange());
         contextMenu.addItem("Add -nosongbg-", () => this.addNoSongBgChange());
       } else {
+        contextMenu.addItem("Edit BG Change", () => this.editBGChange());
         contextMenu.addItem("Remove BG Change", () => this.removeBGChange());
       }
       
@@ -1189,6 +1173,68 @@ SAMPLE LENGTH: ${chart.sampleLength}
     }
     this.fileInput.value = "";
   }
+  
+  async processFiles(files) {
+    try {
+      const fileMap = {};
+      for (let i = 0; i < files.length; i++) {
+        fileMap[files[i].name.toLowerCase()] = files[i];
+      }
+
+      const packageFileNames = Object.keys(fileMap).filter(name => name.endsWith(".zip") || name.endsWith(".pmz"));
+      const chartFileNames = Object.keys(fileMap).filter(name => name.endsWith(".sm"));
+
+      if (packageFileNames.length > 0) {
+        const zipFileName = packageFileNames[0];
+        const zipFile = fileMap[zipFileName];
+        this.importFromZip(zipFile);
+        return;
+      }
+
+      if (chartFileNames.length === 0) {
+        this.showFileMenu();
+        notifications.notify("No chart files found");
+        return;
+      }
+
+      const smFileName = chartFileNames[0];
+      const content = await this.readTextFileContent(fileMap[smFileName.toLowerCase()]);
+
+      const chart = await new ExternalSMParser().parseSM(fileMap, content);
+      chart.folderName = `Single_External_${smFileName}`;
+      chart.loaded = true;
+      
+      this.showLoadingScreen("Processing Files");
+      
+      // Load main files
+      this.files.audio = await FileTools.urlToBase64(chart.audioUrl);
+      this.files.banner = await FileTools.urlToBase64(chart.bannerUrl);
+      this.files.background = await FileTools.urlToBase64(chart.backgroundUrl);
+      this.files.lyrics = chart.lyricsContent;
+      
+      // Load BG change files
+      if (chart.backgrounds) {
+        for (const bg of chart.backgrounds) {
+          if (bg.file != "" && bg.file != "-nosongbg-") {
+            const file = fileMap[bg.file.toLowerCase()] || "";
+            this.files.extra[bg.file] = file || "";
+          }
+        }
+      }
+      
+      this.hideLoadingScreen();
+      
+      this.audio.src = chart.audioUrl;
+      this.updateBanner(chart.bannerUrl);
+      this.updateBackground(chart.backgroundUrl);
+
+      this.song = { chart };
+      this.showHomeScreen();
+    } catch (error) {
+      console.error("Error loading song:", error);
+      this.showFileMenu();
+    }
+  }
 
   async loadAudioFile(file) {
     try {
@@ -1256,6 +1302,25 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.showHomeScreen();
     }
   }
+  
+  async loadLyricsFile(file) {
+    try {
+      this.showLoadingScreen("Processing Lyrics");
+      
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.song.chart.lyrics = reader.result;
+        this.files.lyrics = reader.result;
+        this.refreshLyrics();
+        this.hideLoadingScreen();
+        this.showHomeScreen();
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      console.error("Error loading banner:", error);
+      this.showHomeScreen();
+    }
+  }
 
   async importFromZip(file) {
     const JSZip = window.JSZip;
@@ -1272,107 +1337,13 @@ SAMPLE LENGTH: ${chart.sampleLength}
     const zip = new JSZip();
     const zipContent = await zip.loadAsync(file);
 
-    // Check if it's a PadManiacs project (.pmz)
-    const hasProjectJson = zipContent.file("project.json") || zipContent.file("project.PadManiacs.json");
-
-    if (hasProjectJson) {
-      // Import PadManiacs project
-      this.showLoadingScreen("Loading PadManiacs Project");
-      await this.importPadManiacsProject(zipContent);
-    } else {
-      // Import StepMania song package
-      this.showLoadingScreen("Loading Song Package");
-      await this.importStepManiaSong(zipContent);
-    }
+    // Import the project
+    await this.importStepManiaSong(zipContent);
     
     this.hideLoadingScreen();
     this.showHomeScreen();
     
     Account.stats.totalImportedSongs ++;
-  }
-
-  async importPadManiacsProject(zipContent) {
-    // Find project JSON file
-    let projectFile = zipContent.file("project.json");
-    if (!projectFile) {
-      projectFile = zipContent.file("project.padmaniacs.json");
-    }
-
-    if (!projectFile) {
-      throw new Error("No project.json found in ZIP");
-    }
-
-    const projectJson = await projectFile.async("text");
-    const project = JSON.parse(projectJson);
-
-    // Load song data
-    this.song = { chart: project.chart };
-
-    // Extract files from ZIP
-    this.files = {
-      audio: null,
-      background: null,
-      banner: null,
-      extra: {}
-    };
-
-    // Helper function to extract file
-    const extractFile = async (filename, targetProp) => {
-      if (filename && filename !== "no-media") {
-        const fileEntry = zipContent.file(filename);
-        if (fileEntry) {
-          const blob = await fileEntry.async("blob");
-          const dataUrl = await new Promise(resolve => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.readAsDataURL(blob);
-          });
-          this.files[targetProp] = dataUrl;
-
-          const objectUrl = URL.createObjectURL(blob);
-
-          // Update URL in chart
-          if (targetProp === "audio") {
-            this.song.chart.audio = filename
-            this.song.chart.audioUrl = objectUrl;
-            this.audio.src = this.song.chart.audioUrl;
-          } else if (targetProp === "background") {
-            this.song.chart.background = filename;
-            this.song.chart.backgroundUrl = objectUrl;
-            this.updateBackground(objectUrl);
-          } else if (targetProp === "banner") {
-            this.song.chart.banner = filename;
-            this.song.chart.bannerUrl = objectUrl;
-            this.updateBanner(objectUrl);
-          }
-        }
-      }
-    };
-
-    // Extract main files
-    await extractFile(this.song.chart.audio, "audio");
-    await extractFile(this.song.chart.background, "background");
-    await extractFile(this.song.chart.banner, "banner");
-
-    // Extract BG change files
-    if (this.song.chart.backgrounds) {
-      for (const bg of this.song.chart.backgrounds) {
-        if (bg.file) {
-          const fileEntry = zipContent.file(bg.file);
-          if (fileEntry) {
-            const blob = await fileEntry.async("blob");
-            const dataUrl = await new Promise(resolve => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result);
-              reader.readAsDataURL(blob);
-            });
-            this.files.extra[bg.file] = dataUrl;
-          }
-        }
-      }
-    }
-
-    notifications.show("PadManiacs project imported!");
   }
 
   async importStepManiaSong(zipContent) {
@@ -1401,6 +1372,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       audio: null,
       background: null,
       banner: null,
+      lyrics: null,
       extra: {}
     };
 
@@ -1441,15 +1413,25 @@ SAMPLE LENGTH: ${chart.sampleLength}
         if (targetProp === "audio") {
           this.song.chart.audio = filename;
           this.song.chart.audioUrl = objectUrl;
+          this.files.audio = FileTools.extractBase64(objectUrl);
           this.audio.src = objectUrl;
         } else if (targetProp === "background") {
           this.song.chart.background = filename;
           this.song.chart.backgroundUrl = objectUrl;
+          this.files.background = FileTools.extractBase64(objectUrl);
           this.updateBackground(objectUrl);
         } else if (targetProp === "banner") {
           this.song.chart.banner = filename;
           this.song.chart.bannerUrl = objectUrl;
+          this.files.banner = FileTools.extractBase64(objectUrl);
           this.updateBanner(objectUrl);
+        } else if (targetProp === "lyrics") {
+          this.files.lyrics = await fileEntry.async("text");
+          this.song.chart.lyrics = filename;
+          this.song.chart.lyricsContent = this.files.lyrics;
+          this.refreshLyrics();
+        } else if (targetProp === "extra") {
+          this.files.extra[filename] = FileTools.extractBase64(objectUrl);
         }
 
         return dataUrl;
@@ -1462,11 +1444,12 @@ SAMPLE LENGTH: ${chart.sampleLength}
     await loadFileFromZip(this.song.chart.audio, "audio");
     await loadFileFromZip(this.song.chart.background, "background");
     await loadFileFromZip(this.song.chart.banner, "banner");
+    await loadFileFromZip(this.song.chart.lyrics, "lyrics");
 
     // Load BG change files
     if (this.song.chart.backgrounds) {
       for (const bg of this.song.chart.backgrounds) {
-        if (bg.file) {
+        if (bg.file != "" && bg.file != "-nosongbg-") {
           await loadFileFromZip(bg.file, "extra");
         }
       }
@@ -1490,66 +1473,6 @@ SAMPLE LENGTH: ${chart.sampleLength}
     };
     
     notifications.show("SM file imported! Load audio/background files manually.");
-  }
-
-  async exportProject() {
-    try {
-      this.showLoadingScreen("Exporting project");
-
-      // Prepare song data without sprite references
-      const songData = await FileTools.prepareSongForExport(this.song, this.files);
-
-      // Create project JSON
-      const projectData = {
-        version: VERSION,
-        type: "PadManiacs Project",
-        exportDate: new Date().toISOString(),
-        chart: songData,
-        files: {
-          audio: this.song.chart.audio || "",
-          background: this.song.chart.background || "",
-          banner: this.song.chart.banner || "",
-          extra: this.song.chart.backgrounds?.map(bg => bg.file).filter(Boolean) || []
-        }
-      };
-
-      const projectJson = JSON.stringify(projectData, null, 2);
-
-      // Create ZIP file
-      const JSZip = window.JSZip;
-      if (!JSZip) {
-        throw new Error("JSZip library not loaded");
-      }
-
-      const zip = new JSZip();
-
-      // Add project JSON
-      zip.file("project.padmaniacs.json", projectJson);
-
-      // Add SM file for compatibility
-      const smContent = SMFile.generateSM(songData);
-      zip.file(`${songData.title || "song"}.sm`, smContent);
-
-      this.addSongResourcesToZip(songData, zip);
-
-      // Generate ZIP file
-      const blob = await zip.generateAsync({ type: "blob" });
-
-      // Save file
-      const fileName = `${songData.title || "song"}_PadManiacs_${VERSION.replace(/[^a-z0-9]/gi, "_")}.pmz`;
-      this.saveFile(blob, fileName);
-      
-      Account.stats.totalExportedSongs ++;
-
-      this.hideLoadingScreen();
-      this.showHomeScreen();
-      notifications.show("Project exported successfully!");
-    } catch (error) {
-      console.error("Export failed:", error);
-      this.hideLoadingScreen();
-      this.showHomeScreen();
-      notifications.show("Export failed!");
-    }
   }
 
   async exportSong() {
@@ -1602,6 +1525,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     songData.audio !== "no-media" && zip.file(songData.audio, this.files.audio, { base64: true });
     songData.background !== "no-media" && zip.file(songData.background, this.files.background, { base64: true });
     songData.banner !== "no-media" && zip.file(songData.banner, this.files.banner, { base64: true });
+    songData.lyricsContent && zip.file(songData.lyrics, this.files.lyrics);
 
     // Add BG change files
     if (songData.backgrounds) {
@@ -1628,16 +1552,6 @@ SAMPLE LENGTH: ${chart.sampleLength}
       URL.revokeObjectURL(url);
     } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       await this.saveFileToFilesystem(blob, filename);
-    }
-  }
-
-  saveToExternalStorage(blob, filename) {
-    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA) {
-      this.saveCordovaFile(blob, filename);
-    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
-      this.saveNWJSFile(blob, filename);
-    } else {
-      this.exportSong();
     }
   }
   
@@ -1854,25 +1768,13 @@ SAMPLE LENGTH: ${chart.sampleLength}
     this.song.chart.backgrounds.forEach((bg, index) => {
       const fileName = bg.file ? bg.file.split("/").pop() : "No file";
       carousel.addItem(`BG ${index + 1}: ${fileName}`, () => {
-        this.pickFile("image/*,video/*", async file => {
+        this.pickFile("image/*,video/*", async event => {
+          const file = event.target.files[0];
           bg.file = file.name;
           this.files.extra[file.name] = FileTools.extractBase64(URL.createObjectURL(file));
           this.editBGChangeFiles();
         }, () => editBGChangeFiles());
       });
-    });
-
-    carousel.addItem("+ Add BG Change", () => {
-      this.song.chart.backgrounds.push({
-        beat: 0,
-        file: "",
-        opacity: 1,
-        fadeIn: 0,
-        fadeOut: 0,
-        effect: 0,
-        type: "image"
-      });
-      this.editBGChangeFiles();
     });
 
     carousel.addItem("< Back", () => this.showFileMenu());
@@ -1933,7 +1835,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
   detectBPMHere() {
     const audioElement = document.createElement("audio");
     audioElement.src = this.audio.src;
-    audioElement.currentTime = this.audio.currentTime;
+    audioElement.currentTime = this.chartRenderer.beatToSec(this.cursorBeat);
 
     this.menuVisible = true;
 
@@ -2112,7 +2014,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
         type: fileType
       });
       this.song.chart.backgrounds.sort((a, b) => a.beat - b.beat);
-      this.files.extra[file.name] = FileTools.extractBase64(URL.createObjectURL(file));
+      this.files.extra[file.name] = FileTools.extractBase64(url);
       this.updateInfoText();
     });
   }
@@ -2134,13 +2036,31 @@ SAMPLE LENGTH: ${chart.sampleLength}
   getBGChange() {
     return this.song.chart.backgrounds.find(bg => Math.abs(bg.beat - this.cursorBeat) < 0.001);
   }
-
+  
+  editBGChange() {
+    const bgChange = this.getBGChange();
+    if (bgChange) {
+      this.pickFile("image/*,video/*", async event => {
+        const file = event.target.files[0];
+        const fileType = file.type.includes("video") ? "video" : "image";
+        const url = URL.createObjectURL(file);
+        const index = this.song.chart.backgrounds.indexOf(bgChange);
+        this.song.chart.backgrounds[index].file = file.name;
+        this.song.chart.backgrounds[index].url = url;
+        this.files.extra[file.name] = FileTools.extractBase64(url);
+        this.updateInfoText();
+      });
+    }
+    this.updateInfoText();
+  }
+  
   removeBGChange() {
     const bgChange = this.getBGChange();
     if (bgChange) {
       const index = this.song.chart.backgrounds.indexOf(bgChange);
       this.song.chart.backgrounds.splice(index, 1);
       this.chartRenderer.removeTag(bgChange.beat, 'bg');
+      delete this.files.extra[bgChange.file];
     }
     this.updateInfoText();
   }
@@ -2154,16 +2074,27 @@ SAMPLE LENGTH: ${chart.sampleLength}
     if (notifications.notificationWindow) notifications.notificationWindow.bringToTop();
 
     if (this.currentScreen === "metadata") {
-      if (this.mainCarousel) {
-        this.mainCarousel.update();
-      }
+      this.lyricsText.visible = false;
+      this.icons.visible = true;
+      
+      const updateIconTint = (icon, enabled) => icon.tint = enabled ? 0xffffff : 0x888888;
+      
+      updateIconTint(this.audioIcon, this.files.audio);
+      updateIconTint(this.bgIcon, this.files.background && this.files.background !== "");
+      updateIconTint(this.bnIcon, this.files.banner && this.files.banner !== "");
+      updateIconTint(this.lrcIcon, this.files.lyrics && this.files.lyrics.length);
+      updateIconTint(this.extraIcon, this.files.extra && Object.entries(this.files.extra).length);
     } else if (this.currentScreen === "chartEdit") {
       this.handleChartEditInput();
+      this.icons.visible = false;
+      this.lyricsText.visible = this.isPlaying;
 
       if (this.isPlaying) {
         this.cursorBeat = beat;
         this.updateCursorPosition();
         this.updateInfoText();
+        
+        if (this.lyrics) this.lyrics.move(now);
         
         // Show hit effects when notes reach judge line
         this.showHitEffects(now, beat);

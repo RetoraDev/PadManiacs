@@ -1,6 +1,6 @@
 class ExternalSMParser {
   // TODO: Make this class use SMFile
-  parseSM(files, smContent) {
+  async parseSM(files, smContent) {
     let out = {};
     let isSSC = smContent.includes("#VERSION:");
 
@@ -33,6 +33,8 @@ class ExternalSMParser {
     out.backgroundUrl = "";
     out.cdtitle = "no-media";
     out.cdtitleUrl = "";
+    out.lyrics = "";
+    out.lyricsContent = null;
     out.audioUrl = null;
     out.videoUrl = null;
     out.files = files;
@@ -148,10 +150,8 @@ class ExternalSMParser {
         case "#LYRICSPATH":
           if (p[1] && files[p[1].toLowerCase()]) {
             const file = files[p[1].toLowerCase()];
-            out.lyrics = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.lyrics = out.lyrics
-              .replace('cdvfile://', 'file://')
-              .replace('localhost/persistent/', '/storage/emulated/0/');
+            out.lyrics = p[1];
+            out.lyricsContent = await this.readFileContent(file);
           }
           break;
         case "#MUSIC":
@@ -263,6 +263,15 @@ class ExternalSMParser {
     }
 
     return out;
+  }
+  
+  readFileContent(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
   }
 
   parseSSC(files, sscContent) {

@@ -218,29 +218,15 @@ class Jukebox {
   setupLyrics() {
     // Check if current song has lyrics
     if (this.currentSong.lyrics) {
-      this.loadLyrics(this.currentSong.lyrics);
+      this.loadLyrics(this.currentSong.lyricsContent);
     } else {
       this.lyrics = null;
       this.hasLyrics = false;
     }
   }
 
-  async loadLyrics(lyricsUrl) {
-    try {
-      const lrcContent = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', lyricsUrl);
-        xhr.onload = () => {
-          if (xhr.status === 200 || xhr.status === 0) { // 0 for file:// protocol
-            resolve(xhr.responseText);
-          } else {
-            reject(new Error(`Failed to load lyrics: ${xhr.status}`));
-          }
-        };
-        xhr.onerror = () => reject(new Error('Network error loading lyrics'));
-        xhr.send();
-      });
-      
+  loadLyrics(lrcContent) {
+    if (lrcContent && lrcContent != "") {
       this.lyrics = new Lyrics({
         textElement: this.lyricsText,
         maxLineLength: 25,
@@ -248,9 +234,7 @@ class Jukebox {
       });
       
       this.hasLyrics = true;
-      
-    } catch (error) {
-      console.warn("Could not load lyrics:", error);
+    } else {
       this.lyrics = null;
       this.hasLyrics = false;
     }

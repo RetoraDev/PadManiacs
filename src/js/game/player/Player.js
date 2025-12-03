@@ -103,9 +103,17 @@ class Player {
   }
   
   calculateTotalNotes() {
-    this.totalNotes = this.notes.filter(note => 
-      note.type === "1" || note.type === "2" || note.type === "4"
-    ).length;
+    const noteValues = {
+      "1": 1,
+      "2": 2,
+      "4": 2,
+      "M": 0
+    };
+    this.totalNotes = 0;
+    this.notes.forEach(note => {
+      const value = noteValues[note.type] || 0;
+      this.totalNotes += value;
+    });
   }
   
   calculateLeftOffset() {
@@ -732,14 +740,14 @@ class Player {
     // Update health
     if (this.health != this.previousHealth) {
       this.previousHealth = this.health;
-      game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
+      const tween = game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
+      tween.onUpdateCallback = () => this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
       if (this.health <= 0) {
         this.gameOver = true;
         this.health = 0;
       }
       this.healthText.write(this.health.toString());
     }
-    this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
     if (this.scene.accuracyBar) {
       if (this.accuracy <= 0) {
         this.scene.accuracyBar.visible = false;

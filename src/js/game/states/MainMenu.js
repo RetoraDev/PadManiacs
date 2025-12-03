@@ -135,7 +135,7 @@ class MainMenu {
   }
 
   showHomeMenu() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -161,7 +161,7 @@ class MainMenu {
   }
 
   startGame() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -177,7 +177,7 @@ class MainMenu {
   }
 
   showExtraSongs() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -429,7 +429,7 @@ class MainMenu {
   }
 
   showExtras() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -453,7 +453,7 @@ class MainMenu {
   }
 
   showFeedback() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112, 68, {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',

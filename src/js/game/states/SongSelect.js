@@ -319,29 +319,10 @@ class SongSelect {
 
   startGame(song, difficultyIndex) {
     // Start gameplay with selected song
-    const resources = [];
-    
-    if (song.lyrics) {
-      resources.push({
-        type: "text",
-        key: 'song_lyrics',
-        url: song.lyrics
-      })
-    }
-    
-    this.load.baseURL = "";
-    
-    if (!resources.length) {
-      game.state.start("Play", true, false, {
-        chart: song,
-        difficultyIndex
-      });
-    } else {
-      game.state.start("Load", true, false, resources, "Play", {
-        chart: song,
-        difficultyIndex
-      });
-    }
+    game.state.start("Play", true, false, {
+      chart: song,
+      difficultyIndex
+    });
   }
 
   update() {
@@ -357,6 +338,7 @@ class SongSelect {
     
     if (gamepad.pressed.select) {
       Account.settings.autoplay = !Account.settings.autoplay;
+      console.log(Account.settings.autoplay)
     }
     
     this.autoplayText.write(Account.settings.autoplay ? "AUTOPLAY" : "");

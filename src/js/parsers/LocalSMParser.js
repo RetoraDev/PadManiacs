@@ -1,5 +1,4 @@
 class LocalSMParser {
-  // TODO: Make this class use SMFile
   constructor() {
     this.baseUrl = "";
   }
@@ -8,11 +7,6 @@ class LocalSMParser {
     this.baseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
     
     let out = {};
-    let isSSC = smContent.includes("#VERSION:");
-
-    if (isSSC) {
-      return this.parseSSC(smContent, baseUrl);
-    }
 
     // Clean and parse SM content
     let sm = smContent
@@ -39,6 +33,8 @@ class LocalSMParser {
     out.backgroundUrl = "";
     out.cdtitle = "";
     out.cdtitleUrl = "";
+    out.lyrics = "";
+    out.lyricsContent = null;
     out.audioUrl = null;
     out.videoUrl = null;
     out.sampleStart = 0;
@@ -123,7 +119,10 @@ class LocalSMParser {
           }
           break;
         case "#LYRICSPATH":
-          if (p[1]) out.lyrics = this.resolveFileUrl(p[1], baseUrl);
+          if (p[1]) {
+            out.lyrics = p[1];
+            out.lyricsContent = await this.loadTextFile(baseUrl + p[1]);
+          }
           break;
         case "#SAMPLESTART":
           if (p[1]) out.sampleStart = parseFloat(p[1]);
@@ -240,6 +239,22 @@ class LocalSMParser {
 
     return out;
   }
+  
+  async loadTextFile(url) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          resolve(xhr.responseText);
+        } else {
+          resolve(null);
+        }
+      };
+      xhr.onerror = () => resolve(null);
+      xhr.send();
+    });
+  }
 
   resolveFileUrl(filename, baseUrl) {
     if (!filename) return "";
@@ -262,49 +277,5 @@ class LocalSMParser {
     let s = stops.filter(({ beat: i }) => i >= b.beat && i < beat).map(i => i.len);
     for (let i in s) x += s[i];
     return x;
-  }
-
-  parseSSC(sscContent, baseUrl) {
-    const sections = sscContent.split(/\/\/-+/);
-    const headerSection = sections[0];
-    
-    const out = {
-      bpmChanges: [],
-      stops: [],
-      notes: {},
-      backgrounds: [],
-      banner: "no-media",
-      difficulties: [],
-      background: "no-media",
-      cdtitle: null,
-      audioUrl: null,
-      videoUrl: null,
-      sampleStart: 0,
-      sampleLength: 10,
-      baseUrl: baseUrl
-    };
-
-    // Parse header tags
-    const lines = headerSection.split('\n');
-    for (let line of lines) {
-      if (line.startsWith('#')) {
-        const [key, ...valueParts] = line.slice(1).split(':');
-        const value = valueParts.join(':').trim();
-        
-        switch(key) {
-          case 'TITLE': out.title = value; break;
-          case 'ARTIST': out.artist = value; break;
-          case 'BANNER': out.banner = this.resolveFileUrl(value); break;
-          case 'BACKGROUND': out.background = this.resolveFileUrl(value); break;
-          case 'MUSIC': 
-            out.audio = value;
-            out.audioUrl = this.resolveFileUrl(value);
-            break;
-          // Add more tags as needed
-        }
-      }
-    }
-
-    return out;
   }
 }

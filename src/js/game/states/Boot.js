@@ -83,6 +83,13 @@ class Boot {
         url: "ui/hud_background.png"
       },
       {
+        key: "ui_editor_icons",
+        url: "ui/editor_icons.png",
+        type: "spritesheet",
+        frameWidth: 8,
+        frameHeight: 8
+      },
+      {
         key: "ui_lobby_background",
         url: "ui/lobby_background.png"
       },

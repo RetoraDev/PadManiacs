@@ -13,7 +13,7 @@ class SMFile {
     smContent += `#CREDIT:${songData.credit || ""};\n`;
     smContent += `#BANNER:${FileTools.getFilename(songData.banner)};\n`;
     smContent += `#BACKGROUND:${FileTools.getFilename(songData.background)};\n`;
-    smContent += `#LYRICSPATH:${FileTools.getFilename(songData.lyrics)};\n`;
+    smContent += `#LYRICSPATH:${songData.lyrics || ""};\n`;
     smContent += `#CDTITLE:${FileTools.getFilename(songData.cdtitle)};\n`;
     smContent += `#MUSIC:${FileTools.getFilename(songData.audio)};\n`;
     smContent += `#OFFSET:${(songData.offset || 0).toFixed(6)};\n`;
