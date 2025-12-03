@@ -11,11 +11,11 @@ class SMFile {
     smContent += `#ARTISTTRANSLIT:${songData.artistTranslit || ""};\n`;
     smContent += `#GENRE:${songData.genre || ""};\n`;
     smContent += `#CREDIT:${songData.credit || ""};\n`;
-    smContent += `#BANNER:${this.getFilename(songData.banner)};\n`;
-    smContent += `#BACKGROUND:${this.getFilename(songData.background)};\n`;
-    smContent += `#LYRICSPATH:${this.getFilename(songData.lyrics)};\n`;
-    smContent += `#CDTITLE:${this.getFilename(songData.cdtitle)};\n`;
-    smContent += `#MUSIC:${this.getFilename(songData.audio)};\n`;
+    smContent += `#BANNER:${FileTools.getFilename(songData.banner)};\n`;
+    smContent += `#BACKGROUND:${FileTools.getFilename(songData.background)};\n`;
+    smContent += `#LYRICSPATH:${FileTools.getFilename(songData.lyrics)};\n`;
+    smContent += `#CDTITLE:${FileTools.getFilename(songData.cdtitle)};\n`;
+    smContent += `#MUSIC:${FileTools.getFilename(songData.audio)};\n`;
     smContent += `#OFFSET:${(songData.offset || 0).toFixed(6)};\n`;
     smContent += `#SAMPLESTART:${(songData.sampleStart || 0).toFixed(6)};\n`;
     smContent += `#SAMPLELENGTH:${(songData.sampleLength || 10).toFixed(6)};\n`;
@@ -56,12 +56,6 @@ class SMFile {
     }
     
     return smContent;
-  }
-  
-  static getFilename(url) {
-    if (!url || url === "no-media") return "";
-    const parts = url.split(/[\\/]/);
-    return parts[parts.length - 1] || "";
   }
   
   static generateNotesSection(difficulty, notes) {

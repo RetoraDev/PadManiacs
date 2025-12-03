@@ -30,7 +30,7 @@ class MainMenu {
   
   checkFeedbackDialogs() {
     // Check for bug report first (highest priority)
-    if (Account.stats.lastCrashed) {
+    if (!window.DEBUG && Account.stats.lastCrashed) {
       this.showBugReportDialog();
       return;
     }

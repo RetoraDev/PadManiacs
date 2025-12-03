@@ -4,6 +4,7 @@ class Play {
     this.difficultyIndex = difficultyIndex || song.difficultyIndex;
     this.player = null;
     this.backgroundQueue = [];
+    this.preloadedBackgrounds = {};
     this.currentBackground = null;
     this.isPaused = false;
     this.pauseStartTime = 0;
@@ -53,6 +54,9 @@ class Play {
     };
     saveAccount();
     
+    // For debugging
+    window.p = this;
+    
     // Game constants
     this.JUDGE_WINDOWS = JUDGE_WINDOWS;
     
@@ -92,11 +96,6 @@ class Play {
     
     window.addEventListener('visibilitychange', this.visibilityChangeListener);
     
-    // Create video element for background videos
-    this.video = document.createElement("video");
-    this.video.muted = true;
-    this.video.loop = true;
-    
     this.createHud();
     
     this.setupLyrics();
@@ -105,10 +104,34 @@ class Play {
     
     this.metronome = new Metronome(this);
     
-    this.songStart();
+    this.initialSetup();
     
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+  
+  initialSetup() {
+    const dots = new LoadingDots();
+    this.song.chart.backgrounds.forEach(async bg => {
+      if (bg.file !== "-nosongbg-" && !this.preloadedBackgrounds[bg.file]) {
+        const element = await this.preloadBackground(bg);
+        this.preloadedBackgrounds[bg.file] = element;
+      }
+    });
+    dots.destroy();
+    this.songStart();
+  }
+  
+  preloadBackground(background) {
+    return new Promise((resolve, reject) => {
+      const { url, type } = background;
+      const element = type == "video" ? document.createElement("video") : document.createElement("img");
+      element.src = url;
+      element.muted = true;
+      element.loop = true;
+      element.onload = () => resolve(element);
+      element.onerror = () => resolve(element);
+    });
   }
   
   createHud() {
@@ -252,7 +275,7 @@ class Play {
     }[type];
   }
   
-  setBackground() {
+  setInitialBackground() {
     // Set initial background
     if (this.song.chart.backgroundUrl && this.song.chart.backgroundUrl !== "no-media") {
       this.loadBackgroundImage(this.song.chart.backgroundUrl);
@@ -265,7 +288,7 @@ class Play {
   }
   
   songStart() {
-    this.setBackground();
+    this.setInitialBackground();
     
     const FIXED_DELAY = 2000; 
     
@@ -329,20 +352,59 @@ class Play {
     this.overHud.addChild(glitch);
   }
   
+  drawBackground(element) {
+    this.backgroundCtx.drawImage(element, 0, 0, 192, 112);
+    this.updateBackgroundTexture();
+  }
+  
+  updateBackgroundTexture() {
+    const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
+    this.backgroundSprite.loadTexture(texture);
+  }
+  
   loadBackgroundImage(url) {
-    const img = new Image();
-    img.onload = () => {
-      this.backgroundCtx.drawImage(img, 0, 0, 192, 112);
-      this.updateBackgroundTexture();
-    };
-    img.src = url;
+    // Pause any existing video
+    if (this.video) this.video.pause();
+    
+    const filename = FileTools.getFilename(url);
+    
+    // Check if there is already a background preloaded
+    if (this.preloadedBackgrounds[filename]) {
+      // Use the preloaded background
+      this.drawBackground(this.preloadedBackgrounds[filename]);
+    } else {
+      // Load the background in real time instead
+      const img = document.createElement("img");
+      img.onload = () => this.drawBackground(img);
+      img.src = url;
+      this.preloadedBackgrounds[filename] = img;
+    }
+    
+    this.backgroundGradient.visible = true;
   }
   
   loadBackgroundVideo(url) {
-    this.video.src = url;
+    // Pause any existing video
+    if (this.video) this.video.pause();
+    
+    const filename = FileTools.getFilename(url);
+    
+    // Check if there is already a background preloaded
+    if (this.preloadedBackgrounds[filename]) {
+      // Use the preloaded background
+      this.video = this.preloadedBackgrounds[filename];
+    } else {
+      // Load the background in real time instead
+      const video = document.createElement("video");
+      video.src = url;
+      this.preloadedBackgrounds[filename] = video;
+      this.video = video;
+    }
+    
     this.video.play();
+    
     this.backgroundGradient.visible = false;
-    this.video.addEventListener("error", () => this.backgroundGradient.visible = true, { once: true })
+    this.video.addEventListener("error", () => this.backgroundGradient.visible = true, { once: true });
   }
   
   clearBackgroundImage() {
@@ -357,8 +419,6 @@ class Play {
       this.loadBackgroundVideo(bg.url);
     } else {
       this.loadBackgroundImage(bg.url);
-      this.video.src = "";
-      this.backgroundGradient.visible = true;
     }
     this.currentBackground = bg;
     this.applyBgEffects(bg);
@@ -373,11 +433,6 @@ class Play {
     }
     
     // TODO: When applying bg effects take in account bg.fadeOut and bg.effect
-  }
-  
-  updateBackgroundTexture() {
-    const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
-    this.backgroundSprite.loadTexture(texture);
   }
   
   songEnd() {
@@ -481,16 +536,16 @@ class Play {
     this.isPaused = true;
     this.pauseStartTime = game.time.now;
     this.audio?.pause();
-    if (this.video.src) this.video?.pause();
+    this.video?.pause();
     this.showPauseMenu();
   }
   
   resume() {
     this.isPaused = false;
     this.totalPausedDuration += game.time.now - this.pauseStartTime;
-    this.hidePauseMenu();
-    if (this.video.src) this.video?.play();
+    this.video?.play();
     this.audio?.play();
+    this.hidePauseMenu();
   }
   
   showPauseMenu() {
@@ -588,10 +643,9 @@ class Play {
   }
   
   updateVideo() {
-    if (this.currentBackground && this.currentBackground.type == "video" && game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
+    if (this.video && this.currentBackground && this.currentBackground.type == "video" && game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
       this.lastVideoUpdateTime = game.time.now;
-      this.backgroundCtx.drawImage(this.video, 0, 0, 192, 112);
-      this.updateBackgroundTexture();
+      this.drawBackground(this.video);
     }
   }
   
@@ -668,11 +722,11 @@ class Play {
     this.audio.pause();
     this.audio.src = "";
     this.audio = null;
-    if (this.video.src) {
+    if (this.video) {
       this.video.pause();
       this.video.src = "";
+      this.video = null;
     }
-    this.video = null;
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
     if (this.visualizer) {
       this.visualizer.destroy();
@@ -682,6 +736,7 @@ class Play {
       this.metronome.destroy();
       this.metronome = null;
     }
+    Object.entries(this.preloadedBackgrounds).forEach(element => element.src = "");
     
     // Stop recording and show video
     if (window.recordNextGame) {
