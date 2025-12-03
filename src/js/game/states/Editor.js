@@ -33,7 +33,7 @@ class Editor {
     };
     
     // For debugging
-    window.editorState = this;
+    window.e = this;
 
     this.divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 192];
 
@@ -51,9 +51,7 @@ class Editor {
     this.backgroundLayer = game.add.group();
     this.backgroundSprite = game.add.sprite(0, 0, null, 0, this.backgroundLayer);
     this.backgroundSprite.alpha = 0.3;
-
-    this.navigationHint = new NavigationHint(0);
-
+    
     this.chartRenderer = new ChartRenderer(this, this.song, this.currentDifficultyIndex, {
       enableGameplayLogic: false,
       enableJudgement: false,
@@ -68,12 +66,20 @@ class Editor {
       judgeLineYRising: 50
     });
 
+    this.homeOverlay = game.add.graphics(0, 0);
+    this.homeOverlay.beginFill(0x000000, 0.5);
+    this.homeOverlay.drawRect(0, 0, game.width, game.height);
+    this.homeOverlay.endFill();
+    this.homeOverlay.visible = false;
+
+    this.navigationHint = new NavigationHint(0);
+
     this.cursorSprite = game.add.graphics(0, 0);
     this.selectionRect = game.add.graphics(0, 0);
     this.freezePreviewSprite = game.add.graphics(0, 0);
     this.updateCursorPosition();
     
-    this.bannerSprite = game.add.sprite(4, 56, null);
+    this.bannerSprite = game.add.sprite(8, 56, null);
 
     this.infoText = new Text(4, 4, "");
     this.updateInfoText();
@@ -140,6 +146,7 @@ class Editor {
     this.clearUI();
     this.stopPlayback();
     this.navigationHint.change(0);
+    this.homeOverlay.visible = true;
     this.bannerSprite.visible = true;
     
     const leftWidth = game.width / 2;
@@ -290,6 +297,8 @@ class Editor {
   
   loadSong() {
     this.pickFolder("*", e => this.processFiles(e.target.files), e => this.showFileMenu());
+    
+    Account.stats.totalImportedSongs ++;
   }
 
   async processFiles(files) {
@@ -431,6 +440,7 @@ class Editor {
     this.selectedNotes = [];
     this.clearUI();
     this.stopPlayback();
+    this.homeOverlay.visible = false;
     this.bannerSprite.visible = false;
     this.navigationHint.change(7);
 
@@ -646,9 +656,16 @@ class Editor {
         this.startAreaSelection();
       }
     } else if (gamepad.held.a && (gamepad.pressed.left || gamepad.pressed.right)) {
-      if (game.time.now - this.holdADirectionTime > 200) {
+      if (!this.isAreaSelecting) {
         this.changeSnapDivision(gamepad.pressed.left ? -1 : 1);
         this.holdADirectionTime = game.time.now;
+      } else {
+        if (gamepad.pressed.left) {
+          this.moveCursor(-1, 0);
+        }
+        if (gamepad.pressed.right) {
+          this.moveCursor(1, 0);
+        }
       }
     } else {
       if (gamepad.pressed.left) {
@@ -789,6 +806,7 @@ class Editor {
 
     this.selectedNotes = notes.filter(note => note.beat >= startBeat && note.beat <= endBeat && note.column >= startCol && note.column <= endCol);
 
+    this.updateCursorPosition();
     this.updateInfoText();
   }
 
@@ -805,6 +823,8 @@ class Editor {
       } else {
         this.selectedNotes.push(noteAtCursor);
       }
+    } else {
+      this.selectedNotes = [];
     }
 
     this.updateInfoText();
@@ -850,7 +870,9 @@ class Editor {
       this.playExplosionEffect(this.cursorColumn);
       this.previewNote(newNote);
     }
-
+    
+    Account.stats.totalPlacedArrows ++;
+    
     this.sortNotes();
     this.updateInfoText();
   }
@@ -881,6 +903,8 @@ class Editor {
     };
     notes.push(newNote);
     this.previewNote(newNote);
+    
+    Account.stats.totalPlacedFreezes ++;
 
     this.sortNotes();
     this.updateInfoText();
@@ -908,6 +932,8 @@ class Editor {
     };
     notes.push(newNote);
     this.previewNote(newNote);
+    
+    Account.stats.totalPlacedMines ++;
 
     this.sortNotes();
     this.updateInfoText();
@@ -915,26 +941,7 @@ class Editor {
   }
 
   placeQuickHold() {
-    if (this.isPlaying) return;
-
-    const notes = this.getCurrentChartNotes();
-
-    const newNote = {
-      type: "2",
-      beat: this.cursorBeat,
-      sec: this.chartRenderer.beatToSec(this.cursorBeat),
-      column: this.cursorColumn,
-      beatLength: 1,
-      secLength: 60 / this.chartRenderer.getCurrentBPM(this.cursorBeat),
-      beatEnd: this.cursorBeat + 1,
-      secEnd: this.chartRenderer.beatToSec(this.cursorBeat + 1)
-    };
-    notes.push(newNote);
-    this.previewNote(newNote);
-
-    this.sortNotes();
-    this.updateInfoText();
-    this.playExplosionEffect(this.cursorColumn);
+    this.placeFreeze(this.cursorBeat, 1, "2");
   }
 
   playExplosionEffect(column) {
@@ -1241,6 +1248,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
         this.showHomeScreen();
       }
     }, () => this.showFileMenu());
+    
+    Account.stats.totalImportedSongs ++;
   }
 
   async importFromZip(file) {
@@ -1273,6 +1282,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
     
     this.hideLoadingScreen();
     this.showHomeScreen();
+    
+    Account.stats.totalImportedSongs ++;
   }
 
   async importPadManiacsProject(zipContent) {
@@ -1522,6 +1533,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
       // Save file
       const fileName = `${songData.title || "song"}_PadManiacs_${VERSION.replace(/[^a-z0-9]/gi, "_")}.pmz`;
       this.saveFile(blob, fileName);
+      
+      Account.stats.totalExportedSongs ++;
 
       this.hideLoadingScreen();
       this.showHomeScreen();
@@ -1565,6 +1578,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
       // Save file
       const fileName = `${songData.title || "song"}.zip`;
       await this.saveFile(blob, fileName);
+      
+      Account.stats.totalExportedSongs ++;
 
       this.hideLoadingScreen();
       this.showHomeScreen();
@@ -2071,6 +2086,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
     
     const { now, beat } = this.getCurrentTime();
     this.chartRenderer.render(now, beat);
+    
+    if (notifications.notificationWindow) notifications.notificationWindow.bringToTop();
 
     if (this.currentScreen === "metadata") {
       if (this.mainCarousel) {

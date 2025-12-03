@@ -88,6 +88,13 @@ const DEFAULT_ACCOUNT = {
     totalBoo: 0,
     totalMiss: 0,
     
+    // Editor stats
+    totalPlacedArrows: 0,
+    totalPlacedFreezes: 0,
+    totalPlacedMines: 0,
+    totalImportedSongs: 0,
+    totalExportedSongs: 0,
+    
     // Miscellaneous
     maxSkillsInGame: 0,
     gameRated: false,

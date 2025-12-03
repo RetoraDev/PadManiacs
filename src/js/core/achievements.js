@@ -11,13 +11,14 @@ const ACHIEVEMENTS = {
 
 // Achievement categories
 const ACHIEVEMENT_CATEGORIES = {
-  GAMEPLAY: 'Gameplay',
-  CHARACTER: 'Character',
-  PROGRESSION: 'Progression',
-  MASTERY: 'Mastery',
-  TIME: 'Time',
-  HOLIDAYS: 'Holidays',
-  MISC: 'Miscellaneous'
+  GAMEPLAY: "Gameplay",
+  CHARACTER: "Character",
+  PROGRESSION: "Progression",
+  MASTERY: "Mastery",
+  TIME: "Time",
+  HOLIDAYS: "Holidays",
+  EDITOR: "Editor",
+  MISC: "Miscellaneous"
 };
 
 // Achievement definitions
@@ -32,7 +33,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed your first game!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 1,
+    condition: stats => stats.totalGamesPlayed >= 1,
     hidden: false
   },
   {
@@ -56,7 +57,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 100 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.maxCombo >= 100,
+    condition: stats => stats.maxCombo >= 100,
     hidden: false
   },
   {
@@ -68,7 +69,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 500 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.maxCombo >= 500,
+    condition: stats => stats.maxCombo >= 500,
     hidden: false
   },
   {
@@ -80,7 +81,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 1000 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.maxCombo >= 1000,
+    condition: stats => stats.maxCombo >= 1000,
     hidden: false
   },
   {
@@ -92,7 +93,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 1500 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.maxCombo >= 1500,
+    condition: stats => stats.maxCombo >= 1500,
     hidden: false
   },
   {
@@ -104,7 +105,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 2000 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.maxCombo >= 2000,
+    condition: stats => stats.maxCombo >= 2000,
     hidden: false
   },
   {
@@ -116,7 +117,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 3000 combo!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.maxCombo >= 3000,
+    condition: stats => stats.maxCombo >= 3000,
     hidden: false
   },
   {
@@ -128,7 +129,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed a song with 100% accuracy!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.perfectGames >= 1,
+    condition: stats => stats.perfectGames >= 1,
     hidden: false
   },
   {
@@ -140,7 +141,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 5 songs with 100% accuracy!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.perfectGames >= 5,
+    condition: stats => stats.perfectGames >= 5,
     hidden: false
   },
   {
@@ -152,7 +153,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 songs with 100% accuracy!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.perfectGames >= 25,
+    condition: stats => stats.perfectGames >= 25,
     hidden: false
   },
   {
@@ -164,7 +165,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You got 500 Marvelous judgements!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.maxMarvelousInGame >= 500,
+    condition: stats => stats.maxMarvelousInGame >= 500,
     hidden: false
   },
   {
@@ -176,7 +177,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You got 1000 Marvelous judgements!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.maxMarvelousInGame >= 1000,
+    condition: stats => stats.maxMarvelousInGame >= 1000,
     hidden: false
   },
   {
@@ -188,7 +189,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You got 1500 Marvelous judgements!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.maxMarvelousInGame >= 1500,
+    condition: stats => stats.maxMarvelousInGame >= 1500,
     hidden: false
   },
   {
@@ -201,7 +202,7 @@ const ACHIEVEMENT_DEFINITIONS = [
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: (_, song) => song.judgements.marvelous >= song.totalNotes,
-    condition: (stats) => stats.perfectGames >= 1 && stats.maxMarvelousInGame >= 50,
+    condition: stats => stats.perfectGames >= 1 && stats.maxMarvelousInGame >= 50,
     hidden: false
   },
   {
@@ -299,7 +300,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You created your first character!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.charactersCreated >= 1,
+    condition: stats => stats.charactersCreated >= 1,
     hidden: false
   },
   {
@@ -311,7 +312,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You created 5 different characters!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.charactersCreated >= 5,
+    condition: stats => stats.charactersCreated >= 5,
     hidden: false
   },
   {
@@ -323,7 +324,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You created 10 different characters!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.charactersCreated >= 10,
+    condition: stats => stats.charactersCreated >= 10,
     hidden: false
   },
   {
@@ -335,7 +336,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached character level 5!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.maxCharacterLevel >= 5,
+    condition: stats => stats.maxCharacterLevel >= 5,
     hidden: false
   },
   {
@@ -347,7 +348,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached character level 10!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.maxCharacterLevel >= 10,
+    condition: stats => stats.maxCharacterLevel >= 10,
     hidden: false
   },
   {
@@ -359,7 +360,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached character level 20!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.maxCharacterLevel >= 20,
+    condition: stats => stats.maxCharacterLevel >= 20,
     hidden: false
   },
   {
@@ -371,7 +372,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached character level 30!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.maxCharacterLevel >= 30,
+    condition: stats => stats.maxCharacterLevel >= 30,
     hidden: false
   },
   {
@@ -383,7 +384,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached character level 50!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.maxCharacterLevel >= 50,
+    condition: stats => stats.maxCharacterLevel >= 50,
     hidden: false
   },
   {
@@ -395,7 +396,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked your first skill!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.skillsUnlocked >= 1,
+    condition: stats => stats.skillsUnlocked >= 1,
     hidden: false
   },
   {
@@ -407,7 +408,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 5 different skills!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.skillsUnlocked >= 5,
+    condition: stats => stats.skillsUnlocked >= 5,
     hidden: false
   },
   {
@@ -419,7 +420,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 10 different skills!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.skillsUnlocked >= 10,
+    condition: stats => stats.skillsUnlocked >= 10,
     hidden: false
   },
   {
@@ -431,7 +432,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 20 different skills!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.skillsUnlocked >= 20,
+    condition: stats => stats.skillsUnlocked >= 20,
     hidden: false
   },
   {
@@ -443,7 +444,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 30 different skills!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.skillsUnlocked >= 30,
+    condition: stats => stats.skillsUnlocked >= 30,
     hidden: false
   },
   {
@@ -455,7 +456,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked a new hair style!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.charactersCreated >= 1,
+    condition: stats => stats.charactersCreated >= 1,
     hidden: false
   },
   {
@@ -467,7 +468,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 5 different clothing items!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.charactersCreated >= 2,
+    condition: stats => stats.charactersCreated >= 2,
     hidden: false
   },
   {
@@ -479,7 +480,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 10 different clothing items!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.charactersCreated >= 3,
+    condition: stats => stats.charactersCreated >= 3,
     hidden: false
   },
   {
@@ -491,7 +492,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You unlocked 5 different accessories!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.charactersCreated >= 2,
+    condition: stats => stats.charactersCreated >= 2,
     hidden: false
   },
   {
@@ -503,7 +504,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached maximum skill level with a character!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.maxCharacterLevel >= CHARACTER_SYSTEM.MAX_SKILL_LEVEL,
+    condition: stats => stats.maxCharacterLevel >= CHARACTER_SYSTEM.MAX_SKILL_LEVEL,
     hidden: false
   },
   {
@@ -515,7 +516,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maxed out all character stats!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.maxCharacterLevel >= 50 && stats.skillsUnlocked >= 30,
+    condition: stats => stats.maxCharacterLevel >= 50 && stats.skillsUnlocked >= 30,
     hidden: false
   },
   {
@@ -527,7 +528,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You created a character with maximum name length!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.charactersCreated >= 1,
+    condition: stats => stats.charactersCreated >= 1,
     hidden: false
   },
 
@@ -541,7 +542,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 10 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 25,
+    condition: stats => stats.totalGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -553,7 +554,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 25 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalGamesPlayed >= 25,
+    condition: stats => stats.totalGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -565,7 +566,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 50 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalGamesPlayed >= 50,
+    condition: stats => stats.totalGamesPlayed >= 50,
     hidden: false
   },
   {
@@ -577,7 +578,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played 100 games!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalGamesPlayed >= 250,
+    condition: stats => stats.totalGamesPlayed >= 250,
     hidden: false
   },
   {
@@ -589,7 +590,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maintained a 3-day play streak!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.currentStreak >= 3,
+    condition: stats => stats.currentStreak >= 3,
     hidden: false
   },
   {
@@ -601,7 +602,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maintained a 7-day play streak!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.currentStreak >= 7,
+    condition: stats => stats.currentStreak >= 7,
     hidden: false
   },
   {
@@ -613,7 +614,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maintained a 14-day play streak!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.currentStreak >= 14,
+    condition: stats => stats.currentStreak >= 14,
     hidden: false
   },
   {
@@ -625,7 +626,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maintained a 30-day play streak!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.currentStreak >= 30,
+    condition: stats => stats.currentStreak >= 30,
     hidden: false
   },
   {
@@ -637,7 +638,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You maintained a 90-day play streak!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.currentStreak >= 90,
+    condition: stats => stats.currentStreak >= 90,
     hidden: false
   },
   {
@@ -649,7 +650,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You set your first high score!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.highScoresSet >= 1,
+    condition: stats => stats.highScoresSet >= 1,
     hidden: false
   },
   {
@@ -661,7 +662,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You set 10 high scores!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.highScoresSet >= 10,
+    condition: stats => stats.highScoresSet >= 10,
     hidden: false
   },
   {
@@ -673,7 +674,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You set 25 high scores!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.highScoresSet >= 25,
+    condition: stats => stats.highScoresSet >= 25,
     hidden: false
   },
   {
@@ -685,7 +686,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You set 50 high scores!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.highScoresSet >= 50,
+    condition: stats => stats.highScoresSet >= 50,
     hidden: false
   },
   {
@@ -697,7 +698,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 1 million total score!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalScore >= 1000000,
+    condition: stats => stats.totalScore >= 1000000,
     hidden: false
   },
   {
@@ -709,7 +710,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 10 million total score!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalScore >= 10000000,
+    condition: stats => stats.totalScore >= 10000000,
     hidden: false
   },
   {
@@ -721,7 +722,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You reached 100 million total score!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalScore >= 100000000,
+    condition: stats => stats.totalScore >= 100000000,
     hidden: false
   },
   {
@@ -733,7 +734,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You hit 1000 notes total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalNotesHit >= 1000,
+    condition: stats => stats.totalNotesHit >= 1000,
     hidden: false
   },
   {
@@ -745,7 +746,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You hit 10,000 notes total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalNotesHit >= 10000,
+    condition: stats => stats.totalNotesHit >= 10000,
     hidden: false
   },
   {
@@ -757,7 +758,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You hit 100,000 notes total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalNotesHit >= 100000,
+    condition: stats => stats.totalNotesHit >= 100000,
     hidden: false
   },
 
@@ -771,7 +772,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played for 1 hour total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalTimePlayed >= 3600,
+    condition: stats => stats.totalTimePlayed >= 3600,
     hidden: false
   },
   {
@@ -783,7 +784,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played for 5 hours total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalTimePlayed >= 18000,
+    condition: stats => stats.totalTimePlayed >= 18000,
     hidden: false
   },
   {
@@ -795,7 +796,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played for 10 hours total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalTimePlayed >= 36000,
+    condition: stats => stats.totalTimePlayed >= 36000,
     hidden: false
   },
   {
@@ -807,7 +808,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played for 24 hours total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalTimePlayed >= 86400,
+    condition: stats => stats.totalTimePlayed >= 86400,
     hidden: false
   },
   {
@@ -819,7 +820,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played for 100 hours total!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.totalTimePlayed >= 360000,
+    condition: stats => stats.totalTimePlayed >= 360000,
     hidden: false
   },
   {
@@ -831,7 +832,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played a single session for 30 minutes!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.longestSession >= 1800,
+    condition: stats => stats.longestSession >= 1800,
     hidden: false
   },
   {
@@ -843,7 +844,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played a single session for 1 hour!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.longestSession >= 3600,
+    condition: stats => stats.longestSession >= 3600,
     hidden: false
   },
   {
@@ -855,7 +856,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played a single session for 2 hours!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.longestSession >= 7200,
+    condition: stats => stats.longestSession >= 7200,
     hidden: false
   },
   {
@@ -867,7 +868,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played a single session for 4 hours!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: (stats) => stats.longestSession >= 14400,
+    condition: stats => stats.longestSession >= 14400,
     hidden: false
   },
   {
@@ -879,7 +880,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played between 5 AM and 9 AM!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.playedEarlyMorning,
+    condition: stats => stats.playedEarlyMorning,
     hidden: false
   },
   {
@@ -891,7 +892,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played between midnight and 4 AM!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.playedAtNight,
+    condition: stats => stats.playedAtNight,
     hidden: false
   },
   {
@@ -903,7 +904,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played on a weekend!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.playedWeekend,
+    condition: stats => stats.playedWeekend,
     hidden: false
   },
   {
@@ -915,8 +916,346 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You played on a holiday!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.playedHoliday,
+    condition: stats => stats.playedHoliday,
     hidden: false
+  },
+
+  // Editor Achievements
+  {
+    id: "first_arrow_placed",
+    name: "First Step",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place your first arrow in the editor",
+      achieved: "You placed your first arrow!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.totalPlacedArrows >= 1,
+    hidden: false
+  },
+  {
+    id: "arrow_master",
+    name: "Arrow Architect",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 100 arrows in the editor",
+      achieved: "You placed 100 arrows!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.totalPlacedArrows >= 100,
+    hidden: false
+  },
+  {
+    id: "arrow_expert",
+    name: "Pattern Weaver",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 500 arrows in the editor",
+      achieved: "You placed 500 arrows!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.totalPlacedArrows >= 500,
+    hidden: false
+  },
+  {
+    id: "arrow_legend",
+    name: "Stepchart Legend",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 1000 arrows in the editor",
+      achieved: "You placed 1000 arrows!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.totalPlacedArrows >= 1000,
+    hidden: false
+  },
+  {
+    id: "first_freeze_placed",
+    name: "Hold On",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place your first freeze arrow",
+      achieved: "You placed your first freeze arrow!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.totalPlacedFreezes >= 1,
+    hidden: false
+  },
+  {
+    id: "freeze_master",
+    name: "Hold Master",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 50 freeze arrows",
+      achieved: "You placed 50 freeze arrows!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.totalPlacedFreezes >= 50,
+    hidden: false
+  },
+  {
+    id: "freeze_artist",
+    name: "Sustain Artist",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 200 freeze arrows",
+      achieved: "You placed 200 freeze arrows!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.totalPlacedFreezes >= 200,
+    hidden: false
+  },
+  {
+    id: "first_mine_placed",
+    name: "Danger Zone",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place your first mine",
+      achieved: "You placed your first mine!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.totalPlacedMines >= 1,
+    hidden: false
+  },
+  {
+    id: "mine_layer",
+    name: "Mine Layer",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 25 mines",
+      achieved: "You placed 25 mines!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.totalPlacedMines >= 25,
+    hidden: false
+  },
+  {
+    id: "mine_expert",
+    name: "Trap Master",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Place 100 mines",
+      achieved: "You placed 100 mines!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.totalPlacedMines >= 100,
+    hidden: false
+  },
+  {
+    id: "first_chart_created",
+    name: "Chart Creator",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Create your first complete chart",
+      achieved: "You created your first complete chart!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.chartsCreated >= 1,
+    hidden: false
+  },
+  {
+    id: "chart_creator",
+    name: "Prolific Creator",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Create 5 complete charts",
+      achieved: "You created 5 complete charts!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.chartsCreated >= 5,
+    hidden: false
+  },
+  {
+    id: "chart_master",
+    name: "Chart Master",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Create 10 complete charts",
+      achieved: "You created 10 complete charts!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.chartsCreated >= 10,
+    hidden: false
+  },
+  {
+    id: "first_song_imported",
+    name: "Music Importer",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Import your first song",
+      achieved: "You imported your first song!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.totalImportedSongs >= 1,
+    hidden: false
+  },
+  {
+    id: "song_collector",
+    name: "Music Collector",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Import 5 songs",
+      achieved: "You imported 5 songs!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.totalImportedSongs >= 5,
+    hidden: false
+  },
+  {
+    id: "music_archivist",
+    name: "Music Archivist",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Import 10 songs",
+      achieved: "You imported 10 songs!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.totalImportedSongs >= 10,
+    hidden: false
+  },
+  {
+    id: "first_song_exported",
+    name: "Chart Exporter",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Export your first chart",
+      achieved: "You exported your first chart!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.totalExportedSongs >= 1,
+    hidden: false
+  },
+  {
+    id: "song_exporter",
+    name: "Content Creator",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Export 5 charts",
+      achieved: "You exported 5 charts!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.totalExportedSongs >= 5,
+    hidden: false
+  },
+  {
+    id: "chart_publisher",
+    name: "Chart Publisher",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Export 10 charts",
+      achieved: "You exported 10 charts!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.totalExportedSongs >= 10,
+    hidden: false
+  },
+  {
+    id: "editor_time_1_hour",
+    name: "Editor Apprentice",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Spend 1 hour in the editor",
+      achieved: "You spent 1 hour in the editor!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.editorTimeSpent >= 3600,
+    hidden: false
+  },
+  {
+    id: "editor_time_5_hours",
+    name: "Editor Enthusiast",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Spend 5 hours in the editor",
+      achieved: "You spent 5 hours in the editor!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.editorTimeSpent >= 18000,
+    hidden: false
+  },
+  {
+    id: "editor_time_10_hours",
+    name: "Editor Veteran",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Spend 10 hours in the editor",
+      achieved: "You spent 10 hours in the editor!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.editorTimeSpent >= 36000,
+    hidden: false
+  },
+  {
+    id: "editor_time_24_hours",
+    name: "Editor Master",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Spend 24 hours in the editor",
+      achieved: "You spent 24 hours in the editor!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.editorTimeSpent >= 86400,
+    hidden: false
+  },
+  {
+    id: "complex_chart",
+    name: "Complexity Creator",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Create a chart with 1000+ notes",
+      achieved: "You created a chart with 1000+ notes!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.createdChartWith1000Notes,
+    hidden: false
+  },
+  {
+    id: "difficulty_setter",
+    name: "Difficulty Designer",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Set difficulty ratings for 5 charts",
+      achieved: "You set difficulty ratings for 5 charts!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.chartsWithDifficultySet >= 5,
+    hidden: false
+  },
+  {
+    id: "all_note_types",
+    name: "Note Variety Expert",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Use all note types in a single chart",
+      achieved: "You used all note types in a single chart!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.usedAllNoteTypesInChart,
+    hidden: false
+  },
+  {
+    id: "chart_test_play",
+    name: "Quality Tester",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Test play your own chart",
+      achieved: "You test played your own chart!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.chartsTestPlayed >= 1,
+    hidden: false
+  },
+  {
+    id: "editor_completionist",
+    name: "Editor Completionist",
+    category: ACHIEVEMENT_CATEGORIES.EDITOR,
+    description: {
+      unachieved: "Complete all basic editor achievements",
+      achieved: "You completed all basic editor achievements!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: stats => stats.totalPlacedArrows >= 1000 && stats.totalPlacedFreezes >= 200 && stats.totalPlacedMines >= 100 && stats.chartsCreated >= 10 && stats.totalExportedSongs >= 10 && stats.editorTimeSpent >= 36000,
+    hidden: true
   },
 
   // Mastery Achievements
@@ -929,7 +1268,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed songs on all difficulty types!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalBeginnerGamesPlayed && stats.totalEasyGamesPlayed && stats.totalMediumGamesPlayed && stats.totalHardGamesPlayed && stats.totalChallengeGamesPlayed && stats.totalEditGamesPlayed,
+    condition: stats => stats.totalBeginnerGamesPlayed && stats.totalEasyGamesPlayed && stats.totalMediumGamesPlayed && stats.totalHardGamesPlayed && stats.totalChallengeGamesPlayed && stats.totalEditGamesPlayed,
     hidden: false
   },
   {
@@ -941,7 +1280,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 Beginner difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalBeginnerGamesPlayed >= 25,
+    condition: stats => stats.totalBeginnerGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -953,7 +1292,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 Easy difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.totalEasyGamesPlayed >= 25,
+    condition: stats => stats.totalEasyGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -965,7 +1304,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 Medium difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.totalMediumGamesPlayed >= 25,
+    condition: stats => stats.totalMediumGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -977,7 +1316,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 Hard difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: (stats) => stats.totalHardGamesPlayed >= 25,
+    condition: stats => stats.totalHardGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -989,7 +1328,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You completed 25 Challenge difficulty charts!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (stats) => stats.totalChallengeGamesPlayed >= 25,
+    condition: stats => stats.totalChallengeGamesPlayed >= 25,
     hidden: false
   },
   {
@@ -1037,7 +1376,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You used 5 skills in a single game!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
-    condition: (stats) => stats.maxSkillsInGame >= 5,
+    condition: stats => stats.maxSkillsInGame >= 5,
     hidden: false
   },
   {
@@ -1049,10 +1388,10 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You used 10 skills in a single game!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.maxSkillsInGame >= 10,
+    condition: stats => stats.maxSkillsInGame >= 10,
     hidden: false
   },
-  
+
   // Miscellaneous
   {
     id: "submit_bug_report",
@@ -1063,7 +1402,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You submitted a bug report!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.submittedBugReport,
+    condition: stats => stats.submittedBugReport,
     hidden: false
   },
   {
@@ -1075,7 +1414,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You submitted a review! Thank you!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.gameRated,
+    condition: stats => stats.gameRated,
     hidden: false
   },
   {
@@ -1087,7 +1426,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You requested a feature!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
-    condition: (stats) => stats.featureRequestPrompted,
+    condition: stats => stats.featureRequestPrompted,
     hidden: false
   }
 ];

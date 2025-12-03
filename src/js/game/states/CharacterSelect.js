@@ -1186,6 +1186,8 @@ class CharacterSelect extends Phaser.State {
   update() {
     gamepad.update();
     
+    if (notifications.notificationWindow) notifications.notificationWindow.bringToTop();
+    
     if (this.creationWindowManager) {
       this.creationWindowManager.update();
     }

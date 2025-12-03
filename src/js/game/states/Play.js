@@ -1,5 +1,5 @@
 class Play {
-  init(song, difficultyIndex, playtestMode) {
+  init(song, difficultyIndex, playtestMode, autoplay) {
     this.song = song;
     this.difficultyIndex = difficultyIndex || song.difficultyIndex;
     this.player = null;
@@ -12,7 +12,7 @@ class Play {
     this.audioEndListener = null;
     this.started = false;
     this.startTime = 0;
-    this.autoplay = Account.settings.autoplay;
+    this.autoplay = autoplay || Account.settings.autoplay;
     this.userOffset = Account.settings.userOffset;
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
@@ -513,11 +513,18 @@ class Play {
     });
     
     this.pauseCarousel.addItem("CONTINUE", () => this.resume());
-    if (Account.settings.autoplay && !this.playtestMode) {
+    if (this.autoplay && !this.playtestMode) {
       this.pauseCarousel.addItem("DISABLE AUTOPLAY", () => {
         Account.settings.autoplay = false;
         game.state.start("SongSelect", true, false, null, null, true);
       });
+    }
+    if (this.playtestMode) {
+      if (this.autoplay) {
+        this.pauseCarousel.addItem("DISABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false));
+      } else {
+        this.pauseCarousel.addItem("ENABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
+      }
     }
     this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode));
     this.pauseCarousel.addItem(this.playtestMode ? "BACK TO EDITOR" : "GIVE UP", () => this.songEnd());
