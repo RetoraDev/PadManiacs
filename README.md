@@ -90,7 +90,6 @@ Accessible from the main menu, the Add-on Manager allows you to:
 - Most mobile file browsers may require selecting individual files one by one
 - Input mapping is not implented
 - Recordings have extremely low quality
-- Editor can't handle BG changes correctly
 
 ## License
 

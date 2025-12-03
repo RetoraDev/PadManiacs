@@ -82,6 +82,8 @@ class Editor {
     this.bannerSprite = game.add.sprite(8, 56, null);
 
     this.infoText = new Text(4, 4, "");
+    this.bgInfoText = new Text(0, 90, "", null, this.infoText);
+    
     this.updateInfoText();
     
     // Create play/pause audio
@@ -101,6 +103,9 @@ class Editor {
       this.files.audio = await FileTools.urlToBase64(this.song.chart.audioUrl);
       this.files.banner = await FileTools.urlToBase64(this.song.chart.bannerUrl);
       this.files.background = await FileTools.urlToBase64(this.song.chart.backgroundUrl);
+      this.song.chart.backgrounds.forEach(async bg => {
+        this.files.extra[bg.file] = await FileTools.urlToBase64(bg.url);
+      });
       this.updateBanner(this.song.chart.bannerUrl);
       this.updateBackground(this.song.chart.backgroundUrl);
       this.hideLoadingScreen();
@@ -510,12 +515,30 @@ class Editor {
           `NOTES: ${noteCount}\n` +
           `SELECTED: ${this.selectedNotes.length}`;
       
+      const bgText = `BG: ${this.getCurrentBgFileName()}`;
+      
       if (text != this.infoText.texture.text) this.infoText.write(text);
+      if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 192 - 8);
       
       this.infoText.visible = true;
     } else {
       this.infoText.visible = false;
     }
+  }
+  
+  getCurrentBgFileName() {
+    let filename = this.song.chart.background;
+    
+    const queue = [];
+    
+    // Check for background(s) needed for this beat
+    this.song.chart.backgrounds.forEach(bg => {
+      if (this.cursorBeat >= bg.beat) {
+        queue.push(bg.file);
+      }
+    });
+    
+    return queue.pop() || filename;
   }
 
   updateCursorPosition() {
@@ -991,17 +1014,20 @@ class Editor {
       if (!this.getBPMChange()) {
         contextMenu.addItem("Add BPM Change", () => this.addBPMChange());
       } else {
+        contextMenu.addItem("Edit BPM Value", () => this.editBPMChange());
         contextMenu.addItem("Remove BPM Change", () => this.removeBPMChange());
       }
 
       if (!this.getStop()) {
         contextMenu.addItem("Add Stop", () => this.addStop());
       } else {
+        contextMenu.addItem("Edit Stop Duration", () => this.editStop());
         contextMenu.addItem("Remove Stop", () => this.removeStop());
       }
 
       if (!this.getBGChange()) {
         contextMenu.addItem("Add BG Change", () => this.addBGChange());
+        contextMenu.addItem("Add -nosongbg-", () => this.addNoSongBgChange());
       } else {
         contextMenu.addItem("Remove BG Change", () => this.removeBGChange());
       }
@@ -1056,6 +1082,7 @@ class Editor {
   convertNoteType(newType) {
     if (this.selectedNotes.length === 1) {
       this.selectedNotes[0].type = newType;
+      this.refreshSelectedNotes();
     }
   }
 
@@ -1063,11 +1090,13 @@ class Editor {
     this.selectedNotes.forEach(note => {
       note.type = newType;
     });
+    this.refreshSelectedNotes();
   }
 
   convertFreezeType(newType) {
     if (this.selectedNotes.length === 1 && (this.selectedNotes[0].type === "2" || this.selectedNotes[0].type === "4")) {
       this.selectedNotes[0].type = newType;
+      this.refreshSelectedNotes();
     }
   }
 
@@ -1077,6 +1106,7 @@ class Editor {
         note.type = newType;
       }
     });
+    this.refreshSelectedNotes();
   }
 
   alignToBeatDivision() {
@@ -1084,6 +1114,7 @@ class Editor {
       const note = this.selectedNotes[0];
       note.beat = this.getSnappedBeat(note.beat);
       note.sec = this.chartRenderer.beatToSec(note.beat);
+      this.refreshSelectedNotes();
       this.sortNotes();
     }
   }
@@ -1093,9 +1124,14 @@ class Editor {
       note.beat = this.getSnappedBeat(note.beat);
       note.sec = this.chartRenderer.beatToSec(note.beat);
     });
+    this.refreshSelectedNotes();
     this.sortNotes();
   }
-
+  
+  refreshSelectedNotes() {
+    this.selectedNotes.forEach(note => this.chartRenderer.killNote(note)); // the renderer will automatically recreate the note visuals
+  }
+  
   deleteSelectedNotes() {
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
     const notes = this.song.chart.notes[diff.type + diff.rating] || [];
@@ -1219,37 +1255,6 @@ SAMPLE LENGTH: ${chart.sampleLength}
       console.error("Error loading banner:", error);
       this.showHomeScreen();
     }
-  }
-
-  async importProject() {
-    // NOTE: Not really used, might be removed in the future 
-    this.pickFile(".zip,.pmz,.sm,application/zip", async event => {
-      try {
-        this.showLoadingScreen("Importing project...");
-        
-        const file = event.target.files[0];
-
-        if (file.name.endsWith(".zip") || file.name.endsWith(".pmz")) {
-          // Import from ZIP file
-          await this.importFromZip(file);
-        } else if (file.name.endsWith(".sm")) {
-          // Import single SM file
-          await this.importSMFile(file);
-        } else {
-          notifications.show("Unsupported file format");
-        }
-
-        this.hideLoadingScreen();
-        this.showHomeScreen();
-      } catch (error) {
-        console.error("Import failed:", error);
-        notifications.show("Import failed!");
-
-        this.showHomeScreen();
-      }
-    }, () => this.showFileMenu());
-    
-    Account.stats.totalImportedSongs ++;
   }
 
   async importFromZip(file) {
@@ -1876,7 +1881,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
   createNewSongAndReload() {
     this.song = this.createNewSong();
-    this.showHomeScreen();
+    game.state.start("Editor");
   }
 
   saveAndExit() {
@@ -1976,11 +1981,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
   addBPMChange() {
     this.menuVisible = true;
 
-    new ValueInput(
-      120,
-      0,
-      1000,
-      1,
+    new ValueInput(120, 0, 1000, 1,
       value => {
         this.song.chart.bpmChanges.push({
           beat: this.cursorBeat,
@@ -2001,6 +2002,29 @@ SAMPLE LENGTH: ${chart.sampleLength}
     return this.song.chart.bpmChanges.find(bpm => Math.abs(bpm.beat - this.cursorBeat) < 0.001);
   }
 
+  editBPMChange() {
+    const bpmChange = this.getBPMChange();
+    if (bpmChange) {
+      this.menuVisible = true;
+      
+      new ValueInput(
+        120,
+        0,
+        1000,
+        1,
+        bpm => {
+          const index = this.song.chart.bpmChanges.indexOf(bpmChange);
+          if (index != -1) this.song.chart.bpmChanges[index].bpm = bpm;
+          this.updateInfoText();
+          this.menuVisible = false;
+        },
+        () => {
+          this.menuVisible = false;
+        }
+      );
+    }
+  }
+  
   removeBPMChange() {
     const bpmChange = this.getBPMChange();
     if (bpmChange) {
@@ -2034,9 +2058,32 @@ SAMPLE LENGTH: ${chart.sampleLength}
       }
     );
   }
-
+  
   getStop() {
     return this.song.chart.stops.find(s => Math.abs(s.beat - this.cursorBeat) < 0.001);
+  }
+
+  editStop() {
+    const stop = this.getStop();
+    if (stop) {
+      this.menuVisible = true;
+      
+      new ValueInput(
+        1,
+        0,
+        360,
+        0.1,
+        length => {
+          const index = this.song.chart.stops.indexOf(stop);
+          if (index != -1) this.song.chart.stops[index].len = length;
+          this.updateInfoText();
+          this.menuVisible = false;
+        },
+        () => {
+          this.menuVisible = false;
+        }
+      );
+    }
   }
 
   removeStop() {
@@ -2050,11 +2097,14 @@ SAMPLE LENGTH: ${chart.sampleLength}
   }
 
   addBGChange() {
-    this.pickFile("image/*,video/*", async file => {
+    this.pickFile("image/*,video/*", async event => {
+      const file = event.target.files[0];
       const fileType = file.type.includes("video") ? "video" : "image";
+      const url = URL.createObjectURL(file);
       this.song.chart.backgrounds.push({
         beat: this.cursorBeat,
         file: file.name,
+        url: url,
         opacity: 1,
         fadeIn: 0,
         fadeOut: 0,
@@ -2065,6 +2115,20 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.files.extra[file.name] = FileTools.extractBase64(URL.createObjectURL(file));
       this.updateInfoText();
     });
+  }
+  
+  addNoSongBgChange() {
+    this.song.chart.backgrounds.push({
+      beat: this.cursorBeat,
+      file: "-nosongbg-",
+      url: "",
+      opacity: 1,
+      fadeIn: 0,
+      fadeOut: 0,
+      effect: 0,
+      type: "image"
+    });
+    this.song.chart.backgrounds.sort((a, b) => a.beat - b.beat);
   }
 
   getBGChange() {

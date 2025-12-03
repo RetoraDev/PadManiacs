@@ -15,7 +15,7 @@ class ChartRenderer {
       enableSpeedRendering: false,
       enableBGRendering: false,
       judgeLineYFalling: 90,
-      judgeLineYRising: 30,
+      judgeLineYRising: 25,
       ...options
     };
 
@@ -284,7 +284,7 @@ class ChartRenderer {
     for (let i in s) sec -= s[i];
     return ((sec - b.sec) * b.bpm) / 60 + b.beat;
   }
-
+  
   render(now, beat) {
     if (this.scrollDirection === "falling") {
       this.renderFalling(now, beat);
