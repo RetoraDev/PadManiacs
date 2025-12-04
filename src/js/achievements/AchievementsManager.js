@@ -67,9 +67,6 @@ class AchievementsManager {
     // Set up window event listeners for session management
     this.setupWindowEvents();
 
-    // Update sub systems
-    setInterval(() => this.update(), 2);
-
     console.log("Achievements Manager initialized");
   }
 
@@ -512,9 +509,7 @@ class AchievementsManager {
     if (!this.sessionStartTime) return 0;
     return Math.floor((Date.now() - this.sessionStartTime) / 1000);
   }
-
-  update() {}
-
+  
   forceSave() {
     this.saveSessionState();
   }

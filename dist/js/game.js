@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/4/2025, 3:42:43 PM
+ * Build: 12/4/2025, 3:58:01 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -3410,9 +3410,6 @@ class AchievementsManager {
     // Set up window event listeners for session management
     this.setupWindowEvents();
 
-    // Update sub systems
-    setInterval(() => this.update(), 2);
-
     console.log("Achievements Manager initialized");
   }
 
@@ -3855,9 +3852,7 @@ class AchievementsManager {
     if (!this.sessionStartTime) return 0;
     return Math.floor((Date.now() - this.sessionStartTime) / 1000);
   }
-
-  update() {}
-
+  
   forceSave() {
     this.saveSessionState();
   }
@@ -15249,19 +15244,12 @@ class Play {
     const dots = new LoadingDots();
     dots.x -= 4;
     dots.y -= 8;
-    if (this.song.chart.preloadedBackgroundElements) {
-      // If song has cached background data use it
-      this.preloadedBackgroundElements = this.song.chart.preloadedBackgroundElements;
-    } else {
-      // Otherwise preload backgrounds and store them in song
-      this.song.chart.backgrounds.forEach(async bg => {
-        if (bg.file !== "-nosongbg-" && !this.preloadedBackgroundElements[bg.file]) {
-          const element = await this.preloadBackground(bg);
-          this.preloadedBackgroundElements[bg.file] = element;
-        }
-      }); 
-      this.song.chart.preloadedBackgroundElements = this.preloadedBackgroundElements;
-    }
+    this.song.chart.backgrounds.forEach(async bg => {
+      if (bg.file !== "-nosongbg-" && !this.preloadedBackgroundElements[bg.file]) {
+        const element = await this.preloadBackground(bg);
+        this.preloadedBackgroundElements[bg.file] = element;
+      }
+    }); 
     await this.setupAudio();
     dots.destroy();
     this.songStart();
@@ -16014,9 +16002,18 @@ class Play {
     
     if (this.video) {
       this.video.pause();
+      this.video.src = "";
     }
     
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
+    
+    // Forget preloaded backgrounds
+    Object.entries(this.preloadedBackgroundElements).forEach(element => {
+      if (element) {
+        element.src = "";
+        element = null;
+      }
+    });
     
     if (this.visualizer) {
       this.visualizer.destroy();

@@ -109,19 +109,12 @@ class Play {
     const dots = new LoadingDots();
     dots.x -= 4;
     dots.y -= 8;
-    if (this.song.chart.preloadedBackgroundElements) {
-      // If song has cached background data use it
-      this.preloadedBackgroundElements = this.song.chart.preloadedBackgroundElements;
-    } else {
-      // Otherwise preload backgrounds and store them in song
-      this.song.chart.backgrounds.forEach(async bg => {
-        if (bg.file !== "-nosongbg-" && !this.preloadedBackgroundElements[bg.file]) {
-          const element = await this.preloadBackground(bg);
-          this.preloadedBackgroundElements[bg.file] = element;
-        }
-      }); 
-      this.song.chart.preloadedBackgroundElements = this.preloadedBackgroundElements;
-    }
+    this.song.chart.backgrounds.forEach(async bg => {
+      if (bg.file !== "-nosongbg-" && !this.preloadedBackgroundElements[bg.file]) {
+        const element = await this.preloadBackground(bg);
+        this.preloadedBackgroundElements[bg.file] = element;
+      }
+    }); 
     await this.setupAudio();
     dots.destroy();
     this.songStart();
@@ -874,9 +867,18 @@ class Play {
     
     if (this.video) {
       this.video.pause();
+      this.video.src = "";
     }
     
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
+    
+    // Forget preloaded backgrounds
+    Object.entries(this.preloadedBackgroundElements).forEach(element => {
+      if (element) {
+        element.src = "";
+        element = null;
+      }
+    });
     
     if (this.visualizer) {
       this.visualizer.destroy();
