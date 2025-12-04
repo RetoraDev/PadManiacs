@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.7 dev
- * Build: 12/3/2025, 12:45:14 PM
+ * Build: 12/4/2025, 3:20:33 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -64,10 +64,12 @@ const SCORE_VALUES = {
   miss: 0
 };
 
+const COMMUNITY_HOMEPAGE_URL = "https://retora.itch.io/padmaniacs/community";
 const FEEDBACK_REVIEW_URL = "https://retora.itch.io/padmaniacs/rate";
 const FEEDBACK_FEATURE_REQUEST_URL = "https://itch.io/t/5585472/feature-requests";
 const FEEDBACK_BUG_REPORT_URL = "https://itch.io/t/5585499/bug-reports";
 
+const COMMUNITY_PROMPT_MIN_PLAYTIME = 60 * 60;
 const RATING_PROMPT_MIN_PLAYTIME = 15 * 60;
 const FEATURE_REQUEST_MIN_PLAYTIME = 30 * 60;
 
@@ -111,12 +113,12 @@ const CHARACTER_SYSTEM = {
   DEFAULT_CHARACTER: "EIRI",
   MAX_SKILL_LEVEL: 5,
   EXPERIENCE_CURVE: level => Math.floor(10 * Math.pow(level, 1.03)),
-  SKILL_UNLOCK_CHANCE: 0.7,
-  HAIR_UNLOCK_CHANCE: 0.6,
-  ITEM_UNLOCK_CHANCE: 0.5,
+  SKILL_UNLOCK_CHANCE: 0.6,
+  HAIR_UNLOCK_CHANCE: 0.5,
+  ITEM_UNLOCK_CHANCE: 0.4,
   SKILL_LEVEL_UP_CHANCE: 0.4,
   MIN_LEVEL_FOR_SKILL: 4,
-  MIN_LEVEL_FOR_HAIR: 1,
+  MIN_LEVEL_FOR_HAIR: 2,
   MIN_LEVEL_FOR_ITEM: 3,
   SKILL_COOLDOWN_LEVELS: 1,
   HAIR_COOLDOWN_LEVELS: 2,
@@ -869,7 +871,8 @@ const DEFAULT_ACCOUNT = {
     gameRated: false,
     featureRequestPrompted: false,
     lastCrashed: false,
-    submittedBugReport: false
+    submittedBugReport: false,
+    wentToCommunity: false
   },
   achievements: {
     unlocked: {},
@@ -2307,6 +2310,18 @@ const ACHIEVEMENT_DEFINITIONS = [
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.featureRequestPrompted,
+    hidden: false
+  },
+  {
+    id: "community_explorer",
+    name: "Community Explorer",
+    category: ACHIEVEMENT_CATEGORIES.MISC,
+    description: {
+      unachieved: "Visit the community homepage",
+      achieved: "You visited the community!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.wentToCommunity,
     hidden: false
   }
 ];
@@ -12529,7 +12544,7 @@ class MainMenu {
     this.navigationHint = new NavigationHint(0);
     
     // Check for feedback dialogs before showing menu
-    this.checkFeedbackDialogs();
+    this.checkInitialDialogs();
     
     this.previewCanvas = document.createElement("canvas");
     this.previewCtx = this.previewCanvas.getContext("2d");
@@ -12550,7 +12565,7 @@ class MainMenu {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
-  checkFeedbackDialogs() {
+  checkInitialDialogs() {
     // Check for bug report first (highest priority)
     if (!window.DEBUG && Account.stats.lastCrashed) {
       this.showBugReportDialog();
@@ -12566,6 +12581,12 @@ class MainMenu {
     // Check for feature request dialog
     if (!Account.stats.featureRequestPrompted && Account.stats.totalTimePlayed >= FEATURE_REQUEST_MIN_PLAYTIME) {
       this.showFeatureRequestDialog();
+      return;
+    }
+    
+    // Check for community dialog
+    if (!Account.stats.wentToCommunity && Account.stats.totalTimePlayed >= COMMUNITY_PROMPT_MIN_PLAYTIME) {
+      this.showCommunityDialog();
       return;
     }
 
@@ -12588,6 +12609,9 @@ class MainMenu {
         Account.stats.submittedBugReport = true;
         saveAccount();
         this.menu();
+        
+        // Force check achievements
+        achievementsManager.checkAchievements();
       },
       () => {
         // User chose "Maybe Later" - just clear flag and show menu
@@ -12612,11 +12636,12 @@ class MainMenu {
         Account.stats.gameRated = true;
         saveAccount();
         this.menu();
+
+        // Force check achievements
+        achievementsManager.checkAchievements();        
       },
       () => {
-        // No Thanks - never ask again
-        Account.stats.gameRated = true;
-        saveAccount();
+        // No Thanks
         this.menu();
       },
       "Rate Now", 
@@ -12637,6 +12662,9 @@ class MainMenu {
         Account.stats.featureRequestPrompted = true;
         saveAccount();
         this.menu();
+        
+        // Force check achievements
+        achievementsManager.checkAchievements();
       },
       () => {
         // Not Now - ask again after more playtime
@@ -12646,6 +12674,30 @@ class MainMenu {
       },
       "Share Ideas",
       "Not Now"
+    );
+  }
+  
+  showCommunityDialog() {
+    this.confirmDialog(
+      "Enjoying the game?\n" +
+      "Join the community to download more charts, and share your creations and high scores with other players!\n",
+      () => {
+        // Join
+        openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+        
+        Account.stats.wentToCommunity = true;
+        saveAccount();
+        this.menu();
+        
+        // Force check achievements
+        achievementsManager.checkAchievements();
+      },
+      () => {
+        // No Thanks
+        this.menu();
+      },
+      "Join", 
+      "No Thanks"
     );
   }
 
@@ -12966,8 +13018,9 @@ class MainMenu {
     carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
     carousel.addItem("Achievements", () => this.showAchievements());
     carousel.addItem("Player Stats", () => this.showStats());
-    carousel.addItem("Credits", () => this.showCredits());
     carousel.addItem("Feedback", () => this.showFeedback());
+    carousel.addItem("Comunity", () => this.showCommunity());
+    carousel.addItem("Credits", () => this.showCredits());
     
     game.onMenuIn.dispatch('extras', carousel);
     carousel.addItem("< Back", () => this.showHomeMenu());
@@ -12995,6 +13048,15 @@ class MainMenu {
     game.onMenuIn.dispatch('feedback', carousel);
     carousel.addItem("< Back", () => this.showExtras());
     carousel.onCancel.add(() => this.showExtras());
+  }
+  
+  showCommunity() {
+    openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+    
+    Account.stats.wentToCommunity = true;
+    saveAccount();
+    
+    this.menu();
   }
   
   showAddonManager() {
@@ -15078,7 +15140,7 @@ class Play {
     this.difficultyIndex = difficultyIndex || song.difficultyIndex;
     this.player = null;
     this.backgroundQueue = [];
-    this.preloadedBackgrounds = {};
+    this.preloadedBackgroundElements = {};
     this.currentBackground = null;
     this.isPaused = false;
     this.pauseStartTime = 0;
@@ -15183,12 +15245,19 @@ class Play {
     const dots = new LoadingDots();
     dots.x -= 4;
     dots.y -= 8;
-    this.song.chart.backgrounds.forEach(async bg => {
-      if (bg.file !== "-nosongbg-" && !this.preloadedBackgrounds[bg.file]) {
-        const element = await this.preloadBackground(bg);
-        this.preloadedBackgrounds[bg.file] = element;
-      }
-    });
+    if (this.song.chart.preloadedBackgroundElements) {
+      // If song has cached background data use it
+      this.preloadedBackgroundElements = this.song.chart.preloadedBackgroundElements;
+    } else {
+      // Otherwise preload backgrounds
+      this.song.chart.backgrounds.forEach(async bg => {
+        if (bg.file !== "-nosongbg-" && !this.preloadedBackgroundElements[bg.file]) {
+          const element = await this.preloadBackground(bg);
+          this.preloadedBackgroundElements[bg.file] = element;
+        }
+      });
+      this.song.chart.preloadedBackgroundElements = this.preloadedBackgroundElements;
+    }
     await this.setupAudio();
     dots.destroy();
     this.songStart();
@@ -15209,17 +15278,41 @@ class Play {
     return new Promise((resolve, reject) => {
       const { url, type } = background;
       const element = type == "video" ? document.createElement("video") : document.createElement("img");
-      element.src = url;
+      
+      if (!url) {
+        // Flag error if undefined or null url
+        element.__errored = true;
+        element.__type = type;
+        element.__url = "";
+        resolve(element);
+        return;
+      }
+      
+      // Add error flag property
+      element.__errored = false;
+      element.__type = type;
+      element.__url = url;
+      
       if (type == "image") {
         element.onload = () => resolve(element);
-        element.onerror = () => resolve(element);
+        element.onerror = () => {
+          console.warn(`Failed to load background image: ${url}`);
+          element.__errored = true;
+          resolve(element);
+        };
       } else {
         element.muted = true;
         element.volume = 0;
         element.loop = true;
         element.addEventListener("canplaythrough", () => resolve(element));
-        element.onerror = () => resolve(element);
+        element.onerror = () => {
+          console.warn(`Failed to load background video: ${url}`);
+          element.__errored = true;
+          resolve(element);
+        };
       }
+      
+      element.src = url;
     });
   }
   
@@ -15367,12 +15460,9 @@ class Play {
   setInitialBackground() {
     // Set initial background
     if (this.song.chart.backgroundUrl && this.song.chart.backgroundUrl !== "no-media") {
-      this.loadBackgroundImage("", this.song.chart.backgroundUrl);
+      this.loadBackgroundImage(this.song.chart.background, this.song.chart.backgroundUrl);
     } else {
-      // Default black background
-      this.backgroundCtx.fillStyle = "#000000";
-      this.backgroundCtx.fillRect(0, 0, 192, 112);
-      this.updateBackgroundTexture();
+      this.clearBackground();
     }
   }
   
@@ -15442,9 +15532,48 @@ class Play {
   }
   
   drawBackground(element) {
-    this.backgroundCtx.drawImage(element, 0, 0, 192, 112);
-    this.updateBackgroundTexture();
+    // Check if element is errored
+    if (element && element.__errored) {
+      console.warn(`Skipping errored background: ${element.__url}`);
+      this.drawFallbackBackground();
+      return;
+    }
+    
+    // Also check for naturalWidth/height for images
+    if (element && element.__type === "image" && element.naturalWidth === 0) {
+      console.warn(`Image has zero dimensions: ${element.__url}`);
+      element.__errored = true;
+      this.drawFallbackBackground();
+      return;
+    }
+    
+    try {
+      this.backgroundCtx.drawImage(element, 0, 0, 192, 112);
+      this.updateBackgroundTexture();
+    } catch (error) {
+      console.error("Error drawing background:", error);
+      element.__errored = true;
+      this.drawFallbackBackground();
+    }
   }
+  
+  drawFallbackBackground() {
+    // Use default song bg as fallback
+    const element = this.preloadedBackgroundElements[this.song.chart.background];
+    
+    if (!element.__errored) {
+      this.drawBackground(element);
+    } else {
+      this.clearBackground();
+    }
+  }
+  
+  clearBackground() {
+    this.backgroundCtx.fillStyle = "#000000";
+    this.backgroundCtx.fillRect(0, 0, 192, 112);
+    this.updateBackgroundTexture();
+    this.backgroundGradient.visible = false;
+  }  
   
   updateBackgroundTexture() {
     const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
@@ -15456,15 +15585,38 @@ class Play {
     if (this.video) this.video.pause();
     
     // Check if there is already a background preloaded
-    if (this.preloadedBackgrounds[filename]) {
+    if (this.preloadedBackgroundElements[filename]) {
+      const element = this.preloadedBackgroundElements[filename];
+      
+      // Check if element is errored
+      if (element.__errored) {
+        console.warn(`Preloaded background is errored: ${filename}`);
+        this.drawFallbackBackground();
+        return;
+      }
+      
       // Use the preloaded background
-      this.drawBackground(this.preloadedBackgrounds[filename]);
+      this.drawBackground(element);
     } else {
-      // Load the background in real time instead
+      // Load the background in real time with error handling
       const img = document.createElement("img");
-      img.onload = () => this.drawBackground(img);
+      img.__errored = false;
+      img.__type = "image";
+      img.__url = url;
+      
+      img.onload = () => {
+        this.preloadedBackgroundElements[filename] = img;
+        this.drawBackground(img);
+      };
+      
+      img.onerror = () => {
+        console.warn(`Failed to load background in realtime: ${filename}`);
+        img.__errored = true;
+        this.preloadedBackgroundElements[filename] = img;
+        this.drawFallbackBackground();
+      };
+      
       img.src = url;
-      this.preloadedBackgrounds[filename] = img;
     }
     
     this.backgroundGradient.visible = true;
@@ -15472,38 +15624,65 @@ class Play {
   
   loadBackgroundVideo(filename, url) {
     // Pause any existing video
-    if (this.video && this.video != this.preloadedBackgrounds[filename]) this.video.pause();
+    if (this.video && this.video != this.preloadedBackgroundElements[filename]) this.video.pause();
     
     // Check if there is already a background preloaded
-    if (this.preloadedBackgrounds[filename]) {
+    if (this.preloadedBackgroundElements[filename]) {
+      const element = this.preloadedBackgroundElements[filename];
+      
+      // Check if element is errored
+      if (element.__errored) {
+        console.warn(`Preloaded video is errored: ${filename}`);
+        this.drawFallbackBackground();
+        return;
+      }
+      
       // Use the preloaded background
-      this.video = this.preloadedBackgrounds[filename];
+      this.video = element;
     } else {
-      // Load the background in real time instead
+      // Load the background in real time with error handling
       const video = document.createElement("video");
+      video.__errored = false;
+      video.__type = "video";
+      video.__url = url;
+      
       video.src = url;
-      this.preloadedBackgrounds[filename] = video;
-      this.video = video;
-      this.video.muted = true;
-      this.video.volume = 0;
-      this.video.loop = true;
-      console.warn("Couldn't find video:", filename);
+      video.muted = true;
+      video.volume = 0;
+      video.loop = true;
+      
+      video.addEventListener("canplaythrough", () => {
+        this.preloadedBackgroundElements[filename] = video;
+        this.video = video;
+        this.video.play();
+        this.backgroundGradient.visible = false;
+      }, { once: true });
+      
+      video.onerror = () => {
+        console.warn(`Failed to load video in realtime: ${url}`);
+        video.__errored = true;
+        this.preloadedBackgroundElements[filename] = video;
+        this.drawFallbackBackground();
+      };
+      
+      console.warn("Couldn't find video:", filename, "Loading video in real time. This may affect performance");
     }
     
-    this.video.play();
-    
-    this.backgroundGradient.visible = false;
-    this.video.addEventListener("error", () => this.backgroundGradient.visible = true, { once: true });
-  }
-  
-  clearBackgroundImage() {
-    this.backgroundSprite.loadTexture(null);
-    this.backgroundGradient.visible = false;
+    if (this.video && !this.video.__errored) {
+      this.video.play();
+      this.backgroundGradient.visible = false;
+      this.video.addEventListener("error", () => {
+        console.warn(`Video playback error: ${filename}`);
+        this.video.__errored = true;
+        this.backgroundGradient.visible = true;
+        this.drawFallbackBackground();
+      }, { once: true });
+    }
   }
   
   applyBackground(bg) {
     if (bg.file == '-nosongbg-') {
-      this.clearBackgroundImage();
+      this.clearBackground();
     } else if (bg.type == 'video') {
       this.loadBackgroundVideo(bg.file, bg.url);
     } else {
@@ -15670,7 +15849,7 @@ class Play {
         this.pauseCarousel.addItem("ENABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
       }
     }
-    this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode));
+    this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode, this.autoplay));
     this.pauseCarousel.addItem(this.playtestMode ? "BACK TO EDITOR" : "GIVE UP", () => this.songEnd());
     
     game.onMenuIn.dispatch('pause', this.pauseCarousel);
@@ -15732,9 +15911,24 @@ class Play {
   }
   
   updateVideo() {
-    if (this.video && this.currentBackground && this.currentBackground.type == "video" && game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
+    if (this.video && 
+        !this.video.__errored &&
+        this.currentBackground && 
+        this.currentBackground.type == "video" && 
+        game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
+      
       this.lastVideoUpdateTime = game.time.now;
-      this.drawBackground(this.video);
+      
+      // Check video ready state
+      if (this.video.readyState >= 2) { // HAVE_CURRENT_DATA or better
+        try {
+          this.drawBackground(this.video);
+        } catch (error) {
+          console.error("Error updating video frame:", error);
+          this.video.__errored = true;
+          this.drawFallbackBackground();
+        }
+      }
     }
   }
   
@@ -15811,25 +16005,35 @@ class Play {
     this.audio.pause();
     this.audio.src = "";
     this.audio = null;
+    
     if (this.video) {
       this.video.pause();
       this.video.src = "";
       this.video = null;
     }
+    
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
+    
     if (this.visualizer) {
       this.visualizer.destroy();
       this.visualizer = null;
     }
+    
     if (this.metronome) {
       this.metronome.destroy();
       this.metronome = null;
     }
-    Object.entries(this.preloadedBackgrounds).forEach(element => element.src = "");
+    
+    // Clean up fallback background
+    if (this.fallbackBackground) {
+      this.fallbackBackground.src = "";
+      this.fallbackBackground = null;
+    }
     
     // Stop recording and show video
     if (window.recordNextGame) {
       game.recorder.stop();
+      game.recorder = null;
       window.recordNextGame = false;
     }
   }
@@ -17009,6 +17213,7 @@ class Editor {
     this.isPlaying = false;
     this.isPlayingPreview = false;
     this.previewEndHandler = null;
+    this.previewEndTimeoutId = null;
     this.menuVisible = false;
     this.playStartTime = 0;
     this.playOffset = 0;
@@ -17072,7 +17277,7 @@ class Editor {
     
     this.lyricsText = new Text(game.width / 2, 85, "", FONTS.stroke);
     this.lyricsText.anchor.set(0.5);
-    this.lyricsText.visible = true;
+    this.lyricsText.visible = false;
     
     this.bannerSprite = game.add.sprite(8, 56, null);
     
@@ -17236,7 +17441,7 @@ class Editor {
     this.lyrics = new Lyrics({
       textElement: this.lyricsText,
       maxLineLength: 25,
-      lrc: this.files.lyrics || this.song.chart.lyrics || ""
+      lrc: this.files.lyrics || this.song.chart.lyricsContent || ""
     });
   }
 
@@ -17491,7 +17696,7 @@ class Editor {
       const bgText = `BG: ${this.getCurrentBgFileName()}`;
       
       if (text != this.infoText.texture.text) this.infoText.write(text);
-      if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 180);
+      if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 45);
       
       this.infoText.visible = true;
     } else {
@@ -17716,7 +17921,8 @@ class Editor {
 
     this.getCurrentChartNotes().forEach(note => (note.hitEffectShown = false));
 
-    if (this.audio.src) {
+    if (this.audio && this.audio.src) {
+      if (this.previewEndTimeoutId) clearTimeout(this.previewEndTimeoutId);
       this.audio.currentTime = this.playOffset;
       this.audio.play().catch(e => console.log("Audio play failed:", e));
     }
@@ -17726,7 +17932,7 @@ class Editor {
     this.isPlaying = false;
     this.navigationHint.visible = true;
 
-    if (this.audio.src) {
+    if (this.audio && this.audio.src) {
       this.audio.pause();
     }
 
@@ -17739,14 +17945,16 @@ class Editor {
   }
 
   abortPreview() {
-    if (this.previewEndHandler) {
-      clearTimeout(this.previewEndHandler);
+    if (this.previewEndHandler && this.previewEndTimeoutId) {
+      clearTimeout(this.previewEndTimeoutId);
       this.previewEndHandler();
+      this.previewEndHandler = null;
+      this.previewEndTimeoutId = null;
     }
   }
 
   playPreview(start, length) {
-    if (!this.isPlaying && this.audio.src) {
+    if (!this.isPlaying && this.audio && this.audio.src) {
       this.abortPreview();
 
       this.audio.currentTime = start;
@@ -17754,10 +17962,11 @@ class Editor {
       this.previewEndHandler = () => {
         this.audio.pause();
         this.audio.currentTime = start;
-        this.previewEndHandler = null;
       };
 
-      this.audio.play().then(() => setTimeout(this.previewEndHandler, length * 1000));
+      this.audio.play().then(() => {
+        this.previewEndTimeoutId = setTimeout(this.previewEndHandler, length * 1000);
+      });
     }
   }
 
@@ -18217,6 +18426,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.audio.src = chart.audioUrl;
       this.updateBanner(chart.bannerUrl);
       this.updateBackground(chart.backgroundUrl);
+      this.refreshLyrics();
 
       this.song = { chart };
       this.showHomeScreen();
@@ -18430,6 +18640,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
       return null;
     };
+    
+    this.audio.src = "";
 
     // Load main files
     await loadFileFromZip(this.song.chart.audio, "audio");
@@ -18455,13 +18667,17 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
     this.song = { chart };
 
-    // Try to load associated files from the same directory
     this.files = {
       audio: null,
       background: null,
       banner: null,
       extra: {}
     };
+    
+    this.updateBackground();
+    this.updateBanner();
+    this.refreshLyrics();
+    this.audio.src = "";
     
     notifications.show("SM file imported! Load audio/background files manually.");
   }
@@ -18716,11 +18932,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
         this.song.chart.sampleStart = value;
 
         // Preview the sample
-        if (this.audio.src) {
-          this.audio.currentTime = value;
-          this.audio.play().then(() => {
-            setTimeout(() => this.audio.pause(), this.song.chart.sampleLength * 1000);
-          });
+        if (this.audio && this.audio.src) {
+          this.playPreview(value, this.song.chart.sampleLength);
         }
 
         this.showMetadataEdit();
@@ -19060,6 +19273,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     gamepad.update();
     
     const { now, beat } = this.getCurrentTime();
+    
     this.chartRenderer.render(now, beat);
     
     if (notifications.notificationWindow) notifications.notificationWindow.bringToTop();
@@ -19079,13 +19293,12 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.handleChartEditInput();
       this.icons.visible = false;
       this.lyricsText.visible = this.isPlaying;
+      if (this.lyrics) this.lyrics.move(now);
 
       if (this.isPlaying) {
         this.cursorBeat = beat;
         this.updateCursorPosition();
         this.updateInfoText();
-        
-        if (this.lyrics) this.lyrics.move(now);
         
         // Show hit effects when notes reach judge line
         this.showHitEffects(now, beat);
@@ -21141,14 +21354,16 @@ class Player {
     // Update health
     if (this.health != this.previousHealth) {
       this.previousHealth = this.health;
-      const tween = game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
-      tween.onUpdateCallback = () => this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
+      const tween = game.add.tween(this.scene.lifebarMiddle);
+      tween.to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
+      tween.onUpdateCallback(() => this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width);
       if (this.health <= 0) {
         this.gameOver = true;
         this.health = 0;
-      }
+      };
       this.healthText.write(this.health.toString());
     }
+    this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
     if (this.scene.accuracyBar) {
       if (this.accuracy <= 0) {
         this.scene.accuracyBar.visible = false;

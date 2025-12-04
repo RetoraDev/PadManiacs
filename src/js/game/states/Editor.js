@@ -19,6 +19,7 @@ class Editor {
     this.isPlaying = false;
     this.isPlayingPreview = false;
     this.previewEndHandler = null;
+    this.previewEndTimeoutId = null;
     this.menuVisible = false;
     this.playStartTime = 0;
     this.playOffset = 0;
@@ -82,7 +83,7 @@ class Editor {
     
     this.lyricsText = new Text(game.width / 2, 85, "", FONTS.stroke);
     this.lyricsText.anchor.set(0.5);
-    this.lyricsText.visible = true;
+    this.lyricsText.visible = false;
     
     this.bannerSprite = game.add.sprite(8, 56, null);
     
@@ -246,7 +247,7 @@ class Editor {
     this.lyrics = new Lyrics({
       textElement: this.lyricsText,
       maxLineLength: 25,
-      lrc: this.files.lyrics || this.song.chart.lyrics || ""
+      lrc: this.files.lyrics || this.song.chart.lyricsContent || ""
     });
   }
 
@@ -501,7 +502,7 @@ class Editor {
       const bgText = `BG: ${this.getCurrentBgFileName()}`;
       
       if (text != this.infoText.texture.text) this.infoText.write(text);
-      if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 180);
+      if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 45);
       
       this.infoText.visible = true;
     } else {
@@ -726,7 +727,8 @@ class Editor {
 
     this.getCurrentChartNotes().forEach(note => (note.hitEffectShown = false));
 
-    if (this.audio.src) {
+    if (this.audio && this.audio.src) {
+      if (this.previewEndTimeoutId) clearTimeout(this.previewEndTimeoutId);
       this.audio.currentTime = this.playOffset;
       this.audio.play().catch(e => console.log("Audio play failed:", e));
     }
@@ -736,7 +738,7 @@ class Editor {
     this.isPlaying = false;
     this.navigationHint.visible = true;
 
-    if (this.audio.src) {
+    if (this.audio && this.audio.src) {
       this.audio.pause();
     }
 
@@ -749,14 +751,16 @@ class Editor {
   }
 
   abortPreview() {
-    if (this.previewEndHandler) {
-      clearTimeout(this.previewEndHandler);
+    if (this.previewEndHandler && this.previewEndTimeoutId) {
+      clearTimeout(this.previewEndTimeoutId);
       this.previewEndHandler();
+      this.previewEndHandler = null;
+      this.previewEndTimeoutId = null;
     }
   }
 
   playPreview(start, length) {
-    if (!this.isPlaying && this.audio.src) {
+    if (!this.isPlaying && this.audio && this.audio.src) {
       this.abortPreview();
 
       this.audio.currentTime = start;
@@ -764,10 +768,11 @@ class Editor {
       this.previewEndHandler = () => {
         this.audio.pause();
         this.audio.currentTime = start;
-        this.previewEndHandler = null;
       };
 
-      this.audio.play().then(() => setTimeout(this.previewEndHandler, length * 1000));
+      this.audio.play().then(() => {
+        this.previewEndTimeoutId = setTimeout(this.previewEndHandler, length * 1000);
+      });
     }
   }
 
@@ -1227,6 +1232,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.audio.src = chart.audioUrl;
       this.updateBanner(chart.bannerUrl);
       this.updateBackground(chart.backgroundUrl);
+      this.refreshLyrics();
 
       this.song = { chart };
       this.showHomeScreen();
@@ -1440,6 +1446,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
       return null;
     };
+    
+    this.audio.src = "";
 
     // Load main files
     await loadFileFromZip(this.song.chart.audio, "audio");
@@ -1465,13 +1473,17 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
     this.song = { chart };
 
-    // Try to load associated files from the same directory
     this.files = {
       audio: null,
       background: null,
       banner: null,
       extra: {}
     };
+    
+    this.updateBackground();
+    this.updateBanner();
+    this.refreshLyrics();
+    this.audio.src = "";
     
     notifications.show("SM file imported! Load audio/background files manually.");
   }
@@ -1726,11 +1738,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
         this.song.chart.sampleStart = value;
 
         // Preview the sample
-        if (this.audio.src) {
-          this.audio.currentTime = value;
-          this.audio.play().then(() => {
-            setTimeout(() => this.audio.pause(), this.song.chart.sampleLength * 1000);
-          });
+        if (this.audio && this.audio.src) {
+          this.playPreview(value, this.song.chart.sampleLength);
         }
 
         this.showMetadataEdit();
@@ -2070,6 +2079,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     gamepad.update();
     
     const { now, beat } = this.getCurrentTime();
+    
     this.chartRenderer.render(now, beat);
     
     if (notifications.notificationWindow) notifications.notificationWindow.bringToTop();
@@ -2089,13 +2099,12 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.handleChartEditInput();
       this.icons.visible = false;
       this.lyricsText.visible = this.isPlaying;
+      if (this.lyrics) this.lyrics.move(now);
 
       if (this.isPlaying) {
         this.cursorBeat = beat;
         this.updateCursorPosition();
         this.updateInfoText();
-        
-        if (this.lyrics) this.lyrics.move(now);
         
         // Show hit effects when notes reach judge line
         this.showHitEffects(now, beat);

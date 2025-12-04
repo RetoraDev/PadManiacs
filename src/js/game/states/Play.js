@@ -4,7 +4,7 @@ class Play {
     this.difficultyIndex = difficultyIndex || song.difficultyIndex;
     this.player = null;
     this.backgroundQueue = [];
-    this.preloadedBackgrounds = {};
+    this.preloadedBackgroundElements = {};
     this.currentBackground = null;
     this.isPaused = false;
     this.pauseStartTime = 0;
@@ -109,12 +109,19 @@ class Play {
     const dots = new LoadingDots();
     dots.x -= 4;
     dots.y -= 8;
-    this.song.chart.backgrounds.forEach(async bg => {
-      if (bg.file !== "-nosongbg-" && !this.preloadedBackgrounds[bg.file]) {
-        const element = await this.preloadBackground(bg);
-        this.preloadedBackgrounds[bg.file] = element;
-      }
-    });
+    if (this.song.chart.preloadedBackgroundElements) {
+      // If song has cached background data use it
+      this.preloadedBackgroundElements = this.song.chart.preloadedBackgroundElements;
+    } else {
+      // Otherwise preload backgrounds
+      this.song.chart.backgrounds.forEach(async bg => {
+        if (bg.file !== "-nosongbg-" && !this.preloadedBackgroundElements[bg.file]) {
+          const element = await this.preloadBackground(bg);
+          this.preloadedBackgroundElements[bg.file] = element;
+        }
+      });
+      this.song.chart.preloadedBackgroundElements = this.preloadedBackgroundElements;
+    }
     await this.setupAudio();
     dots.destroy();
     this.songStart();
@@ -135,17 +142,41 @@ class Play {
     return new Promise((resolve, reject) => {
       const { url, type } = background;
       const element = type == "video" ? document.createElement("video") : document.createElement("img");
-      element.src = url;
+      
+      if (!url) {
+        // Flag error if undefined or null url
+        element.__errored = true;
+        element.__type = type;
+        element.__url = "";
+        resolve(element);
+        return;
+      }
+      
+      // Add error flag property
+      element.__errored = false;
+      element.__type = type;
+      element.__url = url;
+      
       if (type == "image") {
         element.onload = () => resolve(element);
-        element.onerror = () => resolve(element);
+        element.onerror = () => {
+          console.warn(`Failed to load background image: ${url}`);
+          element.__errored = true;
+          resolve(element);
+        };
       } else {
         element.muted = true;
         element.volume = 0;
         element.loop = true;
         element.addEventListener("canplaythrough", () => resolve(element));
-        element.onerror = () => resolve(element);
+        element.onerror = () => {
+          console.warn(`Failed to load background video: ${url}`);
+          element.__errored = true;
+          resolve(element);
+        };
       }
+      
+      element.src = url;
     });
   }
   
@@ -293,12 +324,9 @@ class Play {
   setInitialBackground() {
     // Set initial background
     if (this.song.chart.backgroundUrl && this.song.chart.backgroundUrl !== "no-media") {
-      this.loadBackgroundImage("", this.song.chart.backgroundUrl);
+      this.loadBackgroundImage(this.song.chart.background, this.song.chart.backgroundUrl);
     } else {
-      // Default black background
-      this.backgroundCtx.fillStyle = "#000000";
-      this.backgroundCtx.fillRect(0, 0, 192, 112);
-      this.updateBackgroundTexture();
+      this.clearBackground();
     }
   }
   
@@ -368,9 +396,48 @@ class Play {
   }
   
   drawBackground(element) {
-    this.backgroundCtx.drawImage(element, 0, 0, 192, 112);
-    this.updateBackgroundTexture();
+    // Check if element is errored
+    if (element && element.__errored) {
+      console.warn(`Skipping errored background: ${element.__url}`);
+      this.drawFallbackBackground();
+      return;
+    }
+    
+    // Also check for naturalWidth/height for images
+    if (element && element.__type === "image" && element.naturalWidth === 0) {
+      console.warn(`Image has zero dimensions: ${element.__url}`);
+      element.__errored = true;
+      this.drawFallbackBackground();
+      return;
+    }
+    
+    try {
+      this.backgroundCtx.drawImage(element, 0, 0, 192, 112);
+      this.updateBackgroundTexture();
+    } catch (error) {
+      console.error("Error drawing background:", error);
+      element.__errored = true;
+      this.drawFallbackBackground();
+    }
   }
+  
+  drawFallbackBackground() {
+    // Use default song bg as fallback
+    const element = this.preloadedBackgroundElements[this.song.chart.background];
+    
+    if (!element.__errored) {
+      this.drawBackground(element);
+    } else {
+      this.clearBackground();
+    }
+  }
+  
+  clearBackground() {
+    this.backgroundCtx.fillStyle = "#000000";
+    this.backgroundCtx.fillRect(0, 0, 192, 112);
+    this.updateBackgroundTexture();
+    this.backgroundGradient.visible = false;
+  }  
   
   updateBackgroundTexture() {
     const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
@@ -382,15 +449,38 @@ class Play {
     if (this.video) this.video.pause();
     
     // Check if there is already a background preloaded
-    if (this.preloadedBackgrounds[filename]) {
+    if (this.preloadedBackgroundElements[filename]) {
+      const element = this.preloadedBackgroundElements[filename];
+      
+      // Check if element is errored
+      if (element.__errored) {
+        console.warn(`Preloaded background is errored: ${filename}`);
+        this.drawFallbackBackground();
+        return;
+      }
+      
       // Use the preloaded background
-      this.drawBackground(this.preloadedBackgrounds[filename]);
+      this.drawBackground(element);
     } else {
-      // Load the background in real time instead
+      // Load the background in real time with error handling
       const img = document.createElement("img");
-      img.onload = () => this.drawBackground(img);
+      img.__errored = false;
+      img.__type = "image";
+      img.__url = url;
+      
+      img.onload = () => {
+        this.preloadedBackgroundElements[filename] = img;
+        this.drawBackground(img);
+      };
+      
+      img.onerror = () => {
+        console.warn(`Failed to load background in realtime: ${filename}`);
+        img.__errored = true;
+        this.preloadedBackgroundElements[filename] = img;
+        this.drawFallbackBackground();
+      };
+      
       img.src = url;
-      this.preloadedBackgrounds[filename] = img;
     }
     
     this.backgroundGradient.visible = true;
@@ -398,38 +488,65 @@ class Play {
   
   loadBackgroundVideo(filename, url) {
     // Pause any existing video
-    if (this.video && this.video != this.preloadedBackgrounds[filename]) this.video.pause();
+    if (this.video && this.video != this.preloadedBackgroundElements[filename]) this.video.pause();
     
     // Check if there is already a background preloaded
-    if (this.preloadedBackgrounds[filename]) {
+    if (this.preloadedBackgroundElements[filename]) {
+      const element = this.preloadedBackgroundElements[filename];
+      
+      // Check if element is errored
+      if (element.__errored) {
+        console.warn(`Preloaded video is errored: ${filename}`);
+        this.drawFallbackBackground();
+        return;
+      }
+      
       // Use the preloaded background
-      this.video = this.preloadedBackgrounds[filename];
+      this.video = element;
     } else {
-      // Load the background in real time instead
+      // Load the background in real time with error handling
       const video = document.createElement("video");
+      video.__errored = false;
+      video.__type = "video";
+      video.__url = url;
+      
       video.src = url;
-      this.preloadedBackgrounds[filename] = video;
-      this.video = video;
-      this.video.muted = true;
-      this.video.volume = 0;
-      this.video.loop = true;
-      console.warn("Couldn't find video:", filename);
+      video.muted = true;
+      video.volume = 0;
+      video.loop = true;
+      
+      video.addEventListener("canplaythrough", () => {
+        this.preloadedBackgroundElements[filename] = video;
+        this.video = video;
+        this.video.play();
+        this.backgroundGradient.visible = false;
+      }, { once: true });
+      
+      video.onerror = () => {
+        console.warn(`Failed to load video in realtime: ${url}`);
+        video.__errored = true;
+        this.preloadedBackgroundElements[filename] = video;
+        this.drawFallbackBackground();
+      };
+      
+      console.warn("Couldn't find video:", filename, "Loading video in real time. This may affect performance");
     }
     
-    this.video.play();
-    
-    this.backgroundGradient.visible = false;
-    this.video.addEventListener("error", () => this.backgroundGradient.visible = true, { once: true });
-  }
-  
-  clearBackgroundImage() {
-    this.backgroundSprite.loadTexture(null);
-    this.backgroundGradient.visible = false;
+    if (this.video && !this.video.__errored) {
+      this.video.play();
+      this.backgroundGradient.visible = false;
+      this.video.addEventListener("error", () => {
+        console.warn(`Video playback error: ${filename}`);
+        this.video.__errored = true;
+        this.backgroundGradient.visible = true;
+        this.drawFallbackBackground();
+      }, { once: true });
+    }
   }
   
   applyBackground(bg) {
     if (bg.file == '-nosongbg-') {
-      this.clearBackgroundImage();
+      this.clearBackground();
     } else if (bg.type == 'video') {
       this.loadBackgroundVideo(bg.file, bg.url);
     } else {
@@ -596,7 +713,7 @@ class Play {
         this.pauseCarousel.addItem("ENABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
       }
     }
-    this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode));
+    this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode, this.autoplay));
     this.pauseCarousel.addItem(this.playtestMode ? "BACK TO EDITOR" : "GIVE UP", () => this.songEnd());
     
     game.onMenuIn.dispatch('pause', this.pauseCarousel);
@@ -658,9 +775,24 @@ class Play {
   }
   
   updateVideo() {
-    if (this.video && this.currentBackground && this.currentBackground.type == "video" && game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
+    if (this.video && 
+        !this.video.__errored &&
+        this.currentBackground && 
+        this.currentBackground.type == "video" && 
+        game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
+      
       this.lastVideoUpdateTime = game.time.now;
-      this.drawBackground(this.video);
+      
+      // Check video ready state
+      if (this.video.readyState >= 2) { // HAVE_CURRENT_DATA or better
+        try {
+          this.drawBackground(this.video);
+        } catch (error) {
+          console.error("Error updating video frame:", error);
+          this.video.__errored = true;
+          this.drawFallbackBackground();
+        }
+      }
     }
   }
   
@@ -737,25 +869,35 @@ class Play {
     this.audio.pause();
     this.audio.src = "";
     this.audio = null;
+    
     if (this.video) {
       this.video.pause();
       this.video.src = "";
       this.video = null;
     }
+    
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
+    
     if (this.visualizer) {
       this.visualizer.destroy();
       this.visualizer = null;
     }
+    
     if (this.metronome) {
       this.metronome.destroy();
       this.metronome = null;
     }
-    Object.entries(this.preloadedBackgrounds).forEach(element => element.src = "");
+    
+    // Clean up fallback background
+    if (this.fallbackBackground) {
+      this.fallbackBackground.src = "";
+      this.fallbackBackground = null;
+    }
     
     // Stop recording and show video
     if (window.recordNextGame) {
       game.recorder.stop();
+      game.recorder = null;
       window.recordNextGame = false;
     }
   }

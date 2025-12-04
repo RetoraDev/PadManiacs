@@ -100,7 +100,8 @@ const DEFAULT_ACCOUNT = {
     gameRated: false,
     featureRequestPrompted: false,
     lastCrashed: false,
-    submittedBugReport: false
+    submittedBugReport: false,
+    wentToCommunity: false
   },
   achievements: {
     unlocked: {},

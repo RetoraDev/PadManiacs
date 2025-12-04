@@ -7,7 +7,7 @@ class MainMenu {
     this.navigationHint = new NavigationHint(0);
     
     // Check for feedback dialogs before showing menu
-    this.checkFeedbackDialogs();
+    this.checkInitialDialogs();
     
     this.previewCanvas = document.createElement("canvas");
     this.previewCtx = this.previewCanvas.getContext("2d");
@@ -28,7 +28,7 @@ class MainMenu {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
-  checkFeedbackDialogs() {
+  checkInitialDialogs() {
     // Check for bug report first (highest priority)
     if (!window.DEBUG && Account.stats.lastCrashed) {
       this.showBugReportDialog();
@@ -44,6 +44,12 @@ class MainMenu {
     // Check for feature request dialog
     if (!Account.stats.featureRequestPrompted && Account.stats.totalTimePlayed >= FEATURE_REQUEST_MIN_PLAYTIME) {
       this.showFeatureRequestDialog();
+      return;
+    }
+    
+    // Check for community dialog
+    if (!Account.stats.wentToCommunity && Account.stats.totalTimePlayed >= COMMUNITY_PROMPT_MIN_PLAYTIME) {
+      this.showCommunityDialog();
       return;
     }
 
@@ -66,6 +72,9 @@ class MainMenu {
         Account.stats.submittedBugReport = true;
         saveAccount();
         this.menu();
+        
+        // Force check achievements
+        achievementsManager.checkAchievements();
       },
       () => {
         // User chose "Maybe Later" - just clear flag and show menu
@@ -90,11 +99,12 @@ class MainMenu {
         Account.stats.gameRated = true;
         saveAccount();
         this.menu();
+
+        // Force check achievements
+        achievementsManager.checkAchievements();        
       },
       () => {
-        // No Thanks - never ask again
-        Account.stats.gameRated = true;
-        saveAccount();
+        // No Thanks
         this.menu();
       },
       "Rate Now", 
@@ -115,6 +125,9 @@ class MainMenu {
         Account.stats.featureRequestPrompted = true;
         saveAccount();
         this.menu();
+        
+        // Force check achievements
+        achievementsManager.checkAchievements();
       },
       () => {
         // Not Now - ask again after more playtime
@@ -124,6 +137,30 @@ class MainMenu {
       },
       "Share Ideas",
       "Not Now"
+    );
+  }
+  
+  showCommunityDialog() {
+    this.confirmDialog(
+      "Enjoying the game?\n" +
+      "Join the community to download more charts, and share your creations and high scores with other players!\n",
+      () => {
+        // Join
+        openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+        
+        Account.stats.wentToCommunity = true;
+        saveAccount();
+        this.menu();
+        
+        // Force check achievements
+        achievementsManager.checkAchievements();
+      },
+      () => {
+        // No Thanks
+        this.menu();
+      },
+      "Join", 
+      "No Thanks"
     );
   }
 
@@ -444,8 +481,9 @@ class MainMenu {
     carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
     carousel.addItem("Achievements", () => this.showAchievements());
     carousel.addItem("Player Stats", () => this.showStats());
-    carousel.addItem("Credits", () => this.showCredits());
     carousel.addItem("Feedback", () => this.showFeedback());
+    carousel.addItem("Comunity", () => this.showCommunity());
+    carousel.addItem("Credits", () => this.showCredits());
     
     game.onMenuIn.dispatch('extras', carousel);
     carousel.addItem("< Back", () => this.showHomeMenu());
@@ -473,6 +511,15 @@ class MainMenu {
     game.onMenuIn.dispatch('feedback', carousel);
     carousel.addItem("< Back", () => this.showExtras());
     carousel.onCancel.add(() => this.showExtras());
+  }
+  
+  showCommunity() {
+    openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+    
+    Account.stats.wentToCommunity = true;
+    saveAccount();
+    
+    this.menu();
   }
   
   showAddonManager() {

@@ -1428,5 +1428,17 @@ const ACHIEVEMENT_DEFINITIONS = [
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.featureRequestPrompted,
     hidden: false
+  },
+  {
+    id: "community_explorer",
+    name: "Community Explorer",
+    category: ACHIEVEMENT_CATEGORIES.MISC,
+    description: {
+      unachieved: "Visit the community homepage",
+      achieved: "You visited the community!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: (stats) => stats.wentToCommunity,
+    hidden: false
   }
 ];

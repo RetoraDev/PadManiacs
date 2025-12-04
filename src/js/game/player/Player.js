@@ -740,14 +740,16 @@ class Player {
     // Update health
     if (this.health != this.previousHealth) {
       this.previousHealth = this.health;
-      const tween = game.add.tween(this.scene.lifebarMiddle).to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
-      tween.onUpdateCallback = () => this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
+      const tween = game.add.tween(this.scene.lifebarMiddle);
+      tween.to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
+      tween.onUpdateCallback(() => this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width);
       if (this.health <= 0) {
         this.gameOver = true;
         this.health = 0;
-      }
+      };
       this.healthText.write(this.health.toString());
     }
+    this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
     if (this.scene.accuracyBar) {
       if (this.accuracy <= 0) {
         this.scene.accuracyBar.visible = false;
