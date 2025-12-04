@@ -967,6 +967,12 @@ class InteractiveInterface {
       '<link rel="stylesheet" href="./src/css/style.css">'
     );
     
+    // Replace favicon url
+    htmlContent = htmlContent.replace(
+      /<link[^>]*href=["'][^"']*favicon\.ico["'][^>]*>/gi,
+      '<link rel="icon" href="./src/favicon.ico">'
+    );
+    
     // Remove existing script tags if any
     htmlContent = htmlContent.replace(/<script src="[^"]*"><\/script>\s*/g, '');
     
