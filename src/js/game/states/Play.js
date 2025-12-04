@@ -113,13 +113,13 @@ class Play {
       // If song has cached background data use it
       this.preloadedBackgroundElements = this.song.chart.preloadedBackgroundElements;
     } else {
-      // Otherwise preload backgrounds
+      // Otherwise preload backgrounds and store them in song
       this.song.chart.backgrounds.forEach(async bg => {
         if (bg.file !== "-nosongbg-" && !this.preloadedBackgroundElements[bg.file]) {
           const element = await this.preloadBackground(bg);
           this.preloadedBackgroundElements[bg.file] = element;
         }
-      });
+      }); 
       this.song.chart.preloadedBackgroundElements = this.preloadedBackgroundElements;
     }
     await this.setupAudio();
@@ -168,6 +168,7 @@ class Play {
         element.muted = true;
         element.volume = 0;
         element.loop = true;
+        element.autoplay = false;
         element.addEventListener("canplaythrough", () => resolve(element));
         element.onerror = () => {
           console.warn(`Failed to load background video: ${url}`);
@@ -425,7 +426,7 @@ class Play {
     // Use default song bg as fallback
     const element = this.preloadedBackgroundElements[this.song.chart.background];
     
-    if (!element.__errored) {
+    if (element && !element.__errored) {
       this.drawBackground(element);
     } else {
       this.clearBackground();
@@ -514,6 +515,7 @@ class Play {
       video.muted = true;
       video.volume = 0;
       video.loop = true;
+      video.autoplay = false;
       
       video.addEventListener("canplaythrough", () => {
         this.preloadedBackgroundElements[filename] = video;
@@ -533,6 +535,7 @@ class Play {
     }
     
     if (this.video && !this.video.__errored) {
+      this.video.currentTime = 0;
       this.video.play();
       this.backgroundGradient.visible = false;
       this.video.addEventListener("error", () => {
@@ -868,12 +871,9 @@ class Play {
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.audio.pause();
     this.audio.src = "";
-    this.audio = null;
     
     if (this.video) {
       this.video.pause();
-      this.video.src = "";
-      this.video = null;
     }
     
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
@@ -886,12 +886,6 @@ class Play {
     if (this.metronome) {
       this.metronome.destroy();
       this.metronome = null;
-    }
-    
-    // Clean up fallback background
-    if (this.fallbackBackground) {
-      this.fallbackBackground.src = "";
-      this.fallbackBackground = null;
     }
     
     // Stop recording and show video

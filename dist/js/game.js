@@ -4,8 +4,8 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v0.0.7 dev
- * Build: 12/4/2025, 2:41:19 PM
+ * Version: v0.0.8 dev
+ * Build: 12/4/2025, 3:42:43 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -13,7 +13,7 @@
 
 const COPYRIGHT = "(C) RETORA 2025";
 
-const VERSION = "v0.0.7 dev";
+const VERSION = "v0.0.8 dev";
 
 window.DEBUG = false;
 
@@ -12187,6 +12187,9 @@ class LoadExternalSongs {
 
     try {
       const song = await this.processSongDirectory(dirEntry);
+      
+      if (!song) throw new Error("Song not loaded");
+      
       song.index = index;
       if (song) {
         // Song loaded successfully!
@@ -12228,7 +12231,7 @@ class LoadExternalSongs {
         try {
           // Try to parse the chart file
           const content = await this.fileSystem.readFileContent(chartFiles[smFileName]);
-          const chart = this.parser.parseSM(chartFiles, content);
+          const chart = await this.parser.parseSM(chartFiles, content);
           
           if (chart && chart.difficulties && chart.difficulties.length > 0) {
             // Chart file parsed successfully
@@ -13496,6 +13499,9 @@ class SongSelect {
       this.previewAudio.play();
     }
     
+    this.previewCtx.clearRect(0, 0, 192, 112);
+    this.bannerSprite.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
+    
     if (song.bannerUrl) {
       this.bannerImg.src = song.bannerUrl;
       this.bannerImg.onload = () => {
@@ -13681,7 +13687,6 @@ class SongSelect {
     
     if (gamepad.pressed.select) {
       Account.settings.autoplay = !Account.settings.autoplay;
-      console.log(Account.settings.autoplay)
     }
     
     this.autoplayText.write(Account.settings.autoplay ? "AUTOPLAY" : "");
@@ -13690,7 +13695,6 @@ class SongSelect {
   shutdown() {
     this.previewAudio.pause();
     this.previewAudio.src = null;
-    this.previewAudio = null;
     this.bannerImg.src = "";
     this.bannerImg = null;
     this.previewCanvas = null;
@@ -15249,13 +15253,13 @@ class Play {
       // If song has cached background data use it
       this.preloadedBackgroundElements = this.song.chart.preloadedBackgroundElements;
     } else {
-      // Otherwise preload backgrounds
+      // Otherwise preload backgrounds and store them in song
       this.song.chart.backgrounds.forEach(async bg => {
         if (bg.file !== "-nosongbg-" && !this.preloadedBackgroundElements[bg.file]) {
           const element = await this.preloadBackground(bg);
           this.preloadedBackgroundElements[bg.file] = element;
         }
-      });
+      }); 
       this.song.chart.preloadedBackgroundElements = this.preloadedBackgroundElements;
     }
     await this.setupAudio();
@@ -15304,6 +15308,7 @@ class Play {
         element.muted = true;
         element.volume = 0;
         element.loop = true;
+        element.autoplay = false;
         element.addEventListener("canplaythrough", () => resolve(element));
         element.onerror = () => {
           console.warn(`Failed to load background video: ${url}`);
@@ -15561,7 +15566,7 @@ class Play {
     // Use default song bg as fallback
     const element = this.preloadedBackgroundElements[this.song.chart.background];
     
-    if (!element.__errored) {
+    if (element && !element.__errored) {
       this.drawBackground(element);
     } else {
       this.clearBackground();
@@ -15650,6 +15655,7 @@ class Play {
       video.muted = true;
       video.volume = 0;
       video.loop = true;
+      video.autoplay = false;
       
       video.addEventListener("canplaythrough", () => {
         this.preloadedBackgroundElements[filename] = video;
@@ -15669,6 +15675,7 @@ class Play {
     }
     
     if (this.video && !this.video.__errored) {
+      this.video.currentTime = 0;
       this.video.play();
       this.backgroundGradient.visible = false;
       this.video.addEventListener("error", () => {
@@ -16004,12 +16011,9 @@ class Play {
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.audio.pause();
     this.audio.src = "";
-    this.audio = null;
     
     if (this.video) {
       this.video.pause();
-      this.video.src = "";
-      this.video = null;
     }
     
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
@@ -16022,12 +16026,6 @@ class Play {
     if (this.metronome) {
       this.metronome.destroy();
       this.metronome = null;
-    }
-    
-    // Clean up fallback background
-    if (this.fallbackBackground) {
-      this.fallbackBackground.src = "";
-      this.fallbackBackground = null;
     }
     
     // Stop recording and show video

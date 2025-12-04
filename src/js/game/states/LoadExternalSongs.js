@@ -98,6 +98,9 @@ class LoadExternalSongs {
 
     try {
       const song = await this.processSongDirectory(dirEntry);
+      
+      if (!song) throw new Error("Song not loaded");
+      
       song.index = index;
       if (song) {
         // Song loaded successfully!
@@ -139,7 +142,7 @@ class LoadExternalSongs {
         try {
           // Try to parse the chart file
           const content = await this.fileSystem.readFileContent(chartFiles[smFileName]);
-          const chart = this.parser.parseSM(chartFiles, content);
+          const chart = await this.parser.parseSM(chartFiles, content);
           
           if (chart && chart.difficulties && chart.difficulties.length > 0) {
             // Chart file parsed successfully

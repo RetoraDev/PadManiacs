@@ -153,6 +153,9 @@ class SongSelect {
       this.previewAudio.play();
     }
     
+    this.previewCtx.clearRect(0, 0, 192, 112);
+    this.bannerSprite.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
+    
     if (song.bannerUrl) {
       this.bannerImg.src = song.bannerUrl;
       this.bannerImg.onload = () => {
@@ -338,7 +341,6 @@ class SongSelect {
     
     if (gamepad.pressed.select) {
       Account.settings.autoplay = !Account.settings.autoplay;
-      console.log(Account.settings.autoplay)
     }
     
     this.autoplayText.write(Account.settings.autoplay ? "AUTOPLAY" : "");
@@ -347,7 +349,6 @@ class SongSelect {
   shutdown() {
     this.previewAudio.pause();
     this.previewAudio.src = null;
-    this.previewAudio = null;
     this.bannerImg.src = "";
     this.bannerImg = null;
     this.previewCanvas = null;
