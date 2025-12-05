@@ -52,8 +52,8 @@ class Gamepad {
       down: 13,
       left: 14,
       right: 15,
-      a: 0,
-      b: 1,
+      a: 1,
+      b: 0,
       select: 8,
       start: 9
     };
