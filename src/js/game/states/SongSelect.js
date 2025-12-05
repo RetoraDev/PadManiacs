@@ -1,5 +1,5 @@
 class SongSelect {
-  init(songs, index, autoSelect, type = "local") {
+  init(songs, index, autoSelect, type = "auto") {
     this.type = type;
     
     switch (type) {
@@ -11,6 +11,7 @@ class SongSelect {
         this.songs = songs || window.externalSongs || [];
         this.startingIndex = index || Account.songSelectStartingIndex.external || 0;
         break;
+      case "auto":
       default:
         this.songs = songs || window.selectedSongs || [];
         this.startingIndex = index || window.selectStartingIndex || 0;
@@ -142,8 +143,6 @@ class SongSelect {
   }
 
   previewSong(song) {
-    if (!this.autoSelect) this.loadingDots.visible = true;
-    
     let index = this.songCarousel.selectedIndex;
     
     if (song.audioUrl) {
@@ -157,6 +156,7 @@ class SongSelect {
     this.bannerSprite.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
     
     if (song.bannerUrl) {
+      if (!this.autoSelect) this.loadingDots.visible = true;
       this.bannerImg.src = song.bannerUrl;
       this.bannerImg.onload = () => {
         if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;

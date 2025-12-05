@@ -430,7 +430,7 @@ class Play {
     this.backgroundCtx.fillStyle = "#000000";
     this.backgroundCtx.fillRect(0, 0, 192, 112);
     this.updateBackgroundTexture();
-    this.backgroundGradient.visible = false;
+    this.backgroundGradient.visible = true;
   }  
   
   updateBackgroundTexture() {
@@ -599,6 +599,8 @@ class Play {
       song: this.song,
       difficultyIndex: this.difficultyIndex,
       character: this.currentCharacter,
+      autoplay: this.autoplay,
+      playtestMode: this.playtestMode,
       player: this.player,
       expGain: expGain,
       gameResults: gameResults

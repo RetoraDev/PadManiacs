@@ -49,7 +49,7 @@ class Results {
   }
 
   saveHighScore(song, difficulty, player) {
-    if (Account.settings.autoplay) {
+    if (this.gameData.autoplay) {
       return false;
     }
     
@@ -138,7 +138,7 @@ class Results {
     if (title.length > 25) this.songText.scrollwrite(title, 25);
     
     // Don't celebrate if autoplay is enabled
-    const autoplay = Account.settings.autoplay;
+    const autoplay = this.gameData.autoplay;
     
     // Score
     this.scoreText = new Text(10, 30, `SCORE: ${autoplay ? "---" : this.finalScore.toLocaleString()}`, FONTS.default);
@@ -226,7 +226,7 @@ class Results {
     });
     
     menu.addItem("NEXT", () => {
-      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true);
+      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto");
     });
     menu.addItem("CONTINUE", () => game.state.start("SongSelect"));
     if (Account.settings.autoplay) {

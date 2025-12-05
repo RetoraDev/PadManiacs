@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/4/2025, 3:58:01 PM
+ * Build: 12/5/2025, 2:05:44 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -6847,6 +6847,7 @@ class Lyrics {
     this.lrcData = [];
     this.rangeLrc = [];
     this.currentLineIndex = -1;
+    this.currentColor = 0xffffff; // Default white color
     
     // Parse LRC data
     if (options.lrc) {
@@ -6859,14 +6860,25 @@ class Lyrics {
     this.lrcData = [];
     this.rangeLrc = [];
     this.currentLineIndex = -1;
+    this.currentColor = 0xffffff; // Reset to default white
 
     const tagRegex = /\[([a-z]+):(.*)\].*/;
     const lrcAllRegex = /(\[[0-9.:\[\]]*\])+(.*)/;
     const timeRegex = /\[([0-9]+):([0-9.]+)\]/;
+    const colorRegex = /\[COLOUR\]0x([0-9a-fA-F]{6})/;
     const rawLrcArray = rawLrc.split(/[\r\n]/);
     
     for (let i = 0; i < rawLrcArray.length; i++) {
-      // Handle tags (artist, title, etc.)
+      // Handle color tags
+      const colorMatch = colorRegex.exec(rawLrcArray[i]);
+      if (colorMatch && colorMatch[0]) {
+        const hexColor = colorMatch[1];
+        // Convert hex string to integer (0xRRGGBB)
+        this.currentColor = parseInt(hexColor, 16);
+        continue;
+      }
+      
+      // Handle other tags (artist, title, etc.)
       const tag = tagRegex.exec(rawLrcArray[i]);
       if (tag && tag[0]) {
         this.tags[tag[1]] = tag[2];
@@ -6885,7 +6897,8 @@ class Lyrics {
             const startTime = parseInt(time[1], 10) * 60 + parseFloat(time[2]);
             this.lrcData.push({ 
               startTime: startTime, 
-              line: lineText 
+              line: lineText,
+              color: this.currentColor // Store current color with the line
             });
           }
         }
@@ -6898,23 +6911,27 @@ class Lyrics {
     // Create range-based LRC data for easier lookup
     let startTime = 0;
     let line = "";
+    let color = 0xffffff; // Default white
     
     for (let i = 0; i < this.lrcData.length; i++) {
       const endTime = this.lrcData[i].startTime;
       this.rangeLrc.push({ 
         startTime: startTime, 
         endTime: endTime, 
-        line: line 
+        line: line,
+        color: color
       });
       startTime = endTime;
       line = this.lrcData[i].line;
+      color = this.lrcData[i].color;
     }
     
     // Add final segment
     this.rangeLrc.push({ 
       startTime: startTime, 
       endTime: Number.MAX_SAFE_INTEGER, 
-      line: line 
+      line: line,
+      color: color
     });
   }
 
@@ -6955,6 +6972,8 @@ class Lyrics {
       this.textElement.stopScrolling();
     }
 
+    // Set text tint to the stored color
+    this.textElement.tint = currentLineData.color;
     this.textElement.write(lineText);
     
     // Warp if text too long
@@ -6969,6 +6988,14 @@ class Lyrics {
       return this.rangeLrc[this.currentLineIndex].line;
     }
     return "";
+  }
+
+  // Get current line color
+  getCurrentColor() {
+    if (this.currentLineIndex >= 0 && this.currentLineIndex < this.rangeLrc.length) {
+      return this.rangeLrc[this.currentLineIndex].color;
+    }
+    return 0xffffff; // Default white
   }
 
   // Get next line text (for preview)
@@ -6993,6 +7020,7 @@ class Lyrics {
     this.currentLineIndex = -1;
     this.lrcData = [];
     this.rangeLrc = [];
+    this.currentColor = 0xffffff;
   }
 
   // Destroy and cleanup
@@ -13340,7 +13368,7 @@ class MainMenu {
 }
 
 class SongSelect {
-  init(songs, index, autoSelect, type = "local") {
+  init(songs, index, autoSelect, type = "auto") {
     this.type = type;
     
     switch (type) {
@@ -13352,6 +13380,7 @@ class SongSelect {
         this.songs = songs || window.externalSongs || [];
         this.startingIndex = index || Account.songSelectStartingIndex.external || 0;
         break;
+      case "auto":
       default:
         this.songs = songs || window.selectedSongs || [];
         this.startingIndex = index || window.selectStartingIndex || 0;
@@ -13483,8 +13512,6 @@ class SongSelect {
   }
 
   previewSong(song) {
-    if (!this.autoSelect) this.loadingDots.visible = true;
-    
     let index = this.songCarousel.selectedIndex;
     
     if (song.audioUrl) {
@@ -13498,6 +13525,7 @@ class SongSelect {
     this.bannerSprite.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
     
     if (song.bannerUrl) {
+      if (!this.autoSelect) this.loadingDots.visible = true;
       this.bannerImg.src = song.bannerUrl;
       this.bannerImg.onload = () => {
         if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
@@ -15565,7 +15593,7 @@ class Play {
     this.backgroundCtx.fillStyle = "#000000";
     this.backgroundCtx.fillRect(0, 0, 192, 112);
     this.updateBackgroundTexture();
-    this.backgroundGradient.visible = false;
+    this.backgroundGradient.visible = true;
   }  
   
   updateBackgroundTexture() {
@@ -15734,6 +15762,8 @@ class Play {
       song: this.song,
       difficultyIndex: this.difficultyIndex,
       character: this.currentCharacter,
+      autoplay: this.autoplay,
+      playtestMode: this.playtestMode,
       player: this.player,
       expGain: expGain,
       gameResults: gameResults
@@ -16085,7 +16115,7 @@ class Results {
   }
 
   saveHighScore(song, difficulty, player) {
-    if (Account.settings.autoplay) {
+    if (this.gameData.autoplay) {
       return false;
     }
     
@@ -16174,7 +16204,7 @@ class Results {
     if (title.length > 25) this.songText.scrollwrite(title, 25);
     
     // Don't celebrate if autoplay is enabled
-    const autoplay = Account.settings.autoplay;
+    const autoplay = this.gameData.autoplay;
     
     // Score
     this.scoreText = new Text(10, 30, `SCORE: ${autoplay ? "---" : this.finalScore.toLocaleString()}`, FONTS.default);
@@ -16262,7 +16292,7 @@ class Results {
     });
     
     menu.addItem("NEXT", () => {
-      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true);
+      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto");
     });
     menu.addItem("CONTINUE", () => game.state.start("SongSelect"));
     if (Account.settings.autoplay) {

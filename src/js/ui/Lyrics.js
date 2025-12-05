@@ -6,6 +6,7 @@ class Lyrics {
     this.lrcData = [];
     this.rangeLrc = [];
     this.currentLineIndex = -1;
+    this.currentColor = 0xffffff; // Default white color
     
     // Parse LRC data
     if (options.lrc) {
@@ -18,14 +19,25 @@ class Lyrics {
     this.lrcData = [];
     this.rangeLrc = [];
     this.currentLineIndex = -1;
+    this.currentColor = 0xffffff; // Reset to default white
 
     const tagRegex = /\[([a-z]+):(.*)\].*/;
     const lrcAllRegex = /(\[[0-9.:\[\]]*\])+(.*)/;
     const timeRegex = /\[([0-9]+):([0-9.]+)\]/;
+    const colorRegex = /\[COLOUR\]0x([0-9a-fA-F]{6})/;
     const rawLrcArray = rawLrc.split(/[\r\n]/);
     
     for (let i = 0; i < rawLrcArray.length; i++) {
-      // Handle tags (artist, title, etc.)
+      // Handle color tags
+      const colorMatch = colorRegex.exec(rawLrcArray[i]);
+      if (colorMatch && colorMatch[0]) {
+        const hexColor = colorMatch[1];
+        // Convert hex string to integer (0xRRGGBB)
+        this.currentColor = parseInt(hexColor, 16);
+        continue;
+      }
+      
+      // Handle other tags (artist, title, etc.)
       const tag = tagRegex.exec(rawLrcArray[i]);
       if (tag && tag[0]) {
         this.tags[tag[1]] = tag[2];
@@ -44,7 +56,8 @@ class Lyrics {
             const startTime = parseInt(time[1], 10) * 60 + parseFloat(time[2]);
             this.lrcData.push({ 
               startTime: startTime, 
-              line: lineText 
+              line: lineText,
+              color: this.currentColor // Store current color with the line
             });
           }
         }
@@ -57,23 +70,27 @@ class Lyrics {
     // Create range-based LRC data for easier lookup
     let startTime = 0;
     let line = "";
+    let color = 0xffffff; // Default white
     
     for (let i = 0; i < this.lrcData.length; i++) {
       const endTime = this.lrcData[i].startTime;
       this.rangeLrc.push({ 
         startTime: startTime, 
         endTime: endTime, 
-        line: line 
+        line: line,
+        color: color
       });
       startTime = endTime;
       line = this.lrcData[i].line;
+      color = this.lrcData[i].color;
     }
     
     // Add final segment
     this.rangeLrc.push({ 
       startTime: startTime, 
       endTime: Number.MAX_SAFE_INTEGER, 
-      line: line 
+      line: line,
+      color: color
     });
   }
 
@@ -114,6 +131,8 @@ class Lyrics {
       this.textElement.stopScrolling();
     }
 
+    // Set text tint to the stored color
+    this.textElement.tint = currentLineData.color;
     this.textElement.write(lineText);
     
     // Warp if text too long
@@ -128,6 +147,14 @@ class Lyrics {
       return this.rangeLrc[this.currentLineIndex].line;
     }
     return "";
+  }
+
+  // Get current line color
+  getCurrentColor() {
+    if (this.currentLineIndex >= 0 && this.currentLineIndex < this.rangeLrc.length) {
+      return this.rangeLrc[this.currentLineIndex].color;
+    }
+    return 0xffffff; // Default white
   }
 
   // Get next line text (for preview)
@@ -152,6 +179,7 @@ class Lyrics {
     this.currentLineIndex = -1;
     this.lrcData = [];
     this.rangeLrc = [];
+    this.currentColor = 0xffffff;
   }
 
   // Destroy and cleanup
