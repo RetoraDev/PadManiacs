@@ -434,8 +434,10 @@ class Play {
   }  
   
   updateBackgroundTexture() {
-    const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
-    this.backgroundSprite.loadTexture(texture);
+    if (this.backgroundSprite && this.backgroundSprite.game) {
+      const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
+      this.backgroundSprite.loadTexture(texture);
+    }
   }
   
   loadBackgroundImage(filename, url) {
@@ -862,6 +864,8 @@ class Play {
   }
   
   shutdown() {
+    this.shootingDown = true;
+    
     this.audio.removeEventListener("ended", this.audioEndListener);
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.audio.pause();
@@ -878,7 +882,6 @@ class Play {
     Object.entries(this.preloadedBackgroundElements).forEach(element => {
       if (element) {
         element.src = "";
-        element = null;
       }
     });
     

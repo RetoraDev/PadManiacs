@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/5/2025, 8:26:02 AM
+ * Build: 12/6/2025, 1:26:20 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -15597,8 +15597,10 @@ class Play {
   }  
   
   updateBackgroundTexture() {
-    const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
-    this.backgroundSprite.loadTexture(texture);
+    if (this.backgroundSprite && this.backgroundSprite.game) {
+      const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
+      this.backgroundSprite.loadTexture(texture);
+    }
   }
   
   loadBackgroundImage(filename, url) {
@@ -16025,6 +16027,8 @@ class Play {
   }
   
   shutdown() {
+    this.shootingDown = true;
+    
     this.audio.removeEventListener("ended", this.audioEndListener);
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.audio.pause();
@@ -16041,7 +16045,6 @@ class Play {
     Object.entries(this.preloadedBackgroundElements).forEach(element => {
       if (element) {
         element.src = "";
-        element = null;
       }
     });
     
