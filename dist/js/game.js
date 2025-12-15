@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/15/2025, 8:01:48 AM
+ * Build: 12/15/2025, 6:40:29 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -128,7 +128,10 @@ const CHARACTER_SYSTEM = {
   HAIR_STYLES: {
     front: ["Casual", "Smart", "Daring", "Simple", "Bulky", "Afro", "Emotional", "Clean"],
     back: ["Casual", "Smart", "Curly", "Ponytails", "Short", "Afro", "Diva", "Clean"],
-  }
+  },
+  NAME_SYLLABLES: [
+    "A", "E", "I", "O", "U", "AI", "AM", "RE", "RU", "SI", "MI", "KU", "LU", "KA", "KAN", "NA", "EI", "RI", "NE", "RU", "CHA", "RA", "FRI", "SK", "TO", "TOU", "HAT", "SU", "NE", "TO", "RIEL", "ME", "TA", "TON", "ZA", "ZU", "KA", "AS", "RIEL", "M", "C."
+  ]
 };
 
 const DEFAULT_CHARACTER = {
@@ -6150,7 +6153,7 @@ class TextInput extends Phaser.Sprite {
     this.stackedText = text.slice(0, text.length - 1).toUpperCase();
     this.currentIndex = 0;
     
-    this.takeChar(text[ text.length - 1 ].toUpperCase());
+    this.takeChar(this.getLastChar(text));
     
     this.maxLength = maxLength;
     this.text = "";
@@ -6182,6 +6185,10 @@ class TextInput extends Phaser.Sprite {
   }
   getCharacterToInsert() {
     return this.characterSet[this.currentIndex];
+  }
+  getLastChar(text) {
+    const lastChar = text && text.length ? text[ text.length - 1 ] : this.getCharacterToInsert();
+    return lastChar.toUpperCase();
   }
   takeChar(char) {
     const index = this.characterSet.toUpperCase().indexOf(char.toUpperCase());
@@ -6226,7 +6233,7 @@ class TextInput extends Phaser.Sprite {
     // Remove letter
     if (gamepad.pressed.b) {
       if (this.stackedText.length) {
-        this.takeChar(this.stackedText[ this.stackedText.length - 1 ]);
+        this.takeChar(this.getLastChar(this.stackedText));
         this.stackedText = this.stackedText.substr(0, this.stackedText.length - 1);
       } else {
         this.cancel();
@@ -10128,11 +10135,18 @@ class SMFile {
     
     // Group notes by measure
     const measures = {};
+    let lastMeasure = 0;
     processedNotes.forEach(note => {
       const measure = Math.floor(note.beat / 4);
       if (!measures[measure]) measures[measure] = [];
+      lastMeasure = measure;
       measures[measure].push(note);
     });
+    
+    // Add empty measures where needed
+    for (let i = 0; i <= lastMeasure; i++) {
+      if (!measures[i]) measures[i] = [i];
+    }
     
     // Sort measures
     const measureNumbers = Object.keys(measures).map(Number).sort((a, b) => a - b);
@@ -14867,7 +14881,7 @@ class CharacterSelect extends Phaser.State {
     this.navigationHint.change(5);
     
     new TextInput(
-      "",
+      this.generateName(),
       CHARACTER_SYSTEM.MAX_NAME_LENGTH,
       name => {
         // Finalize character creation
@@ -14899,6 +14913,16 @@ class CharacterSelect extends Phaser.State {
         this.cancelCharacterCreation();
       }
     );
+  }
+  
+  generateName() {
+    const syllables = CHARACTER_SYSTEM.NAME_SYLLABLES;
+    
+    // Join two syllables to make a name
+    const firstSyllabe = game.rnd.pick(syllables);
+    const secondSyllabe = game.rnd.pick(syllables);
+    
+    return firstSyllabe + secondSyllabe;
   }
   
   cancelCharacterCreation() {
@@ -19151,7 +19175,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.menuVisible = true;
       
       new ValueInput(
-        120,
+        bpmChange.bpm,
         0,
         1000,
         1,
@@ -19212,7 +19236,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.menuVisible = true;
       
       new ValueInput(
-        1,
+        stop.len,
         0,
         360,
         0.1,

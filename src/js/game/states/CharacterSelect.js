@@ -1127,7 +1127,7 @@ class CharacterSelect extends Phaser.State {
     this.navigationHint.change(5);
     
     new TextInput(
-      "",
+      this.generateName(),
       CHARACTER_SYSTEM.MAX_NAME_LENGTH,
       name => {
         // Finalize character creation
@@ -1159,6 +1159,16 @@ class CharacterSelect extends Phaser.State {
         this.cancelCharacterCreation();
       }
     );
+  }
+  
+  generateName() {
+    const syllables = CHARACTER_SYSTEM.NAME_SYLLABLES;
+    
+    // Join two syllables to make a name
+    const firstSyllabe = game.rnd.pick(syllables);
+    const secondSyllabe = game.rnd.pick(syllables);
+    
+    return firstSyllabe + secondSyllabe;
   }
   
   cancelCharacterCreation() {

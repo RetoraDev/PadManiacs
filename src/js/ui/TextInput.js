@@ -13,7 +13,7 @@ class TextInput extends Phaser.Sprite {
     this.stackedText = text.slice(0, text.length - 1).toUpperCase();
     this.currentIndex = 0;
     
-    this.takeChar(text[ text.length - 1 ].toUpperCase());
+    this.takeChar(this.getLastChar(text));
     
     this.maxLength = maxLength;
     this.text = "";
@@ -45,6 +45,10 @@ class TextInput extends Phaser.Sprite {
   }
   getCharacterToInsert() {
     return this.characterSet[this.currentIndex];
+  }
+  getLastChar(text) {
+    const lastChar = text && text.length ? text[ text.length - 1 ] : this.getCharacterToInsert();
+    return lastChar.toUpperCase();
   }
   takeChar(char) {
     const index = this.characterSet.toUpperCase().indexOf(char.toUpperCase());
@@ -89,7 +93,7 @@ class TextInput extends Phaser.Sprite {
     // Remove letter
     if (gamepad.pressed.b) {
       if (this.stackedText.length) {
-        this.takeChar(this.stackedText[ this.stackedText.length - 1 ]);
+        this.takeChar(this.getLastChar(this.stackedText));
         this.stackedText = this.stackedText.substr(0, this.stackedText.length - 1);
       } else {
         this.cancel();

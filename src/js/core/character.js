@@ -19,7 +19,10 @@ const CHARACTER_SYSTEM = {
   HAIR_STYLES: {
     front: ["Casual", "Smart", "Daring", "Simple", "Bulky", "Afro", "Emotional", "Clean"],
     back: ["Casual", "Smart", "Curly", "Ponytails", "Short", "Afro", "Diva", "Clean"],
-  }
+  },
+  NAME_SYLLABLES: [
+    "A", "E", "I", "O", "U", "AI", "AM", "RE", "RU", "SI", "MI", "KU", "LU", "KA", "KAN", "NA", "EI", "RI", "NE", "RU", "CHA", "RA", "FRI", "SK", "TO", "TOU", "HAT", "SU", "NE", "TO", "RIEL", "ME", "TA", "TON", "ZA", "ZU", "KA", "AS", "RIEL", "M", "C."
+  ]
 };
 
 const DEFAULT_CHARACTER = {
