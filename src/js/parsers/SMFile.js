@@ -71,11 +71,18 @@ class SMFile {
     
     // Group notes by measure
     const measures = {};
+    let lastMeasure = 0;
     processedNotes.forEach(note => {
       const measure = Math.floor(note.beat / 4);
       if (!measures[measure]) measures[measure] = [];
+      lastMeasure = measure;
       measures[measure].push(note);
     });
+    
+    // Add empty measures where needed
+    for (let i = 0; i <= lastMeasure; i++) {
+      if (!measures[i]) measures[i] = [i];
+    }
     
     // Sort measures
     const measureNumbers = Object.keys(measures).map(Number).sort((a, b) => a - b);

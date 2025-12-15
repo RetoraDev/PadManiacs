@@ -1917,7 +1917,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.menuVisible = true;
       
       new ValueInput(
-        120,
+        bpmChange.bpm,
         0,
         1000,
         1,
@@ -1978,7 +1978,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       this.menuVisible = true;
       
       new ValueInput(
-        1,
+        stop.len,
         0,
         360,
         0.1,
