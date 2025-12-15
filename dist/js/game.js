@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/6/2025, 1:26:20 PM
+ * Build: 12/14/2025, 10:52:56 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -8101,6 +8101,7 @@ const Audio = {
 const script = document.createElement("script");
 script.text = `
 window.onerror = (details, file, line) => {
+  alert(details + ' ' + file + ' ' + line);
   localStorage.setItem('gameLastCrashed', 'true');
   if (!window.DEBUG && typeof window.eruda !== "undefined") eruda.init(); 
   const filename = file ? file.split('/').pop() : 'unknown file';
@@ -18627,14 +18628,9 @@ SAMPLE LENGTH: ${chart.sampleLength}
       }
 
       if (fileEntry) {
+        this.showLoadingScreen(`Loading ${targetProp} file`);
+        
         const blob = await fileEntry.async("blob");
-        const dataUrl = await new Promise(resolve => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(blob);
-        });
-
-        this.files[targetProp] = dataUrl;
 
         // Create object URL for immediate use
         const objectUrl = URL.createObjectURL(blob);
@@ -18663,7 +18659,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
           this.files.extra[filename] = FileTools.extractBase64(objectUrl);
         }
 
-        return dataUrl;
+        return objectUrl;
       }
 
       return null;
@@ -18681,10 +18677,12 @@ SAMPLE LENGTH: ${chart.sampleLength}
     if (this.song.chart.backgrounds) {
       for (const bg of this.song.chart.backgrounds) {
         if (bg.file != "" && bg.file != "-nosongbg-") {
-          await loadFileFromZip(bg.file, "extra");
+          bg.url = await loadFileFromZip(bg.file, "extra");
         }
       }
     }
+    
+    this.hideLoadingScreen();
 
     notifications.show("StepMania song imported!");
   }

@@ -1405,14 +1405,9 @@ SAMPLE LENGTH: ${chart.sampleLength}
       }
 
       if (fileEntry) {
+        this.showLoadingScreen(`Loading ${targetProp} file`);
+        
         const blob = await fileEntry.async("blob");
-        const dataUrl = await new Promise(resolve => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(blob);
-        });
-
-        this.files[targetProp] = dataUrl;
 
         // Create object URL for immediate use
         const objectUrl = URL.createObjectURL(blob);
@@ -1441,7 +1436,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
           this.files.extra[filename] = FileTools.extractBase64(objectUrl);
         }
 
-        return dataUrl;
+        return objectUrl;
       }
 
       return null;
@@ -1459,10 +1454,12 @@ SAMPLE LENGTH: ${chart.sampleLength}
     if (this.song.chart.backgrounds) {
       for (const bg of this.song.chart.backgrounds) {
         if (bg.file != "" && bg.file != "-nosongbg-") {
-          await loadFileFromZip(bg.file, "extra");
+          bg.url = await loadFileFromZip(bg.file, "extra");
         }
       }
     }
+    
+    this.hideLoadingScreen();
 
     notifications.show("StepMania song imported!");
   }
