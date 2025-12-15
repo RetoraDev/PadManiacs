@@ -1540,7 +1540,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     // Add BG change files
     if (songData.backgrounds) {
       for (const bg of songData.backgrounds) {
-        if (bg.file && this.files.extra[bg.file]) {
+        if (bg.file && bg.file !== "no-media" && this.files.extra[bg.file]) {
           zip.file(bg.file, this.files.extra[bg.file], { base64: true });
         }
       }
@@ -2021,7 +2021,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
         type: fileType
       });
       this.song.chart.backgrounds.sort((a, b) => a.beat - b.beat);
-      this.files.extra[file.name] = FileTools.extractBase64(url);
+      this.files.extra[file.name] = await FileTools.urlToBase64(url);
       this.updateInfoText();
     });
   }
