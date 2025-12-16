@@ -3,12 +3,14 @@ class TextInput extends Phaser.Sprite {
     super(game, 96, 28);
     this.anchor.x = 0.5;
 
-    this.characterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
+    this.characterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ. ";
 
     this.window = new Window(0, 0, maxLength, 2, "1", this);
     this.window.x -= (this.window.size.width / 2) * 8;
     
-    text = text.slice(0, maxLength - 1);
+    text = text.slice(0, maxLength);
+    
+    console.log(text);
 
     this.stackedText = text.slice(0, text.length - 1).toUpperCase();
     this.currentIndex = 0;
@@ -94,7 +96,7 @@ class TextInput extends Phaser.Sprite {
     if (gamepad.pressed.b) {
       if (this.stackedText.length) {
         this.takeChar(this.getLastChar(this.stackedText));
-        this.stackedText = this.stackedText.substr(0, this.stackedText.length - 1);
+        this.stackedText = this.stackedText.slice(0, this.stackedText.length - 1);
       } else {
         this.cancel();
       }

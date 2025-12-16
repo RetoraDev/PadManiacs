@@ -21,7 +21,25 @@ const CHARACTER_SYSTEM = {
     back: ["Casual", "Smart", "Curly", "Ponytails", "Short", "Afro", "Diva", "Clean"],
   },
   NAME_SYLLABLES: [
-    "A", "E", "I", "O", "U", "AI", "AM", "RE", "RU", "SI", "MI", "KU", "LU", "KA", "KAN", "NA", "EI", "RI", "NE", "RU", "CHA", "RA", "FRI", "SK", "TO", "TOU", "HAT", "SU", "NE", "TO", "RIEL", "ME", "TA", "TON", "ZA", "ZU", "KA", "AS", "RIEL", "M", "C."
+    // Two of these syllables are joined together to make anime style character name
+    // TODO: Better and more organized syllables
+    
+    // Random syllables (with easter eggs)
+    "A", "E", "I", "O", "U",
+    "AI", "AM", "RE", "RU",
+    "SI", "MI", "KU", "LU",
+    "KA", "KAN", "NA", "EI",
+    "RI", "NE", "RU", "CHA",
+    "RA", "FI", "SEI", "TO",
+    "TOU", "HAT", "SU", "NE",
+    "TO", "RIEL", "ME", "TA",
+    "TON", "ZA", "ZU", "KA",
+    "AS", "RIEL", "M", "C.",
+    "LE", "LO", "LU", "SEN",
+    "CA", "Y", "YE", "YA",
+    "K.", "NU", "ES", "SE",
+    "WA", "JA", "JEI", "JO",
+    "LI", "LEI", "LOU", "TI"
   ]
 };
 

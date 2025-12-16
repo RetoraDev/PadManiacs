@@ -70,7 +70,10 @@ class SMFile {
     notesContent += `     0.000000:\n`;
     
     // Group notes by measure
-    const measures = {};
+    const measures = {
+      0: []
+    };
+    
     let lastMeasure = 0;
     processedNotes.forEach(note => {
       const measure = Math.floor(note.beat / 4);

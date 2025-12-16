@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/15/2025, 6:40:29 PM
+ * Build: 12/15/2025, 9:38:39 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -130,7 +130,25 @@ const CHARACTER_SYSTEM = {
     back: ["Casual", "Smart", "Curly", "Ponytails", "Short", "Afro", "Diva", "Clean"],
   },
   NAME_SYLLABLES: [
-    "A", "E", "I", "O", "U", "AI", "AM", "RE", "RU", "SI", "MI", "KU", "LU", "KA", "KAN", "NA", "EI", "RI", "NE", "RU", "CHA", "RA", "FRI", "SK", "TO", "TOU", "HAT", "SU", "NE", "TO", "RIEL", "ME", "TA", "TON", "ZA", "ZU", "KA", "AS", "RIEL", "M", "C."
+    // Two of these syllables are joined together to make anime style character name
+    // TODO: Better and more organized syllables
+    
+    // Random syllables (with easter eggs)
+    "A", "E", "I", "O", "U",
+    "AI", "AM", "RE", "RU",
+    "SI", "MI", "KU", "LU",
+    "KA", "KAN", "NA", "EI",
+    "RI", "NE", "RU", "CHA",
+    "RA", "FI", "SEI", "TO",
+    "TOU", "HAT", "SU", "NE",
+    "TO", "RIEL", "ME", "TA",
+    "TON", "ZA", "ZU", "KA",
+    "AS", "RIEL", "M", "C.",
+    "LE", "LO", "LU", "SEN",
+    "CA", "Y", "YE", "YA",
+    "K.", "NU", "ES", "SE",
+    "WA", "JA", "JEI", "JO",
+    "LI", "LEI", "LOU", "TI"
   ]
 };
 
@@ -6143,12 +6161,14 @@ class TextInput extends Phaser.Sprite {
     super(game, 96, 28);
     this.anchor.x = 0.5;
 
-    this.characterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
+    this.characterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ. ";
 
     this.window = new Window(0, 0, maxLength, 2, "1", this);
     this.window.x -= (this.window.size.width / 2) * 8;
     
-    text = text.slice(0, maxLength - 1);
+    text = text.slice(0, maxLength);
+    
+    console.log(text);
 
     this.stackedText = text.slice(0, text.length - 1).toUpperCase();
     this.currentIndex = 0;
@@ -6234,7 +6254,7 @@ class TextInput extends Phaser.Sprite {
     if (gamepad.pressed.b) {
       if (this.stackedText.length) {
         this.takeChar(this.getLastChar(this.stackedText));
-        this.stackedText = this.stackedText.substr(0, this.stackedText.length - 1);
+        this.stackedText = this.stackedText.slice(0, this.stackedText.length - 1);
       } else {
         this.cancel();
       }
@@ -10134,7 +10154,10 @@ class SMFile {
     notesContent += `     0.000000:\n`;
     
     // Group notes by measure
-    const measures = {};
+    const measures = {
+      0: []
+    };
+    
     let lastMeasure = 0;
     processedNotes.forEach(note => {
       const measure = Math.floor(note.beat / 4);
