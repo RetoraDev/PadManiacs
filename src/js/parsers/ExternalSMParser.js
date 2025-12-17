@@ -218,7 +218,9 @@ class ExternalSMParser {
       out.notes[key] = [];
       for (let m in steps[key]) {
         steps[key][m] = steps[key][m].trim();
-        if (steps[key][m].length % 4) throw `Invalid length on measure ${m}, length is ${steps[key][m].length}`;
+        if (steps[key][m].length % 4) {
+          throw `Invalid length on measure ${m}, length is ${steps[key][m].length}`;
+        }
         steps[key][m] = steps[key][m].match(/(.{4})/g);
 
         let t = steps[key][m].length;
@@ -229,7 +231,9 @@ class ExternalSMParser {
           for (let c = 0; c < note.length; c++) {
             switch (nt[c]) {
               case "3": // Hold end
-                if (unfinHolds[c] == null) throw `hold end without any hold before`;
+                if (unfinHolds[c] == null) {
+                  throw `hold end without any hold before`;
+                }
                 {
                   let i = out.notes[key][unfinHolds[c]];
                   i.beatEnd = b;
@@ -243,7 +247,9 @@ class ExternalSMParser {
                 continue;
               case "4": // Roll start
               case "2": // Hold start
-                if (unfinHolds[c]) throw `new hold started before last ended`;
+                if (unfinHolds[c]) {
+                  throw `new hold started before last ended`;
+                }
                 unfinHolds[c] = out.notes[key].length + c;
               case "1": // Regular note
               case "M": // Mine

@@ -1476,17 +1476,17 @@ SAMPLE LENGTH: ${chart.sampleLength}
         if (targetProp === "audio") {
           this.song.chart.audio = filename;
           this.song.chart.audioUrl = objectUrl;
-          this.files.audio = FileTools.extractBase64(objectUrl);
+          this.files.audio = FileTools.urlToBase64(objectUrl);
           this.audio.src = objectUrl;
         } else if (targetProp === "background") {
           this.song.chart.background = filename;
           this.song.chart.backgroundUrl = objectUrl;
-          this.files.background = FileTools.extractBase64(objectUrl);
+          this.files.background = FileTools.urlToBase64(objectUrl);
           this.updateBackground(objectUrl);
         } else if (targetProp === "banner") {
           this.song.chart.banner = filename;
           this.song.chart.bannerUrl = objectUrl;
-          this.files.banner = FileTools.extractBase64(objectUrl);
+          this.files.banner = FileTools.urlToBase64(objectUrl);
           this.updateBanner(objectUrl);
         } else if (targetProp === "lyrics") {
           this.files.lyrics = await fileEntry.async("text");
@@ -1494,7 +1494,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
           this.song.chart.lyricsContent = this.files.lyrics;
           this.refreshLyrics();
         } else if (targetProp === "extra") {
-          this.files.extra[filename] = FileTools.extractBase64(objectUrl);
+          this.files.extra[filename] = FileTools.urlToBase64(objectUrl);
         }
 
         return objectUrl;
@@ -1701,7 +1701,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     this.showChartsMenu();
     this.updateInfoText();
   }
-
+  
   addNewDifficulty() {
     const newDiff = {
       type: "Medium",

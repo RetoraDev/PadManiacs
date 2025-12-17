@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/17/2025, 3:29:40 PM
+ * Build: 12/17/2025, 4:03:46 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -11066,7 +11066,9 @@ class ExternalSMParser {
       out.notes[key] = [];
       for (let m in steps[key]) {
         steps[key][m] = steps[key][m].trim();
-        if (steps[key][m].length % 4) throw `Invalid length on measure ${m}, length is ${steps[key][m].length}`;
+        if (steps[key][m].length % 4) {
+          throw `Invalid length on measure ${m}, length is ${steps[key][m].length}`;
+        }
         steps[key][m] = steps[key][m].match(/(.{4})/g);
 
         let t = steps[key][m].length;
@@ -11077,7 +11079,9 @@ class ExternalSMParser {
           for (let c = 0; c < note.length; c++) {
             switch (nt[c]) {
               case "3": // Hold end
-                if (unfinHolds[c] == null) throw `hold end without any hold before`;
+                if (unfinHolds[c] == null) {
+                  throw `hold end without any hold before`;
+                }
                 {
                   let i = out.notes[key][unfinHolds[c]];
                   i.beatEnd = b;
@@ -11091,7 +11095,9 @@ class ExternalSMParser {
                 continue;
               case "4": // Roll start
               case "2": // Hold start
-                if (unfinHolds[c]) throw `new hold started before last ended`;
+                if (unfinHolds[c]) {
+                  throw `new hold started before last ended`;
+                }
                 unfinHolds[c] = out.notes[key].length + c;
               case "1": // Regular note
               case "M": // Mine
@@ -12613,6 +12619,11 @@ class LoadSongFolder {
   async processFiles(files) {
     try {
       this.progressText.write("LOADING SONG...");
+      
+      if (files[0].name.endsWith(".zip")) {
+        this.processZipFile(files[0]);
+        return;
+      }
 
       const fileMap = {};
       for (let i = 0; i < files.length; i++) {
@@ -12631,6 +12642,12 @@ class LoadSongFolder {
       const content = await this.parser.readFileContent(fileMap[smFileName]);
 
       const chart = await this.parser.parseSM(fileMap, content);
+      
+      if (chart.error) {
+        this.showError("Error in SM file");
+        return;
+      }
+      
       chart.folderName = `Single_External_${smFileName}`;
       chart.loaded = true;
 
@@ -12641,6 +12658,125 @@ class LoadSongFolder {
       this.showError("Failed to load song");
     }
   }
+  
+  async processZipFile(file) {
+    const JSZip = window.JSZip;
+    if (!JSZip) {
+      this.showError("Couldn't load ZIP file");
+      throw new Error("JSZip library not loaded");
+    }
+    
+    if (!file) {
+      this.showError("Couldn't load ZIP file");
+      throw new Error("Undefined .zip file");
+    }
+    
+    const zip = new JSZip();
+    const zipContent = await zip.loadAsync(file);
+
+    // Import the project
+    await this.processZipContent(zipContent);
+    
+    this.hideLoadingScreen();
+    this.showHomeScreen();
+    
+    Account.stats.totalImportedSongs ++;
+  }
+
+  async processZipContent(zipContent) {
+    // Find .sm file
+    let smFile = null;
+    let smFilename = null;
+
+    zipContent.forEach((relativePath, file) => {
+      if (relativePath.toLowerCase().endsWith(".sm") && !smFile) {
+        smFile = file;
+        smFilename = relativePath;
+      }
+    });
+
+    if (!smFile) {
+      this.showError("No .sm file found in ZIP");
+      return;
+    }
+
+    // Parse SM file
+    const smContent = await smFile.async("text");
+    const basePath = smFilename.split("/").slice(0, -1).join("/");
+    const chart = await new LocalSMParser().parseSM(smContent, basePath);
+
+    if (chart.error) {
+      this.showError("Error in SM file");
+      return;
+    }
+
+    chart.folderName = `Single_External_${smFilename}`;
+    chart.loaded = true;
+    
+    // Helper function to find and load file from ZIP
+    const loadFileFromZip = async (filename, targetProp) => {
+      if (!filename) return null;
+
+      // Try to find the file in ZIP
+      let fileEntry = zipContent.file(filename);
+
+      // If not found, try with relative path
+      if (!fileEntry && basePath) {
+        fileEntry = zipContent.file(basePath + "/" + filename);
+      }
+
+      // If still not found, search case-insensitive
+      if (!fileEntry) {
+        zipContent.forEach((relativePath, file) => {
+          if (relativePath.toLowerCase().includes(filename.toLowerCase())) {
+            fileEntry = file;
+          }
+        });
+      }
+
+      if (fileEntry) {
+        const blob = await fileEntry.async("blob");
+        // Create object URL for immediate use
+        const objectUrl = URL.createObjectURL(blob);
+
+        if (targetProp === "audio") {
+          chart.audio = filename;
+          chart.audioUrl = objectUrl;
+        } else if (targetProp === "background") {
+          chart.background = filename;
+          chart.backgroundUrl = objectUrl;
+        } else if (targetProp === "banner") {
+          chart.banner = filename;
+          chart.bannerUrl = objectUrl;
+        } else if (targetProp === "lyrics") {
+          chart.lyrics = filename;
+          chart.lyricsContent = this.files.lyrics;
+        }
+
+        return objectUrl;
+      }
+
+      return null;
+    };
+    
+    // Load main files
+    await loadFileFromZip(chart.audio, "audio");
+    await loadFileFromZip(chart.background, "background");
+    await loadFileFromZip(chart.banner, "banner");
+    await loadFileFromZip(chart.lyrics, "lyrics");
+
+    // Load BG change files
+    if (chart.backgrounds) {
+      for (const bg of chart.backgrounds) {
+        if (bg.file != "" && bg.file != "-nosongbg-") {
+          bg.url = await loadFileFromZip(bg.file, "extra");
+        }
+      }
+    }
+    
+    // Start gameplay directly with this single song
+    game.state.start("SongSelect", true, false, [ chart ], 0, true);
+  }  
   
   showError(message) {
     this.progressText.write(message);
@@ -18842,17 +18978,17 @@ SAMPLE LENGTH: ${chart.sampleLength}
         if (targetProp === "audio") {
           this.song.chart.audio = filename;
           this.song.chart.audioUrl = objectUrl;
-          this.files.audio = FileTools.extractBase64(objectUrl);
+          this.files.audio = FileTools.urlToBase64(objectUrl);
           this.audio.src = objectUrl;
         } else if (targetProp === "background") {
           this.song.chart.background = filename;
           this.song.chart.backgroundUrl = objectUrl;
-          this.files.background = FileTools.extractBase64(objectUrl);
+          this.files.background = FileTools.urlToBase64(objectUrl);
           this.updateBackground(objectUrl);
         } else if (targetProp === "banner") {
           this.song.chart.banner = filename;
           this.song.chart.bannerUrl = objectUrl;
-          this.files.banner = FileTools.extractBase64(objectUrl);
+          this.files.banner = FileTools.urlToBase64(objectUrl);
           this.updateBanner(objectUrl);
         } else if (targetProp === "lyrics") {
           this.files.lyrics = await fileEntry.async("text");
@@ -18860,7 +18996,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
           this.song.chart.lyricsContent = this.files.lyrics;
           this.refreshLyrics();
         } else if (targetProp === "extra") {
-          this.files.extra[filename] = FileTools.extractBase64(objectUrl);
+          this.files.extra[filename] = FileTools.urlToBase64(objectUrl);
         }
 
         return objectUrl;
@@ -19067,7 +19203,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     this.showChartsMenu();
     this.updateInfoText();
   }
-
+  
   addNewDifficulty() {
     const newDiff = {
       type: "Medium",
