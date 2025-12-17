@@ -140,7 +140,7 @@ class ChartRenderer {
   
   load(song, difficultyIndex) {
     if (this.notes) {
-      this.notes.forEach(note => this.killNote(note));
+      this.notes.forEach(note => this.killNote(note, true));
     }
     this.song = song;
     this.difficultyIndex = difficultyIndex;
@@ -712,12 +712,22 @@ class ChartRenderer {
 
   killNote(note, forever) {
     if (note.sprite) {
-      note.sprite.kill();
-      note.sprite = null;
-      if (note.holdParts) {
-        note.holdParts.body.kill();
-        note.holdParts.end.kill();
-        note.holdParts = null;
+      if (forever) {
+        note.sprite.destroy();
+        note.sprite = null;
+        if (note.holdParts) {
+          note.holdParts.body.destroy();
+          note.holdParts.end.destroy();
+          note.holdParts = null;
+        }
+      } else {
+        note.sprite.kill();
+        note.sprite = null;
+        if (note.holdParts) {
+          note.holdParts.body.kill();
+          note.holdParts.end.kill();
+          note.holdParts = null;
+        }
       }
     }
   }

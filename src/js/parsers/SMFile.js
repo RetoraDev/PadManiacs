@@ -61,7 +61,7 @@ class SMFile {
   static generateNotesSection(difficulty, notes) {
     // First, process freeze notes to add their tail notes
     const processedNotes = this.processFreezeNotes(notes);
-
+    
     let notesContent = `#NOTES:\n`;
     notesContent += `     dance-single:\n`;
     notesContent += `     :\n`;
@@ -92,6 +92,7 @@ class SMFile {
     
     measureNumbers.forEach((measureNum, index) => {
       const measureNotes = measures[measureNum];
+
       const measureContent = this.convertMeasureToSM(measureNotes, measureNum);
       notesContent += measureContent;
       
@@ -154,7 +155,7 @@ class SMFile {
     
     beatPositions.forEach(pos => {
       // Round to avoid floating point issues
-      const roundedPos = Math.round(pos * 1000000) / 1000000;
+      const roundedPos = Math.round(pos * 1000) / 1000;
       positionsSet.add(roundedPos);
     });
     
@@ -183,8 +184,64 @@ class SMFile {
       smallestInterval = 4 - uniquePositions[uniquePositions.length - 1];
     }
     
+    // Reduce intervals when division is not the first unique beat division
+    // TODO: Make it simpler unifying it in a single math operation so it can reduce 192th+ intervals
+    switch (smallestInterval) {
+      case 0.667: // 12th notes
+        smallestInterval = 0.333;
+        break;
+      case 0.750: // 16th notes
+        smallestInterval = 0.250;
+        break;
+      case 0.833: // 24th notes
+        smallestInterval = 0.167;
+        break;
+      case 0.375:
+      case 0.625:
+      case 0.875: // 32th notes
+        smallestInterval = 0.125;
+        break;
+      case 0.417:
+      case 0.917: // 48th notes
+        smallestInterval = 0.083;
+        break;
+      case 0.188:
+      case 0.313:
+      case 0.438:
+      case 0.563:
+      case 0.688:
+      case 0.813:
+      case 0.938: // 64th notes
+        smallestInterval = 0.063;
+        break;
+      case 0.208:
+      case 0.292:
+      case 0.458:
+      case 0.542:
+      case 0.708:
+      case 0.792:
+      case 0.958: // 96th notes
+        smallestInterval = 0.042;
+        break;
+      case 0.104:
+      case 0.229:
+      case 0.271:
+      case 0.354:
+      case 0.396:
+      case 0.479:
+      case 0.604:
+      case 0.729:
+      case 0.771:
+      case 0.854:
+      case 0.896:
+      case 0.979: // 192nd notes
+        smallestInterval = 0.021;
+        break;
+    }
+    
     // Determine resolution based on smallest interval
     // We need enough subdivisions to represent the smallest interval
+    
     let requiredRowsPerBeat = Math.ceil(1 / smallestInterval);
     
     // Adjust to standard StepMania resolutions

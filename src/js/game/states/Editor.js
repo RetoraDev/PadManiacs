@@ -893,6 +893,7 @@ class Editor {
       notes.push(newNote);
       this.playExplosionEffect(column);
       this.previewNote(newNote);
+      console.log(beat, this.chartRenderer.getNoteFrame(newNote));
     }
     
     Account.stats.totalPlacedArrows ++;
