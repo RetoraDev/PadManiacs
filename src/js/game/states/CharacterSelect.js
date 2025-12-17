@@ -865,6 +865,8 @@ class CharacterSelect extends Phaser.State {
   }
   
   showCreationNavigationMenu() {
+    gamepad.releaseAll();
+    
     this.creationWindow.addItem("NEXT", "", () => {
       this.creationStep++;
       this.showCreationStep();

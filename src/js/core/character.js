@@ -22,24 +22,50 @@ const CHARACTER_SYSTEM = {
   },
   NAME_SYLLABLES: [
     // Two of these syllables are joined together to make anime style character name
-    // TODO: Better and more organized syllables
     
-    // Random syllables (with easter eggs)
-    "A", "E", "I", "O", "U",
-    "AI", "AM", "RE", "RU",
-    "SI", "MI", "KU", "LU",
-    "KA", "KAN", "NA", "EI",
-    "RI", "NE", "RU", "CHA",
-    "RA", "FI", "SEI", "TO",
-    "TOU", "HAT", "SU", "NE",
-    "TO", "RIEL", "ME", "TA",
-    "TON", "ZA", "ZU", "KA",
-    "AS", "RIEL", "M", "C.",
-    "LE", "LO", "LU", "SEN",
-    "CA", "Y", "YE", "YA",
-    "K.", "NU", "ES", "SE",
-    "WA", "JA", "JEI", "JO",
-    "LI", "LEI", "LOU", "TI"
+    // Basic vowels and common starters
+    "A",   "E",   "I",   "O",   "U",
+    "AI",  "AO",  "EI",  "IO",  "OU",
+    "KA",  "KI",  "KU",  "KE",  "KO",
+    "SA",  "SI",  "SU",  "SE",  "SO",
+    
+    // Standard consonants + vowel combos
+    "TA",  "TI",  "TU",  "TE",  "TO",
+    "NA",  "NI",  "NU",  "NE",  "NO",
+    "HA",  "HI",  "HU",  "HE",  "HO",
+    "MA",  "MI",  "MU",  "ME",  "MO",
+    
+    // Common anime name endings
+    "KA",  "KI",  "KU",  "KO",  "RI",
+    "RA",  "RU",  "RE",  "RO",  "YA",
+    "YU",  "YO",  "WA",  "WO",  "N",
+    
+    // Multi-syllable combinations
+    "KAN", "KEN", "RIN", "REN", "HAN",
+    "SHI", "SHO", "SHU", "CHA", "CHI",
+    "TSU", "TSUI", "TOU", "KYO", "RYO",
+    
+    // Soft/gentle sounds
+    "MI",  "MU",  "ME",  "MO",  "FU",
+    "YU",  "YUI", "YUA", "REI", "RAI",
+    "HIK", "HAR", "SOR", "KIR", "MIR",
+    
+    // Strong/action sounds  
+    "TAI", "KEN", "RYU", "JIN", "GEN",
+    "REI", "SEI", "MAI", "KAI", "GAI",
+    "DAN", "RAN", "BAN", "ZAN", "MAN",
+    
+    // Special/unique syllables
+    "LU",  "LE",  "LO",  "LA",  "LI",
+    "FI",  "FA",  "FE",  "FO",  "ZE",
+    "VI",  "VE",  "VO",  "XA",  "XE",
+    
+    // Easter eggs and fun additions
+    "RIEL", "SEN", "TON", "ZA",  "ZU",
+    "M",    "C.",  "K.",  "Y",   "YE",
+    "WA",   "JA",  "JEI", "JO",  "LEI",
+    "LOU",  "TI",  "NU",  "ES",  "SE",
+    "HAT",  "NE",  "TO",  "ME",  "TA"
   ]
 };
 
