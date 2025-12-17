@@ -54,6 +54,7 @@ class InteractiveInterface {
     ];
     
     this.buildMenu = [
+      { label: 'Development Build', action: () => this.runBuild(['--none']) },
       { label: 'Development Build (Debug)', action: () => this.runBuild(['--none', '--debug']) },
       { label: 'Production Build (All Platforms)', action: () => this.runBuild(['--all', '--minify']) },
       { label: 'Web Platform Only', action: () => this.runBuild(['--web']) },

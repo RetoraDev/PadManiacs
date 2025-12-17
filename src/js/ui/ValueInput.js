@@ -41,11 +41,11 @@ class ValueInput extends Phaser.Sprite {
     game.add.existing(this);
   }
   confirm() {
-    this.onConfirm.dispatch(this.value);
+    this.onConfirm.dispatch(parseFloat(this.value.toFixed(3)));
     this.destroy();
   }
   cancel() {
-    this.onCancel.dispatch(this.value);
+    this.onCancel.dispatch(parseFloat(this.value.toFixed(3)));
     this.destroy();
   }
   update() {
@@ -68,7 +68,7 @@ class ValueInput extends Phaser.Sprite {
       }
     }
     
-    this.textLayer.write(`${parseFloat(this.value.toFixed(3))}`);
+    this.textLayer.write(`${this.value.toFixed(3)}`);
     
     this.cursor.x = this.textLayer.texture.text.length * 4;
     

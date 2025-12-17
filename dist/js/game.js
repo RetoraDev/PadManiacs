@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/17/2025, 12:17:00 AM
+ * Build: 12/17/2025, 11:49:37 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -6359,11 +6359,11 @@ class ValueInput extends Phaser.Sprite {
     game.add.existing(this);
   }
   confirm() {
-    this.onConfirm.dispatch(this.value);
+    this.onConfirm.dispatch(parseFloat(this.value.toFixed(3)));
     this.destroy();
   }
   cancel() {
-    this.onCancel.dispatch(this.value);
+    this.onCancel.dispatch(parseFloat(this.value.toFixed(3)));
     this.destroy();
   }
   update() {
@@ -6386,7 +6386,7 @@ class ValueInput extends Phaser.Sprite {
       }
     }
     
-    this.textLayer.write(`${parseFloat(this.value.toFixed(3))}`);
+    this.textLayer.write(`${this.value.toFixed(3)}`);
     
     this.cursor.x = this.textLayer.texture.text.length * 4;
     
