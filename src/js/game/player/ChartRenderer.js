@@ -141,6 +141,7 @@ class ChartRenderer {
   load(song, difficultyIndex) {
     if (this.notes) {
       this.notes.forEach(note => this.killNote(note, true));
+      this.notesGroup?.removeAll(true);
     }
     this.song = song;
     this.difficultyIndex = difficultyIndex;

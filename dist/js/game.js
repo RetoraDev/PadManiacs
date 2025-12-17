@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/17/2025, 3:19:23 PM
+ * Build: 12/17/2025, 3:29:40 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -17874,6 +17874,10 @@ class Editor {
       this.infoText.visible = true;
     } else {
       this.infoText.visible = false;
+      
+      if (this.songInfoText) {
+        this.songInfoText.write(this.getSongInfoText());
+      }
     }
   }
   
@@ -18097,7 +18101,7 @@ class Editor {
     if (this.audio && this.audio.src) {
       if (this.previewEndTimeoutId) clearTimeout(this.previewEndTimeoutId);
       this.audio.currentTime = this.playOffset;
-      this.audio.play().catch(e => console.log("Audio play failed:", e));
+      this.audio.play();
     }
   }
 
@@ -18259,7 +18263,6 @@ class Editor {
       notes.push(newNote);
       this.playExplosionEffect(column);
       this.previewNote(newNote);
-      console.log(beat, this.chartRenderer.getNoteFrame(newNote));
     }
     
     Account.stats.totalPlacedArrows ++;
@@ -19062,6 +19065,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     delete this.song.chart.notes[key];
 
     this.showChartsMenu();
+    this.updateInfoText();
   }
 
   addNewDifficulty() {
@@ -19072,6 +19076,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     this.song.chart.difficulties.push(newDiff);
     this.song.chart.notes[newDiff.type + newDiff.rating] = [];
     this.showChartsMenu();
+    this.updateInfoText();
   }
 
   showMetadataEdit() {
@@ -19103,6 +19108,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       newValue => {
         this.song.chart[field] = newValue;
         this.showMetadataEdit();
+        this.updateInfoText();
       },
       () => {
         this.showMetadataEdit();
@@ -19124,6 +19130,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
           this.song.chart.bpmChanges[0].bpm = value;
         }
         this.showMetadataEdit();
+        this.updateInfoText();
       },
       () => {
         this.showMetadataEdit();
@@ -19162,7 +19169,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
         if (this.audio && this.audio.src) {
           this.playPreview(value, this.song.chart.sampleLength);
         }
-
+        
+        this.updateInfoText();
         this.showMetadataEdit();
       },
       () => {
@@ -19180,6 +19188,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       0.1,
       value => {
         this.song.chart.sampleLength = value;
+        this.updateInfoText();
         this.showMetadataEdit();
       },
       () => {
@@ -20063,6 +20072,7 @@ class ChartRenderer {
   load(song, difficultyIndex) {
     if (this.notes) {
       this.notes.forEach(note => this.killNote(note, true));
+      this.notesGroup?.removeAll(true);
     }
     this.song = song;
     this.difficultyIndex = difficultyIndex;
