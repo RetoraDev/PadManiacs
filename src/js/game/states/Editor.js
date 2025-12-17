@@ -1000,7 +1000,7 @@ class Editor {
     });
 
     if (this.selectedNotes.length === 0) {
-      contextMenu.addItem("Place Mine", () => this.placeMine());
+      contextMenu.addItem("Place Mine", () => this.placeMine(this.cursorColumn, this.cursorBeat));
       contextMenu.addItem("Place Quick Hold", () => this.placeQuickHold());
 
       if (this.clipboard.length) {

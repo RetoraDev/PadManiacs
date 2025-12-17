@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/17/2025, 4:03:46 PM
+ * Build: 12/17/2025, 4:25:24 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -18502,7 +18502,7 @@ class Editor {
     });
 
     if (this.selectedNotes.length === 0) {
-      contextMenu.addItem("Place Mine", () => this.placeMine());
+      contextMenu.addItem("Place Mine", () => this.placeMine(this.cursorColumn, this.cursorBeat));
       contextMenu.addItem("Place Quick Hold", () => this.placeQuickHold());
 
       if (this.clipboard.length) {
