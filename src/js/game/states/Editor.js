@@ -25,6 +25,7 @@ class Editor {
     this.playOffset = 0;
     this.menuVisible = false;
     this.freezePreview = null;
+    this.clipboard = [];
 
     this.files = {
       audio: null,
@@ -649,12 +650,12 @@ class Editor {
 
       if (Math.abs(holdDuration) == 0) {
         // Single tap - place note
-        this.placeNote();
+        this.placeNote(this.cursorColumn, this.cursorBeat);
       } else {
         // Long press - place freeze
         const freezeStart = holdDuration > 0 ? this.holdBStartTime : this.holdBStartTime + holdDuration;
 
-        this.placeFreeze(freezeStart, Math.abs(holdDuration));
+        this.placeFreeze(this.cursorColumn, freezeStart, Math.abs(holdDuration));
       }
     }
 
@@ -851,13 +852,13 @@ class Editor {
     }
   }
 
-  placeNote() {
+  placeNote(column, beat, replace = false, mine = false) {
     if (this.isPlaying) return;
 
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
     const notes = this.song.chart.notes[diff.type + diff.rating] || [];
 
-    const existingNote = notes.find(note => note.column === this.cursorColumn && Math.abs(note.beat - this.cursorBeat) < 0.001);
+    const existingNote = notes.find(note => note.column === column && Math.abs(note.beat - beat) < 0.001);
 
     if (existingNote) {
       this.chartRenderer.killNote(existingNote);
@@ -870,15 +871,27 @@ class Editor {
       }
 
       this.playExplosionEffect(this.cursorColumn);
+      
+      if (replace) {
+        const newNote = {
+          type: mine ? "M" : "1",
+          beat: beat,
+          sec: this.chartRenderer.beatToSec(beat),
+          column: column
+        };
+        notes.push(newNote);
+        this.playExplosionEffect(column);
+        this.previewNote(newNote);
+      }
     } else {
       const newNote = {
-        type: "1",
-        beat: this.cursorBeat,
-        sec: this.chartRenderer.beatToSec(this.cursorBeat),
-        column: this.cursorColumn
+        type: mine ? "M" : "1",
+        beat: beat,
+        sec: this.chartRenderer.beatToSec(beat),
+        column: column
       };
       notes.push(newNote);
-      this.playExplosionEffect(this.cursorColumn);
+      this.playExplosionEffect(column);
       this.previewNote(newNote);
     }
     
@@ -888,7 +901,7 @@ class Editor {
     this.updateInfoText();
   }
 
-  placeFreeze(startBeat, duration, type = "2") {
+  placeFreeze(column, startBeat, duration, type = "2") {
     if (this.isPlaying) return;
 
     const notes = this.getCurrentChartNotes();
@@ -930,29 +943,16 @@ class Editor {
     }
   }
 
-  placeMine() {
+  placeMine(column, beat, replace) {
     if (this.isPlaying) return;
-
-    const notes = this.getCurrentChartNotes();
-
-    const newNote = {
-      type: "M",
-      beat: this.cursorBeat,
-      sec: this.chartRenderer.beatToSec(this.cursorBeat),
-      column: this.cursorColumn
-    };
-    notes.push(newNote);
-    this.previewNote(newNote);
     
-    Account.stats.totalPlacedMines ++;
+    this.placeNote(column, beat, replace, true);
 
-    this.sortNotes();
-    this.updateInfoText();
-    this.playExplosionEffect(this.cursorColumn);
+    Account.stats.totalPlacedMines ++;
   }
 
   placeQuickHold() {
-    this.placeFreeze(this.cursorBeat, 1, "2");
+    this.placeFreeze(this.cursorColumn, this.cursorBeat, 1, "2");
   }
 
   playExplosionEffect(column) {
@@ -999,6 +999,11 @@ class Editor {
       contextMenu.addItem("Place Mine", () => this.placeMine());
       contextMenu.addItem("Place Quick Hold", () => this.placeQuickHold());
 
+      if (this.clipboard.length) {
+        contextMenu.addItem("Paste Notes", () => this.pasteNotes());
+        contextMenu.addItem("Clear Clipboard", () => this.clearClipboard());
+      }
+
       if (!this.getBPMChange()) {
         contextMenu.addItem("Add BPM Change", () => this.addBPMChange());
       } else {
@@ -1025,7 +1030,14 @@ class Editor {
     } else if (this.selectedNotes.length === 1) {
       const note = this.selectedNotes[0];
       contextMenu.addItem("Unselect", () => (this.selectedNotes = []));
-
+      
+      contextMenu.addItem("Copy Note", () => this.copyNotes([ note ]));
+      
+      if (this.clipboard.length) {
+        contextMenu.addItem("Paste Notes", () => this.pasteNotes());
+        contextMenu.addItem("Clear Clipboard", () => this.clearClipboard());
+      }
+      
       if (note.type === "1") {
         contextMenu.addItem("Turn Into Mine", () => this.convertNoteType("M"));
       } else if (note.type === "M") {
@@ -1042,6 +1054,13 @@ class Editor {
 
       const allNotes = this.selectedNotes.every(n => n.type === "1" || n.type === "M");
       const allFreezes = this.selectedNotes.every(n => n.type === "2" || n.type === "4");
+
+      contextMenu.addItem("Copy Notes", () => this.copyNotes(this.selectedNotes));
+
+      if (this.clipboard.length) {
+        contextMenu.addItem("Paste Notes", () => this.pasteNotes());
+        contextMenu.addItem("Clear Clipboard", () => this.clearClipboard());
+      }
 
       if (allNotes) {
         contextMenu.addItem("Turn All Into Mines", () => this.convertNotesType("M"));
@@ -1066,6 +1085,44 @@ class Editor {
       contextMenu.destroy();
       this.menuVisible = false;
     });
+  }
+  
+  copyNotes(notes = []) {
+    if (notes.length) {
+      this.clipboard = notes;
+      notifications.show(`Copied ${notes.length} notes`);
+    }
+  }
+  
+  pasteNotes() {
+    if (this.clipboard.length) {
+      const firstBeat = this.clipboard[0].beat;
+      const difference = this.cursorBeat - firstBeat;
+      
+      this.clipboard.forEach(note => {
+        const newBeat = Math.max(0, note.beat + difference);
+        
+        switch (note.type) {
+          case "1":
+            this.placeNote(note.column, newBeat, true);
+            break;
+          case "2":
+          case "4":
+            this.placeFreeze(note.column, newBeat, note.beatLength, note.type);
+            break;
+          case "M":
+            this.placeMine(note.column, newBeat, true);
+            break;
+        }
+      });
+      
+      this.sortNotes();
+      this.updateInfoText();
+    }
+  }
+  
+  clearClipboard() {
+    this.clipboard = [];
   }
 
   convertNoteType(newType) {
