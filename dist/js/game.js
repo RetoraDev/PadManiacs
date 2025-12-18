@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/17/2025, 4:25:24 PM
+ * Build: 12/18/2025, 2:13:08 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -10265,7 +10265,7 @@ class SMFile {
     
     beatPositions.forEach(pos => {
       // Round to avoid floating point issues
-      const roundedPos = Math.round(pos * 1000) / 1000;
+      const roundedPos = pos; // Math.round(pos * 1000) / 10000;
       positionsSet.add(roundedPos);
     });
     
@@ -10277,82 +10277,21 @@ class SMFile {
       return "0000\n0000\n0000\n0000";
     }
     
-    // Calculate the smallest interval between positions
-    let smallestInterval = 4; // Start with whole measure
-    for (let i = 1; i < uniquePositions.length; i++) {
-      const interval = uniquePositions[i] - uniquePositions[i - 1];
-      if (interval > 0 && interval < smallestInterval) {
-        smallestInterval = interval;
+    let smallestResolution = 4; // Start with the whole measure
+    
+    // Reduce it until we find the right resolution
+    for (const position of uniquePositions) {
+      const resolution = this.getBeatResolution(position);
+      
+      if (resolution < smallestResolution) {
+        smallestResolution = resolution;
       }
     }
-    
-    // Also check distance from 0 to first position and from last position to 4
-    if (uniquePositions[0] > 0 && uniquePositions[0] < smallestInterval) {
-      smallestInterval = uniquePositions[0];
-    }
-    if (4 - uniquePositions[uniquePositions.length - 1] < smallestInterval) {
-      smallestInterval = 4 - uniquePositions[uniquePositions.length - 1];
-    }
-    
-    // Reduce intervals when division is not the first unique beat division
-    // TODO: Make it simpler unifying it in a single math operation so it can reduce 192th+ intervals
-    switch (smallestInterval) {
-      case 0.667: // 12th notes
-        smallestInterval = 0.333;
-        break;
-      case 0.750: // 16th notes
-        smallestInterval = 0.250;
-        break;
-      case 0.833: // 24th notes
-        smallestInterval = 0.167;
-        break;
-      case 0.375:
-      case 0.625:
-      case 0.875: // 32th notes
-        smallestInterval = 0.125;
-        break;
-      case 0.417:
-      case 0.917: // 48th notes
-        smallestInterval = 0.083;
-        break;
-      case 0.188:
-      case 0.313:
-      case 0.438:
-      case 0.563:
-      case 0.688:
-      case 0.813:
-      case 0.938: // 64th notes
-        smallestInterval = 0.063;
-        break;
-      case 0.208:
-      case 0.292:
-      case 0.458:
-      case 0.542:
-      case 0.708:
-      case 0.792:
-      case 0.958: // 96th notes
-        smallestInterval = 0.042;
-        break;
-      case 0.104:
-      case 0.229:
-      case 0.271:
-      case 0.354:
-      case 0.396:
-      case 0.479:
-      case 0.604:
-      case 0.729:
-      case 0.771:
-      case 0.854:
-      case 0.896:
-      case 0.979: // 192nd notes
-        smallestInterval = 0.021;
-        break;
-    }
-    
+
     // Determine resolution based on smallest interval
     // We need enough subdivisions to represent the smallest interval
     
-    let requiredRowsPerBeat = Math.ceil(1 / smallestInterval);
+    let requiredRowsPerBeat = Math.ceil(1 / smallestResolution);
     
     // Adjust to standard StepMania resolutions
     const standardResolutions = [
@@ -10380,7 +10319,7 @@ class SMFile {
     // If we need more than 192, we'll use custom resolution (though SM typically caps at 192)
     if (requiredRowsPerBeat > 48) {
       // Use custom resolution (StepMania allows up to 999 rows per measure)
-      const customRowsPerMeasure = Math.min(999, Math.ceil(4 / smallestInterval));
+      const customRowsPerMeasure = Math.min(999, Math.ceil(4 / smallestResolution));
       return this.generateCustomResolutionMeasure(normalizedNotes, customRowsPerMeasure);
     }
     
@@ -10408,6 +10347,24 @@ class SMFile {
     });
     
     return rowArray.join("\n");
+  }
+  
+  static getBeatResolution(beat) {
+    const divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192];
+    
+    for (const division of divisions) {
+      if (this.isBeatDivision(beat, division)) {
+        return 4 / division;
+      }
+    }
+    
+    return 4 / divisions[ division.length - 1 ]; // Snap to smallest division 
+  }
+  
+  static isBeatDivision(beat, division) {
+    const epsilon = 0.0001;
+    const remainder = (beat * division) % 4;
+    return Math.abs(remainder) < epsilon || Math.abs(remainder - 4) < epsilon;
   }
   
   static generateCustomResolutionMeasure(notes, totalRows) {
@@ -12676,11 +12633,6 @@ class LoadSongFolder {
 
     // Import the project
     await this.processZipContent(zipContent);
-    
-    this.hideLoadingScreen();
-    this.showHomeScreen();
-    
-    Account.stats.totalImportedSongs ++;
   }
 
   async processZipContent(zipContent) {
@@ -20274,7 +20226,7 @@ class ChartRenderer {
       .filter(key => key !== "default")
       .map(Number)
       .sort((a, b) => a - b);
-
+      
     for (const division of divisions) {
       if (this.isBeatDivision(beat, division)) {
         return colorMapping[division];

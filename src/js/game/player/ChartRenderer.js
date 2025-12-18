@@ -207,7 +207,7 @@ class ChartRenderer {
       .filter(key => key !== "default")
       .map(Number)
       .sort((a, b) => a - b);
-
+      
     for (const division of divisions) {
       if (this.isBeatDivision(beat, division)) {
         return colorMapping[division];

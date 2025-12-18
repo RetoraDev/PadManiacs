@@ -89,11 +89,6 @@ class LoadSongFolder {
 
     // Import the project
     await this.processZipContent(zipContent);
-    
-    this.hideLoadingScreen();
-    this.showHomeScreen();
-    
-    Account.stats.totalImportedSongs ++;
   }
 
   async processZipContent(zipContent) {
