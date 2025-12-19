@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/18/2025, 2:13:08 PM
+ * Build: 12/19/2025, 4:24:22 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -10263,11 +10263,7 @@ class SMFile {
     const allFractions = [];
     const positionsSet = new Set();
     
-    beatPositions.forEach(pos => {
-      // Round to avoid floating point issues
-      const roundedPos = pos; // Math.round(pos * 1000) / 10000;
-      positionsSet.add(roundedPos);
-    });
+    beatPositions.forEach(pos => positionsSet.add(pos));
     
     // Convert to array and sort
     const uniquePositions = Array.from(positionsSet).sort((a, b) => a - b);
@@ -10727,8 +10723,9 @@ class LocalSMParser {
           for (let c = 0; c < note.length; c++) {
             switch (nt[c]) {
               case "3": // Hold end
-                if (unfinHolds[c] == null) throw `hold end without any hold before`;
-                {
+                if (unfinHolds[c] == null) {
+                  console.warn(`hold end without any hold before`);
+                } else {
                   let i = out.notes[key][unfinHolds[c]];
                   i.beatEnd = b;
                   i.beatLength = b - i.beat;
@@ -10741,7 +10738,7 @@ class LocalSMParser {
                 continue;
               case "4": // Roll start
               case "2": // Hold start
-                if (unfinHolds[c]) throw `new hold started before last ended`;
+                if (unfinHolds[c]) console.warn(`new hold started before last ended`);
                 unfinHolds[c] = out.notes[key].length + c;
               case "1": // Regular note
               case "M": // Mine
@@ -11037,9 +11034,8 @@ class ExternalSMParser {
             switch (nt[c]) {
               case "3": // Hold end
                 if (unfinHolds[c] == null) {
-                  throw `hold end without any hold before`;
-                }
-                {
+                  console.warn(`hold end without any hold before`);
+                } else {
                   let i = out.notes[key][unfinHolds[c]];
                   i.beatEnd = b;
                   i.beatLength = b - i.beat;
@@ -11053,7 +11049,7 @@ class ExternalSMParser {
               case "4": // Roll start
               case "2": // Hold start
                 if (unfinHolds[c]) {
-                  throw `new hold started before last ended`;
+                  console.warn(`new hold started before last ended`);
                 }
                 unfinHolds[c] = out.notes[key].length + c;
               case "1": // Regular note
@@ -17462,6 +17458,8 @@ class Editor {
     this.cursorBeat = 0;
     this.cursorColumn = 0;
     this.selectedNotes = [];
+    this.clipboard = [];
+    this.story = [];
     this.isAreaSelecting = false;
     this.areaSelectStart = { beat: 0, column: 0 };
     this.holdAStartTime = 0;
@@ -17479,8 +17477,7 @@ class Editor {
     this.playOffset = 0;
     this.menuVisible = false;
     this.freezePreview = null;
-    this.clipboard = [];
-
+    
     this.files = {
       audio: null,
       background: null,
@@ -18581,6 +18578,13 @@ class Editor {
   
   clearClipboard() {
     this.clipboard = [];
+  }
+  
+  recordStoryEntry() {
+    this.story.push({
+      ...this.song,
+      files: this.files
+    });
   }
 
   convertNoteType(newType) {

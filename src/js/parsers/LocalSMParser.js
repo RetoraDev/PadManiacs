@@ -204,8 +204,9 @@ class LocalSMParser {
           for (let c = 0; c < note.length; c++) {
             switch (nt[c]) {
               case "3": // Hold end
-                if (unfinHolds[c] == null) throw `hold end without any hold before`;
-                {
+                if (unfinHolds[c] == null) {
+                  console.warn(`hold end without any hold before`);
+                } else {
                   let i = out.notes[key][unfinHolds[c]];
                   i.beatEnd = b;
                   i.beatLength = b - i.beat;
@@ -218,7 +219,7 @@ class LocalSMParser {
                 continue;
               case "4": // Roll start
               case "2": // Hold start
-                if (unfinHolds[c]) throw `new hold started before last ended`;
+                if (unfinHolds[c]) console.warn(`new hold started before last ended`);
                 unfinHolds[c] = out.notes[key].length + c;
               case "1": // Regular note
               case "M": // Mine

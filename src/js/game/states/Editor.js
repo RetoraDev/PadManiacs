@@ -8,6 +8,8 @@ class Editor {
     this.cursorBeat = 0;
     this.cursorColumn = 0;
     this.selectedNotes = [];
+    this.clipboard = [];
+    this.story = [];
     this.isAreaSelecting = false;
     this.areaSelectStart = { beat: 0, column: 0 };
     this.holdAStartTime = 0;
@@ -25,8 +27,7 @@ class Editor {
     this.playOffset = 0;
     this.menuVisible = false;
     this.freezePreview = null;
-    this.clipboard = [];
-
+    
     this.files = {
       audio: null,
       background: null,
@@ -1127,6 +1128,13 @@ class Editor {
   
   clearClipboard() {
     this.clipboard = [];
+  }
+  
+  recordStoryEntry() {
+    this.story.push({
+      ...this.song,
+      files: this.files
+    });
   }
 
   convertNoteType(newType) {

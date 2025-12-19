@@ -232,9 +232,8 @@ class ExternalSMParser {
             switch (nt[c]) {
               case "3": // Hold end
                 if (unfinHolds[c] == null) {
-                  throw `hold end without any hold before`;
-                }
-                {
+                  console.warn(`hold end without any hold before`);
+                } else {
                   let i = out.notes[key][unfinHolds[c]];
                   i.beatEnd = b;
                   i.beatLength = b - i.beat;
@@ -248,7 +247,7 @@ class ExternalSMParser {
               case "4": // Roll start
               case "2": // Hold start
                 if (unfinHolds[c]) {
-                  throw `new hold started before last ended`;
+                  console.warn(`new hold started before last ended`);
                 }
                 unfinHolds[c] = out.notes[key].length + c;
               case "1": // Regular note
