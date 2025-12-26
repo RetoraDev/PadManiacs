@@ -1,6 +1,6 @@
 class LoadCordova {
   create() {
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
       this.loadScript();
     } else {
       this.createFolderStructure();

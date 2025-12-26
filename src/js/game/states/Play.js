@@ -514,9 +514,7 @@ class Play {
       
       video.addEventListener("canplaythrough", () => {
         this.preloadedBackgroundElements[filename] = video;
-        this.video = video;
-        this.video.play();
-        this.backgroundGradient.visible = false;
+        this.playVideo(video);
       }, { once: true });
       
       video.onerror = () => {
@@ -530,8 +528,7 @@ class Play {
     }
     
     if (this.video && !this.video.__errored) {
-      this.video.currentTime = 0;
-      this.video.play();
+      this.playVideo(this.video);
       this.backgroundGradient.visible = false;
       this.video.addEventListener("error", () => {
         console.warn(`Video playback error: ${filename}`);
@@ -540,6 +537,13 @@ class Play {
         this.drawFallbackBackground();
       }, { once: true });
     }
+  }
+  
+  playVideo(video) {
+    this.video = video || this.video;
+    this.video.play();
+    this.video.currentTime = 0;
+    this.backgroundGradient.visible = false;
   }
   
   applyBackground(bg) {
@@ -566,6 +570,13 @@ class Play {
   }
   
   songEnd() {
+    // Forget preloaded backgrounds
+    Object.entries(this.preloadedBackgroundElements).map(entry => entry[1] || null).forEach(element => {
+      if (element) {
+        element.src = "";
+      }
+    });
+    
     // Return to editor if on playtest mode
     if (this.playtestMode) {
       game.state.start("Editor", true, false, this.song);
@@ -877,14 +888,7 @@ class Play {
     }
     
     this.song.chart.backgrounds.forEach(bg => bg.activated = false);
-    
-    // Forget preloaded backgrounds
-    Object.entries(this.preloadedBackgroundElements).forEach(element => {
-      if (element) {
-        element.src = "";
-      }
-    });
-    
+  
     if (this.visualizer) {
       this.visualizer.destroy();
       this.visualizer = null;
