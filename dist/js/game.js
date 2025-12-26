@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/26/2025, 2:16:15 AM
+ * Build: 12/26/2025, 4:04:37 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -16083,18 +16083,21 @@ class Play {
   }
   
   showPauseMenu() {
-    const x = 10;
-    const y = game.height / 2 - 20;
-    const width = 80;
-    const height = 60;
-    
     this.pauseBg = game.add.graphics(0, 0);
     
     this.pauseBg.beginFill(0x000000, 0.6);
-    this.pauseBg.drawRect(0, 0, 192, 112);
+    this.pauseBg.drawRect(0, 0, game.width, game.height);
     this.pauseBg.endFill();
     
-    this.pauseCarousel = new CarouselMenu(x, y, width, height, {
+    this.pauseStatsText = new Text(game.width - 20, game.height / 2 + 4, "", FONTS.default);
+    this.pauseStatsText.anchor.set(1, 0.5);
+    this.pauseStatsText.tint = 0xECECEC;
+    
+    const statsContent = Object.entries(this.player.judgementCounts).map(entry => `${entry[0]}: ${entry[1]}`).join('\n');
+    
+    this.pauseStatsText.write(statsContent);
+    
+    this.pauseCarousel = new CarouselMenu(10, game.height / 2 - 20, 80, 60, {
       bgcolor: "brown",
       fgcolor: "#ffffff",
       align: "center",
@@ -16130,6 +16133,7 @@ class Play {
   hidePauseMenu() {
     if (this.pauseCarousel) {
       this.pauseBg.destroy();
+      this.pauseStatsText.destroy();
       this.pauseCarousel.destroy();
       this.pauseCarousel = null;
     }
