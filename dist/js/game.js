@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/26/2025, 4:04:37 PM
+ * Build: 12/26/2025, 4:46:59 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -19787,10 +19787,10 @@ class Credits {
     if (window.localSongs && Array.isArray(window.localSongs)) {
       window.localSongs.forEach(song => {
         if (song.background && song.background !== "no-media") {
-          this.availableBackgrounds.push(song.background);
+          this.availableBackgrounds.push(song.backgroundUrl);
         }
         if (song.banner && song.banner !== "no-media") {
-          this.availableBackgrounds.push(song.banner);
+          this.availableBackgrounds.push(song.bannerUrl);
         }
       });
     }
@@ -19799,10 +19799,10 @@ class Credits {
     if (window.externalSongs && Array.isArray(window.externalSongs)) {
       window.externalSongs.forEach(song => {
         if (song.background && song.background !== "no-media") {
-          this.availableBackgrounds.push(song.background);
+          this.availableBackgrounds.push(song.backgroundUrl);
         }
         if (song.banner && song.banner !== "no-media") {
-          this.availableBackgrounds.push(song.banner);
+          this.availableBackgrounds.push(song.bannerUrl);
         }
       });
     }
@@ -19952,24 +19952,7 @@ class Credits {
   }
 
   returnToMenu() {
-    // Stop background music
-    if (this.creditsMusic) {
-      this.creditsMusic.pause();
-      this.creditsMusic.src = "";
-      this.creditsMusic = null;
-    }
-    
-    // Stop background slideshow
-    if (this.backgroundTimer) {
-      game.time.events.remove(this.backgroundTimer);
-    }
-    
-    // Restore background music if it was playing
-    if (backgroundMusic && Account.settings.enableMenuMusic) {
-      backgroundMusic.playLastSong();
-    }
-    
-    // Fade out and transition
+    // Fade out and transition to next game screen
     game.camera.fade(0x000000, 1000);
     game.camera.onFadeComplete.addOnce(() => {
       game.state.start(this.returnState, true, false, this.returnStateParams);
