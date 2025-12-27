@@ -99,7 +99,11 @@ class LoadExternalSongs {
     try {
       const song = await this.processSongDirectory(dirEntry);
       
-      if (!song) throw new Error("Song not loaded");
+      if (!song) {
+        // It's likely a directory that doesn't contain a StepMania song
+        this.failedCount++;
+        return;
+      }
       
       song.index = index;
       if (song) {

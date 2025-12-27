@@ -391,6 +391,79 @@ class Play {
     this.overHud.addChild(glitch);
   }
   
+  showFullCombo() {
+    // Create overlay parent
+    this.fullComboOverlay = game.add.sprite(0, 0);
+    
+    const flawless = this.player.accuracy >= 99.75;
+    
+    // Create gradient effects
+    const bitmap = game.add.bitmapData(game.width, game.height);
+    const gradient = bitmap.context.createLinearGradient(0, 0, 0, game.height);
+    gradient.addColorStop(0, 'transparent');
+    gradient.addColorStop(0.5, flawless ? '#ffb200' : '#dad2eb');
+    gradient.addColorStop(1, 'transparent');
+    bitmap.context.fillStyle = gradient;
+    bitmap.context.fillRect(0, 0, game.width, game.height);
+    
+    this.fullComboGradient = game.add.sprite(0, 0, bitmap);
+    this.fullComboGradient.alpha = 0;
+    this.fullComboOverlay.addChild(this.fullComboGradient);
+    
+    // Create full combo message
+    this.fullComboBg = game.add.graphics(0, game.height / 2);
+    this.fullComboBg.beginFill(0x000000, 1);
+    this.fullComboBg.drawRect(0, 0, game.width, 10);
+    this.fullComboBg.endFill();
+    this.fullComboBg.beginFill(0xffffff, 1);
+    this.fullComboBg.drawRect(0, 0, game.width, 1);
+    this.fullComboBg.drawRect(0, 10, game.width, 1);
+    this.fullComboBg.endFill();
+    this.fullComboBg.anchor.y = 0.5;
+    this.fullComboBg.scale.y = 0;
+    this.fullComboOverlay.addChild(this.fullComboBg);
+    
+    this.fullComboText = new Text(game.width, 5, flawless ? "FLAWLESS!!" : "FULL COMBO!!", "", FONTS.default);
+    this.fullComboText.anchor.x = 0.5;
+    this.fullComboText.anchor.y = 0.5;
+    this.fullComboText.alpha = 0;
+    this.fullComboBg.addChild(this.fullComboText);
+    
+    this.fullComboAnimationStarted = true;
+    
+    // Animate full combo message
+    game.add.tween(this.fullComboBg.scale).to({ y: 1 }, 200, "Linear", true);
+    game.add.tween(this.fullComboText).to({ alpha: 1, x: game.width / 2 }, 200, "Linear", true);
+    game.add.tween(this.fullComboGradient).to({ alpha: 1 }, 200, "Linear", true, 200)
+    game.time.events.add(1000, () => {
+      game.add.tween(this.fullComboBg.scale).to({ y: 0 }, 200, "Linear", true);
+      game.add.tween(this.fullComboText).to({ alpha: 0, x: 0 }, 200, "Linear", true);
+      game.add.tween(this.fullComboGradient).to({ alpha: 0 }, 200, "Linear", true, 200);
+      this.fullComboAnimationEnded = true;
+    });
+
+    let color = 0;
+    
+    game.time.events.loop(90, () => {
+      const tintColor = color ? (flawless ? 0xffb200 : 0xdad2eb) : 0xffffff;
+      
+      this.fullComboBg.beginFill(tintColor, 1);
+      this.fullComboBg.drawRect(0, 0, game.width, 1);
+      this.fullComboBg.drawRect(0, 10, game.width, 1);
+      this.fullComboBg.endFill();
+      this.fullComboText.tint = tintColor;
+      
+      color = color ? 0 : 1;
+    });
+    
+    // Add it over hud
+    this.overHud.addChild(this.fullComboOverlay);
+    
+    // Play sound effect
+    Audio.play("full_combo", 1);
+  }
+
+  
   drawBackground(element) {
     // Check if element is errored
     if (element && element.__errored) {
@@ -622,78 +695,6 @@ class Play {
     };
     
     game.state.start("Results", true, false, gameData);
-  }
-  
-  showFullCombo() {
-    // Create overlay parent
-    this.fullComboOverlay = game.add.sprite(0, 0);
-    
-    const perfect = this.player.accuracy >= 100;
-    
-    // Create gradient effects
-    const bitmap = game.add.bitmapData(game.width, game.height);
-    const gradient = bitmap.context.createLinearGradient(0, 0, 0, game.height);
-    gradient.addColorStop(0, 'transparent');
-    gradient.addColorStop(0.5, perfect ? '#ffb200' : '#dad2eb');
-    gradient.addColorStop(1, 'transparent');
-    bitmap.context.fillStyle = gradient;
-    bitmap.context.fillRect(0, 0, game.width, game.height);
-    
-    this.fullComboGradient = game.add.sprite(0, 0, bitmap);
-    this.fullComboGradient.alpha = 0;
-    this.fullComboOverlay.addChild(this.fullComboGradient);
-    
-    // Create full combo message
-    this.fullComboBg = game.add.graphics(0, game.height / 2);
-    this.fullComboBg.beginFill(0x000000, 1);
-    this.fullComboBg.drawRect(0, 0, game.width, 10);
-    this.fullComboBg.endFill();
-    this.fullComboBg.beginFill(0xffffff, 1);
-    this.fullComboBg.drawRect(0, 0, game.width, 1);
-    this.fullComboBg.drawRect(0, 10, game.width, 1);
-    this.fullComboBg.endFill();
-    this.fullComboBg.anchor.y = 0.5;
-    this.fullComboBg.scale.y = 0;
-    this.fullComboOverlay.addChild(this.fullComboBg);
-    
-    this.fullComboText = new Text(game.width, 5, perfect ? "FLAWLESS!!" : "FULL COMBO!!", "", FONTS.default);
-    this.fullComboText.anchor.x = 0.5;
-    this.fullComboText.anchor.y = 0.5;
-    this.fullComboText.alpha = 0;
-    this.fullComboBg.addChild(this.fullComboText);
-    
-    this.fullComboAnimationStarted = true;
-    
-    // Animate full combo message
-    game.add.tween(this.fullComboBg.scale).to({ y: 1 }, 200, "Linear", true);
-    game.add.tween(this.fullComboText).to({ alpha: 1, x: game.width / 2 }, 200, "Linear", true);
-    game.add.tween(this.fullComboGradient).to({ alpha: 1 }, 200, "Linear", true, 200)
-    game.time.events.add(1000, () => {
-      game.add.tween(this.fullComboBg.scale).to({ y: 0 }, 200, "Linear", true);
-      game.add.tween(this.fullComboText).to({ alpha: 0, x: 0 }, 200, "Linear", true);
-      game.add.tween(this.fullComboGradient).to({ alpha: 0 }, 200, "Linear", true, 200);
-      this.fullComboAnimationEnded = true;
-    });
-
-    let color = 0;
-    
-    game.time.events.loop(90, () => {
-      const tintColor = color ? (perfect ? 0xffb200 : 0xdad2eb) : 0xffffff;
-      
-      this.fullComboBg.beginFill(tintColor, 1);
-      this.fullComboBg.drawRect(0, 0, game.width, 1);
-      this.fullComboBg.drawRect(0, 10, game.width, 1);
-      this.fullComboBg.endFill();
-      this.fullComboText.tint = tintColor;
-      
-      color = color ? 0 : 1;
-    });
-    
-    // Add it over hud
-    this.overHud.addChild(this.fullComboOverlay);
-    
-    // Play sound effect
-    Audio.play("full_combo", 1);
   }
   
   updateUserStats(gameResults) {

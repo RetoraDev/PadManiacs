@@ -40,6 +40,7 @@ class Credits {
     creditsContent.push({ text: "SOUND EFFECTS", font: FONTS.shaded, tint: 0x76fcde, spacing: 20 });
     creditsContent.push({ text: "Atelier Magicae", font: FONTS.default, tint: 0xffffff, spacing: 15 });
     creditsContent.push({ text: "Retora", font: FONTS.default, tint: 0xffffff, spacing: 15 });
+    creditsContent.push({ text: "", font: FONTS.default, tint: 0xffffff, spacing: 15 });
     
     // Continue with remaining credits
     creditsContent.push(
