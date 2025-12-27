@@ -191,6 +191,11 @@ class Boot {
         type: "audio",
         url: "sfx/exp_up.ogg"
       },
+      {
+        key: "full_combo",
+        type: "audio",
+        url: "sfx/full_combo.ogg"
+      },
       // Chart assets
       {
         key: "arrows",
