@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/27/2025, 8:22:33 AM
+ * Build: 12/28/2025, 11:35:39 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -72,6 +72,261 @@ const FEEDBACK_BUG_REPORT_URL = "https://itch.io/t/5585499/bug-reports";
 const COMMUNITY_PROMPT_MIN_PLAYTIME = 60 * 60;
 const RATING_PROMPT_MIN_PLAYTIME = 15 * 60;
 const FEATURE_REQUEST_MIN_PLAYTIME = 30 * 60;
+
+// Keyboard key names
+// https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
+const KEYBOARD_KEY_NAMES = {
+  // Unidentified keys
+  "Unidentified": "???",
+  
+  // Modifier keys
+  "Alt": "ALT",
+  "AltGraph": "ALT GR",
+  "CapsLock": "CAPS LOCK",
+  "Control": "CTRL",
+  "Fn": "FN",
+  "FnLock": "FN LOCK",
+  "Hyper": "HYPER",
+  "OS": "OS/META",
+  "Meta": "META",
+  "NumLock": "NUM LOCK",
+  "ScrollLock": "SCROLL LOCK",
+  "Shift": "SHIFT",
+  "Super": "SUPER",
+  "Symbol": "SYMBOL",
+  "SymbolLock": "SYMBOL LOCK",
+
+  // Whitespace keys
+  "Enter": "ENTER",
+  "Tab": "TAB",
+  " ": "SPACE",
+  
+  // Navigation keys
+  "ArrowUp": "UP",
+  "ArrowDown": "DOWN", 
+  "ArrowLeft": "LEFT",
+  "ArrowRight": "RIGHT",
+  "Home": "HOME",
+  "End": "END",
+  "PageUp": "PAGE UP",
+  "PageDown": "PAGE DOWN",
+  
+  // Edition keys
+  "Backspace": "BACKSPACE",
+  "Clear": "CLEAR",
+  "Copy": "COPY",
+  "CrSel": "CR SELECT",
+  "Cut": "CUT",
+  "Delete": "DELETE",
+  "EraseEof": "ERASE EOF",
+  "ExSel": "EX SEL",
+  "Insert": "INSERT",
+  "Paste": "PASTE",
+  "Redo": "REDO",
+  "Undo": "UNDO",
+  
+  // UI keys
+  "Accept": "ACCEPT",
+  "Again": "AGAIN",
+  "Attn": "ATTN",
+  "Cancel": "CANCEL",
+  "ContextMenu": "MENU",
+  "Apps": "MENU",
+  "Escape": "ESC",
+  "Esc": "ESC",
+  "Execute": "EXEC",
+  "Find": "FIND",
+  "Finish": "FINISH",
+  "Help": "HELP",
+  "Pause": "PAUSE",
+  "Play": "PLAY",
+  "Props": "PROPS",
+  "Select": "SELECT",
+  "ZoomIn": "ZOOM +",
+  "ZoomOut": "ZOOM -",
+  
+  // Device keys
+  "BrightnessDown": "BRIGHTNESS -",
+  "BrightnessUp": "BRIGHTNESS +",
+  "Eject": "EJECT",
+  "LogOff": "LOG OFF",
+  "Power": "POWER",
+  "PowerOff": "SHUTDOWN",
+  "PrintScreen": "PRINT SCREEN",
+  "Hibernate": "HIBERNATE",
+  "Standby": "Suspend",
+  "WakeUp": "WAKE UP",
+  
+  // IME and composition keys
+  "AllCandidates": "ALL CANDIDATES",
+  "Alphanumeric": "ALPHANUMERIC",
+  "CodeInput": "CODE INPUT",
+  "Compose": "COMPOSE",
+  "Multi": "MULTI",
+  "Convert": "CONVERT",
+  "Dead": "DEAD",
+  "FinalMode": "FINAL",
+  "GroupFirst": "GROUP FIRST",
+  "GroupLast": "GROUP LAST",
+  "GroupNext": "GROUP NEXT",
+  "GroupPrevious": "GROUP PREVIOUS",
+  "ModeChange": "MODE",
+  "NextCandidate": "NEXT CANDIDATE",
+  "NonConvert": "NON CONVERT",
+  "Nonconvert": "NON CONVERT",
+  "PreviousCandidate": "PREVIOUS CANDIDATE",
+  "Process": "PROCESS",
+  "SingleCandidate": "SINGLE CANDIDATE",
+  
+  // TODO: Add Korean and Japanese keyboard key codes, and Dead keycodes for Linux
+  
+  // Function keys
+    "F1": "F1",
+  "F2": "F2",
+  "F3": "F3", 
+  "F4": "F4",
+  "F5": "F5",
+  "F6": "F6",
+  "F7": "F7",
+  "F8": "F8",
+  "F9": "F9",
+  "F10": "F10",
+  "F11": "F11",
+  "F12": "F12",
+  "F13": "F13",
+  "F14": "F14",
+  "F15": "F15",
+  "F16": "F16",
+  "F17": "F17",
+  "F18": "F18",
+  "F19": "F19",
+  "F20": "F20",
+  "F21": "F21",
+  "F22": "F22",
+  "F23": "F23",
+  "F24": "F24",
+  "Soft1": "SOFT 1",
+  "Soft2": "SOFT 1",
+  "Soft3": "SOFT 3",
+  "Soft4": "SOFT 4",
+  
+  // Smartphone keys
+  "AppSwitch": "APP SWITCH",
+  "Call": "CALL",
+  "Camera": "CAMERA",
+  "CameraFocus": "CAMERA FOCUS",
+  "EndCall": "END CALL",
+  "GoBack": "BACK",
+  "GoHome": "HOME",
+  "HeadsetHook": "HEADSET HOOK",
+  "LastNumberRedial": "REDIAL",
+  "Notification": "NOTIFICATION",
+  "MannerMode": "MODE",
+  "VoiceDial": "VOICE DIAL",
+  
+  // Multimedia keys
+  "ChannelDown": "CH DOWN",
+  "ChannelUp": "CH UP",
+  "MediaFastForward": "FAST FORWARD",
+  "MediaPause": "PAUSE",
+  "MediaPlayPause": "PAUSE/PLAY",
+  "MediaRecord": "RECORD",
+  "MediaRewind": "REWIND",
+  "MediaStop": "STOP",
+  "MediaTrackNext": "NEXT",
+  "MediaNextTrack": "NEXT",
+  "MediaTrackPrevious": "PREVIOUS",
+  "MediaPreviousTrack": "PREVIOUS",
+  
+  // TODO: Add TV, Apps, Mail and Documents keys
+
+  // Numeric keypad keys
+    // Number Pad
+  "Numpad0": "NUM 0",
+  "Numpad1": "NUM 1",
+  "Numpad2": "NUM 2",
+  "Numpad3": "NUM 3",
+  "Numpad4": "NUM 4",
+  "Numpad5": "NUM 5",
+  "Numpad6": "NUM 6",
+  "Numpad7": "NUM 7",
+  "Numpad8": "NUM 8",
+  "Numpad9": "NUM 9",
+  "NumpadAdd": "NUM +",
+  "NumpadSubtract": "NUM -",
+  "NumpadMultiply": "NUM *",
+  "NumpadDivide": "NUM /",
+  "NumpadDecimal": "NUM .",
+  "NumpadEnter": "NUM ENTER",
+  "NumpadComma": "NUM ,",
+  "NumpadEqual": "NUM =",
+  
+  // Numpad keys
+  "Decimal": "DECIMAL",
+  "Key11": "11",
+  "Key12": "12",
+  "Multiply": "MULTIPLY",
+  "*": "MULTIPLY",
+  "Add": "ADD",
+  "+": "ADD",
+  "Clear": "CLEAR",
+  "Divide": "DIVIDE",
+  "/": "DIVIDE",
+  "Subtract": "SUBTRACT",
+  "-": "-",
+  "Separator": "SEPARATOR",
+  
+   // Numbers 0-9
+  "0": "0", "1": "1", "2": "2", "3": "3", "4": "4",
+  "5": "5", "6": "6", "7": "7", "8": "8", "9": "9",
+  
+  // Letters A-Z
+  "A": "A", "B": "B", "C": "C", "D": "D", "E": "E", "F": "F", "G": "G",
+  "H": "H", "I": "I", "J": "J", "K": "K", "L": "L", "M": "M", "N": "N",
+  "O": "O", "P": "P", "Q": "Q", "R": "R", "S": "S", "T": "T", "U": "U",
+  "V": "V", "W": "W", "X": "X", "Y": "Y", "Z": "Z"
+};
+
+// Gamepad key names
+const GAMEPAD_KEY_NAMES = {
+  0: "BUTTON A",
+  1: "BUTTON B",
+  2: "BUTTON X",
+  3: "BUTTON Y",
+  4: "LEFT BUMPER",
+  5: "RIGHT BUMPER",
+  6: "LEFT TRIGGER",
+  7: "RIGHT TRIGGER",
+  8: "SELECT/BACK",
+  9: "START",
+  12: "DPAD UP",
+  13: "DPAD DOWN",
+  14: "DPAD LEFT",
+  15: "DPAD RIGHT"
+};
+
+// Keyboard button mapping
+const DEFAULT_KEYBOARD_MAPPING = {
+  up: [Phaser.KeyCode.UP, Phaser.KeyCode.J, Phaser.KeyCode.B],
+  down: [Phaser.KeyCode.DOWN, Phaser.KeyCode.F, Phaser.KeyCode.V],
+  left: [Phaser.KeyCode.LEFT, Phaser.KeyCode.D, Phaser.KeyCode.C],
+  right: [Phaser.KeyCode.RIGHT, Phaser.KeyCode.K, Phaser.KeyCode.N],
+  a: [Phaser.KeyCode.Z],
+  b: [Phaser.KeyCode.X],
+  select: [Phaser.KeyCode.SPACEBAR],
+  start: [Phaser.KeyCode.ENTER]
+};
+
+const DEFAULT_GAMEPAD_MAPPING = {
+  up: 12,
+  down: 13,
+  left: 14,
+  right: 15,
+  a: 1,
+  b: 0,
+  select: 8,
+  start: 9
+};
 
 // Environment detection constants
 const ENVIRONMENT = {
@@ -824,31 +1079,29 @@ const DEFAULT_ACCOUNT = {
     randomSong: false,
     renderer: 0,
     pixelated: true,
-    noteColorOption: 'NOTE',
+    noteColorOption: "NOTE",
     noteSpeedMult: 1,
     userOffset: 0,
-    scrollDirection: 'falling',
-    visualizer: 'BPM',
-    metronome: 'OFF',
+    scrollDirection: "falling",
+    visualizer: "BPM",
+    metronome: "OFF",
     beatLines: false,
     beatsPerMeasure: 4, // TODO: Make this configurable
-    speedMod: 'X-MOD',
+    speedMod: "X-MOD",
     hapticFeedback: false,
     // Addon system settings
-    safeMode: false, 
+    safeMode: false,
     enabledAddons: [],
     hibernatingAddons: []
   },
   characters: {
     unlockedHairs: {
       front: [1],
-      back: [1],
+      back: [1]
     },
     unlockedItems: ["school_uniform"],
     currentCharacter: DEFAULT_CHARACTER.name,
-    list: [
-      JSON.parse(JSON.stringify(DEFAULT_CHARACTER))
-    ]
+    list: [JSON.parse(JSON.stringify(DEFAULT_CHARACTER))]
   },
   lastSong: null,
   songSelectStartingIndex: {
@@ -870,33 +1123,33 @@ const DEFAULT_ACCOUNT = {
     maxCombo: 0,
     perfectGames: 0,
     maxMarvelousInGame: 0,
-    
+
     // Character stats
     charactersCreated: 0,
     maxCharacterLevel: 1,
     skillsUnlocked: 0,
-    
+
     // Progression stats
     currentStreak: 0,
     longestStreak: 0,
     lastPlayedDate: null,
-    
+
     // Mastery stats
     difficultiesCompleted: 0,
     highScoresSet: 0,
-    
+
     // Time-based stats
     totalPlaySessions: 0,
     averageSessionTime: 0,
     longestSession: 0, // in seconds
     currentSessionStart: null,
-    
+
     // Time achievement flags
     playedAtNight: false,
     playedEarlyMorning: false,
     playedWeekend: false,
     playedHoliday: false,
-    
+
     // Detailed tracking
     totalNotesHit: 0,
     totalMarvelous: 0,
@@ -905,14 +1158,14 @@ const DEFAULT_ACCOUNT = {
     totalGood: 0,
     totalBoo: 0,
     totalMiss: 0,
-    
+
     // Editor stats
     totalPlacedArrows: 0,
     totalPlacedFreezes: 0,
     totalPlacedMines: 0,
     totalImportedSongs: 0,
     totalExportedSongs: 0,
-    
+
     // Miscellaneous
     maxSkillsInGame: 0,
     gameRated: false,
@@ -924,9 +1177,12 @@ const DEFAULT_ACCOUNT = {
   achievements: {
     unlocked: {},
     progress: {}
+  },
+  mapping: {
+    keyboard: DEFAULT_KEYBOARD_MAPPING,
+    gamepad: DEFAULT_GAMEPAD_MAPPING
   }
 };
-
 
 // Achievements system constants
 const ACHIEVEMENTS = {
@@ -4619,19 +4875,24 @@ class Window extends Phaser.Sprite {
     });
     this.onCancel.dispatch(this.selectedIndex);
   }
-
-  clear() {
+  
+  removeAll() {
     this.items.forEach(item => {
       item.text.destroy();
       if (item.valueText) item.valueText.destroy();
       if (item.toggleText) item.toggleText.destroy();
     });
+    this.items = [];
+    this.selectedIndex = 0;
+  }
+
+  clear() {
+    this.removeAll();
     if (this.scrollBarTween) {
       this.scrollBarTween.stop();
       this.scrollBarTween = null;
     }
     this.frameParts.forEach(part => part.destroy());
-    this.items = [];
     this.frameParts = [];
     this.selectedIndex = 0;
     this.scrollOffset = 0;
@@ -6071,15 +6332,13 @@ class Logo extends Phaser.Sprite {
 
 class NavigationHint extends Phaser.Sprite {
   constructor(frame = 0) {
-    super(game, 0, 0);
+    super(game, 0, 0, 'ui_navigation_hint_screens');
     
-    this.defaultFrame = frame;
-    this.lastInputSource = null;
+    this.frame = frame;
     
     game.add.existing(this);
   }
   change(value) {
-    this.defaultFrame = value;
     this.frame = value;
   }
   hide() {
@@ -6087,16 +6346,6 @@ class NavigationHint extends Phaser.Sprite {
   }
   show() {
     this.visible = true;
-  }
-  update() {
-    if (!gamepad) return;
-    
-    if (gamepad.lastInputSource != this.lastInputSource) {
-      this.loadTexture(gamepad.lastInputSource == 'keyboard' ? 'ui_navigation_hint_keyboard' : 'ui_navigation_hint_gamepad');
-      this.frame = this.defaultFrame;
-    }
-    
-    this.lastInputSource = gamepad.lastInputSource;
   }
 }
 
@@ -8177,7 +8426,7 @@ window.onerror = (details, file, line) => {
 document.head.appendChild(script);
 
 class Gamepad {
-  constructor(game) {
+  constructor(game, keyboardMap, gamepadMap) {
     this.game = game;
 
     // Define the control keys we want to track
@@ -8212,31 +8461,8 @@ class Gamepad {
     this.released.any = false;
     this.prevState.any = false;
 
-    // Keyboard mappings
-    this.keyboardMap = {
-      up: [Phaser.KeyCode.UP, Phaser.KeyCode.B],
-      down: [Phaser.KeyCode.DOWN, Phaser.KeyCode.F, Phaser.KeyCode.V],
-      left: [Phaser.KeyCode.LEFT, Phaser.KeyCode.D, Phaser.KeyCode.C],
-      right: [Phaser.KeyCode.RIGHT, Phaser.KeyCode.N],
-      a: [Phaser.KeyCode.Z, Phaser.KeyCode.K],
-      b: [Phaser.KeyCode.X, Phaser.KeyCode.J],
-      select: [Phaser.KeyCode.SHIFT, Phaser.KeyCode.TAB, Phaser.KeyCode.SPACEBAR],
-      start: [Phaser.KeyCode.ENTER, Phaser.KeyCode.ESC, Phaser.KeyCode.P]
-    };
-    
-    // Gamepad button mappings
-    this.gamepadMap = {
-      up: 12,
-      down: 13,
-      left: 14,
-      right: 15,
-      a: 1,
-      b: 0,
-      select: 8,
-      start: 9
-    };
-    
-    // TODO: Implement control mapping
+    // Initialize keyboard mapping
+    this.updateMapping(keyboardMap, gamepadMap);
     
     // Phaser signals
     this.signals = {
@@ -8265,13 +8491,22 @@ class Gamepad {
     this.setupTouch();
     this.setupInputDetection();
   }
+  
+  updateMapping(keyboardMap, gamepadMap) {
+    this.keyboardMap = keyboardMap || DEFAULT_KEYBOARD_MAPPING;
+    this.gamepadMap = gamepadMap || DEFAULT_GAMEPAD_MAPPING;
+    
+    // Reset gamepad for new mapping
+    this.dontUpdateThisTime = true;
+    this.setupKeyboard();
+  }
 
   setupKeyboard() {
+    // Clear any existing key captures
+    this.game.input.keyboard.clearCaptures();
+    
     // Clear any existing keyboard state
-    this.keyboardState = {};
-    this.keys.forEach(key => {
-      this.keyboardState[key] = false;
-    });
+    this.releaseAll();
   
     // Create reverse mapping for quick lookup
     this.keyCodeToAction = {};
@@ -8296,7 +8531,6 @@ class Gamepad {
       const action = this.keyCodeToAction[event.keyCode];
       if (action) {
         this.held[action] = true;
-        this.keyboardState[action] = true;
       }
       this.detectInputSource('keyboard');
     };
@@ -8305,9 +8539,10 @@ class Gamepad {
       const action = this.keyCodeToAction[event.keyCode];
       if (action) {
         this.held[action] = false;
-        this.keyboardState[action] = false;
       }
     };
+    
+    this.update();
   }
 
   setupGamepad() {
@@ -8610,7 +8845,7 @@ class Gamepad {
     this.held[key] = true;
     this.held.any = true;
   }
-
+  
   isDirectionPressed() {
     return this.held.up || this.held.down || this.held.left || this.held.right;
   }
@@ -11687,7 +11922,7 @@ class Boot {
     }
   }
   create() {
-    gamepad = new Gamepad(game);
+    gamepad = new Gamepad(game, Account.mapping?.keyboard, Account.mapping?.gamepad);
 
     notifications = new NotificationSystem();
     
@@ -11756,8 +11991,8 @@ class Boot {
         url: "ui/lobby_overlay.png"
       },
       {
-        key: "ui_navigation_hint_keyboard",
-        url: "ui/navigation_hint_keyboard.png",
+        key: "ui_navigation_hint_screens",
+        url: "ui/navigation_hint_screens.png",
         type: "spritesheet",
         frameWidth: 192,
         frameHeight: 112
@@ -11765,13 +12000,6 @@ class Boot {
       {
         key: "ui_glitch_animation",
         url: "ui/glitch_animation.png",
-        type: "spritesheet",
-        frameWidth: 192,
-        frameHeight: 112
-      },
-      {
-        key: "ui_navigation_hint_gamepad",
-        url: "ui/navigation_hint_gamepad.png",
         type: "spritesheet",
         frameWidth: 192,
         frameHeight: 112
@@ -12953,8 +13181,7 @@ class MainMenu {
   }
 
   menu() {
-    const manager = new WindowManager();
-    this.manager = manager;
+    this.windowManager = new WindowManager();
     
     this.showHomeMenu();
   }
@@ -13029,8 +13256,10 @@ class MainMenu {
   }
 
   showSettings() {
-    const settingsWindow = this.manager.createWindow(3, 1, 18, 12, "1");
+    const settingsWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     settingsWindow.fontTint = 0x76fcde;
+    
+    this.windowManager.focus(settingsWindow);
     
     // Volume setting
     settingsWindow.addSettingItem(
@@ -13142,7 +13371,7 @@ class MainMenu {
         saveAccount();
       }
     );
-
+    
     // Beat lines
     settingsWindow.addSettingItem(
       "Beat Lines",
@@ -13237,14 +13466,20 @@ class MainMenu {
       }
     );
     
-    // Dangerous actions
+    // Configure keybindings
+    settingsWindow.addItem("Configure keybindings", ">", () => {
+      this.windowManager.remove(settingsWindow, true);
+      this.showKeybindingsMenu()
+    });
+    
+    // Danger zone
     settingsWindow.addItem("Erase Highscores", "", () => this.confirmEraseHighscores());
     settingsWindow.addItem("Restore Default Settings", "", () => this.confirmRestoreDefaults());
     
     game.onMenuIn.dispatch('settings', settingsWindow);
     
     settingsWindow.addItem("APPLY", "", () => {
-      this.manager.remove(settingsWindow, true);
+      this.windowManager.remove(settingsWindow, true);
       if (restartNeeded) {
         this.confirmRestart();
       } else {
@@ -13443,6 +13678,391 @@ class MainMenu {
     
     showInstalledAddons();
   }
+  
+  showKeybindingsMenu() {
+    const settingsWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
+    settingsWindow.fontTint = 0x76fcde;
+    
+    this.windowManager.focus(settingsWindow);
+    
+    settingsWindow.addItem("KEYBOARD KEYS", ">", () => {
+      this.windowManager.remove(settingsWindow, true);
+      this.showKeyboardCustomization();
+    });
+    
+    settingsWindow.addItem("GAMEPAD KEYS", ">", () => {
+      this.windowManager.remove(settingsWindow, true);
+      this.showGamepadCustomization();
+    });
+    
+    settingsWindow.addItem("RESET TO DEFAULTS", "", () => {
+      this.confirmDialog(
+        "Reset all keybindings to default settings?",
+        () => {
+          Account.mapping.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
+          Account.mapping.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
+          saveAccount();
+          gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
+          notifications.show("Keybindings reset!");
+          this.showKeybindingsMenu();
+        },
+        () => {
+          this.showKeybindingsMenu();
+        },
+        "RESET",
+        "CANCEL"
+      );
+    });
+    
+    settingsWindow.addItem("< BACK", "", () => {
+      this.windowManager.remove(settingsWindow, true);
+      this.showSettings();
+    }, true);
+    
+    game.onMenuIn.dispatch('keybindings', settingsWindow);
+  }
+
+  showKeyboardCustomization() {
+    const keysWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
+    keysWindow.fontTint = 0x76fcde;
+    
+    this.windowManager.focus(keysWindow);
+    
+    // Define keyboard controls
+    const keyboardControls = [
+      { key: "UP", description: "UP ARROW", mappingKey: "up", index: 0 },
+      { key: "DOWN", description: "DOWN ARROW", mappingKey: "down", index: 0 },
+      { key: "LEFT", description: "LEFT ARROW", mappingKey: "left", index: 0 },
+      { key: "RIGHT", description: "RIGHT ARROW", mappingKey: "right", index: 0 },
+      { key: "DANCE LEFT", description: "DANCE LEFT", mappingKey: "left", index: 1 },
+      { key: "DANCE DOWN", description: "DANCE DOWN", mappingKey: "down", index: 1 },
+      { key: "DANCE UP", description: "DANCE UP", mappingKey: "up", index: 1 },
+      { key: "DANCE RIGHT", description: "DANCE RIGHT", mappingKey: "right", index: 1 },
+      { key: "SECONDARY DANCE LEFT", description: "SECONDARY DANCE LEFT", mappingKey: "left", index: 2 },
+      { key: "SECONDARY DANCE DOWN", description: "SECONDARY DANCE DOWN", mappingKey: "down", index: 2 },
+      { key: "SECONDARY DANCE UP", description: "SECONDARY DANCE UP", mappingKey: "up", index: 2 },
+      { key: "SECONDARY DANCE RIGHT", description: "SECONDARY DANCE RIGHT", mappingKey: "right", index: 2 },
+      { key: "CONFIRM", description: "CONFIRM", mappingKey: "a", index: 0 },
+      { key: "CANCEL", description: "CANCEL", mappingKey: "b", index: 0 },
+      { key: "START", description: "START", mappingKey: "start", index: 0 },
+      { key: "SELECT", description: "SELECT", mappingKey: "select", index: 0 }
+    ];
+    
+    // Add each control item
+    keyboardControls.forEach(control => {
+      const currentKey = this.getKeyboardKeyDisplay(control.mappingKey, control.index);
+      keysWindow.addItem(control.key, currentKey, () => {
+        this.waitingForKey = {
+          type: "keyboard",
+          mappingKey: control.mappingKey,
+          index: control.index,
+          description: control.description
+        };
+        this.windowManager.remove(keysWindow, true);
+        this.showKeyWaitOverlay(`PRESS KEY FOR: ${control.description}`);
+      });
+    });
+    
+    keysWindow.addItem("< BACK", "", () => {
+      this.windowManager.remove(keysWindow, true);
+      this.showKeybindingsMenu();
+    }, true);
+    
+    game.onMenuIn.dispatch('keyboardCustomization', keysWindow);
+  }
+
+  showGamepadCustomization() {
+    const gamepadWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
+    gamepadWindow.fontTint = 0x76fcde;
+    
+    this.windowManager.focus(gamepadWindow);
+    
+    // Define gamepad controls
+    const gamepadControls = [
+      { key: "UP", description: "UP ARROW", mappingKey: "up" },
+      { key: "DOWN", description: "DOWN ARROW", mappingKey: "down" },
+      { key: "LEFT", description: "LEFT ARROW", mappingKey: "left" },
+      { key: "RIGHT", description: "RIGHT ARROW", mappingKey: "right" },
+      { key: "CONFIRM/RIGHT", description: "CONFIRM/RIGHT", mappingKey: "a" },
+      { key: "CANCEL/DOWN", description: "CANCEL/DOWN", mappingKey: "b" },
+      { key: "START", description: "START", mappingKey: "start" },
+      { key: "SELECT", description: "SELECT", mappingKey: "select" }
+    ];
+    
+    // Add each control item
+    gamepadControls.forEach(control => {
+      const currentButton = this.getGamepadButtonDisplay(control.mappingKey);
+      gamepadWindow.addItem(control.key, currentButton, () => {
+        this.waitingForKey = {
+          type: "gamepad",
+          mappingKey: control.mappingKey,
+          description: control.description
+        };
+        this.windowManager.remove(gamepadWindow, true);
+        this.showKeyWaitOverlay(`PRESS GAMEPAD BUTTON FOR: ${control.description}`);
+      });
+    });
+    
+    gamepadWindow.addItem("< BACK", "", () => {
+      this.windowManager.remove(gamepadWindow, true);
+      this.showKeybindingsMenu();
+    }, true);
+    
+    game.onMenuIn.dispatch('gamepadCustomization', gamepadWindow);
+  }
+
+  showKeyWaitOverlay(message) {
+    // Remove any existing overlay
+    if (this.waitOverlay) {
+      this.waitOverlay.destroy();
+    }
+    
+    // Create semi-transparent overlay
+    const overlay = game.add.graphics(0, 0);
+    overlay.beginFill(0x000000, 0.7);
+    overlay.drawRect(0, 0, 192, 112);
+    overlay.endFill();
+    
+    // Create instruction text
+    const instructionText = new Text(96, 40, message);
+    instructionText.anchor.set(0.5, 0.5);
+    instructionText.fontSize = 2;
+    
+    // Create cancel text
+    const cancelText = new Text(96, 80, "PRESS ESC TO CANCEL");
+    cancelText.anchor.set(0.5, 0.5);
+    cancelText.fontSize = 2;
+    
+    // Create timeout bar
+    const timeoutBar = game.add.graphics(0, 0);
+    
+    // Store reference
+    this.waitOverlay = {
+      graphics: overlay,
+      instructionText: instructionText,
+      cancelText: cancelText,
+      keyListener: null
+    };
+    
+    // Set up keyboard listener
+    this.waitOverlay.keyListener = (event) => {
+      if (this.waitingForKey) {
+        if (event.keyCode === Phaser.KeyCode.ESC) {
+          // Cancel key binding
+          this.cancelKeyWait();
+        } else if (this.waitingForKey.type === "keyboard") {
+          // Handle keyboard key
+          this.handleKeyboardKeyPress(event.keyCode);
+        }
+      }
+    };
+    
+    // Set up gamepad listener
+    this.waitOverlay.gamepadListener = (buttonCode) => {
+      if (this.waitingForKey && this.waitingForKey.type === "gamepad") {
+        this.handleGamepadButtonPress(buttonCode);
+      }
+    };
+    
+    const originalKeyboardCallback = game.input.keyboard.onDownCallback;
+    const originalGamepadCallback = game.input.gamepad.onDownCallback;
+    
+    // Add listeners
+    game.input.keyboard.onDownCallback = this.waitOverlay.keyListener;
+    
+    // Hook into gamepad input for button detection
+    game.input.gamepad.onDownCallback = (buttonCode) => {
+      if (this.waitOverlay.gamepadListener) {
+        this.waitOverlay.gamepadListener(buttonCode);
+      }
+      
+      game.input.gamepad.onDownCallback = originalGamepadCallback;
+    };
+    
+    this.waitOverlay.originalKeyboardCallback = originalKeyboardCallback;
+    this.waitOverlay.originalGamepadCallback = originalGamepadCallback;
+  }
+
+  cancelKeyWait() {
+    if (this.waitOverlay) {
+      // Remove overlay
+      this.waitOverlay.graphics.destroy();
+      this.waitOverlay.instructionText.destroy();
+      this.waitOverlay.cancelText.destroy();
+      
+      this.waitingForKey = false;
+      
+      // Remove listeners
+      if (this.waitOverlay.originalKeyboardCallback) {
+        game.input.keyboard.onDownCallback = this.waitOverlay.originalKeyboardCallback;
+      }
+      
+      // Restore original gamepad callback
+      if (this.waitOverlay.originalGamepadCallback) {
+        game.input.gamepad.onDownCallback = this.waitOverlay.originalGamepadCallback;
+      }
+      
+      this.waitOverlay = null;
+      this.waitingForKey = null;
+    }
+    
+    // Return to appropriate menu
+    if (this.lastCustomizationMenu === "keyboard") {
+      this.showKeyboardCustomization();
+    } else if (this.lastCustomizationMenu === "gamepad") {
+      this.showGamepadCustomization();
+    }
+  }
+
+  handleKeyboardKeyPress(keyCode) {
+    if (!this.waitingForKey || this.waitingForKey.type !== "keyboard") return;
+    
+    // Check if key is already mapped
+    const isAlreadyMapped = this.isKeyAlreadyMapped(keyCode, this.waitingForKey.mappingKey, this.waitingForKey.index);
+    
+    if (isAlreadyMapped) {
+      notifications.show("KEY ALREADY MAPPED!");
+      return;
+    }
+    
+    // Map the key
+    const mapping = Account.mapping.keyboard;
+    
+    // Ensure array exists for this mapping key
+    if (!mapping[this.waitingForKey.mappingKey]) {
+      mapping[this.waitingForKey.mappingKey] = [];
+    }
+    
+    // Ensure array is long enough
+    while (mapping[this.waitingForKey.mappingKey].length <= this.waitingForKey.index) {
+      mapping[this.waitingForKey.mappingKey].push(null);
+    }
+    
+    // Set the key
+    mapping[this.waitingForKey.mappingKey][this.waitingForKey.index] = keyCode;
+    
+    // Save and update gamepad
+    saveAccount();
+    gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
+    
+    // Show confirmation
+    setTimeout(() => notifications.show(`MAPPED: ${this.getKeyName(keyCode)}`), 25);
+    
+    // Return to menu
+    this.cancelKeyWait();
+    this.showKeyboardCustomization();
+  }
+
+  handleGamepadButtonPress(buttonCode) {
+    if (!this.waitingForKey || this.waitingForKey.type !== "gamepad") return;
+    
+    // Check if button is already mapped
+    const isAlreadyMapped = this.isGamepadButtonAlreadyMapped(buttonCode, this.waitingForKey.mappingKey);
+    
+    if (isAlreadyMapped) {
+      notifications.show("BUTTON ALREADY MAPPED!");
+      return;
+    }
+    
+    // Map the button
+    Account.mapping.gamepad[this.waitingForKey.mappingKey] = buttonCode;
+    
+    // Save and update gamepad
+    saveAccount();
+    gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
+    
+    // Show confirmation
+    setTimeout(() => notifications.show(`MAPPED: ${GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`}`), 25);
+    
+    // Return to menu
+    this.cancelKeyWait();
+    this.showGamepadCustomization();
+  }
+
+  isKeyAlreadyMapped(keyCode, excludeMappingKey, excludeIndex) {
+    const mapping = Account.mapping.keyboard;
+    
+    for (const [mappingKey, keyCodes] of Object.entries(mapping)) {
+      if (Array.isArray(keyCodes)) {
+        keyCodes.forEach((code, index) => {
+          if (code === keyCode && !(mappingKey === excludeMappingKey && index === excludeIndex)) {
+            return true;
+          }
+        });
+      }
+    }
+    
+    return false;
+  }
+
+  isGamepadButtonAlreadyMapped(buttonCode, excludeMappingKey) {
+    const mapping = Account.mapping.gamepad;
+    
+    for (const [mappingKey, code] of Object.entries(mapping)) {
+      if (code === buttonCode && mappingKey !== excludeMappingKey) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  getKeyboardKeyDisplay(mappingKey, index) {
+    const mapping = Account.mapping.keyboard[mappingKey];
+    
+    if (!mapping || !Array.isArray(mapping) || index >= mapping.length || !mapping[index]) {
+      return "---";
+    }
+    
+    const keyCode = mapping[index];
+    return this.getKeyName(keyCode);
+  }
+
+  getGamepadButtonDisplay(mappingKey) {
+    const buttonCode = Account.mapping.gamepad[mappingKey];
+    
+    if (buttonCode === undefined || buttonCode === null) {
+      return "---";
+    }
+    
+    return GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`;
+  }
+
+  getKeyName(keyCode) {
+    // Find the key name from Phaser.KeyCode
+    for (const [name, code] of Object.entries(Phaser.KeyCode)) {
+      if (code === keyCode) {
+        // Convert to readable name
+        return this.formatKeyName(name);
+      }
+    }
+    
+    // If not found in Phaser.KeyCode, try to get from event
+    return `KEY ${keyCode}`;
+  }
+
+  formatKeyName(name) {
+    // Convert Phaser key code names to readable format
+    const nameMap = KEYBOARD_KEY_NAMES;
+    
+    // Check if we have a mapped name
+    if (nameMap[name]) {
+      return nameMap[name];
+    }
+    
+    // For letter keys (A-Z)
+    if (name.length === 1 && /^[A-Z]$/.test(name)) {
+      return name;
+    }
+    
+    // For number keys (0-9)
+    if (name.length === 1 && /^[0-9]$/.test(name)) {
+      return name;
+    }
+    
+    // Convert to readable format (e.g., "A" -> "A", "COMMA" -> "COMMA")
+    return name.replace(/_/g, ' ');
+  }
 
   confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
     const dialog = new DialogWindow(message, {
@@ -13581,7 +14201,7 @@ class MainMenu {
 
   update() {
     gamepad.update();
-    this.manager?.update();
+    this.windowManager?.update();
   }
 
   shutdown() {

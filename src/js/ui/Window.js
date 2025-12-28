@@ -392,19 +392,24 @@ class Window extends Phaser.Sprite {
     });
     this.onCancel.dispatch(this.selectedIndex);
   }
-
-  clear() {
+  
+  removeAll() {
     this.items.forEach(item => {
       item.text.destroy();
       if (item.valueText) item.valueText.destroy();
       if (item.toggleText) item.toggleText.destroy();
     });
+    this.items = [];
+    this.selectedIndex = 0;
+  }
+
+  clear() {
+    this.removeAll();
     if (this.scrollBarTween) {
       this.scrollBarTween.stop();
       this.scrollBarTween = null;
     }
     this.frameParts.forEach(part => part.destroy());
-    this.items = [];
     this.frameParts = [];
     this.selectedIndex = 0;
     this.scrollOffset = 0;
