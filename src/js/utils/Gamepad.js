@@ -1,5 +1,5 @@
 class Gamepad {
-  constructor(game) {
+  constructor(game, keyboardMap, gamepadMap) {
     this.game = game;
 
     // Define the control keys we want to track
@@ -34,31 +34,8 @@ class Gamepad {
     this.released.any = false;
     this.prevState.any = false;
 
-    // Keyboard mappings
-    this.keyboardMap = {
-      up: [Phaser.KeyCode.UP, Phaser.KeyCode.B],
-      down: [Phaser.KeyCode.DOWN, Phaser.KeyCode.F, Phaser.KeyCode.V],
-      left: [Phaser.KeyCode.LEFT, Phaser.KeyCode.D, Phaser.KeyCode.C],
-      right: [Phaser.KeyCode.RIGHT, Phaser.KeyCode.N],
-      a: [Phaser.KeyCode.Z, Phaser.KeyCode.K],
-      b: [Phaser.KeyCode.X, Phaser.KeyCode.J],
-      select: [Phaser.KeyCode.SHIFT, Phaser.KeyCode.TAB, Phaser.KeyCode.SPACEBAR],
-      start: [Phaser.KeyCode.ENTER, Phaser.KeyCode.ESC, Phaser.KeyCode.P]
-    };
-    
-    // Gamepad button mappings
-    this.gamepadMap = {
-      up: 12,
-      down: 13,
-      left: 14,
-      right: 15,
-      a: 1,
-      b: 0,
-      select: 8,
-      start: 9
-    };
-    
-    // TODO: Implement control mapping
+    // Initialize keyboard mapping
+    this.updateMapping(keyboardMap, gamepadMap);
     
     // Phaser signals
     this.signals = {
@@ -87,13 +64,22 @@ class Gamepad {
     this.setupTouch();
     this.setupInputDetection();
   }
+  
+  updateMapping(keyboardMap, gamepadMap) {
+    this.keyboardMap = keyboardMap || DEFAULT_KEYBOARD_MAPPING;
+    this.gamepadMap = gamepadMap || DEFAULT_GAMEPAD_MAPPING;
+    
+    // Reset gamepad for new mapping
+    this.dontUpdateThisTime = true;
+    this.setupKeyboard();
+  }
 
   setupKeyboard() {
+    // Clear any existing key captures
+    this.game.input.keyboard.clearCaptures();
+    
     // Clear any existing keyboard state
-    this.keyboardState = {};
-    this.keys.forEach(key => {
-      this.keyboardState[key] = false;
-    });
+    this.releaseAll();
   
     // Create reverse mapping for quick lookup
     this.keyCodeToAction = {};
@@ -118,7 +104,6 @@ class Gamepad {
       const action = this.keyCodeToAction[event.keyCode];
       if (action) {
         this.held[action] = true;
-        this.keyboardState[action] = true;
       }
       this.detectInputSource('keyboard');
     };
@@ -127,9 +112,10 @@ class Gamepad {
       const action = this.keyCodeToAction[event.keyCode];
       if (action) {
         this.held[action] = false;
-        this.keyboardState[action] = false;
       }
     };
+    
+    this.update();
   }
 
   setupGamepad() {
@@ -432,7 +418,7 @@ class Gamepad {
     this.held[key] = true;
     this.held.any = true;
   }
-
+  
   isDirectionPressed() {
     return this.held.up || this.held.down || this.held.left || this.held.right;
   }

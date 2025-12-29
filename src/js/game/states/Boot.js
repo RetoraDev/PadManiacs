@@ -29,7 +29,7 @@ class Boot {
     }
   }
   create() {
-    gamepad = new Gamepad(game);
+    gamepad = new Gamepad(game, Account.mapping?.keyboard, Account.mapping?.gamepad);
 
     notifications = new NotificationSystem();
     
@@ -98,8 +98,8 @@ class Boot {
         url: "ui/lobby_overlay.png"
       },
       {
-        key: "ui_navigation_hint_keyboard",
-        url: "ui/navigation_hint_keyboard.png",
+        key: "ui_navigation_hint_screens",
+        url: "ui/navigation_hint_screens.png",
         type: "spritesheet",
         frameWidth: 192,
         frameHeight: 112
@@ -107,13 +107,6 @@ class Boot {
       {
         key: "ui_glitch_animation",
         url: "ui/glitch_animation.png",
-        type: "spritesheet",
-        frameWidth: 192,
-        frameHeight: 112
-      },
-      {
-        key: "ui_navigation_hint_gamepad",
-        url: "ui/navigation_hint_gamepad.png",
         type: "spritesheet",
         frameWidth: 192,
         frameHeight: 112
