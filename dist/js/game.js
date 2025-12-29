@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.8 dev
- * Build: 12/29/2025, 11:36:49 AM
+ * Build: 12/29/2025, 12:32:49 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -4664,7 +4664,7 @@ class Window extends Phaser.Sprite {
   update() {
     // Calculate visible items based on window height and item spacing
     const availableHeight = this.getVisibleHeight(); // Subtract padding
-    this.visibleItems = Math.floor(availableHeight / 8);// Each item is 8px tall
+    this.visibleItems = Math.floor(availableHeight / 8); // Each item is 8px tall
     
     // Ensure we don't show more items than we have
     this.visibleItems = Math.min(this.visibleItems, this.items.length);
@@ -4845,6 +4845,12 @@ class Window extends Phaser.Sprite {
       if (item.callback) item.callback(item.state);
       this.playNavSound();
     }
+  }
+  
+  selectIndex(index) {
+    this.selectedIndex = index;
+    this.adjustScroll();
+    this.updateScrollBar();
   }
 
   playNavSound() {
@@ -13696,6 +13702,7 @@ class MainMenu {
     });
     
     settingsWindow.addItem("RESET TO DEFAULTS", "", () => {
+      this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(
         "Reset all keybindings to default settings?",
         () => {
@@ -13703,8 +13710,8 @@ class MainMenu {
           Account.mapping.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
           saveAccount();
           gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
-          notifications.show("Keybindings reset!");
           this.showKeybindingsMenu();
+          notifications.show("Keybindings reset!");
         },
         () => {
           this.showKeybindingsMenu();
@@ -13722,9 +13729,11 @@ class MainMenu {
     game.onMenuIn.dispatch('keybindings', settingsWindow);
   }
 
-  showKeyboardCustomization() {
+  showKeyboardCustomization(index = 0) {
     const keysWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     keysWindow.fontTint = 0x76fcde;
+    
+    keysWindow.selectIndex(index);
     
     this.windowManager.focus(keysWindow);
     
@@ -13756,7 +13765,8 @@ class MainMenu {
           type: "keyboard",
           mappingKey: control.mappingKey,
           index: control.index,
-          description: control.description
+          description: control.description,
+          selected: keysWindow.selectedIndex
         };
         this.windowManager.remove(keysWindow, true);
         this.showKeyWaitOverlay(`PRESS KEY FOR: ${control.description}`);
@@ -13771,9 +13781,11 @@ class MainMenu {
     game.onMenuIn.dispatch('keyboardCustomization', keysWindow);
   }
 
-  showGamepadCustomization() {
+  showGamepadCustomization(index = 0) {
     const gamepadWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     gamepadWindow.fontTint = 0x76fcde;
+    
+    gamepadWindow.selectIndex(index);
     
     this.windowManager.focus(gamepadWindow);
     
@@ -13796,7 +13808,8 @@ class MainMenu {
         this.waitingForKey = {
           type: "gamepad",
           mappingKey: control.mappingKey,
-          description: control.description
+          description: control.description,
+          selected: gamepadWindow.selectedIndex
         };
         this.windowManager.remove(gamepadWindow, true);
         this.showKeyWaitOverlay(`PRESS GAMEPAD BUTTON FOR: ${control.description}`);
@@ -13845,7 +13858,7 @@ class MainMenu {
     const progressBar = game.add.graphics(0, 0);
 
     // Variables for tracking ESC hold
-    const holdDuration = 3000; // 3 seconds
+    const holdDuration = 1000; // 1 second
     let escHoldStartTime = 0;
     let escIsHeld = false;
     let progressTween = null;
@@ -14044,9 +14057,9 @@ class MainMenu {
 
       // Return to appropriate menu
       if (this.lastCustomizationMenu === "keyboard") {
-        this.showKeyboardCustomization();
+        this.showKeyboardCustomization(this.waitingForKey.selected);
       } else if (this.lastCustomizationMenu === "gamepad") {
-        this.showGamepadCustomization();
+        this.showGamepadCustomization(this.waitingForKey.selected);
       }
       
       this.waitOverlay = null;
@@ -14055,7 +14068,7 @@ class MainMenu {
     }
   }
 
-  handleKeyboardKeyPress(keyCode) {
+  handleKeyboardKeyPress(keyCode) { 
     if (!this.waitingForKey || this.waitingForKey.type !== "keyboard") return;
     
     // Check if key is ESC (should be handled by cancelKeyWait)

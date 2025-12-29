@@ -181,7 +181,7 @@ class Window extends Phaser.Sprite {
   update() {
     // Calculate visible items based on window height and item spacing
     const availableHeight = this.getVisibleHeight(); // Subtract padding
-    this.visibleItems = Math.floor(availableHeight / 8);// Each item is 8px tall
+    this.visibleItems = Math.floor(availableHeight / 8); // Each item is 8px tall
     
     // Ensure we don't show more items than we have
     this.visibleItems = Math.min(this.visibleItems, this.items.length);
@@ -362,6 +362,12 @@ class Window extends Phaser.Sprite {
       if (item.callback) item.callback(item.state);
       this.playNavSound();
     }
+  }
+  
+  selectIndex(index) {
+    this.selectedIndex = index;
+    this.adjustScroll();
+    this.updateScrollBar();
   }
 
   playNavSound() {
