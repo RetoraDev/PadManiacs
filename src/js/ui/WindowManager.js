@@ -47,6 +47,7 @@ class WindowManager {
       if (destroy) {
         window.destroy();
       }
+      
       return true;
     }
     return false;
@@ -86,8 +87,8 @@ class WindowManager {
 
   update() {
     // Only process input if we have a focused window
-    if (this.focusedWindow) {
-      // Handle navigation - only trigger on new presses (not holds)
+    if (this.focusedWindow && !this.focusedWindow.disposed) {
+      // Handle navigation
       const upPressed = gamepad.pressed.up && !this.lastUp;
       const downPressed = gamepad.pressed.down && !this.lastDown;
       const leftPressed = gamepad.pressed.left && !this.lastDown;

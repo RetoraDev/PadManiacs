@@ -239,10 +239,10 @@ body {
     opacity: 0.4;
   }
   .squareBtn {
-    width: 64px;
+    width: 56px;
     height: 52px;
   }
   #controller_rhythm_pad {
-    top: 132px;
+    top: 106px;
   }
 }

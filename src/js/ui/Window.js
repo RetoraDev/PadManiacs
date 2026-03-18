@@ -415,6 +415,12 @@ class Window extends Phaser.Sprite {
       this.scrollBarTween.stop();
       this.scrollBarTween = null;
     }
+    this.onSelect.dispose();
+    this.onConfirm.dispose();
+    this.onCancel.dispose();
+    this.confirm = () => {};
+    this.cancel = () => {};
+    this.navigate = () => {};
     this.frameParts.forEach(part => part.destroy());
     this.frameParts = [];
     this.selectedIndex = 0;
@@ -431,6 +437,7 @@ class Window extends Phaser.Sprite {
 
   destroy() {
     this.clear();
+    this.disposed = true;
     super.destroy();
   }
 }

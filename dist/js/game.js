@@ -1,19 +1,19 @@
 /**
  * PadManiacs Rhythm Game
- * Copyright (C) RETORA 2025
+ * Copyright (C) RETORA 2026
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v0.0.8 dev
- * Build: 12/30/2025, 2:42:32 PM
- * Platform: Development
+ * Version: v0.0.8
+ * Build: 3/18/2026, 12:40:41 PM
+ * Platform: Web
  * Debug: false
  * Minified: false
  */
 
-const COPYRIGHT = "(C) RETORA 2025";
+const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v0.0.8 dev";
+const VERSION = "v0.0.8";
 
 window.DEBUG = false;
 
@@ -337,7 +337,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -4898,6 +4898,12 @@ class Window extends Phaser.Sprite {
       this.scrollBarTween.stop();
       this.scrollBarTween = null;
     }
+    this.onSelect.dispose();
+    this.onConfirm.dispose();
+    this.onCancel.dispose();
+    this.confirm = () => {};
+    this.cancel = () => {};
+    this.navigate = () => {};
     this.frameParts.forEach(part => part.destroy());
     this.frameParts = [];
     this.selectedIndex = 0;
@@ -4914,6 +4920,7 @@ class Window extends Phaser.Sprite {
 
   destroy() {
     this.clear();
+    this.disposed = true;
     super.destroy();
   }
 }
@@ -4967,6 +4974,7 @@ class WindowManager {
       if (destroy) {
         window.destroy();
       }
+      
       return true;
     }
     return false;
@@ -5006,8 +5014,8 @@ class WindowManager {
 
   update() {
     // Only process input if we have a focused window
-    if (this.focusedWindow) {
-      // Handle navigation - only trigger on new presses (not holds)
+    if (this.focusedWindow && !this.focusedWindow.disposed) {
+      // Handle navigation
       const upPressed = gamepad.pressed.up && !this.lastUp;
       const downPressed = gamepad.pressed.down && !this.lastDown;
       const leftPressed = gamepad.pressed.left && !this.lastDown;
@@ -6679,7 +6687,7 @@ class NotificationSystem {
     this.notificationTexts = null;
     
     this.restrictedStates = new Set(['Title', 'Play', 'Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
-    this.allowedStates = new Set(['MainMenu', 'SongSelect', 'Results', 'CharacterSelect', 'Jukebox', 'Editor', 'AchievementsMenu', 'StatsMenu']);
+    this.allowedStates = new Set(['MainMenu', 'Settings', 'Keybindings ', 'SongSelect', 'Results', 'CharacterSelect', 'Jukebox', 'Editor', 'AchievementsMenu', 'StatsMenu']);
     
     this.setupStateChangeHandling();
   }
@@ -11949,6 +11957,9 @@ class Boot {
     game.state.add("LoadSongFolder", LoadSongFolder);
     game.state.add("Title", Title);
     game.state.add("MainMenu", MainMenu);
+    game.state.add("Addons", Addons);
+    game.state.add("Settings", Settings);
+    game.state.add("Keybindings", Keybindings);
     game.state.add("SongSelect", SongSelect);
     game.state.add("CharacterSelect", CharacterSelect);
     game.state.add("AchievementsMenu", AchievementsMenu);
@@ -12980,42 +12991,58 @@ class LoadSongFolder {
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
-    
+
     this.background = new BackgroundGradient();
     this.lines = new FuturisticLines();
     this.logo = new Logo();
-    
+
     this.inputInstructionText = new Text(game.width / 2, 80, "PRESS ANY KEY");
     this.inputInstructionText.anchor.x = 0.5;
     game.add.tween(this.inputInstructionText).to({ alpha: 0 }, 500, "Linear", true, 0, -1).yoyo(true);
-    
+
     this.text = game.add.sprite(0, 0);
-    
+
     this.creditText = new Text(2, 110, COPYRIGHT, this.text);
     this.creditText.anchor.y = 1;
-    
+
     this.creditText = new Text(190, 110, VERSION, this.text);
     this.creditText.anchor.set(1);
-    
+
     if (!backgroundMusic) {
       backgroundMusic = new BackgroundMusic();
     }
     backgroundMusic.playLastSong();
-    
+
     this.introEnded = false;
-    
-    this.logo.intro(() => this.introEnded = true);
+
+    this.logo.intro(() => (this.introEnded = true));
 
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
+  resetKeybindings() {
+    Account.mapping.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
+    Account.mapping.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
+    saveAccount();
+    gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
+    notifications.show("Keybindings reset!");
+  }
   update() {
     gamepad.update();
-    
+
+    let heldButtons = Object.values(gamepad.held).reduce((acc, held) => (held ? acc + 1 : acc));
+
     if (this.introEnded && !this.outroStarted && gamepad.pressed.any) {
       this.outroStarted = true;
       this.text.alpha = 0;
-      this.logo.outro(() => game.state.start('MainMenu'));
+      this.logo.outro(() => {
+        if (heldButtons >= 3) {
+          this.resetKeybindings();
+          gamepad.vibrate(100);
+        } 
+        
+        game.state.start("MainMenu");
+      });
     }
   }
 }
@@ -13136,7 +13163,7 @@ class MainMenu {
 
   showFeatureRequestDialog() {
     this.confirmDialog(
-      "Thanks for playing!\n\n" +
+      "Thank you for playing!\n\n" +
       "I'm a solo developer, so hearing your ideas directly is incredibly valuable.\n\n" +
       "Got any feature requests or suggestions?\n" +
       "What would you like to see in the game?\n",
@@ -13261,6 +13288,388 @@ class MainMenu {
     carousel.onCancel.add(() => this.startGame());
   }
 
+  showExtras() {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+      align: 'left',
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+    
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+      carousel.addItem("Addon Manager", () => this.showAddonManager());
+    }
+    carousel.addItem("Jukebox", () => this.startJukebox());
+    carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
+    carousel.addItem("Achievements", () => this.showAchievements());
+    carousel.addItem("Player Stats", () => this.showStats());
+    carousel.addItem("Feedback", () => this.showFeedback());
+    carousel.addItem("Comunity", () => this.showCommunity());
+    carousel.addItem("Credits", () => this.showCredits());
+    
+    game.onMenuIn.dispatch('extras', carousel);
+    carousel.addItem("< Back", () => this.showHomeMenu());
+    carousel.onCancel.add(() => this.showHomeMenu());
+  }
+
+  showFeedback() {
+    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+      align: 'left',
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+    
+    const openLink = url => {
+      openExternalUrl(url);
+      this.showFeedback();
+    };
+    
+    carousel.addItem("Leave A Review", () => openLink(FEEDBACK_REVIEW_URL));
+    carousel.addItem("Feature Request", () => openLink(FEEDBACK_FEATURE_REQUEST_URL));
+    carousel.addItem("Bug Report", () => openLink(FEEDBACK_BUG_REPORT_URL));
+    
+    game.onMenuIn.dispatch('feedback', carousel);
+    carousel.addItem("< Back", () => this.showExtras());
+    carousel.onCancel.add(() => this.showExtras());
+  }
+  
+  showCommunity() {
+    openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+    
+    Account.stats.wentToCommunity = true;
+    saveAccount();
+    
+    this.menu();
+  }
+  
+  showAddonManager() {
+    game.state.start("Addons");
+  }
+  
+  showSettings() {
+    game.state.start("Settings");
+  }
+  
+  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+    const dialog = new DialogWindow(message, {
+      buttons: [confirmText, cancelText]
+    });
+    
+    dialog.onConfirm.add((buttonIndex, buttonText) => {
+      if (buttonIndex === 0) {
+        onConfirm?.();
+      } else {
+        onCancel?.();
+      }
+      dialog.destroy();
+    });
+    
+    dialog.onCancel.add(() => {
+      onCancel?.();
+      dialog.destroy();
+    });
+    
+    return dialog;
+  }
+
+  confirmExit() {
+    this.confirmDialog(
+      "Are you sure you want to exit the game?",
+      () => {
+        switch (CURRENT_ENVIRONMENT) {
+          case ENVIRONMENT.CORDOVA:
+            navigator.app.exitApp();
+            break;
+          case ENVIRONMENT.NWJS:
+            nw?.App?.quit?.();
+            break;
+        }
+      },
+      () => this.showHomeMenu(),
+      "Exit",
+      "Cancel"
+    );
+  }
+
+  freePlay() {
+    game.state.start("SongSelect", true, false, window.localSongs, null, false, "local");
+  }
+
+  startOffsetAssistant() {
+    const offsetAssistant = new OffsetAssistant(game);
+    game.add.existing(offsetAssistant);
+  }
+
+  loadExternalSongs() {
+    game.state.start("LoadExternalSongs");
+  }
+
+  loadSingleSong() {
+    game.state.start("LoadSongFolder");
+  }
+
+  startJukebox() {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+      if (!window.externalSongs) {
+        this.confirmDialog(
+          "Load extra songs from external storage?",
+          () => {
+            game.state.start("LoadExternalSongs", true, false, "Jukebox", [undefined, undefined]);
+          },
+          () => {
+            game.state.start("Jukebox");
+          },
+          "Load Songs",
+          "Skip"
+        );
+      } else {
+        game.state.start("Jukebox");
+      }
+    } else {
+      game.state.start("Jukebox");
+    }
+  }
+  
+  openEditor() {
+    game.state.start("Editor", true, false, window.editorSongData || null);
+  }
+
+  showAchievements() {
+    game.state.start("AchievementsMenu");
+  }
+
+  showStats() {
+    game.state.start("StatsMenu");
+  }
+
+  showCredits() {
+    game.state.start("Credits", true, false, "MainMenu");
+  }
+
+  update() {
+    gamepad.update();
+    this.windowManager?.update();
+  }
+
+  shutdown() {
+    if (backgroundMusic && !this.keepBackgroundMusic) {
+      backgroundMusic.destroy();
+      backgroundMusic = null;
+    }
+  }
+}
+
+class Addons {
+  create() {
+    game.camera.fadeIn(0x000000);
+
+    this.futuristicLines = new FuturisticLines();
+    this.backgroundGradient = new BackgroundGradient();
+    this.navigationHint = new NavigationHint(0);
+    
+    this.windowManager = new WindowManager();
+    
+    gamepad.releaseAll();
+    
+    this.showAddonManager();
+    
+    // Execute addon behaviors for this state
+    addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+  
+  update() {
+    gamepad.update();
+    this.windowManager.update();
+  }
+  
+  showAddonManager() {
+    // TODO: Clean addon manager interface and logic split in methods here 
+    
+    const detailText = new Text(4, 4, "");
+    
+    const preview = game.add.sprite(112, 4);
+      
+    const showInstalledAddons = () => {
+      const addons = addonManager.getAddonList();
+      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
+        align: 'left',
+        bgcolor: 'brown',
+        fgcolor: '#ffffff',
+        animate: true,
+        crop: false
+      });
+      
+      if (addons.length === 0) {
+        carousel.addItem("No addons installed", () => {});
+      } else {
+        addons.forEach(addon => {
+          const statusColor = addon.isHibernating ? "gray" : (addon.isEnabled ? "#00cc00" : "brown")
+          carousel.addItem(
+            `${addon.name} v${addon.version}`,
+            () => showAddonDetails(addon),
+            { addon, bgcolor: statusColor }
+          );
+        });
+        
+        carousel.onSelect.add((index, item) => {
+          if (item.data && item.data.addon) {
+            previewAddon(item.data.addon);
+          }
+        });
+        
+        previewAddon(addons[0]);
+      }
+      
+      game.onMenuIn.dispatch('addons', carousel);
+      
+      carousel.addItem("< Back", () => applyChanges());
+      carousel.onCancel.add(() => applyChanges());
+    };
+    
+    let needsReload = false;
+    
+    const previewAddon = (addon) => {
+      detailText.write(
+        `${addon.name}\n` +
+        `V${addon.version}\n` +
+        `By ${addon.author}\n` +
+        `BEHAVIORS:${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
+        `ASSETS:${addon.assets ? addon.assets.length : 0}\n\n` +
+        `${addon.description}\n` +
+        'STATE: ' + 
+        (addon.isHibernating ?
+          'Hybernating'
+          :
+        (addon.isEnabled ?
+          'Enabled' : 'Disabled')) + '\n'
+      ).wrap(112);
+      if (addon.icon) {
+        this.previewImg.src = addon.icon;
+        this.previewImg.onload = () => {
+          this.previewCtx.drawImage(this.previewImg, 0, 0, 50, 50);
+          preview.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
+        };
+      }
+    }
+    
+    const showAddonDetails = (addon) => {
+      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
+        align: 'left',
+        bgcolor: '#9b59b6',
+        fgcolor: '#ffffff',
+        animate: true,
+        crop: false
+      });
+      
+      if (addon.isHibernating) {
+        carousel.addItem("Wake Addon", () => {
+          addonManager.wakeAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+      } else if (addon.isEnabled) {
+        carousel.addItem("Disable Addon", () => {
+          addonManager.disableAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+        carousel.addItem("Hibernate Addon", () => {
+          addonManager.hibernateAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+      } else {
+        carousel.addItem("Enable Addon", () => {
+          addonManager.enableAddon(addon.id);
+          needsReload = true;
+          showInstalledAddons();
+        });
+      }
+      
+      carousel.addItem("Uninstall Addon", () => this.confirmDialog("The addon folder will be removed. Continue?", () => {
+        addonManager.uninstallAddon(addon.id);
+        needsReload = true;
+        showInstalledAddons();
+      }, () => showInstalledAddons()));
+      
+      game.onMenuIn.dispatch('addonDetails', carousel);
+      
+      carousel.addItem("< Back", () => showInstalledAddons());
+      carousel.onCancel.add(() => showInstalledAddons());
+    };
+    
+    const applyChanges = () => {
+      if (needsReload || addonManager.needsReload()) {
+        this.confirmDialog("Reload required. Restart now?", () => {
+          location.reload();
+        }, () => {
+          preview.destroy();
+          detailText.destroy();
+          this.showMainMenu();
+        });
+      } else {
+        preview.destroy();
+        detailText.destroy();
+        this.showMainMenu();
+      }
+    };
+    
+    showInstalledAddons();
+  }
+  
+  showMainMenu() {
+    game.state.start("MainMenu");
+  }
+  
+  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+    const dialog = new DialogWindow(message, {
+      buttons: [confirmText, cancelText]
+    });
+    
+    dialog.onConfirm.add((buttonIndex, buttonText) => {
+      if (buttonIndex === 0) {
+        onConfirm?.();
+      } else {
+        onCancel?.();
+      }
+      dialog.destroy();
+    });
+    
+    dialog.onCancel.add(() => {
+      onCancel?.();
+      dialog.destroy();
+    });
+    
+    return dialog;
+  }
+}
+
+class Settings {
+  create() {
+    game.camera.fadeIn(0x000000);
+
+    this.futuristicLines = new FuturisticLines();
+    this.backgroundGradient = new BackgroundGradient();
+    this.navigationHint = new NavigationHint(0);
+    
+    this.windowManager = new WindowManager();
+    
+    gamepad.releaseAll();
+    
+    this.showSettings();
+    
+    // Execute addon behaviors for this state
+    addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+  
+  update() {
+    gamepad.update();
+    this.windowManager.update();
+  }
+  
   showSettings() {
     const settingsWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     settingsWindow.fontTint = 0x76fcde;
@@ -13474,7 +13883,6 @@ class MainMenu {
     
     // Configure keybindings
     settingsWindow.addItem("Configure keybindings", ">", () => {
-      this.windowManager.remove(settingsWindow, true);
       this.showKeybindingsMenu()
     });
     
@@ -13489,200 +13897,102 @@ class MainMenu {
       if (restartNeeded) {
         this.confirmRestart();
       } else {
-        this.showHomeMenu();
+        this.showMainMenu();
       }
     }, true);
   }
-
-  showExtras() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
-      align: 'left',
-      bgcolor: 'brown',
-      fgcolor: '#ffffff',
-      animate: true,
-      crop: false
-    });
-    
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
-      carousel.addItem("Addon Manager", () => this.showAddonManager());
-    }
-    carousel.addItem("Jukebox", () => this.startJukebox());
-    carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
-    carousel.addItem("Achievements", () => this.showAchievements());
-    carousel.addItem("Player Stats", () => this.showStats());
-    carousel.addItem("Feedback", () => this.showFeedback());
-    carousel.addItem("Comunity", () => this.showCommunity());
-    carousel.addItem("Credits", () => this.showCredits());
-    
-    game.onMenuIn.dispatch('extras', carousel);
-    carousel.addItem("< Back", () => this.showHomeMenu());
-    carousel.onCancel.add(() => this.showHomeMenu());
-  }
-
-  showFeedback() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
-      align: 'left',
-      bgcolor: 'brown',
-      fgcolor: '#ffffff',
-      animate: true,
-      crop: false
-    });
-    
-    const openLink = url => {
-      openExternalUrl(url);
-      this.showFeedback();
-    };
-    
-    carousel.addItem("Leave A Review", () => openLink(FEEDBACK_REVIEW_URL));
-    carousel.addItem("Feature Request", () => openLink(FEEDBACK_FEATURE_REQUEST_URL));
-    carousel.addItem("Bug Report", () => openLink(FEEDBACK_BUG_REPORT_URL));
-    
-    game.onMenuIn.dispatch('feedback', carousel);
-    carousel.addItem("< Back", () => this.showExtras());
-    carousel.onCancel.add(() => this.showExtras());
+  
+  showMainMenu() {
+    game.state.start("MainMenu");
   }
   
-  showCommunity() {
-    openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+  showKeybindingsMenu() {
+    game.state.start("Keybindings");
+  }
+
+  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+    const dialog = new DialogWindow(message, {
+      buttons: [confirmText, cancelText]
+    });
     
-    Account.stats.wentToCommunity = true;
-    saveAccount();
+    dialog.onConfirm.add((buttonIndex, buttonText) => {
+      if (buttonIndex === 0) {
+        onConfirm?.();
+      } else {
+        onCancel?.();
+      }
+      dialog.destroy();
+    });
     
-    this.menu();
+    dialog.onCancel.add(() => {
+      onCancel?.();
+      dialog.destroy();
+    });
+    
+    return dialog;
+  }
+
+  confirmEraseHighscores() {
+    this.confirmDialog(
+      "This will permanently erase all your high scores.\nThis action cannot be undone!\n\nAre you sure?",
+      () => {
+        Account.highScores = {};
+        saveAccount();
+        notifications.show("High scores erased!");
+        this.showSettings();
+      },
+      () => this.showSettings(),
+      "Erase",
+      "Cancel"
+    );
+  }
+
+  confirmRestoreDefaults() {
+    this.confirmDialog(
+      "All settings will be restored to their default values.\nThe game will need to restart.\n\nContinue?",
+      () => {
+        Account.settings = DEFAULT_ACCOUNT.settings;
+        saveAccount();
+        window.location.reload();
+      },
+      () => this.showSettings(),
+      "Restore",
+      "Cancel"
+    );
+  }
+
+  confirmRestart() {
+    this.confirmDialog(
+      "Settings changed require a restart to take effect.\nRestart now?",
+      () => location.reload(),
+      () => this.showMainMenu(),
+      "Restart",
+      "Later"
+    );
+  }
+}
+
+class Keybindings {
+  create() {
+    game.camera.fadeIn(0x000000);
+
+    this.futuristicLines = new FuturisticLines();
+    this.backgroundGradient = new BackgroundGradient();
+    this.navigationHint = new NavigationHint(0);
+    
+    this.windowManager = new WindowManager();
+    
+    gamepad.releaseAll();
+    
+    this.showKeybindingsMenu();
+    
+    // Execute addon behaviors for this state
+    addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
-  showAddonManager() {
-    // TODO: Clean addon manager interface and logic 
-    const detailText = new Text(4, 4, "");
-    
-    const preview = game.add.sprite(112, 4);
-      
-    const showInstalledAddons = () => {
-      const addons = addonManager.getAddonList();
-      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
-        align: 'left',
-        bgcolor: 'brown',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      
-      if (addons.length === 0) {
-        carousel.addItem("No addons installed", () => {});
-      } else {
-        addons.forEach(addon => {
-          const statusColor = addon.isHibernating ? "gray" : (addon.isEnabled ? "#00cc00" : "brown")
-          carousel.addItem(
-            `${addon.name} v${addon.version}`,
-            () => showAddonDetails(addon),
-            { addon, bgcolor: statusColor }
-          );
-        });
-        
-        carousel.onSelect.add((index, item) => {
-          if (item.data && item.data.addon) {
-            previewAddon(item.data.addon);
-          }
-        });
-        
-        previewAddon(addons[0]);
-      }
-      
-      game.onMenuIn.dispatch('addons', carousel);
-      
-      carousel.addItem("< Back", () => applyChanges());
-      carousel.onCancel.add(() => applyChanges());
-    };
-    
-    let needsReload = false;
-    
-    const previewAddon = (addon) => {
-      detailText.write(
-        `${addon.name}\n` +
-        `V${addon.version}\n` +
-        `By ${addon.author}\n` +
-        `BEHAVIORS:${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
-        `ASSETS:${addon.assets ? addon.assets.length : 0}\n\n` +
-        `${addon.description}\n` +
-        'STATE: ' + 
-        (addon.isHibernating ?
-          'Hybernating'
-          :
-        (addon.isEnabled ?
-          'Enabled' : 'Disabled')) + '\n'
-      ).wrap(112);
-      if (addon.icon) {
-        this.previewImg.src = addon.icon;
-        this.previewImg.onload = () => {
-          this.previewCtx.drawImage(this.previewImg, 0, 0, 50, 50);
-          preview.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
-        };
-      }
-    }
-    
-    const showAddonDetails = (addon) => {
-      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
-        align: 'left',
-        bgcolor: '#9b59b6',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      
-      if (addon.isHibernating) {
-        carousel.addItem("Wake Addon", () => {
-          addonManager.wakeAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-      } else if (addon.isEnabled) {
-        carousel.addItem("Disable Addon", () => {
-          addonManager.disableAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-        carousel.addItem("Hibernate Addon", () => {
-          addonManager.hibernateAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-      } else {
-        carousel.addItem("Enable Addon", () => {
-          addonManager.enableAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-      }
-      
-      carousel.addItem("Uninstall Addon", () => this.confirmDialog("The addon folder will be removed. Continue?", () => {
-        addonManager.uninstallAddon(addon.id);
-        needsReload = true;
-        showInstalledAddons();
-      }, () => showInstalledAddons()));
-      
-      game.onMenuIn.dispatch('addonDetails', carousel);
-      
-      carousel.addItem("< Back", () => showInstalledAddons());
-      carousel.onCancel.add(() => showInstalledAddons());
-    };
-    
-    const applyChanges = () => {
-      if (needsReload || addonManager.needsReload()) {
-        this.confirmDialog("Reload required. Restart now?", () => {
-          location.reload();
-        }, () => {
-          preview.destroy();
-          detailText.destroy();
-          this.menu();
-        });
-      } else {
-        preview.destroy();
-        detailText.destroy();
-        this.menu();
-      }
-    };
-    
-    showInstalledAddons();
+  update() {
+    gamepad.update();
+    this.windowManager.update();
   }
   
   showKeybindingsMenu() {
@@ -13710,7 +14020,7 @@ class MainMenu {
           Account.mapping.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
           saveAccount();
           gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
-          this.showKeybindingsMenu();
+          game.state.restart();
           notifications.show("Keybindings reset!");
         },
         () => {
@@ -13722,8 +14032,7 @@ class MainMenu {
     });
     
     settingsWindow.addItem("< BACK", "", () => {
-      this.windowManager.remove(settingsWindow, true);
-      this.showSettings();
+      game.state.start("Settings");
     }, true);
     
     game.onMenuIn.dispatch('keybindings', settingsWindow);
@@ -13775,6 +14084,7 @@ class MainMenu {
     
     keysWindow.addItem("< BACK", "", () => {
       this.windowManager.remove(keysWindow, true);
+      this.windowManager.unfocus();
       this.showKeybindingsMenu();
     }, true);
     
@@ -13818,6 +14128,7 @@ class MainMenu {
     
     gamepadWindow.addItem("< BACK", "", () => {
       this.windowManager.remove(gamepadWindow, true);
+      this.windowManager.unfocus();
       this.showKeybindingsMenu();
     }, true);
     
@@ -14178,7 +14489,7 @@ class MainMenu {
     // Convert to readable format (e.g., "A" -> "A", "COMMA" -> "COMMA")
     return name.replace(/_/g, ' ');
   }
-
+  
   confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
@@ -14199,131 +14510,6 @@ class MainMenu {
     });
     
     return dialog;
-  }
-
-  confirmExit() {
-    this.confirmDialog(
-      "Are you sure you want to exit the game?",
-      () => {
-        switch (CURRENT_ENVIRONMENT) {
-          case ENVIRONMENT.CORDOVA:
-            navigator.app.exitApp();
-            break;
-          case ENVIRONMENT.NWJS:
-            nw?.App?.quit?.();
-            break;
-        }
-      },
-      () => this.showHomeMenu(),
-      "Exit",
-      "Cancel"
-    );
-  }
-
-  confirmEraseHighscores() {
-    this.confirmDialog(
-      "This will permanently erase all your high scores.\nThis action cannot be undone!\n\nAre you sure?",
-      () => {
-        Account.highScores = {};
-        saveAccount();
-        notifications.show("High scores erased!");
-        this.showSettings();
-      },
-      () => this.showSettings(),
-      "Erase",
-      "Cancel"
-    );
-  }
-
-  confirmRestoreDefaults() {
-    this.confirmDialog(
-      "All settings will be restored to their default values.\nThe game will need to restart.\n\nContinue?",
-      () => {
-        Account.settings = DEFAULT_ACCOUNT.settings;
-        saveAccount();
-        window.location.reload();
-      },
-      () => this.showSettings(),
-      "Restore",
-      "Cancel"
-    );
-  }
-
-  confirmRestart() {
-    this.confirmDialog(
-      "Settings changed require a restart to take effect.\nRestart now?",
-      () => location.reload(),
-      () => this.showHomeMenu(),
-      "Restart",
-      "Later"
-    );
-  }
-
-  freePlay() {
-    game.state.start("SongSelect", true, false, window.localSongs, null, false, "local");
-  }
-
-  startOffsetAssistant() {
-    const offsetAssistant = new OffsetAssistant(game);
-    game.add.existing(offsetAssistant);
-  }
-
-  loadExternalSongs() {
-    game.state.start("LoadExternalSongs");
-  }
-
-  loadSingleSong() {
-    game.state.start("LoadSongFolder");
-  }
-
-  startJukebox() {
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
-      if (!window.externalSongs) {
-        this.confirmDialog(
-          "Load extra songs from external storage?",
-          () => {
-            game.state.start("LoadExternalSongs", true, false, "Jukebox", [undefined, undefined]);
-          },
-          () => {
-            game.state.start("Jukebox");
-          },
-          "Load Songs",
-          "Skip"
-        );
-      } else {
-        game.state.start("Jukebox");
-      }
-    } else {
-      game.state.start("Jukebox");
-    }
-  }
-  
-  openEditor() {
-    game.state.start("Editor", true, false, window.editorSongData || null);
-  }
-
-  showAchievements() {
-    game.state.start("AchievementsMenu");
-  }
-
-  showStats() {
-    game.state.start("StatsMenu");
-  }
-
-  showCredits() {
-    game.state.start("Credits", true, false, "MainMenu");
-  }
-
-  update() {
-    gamepad.update();
-    this.windowManager?.update();
-  }
-
-  shutdown() {
-    if (backgroundMusic && !this.keepBackgroundMusic) {
-      backgroundMusic.destroy();
-      backgroundMusic = null;
-    }
   }
 }
 

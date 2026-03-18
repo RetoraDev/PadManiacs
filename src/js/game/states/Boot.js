@@ -50,6 +50,9 @@ class Boot {
     game.state.add("LoadSongFolder", LoadSongFolder);
     game.state.add("Title", Title);
     game.state.add("MainMenu", MainMenu);
+    game.state.add("Addons", Addons);
+    game.state.add("Settings", Settings);
+    game.state.add("Keybindings", Keybindings);
     game.state.add("SongSelect", SongSelect);
     game.state.add("CharacterSelect", CharacterSelect);
     game.state.add("AchievementsMenu", AchievementsMenu);

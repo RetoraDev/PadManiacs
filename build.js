@@ -104,6 +104,9 @@ class BuildSystem {
       'js/game/states/LoadSongFolder.js',
       'js/game/states/Title.js',
       'js/game/states/MainMenu.js',
+      'js/game/states/Addons.js',
+      'js/game/states/Settings.js',
+      'js/game/states/Keybindings.js',
       'js/game/states/SongSelect.js',
       'js/game/states/CharacterSelect.js',
       'js/game/states/AchievementsMenu.js',
@@ -898,21 +901,23 @@ Minified: ${this.config.flags.minify}
       await this.buildBaseFiles('web');
       
       // Then build each platform with their specific environment
-      await this.buildWeb();
-      await this.buildNWJS();
       await this.buildAndroid();
+      await this.buildNWJS();
+      await this.buildWeb();
     } else if (platform === 'web') {
       await this.buildBaseFiles('web');
       await this.buildWeb();
     } else if (platform === 'nwjs') {
       await this.buildBaseFiles('nwjs');
       await this.buildNWJS();
+      await this.buildWeb();
     } else if (platform === 'cordova') {
       await this.buildBaseFiles('cordova');
       await this.buildAndroid();
+      await this.buildWeb();
     } else if (platform === 'none') {
       await this.buildBaseFiles('none');
-      this.log('Development build complete - no platform packaging', 'success');
+      this.log('Development build complete', 'success');
     }
   }
 

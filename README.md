@@ -88,8 +88,6 @@ Accessible from the main menu, the Add-on Manager allows you to:
 - Web version requires manual song loading
 - Doubles charts are converted to Singles format
 - Most mobile file browsers may require selecting individual files one by one
-- Input mapping is not implented
-- Recordings have extremely low quality
 
 ## License
 
