@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.9
- * Build: 3/23/2026, 3:37:48 PM
+ * Build: 3/23/2026, 4:29:18 PM
  * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
@@ -13078,10 +13078,6 @@ class MainMenu {
     // Check for feedback dialogs before showing menu
     this.checkInitialDialogs();
     
-    this.previewCanvas = document.createElement("canvas");
-    this.previewCtx = this.previewCanvas.getContext("2d");
-    this.previewImg = new Image();
-    
     // Only start music if it's not already playing from Title
     if (!backgroundMusic || !backgroundMusic.isPlaying) {
       if (!backgroundMusic) {
@@ -13317,7 +13313,7 @@ class MainMenu {
       crop: false
     });
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS || window.DEBUG) {
       carousel.addItem("Addon Manager", () => this.showAddonManager());
     }
     carousel.addItem("Jukebox", () => this.startJukebox());
@@ -13491,6 +13487,10 @@ class Addons {
     this.backgroundGradient = new BackgroundGradient();
     this.navigationHint = new NavigationHint(0);
     
+    this.previewCanvas = document.createElement("canvas");
+    this.previewCtx = this.previewCanvas.getContext("2d");
+    this.previewImg = new Image();
+    
     this.windowManager = new WindowManager();
     
     gamepad.releaseAll();
@@ -13524,7 +13524,13 @@ class Addons {
       });
       
       if (addons.length === 0) {
-        carousel.addItem("No addons installed", () => {});
+        carousel.destroy();
+        this.confirmDialog("No Addons Installed", () => {
+          this.showMainMenu();
+        }, () => {
+          game.state.restart();
+        }, "OK", "RETRY");
+        return;
       } else {
         addons.forEach(addon => {
           const statusColor = addon.isHibernating ? "gray" : (addon.isEnabled ? "#00cc00" : "brown")

@@ -6,6 +6,10 @@ class Addons {
     this.backgroundGradient = new BackgroundGradient();
     this.navigationHint = new NavigationHint(0);
     
+    this.previewCanvas = document.createElement("canvas");
+    this.previewCtx = this.previewCanvas.getContext("2d");
+    this.previewImg = new Image();
+    
     this.windowManager = new WindowManager();
     
     gamepad.releaseAll();
@@ -39,7 +43,13 @@ class Addons {
       });
       
       if (addons.length === 0) {
-        carousel.addItem("No addons installed", () => {});
+        carousel.destroy();
+        this.confirmDialog("No Addons Installed", () => {
+          this.showMainMenu();
+        }, () => {
+          game.state.restart();
+        }, "OK", "RETRY");
+        return;
       } else {
         addons.forEach(addon => {
           const statusColor = addon.isHibernating ? "gray" : (addon.isEnabled ? "#00cc00" : "brown")

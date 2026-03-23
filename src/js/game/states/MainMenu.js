@@ -9,10 +9,6 @@ class MainMenu {
     // Check for feedback dialogs before showing menu
     this.checkInitialDialogs();
     
-    this.previewCanvas = document.createElement("canvas");
-    this.previewCtx = this.previewCanvas.getContext("2d");
-    this.previewImg = new Image();
-    
     // Only start music if it's not already playing from Title
     if (!backgroundMusic || !backgroundMusic.isPlaying) {
       if (!backgroundMusic) {
@@ -248,7 +244,7 @@ class MainMenu {
       crop: false
     });
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS || window.DEBUG) {
       carousel.addItem("Addon Manager", () => this.showAddonManager());
     }
     carousel.addItem("Jukebox", () => this.startJukebox());
