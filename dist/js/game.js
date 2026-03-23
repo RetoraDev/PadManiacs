@@ -4,8 +4,8 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v0.0.8
- * Build: 3/18/2026, 12:40:41 PM
+ * Version: v0.0.9
+ * Build: 3/23/2026, 2:28:18 AM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -13,7 +13,7 @@
 
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v0.0.8";
+const VERSION = "v0.0.9";
 
 window.DEBUG = false;
 
@@ -10603,7 +10603,7 @@ class SMFile {
       }
     }
     
-    return 4 / divisions[ division.length - 1 ]; // Snap to smallest division 
+    return 4 / divisions[ divisions.length - 1 ]; // Snap to smallest division 
   }
   
   static isBeatDivision(beat, division) {
@@ -19335,7 +19335,7 @@ class Editor {
     }
   }
 
-  placeNote(column, beat, replace = false, mine = false) {
+  placeNote(column, beat, replace = false, mine = false, quick = false) {
     if (this.isPlaying) return;
 
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
@@ -19353,8 +19353,6 @@ class Editor {
         this.selectedNotes.splice(selectedIndex, 1);
       }
 
-      this.playExplosionEffect(this.cursorColumn);
-      
       if (replace) {
         const newNote = {
           type: mine ? "M" : "1",
@@ -19363,8 +19361,10 @@ class Editor {
           column: column
         };
         notes.push(newNote);
-        this.playExplosionEffect(column);
-        this.previewNote(newNote);
+        if (!quick) {
+          this.playExplosionEffect(column);
+          this.previewNote(newNote);
+        }
       }
     } else {
       const newNote = {
@@ -19374,8 +19374,10 @@ class Editor {
         column: column
       };
       notes.push(newNote);
-      this.playExplosionEffect(column);
-      this.previewNote(newNote);
+      if (!quick) {
+        this.playExplosionEffect(column);
+        this.previewNote(newNote);
+      }
     }
     
     Account.stats.totalPlacedArrows ++;
@@ -19384,7 +19386,7 @@ class Editor {
     this.updateInfoText();
   }
 
-  placeFreeze(column, startBeat, duration, type = "2") {
+  placeFreeze(column, startBeat, duration, type = "2", quick) {
     if (this.isPlaying) return;
 
     const notes = this.getCurrentChartNotes();
@@ -19402,20 +19404,23 @@ class Editor {
       type: type,
       beat: startBeat,
       sec: this.chartRenderer.beatToSec(startBeat),
-      column: this.cursorColumn,
+      column: column || this.cursorColumn,
       beatLength: duration,
       secLength: this.chartRenderer.beatToSec(startBeat + duration) - this.chartRenderer.beatToSec(startBeat),
       beatEnd: startBeat + duration,
       secEnd: this.chartRenderer.beatToSec(startBeat + duration)
     };
     notes.push(newNote);
-    this.previewNote(newNote);
+    
+    if (!quick) {
+      this.previewNote(newNote);
+      this.playExplosionEffect(column);
+    }
     
     Account.stats.totalPlacedFreezes ++;
 
     this.sortNotes();
     this.updateInfoText();
-    this.playExplosionEffect(this.cursorColumn);
   }
 
   sortNotes() {
@@ -19426,10 +19431,10 @@ class Editor {
     }
   }
 
-  placeMine(column, beat, replace) {
+  placeMine(column, beat, replace, quick) {
     if (this.isPlaying) return;
     
-    this.placeNote(column, beat, replace, true);
+    this.placeNote(column, beat, replace, true, quick);
 
     Account.stats.totalPlacedMines ++;
   }
@@ -19544,6 +19549,8 @@ class Editor {
         contextMenu.addItem("Paste Notes", () => this.pasteNotes());
         contextMenu.addItem("Clear Clipboard", () => this.clearClipboard());
       }
+      
+      contextMenu.addItem("Mirror Notes", () => this.mirrorNotes());
 
       if (allNotes) {
         contextMenu.addItem("Turn All Into Mines", () => this.convertNotesType("M"));
@@ -19587,14 +19594,14 @@ class Editor {
         
         switch (note.type) {
           case "1":
-            this.placeNote(note.column, newBeat, true);
+            this.placeNote(note.column, newBeat, true, false, true);
             break;
           case "2":
           case "4":
-            this.placeFreeze(note.column, newBeat, note.beatLength, note.type);
+            this.placeFreeze(note.column, newBeat, note.beatLength, note.type, true);
             break;
           case "M":
-            this.placeMine(note.column, newBeat, true);
+            this.placeMine(note.column, newBeat, true, true);
             break;
         }
       });
@@ -19613,6 +19620,13 @@ class Editor {
       ...this.song,
       files: this.files
     });
+  }
+  
+  mirrorNotes() {
+    this.selectedNotes.forEach(note => {
+      note.column = 3 - note.column;
+    });
+    this.refreshSelectedNotes();
   }
 
   convertNoteType(newType) {

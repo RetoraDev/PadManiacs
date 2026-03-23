@@ -164,24 +164,11 @@ class BuildSystem {
     }
     
     return {
-      version: '0.0.6',
+      version: '0.0.9',
       name: 'padmaniacs'
     };
   }
 
-  getLicenseHeader(platform) {
-    return `/**
-PadManiacs Rhythm Game
-Copyright ${this.copyright}
-https://github.com/RetoraDev/PadManiacs
-Version: ${this.versionName}
-Build: ${new Date().toLocaleString()}
-Platform: ${this.getPlatformDisplayName(platform)}
-Debug: ${this.config.flags.debug}
-Minified: ${this.config.flags.minify}
-*/`;
-  }
-  
   getLicenseHeader(platform) {
     return `/**
  * PadManiacs Rhythm Game

@@ -244,7 +244,7 @@ class SMFile {
       }
     }
     
-    return 4 / divisions[ division.length - 1 ]; // Snap to smallest division 
+    return 4 / divisions[ divisions.length - 1 ]; // Snap to smallest division 
   }
   
   static isBeatDivision(beat, division) {
