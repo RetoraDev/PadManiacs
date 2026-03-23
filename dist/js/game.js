@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.9
- * Build: 3/23/2026, 2:45:17 AM
+ * Build: 3/23/2026, 3:37:48 PM
  * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
@@ -1089,6 +1089,7 @@ const DEFAULT_ACCOUNT = {
     beatsPerMeasure: 4, // TODO: Make this configurable
     speedMod: "X-MOD",
     hapticFeedback: false,
+    videoFps: 1,
     // Addon system settings
     safeMode: false,
     enabledAddons: [],
@@ -6068,6 +6069,25 @@ class CarouselMenu extends Phaser.Sprite {
   destroy() {
     this.clear();
     super.destroy();
+  }
+}
+
+class CanvasBackground extends Phaser.Sprite {
+  constructor(canvas) {
+    super(game, 0, 0);
+    
+    this.baseTexture = new PIXI.BaseTexture(canvas);
+    
+    this.texture = new PIXI.Texture(
+      this.baseTexture,
+      new PIXI.Rectangle(0, 0, game.width, game.height),
+      new PIXI.Rectangle(0, 0, game.width, game.height)
+    );
+    
+    game.add.existing(this);
+  }
+  render() {
+    this.baseTexture.dirty();
   }
 }
 
@@ -13434,6 +13454,7 @@ class MainMenu {
   }
   
   openEditor() {
+    this.keepBackgroundMusic = false;
     game.state.start("Editor", true, false, window.editorSongData || null);
   }
 
@@ -13794,6 +13815,17 @@ class Settings {
       Account.settings.beatLines ? 0 : 1,
       index => {
         Account.settings.beatLines = index === 0;
+        saveAccount();
+      }
+    );
+    
+    // Video FPS
+    settingsWindow.addSettingItem(
+      "Video FPS",
+      ["60 FPS", "30 FPS", "15 FPS"],
+      (Account.settings.videoFPS || 1) - 1,
+      index => {
+        Account.settings.videoFPS = index + 1;
         saveAccount();
       }
     );
@@ -16394,14 +16426,16 @@ class Play {
     
     game.camera.fadeIn(0x000000);
     
-    // Create background
-    this.backgroundLayer = game.add.group();
-    this.backgroundSprite = game.add.sprite(0, 0, null, 0, this.backgroundLayer);
-    this.backgroundSprite.alpha = 0.7;
+    // Canvas for background rendering   
     this.backgroundCanvas = document.createElement("canvas");
     this.backgroundCanvas.width = 192;
     this.backgroundCanvas.height = 112;
     this.backgroundCtx = this.backgroundCanvas.getContext("2d");
+    
+    // Create background
+    this.backgroundLayer = game.add.group();
+    this.backgroundSprite = new CanvasBackground(this.backgroundCanvas);
+    this.backgroundSprite.alpha = 0.7;
     
     this.visibilityChangeListener = () => {
       if (document.hidden) {
@@ -16783,7 +16817,6 @@ class Play {
     // Play sound effect
     Audio.play("full_combo", 1);
   }
-
   
   drawBackground(element) {
     // Check if element is errored
@@ -16830,10 +16863,7 @@ class Play {
   }  
   
   updateBackgroundTexture() {
-    if (this.backgroundSprite && this.backgroundSprite.game) {
-      const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
-      this.backgroundSprite.loadTexture(texture);
-    }
+    this.backgroundSprite.render();
   }
   
   loadBackgroundImage(filename, url) {
@@ -17190,7 +17220,7 @@ class Play {
         !this.video.__errored &&
         this.currentBackground && 
         this.currentBackground.type == "video" && 
-        game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
+        game.time.now - this.lastVideoUpdateTime >= game.time.elapsedMS * (Account.settings.videoFps || 1)) {
       
       this.lastVideoUpdateTime = game.time.now;
       

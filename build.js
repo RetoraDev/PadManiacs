@@ -46,6 +46,7 @@ class BuildSystem {
       'js/ui/WindowManager.js',
       'js/ui/DialogWindow.js',
       'js/ui/CarouselMenu.js',
+      'js/ui/CanvasBackground.js',
       'js/ui/BackgroundGradient.js',
       'js/ui/Background.js',
       'js/ui/FuturisticLines.js',

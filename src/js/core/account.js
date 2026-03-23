@@ -16,6 +16,7 @@ const DEFAULT_ACCOUNT = {
     beatsPerMeasure: 4, // TODO: Make this configurable
     speedMod: "X-MOD",
     hapticFeedback: false,
+    videoFps: 1,
     // Addon system settings
     safeMode: false,
     enabledAddons: [],

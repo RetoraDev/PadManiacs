@@ -149,6 +149,17 @@ class Settings {
       }
     );
     
+    // Video FPS
+    settingsWindow.addSettingItem(
+      "Video FPS",
+      ["60 FPS", "30 FPS", "15 FPS"],
+      (Account.settings.videoFPS || 1) - 1,
+      index => {
+        Account.settings.videoFPS = index + 1;
+        saveAccount();
+      }
+    );
+    
     // Global offset
     const offsetOptions = [];
     for (let ms = -1000; ms <= 1000; ms += 25) {

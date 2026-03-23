@@ -73,14 +73,16 @@ class Play {
     
     game.camera.fadeIn(0x000000);
     
-    // Create background
-    this.backgroundLayer = game.add.group();
-    this.backgroundSprite = game.add.sprite(0, 0, null, 0, this.backgroundLayer);
-    this.backgroundSprite.alpha = 0.7;
+    // Canvas for background rendering   
     this.backgroundCanvas = document.createElement("canvas");
     this.backgroundCanvas.width = 192;
     this.backgroundCanvas.height = 112;
     this.backgroundCtx = this.backgroundCanvas.getContext("2d");
+    
+    // Create background
+    this.backgroundLayer = game.add.group();
+    this.backgroundSprite = new CanvasBackground(this.backgroundCanvas);
+    this.backgroundSprite.alpha = 0.7;
     
     this.visibilityChangeListener = () => {
       if (document.hidden) {
@@ -462,7 +464,6 @@ class Play {
     // Play sound effect
     Audio.play("full_combo", 1);
   }
-
   
   drawBackground(element) {
     // Check if element is errored
@@ -509,10 +510,7 @@ class Play {
   }  
   
   updateBackgroundTexture() {
-    if (this.backgroundSprite && this.backgroundSprite.game) {
-      const texture = PIXI.Texture.fromCanvas(this.backgroundCanvas);
-      this.backgroundSprite.loadTexture(texture);
-    }
+    this.backgroundSprite.render();
   }
   
   loadBackgroundImage(filename, url) {
@@ -869,7 +867,7 @@ class Play {
         !this.video.__errored &&
         this.currentBackground && 
         this.currentBackground.type == "video" && 
-        game.time.now - this.lastVideoUpdateTime >= (game.time.elapsedMS * 3)) {
+        game.time.now - this.lastVideoUpdateTime >= game.time.elapsedMS * (Account.settings.videoFps || 1)) {
       
       this.lastVideoUpdateTime = game.time.now;
       

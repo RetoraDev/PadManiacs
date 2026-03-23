@@ -385,6 +385,7 @@ class MainMenu {
   }
   
   openEditor() {
+    this.keepBackgroundMusic = false;
     game.state.start("Editor", true, false, window.editorSongData || null);
   }
 
