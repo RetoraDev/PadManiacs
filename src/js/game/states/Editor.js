@@ -882,11 +882,16 @@ class Editor {
           sec: this.chartRenderer.beatToSec(beat),
           column: column
         };
+        
         notes.push(newNote);
+        
         if (!quick) {
-          this.playExplosionEffect(column);
           this.previewNote(newNote);
         }
+      } 
+      
+      if (!quick) {
+        this.playExplosionEffect(column);
       }
     } else {
       const newNote = {
@@ -926,7 +931,7 @@ class Editor {
       type: type,
       beat: startBeat,
       sec: this.chartRenderer.beatToSec(startBeat),
-      column: column || this.cursorColumn,
+      column: column,
       beatLength: duration,
       secLength: this.chartRenderer.beatToSec(startBeat + duration) - this.chartRenderer.beatToSec(startBeat),
       beatEnd: startBeat + duration,

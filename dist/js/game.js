@@ -5,8 +5,8 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.0.9
- * Build: 3/23/2026, 2:28:18 AM
- * Platform: Web
+ * Build: 3/23/2026, 2:45:17 AM
+ * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
  */
@@ -337,7 +337,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -16397,7 +16397,7 @@ class Play {
     // Create background
     this.backgroundLayer = game.add.group();
     this.backgroundSprite = game.add.sprite(0, 0, null, 0, this.backgroundLayer);
-    this.backgroundSprite.alpha = 0.6;
+    this.backgroundSprite.alpha = 0.7;
     this.backgroundCanvas = document.createElement("canvas");
     this.backgroundCanvas.width = 192;
     this.backgroundCanvas.height = 112;
@@ -16959,7 +16959,7 @@ class Play {
       this.backgroundSprite.alpha = 0;
       game.add.tween(this.backgroundSprite).to({ alpha: parseFloat(bg.opacity) * 0.6 }, 500, "Linear",true);
     } else {
-      this.backgroundSprite.alpha = bg.opacity * 0.6;
+      this.backgroundSprite.alpha = bg.opacity * 0.7;
     }
     
     // TODO: When applying bg effects take in account bg.fadeOut and bg.effect
@@ -19360,11 +19360,16 @@ class Editor {
           sec: this.chartRenderer.beatToSec(beat),
           column: column
         };
+        
         notes.push(newNote);
+        
         if (!quick) {
-          this.playExplosionEffect(column);
           this.previewNote(newNote);
         }
+      } 
+      
+      if (!quick) {
+        this.playExplosionEffect(column);
       }
     } else {
       const newNote = {
@@ -19404,7 +19409,7 @@ class Editor {
       type: type,
       beat: startBeat,
       sec: this.chartRenderer.beatToSec(startBeat),
-      column: column || this.cursorColumn,
+      column: column,
       beatLength: duration,
       secLength: this.chartRenderer.beatToSec(startBeat + duration) - this.chartRenderer.beatToSec(startBeat),
       beatEnd: startBeat + duration,

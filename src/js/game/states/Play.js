@@ -76,7 +76,7 @@ class Play {
     // Create background
     this.backgroundLayer = game.add.group();
     this.backgroundSprite = game.add.sprite(0, 0, null, 0, this.backgroundLayer);
-    this.backgroundSprite.alpha = 0.6;
+    this.backgroundSprite.alpha = 0.7;
     this.backgroundCanvas = document.createElement("canvas");
     this.backgroundCanvas.width = 192;
     this.backgroundCanvas.height = 112;
@@ -638,7 +638,7 @@ class Play {
       this.backgroundSprite.alpha = 0;
       game.add.tween(this.backgroundSprite).to({ alpha: parseFloat(bg.opacity) * 0.6 }, 500, "Linear",true);
     } else {
-      this.backgroundSprite.alpha = bg.opacity * 0.6;
+      this.backgroundSprite.alpha = bg.opacity * 0.7;
     }
     
     // TODO: When applying bg effects take in account bg.fadeOut and bg.effect
