@@ -35,7 +35,9 @@ class Settings {
       index => {
         Account.settings.volume = index;
         saveAccount();
-        backgroundMusic.audio.volume = [0,25,50,75,100][index] / 100;
+        if (backgroundMusic && backgroundMusic.audio) {
+          backgroundMusic.audio.volume = [0,25,50,75,100][index] / 100;
+        }
       }
     );
     

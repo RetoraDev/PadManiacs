@@ -4,16 +4,16 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v0.0.9
- * Build: 3/23/2026, 4:29:18 PM
- * Platform: Android (Cordova)
+ * Version: v0.0.9 dev
+ * Build: 3/27/2026, 11:25:30 AM
+ * Platform: Development
  * Debug: false
  * Minified: false
  */
 
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v0.0.9";
+const VERSION = "v0.0.9 dev";
 
 window.DEBUG = false;
 
@@ -337,7 +337,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -13362,10 +13362,12 @@ class MainMenu {
   }
   
   showAddonManager() {
+    this.keepBackgroundMusic = true;
     game.state.start("Addons");
   }
   
   showSettings() {
+    this.keepBackgroundMusic = true;
     game.state.start("Settings");
   }
   
@@ -13506,6 +13508,19 @@ class Addons {
     this.windowManager.update();
   }
   
+  showNoAddonsDialog() {
+    this.confirmDialog(
+      "NO ADDONS INSTALLED\n\nAddons extend the game with new features,\nvisual effects, and gameplay modifications.\n\nVisit the community page to download addons,\nor place addons in the 'Addons' folder.",
+      () => {
+        openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+        game.time.events.add(100, () => this.showNoAddonsDialog());
+      },
+      () => {
+        this.showMainMenu();
+      }
+    );
+  }
+  
   showAddonManager() {
     // TODO: Clean addon manager interface and logic split in methods here 
     
@@ -13525,11 +13540,7 @@ class Addons {
       
       if (addons.length === 0) {
         carousel.destroy();
-        this.confirmDialog("No Addons Installed", () => {
-          this.showMainMenu();
-        }, () => {
-          game.state.restart();
-        }, "OK", "RETRY");
+        this.showNoAddonsDialog();
         return;
       } else {
         addons.forEach(addon => {
@@ -13711,7 +13722,9 @@ class Settings {
       index => {
         Account.settings.volume = index;
         saveAccount();
-        backgroundMusic.audio.volume = [0,25,50,75,100][index] / 100;
+        if (backgroundMusic && backgroundMusic.audio) {
+          backgroundMusic.audio.volume = [0,25,50,75,100][index] / 100;
+        }
       }
     );
     
@@ -16491,6 +16504,9 @@ class Play {
       this.audio.src = this.song.chart.audioUrl;
       this.audio.addEventListener("canplaythrough", e => resolve());
       this.audio.addEventListener("error", e => resolve());
+      
+      // Create visualizer after audio initialized since some visualizers spect the audio to exist
+      this.createVisualizer();
     });
   }
   
@@ -16592,8 +16608,6 @@ class Play {
     
     this.comboText = new Text(191, 106, "0", FONTS.combo);
     this.comboText.anchor.set(1);
-    
-    this.createVisualizer();
   }
   
   createVisualizer() {

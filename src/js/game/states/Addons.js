@@ -25,6 +25,19 @@ class Addons {
     this.windowManager.update();
   }
   
+  showNoAddonsDialog() {
+    this.confirmDialog(
+      "NO ADDONS INSTALLED\n\nAddons extend the game with new features,\nvisual effects, and gameplay modifications.\n\nVisit the community page to download addons,\nor place addons in the 'Addons' folder.",
+      () => {
+        openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+        game.time.events.add(100, () => this.showNoAddonsDialog());
+      },
+      () => {
+        this.showMainMenu();
+      }
+    );
+  }
+  
   showAddonManager() {
     // TODO: Clean addon manager interface and logic split in methods here 
     
@@ -44,11 +57,7 @@ class Addons {
       
       if (addons.length === 0) {
         carousel.destroy();
-        this.confirmDialog("No Addons Installed", () => {
-          this.showMainMenu();
-        }, () => {
-          game.state.restart();
-        }, "OK", "RETRY");
+        this.showNoAddonsDialog();
         return;
       } else {
         addons.forEach(addon => {

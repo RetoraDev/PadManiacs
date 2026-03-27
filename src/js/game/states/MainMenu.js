@@ -293,10 +293,12 @@ class MainMenu {
   }
   
   showAddonManager() {
+    this.keepBackgroundMusic = true;
     game.state.start("Addons");
   }
   
   showSettings() {
+    this.keepBackgroundMusic = true;
     game.state.start("Settings");
   }
   

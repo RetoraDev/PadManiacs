@@ -132,6 +132,9 @@ class Play {
       this.audio.src = this.song.chart.audioUrl;
       this.audio.addEventListener("canplaythrough", e => resolve());
       this.audio.addEventListener("error", e => resolve());
+      
+      // Create visualizer after audio initialized since some visualizers spect the audio to exist
+      this.createVisualizer();
     });
   }
   
@@ -233,8 +236,6 @@ class Play {
     
     this.comboText = new Text(191, 106, "0", FONTS.combo);
     this.comboText.anchor.set(1);
-    
-    this.createVisualizer();
   }
   
   createVisualizer() {
