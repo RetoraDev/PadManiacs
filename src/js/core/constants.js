@@ -56,9 +56,9 @@ const FEEDBACK_REVIEW_URL = "https://retora.itch.io/padmaniacs/rate";
 const FEEDBACK_FEATURE_REQUEST_URL = "https://itch.io/t/5585472/feature-requests";
 const FEEDBACK_BUG_REPORT_URL = "https://itch.io/t/5585499/bug-reports";
 
-const COMMUNITY_PROMPT_MIN_PLAYTIME = 60 * 60;
-const RATING_PROMPT_MIN_PLAYTIME = 15 * 60;
-const FEATURE_REQUEST_MIN_PLAYTIME = 30 * 60;
+const COMMUNITY_PROMPT_MIN_PLAYTIME = 60 * 60; // 1 hour
+const RATING_PROMPT_MIN_PLAYTIME = 15 * 60; // 15 minutes
+const FEATURE_REQUEST_MIN_PLAYTIME = 30 * 60; // 30 minutes
 
 // Keyboard key names
 // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values

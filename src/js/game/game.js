@@ -1,4 +1,4 @@
-let game, gamepad, backgroundMusic, notifications, addonManager, sidebarNotifications, achievementsManager;
+let game, gamepad, backgroundMusic, notifications, addonManager, achievementsManager;
 
 let Account = {
   ...DEFAULT_ACCOUNT,
@@ -52,6 +52,7 @@ const addFpsText = () => {
   const text = new Text(190, 2, "");
   text.anchor.x = 1;
   game.time.events.loop(100, () => text.write(`${game.time.fps} (${game.renderer.renderSession.drawCount - 1})`));
+  return text;
 };
 
 const openExternalUrl = url => {
@@ -109,15 +110,17 @@ const Audio = {
 
 // Register recovery listener
 // TODO: Implement recovery from JavaScript freeze correctly
-const script = document.createElement("script");
-script.text = `
-window.onerror = (details, file, line) => {
-  localStorage.setItem('gameLastCrashed', 'true');
-  if (!window.DEBUG && typeof window.eruda !== "undefined") eruda.init(); 
-  const filename = file ? file.split('/').pop() : 'unknown file';
-  const message = details + " On Line " + line + " of " + filename;
-  console.error(message);
-  game.state.add('ErrorScreen', ErrorScreen);
-  game.state.start('ErrorScreen', false, false, message, 'Boot');
-};`;
-document.head.appendChild(script);
+(() => {
+  const script = document.createElement("script");
+  script.text = `
+  window.onerror = (details, file, line) => {
+    localStorage.setItem('gameLastCrashed', 'true');
+    if (!window.DEBUG && typeof window.eruda !== "undefined") eruda.init(); 
+    const filename = file ? file.split('/').pop() : 'unknown file';
+    const message = details + " On Line " + line + " of " + filename;
+    console.error(message);
+    game.state.add('ErrorScreen', ErrorScreen);
+    game.state.start('ErrorScreen', false, false, message, 'Boot');
+  };`;
+  document.head.appendChild(script);
+})();
