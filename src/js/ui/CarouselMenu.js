@@ -43,12 +43,9 @@ class CarouselMenu extends Phaser.Sprite {
       this.scrollBarTween = null;
     }
     
-    this.lastUp = false;
-    this.lastDown = false;
-    this.lastLeft = false;
-    this.lastRight = false;
-    this.lastConfirm = false;
-    this.lastCancel = false;
+    // Traci input state
+    this.lastPress = 0;
+    this.firstPressTime = undefined;
     
     this.setupInput();
     
@@ -169,37 +166,78 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   handleInput() {
-    const upPressed = gamepad.pressed.up && !this.lastUp;
-    const downPressed = gamepad.pressed.down && !this.lastDown;
-    const leftPressed = gamepad.pressed.left && !this.lastLeft;
-    const rightPressed = gamepad.pressed.right && !this.lastRight;
-    const confirmPressed = gamepad.pressed.a && !this.lastConfirm;
-    const cancelPressed = gamepad.pressed.b && !this.lastCancel;
+    const timeSinceLastPress = game.time.now - this.lastPress;
+    const timeSinceFirstPress = game.time.now - (this.firstPressTime || 0);
     
-    if (upPressed) {
-      this.navigate(-1);
-    } else if (downPressed) {
-      this.navigate(1);
-    } else if (leftPressed) {
-      this.navigate(-1, true);
-    } else if (rightPressed) {
-      this.navigate(1, true);
+    // Dynamic cooldown logic
+    let cooldown = 100;
+  
+    if (timeSinceFirstPress < 1000) {
+      cooldown = 1000;
+    } else if (timeSinceFirstPress < 2000) {
+      cooldown = 500;
+    } else if (timeSinceFirstPress < 2500) {
+      cooldown = 200;
+    } else {
+      cooldown = 100;
     }
+  
+    const cooldownEnded = timeSinceLastPress >= cooldown;
     
-    if (confirmPressed && this.items.length > 0) {
-      this.confirm();
+    if (gamepad.released.any) {
+      // Handle released buttons
+      this.resetPressTiming();
+    } else if (cooldownEnded) {
+      // Handle held buttons
+      if (gamepad.held.up && !this.lastUp) {
+        this.navigate(-1);
+        this.updatePressTiming();
+      } else if (gamepad.held.down && !this.lastDown) {
+        this.navigate(1);
+        this.updatePressTiming();
+      } else if (gamepad.held.left && !this.lastLeft) {
+        this.navigate(-1, true);
+        this.updatePressTiming();
+      } else if (gamepad.held.right && !this.lastRight) {
+        this.navigate(1, true);
+        this.updatePressTiming();
+      }
+      
+      if (gamepad.held.a && !this.lastConfirm) {
+        this.confirm();
+        this.updatePressTiming();
+      }
+      
+      if (gamepad.held.b && !this.lastCancel) {
+        this.cancel();
+        this.updatePressTiming();
+      }
+    } else {
+      // Handle pressed buttons
+      if (gamepad.pressed.up) {
+        this.navigate(-1);
+        this.resetPressTiming();
+      } else if (gamepad.pressed.down) {
+        this.navigate(1);
+        this.resetPressTiming();
+      } else if (gamepad.pressed.left) {
+        this.navigate(-1, true);
+        this.resetPressTiming();
+      } else if (gamepad.pressed.right) {
+        this.navigate(1, true);
+        this.resetPressTiming();
+      }
+      
+      if (gamepad.pressed.a) {
+        this.confirm();
+        this.resetPressTiming();
+      }
+      
+      if (gamepad.pressed.b) {
+        this.cancel();
+        this.resetPressTiming();
+      }
     }
-    
-    if (cancelPressed) {
-      this.cancel();
-    }
-    
-    this.lastUp = gamepad.pressed.up;
-    this.lastDown = gamepad.pressed.down;
-    this.lastLeft = gamepad.pressed.left;
-    this.lastRight = gamepad.pressed.right;
-    this.lastConfirm = gamepad.pressed.a;
-    this.lastCancel = gamepad.pressed.b;
   }
   
   navigate(direction, page) {
@@ -425,6 +463,18 @@ class CarouselMenu extends Phaser.Sprite {
   
   updateAnimations() {
     // Update any ongoing animations here, might be removed 
+  }
+  
+  updatePressTiming() {
+    if (this.firstPressTime === undefined) {
+      this.firstPressTime = game.time.now;
+    }
+    this.lastPress = game.time.now;
+  }
+  
+  resetPressTiming() {
+    this.firstPressTime = game.time.now;
+    this.lastPress = game.time.now;
   }
   
   confirm() {

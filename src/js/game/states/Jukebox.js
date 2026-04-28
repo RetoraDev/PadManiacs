@@ -20,6 +20,13 @@ class Jukebox {
     this.backgroundSprite = null;
     this.videoElement = null;
     
+    // Volume Label
+    this.volumeLabel = new Text(game.width - 5, 70, "");
+    this.volumeLabel.visible = false;
+    this.volumeLabel.anchor.x = 1;
+    this.volumeCooldown = 100;
+    this.lastVolumeUpdate = 0;
+    
     // Visualizer
     this.visualizer = null;
     
@@ -85,7 +92,7 @@ class Jukebox {
     }
     
     this.audioElement = document.createElement("audio");
-    this.audioElement.volume = [0,25,50,75,100][Account.settings.volume] / 100;
+    this.audioElement.volume = Account.settings.volume / 100;
     
     this.audioElement.addEventListener('timeupdate', () => {
       this.updateProgressBar();
@@ -483,6 +490,13 @@ class Jukebox {
     // Update visualization button based on active timer
     this.visualizationButton.frame = this.buttonActiveTimers.visualization > currentTime ? 1 : 0;
   }
+  
+  updateVolumeLabel() {
+    // Hide volume label
+    if (this.volumeLabel.visible && game.time.now - this.lastVolumeUpdate >= 1000) {
+      this.volumeLabel.visible = false;
+    }
+  }
 
   setButtonActive(buttonName, duration = 100) {
     this.buttonActiveTimers[buttonName] = game.time.now + duration;
@@ -492,19 +506,21 @@ class Jukebox {
     let currentVolume = Account.settings.volume;
     let newVolume = currentVolume + delta;
     
-    // Clamp volume between 0 and 4 (0%, 25%, 50%, 75%, 100%)
-    newVolume = Phaser.Math.clamp(newVolume, 0, 4);
+    // Clamp volume between 0 and 100
+    newVolume = Phaser.Math.clamp(newVolume, 0, 100);
     
     if (newVolume !== currentVolume) {
       Account.settings.volume = newVolume;
       saveAccount();
       
       // Update audio volume
-      this.audioElement.volume = [0,25,50,75,100][newVolume] / 100;
+      this.audioElement.volume = newVolume / 100;
       
       // Show volume feedback
       const volumeLevels = ["MUTE", "25%", "50%", "75%", "100%"];
-      notifications.show(`VOLUME: ${volumeLevels[newVolume]}`, 1000);
+      this.volumeLabel.write(`VOLUME: ${newVolume > 0 ? newVolume + '%' : 'MUTE'}`);
+      this.volumeLabel.visible = true;
+      this.lastVolumeUpdate = game.time.now;
     }
   }
 
@@ -728,6 +744,7 @@ class Jukebox {
     this.updateDurationDisplay();
     this.updateButtonStates();
     this.updateLyrics();
+    this.updateVolumeLabel();
     
     // Update video background if playing
     if (this.videoElement.src && this.videoElement.readyState >= 2) {
@@ -765,15 +782,6 @@ class Jukebox {
     // Don't trigger actions if menu is visible
     if (this.menuVisible || this.songListMenuVisible) return;
     
-    // Volume control (UP/DOWN)
-    if (gamepad.pressed.up) {
-      this.changeVolume(1); // Increase volume
-    }
-    
-    if (gamepad.pressed.down) {
-      this.changeVolume(-1); // Decrease volume
-    }
-    
     // Play/Pause (A button)
     if (gamepad.pressed.a) {
       this.togglePlayback();
@@ -799,7 +807,19 @@ class Jukebox {
       this.showMenu();
     }
     
-    // Seek handling with cooldown
+    // Handle volume
+    if (currentTime - this.lastVolumeUpdate > this.volumeCooldown) {
+      // Volume control (UP/DOWN)
+      if (gamepad.held.up) {
+        this.changeVolume(1); // Increase volume
+      }
+      
+      if (gamepad.held.down) {
+        this.changeVolume(-1); // Decrease volume
+      }
+    }
+    
+    // Seek handling
     if (currentTime - this.lastSeekTime > this.seekCooldown) {
       // Single press - seek
       if (gamepad.held.left) {

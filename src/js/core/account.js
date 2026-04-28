@@ -1,6 +1,6 @@
 const DEFAULT_ACCOUNT = {
   settings: {
-    volume: 3,
+    volume: 100,
     autoplay: false,
     enableMenuMusic: true,
     randomSong: false,

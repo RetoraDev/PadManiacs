@@ -186,7 +186,7 @@ class Credits {
       // Create audio element for credits music
       this.creditsMusic = document.createElement("audio");
       this.creditsMusic.src = randomSong.audioUrl;
-      this.creditsMusic.volume = [0,25,50,75,100][Account.settings.volume] / 100;
+      this.creditsMusic.volume = Account.settings.volume / 100;
       this.creditsMusic.loop = true;
       
       // Start playback

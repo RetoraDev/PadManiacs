@@ -28,19 +28,22 @@ class Settings {
     this.windowManager.focus(settingsWindow);
     
     // Volume setting
-    settingsWindow.addSettingItem(
+    settingsWindow.addRangeItem(
       "Volume",
-      ["0%", "25%", "50%", "75%", "100%"], 
+      0,
+      100,
+      1,
       Account.settings.volume,
-      index => {
-        Account.settings.volume = index;
+      "%",
+      value => {
+        Account.settings.volume = value;
         saveAccount();
         if (backgroundMusic && backgroundMusic.audio) {
-          backgroundMusic.audio.volume = [0,25,50,75,100][index] / 100;
+          backgroundMusic.audio.volume = value / 100;
         }
       }
     );
-    
+
     // Auto-play setting
     settingsWindow.addSettingItem(
       "Auto-play",
@@ -162,18 +165,17 @@ class Settings {
       }
     );
     
+    
     // Global offset
-    const offsetOptions = [];
-    for (let ms = -1000; ms <= 1000; ms += 25) {
-      offsetOptions.push(`${ms}ms`);
-    }
-    const currentOffsetIndex = (Account.settings.userOffset + 1000) / 25;
-    settingsWindow.addSettingItem(
+    settingsWindow.addRangeItem(
       "Global Offset",
-      offsetOptions,
-      currentOffsetIndex,
-      index => {
-        Account.settings.userOffset = (index * 25) - 1000;
+      -2000,
+      2000,
+      1,
+      Account.settings.userOffset,
+      "ms",
+      value => {
+        Account.settings.userOffset = value;
         saveAccount();
       }
     );

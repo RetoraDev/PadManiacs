@@ -8,6 +8,7 @@ class OffsetAssistant extends Phaser.Sprite {
     this.requiredTaps = 8;
     this.tickBPM = 120;
     this.tickInterval = 60000 / this.tickBPM; // 500ms per tick
+    this.snapMs = 1;
     
     // Store background music state
     this.wasMusicPlaying = backgroundMusic && backgroundMusic.isPlaying;
@@ -62,16 +63,14 @@ class OffsetAssistant extends Phaser.Sprite {
 
   update() {
     // Handle A button for tapping
-    if (gamepad.pressed.a && !this.lastAPress) {
+    if (gamepad.pressed.a) {
       this.onTap();
     }
-    this.lastAPress = gamepad.pressed.a;
     
     // Handle B button to exit
-    if (gamepad.pressed.b && !this.lastBPress) {
+    if (gamepad.pressed.b) {
       this.exit();
     }
-    this.lastBPress = gamepad.pressed.b;
     
     // Update tick sound
     this.updateTickSound();
@@ -105,7 +104,7 @@ class OffsetAssistant extends Phaser.Sprite {
     // Play first tick immediately
     this.playTickSound();
     this.lastTickTime = this.game.time.now;
-    this.nextTickTime = this.lastTickTime + this.tickInterval;
+    this.nextTickTime = this.lastTickTime;
   }
 
   updateTickSound() {
@@ -123,9 +122,7 @@ class OffsetAssistant extends Phaser.Sprite {
 
   playTickSound() {
     if (game.cache.checkSoundKey('assist_tick')) {
-      const tickSound = game.add.audio('assist_tick');
-      tickSound.volume = 0.5;
-      tickSound.play();
+      Audio.play('assist_tick');
     }
   }
 
@@ -172,8 +169,8 @@ class OffsetAssistant extends Phaser.Sprite {
     // Calculate average offset from all taps
     const averageOffset = currentOffsets.reduce((a, b) => a + b, 0) / currentOffsets.length;
     
-    // Round to nearest 25ms
-    const roundedOffset = Math.round(averageOffset / 25) * 25;
+    // Round to nearest
+    const roundedOffset = Math.round(averageOffset / this.snapMs) * this.snapMs;
     
     // Store this calculated offset for final averaging
     this.calculatedOffsets.push(roundedOffset);
@@ -185,7 +182,7 @@ class OffsetAssistant extends Phaser.Sprite {
     
     // Calculate final average offset from all calculations
     const finalAverageOffset = this.calculatedOffsets.length > 0 
-      ? Math.round(this.calculatedOffsets.reduce((a, b) => a + b, 0) / this.calculatedOffsets.length / 25) * 25
+      ? Math.round(this.calculatedOffsets.reduce((a, b) => a + b, 0) / this.calculatedOffsets.length / this.snapMs) * this.snapMs
       : roundedOffset;
     
     // Calculate confidence based on tap consistency
@@ -224,9 +221,9 @@ class OffsetAssistant extends Phaser.Sprite {
     return Math.min(1, confidence);
   }
   
-  roundToNearestMultipleOf25(num) {
-    const rounded = Math.round(num / 25);
-    return rounded >= 0 ? rounded * 25 : (rounded + 1) * 25;
+  roundToSnapMs(num) {
+    const rounded = Math.round(num / this.snapMs);
+    return rounded >= 0 ? rounded * this.snapMs : (rounded + 1) * this.snapMs;
   }
 
   showTapFeedback() {
@@ -241,7 +238,7 @@ class OffsetAssistant extends Phaser.Sprite {
     let finalOffset = 0;
     
     if (this.calculatedOffsets.length > 0) {
-      finalOffset = this.roundToNearestMultipleOf25(this.calculatedOffsets.reduce((a, b) => a + b, 0) / this.calculatedOffsets.length);
+      finalOffset = this.roundToSnapMs(this.calculatedOffsets.reduce((a, b) => a + b, 0) / this.calculatedOffsets.length);
       
       // Update account settings with the final averaged offset
       Account.settings.userOffset = finalOffset;

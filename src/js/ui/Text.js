@@ -29,11 +29,12 @@ class Text extends Phaser.Sprite {
       this.write(text);
     }
 
-    game.add.existing(this);
     
     if (parent) {
       if (parent instanceof Phaser.Group) parent.add(this);
       else if (parent instanceof PIXI.DisplayObjectContainer) parent.addChild(this);
+    } else {
+      game.add.existing(this);
     }
   }
 

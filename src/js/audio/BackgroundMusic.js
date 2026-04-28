@@ -1,7 +1,7 @@
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
-    this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
+    this.audio.volume = Account.settings.volume / 100;
     this.randomSong = Account.settings.randomSong;
     this.audio.loop = true;
     this.isPlaying = false;

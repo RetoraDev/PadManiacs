@@ -89,7 +89,7 @@ class Play {
         if (!this.isPaused) this.pause();
         this.audio.volume = 0;
       } else {
-        this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
+        this.audio.volume = Account.settings.volume / 100;
       }
     };
     
@@ -128,7 +128,7 @@ class Play {
     return new Promise(resolve => {
       // Create audio element and wait for it to load
       this.audio = document.createElement("audio");
-      this.audio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
+      this.audio.volume = Account.settings.volume / 100;
       this.audio.src = this.song.chart.audioUrl;
       this.audio.addEventListener("canplaythrough", e => resolve());
       this.audio.addEventListener("error", e => resolve());

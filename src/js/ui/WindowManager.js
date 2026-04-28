@@ -4,10 +4,8 @@ class WindowManager {
     this.focusedWindow = null;
 
     // Track input states to prevent repeated inputs
-    this.lastUp = false;
-    this.lastDown = false;
-    this.lastConfirm = false;
-    this.lastCancel = false;
+    this.lastPress = 0;
+    this.firstPressTime = undefined;
   }
 
   add(window) {
@@ -89,36 +87,86 @@ class WindowManager {
     // Only process input if we have a focused window
     if (this.focusedWindow && !this.focusedWindow.disposed) {
       // Handle navigation
-      const upPressed = gamepad.pressed.up && !this.lastUp;
-      const downPressed = gamepad.pressed.down && !this.lastDown;
-      const leftPressed = gamepad.pressed.left && !this.lastDown;
-      const rightPressed = gamepad.pressed.right && !this.lastDown;
-      const confirmPressed = gamepad.pressed.a && !this.lastConfirm;
-      const cancelPressed = gamepad.pressed.b && !this.lastCancel;
-
-      if (upPressed) {
-        this.focusedWindow.navigate('up');
-      } else if (downPressed) {
-        this.focusedWindow.navigate('down');
-      } else if (leftPressed) {
-        this.focusedWindow.navigate('left');
-      } else if (rightPressed) {
-        this.focusedWindow.navigate('right');
+      const { up, down, left, right, a, b } = gamepad.held;
+      const pressed = gamepad.pressed;
+      const released = gamepad.released;
+      
+      // Dynamic cooldown system
+      let cooldown = 100;
+      
+      // Calculate time since last held press
+      const timeSinceLastPress = game.time.now - this.lastPress;
+      const timeSinceFirstPress = game.time.now - (this.firstPressTime || 0);
+      
+      // Dynamic cooldown logic: 
+      if (timeSinceFirstPress < 1000) {
+        cooldown = 400;
+      } else if (timeSinceFirstPress < 1500) {
+        cooldown = 200;
+      } else if (timeSinceFirstPress < 1700) {
+        cooldown = 100;
+      } else if (timeSinceLastPress < 5000) {
+        cooldown = 50;
+      } else {
+        cooldown = 16;
       }
-
-      if (confirmPressed) {
-        this.focusedWindow.confirm();
+      
+      const cooldownEnded = timeSinceLastPress >= cooldown;
+      
+      if (released.any) {
+        // Handle button release
+        this.resetPressTiming();
+      } else if (cooldownEnded) {
+        // Handle held buttons
+        if (up) {
+          this.focusedWindow.navigate('up');
+          this.updatePressTiming();
+        } else if (down) {
+          this.focusedWindow.navigate('down');
+          this.updatePressTiming();
+        } else if (left) {
+          this.focusedWindow.navigate('left');
+          this.updatePressTiming();
+        } else if (right) {
+          this.focusedWindow.navigate('right');
+          this.updatePressTiming();
+        }
+        
+        if (a) {
+          this.focusedWindow.confirm();
+          this.updatePressTiming();
+        }
+        
+        if (b) {
+          this.focusedWindow.cancel();
+          this.updatePressTiming();
+        }
+      } else {
+        // Handle pressed buttons
+        if (pressed.up) {
+          this.focusedWindow.navigate('up');
+          this.resetPressTiming();
+        } else if (pressed.down) {
+          this.focusedWindow.navigate('down');
+          this.resetPressTiming();
+        } else if (pressed.left) {
+          this.focusedWindow.navigate('left');
+          this.resetPressTiming();
+        } else if (pressed.right) {
+          this.focusedWindow.navigate('right');
+          this.resetPressTiming();
+        }
+      
+        if (pressed.a) {
+          this.focusedWindow.confirm();
+          this.resetPressTiming();
+        }
+        
+        if (pressed.b) {
+          this.focusedWindow.cancel();
+          this.resetPressTiming();
+        }
       }
-
-      if (cancelPressed) {
-        this.focusedWindow.cancel();
-      }
-
-      // Update input states
-      this.lastUp = gamepad.pressed.up;
-      this.lastDown = gamepad.pressed.down;
-      this.lastConfirm = gamepad.pressed.a;
-      this.lastCancel = gamepad.pressed.b;
     }
   }
 
@@ -127,6 +175,21 @@ class WindowManager {
     const window = new Window(x, y, width, height, skin, parent);
     this.add(window);
     return window;
+  }
+
+  updatePressTiming() {
+    // Track first press time
+    if (this.firstPressTime === undefined) {
+      this.firstPressTime = game.time.now;
+    }
+    
+    // Update last press time
+    this.lastPress = game.time.now;
+  }
+
+  resetPressTiming() {
+    this.firstPressTime = game.time.now;
+    this.lastPress = game.time.now;
   }
 
   clearAll(destroy = false) {

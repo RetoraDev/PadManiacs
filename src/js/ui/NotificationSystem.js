@@ -13,7 +13,6 @@ class NotificationSystem {
     this.notificationTexts = null;
     
     this.restrictedStates = new Set(['Title', 'Play', 'Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
-    this.allowedStates = new Set(['MainMenu', 'Settings', 'Keybindings ', 'SongSelect', 'Results', 'CharacterSelect', 'Jukebox', 'Editor', 'AchievementsMenu', 'StatsMenu']);
     
     this.setupStateChangeHandling();
   }
@@ -476,7 +475,7 @@ class NotificationSystem {
   }
 
   isStateAllowed(stateName) {
-    return this.allowedStates.has(stateName);
+    return !this.restrictedStates.has(stateName);
   }
 
   clear() {

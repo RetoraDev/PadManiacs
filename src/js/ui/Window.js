@@ -152,6 +152,34 @@ class Window extends Phaser.Sprite {
     return item;
   }
   
+  addRangeItem(text, min = 0, max = 100, step = 1, value = 0, suffix = "", callback = null) {
+    const itemText = new Text(8 + this.offset.x, 0, text, {
+      ...FONTS[this.font],
+      tint: this.fontTint
+    });
+    this.addChild(itemText);
+    
+    const valueText = new Text(this.size.width * 8 -8- 4, 0, `${value}${suffix}`, {
+      ...FONTS[this.font],
+      tint: this.fontTint
+    });
+    valueText.anchor.x = 1;
+    itemText.addChild(valueText);
+
+    const item = {
+      text: itemText,
+      valueText: valueText,
+      min, max, step, value, suffix,
+      callback: callback,
+      type: 'range',
+      visible: true
+    };
+
+    this.items.push(item);
+    this.update();
+    return item;
+  }
+  
   static processMultilingual(text) {
     // Translate text only
     if (typeof text !== 'string') {
@@ -338,13 +366,13 @@ class Window extends Phaser.Sprite {
       item.currentIndex = (item.currentIndex - 1 + item.options.length) % item.options.length;
       item.valueText.write(item.options[item.currentIndex].toString());
       if (item.callback) item.callback(item.currentIndex, item.options[item.currentIndex]);
-      this.playNavSound();
-    } else if (item.type === 'toggle') {
-      item.state = !item.state;
-      item.toggleSwitch.animations.play(item.state ? 'on' : 'off');
-      if (item.callback) item.callback(item.state);
-      this.playNavSound();
+    } else if (item.type === 'range') {
+      if (item.value - item.step >= item.min) item.value -= item.step;
+      item.valueText.write(`${item.value}${item.suffix}`);
+      if (item.callback) item.callback(item.value);
     }
+    
+    this.playNavSound();
   }
 
   handleRight() {
@@ -356,12 +384,13 @@ class Window extends Phaser.Sprite {
       item.valueText.write(item.options[item.currentIndex].toString());
       if (item.callback) item.callback(item.currentIndex, item.options[item.currentIndex]);
       this.playNavSound();
-    } else if (item.type === 'toggle') {
-      item.state = !item.state;
-      item.toggleSwitch.animations.play(item.state ? 'on' : 'off');
-      if (item.callback) item.callback(item.state);
-      this.playNavSound();
+    } else if (item.type === 'range') {
+      if (item.value + item.step <= item.max) item.value += item.step;
+      item.valueText.write(`${item.value}${item.suffix}`);
+      if (item.callback) item.callback(item.value);
     }
+    
+    this.playNavSound();
   }
   
   selectIndex(index) {
@@ -377,15 +406,19 @@ class Window extends Phaser.Sprite {
   confirm() {
     if (this.items.length > 0) {
       const item = this.items[this.selectedIndex];
+      
       if (item.type === 'item') {
         item.callback && item.callback(this.items[this.selectedIndex]);
         ENABLE_UI_SFX && Audio.play('ui_select');
       } else {
         this.handleRight();
       }
+      
       return true;
     }
+    
     this.onConfirm.dispatch(this.selectedIndex, this.items[this.selectedIndex]);
+    
     return false;
   }
 

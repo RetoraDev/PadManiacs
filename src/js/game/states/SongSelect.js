@@ -43,7 +43,7 @@ class SongSelect {
     }
     
     this.previewAudio = document.createElement("audio");
-    this.previewAudio.volume = [0,25,50,75,100][Account.settings.volume] / 100;
+    this.previewAudio.volume = Account.settings.volume / 100;
     
     this.bannerImg = document.createElement("img");
     
