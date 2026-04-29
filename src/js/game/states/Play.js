@@ -97,9 +97,9 @@ class Play {
     
     this.createHud();
     
-    this.setupLyrics();
-    
     this.setupPlayer();
+    
+    this.setupLyrics();
     
     this.metronome = new Metronome(this);
     

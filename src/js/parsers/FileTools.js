@@ -95,6 +95,12 @@ class FileTools {
     return parts[parts.length - 1] || "";
   }
   
+  static getExtension(url) {
+    if (!url || url === "no-media") return "";
+    const parts = url.split('.');
+    return parts[parts.length - 1] || "";
+  }
+  
   static async getFileData(filename, files) {
     if (!files[filename]) {
       return null;
@@ -113,5 +119,30 @@ class FileTools {
       console.error(`Failed to get file data for ${filename}:`, error);
       return null;
     }
+  }
+  
+  static loadTextFile(url) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          resolve(xhr.responseText);
+        } else {
+          resolve(null);
+        }
+      };
+      xhr.onerror = () => resolve(null);
+      xhr.send();
+    });
+  }
+  
+  static readTextFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
   }
 }

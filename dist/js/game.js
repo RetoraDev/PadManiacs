@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.9.0 dev
- * Build: 4/29/2026, 4:23:11 AM
+ * Build: 4/29/2026, 1:20:41 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -10983,6 +10983,12 @@ class FileTools {
     return parts[parts.length - 1] || "";
   }
   
+  static getExtension(url) {
+    if (!url || url === "no-media") return "";
+    const parts = url.split('.');
+    return parts[parts.length - 1] || "";
+  }
+  
   static async getFileData(filename, files) {
     if (!files[filename]) {
       return null;
@@ -11001,6 +11007,31 @@ class FileTools {
       console.error(`Failed to get file data for ${filename}:`, error);
       return null;
     }
+  }
+  
+  static loadTextFile(url) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          resolve(xhr.responseText);
+        } else {
+          resolve(null);
+        }
+      };
+      xhr.onerror = () => resolve(null);
+      xhr.send();
+    });
+  }
+  
+  static readTextFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
   }
 }
 
@@ -11248,21 +11279,9 @@ class LocalSMParser {
   }
   
   async loadTextFile(url) {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          resolve(xhr.responseText);
-        } else {
-          resolve(null);
-        }
-      };
-      xhr.onerror = () => resolve(null);
-      xhr.send();
-    });
+    return FileTools.loadTextFile(url);
   }
-
+  
   resolveFileUrl(filename, baseUrl) {
     if (!filename) return "";
     // Handle absolute URLs and relative paths
@@ -11560,12 +11579,7 @@ class ExternalSMParser {
   }
   
   readFileContent(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsText(file);
-    });
+    return FileTools.readTextFile(file);
   }
 
   parseSSC(files, sscContent) {
@@ -11814,7 +11828,6 @@ class AddonManager {
           console.warn(`Failed to load addon from ${addonDir.name}:`, error);
         }
       }
-      
     } catch (error) {
       console.log("No external addons directory found");
     }
@@ -11894,8 +11907,35 @@ class AddonManager {
     const defaultResources = {};
     window.gameResources.forEach(res => defaultResources[res.key] = res);
     
-    for (const [assetKey, assetPath] of Object.entries(assetsManifest)) {
-      const assetUrl = addon.dir.nativeURL + assetPath;
+    for (const [assetKey, assetValue] of Object.entries(assetsManifest)) {
+      const assetTypes = {
+        txt: 'text',
+        csv: 'text',
+        json: 'json',
+        mp3: 'audio',
+        ogg: 'audio',
+        wav: 'audio',
+        webm: 'video',
+        mp4: 'video',
+        jpg: 'image',
+        jpeg: 'image',
+        png: 'image',
+        gif: 'image',
+        webp: 'image',
+        ...(addon.manifest.assetTypes || {})
+      };
+      
+      let assetUrl, assetType, extension;
+      
+      if (typeof assetValue == 'object') {
+        extension = FileTools.getExtension(assetValue.path);
+        assetUrl = addon.dir.nativeURL + assetValue.path;
+        assetType = assetValue.type || assetTypes[extension] || "image";
+      } else {
+        extension = FileTools.getExtension(assetValue);
+        assetUrl = addon.dir.nativeURL + assetValue;
+        assetType = assetTypes[extension] || "image";
+      }
       
       const addonAssets = addon.assets;
       
@@ -11907,7 +11947,7 @@ class AddonManager {
         });
       } else {
         addon.assets.push({
-          type: "image",
+          type: assetType,
           key: assetKey,
           url: assetUrl
         });
@@ -13176,6 +13216,7 @@ class LoadSongFolder {
 
       if (fileEntry) {
         const blob = await fileEntry.async("blob");
+        
         // Create object URL for immediate use
         const objectUrl = URL.createObjectURL(blob);
 
@@ -13190,7 +13231,7 @@ class LoadSongFolder {
           chart.bannerUrl = objectUrl;
         } else if (targetProp === "lyrics") {
           chart.lyrics = filename;
-          chart.lyricsContent = this.files.lyrics;
+          chart.lyricsContent = await fileEntry.async("text");
         }
 
         return objectUrl;
@@ -16700,9 +16741,9 @@ class Play {
     
     this.createHud();
     
-    this.setupLyrics();
-    
     this.setupPlayer();
+    
+    this.setupLyrics();
     
     this.metronome = new Metronome(this);
     

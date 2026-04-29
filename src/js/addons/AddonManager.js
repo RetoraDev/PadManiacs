@@ -54,7 +54,6 @@ class AddonManager {
           console.warn(`Failed to load addon from ${addonDir.name}:`, error);
         }
       }
-      
     } catch (error) {
       console.log("No external addons directory found");
     }
@@ -134,8 +133,35 @@ class AddonManager {
     const defaultResources = {};
     window.gameResources.forEach(res => defaultResources[res.key] = res);
     
-    for (const [assetKey, assetPath] of Object.entries(assetsManifest)) {
-      const assetUrl = addon.dir.nativeURL + assetPath;
+    for (const [assetKey, assetValue] of Object.entries(assetsManifest)) {
+      const assetTypes = {
+        txt: 'text',
+        csv: 'text',
+        json: 'json',
+        mp3: 'audio',
+        ogg: 'audio',
+        wav: 'audio',
+        webm: 'video',
+        mp4: 'video',
+        jpg: 'image',
+        jpeg: 'image',
+        png: 'image',
+        gif: 'image',
+        webp: 'image',
+        ...(addon.manifest.assetTypes || {})
+      };
+      
+      let assetUrl, assetType, extension;
+      
+      if (typeof assetValue == 'object') {
+        extension = FileTools.getExtension(assetValue.path);
+        assetUrl = addon.dir.nativeURL + assetValue.path;
+        assetType = assetValue.type || assetTypes[extension] || "image";
+      } else {
+        extension = FileTools.getExtension(assetValue);
+        assetUrl = addon.dir.nativeURL + assetValue;
+        assetType = assetTypes[extension] || "image";
+      }
       
       const addonAssets = addon.assets;
       
@@ -147,7 +173,7 @@ class AddonManager {
         });
       } else {
         addon.assets.push({
-          type: "image",
+          type: assetType,
           key: assetKey,
           url: assetUrl
         });

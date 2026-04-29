@@ -242,21 +242,9 @@ class LocalSMParser {
   }
   
   async loadTextFile(url) {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          resolve(xhr.responseText);
-        } else {
-          resolve(null);
-        }
-      };
-      xhr.onerror = () => resolve(null);
-      xhr.send();
-    });
+    return FileTools.loadTextFile(url);
   }
-
+  
   resolveFileUrl(filename, baseUrl) {
     if (!filename) return "";
     // Handle absolute URLs and relative paths

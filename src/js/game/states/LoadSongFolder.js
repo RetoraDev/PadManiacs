@@ -144,6 +144,7 @@ class LoadSongFolder {
 
       if (fileEntry) {
         const blob = await fileEntry.async("blob");
+        
         // Create object URL for immediate use
         const objectUrl = URL.createObjectURL(blob);
 
@@ -158,7 +159,7 @@ class LoadSongFolder {
           chart.bannerUrl = objectUrl;
         } else if (targetProp === "lyrics") {
           chart.lyrics = filename;
-          chart.lyricsContent = this.files.lyrics;
+          chart.lyricsContent = await fileEntry.async("text");
         }
 
         return objectUrl;
