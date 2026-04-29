@@ -383,21 +383,14 @@ class Jukebox {
 
   updateDurationDisplay() {
     const duration = this.audioElement.duration;
-    if (isNaN(duration) || duration == Infinity) {
-      this.durationText.write("--:--");
-      return;
-    };
-    
-    const minutes = Math.floor(duration / 60);
-    const seconds = Math.floor(duration % 60);
-    this.durationText.write(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+    this.durationText.write(TimeUtils.formatTime(duration));
   }
 
   updateProgressBar() {
     const currentTime = this.audioElement.currentTime;
     const duration = this.audioElement.duration;
     
-    if (isNaN(duration) || duration === 0) return;
+    if (!TimeUtils.isValidTime(duration)) return;
     
     const progress = currentTime / duration;
     const barWidth = 132 * progress;
@@ -410,9 +403,7 @@ class Jukebox {
 
   updateTimeDisplay() {
     const currentTime = this.audioElement.currentTime;
-    const minutes = Math.floor(currentTime / 60);
-    const seconds = Math.floor(currentTime % 60);
-    this.currentTimeText.write(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+    this.currentTimeText.write(TimeUtils.formatTime(currentTime));
   }
 
   updateFullscreenMode() {

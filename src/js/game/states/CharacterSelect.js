@@ -1,4 +1,4 @@
-class CharacterSelect extends Phaser.State {
+class CharacterSelect {
   create() {
     game.camera.fadeIn(0x000000);
 
@@ -447,7 +447,7 @@ class CharacterSelect extends Phaser.State {
   }
   
   customizeSkinTone() {
-    const skinOptions = ["LIGHT", "DARK"];
+    const skinOptions = ["PALE", "LIGHT", "TAN", "DARK", "PURPLE"];
     
     const background = this.createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);

@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.9.0 dev
- * Build: 4/28/2026, 12:38:59 PM
+ * Build: 4/29/2026, 4:23:11 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -4966,8 +4966,8 @@ class WindowManager {
     this.focusedWindow = null;
 
     // Track input states to prevent repeated inputs
-    this.lastPress = 0;
     this.firstPressTime = undefined;
+    this.lastPress = 0;
   }
 
   add(window) {
@@ -5075,10 +5075,38 @@ class WindowManager {
       
       const cooldownEnded = timeSinceLastPress >= cooldown;
       
-      if (released.any) {
-        // Handle button release
+      // Handle pressed buttons
+      if (pressed.up) {
+        this.focusedWindow.navigate('up');
         this.resetPressTiming();
-      } else if (cooldownEnded) {
+        return;
+      } else if (pressed.down) {
+        this.focusedWindow.navigate('down');
+        this.resetPressTiming();
+        return;
+      } else if (pressed.left) {
+        this.focusedWindow.navigate('left');
+        this.resetPressTiming();
+        return;
+      } else if (pressed.right) {
+        this.focusedWindow.navigate('right');
+        this.resetPressTiming();
+        return;
+      }
+    
+      if (pressed.a) {
+        this.focusedWindow.confirm();
+        this.resetPressTiming();
+        return;
+      }
+      
+      if (pressed.b) {
+        this.focusedWindow.cancel();
+        this.resetPressTiming();
+        return;
+      }
+        
+      if (cooldownEnded) {
         // Handle held buttons
         if (up) {
           this.focusedWindow.navigate('up');
@@ -5092,41 +5120,6 @@ class WindowManager {
         } else if (right) {
           this.focusedWindow.navigate('right');
           this.updatePressTiming();
-        }
-        
-        if (a) {
-          this.focusedWindow.confirm();
-          this.updatePressTiming();
-        }
-        
-        if (b) {
-          this.focusedWindow.cancel();
-          this.updatePressTiming();
-        }
-      } else {
-        // Handle pressed buttons
-        if (pressed.up) {
-          this.focusedWindow.navigate('up');
-          this.resetPressTiming();
-        } else if (pressed.down) {
-          this.focusedWindow.navigate('down');
-          this.resetPressTiming();
-        } else if (pressed.left) {
-          this.focusedWindow.navigate('left');
-          this.resetPressTiming();
-        } else if (pressed.right) {
-          this.focusedWindow.navigate('right');
-          this.resetPressTiming();
-        }
-      
-        if (pressed.a) {
-          this.focusedWindow.confirm();
-          this.resetPressTiming();
-        }
-        
-        if (pressed.b) {
-          this.focusedWindow.cancel();
-          this.resetPressTiming();
         }
       }
     }
@@ -5651,9 +5644,10 @@ class CarouselMenu extends Phaser.Sprite {
       this.scrollBarTween = null;
     }
     
-    // Traci input state
-    this.lastPress = 0;
+    // Track input state
     this.firstPressTime = undefined;
+    this.lastPress = 0;
+    this.lastUpdate = 0;
     
     this.setupInput();
     
@@ -5767,7 +5761,9 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   update() {
-    if (!this.inputEnabled) return;
+    if (!this.inputEnabled || game.time.now == this.lastUpdate) return;
+    
+    this.lastUpdate = game.time.now;
     
     this.handleInput();
     this.updateAnimations();
@@ -5790,60 +5786,53 @@ class CarouselMenu extends Phaser.Sprite {
       cooldown = 100;
     }
   
+    // Handle pressed buttons
+    if (gamepad.pressed.up) {
+      this.navigate(-1);
+      this.resetPressTiming();
+      return;
+    } else if (gamepad.pressed.down) {
+      this.navigate(1);
+      this.resetPressTiming();
+      return;
+    } else if (gamepad.pressed.left) {
+      this.navigate(-1, true);
+      this.resetPressTiming();
+      return;
+    } else if (gamepad.pressed.right) {
+      this.navigate(1, true);
+      this.resetPressTiming();
+      return;
+    }
+    
+    if (gamepad.pressed.a) {
+      this.confirm();
+      this.resetPressTiming();
+      return;
+    }
+    
+    if (gamepad.pressed.b) {
+      this.cancel();
+      this.resetPressTiming();
+      return;
+    }
+      
     const cooldownEnded = timeSinceLastPress >= cooldown;
     
-    if (gamepad.released.any) {
-      // Handle released buttons
-      this.resetPressTiming();
-    } else if (cooldownEnded) {
+    if (cooldownEnded) {
       // Handle held buttons
-      if (gamepad.held.up && !this.lastUp) {
+      if (gamepad.held.up) {
         this.navigate(-1);
         this.updatePressTiming();
-      } else if (gamepad.held.down && !this.lastDown) {
+      } else if (gamepad.held.down) {
         this.navigate(1);
         this.updatePressTiming();
-      } else if (gamepad.held.left && !this.lastLeft) {
+      } else if (gamepad.held.left) {
         this.navigate(-1, true);
         this.updatePressTiming();
-      } else if (gamepad.held.right && !this.lastRight) {
+      } else if (gamepad.held.right) {
         this.navigate(1, true);
         this.updatePressTiming();
-      }
-      
-      if (gamepad.held.a && !this.lastConfirm) {
-        this.confirm();
-        this.updatePressTiming();
-      }
-      
-      if (gamepad.held.b && !this.lastCancel) {
-        this.cancel();
-        this.updatePressTiming();
-      }
-    } else {
-      // Handle pressed buttons
-      if (gamepad.pressed.up) {
-        this.navigate(-1);
-        this.resetPressTiming();
-      } else if (gamepad.pressed.down) {
-        this.navigate(1);
-        this.resetPressTiming();
-      } else if (gamepad.pressed.left) {
-        this.navigate(-1, true);
-        this.resetPressTiming();
-      } else if (gamepad.pressed.right) {
-        this.navigate(1, true);
-        this.resetPressTiming();
-      }
-      
-      if (gamepad.pressed.a) {
-        this.confirm();
-        this.resetPressTiming();
-      }
-      
-      if (gamepad.pressed.b) {
-        this.cancel();
-        this.resetPressTiming();
       }
     }
   }
@@ -6760,8 +6749,9 @@ class ValueInput extends Phaser.Sprite {
     this.max = max;
     this.step = step;
     
-    this.lastInputTime = 0;
-    this.inputCooldown = 120; 
+    // Track input states
+    this.firstPressTime = undefined;
+    this.lastPress = 0;
     
     this.textLayer = new Text(3, 5, "");
     this.textLayer.tint = this.window.fontTint;
@@ -6774,7 +6764,6 @@ class ValueInput extends Phaser.Sprite {
     this.textLayer.addChild(this.cursor);
 
     this.lastCursorBlinkTime = 0;
-    this.cursorVisible = false;
 
     this.onConfirm = new Phaser.Signal();
     this.onCancel = new Phaser.Signal();
@@ -6797,7 +6786,73 @@ class ValueInput extends Phaser.Sprite {
     this.destroy();
   }
   update() {
-    if (game.time.now - this.lastInputTime > this.inputCooldown) {
+    // Update text layer
+    this.textLayer.write(`${this.value.toFixed(this.getDecimalPlaces())}`);
+    
+    // Update cursor position
+    this.cursor.x = this.textLayer.texture.text.length * 4;
+
+    // Blink cursor
+    if (game.time.now - this.lastCursorBlinkTime >= 350) {
+      this.cursor.visible = !this.cursor.visible;
+      this.lastCursorBlinkTime = game.time.now;
+    }
+    
+    // Handle navigation
+    const { up, down, left, right, a, b } = gamepad.held;
+    const pressed = gamepad.pressed;
+    const released = gamepad.released;
+  
+    // Dynamic cooldown system
+    let cooldown = 100;
+    
+    // Calculate time since last held press
+    const timeSinceLastPress = game.time.now - this.lastPress;
+    const timeSinceFirstPress = game.time.now - (this.firstPressTime || 0);
+    
+    // Dynamic cooldown logic: 
+    if (timeSinceFirstPress < 1000) {
+      cooldown = 400;
+    } else if (timeSinceFirstPress < 1500) {
+      cooldown = 200;
+    } else if (timeSinceFirstPress < 1700) {
+      cooldown = 100;
+    } else if (timeSinceLastPress < 5000) {
+      cooldown = 50;
+    } else {
+      cooldown = 16;
+    }
+    
+    const cooldownEnded = timeSinceLastPress >= cooldown;
+  
+    // Handle pressed buttons
+    if (pressed.up) {
+      this.value = Math.min(this.max, this.value + this.step);
+      this.resetPressTiming();
+      return;
+    } else if (pressed.down) {
+      this.value = Math.max(this.min, this.value - this.step);
+      this.resetPressTiming();
+      return;
+    } else if (pressed.left) {
+      this.value = Math.max(this.min, this.value - this.step * 5);
+      this.resetPressTiming();
+      return;
+    } else if (pressed.right) {
+      this.value = Math.min(this.max, this.value + this.step * 5);
+      this.resetPressTiming();
+      return;
+    }
+    
+    if (gamepad.pressed.a || gamepad.pressed.start) {
+      this.confirm();
+    }
+    
+    if (gamepad.pressed.b || gamepad.pressed.select) {
+      this.cancel();
+    }
+    
+    if (cooldownEnded) {
       if (gamepad.held.down) {
         this.value = Math.max(this.min, this.value - this.step);
         this.lastInputTime = game.time.now;
@@ -6815,22 +6870,26 @@ class ValueInput extends Phaser.Sprite {
         this.lastInputTime = game.time.now;
       }
     }
-    
-    this.textLayer.write(`${this.value.toFixed(3)}`);
-    
-    this.cursor.x = this.textLayer.texture.text.length * 4;
-    
-    if (gamepad.pressed.a || gamepad.pressed.start) {
-      this.confirm();
+  }
+  updatePressTiming() {
+    // Track first press time
+    if (this.firstPressTime === undefined) {
+      this.firstPressTime = game.time.now;
     }
     
-    if (gamepad.pressed.b || gamepad.pressed.select) {
-      this.cancel();
-    }
-    
-    if (game.time.now - this.lastCursorBlinkTime >= 350) {
-      this.cursorVisible = !this.cursorVisible;
-      this.lastCursorBlinkTime = game.time.now;
+    // Update last press time
+    this.lastPress = game.time.now;
+  }
+  resetPressTiming() {
+    this.firstPressTime = game.time.now;
+    this.lastPress = game.time.now;
+  }
+  getDecimalPlaces() {
+    const split = this.step.toString().split('.');
+    if (split[1]) {
+      return split[1].length;
+    } else {
+      return 0;
     }
   }
   destroy() {
@@ -9705,6 +9764,19 @@ class Metronome {
       this.statusText.destroy();
       this.statusText = null;
     }
+  }
+}
+
+class TimeUtils {
+  static isValidTime(time) {
+    return typeof time != undefined && typeof time != null && !isNaN(time) && time != Infinity;
+  }
+  static formatTime(time) {
+    if (!TimeUtils.isValidTime(time)) return "--:--";
+
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }
 }
 
@@ -13987,6 +14059,31 @@ class Settings {
       }
     );
     
+    // Chart background
+    settingsWindow.addSettingItem(
+      "Enable Chart Background",
+      ["YES", "NO"],
+      Account.settings.enableChartBackground ? 0 : 1,
+      index => {
+        Account.settings.enableChartBackground = index === 0;
+        saveAccount();
+      }
+    );
+    
+    // Chart Background opacity
+    settingsWindow.addRangeItem(
+      "Chart Background Opacity",
+      0,
+      100,
+      1,
+      (Account.settings.chartBackgroundOpacity || 0.3) * 100,
+      "%",
+      value => {
+        Account.settings.chartBackgroundOpacity = value / 100;
+        saveAccount();
+      }
+    );
+    
     // Video FPS
     settingsWindow.addSettingItem(
       "Video FPS",
@@ -13997,7 +14094,6 @@ class Settings {
         saveAccount();
       }
     );
-    
     
     // Global offset
     settingsWindow.addRangeItem(
@@ -14838,8 +14934,6 @@ class SongSelect {
     this.songCarousel.onSelect.add((index, item) => {
       if (item.data && item.data.song) {
         this.previewSong(item.data.song);
-        
-        
       }
     });
 
@@ -15042,14 +15136,6 @@ class SongSelect {
   update() {
     gamepad.update();
     
-    if (this.songCarousel) {
-      this.songCarousel.update();
-    }
-    
-    if (this.difficultyCarousel) {
-      this.difficultyCarousel.update();
-    }
-    
     if (gamepad.pressed.select) {
       Account.settings.autoplay = !Account.settings.autoplay;
     }
@@ -15068,7 +15154,7 @@ class SongSelect {
   }
 }
 
-class CharacterSelect extends Phaser.State {
+class CharacterSelect {
   create() {
     game.camera.fadeIn(0x000000);
 
@@ -15517,7 +15603,7 @@ class CharacterSelect extends Phaser.State {
   }
   
   customizeSkinTone() {
-    const skinOptions = ["LIGHT", "DARK"];
+    const skinOptions = ["PALE", "LIGHT", "TAN", "DARK", "PURPLE"];
     
     const background = this.createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
@@ -18187,21 +18273,14 @@ class Jukebox {
 
   updateDurationDisplay() {
     const duration = this.audioElement.duration;
-    if (isNaN(duration) || duration == Infinity) {
-      this.durationText.write("--:--");
-      return;
-    };
-    
-    const minutes = Math.floor(duration / 60);
-    const seconds = Math.floor(duration % 60);
-    this.durationText.write(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+    this.durationText.write(TimeUtils.formatTime(duration));
   }
 
   updateProgressBar() {
     const currentTime = this.audioElement.currentTime;
     const duration = this.audioElement.duration;
     
-    if (isNaN(duration) || duration === 0) return;
+    if (!TimeUtils.isValidTime(duration)) return;
     
     const progress = currentTime / duration;
     const barWidth = 132 * progress;
@@ -18214,9 +18293,7 @@ class Jukebox {
 
   updateTimeDisplay() {
     const currentTime = this.audioElement.currentTime;
-    const minutes = Math.floor(currentTime / 60);
-    const seconds = Math.floor(currentTime % 60);
-    this.currentTimeText.write(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+    this.currentTimeText.write(TimeUtils.formatTime(currentTime));
   }
 
   updateFullscreenMode() {
@@ -18760,7 +18837,9 @@ class Editor {
       enableSpeedRendering: true,
       enableBGRendering: true,
       judgeLineYFalling: 70,
-      judgeLineYRising: 50
+      judgeLineYRising: 50,
+      enableChartBackground: Account.settings.enableChartBackground || false,
+      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
     });
 
     this.homeOverlay = game.add.graphics(0, 0);
@@ -18968,6 +19047,8 @@ class Editor {
 
     carousel.addItem("< Back", () => this.showHomeScreen());
     carousel.onCancel.add(() => this.showHomeScreen());
+    
+    this.updateInfoText();
   }
   
   pickFolder(accept = "*", onConfirm, onCancel) {
@@ -19174,9 +19255,7 @@ class Editor {
       const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
       const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
       const currentTime = this.audio.currentTime;
-      const minutes = Math.floor(currentTime / 60);
-      const seconds = Math.floor(currentTime % 60);
-      const formatedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      const formatedTime = TimeUtils.formatTime(currentTime);
       const currentBpm = this.chartRenderer ? this.chartRenderer.getCurrentBPM(this.cursorBeat) : "---";
 
       const text = this.isPlaying
@@ -20472,7 +20551,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
   editSongBpm() {
     const bpm = this.song.chart.bpmChanges[0]?.bpm || 120;
-    new ValueInput(
+    const input = new ValueInput(
       bpm,
       0,
       1000,
@@ -20485,16 +20564,19 @@ SAMPLE LENGTH: ${chart.sampleLength}
         }
         this.showMetadataEdit();
         this.updateInfoText();
+        notifications.show("BPM UPDATED");
       },
       () => {
         this.showMetadataEdit();
       }
     );
+    input.x = 48;
+    input.y = 20;
   }
 
   editSongOffset() {
     const offset = this.song.chart.offset || 0;
-    new ValueInput(
+    const input = new ValueInput(
       offset,
       -32,
       32,
@@ -20502,16 +20584,19 @@ SAMPLE LENGTH: ${chart.sampleLength}
       value => {
         this.song.chart.offset = value;
         this.showMetadataEdit();
+        notifications.show("AUDIO OFFSET UPDATED");
       },
       () => {
         this.showMetadataEdit();
       }
     );
+    input.x = 48;
+    input.y = 20;
   }
 
   editSampleStart() {
     const sampleStart = this.song.chart.sampleStart || 0;
-    new ValueInput(
+    const input = new ValueInput(
       sampleStart,
       0,
       this.audio.duration || 100,
@@ -20526,16 +20611,20 @@ SAMPLE LENGTH: ${chart.sampleLength}
         
         this.updateInfoText();
         this.showMetadataEdit();
+        
+        notifications.show("SAMPLE START UPDATED");
       },
       () => {
         this.showMetadataEdit();
       }
     );
+    input.x = 48;
+    input.y = 20;
   }
 
   editSampleLength() {
     const sampleLength = this.song.chart.sampleLength || 10;
-    new ValueInput(
+    const input = new ValueInput(
       sampleLength,
       1,
       30,
@@ -20544,11 +20633,14 @@ SAMPLE LENGTH: ${chart.sampleLength}
         this.song.chart.sampleLength = value;
         this.updateInfoText();
         this.showMetadataEdit();
+        notifications.show("SAMPLE LENGTH UPDATED");
       },
       () => {
         this.showMetadataEdit();
       }
     );
+    input.x = 48;
+    input.y = 20;
   }
 
   editBGChangeFiles() {
@@ -20561,18 +20653,63 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
     this.song.chart.backgrounds.forEach((bg, index) => {
       const fileName = bg.file ? bg.file.split("/").pop() : "No file";
-      carousel.addItem(`BG ${index + 1}: ${fileName}`, () => {
+      carousel.addItem(fileName,
+        () => this.showBGChangeMenu(index),
+        { bg, fileName, index }
+      );
+    });
+    
+    carousel.onSelect.add((index, item) => {
+      if (item.data && item.data.bg) {
+        const bg = item.data.bg;
+        
+        this.songInfoText.write(`${item.data.fileName}
+
+TYPE: ${item.data.fileName == '-nosongbg-' ? 'NONE' : bg.type}
+INDEX: ${index + 1}
+TIME: ${TimeUtils.formatTime(this.chartRenderer.beatToSec(bg.beat))}
+BEAT: ${bg.beat}`);
+
+        this.songInfoText.wrapPreserveNewlines(game.width / 2 - 8);
+      }
+    });
+    
+    carousel.selectIndex(0); // Force an update
+  
+    carousel.addItem("< Back", () => this.showFileMenu());
+    carousel.onCancel.add(() => this.showFileMenu());
+  }
+  
+  showBGChangeMenu(bgIndex) {
+    const bg =  this.song.chart.backgrounds[bgIndex];
+    
+    const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
+      align: "left",
+      bgcolor: "#d35400",
+      fgcolor: "#ffffff",
+      animate: true
+    });
+    
+    if (bg) {
+      carousel.addItem("REPLACE", () => {
         this.pickFile("image/*,video/*", async event => {
           const file = event.target.files[0];
           bg.file = file.name;
           this.files.extra[file.name] = FileTools.extractBase64(URL.createObjectURL(file));
-          this.editBGChangeFiles();
-        }, () => editBGChangeFiles());
+          this.showBGChangeMenu(bgIndex);
+        }, () => this.showBGChangeMenu(bgIndex));
       });
-    });
-
-    carousel.addItem("< Back", () => this.showFileMenu());
-    carousel.onCancel.add(() => this.showFileMenu());
+      
+      carousel.addItem("REMOVE", () => {
+        this.song.chart.backgrounds.splice(bgIndex, 1);
+        this.chartRenderer.removeTag(bg.beat, 'bg');
+        delete this.files.extra[bg.file];
+        this.showBGChangeMenu(bgIndex);
+      });
+    }
+    
+    carousel.addItem("< Back", () => this.editBGChangeFiles());
+    carousel.onCancel.add(() => this.editBGChangeFiles());
   }
 
   createNewSongAndReload() {
@@ -20698,8 +20835,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
     return this.song.chart.bpmChanges.find(bpm => Math.abs(bpm.beat - this.cursorBeat) < 0.001);
   }
 
-  editBPMChange() {
-    const bpmChange = this.getBPMChange();
+  editBPMChange(target) {
+    const bpmChange = target || this.getBPMChange();
     if (bpmChange) {
       this.menuVisible = true;
       
@@ -20738,7 +20875,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       1,
       0,
       360,
-      0.1,
+      0.001,
       length => {
         this.song.chart.stops.push({
           beat: this.cursorBeat,
@@ -20768,7 +20905,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
         stop.len,
         0,
         360,
-        0.1,
+        0.001,
         length => {
           const index = this.song.chart.stops.indexOf(stop);
           if (index != -1) this.song.chart.stops[index].len = length;
@@ -20831,8 +20968,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
     return this.song.chart.backgrounds.find(bg => Math.abs(bg.beat - this.cursorBeat) < 0.001);
   }
   
-  editBGChange() {
-    const bgChange = this.getBGChange();
+  editBGChange(target) {
+    const bgChange = target || this.getBGChange();
     if (bgChange) {
       this.pickFile("image/*,video/*", async event => {
         const file = event.target.files[0];
@@ -21286,6 +21423,8 @@ class ChartRenderer {
       enableMissChecking: true,
       enableReceptors: true,
       enableBeatLines: false,
+      enableChartBackground: false,
+      chartBackgroundOpacity: 0.3,
       enableSpeedRendering: false,
       enableBGRendering: false,
       judgeLineYFalling: 90,
@@ -21393,6 +21532,7 @@ class ChartRenderer {
       }
     };
 
+    this.backgroundGraphics = game.add.graphics(0, 0);
     this.speedModGraphics = game.add.graphics(0, 0);
     this.bgChangeGraphics = game.add.graphics(0, 0);
     
@@ -21461,6 +21601,13 @@ class ChartRenderer {
 
       this.receptorsGroup.add(receptor);
       this.receptors.push(receptor);
+    }
+    
+    // Draw background
+    if (this.options.enableChartBackground) {
+      this.backgroundGraphics.beginFill(0x000000, this.options.chartBackgroundOpacity);
+      this.backgroundGraphics.drawRect(this.calculateLeftOffset() - 4, 0, this.calculateFullWidth() + 8, game.height);
+      this.backgroundGraphics.endFill();
     }
   }
 
@@ -21567,7 +21714,7 @@ class ChartRenderer {
       this.renderRising(now, beat);
     }
 
-    if (Account.settings.beatLines || this.options.enableBeatLines) {
+    if (this.options.enableBeatLines) {
       this.renderTimeLines(now, beat);
     }
     if (this.options.enableSpeedRendering) {
@@ -22212,7 +22359,10 @@ class Player {
       enableJudgement: true,
       enableInput: true,
       enableHealth: true,
-      enableMissChecking: true
+      enableMissChecking: true,
+      enableBeatLines: Account.settings.beatLines || false,
+      enableChartBackground: Account.settings.enableChartBackground || false,
+      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
     });
     
     // Copy references from renderer

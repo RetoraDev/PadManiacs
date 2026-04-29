@@ -67,7 +67,9 @@ class Editor {
       enableSpeedRendering: true,
       enableBGRendering: true,
       judgeLineYFalling: 70,
-      judgeLineYRising: 50
+      judgeLineYRising: 50,
+      enableChartBackground: Account.settings.enableChartBackground || false,
+      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
     });
 
     this.homeOverlay = game.add.graphics(0, 0);
@@ -275,6 +277,8 @@ class Editor {
 
     carousel.addItem("< Back", () => this.showHomeScreen());
     carousel.onCancel.add(() => this.showHomeScreen());
+    
+    this.updateInfoText();
   }
   
   pickFolder(accept = "*", onConfirm, onCancel) {
@@ -481,9 +485,7 @@ class Editor {
       const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
       const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
       const currentTime = this.audio.currentTime;
-      const minutes = Math.floor(currentTime / 60);
-      const seconds = Math.floor(currentTime % 60);
-      const formatedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      const formatedTime = TimeUtils.formatTime(currentTime);
       const currentBpm = this.chartRenderer ? this.chartRenderer.getCurrentBPM(this.cursorBeat) : "---";
 
       const text = this.isPlaying
@@ -1779,7 +1781,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
   editSongBpm() {
     const bpm = this.song.chart.bpmChanges[0]?.bpm || 120;
-    new ValueInput(
+    const input = new ValueInput(
       bpm,
       0,
       1000,
@@ -1792,16 +1794,19 @@ SAMPLE LENGTH: ${chart.sampleLength}
         }
         this.showMetadataEdit();
         this.updateInfoText();
+        notifications.show("BPM UPDATED");
       },
       () => {
         this.showMetadataEdit();
       }
     );
+    input.x = 48;
+    input.y = 20;
   }
 
   editSongOffset() {
     const offset = this.song.chart.offset || 0;
-    new ValueInput(
+    const input = new ValueInput(
       offset,
       -32,
       32,
@@ -1809,16 +1814,19 @@ SAMPLE LENGTH: ${chart.sampleLength}
       value => {
         this.song.chart.offset = value;
         this.showMetadataEdit();
+        notifications.show("AUDIO OFFSET UPDATED");
       },
       () => {
         this.showMetadataEdit();
       }
     );
+    input.x = 48;
+    input.y = 20;
   }
 
   editSampleStart() {
     const sampleStart = this.song.chart.sampleStart || 0;
-    new ValueInput(
+    const input = new ValueInput(
       sampleStart,
       0,
       this.audio.duration || 100,
@@ -1833,16 +1841,20 @@ SAMPLE LENGTH: ${chart.sampleLength}
         
         this.updateInfoText();
         this.showMetadataEdit();
+        
+        notifications.show("SAMPLE START UPDATED");
       },
       () => {
         this.showMetadataEdit();
       }
     );
+    input.x = 48;
+    input.y = 20;
   }
 
   editSampleLength() {
     const sampleLength = this.song.chart.sampleLength || 10;
-    new ValueInput(
+    const input = new ValueInput(
       sampleLength,
       1,
       30,
@@ -1851,11 +1863,14 @@ SAMPLE LENGTH: ${chart.sampleLength}
         this.song.chart.sampleLength = value;
         this.updateInfoText();
         this.showMetadataEdit();
+        notifications.show("SAMPLE LENGTH UPDATED");
       },
       () => {
         this.showMetadataEdit();
       }
     );
+    input.x = 48;
+    input.y = 20;
   }
 
   editBGChangeFiles() {
@@ -1868,18 +1883,63 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
     this.song.chart.backgrounds.forEach((bg, index) => {
       const fileName = bg.file ? bg.file.split("/").pop() : "No file";
-      carousel.addItem(`BG ${index + 1}: ${fileName}`, () => {
+      carousel.addItem(fileName,
+        () => this.showBGChangeMenu(index),
+        { bg, fileName, index }
+      );
+    });
+    
+    carousel.onSelect.add((index, item) => {
+      if (item.data && item.data.bg) {
+        const bg = item.data.bg;
+        
+        this.songInfoText.write(`${item.data.fileName}
+
+TYPE: ${item.data.fileName == '-nosongbg-' ? 'NONE' : bg.type}
+INDEX: ${index + 1}
+TIME: ${TimeUtils.formatTime(this.chartRenderer.beatToSec(bg.beat))}
+BEAT: ${bg.beat}`);
+
+        this.songInfoText.wrapPreserveNewlines(game.width / 2 - 8);
+      }
+    });
+    
+    carousel.selectIndex(0); // Force an update
+  
+    carousel.addItem("< Back", () => this.showFileMenu());
+    carousel.onCancel.add(() => this.showFileMenu());
+  }
+  
+  showBGChangeMenu(bgIndex) {
+    const bg =  this.song.chart.backgrounds[bgIndex];
+    
+    const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
+      align: "left",
+      bgcolor: "#d35400",
+      fgcolor: "#ffffff",
+      animate: true
+    });
+    
+    if (bg) {
+      carousel.addItem("REPLACE", () => {
         this.pickFile("image/*,video/*", async event => {
           const file = event.target.files[0];
           bg.file = file.name;
           this.files.extra[file.name] = FileTools.extractBase64(URL.createObjectURL(file));
-          this.editBGChangeFiles();
-        }, () => editBGChangeFiles());
+          this.showBGChangeMenu(bgIndex);
+        }, () => this.showBGChangeMenu(bgIndex));
       });
-    });
-
-    carousel.addItem("< Back", () => this.showFileMenu());
-    carousel.onCancel.add(() => this.showFileMenu());
+      
+      carousel.addItem("REMOVE", () => {
+        this.song.chart.backgrounds.splice(bgIndex, 1);
+        this.chartRenderer.removeTag(bg.beat, 'bg');
+        delete this.files.extra[bg.file];
+        this.showBGChangeMenu(bgIndex);
+      });
+    }
+    
+    carousel.addItem("< Back", () => this.editBGChangeFiles());
+    carousel.onCancel.add(() => this.editBGChangeFiles());
   }
 
   createNewSongAndReload() {
@@ -2005,8 +2065,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
     return this.song.chart.bpmChanges.find(bpm => Math.abs(bpm.beat - this.cursorBeat) < 0.001);
   }
 
-  editBPMChange() {
-    const bpmChange = this.getBPMChange();
+  editBPMChange(target) {
+    const bpmChange = target || this.getBPMChange();
     if (bpmChange) {
       this.menuVisible = true;
       
@@ -2045,7 +2105,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
       1,
       0,
       360,
-      0.1,
+      0.001,
       length => {
         this.song.chart.stops.push({
           beat: this.cursorBeat,
@@ -2075,7 +2135,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
         stop.len,
         0,
         360,
-        0.1,
+        0.001,
         length => {
           const index = this.song.chart.stops.indexOf(stop);
           if (index != -1) this.song.chart.stops[index].len = length;
@@ -2138,8 +2198,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
     return this.song.chart.backgrounds.find(bg => Math.abs(bg.beat - this.cursorBeat) < 0.001);
   }
   
-  editBGChange() {
-    const bgChange = this.getBGChange();
+  editBGChange(target) {
+    const bgChange = target || this.getBGChange();
     if (bgChange) {
       this.pickFile("image/*,video/*", async event => {
         const file = event.target.files[0];

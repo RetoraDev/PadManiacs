@@ -154,6 +154,31 @@ class Settings {
       }
     );
     
+    // Chart background
+    settingsWindow.addSettingItem(
+      "Enable Chart Background",
+      ["YES", "NO"],
+      Account.settings.enableChartBackground ? 0 : 1,
+      index => {
+        Account.settings.enableChartBackground = index === 0;
+        saveAccount();
+      }
+    );
+    
+    // Chart Background opacity
+    settingsWindow.addRangeItem(
+      "Chart Background Opacity",
+      0,
+      100,
+      1,
+      (Account.settings.chartBackgroundOpacity || 0.3) * 100,
+      "%",
+      value => {
+        Account.settings.chartBackgroundOpacity = value / 100;
+        saveAccount();
+      }
+    );
+    
     // Video FPS
     settingsWindow.addSettingItem(
       "Video FPS",
@@ -164,7 +189,6 @@ class Settings {
         saveAccount();
       }
     );
-    
     
     // Global offset
     settingsWindow.addRangeItem(

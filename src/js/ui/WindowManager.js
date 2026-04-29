@@ -4,8 +4,8 @@ class WindowManager {
     this.focusedWindow = null;
 
     // Track input states to prevent repeated inputs
-    this.lastPress = 0;
     this.firstPressTime = undefined;
+    this.lastPress = 0;
   }
 
   add(window) {
@@ -113,10 +113,38 @@ class WindowManager {
       
       const cooldownEnded = timeSinceLastPress >= cooldown;
       
-      if (released.any) {
-        // Handle button release
+      // Handle pressed buttons
+      if (pressed.up) {
+        this.focusedWindow.navigate('up');
         this.resetPressTiming();
-      } else if (cooldownEnded) {
+        return;
+      } else if (pressed.down) {
+        this.focusedWindow.navigate('down');
+        this.resetPressTiming();
+        return;
+      } else if (pressed.left) {
+        this.focusedWindow.navigate('left');
+        this.resetPressTiming();
+        return;
+      } else if (pressed.right) {
+        this.focusedWindow.navigate('right');
+        this.resetPressTiming();
+        return;
+      }
+    
+      if (pressed.a) {
+        this.focusedWindow.confirm();
+        this.resetPressTiming();
+        return;
+      }
+      
+      if (pressed.b) {
+        this.focusedWindow.cancel();
+        this.resetPressTiming();
+        return;
+      }
+        
+      if (cooldownEnded) {
         // Handle held buttons
         if (up) {
           this.focusedWindow.navigate('up');
@@ -130,41 +158,6 @@ class WindowManager {
         } else if (right) {
           this.focusedWindow.navigate('right');
           this.updatePressTiming();
-        }
-        
-        if (a) {
-          this.focusedWindow.confirm();
-          this.updatePressTiming();
-        }
-        
-        if (b) {
-          this.focusedWindow.cancel();
-          this.updatePressTiming();
-        }
-      } else {
-        // Handle pressed buttons
-        if (pressed.up) {
-          this.focusedWindow.navigate('up');
-          this.resetPressTiming();
-        } else if (pressed.down) {
-          this.focusedWindow.navigate('down');
-          this.resetPressTiming();
-        } else if (pressed.left) {
-          this.focusedWindow.navigate('left');
-          this.resetPressTiming();
-        } else if (pressed.right) {
-          this.focusedWindow.navigate('right');
-          this.resetPressTiming();
-        }
-      
-        if (pressed.a) {
-          this.focusedWindow.confirm();
-          this.resetPressTiming();
-        }
-        
-        if (pressed.b) {
-          this.focusedWindow.cancel();
-          this.resetPressTiming();
         }
       }
     }

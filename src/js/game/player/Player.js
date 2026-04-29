@@ -8,7 +8,10 @@ class Player {
       enableJudgement: true,
       enableInput: true,
       enableHealth: true,
-      enableMissChecking: true
+      enableMissChecking: true,
+      enableBeatLines: Account.settings.beatLines || false,
+      enableChartBackground: Account.settings.enableChartBackground || false,
+      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
     });
     
     // Copy references from renderer

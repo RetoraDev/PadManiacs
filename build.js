@@ -75,6 +75,7 @@ class BuildSystem {
       'js/utils/Gamepad.js',
       'js/utils/ScreenRecorder.js',
       'js/utils/Metronome.js',
+      'js/utils/TimeUtils.js',
       
       // Audio
       'js/audio/BackgroundMusic.js',

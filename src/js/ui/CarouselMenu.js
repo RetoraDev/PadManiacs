@@ -43,9 +43,10 @@ class CarouselMenu extends Phaser.Sprite {
       this.scrollBarTween = null;
     }
     
-    // Traci input state
-    this.lastPress = 0;
+    // Track input state
     this.firstPressTime = undefined;
+    this.lastPress = 0;
+    this.lastUpdate = 0;
     
     this.setupInput();
     
@@ -159,7 +160,9 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   update() {
-    if (!this.inputEnabled) return;
+    if (!this.inputEnabled || game.time.now == this.lastUpdate) return;
+    
+    this.lastUpdate = game.time.now;
     
     this.handleInput();
     this.updateAnimations();
@@ -182,60 +185,53 @@ class CarouselMenu extends Phaser.Sprite {
       cooldown = 100;
     }
   
+    // Handle pressed buttons
+    if (gamepad.pressed.up) {
+      this.navigate(-1);
+      this.resetPressTiming();
+      return;
+    } else if (gamepad.pressed.down) {
+      this.navigate(1);
+      this.resetPressTiming();
+      return;
+    } else if (gamepad.pressed.left) {
+      this.navigate(-1, true);
+      this.resetPressTiming();
+      return;
+    } else if (gamepad.pressed.right) {
+      this.navigate(1, true);
+      this.resetPressTiming();
+      return;
+    }
+    
+    if (gamepad.pressed.a) {
+      this.confirm();
+      this.resetPressTiming();
+      return;
+    }
+    
+    if (gamepad.pressed.b) {
+      this.cancel();
+      this.resetPressTiming();
+      return;
+    }
+      
     const cooldownEnded = timeSinceLastPress >= cooldown;
     
-    if (gamepad.released.any) {
-      // Handle released buttons
-      this.resetPressTiming();
-    } else if (cooldownEnded) {
+    if (cooldownEnded) {
       // Handle held buttons
-      if (gamepad.held.up && !this.lastUp) {
+      if (gamepad.held.up) {
         this.navigate(-1);
         this.updatePressTiming();
-      } else if (gamepad.held.down && !this.lastDown) {
+      } else if (gamepad.held.down) {
         this.navigate(1);
         this.updatePressTiming();
-      } else if (gamepad.held.left && !this.lastLeft) {
+      } else if (gamepad.held.left) {
         this.navigate(-1, true);
         this.updatePressTiming();
-      } else if (gamepad.held.right && !this.lastRight) {
+      } else if (gamepad.held.right) {
         this.navigate(1, true);
         this.updatePressTiming();
-      }
-      
-      if (gamepad.held.a && !this.lastConfirm) {
-        this.confirm();
-        this.updatePressTiming();
-      }
-      
-      if (gamepad.held.b && !this.lastCancel) {
-        this.cancel();
-        this.updatePressTiming();
-      }
-    } else {
-      // Handle pressed buttons
-      if (gamepad.pressed.up) {
-        this.navigate(-1);
-        this.resetPressTiming();
-      } else if (gamepad.pressed.down) {
-        this.navigate(1);
-        this.resetPressTiming();
-      } else if (gamepad.pressed.left) {
-        this.navigate(-1, true);
-        this.resetPressTiming();
-      } else if (gamepad.pressed.right) {
-        this.navigate(1, true);
-        this.resetPressTiming();
-      }
-      
-      if (gamepad.pressed.a) {
-        this.confirm();
-        this.resetPressTiming();
-      }
-      
-      if (gamepad.pressed.b) {
-        this.cancel();
-        this.resetPressTiming();
       }
     }
   }

@@ -127,8 +127,6 @@ class SongSelect {
     this.songCarousel.onSelect.add((index, item) => {
       if (item.data && item.data.song) {
         this.previewSong(item.data.song);
-        
-        
       }
     });
 
@@ -330,14 +328,6 @@ class SongSelect {
 
   update() {
     gamepad.update();
-    
-    if (this.songCarousel) {
-      this.songCarousel.update();
-    }
-    
-    if (this.difficultyCarousel) {
-      this.difficultyCarousel.update();
-    }
     
     if (gamepad.pressed.select) {
       Account.settings.autoplay = !Account.settings.autoplay;

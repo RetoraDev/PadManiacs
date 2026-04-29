@@ -12,6 +12,8 @@ class ChartRenderer {
       enableMissChecking: true,
       enableReceptors: true,
       enableBeatLines: false,
+      enableChartBackground: false,
+      chartBackgroundOpacity: 0.3,
       enableSpeedRendering: false,
       enableBGRendering: false,
       judgeLineYFalling: 90,
@@ -119,6 +121,7 @@ class ChartRenderer {
       }
     };
 
+    this.backgroundGraphics = game.add.graphics(0, 0);
     this.speedModGraphics = game.add.graphics(0, 0);
     this.bgChangeGraphics = game.add.graphics(0, 0);
     
@@ -187,6 +190,13 @@ class ChartRenderer {
 
       this.receptorsGroup.add(receptor);
       this.receptors.push(receptor);
+    }
+    
+    // Draw background
+    if (this.options.enableChartBackground) {
+      this.backgroundGraphics.beginFill(0x000000, this.options.chartBackgroundOpacity);
+      this.backgroundGraphics.drawRect(this.calculateLeftOffset() - 4, 0, this.calculateFullWidth() + 8, game.height);
+      this.backgroundGraphics.endFill();
     }
   }
 
@@ -293,7 +303,7 @@ class ChartRenderer {
       this.renderRising(now, beat);
     }
 
-    if (Account.settings.beatLines || this.options.enableBeatLines) {
+    if (this.options.enableBeatLines) {
       this.renderTimeLines(now, beat);
     }
     if (this.options.enableSpeedRendering) {
