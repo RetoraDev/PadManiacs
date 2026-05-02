@@ -1,4 +1,4 @@
-let game, gamepad, backgroundMusic, notifications, addonManager, achievementsManager;
+let game, gamepad, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 let Account = {
   ...DEFAULT_ACCOUNT,
@@ -25,14 +25,14 @@ const bootGame = () => {
     forceSingleUpdate: false,
     maxPointers: 0,
     keyboard: true,
-    mouse: false,
-    mouseWheel: false,
+    mouse: true,
+    mouseWheel: true,
     mspointer: false,
     multiTexture: false,
     pointerLock: false,
     preserveDrawingBuffer: false,
     roundPixels: true,
-    touch: false,
+    touch: true,
     transparent: false,
     parent: "canvas_parent",
     state: {

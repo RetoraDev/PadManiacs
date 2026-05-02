@@ -63,7 +63,7 @@ class OffsetAssistant extends Phaser.Sprite {
 
   update() {
     // Handle A button for tapping
-    if (gamepad.pressed.a) {
+    if (gamepad.pressed.a || mouse.pressed.left) {
       this.onTap();
     }
     

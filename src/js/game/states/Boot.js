@@ -35,6 +35,8 @@ class Boot {
     
     achievementsManager = new AchievementsManager();
     achievementsManager.initialize();
+    
+    mouse = new MouseCursor();
 
     game.time.advancedTiming = true;
 
@@ -137,6 +139,13 @@ class Boot {
         url: "ui/accuracy_bar.png"
       },
       {
+        key: "ui_mouse_cursor",
+        url: "ui/mouse_cursor.png",
+        type: "spritesheet",
+        frameWidth: 6,
+        frameHeight: 6
+      },
+      {
         key: "ui_jukebox_pause_toggle",
         url: "ui/jukebox_pause_toggle.png",
         type: "spritesheet",
@@ -170,6 +179,18 @@ class Boot {
         type: "spritesheet",
         frameWidth: 8,
         frameHeight: 8
+      },
+      {
+        key: "ui_addon_no_image",
+        url: "ui/addon_no_image.png",
+      },
+      {
+        key: "ui_banner_no_image",
+        url: "ui/banner_no_image.png",
+      },
+      {
+        key: "ui_banner_no_image_small",
+        url: "ui/banner_no_image_small.png",
       },
       // Sfx
       {

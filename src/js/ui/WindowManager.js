@@ -6,6 +6,11 @@ class WindowManager {
     // Track input states to prevent repeated inputs
     this.firstPressTime = undefined;
     this.lastPress = 0;
+    
+    // Mouse state
+    this.previousMousePosition = { x: 0, y: 0 };
+    this.previousMouseTarget = null;
+    this.mouseTarget = null;
   }
 
   add(window) {
@@ -86,81 +91,146 @@ class WindowManager {
   update() {
     // Only process input if we have a focused window
     if (this.focusedWindow && !this.focusedWindow.disposed) {
-      // Handle navigation
-      const { up, down, left, right, a, b } = gamepad.held;
-      const pressed = gamepad.pressed;
-      const released = gamepad.released;
+      this.handleMouseNavigation();
       
-      // Dynamic cooldown system
-      let cooldown = 100;
-      
-      // Calculate time since last held press
-      const timeSinceLastPress = game.time.now - this.lastPress;
-      const timeSinceFirstPress = game.time.now - (this.firstPressTime || 0);
-      
-      // Dynamic cooldown logic: 
-      if (timeSinceFirstPress < 1000) {
-        cooldown = 400;
-      } else if (timeSinceFirstPress < 1500) {
-        cooldown = 200;
-      } else if (timeSinceFirstPress < 1700) {
-        cooldown = 100;
-      } else if (timeSinceLastPress < 5000) {
-        cooldown = 50;
-      } else {
-        cooldown = 16;
-      }
-      
-      const cooldownEnded = timeSinceLastPress >= cooldown;
-      
-      // Handle pressed buttons
-      if (pressed.up) {
-        this.focusedWindow.navigate('up');
-        this.resetPressTiming();
-        return;
-      } else if (pressed.down) {
-        this.focusedWindow.navigate('down');
-        this.resetPressTiming();
-        return;
-      } else if (pressed.left) {
-        this.focusedWindow.navigate('left');
-        this.resetPressTiming();
-        return;
-      } else if (pressed.right) {
-        this.focusedWindow.navigate('right');
-        this.resetPressTiming();
-        return;
-      }
+      this.handleGamepadNavigation();
+    }
+  }
+  
+  handleGamepadNavigation() {
+    // Handle gamepad navigation
+    const { up, down, left, right, a, b } = gamepad.held;
+    const pressed = gamepad.pressed;
+    const released = gamepad.released;
     
-      if (pressed.a) {
-        this.focusedWindow.confirm();
-        this.resetPressTiming();
-        return;
-      }
+    // Dynamic cooldown system
+    let cooldown = 100;
+    
+    // Calculate time since last held press
+    const timeSinceLastPress = game.time.now - this.lastPress;
+    const timeSinceFirstPress = game.time.now - (this.firstPressTime || 0);
+    
+    // Dynamic cooldown logic: 
+    if (timeSinceFirstPress < 1000) {
+      cooldown = 400;
+    } else if (timeSinceFirstPress < 1500) {
+      cooldown = 200;
+    } else if (timeSinceFirstPress < 1700) {
+      cooldown = 100;
+    } else if (timeSinceLastPress < 5000) {
+      cooldown = 50;
+    } else {
+      cooldown = 16;
+    }
+    
+    const cooldownEnded = timeSinceLastPress >= cooldown;
+    
+    // Handle pressed buttons
+    if (pressed.up) {
+      this.focusedWindow.navigate('up');
+      this.resetPressTiming();
+      return;
+    } else if (pressed.down) {
+      this.focusedWindow.navigate('down');
+      this.resetPressTiming();
+      return;
+    } else if (pressed.left) {
+      this.focusedWindow.navigate('left');
+      this.resetPressTiming();
+      return;
+    } else if (pressed.right) {
+      this.focusedWindow.navigate('right');
+      this.resetPressTiming();
+      return;
+    }
+  
+    if (pressed.a) {
+      this.focusedWindow.confirm();
+      this.resetPressTiming();
+      return;
+    }
+    
+    if (pressed.b) {
+      this.focusedWindow.cancel();
+      this.resetPressTiming();
+      return;
+    }
       
-      if (pressed.b) {
-        this.focusedWindow.cancel();
-        this.resetPressTiming();
-        return;
-      }
-        
-      if (cooldownEnded) {
-        // Handle held buttons
-        if (up) {
-          this.focusedWindow.navigate('up');
-          this.updatePressTiming();
-        } else if (down) {
-          this.focusedWindow.navigate('down');
-          this.updatePressTiming();
-        } else if (left) {
-          this.focusedWindow.navigate('left');
-          this.updatePressTiming();
-        } else if (right) {
-          this.focusedWindow.navigate('right');
-          this.updatePressTiming();
-        }
+    if (cooldownEnded) {
+      // Handle held buttons
+      if (up) {
+        this.focusedWindow.navigate('up');
+        this.updatePressTiming();
+      } else if (down) {
+        this.focusedWindow.navigate('down');
+        this.updatePressTiming();
+      } else if (left) {
+        this.focusedWindow.navigate('left');
+        this.updatePressTiming();
+      } else if (right) {
+        this.focusedWindow.navigate('right');
+        this.updatePressTiming();
       }
     }
+  }
+  
+  handleMouseNavigation() {
+    const position = mouse.pointer.position;
+    
+    if (!this.checkMouseBounds(this.focusedWindow, position)) return;
+    
+    if (position.x != this.previousMousePosition.x && position.y != this.previousMousePosition.y) {
+      const target = this.getMouseTarget(this.focusedWindow, position);
+      this.mouseTarget = target;
+      
+      if (target && target != this.previousMouseTarget) {
+        this.focusedWindow.selectIndex(target.index);
+      }
+    }
+    
+    if (mouse.wheel.up) {
+      this.focusedWindow.scroll(-1);
+    } else if (mouse.wheel.down) {
+      this.focusedWindow.scroll(1);
+    }
+    
+    if (mouse.pressed.left) {
+      this.focusedWindow.confirm();
+    }
+    
+    this.previousMousePosition.x = position.x;
+    this.previousMousePosition.y = position.y;
+    this.previousMouseTarget = this.mouseTarget;
+  }
+  
+  checkMouseBounds(window, position) {
+    const { x, y } = position;
+
+    // Check bounds
+    if (x < window.x || x > window.x + window.size.width * 8) {
+      return false;
+    }
+    if (y < window.y || y > window.y + window.size.height * 8) {
+      return false;
+    }
+    
+    return true;
+  }
+  
+  getMouseTarget(window, position) {
+    const { x, y } = position;
+    
+    const items = window.items.filter(item => item.visible).reverse();
+    
+    // Get hovered item
+    for (const item of items) {
+      if (
+        item && item.text && 
+        y >= (-3 + item.text.y + window.y)
+      ) return item;
+    }
+    
+    return null;
   }
 
   // Helper methods for common operations

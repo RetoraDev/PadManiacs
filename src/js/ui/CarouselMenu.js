@@ -10,8 +10,11 @@ class CarouselMenu extends Phaser.Sprite {
       disableScrollBar: false,
       disableConfirm: false,
       disableCancel: false,
+      disableMouse: false,
       inactiveAlpha: 0.4,
+      hoverAlpha: 0.7,
       activeAlpha: 0.9,
+      doubleClickConfirm: false,
       ...config,
       margin: { top: 4, bottom: 4, left: 4, right: 4, ...(config.margin || {}) },
     };
@@ -23,6 +26,7 @@ class CarouselMenu extends Phaser.Sprite {
     
     this.items = [];
     this.selectedIndex = 0;
+    this.hoveredIndex = 0;
     this.scrollOffset = 0;
     this.itemHeight = 8;
     this.itemSpacing = 1;
@@ -59,6 +63,10 @@ class CarouselMenu extends Phaser.Sprite {
     this.onSelect = new Phaser.Signal();
     this.onConfirm = new Phaser.Signal();
     this.onCancel = new Phaser.Signal();
+    
+    mouse.onWheel.add(direction => {
+      this.scroll(direction == 'up' ? -1 : 1);
+    });
   }
   
   addItem(text, callback = null, data = {}) {
@@ -75,6 +83,7 @@ class CarouselMenu extends Phaser.Sprite {
       originalX: this.config.align === 'right' ? this.config.margin.right : this.config.margin.left,
       originalAlpha: this.config.inactiveAlpha,
       isSelected: false,
+      isHovered: false,
       alphaTween: null
     };
     
@@ -123,6 +132,22 @@ class CarouselMenu extends Phaser.Sprite {
     item.parent = itemParent;
     item.background = background;
     item.text = itemText;
+    
+    item.parent.inputEnabled = !this.config.disableMouse;
+    item.parent.events.onInputDown.add(() => {
+      if (this.doubleClickConfirm) {
+        if (!this.selectedIndex != item.index) {
+          this.selectIndex(item.index);
+        } else {
+          this.confirm();
+        }
+      } else {
+        this.selectIndex(item.index);
+        this.confirm();
+      }
+    });
+    item.parent.events.onInputOver.add(() => this.hoverItem(item));
+    item.parent.events.onInputOut.add(() => this.houtItem(item));
   }
   
   removeItemVisuals(item) {
@@ -264,6 +289,29 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  scroll(delta = 0) {
+    this.scrollOffset += delta;
+    this.hoveredIndex += delta;
+    
+    this.scrollOffset = Phaser.Math.clamp(
+      this.scrollOffset,
+      0,
+      Math.max(0, this.items.length - this.visibleItems)
+    );
+    this.hoveredIndex = Phaser.Math.clamp(
+      this.hoveredIndex,
+      0,
+      this.items.length - 1
+    );
+    
+    const target = this.items[this.hoveredIndex];
+    
+    if (target) {
+      this.updateItemVisibility(this.hoveredIndex);
+      this.updateItemPositions();
+    }
+  }
+  
   selectIndex(index) {
     this.selectedIndex = index;
     this.updateSelection();
@@ -273,30 +321,7 @@ class CarouselMenu extends Phaser.Sprite {
   updateSelection() {
     this.adjustScroll();
     
-    this.items.forEach((item, index) => {
-      const isSelected = index === this.selectedIndex;
-      const isVisible = index >= this.scrollOffset && 
-                       index < this.scrollOffset + this.visibleItems;
-      
-      if (isVisible) {
-        if (!item.parent) {
-          this.createItemVisuals(item, isSelected);
-        }
-        if (isSelected && !item.isSelected) {
-          this.selectItem(item);
-        } else if (!isSelected && item.isSelected) {
-          this.deselectItem(item);
-        }
-      } else {
-        if (item.parent) {
-          this.removeItemVisuals(item);
-        }
-        if (item.isSelected) {
-          this.deselectItem(item);
-        }
-      }
-    });
-    
+    this.updateItemVisibility();    
     this.updateItemPositions();
     
     // Update scroll bar after selection changes
@@ -354,6 +379,64 @@ class CarouselMenu extends Phaser.Sprite {
       if (item.text && item.text.isScrolling()) {
         item.text.stopScrolling();
         item.text.write(item.textContent.substr(0, Math.floor(this.viewport.width - 16) / 4));
+      }
+    }
+  }
+  
+  hoverItem(item) {
+    // Hout previously hovered item
+    const previouslyHovered = this.items.find(i => i.isHovered && i !== item);
+    if (previouslyHovered) {
+      this.houtItem(previouslyHovered);
+    }
+    
+    if (item.isSelected || item.isHovered) return;
+    
+    this.hoveredIndex = item.index;
+    
+    item.isHovered = true;
+    
+    // Stop any existing tween
+    if (item.alphaTween) {
+      item.alphaTween.stop();
+    }
+    
+    if (item.parent) {
+      if (this.config.animate) {
+        // Start yoyo animation for selected item
+        item.alphaTween = game.add.tween(item.parent)
+          .to({ alpha: this.config.hoverAlpha }, 250, Phaser.Easing.Quadratic.InOut, true);
+      } else {
+        item.parent.alpha = this.config.hoverAlpha;
+      }
+      if (item.text && item.textContent.length * 4 > this.viewport.width -16) {
+        //item.text.scrollwrite(item.textContent, Math.floor(this.viewport.width - 16) / 4);
+      }
+    }
+  }
+  
+  houtItem(item) {
+    if (item.isSelected || !item.isHovered) return;
+
+    item.isHovered = false;
+    
+    // Stop any animation
+    if (item.alphaTween) {
+      item.alphaTween.stop();
+      item.alphaTween = null;
+    }
+    
+    // Update visual
+    if (item.parent) {
+      if (this.config.animate) {
+        game.add.tween(item.parent)
+          .to({ alpha: this.config.inactiveAlpha }, 100, Phaser.Easing.Quadratic.Out, true);
+      } else {
+        item.parent.alpha = this.config.inactiveAlpha;
+      }
+      if (item.text && item.text.isScrolling()) {
+        //item.text.stopScrolling();
+        //item.text.write(item.textContent.substr(0, Math.floor(this.viewport.width - 16) / 4));
       }
     }
   }
@@ -438,6 +521,32 @@ class CarouselMenu extends Phaser.Sprite {
     // Hide immediately
     this.scrollBar.alpha = 0;
     this.scrollBar.clear();
+  }
+  
+  updateItemVisibility(targetIndex) {
+    this.items.forEach((item, index) => {
+      const isSelected = index === (targetIndex || this.selectedIndex);
+      const isVisible = index >= this.scrollOffset && 
+                       index < this.scrollOffset + this.visibleItems;
+      
+      if (isVisible) {
+        if (!item.parent) {
+          this.createItemVisuals(item, isSelected);
+        }
+        if (isSelected && !item.isSelected) {
+          this.selectItem(item);
+        } else if (!isSelected && item.isSelected) {
+          this.deselectItem(item);
+        }
+      } else {
+        if (item.parent) {
+          this.removeItemVisuals(item);
+        }
+        if (item.isSelected) {
+          this.deselectItem(item);
+        }
+      }
+    });
   }
   
   updateItemPositions() {

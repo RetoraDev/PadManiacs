@@ -4,16 +4,16 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v0.9.0 dev
- * Build: 4/29/2026, 1:20:41 PM
- * Platform: Development
+ * Version: v0.9.1
+ * Build: 5/2/2026, 12:07:47 PM
+ * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
  */
 
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v0.9.0 dev";
+const VERSION = "v0.9.1";
 
 window.DEBUG = false;
 
@@ -337,7 +337,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -1389,7 +1389,6 @@ const ACHIEVEMENT_DEFINITIONS = [
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: (_, song) => song.judgements.marvelous >= song.totalNotes,
-    condition: stats => stats.perfectGames >= 1 && stats.maxMarvelousInGame >= 50,
     hidden: false
   },
   {
@@ -4506,6 +4505,7 @@ class Window extends Phaser.Sprite {
     this.font = "default";
     this.fontTint = 0x76fcde;
     this.disableScrollBar = false;
+    this.disableMouse = false;
 
     if (parent) {
       parent.addChild(this);
@@ -4586,12 +4586,13 @@ class Window extends Phaser.Sprite {
     itemText.addChild(itemValueText);
     
     const item = {
+      index: this.items.length,
       text: itemText,
       valueText: itemValueText,
       callback: callback,
       backButton: backButton,
       type: 'item',
-      visible: true,
+      visible: false,
       setText: text => {
         itemText.write(text);
       },
@@ -4623,13 +4624,14 @@ class Window extends Phaser.Sprite {
     itemText.addChild(valueText);
 
     const item = {
+      index: this.items.length,
       text: itemText,
       valueText: valueText,
       options: options,
       currentIndex: currentIndex,
       callback: callback,
       type: 'setting',
-      visible: true
+      visible: false
     };
 
     this.items.push(item);
@@ -4652,12 +4654,13 @@ class Window extends Phaser.Sprite {
     itemText.addChild(valueText);
 
     const item = {
+      index: this.items.length,
       text: itemText,
       valueText: valueText,
       min, max, step, value, suffix,
       callback: callback,
       type: 'range',
-      visible: true
+      visible: false 
     };
 
     this.items.push(item);
@@ -4917,6 +4920,17 @@ class Window extends Phaser.Sprite {
     this.onCancel.dispatch(this.selectedIndex);
   }
   
+  scroll(delta = 0) {
+    this.scrollOffset += delta;
+    this.selectedIndex += delta;
+    this.adjustScroll();
+    if (this.selectedIndex < 0) {
+      this.selectedIndex = 0;
+    } else if (this.selectedIndex >= this.items.length) {
+      this.selectedIndex = this.items.length - 1;
+    }
+  }
+  
   removeAll() {
     this.items.forEach(item => {
       item.text.destroy();
@@ -4968,6 +4982,11 @@ class WindowManager {
     // Track input states to prevent repeated inputs
     this.firstPressTime = undefined;
     this.lastPress = 0;
+    
+    // Mouse state
+    this.previousMousePosition = { x: 0, y: 0 };
+    this.previousMouseTarget = null;
+    this.mouseTarget = null;
   }
 
   add(window) {
@@ -5048,81 +5067,146 @@ class WindowManager {
   update() {
     // Only process input if we have a focused window
     if (this.focusedWindow && !this.focusedWindow.disposed) {
-      // Handle navigation
-      const { up, down, left, right, a, b } = gamepad.held;
-      const pressed = gamepad.pressed;
-      const released = gamepad.released;
+      this.handleMouseNavigation();
       
-      // Dynamic cooldown system
-      let cooldown = 100;
-      
-      // Calculate time since last held press
-      const timeSinceLastPress = game.time.now - this.lastPress;
-      const timeSinceFirstPress = game.time.now - (this.firstPressTime || 0);
-      
-      // Dynamic cooldown logic: 
-      if (timeSinceFirstPress < 1000) {
-        cooldown = 400;
-      } else if (timeSinceFirstPress < 1500) {
-        cooldown = 200;
-      } else if (timeSinceFirstPress < 1700) {
-        cooldown = 100;
-      } else if (timeSinceLastPress < 5000) {
-        cooldown = 50;
-      } else {
-        cooldown = 16;
-      }
-      
-      const cooldownEnded = timeSinceLastPress >= cooldown;
-      
-      // Handle pressed buttons
-      if (pressed.up) {
-        this.focusedWindow.navigate('up');
-        this.resetPressTiming();
-        return;
-      } else if (pressed.down) {
-        this.focusedWindow.navigate('down');
-        this.resetPressTiming();
-        return;
-      } else if (pressed.left) {
-        this.focusedWindow.navigate('left');
-        this.resetPressTiming();
-        return;
-      } else if (pressed.right) {
-        this.focusedWindow.navigate('right');
-        this.resetPressTiming();
-        return;
-      }
+      this.handleGamepadNavigation();
+    }
+  }
+  
+  handleGamepadNavigation() {
+    // Handle gamepad navigation
+    const { up, down, left, right, a, b } = gamepad.held;
+    const pressed = gamepad.pressed;
+    const released = gamepad.released;
     
-      if (pressed.a) {
-        this.focusedWindow.confirm();
-        this.resetPressTiming();
-        return;
-      }
+    // Dynamic cooldown system
+    let cooldown = 100;
+    
+    // Calculate time since last held press
+    const timeSinceLastPress = game.time.now - this.lastPress;
+    const timeSinceFirstPress = game.time.now - (this.firstPressTime || 0);
+    
+    // Dynamic cooldown logic: 
+    if (timeSinceFirstPress < 1000) {
+      cooldown = 400;
+    } else if (timeSinceFirstPress < 1500) {
+      cooldown = 200;
+    } else if (timeSinceFirstPress < 1700) {
+      cooldown = 100;
+    } else if (timeSinceLastPress < 5000) {
+      cooldown = 50;
+    } else {
+      cooldown = 16;
+    }
+    
+    const cooldownEnded = timeSinceLastPress >= cooldown;
+    
+    // Handle pressed buttons
+    if (pressed.up) {
+      this.focusedWindow.navigate('up');
+      this.resetPressTiming();
+      return;
+    } else if (pressed.down) {
+      this.focusedWindow.navigate('down');
+      this.resetPressTiming();
+      return;
+    } else if (pressed.left) {
+      this.focusedWindow.navigate('left');
+      this.resetPressTiming();
+      return;
+    } else if (pressed.right) {
+      this.focusedWindow.navigate('right');
+      this.resetPressTiming();
+      return;
+    }
+  
+    if (pressed.a) {
+      this.focusedWindow.confirm();
+      this.resetPressTiming();
+      return;
+    }
+    
+    if (pressed.b) {
+      this.focusedWindow.cancel();
+      this.resetPressTiming();
+      return;
+    }
       
-      if (pressed.b) {
-        this.focusedWindow.cancel();
-        this.resetPressTiming();
-        return;
-      }
-        
-      if (cooldownEnded) {
-        // Handle held buttons
-        if (up) {
-          this.focusedWindow.navigate('up');
-          this.updatePressTiming();
-        } else if (down) {
-          this.focusedWindow.navigate('down');
-          this.updatePressTiming();
-        } else if (left) {
-          this.focusedWindow.navigate('left');
-          this.updatePressTiming();
-        } else if (right) {
-          this.focusedWindow.navigate('right');
-          this.updatePressTiming();
-        }
+    if (cooldownEnded) {
+      // Handle held buttons
+      if (up) {
+        this.focusedWindow.navigate('up');
+        this.updatePressTiming();
+      } else if (down) {
+        this.focusedWindow.navigate('down');
+        this.updatePressTiming();
+      } else if (left) {
+        this.focusedWindow.navigate('left');
+        this.updatePressTiming();
+      } else if (right) {
+        this.focusedWindow.navigate('right');
+        this.updatePressTiming();
       }
     }
+  }
+  
+  handleMouseNavigation() {
+    const position = mouse.pointer.position;
+    
+    if (!this.checkMouseBounds(this.focusedWindow, position)) return;
+    
+    if (position.x != this.previousMousePosition.x && position.y != this.previousMousePosition.y) {
+      const target = this.getMouseTarget(this.focusedWindow, position);
+      this.mouseTarget = target;
+      
+      if (target && target != this.previousMouseTarget) {
+        this.focusedWindow.selectIndex(target.index);
+      }
+    }
+    
+    if (mouse.wheel.up) {
+      this.focusedWindow.scroll(-1);
+    } else if (mouse.wheel.down) {
+      this.focusedWindow.scroll(1);
+    }
+    
+    if (mouse.pressed.left) {
+      this.focusedWindow.confirm();
+    }
+    
+    this.previousMousePosition.x = position.x;
+    this.previousMousePosition.y = position.y;
+    this.previousMouseTarget = this.mouseTarget;
+  }
+  
+  checkMouseBounds(window, position) {
+    const { x, y } = position;
+
+    // Check bounds
+    if (x < window.x || x > window.x + window.size.width * 8) {
+      return false;
+    }
+    if (y < window.y || y > window.y + window.size.height * 8) {
+      return false;
+    }
+    
+    return true;
+  }
+  
+  getMouseTarget(window, position) {
+    const { x, y } = position;
+    
+    const items = window.items.filter(item => item.visible).reverse();
+    
+    // Get hovered item
+    for (const item of items) {
+      if (
+        item && item.text && 
+        y >= (-3 + item.text.y + window.y)
+      ) return item;
+    }
+    
+    return null;
   }
 
   // Helper methods for common operations
@@ -5180,6 +5264,7 @@ class DialogWindow extends Phaser.Sprite {
       buttons = ['OK'],
       defaultButton = 0,
       enableTextScroll = false,
+      disableMouse = false,
       parent = null
     } = options;
 
@@ -5191,6 +5276,7 @@ class DialogWindow extends Phaser.Sprite {
     this.buttons = buttons;
     this.selectedButton = defaultButton;
     this.enableTextScroll = enableTextScroll;
+    this.disableMouse = disableMouse;
     this.currentScroll = 0;
     this.maxScroll = 0;
     this.fontTint = 0x76fcde;
@@ -5365,6 +5451,12 @@ class DialogWindow extends Phaser.Sprite {
       
       // Move to next button position
       currentX += buttonWidths[index] + buttonSpacing;
+      
+      // Add mouse event listeners
+      button.inputEnabled = !this.disableMouse;
+      button.useHandCursor = true;
+      button.events.onInputDown.add(() => this.confirm());
+      button.events.onInputOver.add(() => this.selectIndex(index));
     });
     
     this.updateButtonSelection();
@@ -5448,6 +5540,11 @@ class DialogWindow extends Phaser.Sprite {
     gamepad.signals.pressed.a.add(this.onAPressed, this);
     gamepad.signals.pressed.b.add(this.onBPressed, this);
   }
+  
+  selectIndex(index) {
+    this.selectedButton = index;
+    this.updateButtonSelection();
+  }
 
   onLeftPressed() {
     if (!this.isActive) return;
@@ -5471,7 +5568,6 @@ class DialogWindow extends Phaser.Sprite {
     if (this.currentScroll > 0) {
       this.currentScroll--;
       this.refreshTextContent();
-      ENABLE_UI_SFX && Audio.play('ui_nav');
     }
   }
 
@@ -5481,7 +5577,6 @@ class DialogWindow extends Phaser.Sprite {
     if (this.currentScroll < this.maxScroll) {
       this.currentScroll++;
       this.refreshTextContent();
-      ENABLE_UI_SFX && Audio.play('ui_nav');
     }
   }
 
@@ -5572,6 +5667,13 @@ class DialogWindow extends Phaser.Sprite {
         }
       });
     }
+    
+    // Update mouse wheel scrolling
+    if (mouse.wheel.up) {
+      this.onUpPressed();
+    } else if (mouse.wheel.down) {
+      this.onDownPressed();
+    }
   }
 
   cleanup() {
@@ -5611,8 +5713,11 @@ class CarouselMenu extends Phaser.Sprite {
       disableScrollBar: false,
       disableConfirm: false,
       disableCancel: false,
+      disableMouse: false,
       inactiveAlpha: 0.4,
+      hoverAlpha: 0.7,
       activeAlpha: 0.9,
+      doubleClickConfirm: false,
       ...config,
       margin: { top: 4, bottom: 4, left: 4, right: 4, ...(config.margin || {}) },
     };
@@ -5624,6 +5729,7 @@ class CarouselMenu extends Phaser.Sprite {
     
     this.items = [];
     this.selectedIndex = 0;
+    this.hoveredIndex = 0;
     this.scrollOffset = 0;
     this.itemHeight = 8;
     this.itemSpacing = 1;
@@ -5660,6 +5766,10 @@ class CarouselMenu extends Phaser.Sprite {
     this.onSelect = new Phaser.Signal();
     this.onConfirm = new Phaser.Signal();
     this.onCancel = new Phaser.Signal();
+    
+    mouse.onWheel.add(direction => {
+      this.scroll(direction == 'up' ? -1 : 1);
+    });
   }
   
   addItem(text, callback = null, data = {}) {
@@ -5676,6 +5786,7 @@ class CarouselMenu extends Phaser.Sprite {
       originalX: this.config.align === 'right' ? this.config.margin.right : this.config.margin.left,
       originalAlpha: this.config.inactiveAlpha,
       isSelected: false,
+      isHovered: false,
       alphaTween: null
     };
     
@@ -5724,6 +5835,22 @@ class CarouselMenu extends Phaser.Sprite {
     item.parent = itemParent;
     item.background = background;
     item.text = itemText;
+    
+    item.parent.inputEnabled = !this.config.disableMouse;
+    item.parent.events.onInputDown.add(() => {
+      if (this.doubleClickConfirm) {
+        if (!this.selectedIndex != item.index) {
+          this.selectIndex(item.index);
+        } else {
+          this.confirm();
+        }
+      } else {
+        this.selectIndex(item.index);
+        this.confirm();
+      }
+    });
+    item.parent.events.onInputOver.add(() => this.hoverItem(item));
+    item.parent.events.onInputOut.add(() => this.houtItem(item));
   }
   
   removeItemVisuals(item) {
@@ -5865,6 +5992,29 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  scroll(delta = 0) {
+    this.scrollOffset += delta;
+    this.hoveredIndex += delta;
+    
+    this.scrollOffset = Phaser.Math.clamp(
+      this.scrollOffset,
+      0,
+      Math.max(0, this.items.length - this.visibleItems)
+    );
+    this.hoveredIndex = Phaser.Math.clamp(
+      this.hoveredIndex,
+      0,
+      this.items.length - 1
+    );
+    
+    const target = this.items[this.hoveredIndex];
+    
+    if (target) {
+      this.updateItemVisibility(this.hoveredIndex);
+      this.updateItemPositions();
+    }
+  }
+  
   selectIndex(index) {
     this.selectedIndex = index;
     this.updateSelection();
@@ -5874,30 +6024,7 @@ class CarouselMenu extends Phaser.Sprite {
   updateSelection() {
     this.adjustScroll();
     
-    this.items.forEach((item, index) => {
-      const isSelected = index === this.selectedIndex;
-      const isVisible = index >= this.scrollOffset && 
-                       index < this.scrollOffset + this.visibleItems;
-      
-      if (isVisible) {
-        if (!item.parent) {
-          this.createItemVisuals(item, isSelected);
-        }
-        if (isSelected && !item.isSelected) {
-          this.selectItem(item);
-        } else if (!isSelected && item.isSelected) {
-          this.deselectItem(item);
-        }
-      } else {
-        if (item.parent) {
-          this.removeItemVisuals(item);
-        }
-        if (item.isSelected) {
-          this.deselectItem(item);
-        }
-      }
-    });
-    
+    this.updateItemVisibility();    
     this.updateItemPositions();
     
     // Update scroll bar after selection changes
@@ -5955,6 +6082,64 @@ class CarouselMenu extends Phaser.Sprite {
       if (item.text && item.text.isScrolling()) {
         item.text.stopScrolling();
         item.text.write(item.textContent.substr(0, Math.floor(this.viewport.width - 16) / 4));
+      }
+    }
+  }
+  
+  hoverItem(item) {
+    // Hout previously hovered item
+    const previouslyHovered = this.items.find(i => i.isHovered && i !== item);
+    if (previouslyHovered) {
+      this.houtItem(previouslyHovered);
+    }
+    
+    if (item.isSelected || item.isHovered) return;
+    
+    this.hoveredIndex = item.index;
+    
+    item.isHovered = true;
+    
+    // Stop any existing tween
+    if (item.alphaTween) {
+      item.alphaTween.stop();
+    }
+    
+    if (item.parent) {
+      if (this.config.animate) {
+        // Start yoyo animation for selected item
+        item.alphaTween = game.add.tween(item.parent)
+          .to({ alpha: this.config.hoverAlpha }, 250, Phaser.Easing.Quadratic.InOut, true);
+      } else {
+        item.parent.alpha = this.config.hoverAlpha;
+      }
+      if (item.text && item.textContent.length * 4 > this.viewport.width -16) {
+        //item.text.scrollwrite(item.textContent, Math.floor(this.viewport.width - 16) / 4);
+      }
+    }
+  }
+  
+  houtItem(item) {
+    if (item.isSelected || !item.isHovered) return;
+
+    item.isHovered = false;
+    
+    // Stop any animation
+    if (item.alphaTween) {
+      item.alphaTween.stop();
+      item.alphaTween = null;
+    }
+    
+    // Update visual
+    if (item.parent) {
+      if (this.config.animate) {
+        game.add.tween(item.parent)
+          .to({ alpha: this.config.inactiveAlpha }, 100, Phaser.Easing.Quadratic.Out, true);
+      } else {
+        item.parent.alpha = this.config.inactiveAlpha;
+      }
+      if (item.text && item.text.isScrolling()) {
+        //item.text.stopScrolling();
+        //item.text.write(item.textContent.substr(0, Math.floor(this.viewport.width - 16) / 4));
       }
     }
   }
@@ -6039,6 +6224,32 @@ class CarouselMenu extends Phaser.Sprite {
     // Hide immediately
     this.scrollBar.alpha = 0;
     this.scrollBar.clear();
+  }
+  
+  updateItemVisibility(targetIndex) {
+    this.items.forEach((item, index) => {
+      const isSelected = index === (targetIndex || this.selectedIndex);
+      const isVisible = index >= this.scrollOffset && 
+                       index < this.scrollOffset + this.visibleItems;
+      
+      if (isVisible) {
+        if (!item.parent) {
+          this.createItemVisuals(item, isSelected);
+        }
+        if (isSelected && !item.isSelected) {
+          this.selectItem(item);
+        } else if (!isSelected && item.isSelected) {
+          this.deselectItem(item);
+        }
+      } else {
+        if (item.parent) {
+          this.removeItemVisuals(item);
+        }
+        if (item.isSelected) {
+          this.deselectItem(item);
+        }
+      }
+    });
   }
   
   updateItemPositions() {
@@ -7648,7 +7859,7 @@ class OffsetAssistant extends Phaser.Sprite {
 
   update() {
     // Handle A button for tapping
-    if (gamepad.pressed.a) {
+    if (gamepad.pressed.a || mouse.pressed.left) {
       this.onTap();
     }
     
@@ -7872,6 +8083,198 @@ class OffsetAssistant extends Phaser.Sprite {
     this.exitText.destroy();
     
     super.destroy();
+  }
+}
+
+class MouseCursor {
+  constructor() {
+    this.sprite = null;
+    
+    this.visible = true;
+    
+    this.onDown = new Phaser.Signal();
+    this.onMove = new Phaser.Signal();
+    this.onUp = new Phaser.Signal();
+    this.onWheel = new Phaser.Signal();
+    
+    this.keys = [];
+    
+    this.reset();
+    
+    this.pointer = game.input.mousePointer;
+    
+    this.lastPosition = { x: 0, y: 0 };
+    this.lastUpdate = game.time.now;
+    
+    this.setupStateChangeHandling();
+    
+    this.restrictedStates = new Set(['Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
+    
+    // Prevent all mouse interactions
+    game.canvas.parentNode.addEventListener('click', (e) => e.preventDefault(), true);
+    game.canvas.parentNode.addEventListener('mousedown', (e) => e.preventDefault(), true);
+    game.canvas.parentNode.addEventListener('mouseup', (e) => e.preventDefault(), true);
+    game.canvas.parentNode.addEventListener('contextmenu', (e) => e.preventDefault(), true);
+  }
+  reset() {
+    this.onDown.dispose();
+    this.onMove.dispose();
+    this.onUp.dispose();
+    this.onWheel.dispose();
+    
+    this.onDown = new Phaser.Signal();
+    this.onMove = new Phaser.Signal();
+    this.onUp = new Phaser.Signal();
+    this.onWheel = new Phaser.Signal();
+    
+    this.prevState = {};
+    this.pressed = {};
+    this.held = {};
+    this.released = {};
+    this.wheel = {
+      up: false,
+      down: false
+    };
+  }
+  setupStateChangeHandling() {
+    game.state.onStateChange.add(this.onStateChange, this);
+  }
+  onStateChange(newState) {
+    this.reset();
+    
+    game.time.events.add(100, () => {
+      const currentState = game.state.getCurrentState();
+      const stateName = currentState?.constructor?.name || '';
+      
+      if (this.isStateAllowed(stateName)) {
+        this.initializeCursor();
+      }
+    });
+  }
+  isStateAllowed(stateName) {
+    return !this.restrictedStates.has(stateName);
+  }
+  initializeCursor() {
+    if (this.sprite) {
+      this.sprite.destroy();
+    }
+    
+    this.sprite = game.add.sprite(0, 0, 'ui_mouse_cursor');
+    this.sprite.alpha = 0;
+    this.sprite.update = () => this.updateCursor();
+    
+    this.setupDeviceButton(this.pointer.leftButton, 'left');
+    this.setupDeviceButton(this.pointer.rightButton, 'right');
+    this.setupDeviceButton(this.pointer.middleButton, 'middle');
+    
+    game.input.mouseWheel.callback = (event) => {
+      if (event && event.deltaY != 0) {
+        if (event.deltaY < 0) {
+          this.onWheel.dispatch("up");
+          this.wheel.up = true;
+        } else {
+          this.onWheel.dispatch("down");
+          this.wheel.down = true;
+        }
+        this.lastUpdate = game.time.now;
+        this.sprite.alpha = 1;
+      }
+    };
+    game.input.mouseWheel.callbackContext = this;
+  }
+  setupDeviceButton(button, id) {
+    this.keys.push(id);
+    button.onDown.add(() => {
+      this.onDown.dispatch(id, this.pointer.x, this.pointer.y);
+      this.held[id] = true;
+      this.lastUpdate = game.time.now;
+      this.sprite.alpha = 1;
+    });
+    button.onUp.add(() => {
+      this.onUp.dispatch(id, this.pointer.x, this.pointer.y);
+      this.held[id] = false;
+      this.lastUpdate = game.time.now;
+      this.sprite.alpha = 1;
+    });
+  }
+  updateCursor() {
+    this.updateState();
+    
+    const targetObject = this.pointer.targetObject;
+    
+    this.sprite.frame = targetObject && targetObject.sprite && targetObject.sprite.useHandCursor ? 1 : 0;
+    
+    const { x, y } = this.pointer.position;
+    
+    this.sprite.visible = this.visible;
+    
+    this.sprite.bringToTop();
+    
+    if (this.sprite.alpha > 0 && game.time.now - this.lastUpdate >= 2000) {
+      this.sprite.alpha = 0;
+    }
+    
+    if (x == this.lastPosition.x && y == this.lastPosition.y) return;
+        
+    this.sprite.x = x;
+    this.sprite.y = y;
+    
+    this.lastPosition.x = this.pointer.position.x;
+    this.lastPosition.y = this.pointer.position.y;
+    
+    this.lastUpdate = game.time.now;
+    this.sprite.alpha = 1;
+    
+    this.onMove.dispatch(x, y);
+  }
+  updateState() {
+    // Calculate pressed/released for individual keys
+    let anyPressed = false;
+    let anyReleased = false;
+    let anyHeld = false;
+
+    this.keys.forEach(key => {
+      this.pressed[key] = this.held[key] && !this.prevState[key];
+      this.released[key] = !this.held[key] && this.prevState[key];
+      
+      if (this.pressed[key]) anyPressed = true;
+      if (this.released[key]) anyReleased = true;
+      if (this.held[key]) anyHeld = true;
+    });
+    
+    // Set last update time
+    if (anyPressed || anyReleased) {
+      this.lastUpdate = game.time.now;
+      this.sprite.alpha = 1;
+    }
+
+    // Update 'any' states
+    this.pressed.any = anyPressed;
+    this.released.any = anyReleased;
+    this.held.any = anyHeld;
+    
+    // Release wheel state
+    this.wheel.up = false;
+    this.wheel.down = false;
+    
+    // Save current state for next frame
+    this.keys.forEach(key => {
+      this.prevState[key] = this.held[key];
+    });
+    this.prevState.any = this.held.any;
+  }
+  hide() {
+    this.visible = false;
+  }
+  show() {
+    this.visible = true;
+  }
+  destroy() {
+    this.sprite?.destroy?.();
+    this.onDown.dispose();
+    this.onMove.dispose();
+    this.onUp.dispose();
+    this.onWheel.dispose();
   }
 }
 
@@ -8537,7 +8940,7 @@ class FallbackFileSystem {
   }
 }
 
-let game, gamepad, backgroundMusic, notifications, addonManager, achievementsManager;
+let game, gamepad, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 let Account = {
   ...DEFAULT_ACCOUNT,
@@ -8564,14 +8967,14 @@ const bootGame = () => {
     forceSingleUpdate: false,
     maxPointers: 0,
     keyboard: true,
-    mouse: false,
-    mouseWheel: false,
+    mouse: true,
+    mouseWheel: true,
     mspointer: false,
     multiTexture: false,
     pointerLock: false,
     preserveDrawingBuffer: false,
     roundPixels: true,
-    touch: false,
+    touch: true,
     transparent: false,
     parent: "canvas_parent",
     state: {
@@ -12220,6 +12623,8 @@ class Boot {
     
     achievementsManager = new AchievementsManager();
     achievementsManager.initialize();
+    
+    mouse = new MouseCursor();
 
     game.time.advancedTiming = true;
 
@@ -12322,6 +12727,13 @@ class Boot {
         url: "ui/accuracy_bar.png"
       },
       {
+        key: "ui_mouse_cursor",
+        url: "ui/mouse_cursor.png",
+        type: "spritesheet",
+        frameWidth: 6,
+        frameHeight: 6
+      },
+      {
         key: "ui_jukebox_pause_toggle",
         url: "ui/jukebox_pause_toggle.png",
         type: "spritesheet",
@@ -12355,6 +12767,18 @@ class Boot {
         type: "spritesheet",
         frameWidth: 8,
         frameHeight: 8
+      },
+      {
+        key: "ui_addon_no_image",
+        url: "ui/addon_no_image.png",
+      },
+      {
+        key: "ui_banner_no_image",
+        url: "ui/banner_no_image.png",
+      },
+      {
+        key: "ui_banner_no_image_small",
+        url: "ui/banner_no_image_small.png",
       },
       // Sfx
       {
@@ -13311,7 +13735,7 @@ class Title {
 
     let heldButtons = Object.values(gamepad.held).reduce((acc, held) => (held ? acc + 1 : acc));
 
-    if (this.introEnded && !this.outroStarted && gamepad.pressed.any) {
+    if (this.introEnded && !this.outroStarted && (mouse.pressed.left || gamepad.pressed.any)) {
       this.outroStarted = true;
       this.text.alpha = 0;
       this.logo.outro(() => {
@@ -13743,6 +14167,7 @@ class MainMenu {
 class Addons {
   create() {
     game.camera.fadeIn(0x000000);
+    gamepad.releaseAll();
 
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
@@ -13752,19 +14177,23 @@ class Addons {
     this.previewCtx = this.previewCanvas.getContext("2d");
     this.previewImg = new Image();
     
+    this.previewSprite = game.add.sprite(8, 4, null);
+    
     this.windowManager = new WindowManager();
     
-    gamepad.releaseAll();
+    this.descriptionText = new Text(84, 4, "");
     
-    this.showAddonManager();
+    this.carousel = new CarouselMenu(0, 56, 80, 56, {
+      align: 'left',
+      bgcolor: '#9b59b6',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
     
-    // Execute addon behaviors for this state
-    addonManager.executeStateBehaviors(this.constructor.name, this);
-  }
-  
-  update() {
-    gamepad.update();
-    this.windowManager.update();
+    this.needsReload = false;
+    
+    this.loadAddons();
   }
   
   showNoAddonsDialog() {
@@ -13776,149 +14205,147 @@ class Addons {
       },
       () => {
         this.showMainMenu();
-      }
+      },
+      "VISIT COMMUNITY",
+      "RETURN"
     );
   }
   
-  showAddonManager() {
-    // TODO: Clean addon manager interface and logic split in methods here 
+  loadAddons() {
+    this.carousel.destroy();
     
-    const detailText = new Text(4, 4, "");
+    this.carousel = new CarouselMenu(0, 56, 80, 56, {
+      align: 'left',
+      bgcolor: '#9b59b6',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+
+    const addons = addonManager.getAddonList();
     
-    const preview = game.add.sprite(112, 4);
-      
-    const showInstalledAddons = () => {
-      const addons = addonManager.getAddonList();
-      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
-        align: 'left',
-        bgcolor: 'brown',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      
-      if (addons.length === 0) {
-        carousel.destroy();
-        this.showNoAddonsDialog();
-        return;
-      } else {
-        addons.forEach(addon => {
-          const statusColor = addon.isHibernating ? "gray" : (addon.isEnabled ? "#00cc00" : "brown")
-          carousel.addItem(
-            `${addon.name} v${addon.version}`,
-            () => showAddonDetails(addon),
-            { addon, bgcolor: statusColor }
-          );
-        });
-        
-        carousel.onSelect.add((index, item) => {
-          if (item.data && item.data.addon) {
-            previewAddon(item.data.addon);
-          }
-        });
-        
-        previewAddon(addons[0]);
-      }
-      
-      game.onMenuIn.dispatch('addons', carousel);
-      
-      carousel.addItem("< Back", () => applyChanges());
-      carousel.onCancel.add(() => applyChanges());
-    };
-    
-    let needsReload = false;
-    
-    const previewAddon = (addon) => {
-      detailText.write(
-        `${addon.name}\n` +
-        `V${addon.version}\n` +
-        `By ${addon.author}\n` +
-        `BEHAVIORS:${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
-        `ASSETS:${addon.assets ? addon.assets.length : 0}\n\n` +
-        `${addon.description}\n` +
-        'STATE: ' + 
-        (addon.isHibernating ?
-          'Hybernating'
-          :
-        (addon.isEnabled ?
-          'Enabled' : 'Disabled')) + '\n'
-      ).wrap(112);
-      if (addon.icon) {
-        this.previewImg.src = addon.icon;
-        this.previewImg.onload = () => {
-          this.previewCtx.drawImage(this.previewImg, 0, 0, 50, 50);
-          preview.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
-        };
-      }
+    if (!addons.length) {
+      this.showNoAddonsDialog();
+      return;
     }
     
-    const showAddonDetails = (addon) => {
-      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
-        align: 'left',
-        bgcolor: '#9b59b6',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      
-      if (addon.isHibernating) {
-        carousel.addItem("Wake Addon", () => {
-          addonManager.wakeAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-      } else if (addon.isEnabled) {
-        carousel.addItem("Disable Addon", () => {
-          addonManager.disableAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-        carousel.addItem("Hibernate Addon", () => {
-          addonManager.hibernateAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-      } else {
-        carousel.addItem("Enable Addon", () => {
-          addonManager.enableAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
+    addons.forEach(addon => {
+      const statusColor = addon.isHibernating ? "gray" : (addon.isEnabled ? "#00cc00" : "brown")
+      this.carousel.addItem(
+        `${addon.name} v${addon.version}`,
+        () => this.showAddonDetails(addon),
+        { addon, bgcolor: statusColor }
+      );
+    });
+        
+    this.carousel.onSelect.add((index, item) => {
+      if (item.data && item.data.addon) {
+        this.previewAddon(item.data.addon);
       }
-      
-      carousel.addItem("Uninstall Addon", () => this.confirmDialog("The addon folder will be removed. Continue?", () => {
-        addonManager.uninstallAddon(addon.id);
-        needsReload = true;
-        showInstalledAddons();
-      }, () => showInstalledAddons()));
-      
-      game.onMenuIn.dispatch('addonDetails', carousel);
-      
-      carousel.addItem("< Back", () => showInstalledAddons());
-      carousel.onCancel.add(() => showInstalledAddons());
-    };
+    });
     
-    const applyChanges = () => {
-      if (needsReload || addonManager.needsReload()) {
-        this.confirmDialog("Reload required. Restart now?", () => {
-          location.reload();
-        }, () => {
-          preview.destroy();
-          detailText.destroy();
-          this.showMainMenu();
-        });
-      } else {
-        preview.destroy();
-        detailText.destroy();
-        this.showMainMenu();
-      }
-    };
+    this.previewAddon(addons[0]);
     
-    showInstalledAddons();
+    this.carousel.addItem("< Back", () => this.applyChanges());
+    this.carousel.onCancel.add(() => this.applyChanges());
   }
+  
+  previewAddon(addon) {
+   this.descriptionText.write(
+      `${addon.name}\n\n` +
+      'STATE: ' + 
+      (addon.isHibernating ?
+        'Hybernating'
+        :
+      (addon.isEnabled ?
+        'Enabled' : 'Disabled')) + '\n' +
+      `VERSION: V${addon.version}\n` +
+      `AUTHOR: ${addon.author}\n` +
+      `BEHAVIORS: ${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
+      `ASSETS: ${addon.assets ? addon.assets.length : 0}\n\n` +
+      `${addon.description}\n`
+    ).wrapPreserveNewlines(112 - 4);
+    
+    if (addon.icon) {
+      this.previewImg.src = addon.icon;
+      this.previewImg.onload = () => {
+        this.previewCtx.clearRect(0, 0, 64, 50);
+        this.previewCtx.drawImage(this.previewImg, 0, 0, 64, 50);
+        this.previewSprite.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
+      };
+      this.previewImg.onerror = () => this.previewSprite.loadTexture("ui_addon_no_image");
+    } else {
+      this.previewSprite.loadTexture("ui_addon_no_image");
+    }
+  }
+  
+  showAddonDetails(addon) {
+    this.carousel.destroy();
+    
+    this.carousel = new CarouselMenu(0, 56, 80, 56, {
+      align: 'left',
+      bgcolor: '#9b59b6',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+    
+    if (addon.isHibernating) {
+      this.carousel.addItem("Wake Addon", () => {
+        addonManager.wakeAddon(addon.id);
+        this.needsReload = true;
+        this.loadAddons();
+      });
+    } else if (addon.isEnabled) {
+      this.carousel.addItem("Disable Addon", () => {
+        addonManager.disableAddon(addon.id);
+        this.needsReload = false;
+        this.loadAddons();
+      });
+      this.carousel.addItem("Hibernate Addon", () => {
+        addonManager.hibernateAddon(addon.id);
+        this.needsReload = true;
+        this.loadAddons();
+      });
+    } else {
+      this.carousel.addItem("Enable Addon", () => {
+        addonManager.enableAddon(addon.id);
+        this.needsReload = true;
+        this.loadAddons();
+      });
+    }
+    
+    this.carousel.addItem("Uninstall Addon", () => this.confirmDialog("The addon will be removed from storage. Continue?", () => {
+      addonManager.uninstallAddon(addon.id);
+      this.needsReload = true;
+      this.loadAddons();
+    }));
+    
+    game.onMenuIn.dispatch('addonDetails', this.carousel);
+    
+    this.carousel.addItem("< Back", () => this.loadAddons());
+    this.carousel.onCancel.add(() => this.loadAddons());
+  }
+  
+  applyChanges() {
+    if (this.needsReload || addonManager.needsReload()) {
+      this.confirmDialog("Reload required. Restart now?", () => {
+        window.location.reload();
+      }, () => {
+        this.showMainMenu();
+      });
+    } else {
+      this.showMainMenu();
+    }
+  };
   
   showMainMenu() {
     game.state.start("MainMenu");
+  }
+  
+  update() {
+    gamepad.update();
+    this.windowManager.update();
   }
   
   confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
@@ -14344,8 +14771,6 @@ class Keybindings {
     this.cleanupWaitOverlay();
   }
   
-  // ==================== MENÚS PRINCIPALES ====================
-  
   showKeybindingsMenu() {
     const settingsWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     settingsWindow.fontTint = 0x76fcde;
@@ -14388,8 +14813,6 @@ class Keybindings {
     
     game.onMenuIn.dispatch('keybindings', settingsWindow);
   }
-  
-  // ==================== TECLADO ====================
   
   showKeyboardCustomization(selectedIndex = 0, returnIndex = null) {
     const keysWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
@@ -14448,8 +14871,6 @@ class Keybindings {
     game.onMenuIn.dispatch('keyboardCustomization', keysWindow);
   }
   
-  // ==================== GAMEPAD ====================
-  
   showGamepadCustomization(selectedIndex = 0, returnIndex = null) {
     const gamepadWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     gamepadWindow.fontTint = 0x76fcde;
@@ -14496,8 +14917,6 @@ class Keybindings {
     
     game.onMenuIn.dispatch('gamepadCustomization', gamepadWindow);
   }
-  
-  // ==================== OVERLAY DE ESPERA ====================
   
   showKeyWaitOverlay(message) {
     // Limpiar cualquier overlay existente
@@ -14697,8 +15116,6 @@ class Keybindings {
     this.waitingState = null;
   }
   
-  // ==================== MANEJO DE TECLAS ====================
-  
   handleKeyboardKeyPress(keyCode) {
     if (!this.waitingState || this.waitingState.type !== "keyboard") return;
     if (keyCode === Phaser.KeyCode.ESC) return;
@@ -14782,8 +15199,6 @@ class Keybindings {
     
     this.waitingState = null;
   }
-  
-  // ==================== UTILIDADES ====================
   
   getKeyboardKeyDisplay(mappingKey, index) {
     const mapping = Account.mapping.keyboard[mappingKey];
@@ -14944,6 +15359,7 @@ class SongSelect {
       fgcolor: "#ffffff",
       align: "left",
       animate: true,
+      doubleClickConfirm: true,
       margin: { left: 2 }
     });
 
@@ -14998,22 +15414,25 @@ class SongSelect {
       this.previewAudio.play();
     }
     
-    this.previewCtx.clearRect(0, 0, 192, 112);
-    this.bannerSprite.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
-    
     if (song.bannerUrl) {
       if (!this.autoSelect) this.loadingDots.visible = true;
       this.bannerImg.src = song.bannerUrl;
       this.bannerImg.onload = () => {
         if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
         
+        this.previewCtx.clearRect(0, 0, 96, 32);
         this.previewCtx.drawImage(this.bannerImg, 0, 0, 96, 32);
         
         const texture = PIXI.Texture.fromCanvas(this.previewCanvas);
         
         this.bannerSprite.loadTexture(texture);
       };
-      this.bannerImg.onerror = () => this.loadingDots.visible = false;
+      this.bannerImg.onerror = () => {
+        this.loadingDots.visible = false;
+        this.bannerSprite.loadTexture('ui_banner_no_image');
+      };
+    } else {
+      this.bannerSprite.loadTexture('ui_banner_no_image');
     }
     
     this.metadataText.write(this.getMetadataText(song));
@@ -15186,7 +15605,9 @@ class SongSelect {
   
   shutdown() {
     this.previewAudio.pause();
-    this.previewAudio.src = null;
+    this.previewAudio.src = "";
+    this.bannerImg.onload = null;
+    this.bannerImg.onerror = null;
     this.bannerImg.src = "";
     this.bannerImg = null;
     this.previewCanvas = null;
@@ -16504,7 +16925,6 @@ class AchievementsMenu {
     this.carousel.onCancel.add(() => {
       game.state.start("MainMenu");
     });
-    
   }
 
   showAchievementDetails(achievement) {
@@ -16630,7 +17050,7 @@ class StatsMenu {
     gamepad.update();
     
     // Press any key to go back
-    if (gamepad.pressed.any) {
+    if (gamepad.pressed.any || mouse.pressed.any) {
       game.state.start("MainMenu");
     }
   }
@@ -17770,9 +18190,13 @@ class Results {
     if (song.chart.bannerUrl) {
       this.bannerImg.src = song.chart.bannerUrl;
       this.bannerImg.onload = () => {
+        this.bannerCtx.clearRect(0, 0, 72, 28);
         this.bannerCtx.drawImage(this.bannerImg, 0, 0, 72, 28);
         this.bannerSprite.loadTexture(PIXI.Texture.fromCanvas(this.bannerCanvas));
       };
+      this.bannerImg.onerror = () => this.bannerSprite.loadTexture('ui_banner_no_image_small');
+    } else {
+      this.bannerSprite.loadTexture('ui_banner_no_image_small');
     }
     
     // Song info
@@ -17921,6 +18345,8 @@ class Results {
     this.previewAudio.pause();
     this.previewAudio.src = null;
     this.previewAudio = null;
+    this.bannerImg.onload = null;
+    this.bannerImg.onerror = null;
     this.bannerImg.src = "";
     this.bannerImg = null;
     this.bannerCanvas = null;
@@ -17951,10 +18377,7 @@ class Jukebox {
     this.backgroundSprite = null;
     this.videoElement = null;
     
-    // Volume Label
-    this.volumeLabel = new Text(game.width - 5, 70, "");
-    this.volumeLabel.visible = false;
-    this.volumeLabel.anchor.x = 1;
+    // Volume tunning
     this.volumeCooldown = 100;
     this.lastVolumeUpdate = 0;
     
@@ -17970,10 +18393,9 @@ class Jukebox {
     
     // Button states and timers
     this.buttonActiveTimers = {};
-    this.lastLeftPress = 0;
-    this.lastRightPress = 0;
-    this.lastSelectPress = 0;
-    this.lastBPress = 0;
+    this.mouseSeekLeftHeld = false;
+    this.mouseSeekRightHeld = false;
+    this.isMouseSeeking = false;
     
     // Remember playback position
     this.playbackPositions = {};
@@ -17990,6 +18412,9 @@ class Jukebox {
     
     // Setup UI
     this.setupUI();
+    
+    // Setup wheel seek
+    this.setupWheelSeek();
     
     // Setup visualizer
     this.setupVisualizer();
@@ -18067,6 +18492,22 @@ class Jukebox {
     
     this.progressBar = game.add.graphics(30, 86);
     
+    // Mouse interactivity for progress bar
+    this.progressBarInteractive = game.add.sprite(30, 84);
+    this.progressBarInteractive.width = 132;
+    this.progressBarInteractive.height = 6;
+    this.progressBarInteractive.inputEnabled = true;
+    this.progressBarInteractive.useHandCursor = true;
+    
+    // Mouse seek with progress bar
+    this.progressBarInteractive.events.onInputDown.add(() => {
+      this.seekToMousePosition();
+      this.isMouseSeeking = true;
+    });
+    this.progressBarInteractive.events.onInputUp.add(() => {
+      this.isMouseSeeking = false;
+    });
+    
     // Create playback controls
     this.createPlaybackControls();
     
@@ -18074,6 +18515,31 @@ class Jukebox {
     this.lyricsText = new Text(game.width / 2, 51, "", FONTS.stroke);
     this.lyricsText.anchor.set(0.5);
     this.lyricsText.visible = true; // Always visible
+    
+    // Shuffle Label
+    this.shuffleLabel = new Text(5, 70, "");
+    this.shuffleLabel.visible = false;
+    
+    // Volume Label
+    this.volumeLabel = new Text(game.width - 5, 70, "");
+    this.volumeLabel.visible = false;
+    this.volumeLabel.anchor.x = 1;
+  }
+  
+  setupWheelSeek() {
+    if (mouse) {
+      mouse.onWheel.add((direction) => {
+        if (this.menuVisible || this.songListMenuVisible) return;
+        
+        if (direction === 'up') {
+          this.seekForward();
+        } else if (direction === 'down') {
+          this.seekBackward();
+        }
+        
+        this.flashProgressBar();
+      });
+    }
   }
 
   createPlaybackControls() {
@@ -18082,11 +18548,11 @@ class Jukebox {
     const buttonSpacing = 2; // 2px separation between buttons
     
     const buttonWidths = {
-        visualization: 8,
-        skip: 8,
-        seek: 8,
-        pause: 12,
-        menu: 8
+      visualization: 8,
+      skip: 8,
+      seek: 8,
+      pause: 12,
+      menu: 8
     };
     
     // Calculate total width including buttons and spacing
@@ -18134,9 +18600,55 @@ class Jukebox {
     this.skipRightButton.anchor.set(0.5);
     currentX += buttonWidths.skip + buttonSpacing;
     
-    // Fullscreen button (rightmost)
+    // Menu button (rightmost)
     this.menuButton = game.add.sprite(currentX + buttonWidths.menu/2, yPos, "ui_jukebox_menu", 0);
     this.menuButton.anchor.set(0.5);
+    
+    // Setup mouse listeners
+    this.visualizationButton.inputEnabled = true;
+    this.visualizationButton.useHandCursor = true;
+    this.visualizationButton.events.onInputDown.add(() => {
+      this.changeVisualizerMode();
+      this.setButtonActive('visualization', 100);
+    });
+    
+    this.skipLeftButton.inputEnabled = true;
+    this.skipLeftButton.useHandCursor = true;
+    this.skipLeftButton.events.onInputDown.add(() => {
+      this.previousSong();
+      this.setButtonActive('skipLeft', 100);
+    });
+    
+    this.seekLeftButton.inputEnabled = true;
+    this.seekLeftButton.useHandCursor = true;
+    this.seekLeftButton.events.onInputDown.add(() => this.mouseSeekLeftHeld = true);
+    this.seekLeftButton.events.onInputUp.add(() => this.mouseSeekLeftHeld = false);
+    
+    this.pauseButton.inputEnabled = true;
+    this.pauseButton.useHandCursor = true;
+    this.pauseButton.events.onInputDown.add(() => {
+      this.togglePlayback();
+      this.setButtonActive('pause', 100);
+    });
+    
+    this.seekRightButton.inputEnabled = true;
+    this.seekRightButton.useHandCursor = true;
+    this.seekRightButton.events.onInputDown.add(() => this.mouseSeekRightHeld = true);
+    this.seekRightButton.events.onInputUp.add(() => this.mouseSeekRightHeld = false);
+    
+    this.skipRightButton.inputEnabled = true;
+    this.skipRightButton.useHandCursor = true;
+    this.skipRightButton.events.onInputDown.add(() => {
+      this.nextSong();
+      this.setButtonActive('skipRight', 100);
+    });
+    
+    this.menuButton.inputEnabled = true;
+    this.menuButton.useHandCursor = true;
+    this.menuButton.events.onInputDown.add(() => {
+      this.showMenu();
+      this.setButtonActive('menu');
+    });
   }
 
   setupVisualizer() {
@@ -18327,7 +18839,7 @@ class Jukebox {
     const barWidth = 132 * progress;
     
     this.progressBar.clear();
-    this.progressBar.lineStyle(2, 0x76fcde, 1);
+    this.progressBar.lineStyle(2, this.isMouseSeeking ? 0xffffff : 0x76fcde, 1);
     this.progressBar.moveTo(0, 0);
     this.progressBar.lineTo(barWidth, 0);
   }
@@ -18399,11 +18911,11 @@ class Jukebox {
     
     // Update pause button based on playback state
     const pauseFrame = this.isPlaying ? 0 : 1; // 0 = pause icon, 1 = play icon
-    this.pauseButton.frame = pauseFrame;
+    this.pauseButton.frame = this.buttonActiveTimers.pause > currentTime ? 2 : pauseFrame;
     
     // Update seek buttons based on held state
-    this.seekLeftButton.frame = gamepad.held.left ? 1 : 0;
-    this.seekRightButton.frame = gamepad.held.right ? 1 : 0;
+    this.seekLeftButton.frame = this.mouseSeekLeftHeld ? 1 : 0;
+    this.seekRightButton.frame = this.mouseSeekRightHeld ? 1 : 0;
     
     // Update skip buttons based on active timers
     this.skipLeftButton.frame = this.buttonActiveTimers.skipLeft > currentTime ? 1 : 0;
@@ -18509,6 +19021,12 @@ class Jukebox {
     
     // Show active frame on visualization button for shuffle
     this.setButtonActive('visualization', 100);
+    
+    // Show shuffle state label
+    this.shuffleLabel.visible = true;
+    this.shuffleLabel.write(`SHUFFLE: ${this.isShuffled ? 'ON' : 'OFF'}`);
+    
+    game.time.events.add(1500, () => this.shuffleLabel.visible = false);
   }
 
   seekForward() {
@@ -18522,7 +19040,33 @@ class Jukebox {
     const newTime = Math.max(currentTime - this.seekSpeed, 0);
     this.audioElement.currentTime = newTime;
   }
-
+  
+  seekToMousePosition() {
+    if (!this.audioElement || !this.audioElement.duration || !TimeUtils.isValidTime(this.audioElement.duration)) {
+      return;
+    }
+    
+    const pointer = mouse.pointer;
+    
+    // Calculate click position relative to progress bar
+    const barStartX = 30;
+    const barEndX = 162; // 30 + 132
+    const mouseX = pointer.worldX;
+    
+    // Clamp to bar bounds
+    const clampedX = Math.max(barStartX, Math.min(barEndX, mouseX));
+    
+    // Calculate progress percentage (0 to 1)
+    const progress = (clampedX - barStartX) / 132;
+    
+    // Calculate new time
+    const newTime = progress * this.audioElement.duration;
+    
+    // Seek to position
+    const wasPlaying = this.isPlaying;
+    this.audioElement.currentTime = newTime;
+  }
+  
   changeVisualizerMode() {
     const modes = ['bars', 'symmetrical', 'waveform', 'circular'];
     const currentIndex = modes.indexOf(this.visualizerMode);
@@ -18591,11 +19135,14 @@ class Jukebox {
     this.setButtonActive('menu', 100);
     
     const menuBg = game.add.graphics(0, 0);
+    menuBg.width = game.width;
+    menuBg.height = game.width;
     menuBg.beginFill(0x000000, 0.7);
     menuBg.drawRect(0, 0, game.width, game.height);
     menuBg.endFill();
+    menuBg.inputEnabled = true;
     
-    const menu = new CarouselMenu(60, 40, 72, 40, {
+    const menu = new CarouselMenu(60, 40, 72, 70, {
       bgcolor: 'brown',
       fgcolor: '#ffffff',
       align: 'center'
@@ -18744,15 +19291,24 @@ class Jukebox {
     // Seek handling
     if (currentTime - this.lastSeekTime > this.seekCooldown) {
       // Single press - seek
-      if (gamepad.held.left) {
+      if (gamepad.held.left || this.mouseSeekLeftHeld) {
         this.seekBackward();
         this.lastSeekTime = currentTime;
       }
       
-      if (gamepad.held.right) {
+      if (gamepad.held.right || this.mouseSeekRightHeld) {
         this.seekForward();
         this.lastSeekTime = currentTime;
       }
+    }
+    
+    // Mouse seek
+    if (this.isMouseSeeking) {
+      if (currentTime - this.lastSeekTime > this.seekCooldown) {
+        this.seekToMousePosition();
+      }
+      
+      this.updateProgressBar();
     }
     
     // Double press detection for song change
@@ -18950,7 +19506,15 @@ class Editor {
       this.refreshLyrics();
       this.hideLoadingScreen();
     }
+    this.setupMouseEvents();
     this.showHomeScreen();
+  }
+  
+  setupMouseEvents() {
+    mouse.onDown.add(this.onMouseDown, this);
+    mouse.onUp.add(this.onMouseUp, this);
+    mouse.onMove.add(this.onMouseMove, this);
+    mouse.onWheel.add(this.onMouseWheel, this);
   }
 
   createNewSong() {
@@ -19797,6 +20361,167 @@ class Editor {
         });
     }
   }
+  
+onMouseDown(button, x, y) {
+  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+  
+  const column = this.getColumnAtPosition(x);
+  if (column === -1) return;
+  
+  const beat = this.getSnappedBeat(this.getBeatAtPosition(y));
+  const note = this.getNoteAt(column, beat);
+  
+  if (button === 'left') {
+    // Start selection drag
+    this.mouseSelectStart = { x, y, column, beat };
+    this.mouseSelectRect = null;
+    
+    if (note) {
+      if (!this.selectedNotes.includes(note)) {
+        this.selectedNotes = [note];
+      }
+    } else {
+      this.selectedNotes = [];
+    }
+    this.updateInfoText();
+  } else if (button === 'right') {
+    // Start placement drag
+    this.mousePlaceStart = { column, beat };
+    
+    if (note) {
+      this.deleteNoteAt(column, beat);
+      this.mousePlaceStart = null;
+    }
+  }
+}
+
+onMouseMove(x, y) {
+  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+  
+  // Handle rectangular selection (left drag)
+  if (mouse.pressed.left && this.mouseSelectStart && !this.mouseSelectRect) {
+    const dx = Math.abs(x - this.mouseSelectStart.x);
+    const dy = Math.abs(y - this.mouseSelectStart.y);
+    if (dx > 5 || dy > 5) {
+      this.mouseSelectRect = true;
+      this.areaSelectStart = {
+        beat: this.mouseSelectStart.beat,
+        column: this.mouseSelectStart.column
+      };
+    }
+  }
+  
+  // Update rectangular selection area
+  if (this.mouseSelectRect && mouse.pressed.left) {
+    const endBeat = this.getSnappedBeat(this.getBeatAtPosition(y));
+    const endColumn = this.getColumnAtPosition(x);
+    if (endColumn !== -1) {
+      this.cursorBeat = endBeat;
+      this.cursorColumn = endColumn;
+      this.updateSelectionRect();
+    }
+  }
+  
+  // Handle freeze placement (right drag)
+  if (mouse.pressed.right && this.mousePlaceStart && !this.mousePlaceFreeze) {
+    const dy = Math.abs(y - this.getYFromBeat(this.mousePlaceStart.beat));
+    if (dy > 10) {
+      this.mousePlaceFreeze = true;
+    }
+  }
+}
+
+onMouseUp(button, x, y) {
+  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+  
+  if (button === 'left') {
+    if (this.mouseSelectRect) {
+      // Complete rectangular selection
+      this.endAreaSelection();
+    }
+    this.mouseSelectStart = null;
+    this.mouseSelectRect = false;
+    
+  } else if (button === 'right') {
+    if (this.mousePlaceFreeze && this.mousePlaceStart) {
+      // Place freeze note
+      const endBeat = this.getSnappedBeat(this.getBeatAtPosition(y));
+      const startBeat = this.mousePlaceStart.beat;
+      const duration = Math.abs(endBeat - startBeat);
+      if (duration > 0.01) {
+        this.placeFreeze(this.mousePlaceStart.column, Math.min(startBeat, endBeat), duration, "2", true);
+      }
+    } else if (this.mousePlaceStart && !this.mousePlaceFreeze) {
+      // Place regular note
+      this.placeNote(this.mousePlaceStart.column, this.mousePlaceStart.beat, false, false, true);
+    }
+    
+    this.mousePlaceStart = null;
+    this.mousePlaceFreeze = false;
+  }
+}
+
+onMouseWheel(direction) {
+  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+  
+  if (direction === 'up') {
+    this.moveCursor(0, -this.getDivisionSize() * 4);
+  } else if (direction === 'down') {
+    this.moveCursor(0, this.getDivisionSize() * 4);
+  }
+}
+  
+getNoteAt(column, beat) {
+  const notes = this.getCurrentChartNotes();
+  return notes.find(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
+}
+
+deleteNoteAt(column, beat) {
+  const notes = this.getCurrentChartNotes();
+  const index = notes.findIndex(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
+  if (index !== -1) {
+    this.chartRenderer.killNote(notes[index]);
+    notes.splice(index, 1);
+    this.updateInfoText();
+  }
+}
+
+getColumnAtPosition(x) {
+  const leftOffset = this.chartRenderer.calculateLeftOffset();
+  const colWidth = this.chartRenderer.COLUMN_SIZE + this.chartRenderer.COLUMN_SEPARATION;
+  const colHitWidth = this.chartRenderer.COLUMN_SIZE;
+  
+  for (let col = 0; col < 4; col++) {
+    const colX = leftOffset + (col * colWidth);
+    if (x >= colX && x <= colX + colHitWidth) {
+      return col;
+    }
+  }
+  return -1;
+}
+
+getBeatAtPosition(y) {
+  const { now, beat } = this.getCurrentTime();
+  const yPos = y;
+  
+  // Convert screen Y to beat using renderer's position calculation
+  // This is the inverse of getYPos
+  if (this.chartRenderer.speedMod === "C-MOD") {
+    const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
+    const deltaSec = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
+    const targetSec = now + deltaSec;
+    return this.chartRenderer.secToBeat(targetSec);
+  } else {
+    const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
+    const deltaBeat = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
+    return beat + deltaBeat;
+  }
+}
+
+getYFromBeat(targetBeat) {
+  const { now, beat } = this.getCurrentTime();
+  return this.chartRenderer.getYPos(now, beat, targetBeat);
+}
 
   changeSnapDivision(direction) {
     const currentIndex = this.divisions.indexOf(this.snapDivision);
@@ -21364,7 +22089,7 @@ class Credits {
     if (this.creditsComplete) return;
     
     // Scroll credits upward
-    this.creditsContainer.y -= this.scrollSpeed * (gamepad.held.any ? 4 : 1) * (game.time.elapsed / 1000);
+    this.creditsContainer.y -= this.scrollSpeed * (gamepad.held.any || mouse.held.any ? 4 : 1) * (game.time.elapsed / 1000);
     
     // Check if credits have finished scrolling
     const bottomOfCredits = this.creditsContainer.y + this.totalHeight;
@@ -21442,6 +22167,10 @@ Please Report The Developer Immediately!
     
     // TODO: Check if gamepad didn't crashed before using it, fallback to window event listeners
     gamepad.signals.pressed.any.addOnce(() => {
+      game.state.start(this.recoverStateKey);
+    });
+    
+    mouse.onDown.addOnce(() => {
       game.state.start(this.recoverStateKey);
     });
   }

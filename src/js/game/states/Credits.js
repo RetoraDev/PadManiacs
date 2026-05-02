@@ -241,7 +241,7 @@ class Credits {
     if (this.creditsComplete) return;
     
     // Scroll credits upward
-    this.creditsContainer.y -= this.scrollSpeed * (gamepad.held.any ? 4 : 1) * (game.time.elapsed / 1000);
+    this.creditsContainer.y -= this.scrollSpeed * (gamepad.held.any || mouse.held.any ? 4 : 1) * (game.time.elapsed / 1000);
     
     // Check if credits have finished scrolling
     const bottomOfCredits = this.creditsContainer.y + this.totalHeight;

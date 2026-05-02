@@ -42,7 +42,7 @@ class Title {
 
     let heldButtons = Object.values(gamepad.held).reduce((acc, held) => (held ? acc + 1 : acc));
 
-    if (this.introEnded && !this.outroStarted && gamepad.pressed.any) {
+    if (this.introEnded && !this.outroStarted && (mouse.pressed.left || gamepad.pressed.any)) {
       this.outroStarted = true;
       this.text.alpha = 0;
       this.logo.outro(() => {

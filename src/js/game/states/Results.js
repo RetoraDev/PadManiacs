@@ -123,9 +123,13 @@ class Results {
     if (song.chart.bannerUrl) {
       this.bannerImg.src = song.chart.bannerUrl;
       this.bannerImg.onload = () => {
+        this.bannerCtx.clearRect(0, 0, 72, 28);
         this.bannerCtx.drawImage(this.bannerImg, 0, 0, 72, 28);
         this.bannerSprite.loadTexture(PIXI.Texture.fromCanvas(this.bannerCanvas));
       };
+      this.bannerImg.onerror = () => this.bannerSprite.loadTexture('ui_banner_no_image_small');
+    } else {
+      this.bannerSprite.loadTexture('ui_banner_no_image_small');
     }
     
     // Song info
@@ -274,6 +278,8 @@ class Results {
     this.previewAudio.pause();
     this.previewAudio.src = null;
     this.previewAudio = null;
+    this.bannerImg.onload = null;
+    this.bannerImg.onerror = null;
     this.bannerImg.src = "";
     this.bannerImg = null;
     this.bannerCanvas = null;

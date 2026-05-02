@@ -34,8 +34,6 @@ class Keybindings {
     this.cleanupWaitOverlay();
   }
   
-  // ==================== MENÚS PRINCIPALES ====================
-  
   showKeybindingsMenu() {
     const settingsWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     settingsWindow.fontTint = 0x76fcde;
@@ -78,8 +76,6 @@ class Keybindings {
     
     game.onMenuIn.dispatch('keybindings', settingsWindow);
   }
-  
-  // ==================== TECLADO ====================
   
   showKeyboardCustomization(selectedIndex = 0, returnIndex = null) {
     const keysWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
@@ -138,8 +134,6 @@ class Keybindings {
     game.onMenuIn.dispatch('keyboardCustomization', keysWindow);
   }
   
-  // ==================== GAMEPAD ====================
-  
   showGamepadCustomization(selectedIndex = 0, returnIndex = null) {
     const gamepadWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     gamepadWindow.fontTint = 0x76fcde;
@@ -186,8 +180,6 @@ class Keybindings {
     
     game.onMenuIn.dispatch('gamepadCustomization', gamepadWindow);
   }
-  
-  // ==================== OVERLAY DE ESPERA ====================
   
   showKeyWaitOverlay(message) {
     // Limpiar cualquier overlay existente
@@ -387,8 +379,6 @@ class Keybindings {
     this.waitingState = null;
   }
   
-  // ==================== MANEJO DE TECLAS ====================
-  
   handleKeyboardKeyPress(keyCode) {
     if (!this.waitingState || this.waitingState.type !== "keyboard") return;
     if (keyCode === Phaser.KeyCode.ESC) return;
@@ -472,8 +462,6 @@ class Keybindings {
     
     this.waitingState = null;
   }
-  
-  // ==================== UTILIDADES ====================
   
   getKeyboardKeyDisplay(mappingKey, index) {
     const mapping = Account.mapping.keyboard[mappingKey];

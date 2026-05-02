@@ -20,10 +20,7 @@ class Jukebox {
     this.backgroundSprite = null;
     this.videoElement = null;
     
-    // Volume Label
-    this.volumeLabel = new Text(game.width - 5, 70, "");
-    this.volumeLabel.visible = false;
-    this.volumeLabel.anchor.x = 1;
+    // Volume tunning
     this.volumeCooldown = 100;
     this.lastVolumeUpdate = 0;
     
@@ -39,10 +36,9 @@ class Jukebox {
     
     // Button states and timers
     this.buttonActiveTimers = {};
-    this.lastLeftPress = 0;
-    this.lastRightPress = 0;
-    this.lastSelectPress = 0;
-    this.lastBPress = 0;
+    this.mouseSeekLeftHeld = false;
+    this.mouseSeekRightHeld = false;
+    this.isMouseSeeking = false;
     
     // Remember playback position
     this.playbackPositions = {};
@@ -59,6 +55,9 @@ class Jukebox {
     
     // Setup UI
     this.setupUI();
+    
+    // Setup wheel seek
+    this.setupWheelSeek();
     
     // Setup visualizer
     this.setupVisualizer();
@@ -136,6 +135,22 @@ class Jukebox {
     
     this.progressBar = game.add.graphics(30, 86);
     
+    // Mouse interactivity for progress bar
+    this.progressBarInteractive = game.add.sprite(30, 84);
+    this.progressBarInteractive.width = 132;
+    this.progressBarInteractive.height = 6;
+    this.progressBarInteractive.inputEnabled = true;
+    this.progressBarInteractive.useHandCursor = true;
+    
+    // Mouse seek with progress bar
+    this.progressBarInteractive.events.onInputDown.add(() => {
+      this.seekToMousePosition();
+      this.isMouseSeeking = true;
+    });
+    this.progressBarInteractive.events.onInputUp.add(() => {
+      this.isMouseSeeking = false;
+    });
+    
     // Create playback controls
     this.createPlaybackControls();
     
@@ -143,6 +158,31 @@ class Jukebox {
     this.lyricsText = new Text(game.width / 2, 51, "", FONTS.stroke);
     this.lyricsText.anchor.set(0.5);
     this.lyricsText.visible = true; // Always visible
+    
+    // Shuffle Label
+    this.shuffleLabel = new Text(5, 70, "");
+    this.shuffleLabel.visible = false;
+    
+    // Volume Label
+    this.volumeLabel = new Text(game.width - 5, 70, "");
+    this.volumeLabel.visible = false;
+    this.volumeLabel.anchor.x = 1;
+  }
+  
+  setupWheelSeek() {
+    if (mouse) {
+      mouse.onWheel.add((direction) => {
+        if (this.menuVisible || this.songListMenuVisible) return;
+        
+        if (direction === 'up') {
+          this.seekForward();
+        } else if (direction === 'down') {
+          this.seekBackward();
+        }
+        
+        this.flashProgressBar();
+      });
+    }
   }
 
   createPlaybackControls() {
@@ -151,11 +191,11 @@ class Jukebox {
     const buttonSpacing = 2; // 2px separation between buttons
     
     const buttonWidths = {
-        visualization: 8,
-        skip: 8,
-        seek: 8,
-        pause: 12,
-        menu: 8
+      visualization: 8,
+      skip: 8,
+      seek: 8,
+      pause: 12,
+      menu: 8
     };
     
     // Calculate total width including buttons and spacing
@@ -203,9 +243,55 @@ class Jukebox {
     this.skipRightButton.anchor.set(0.5);
     currentX += buttonWidths.skip + buttonSpacing;
     
-    // Fullscreen button (rightmost)
+    // Menu button (rightmost)
     this.menuButton = game.add.sprite(currentX + buttonWidths.menu/2, yPos, "ui_jukebox_menu", 0);
     this.menuButton.anchor.set(0.5);
+    
+    // Setup mouse listeners
+    this.visualizationButton.inputEnabled = true;
+    this.visualizationButton.useHandCursor = true;
+    this.visualizationButton.events.onInputDown.add(() => {
+      this.changeVisualizerMode();
+      this.setButtonActive('visualization', 100);
+    });
+    
+    this.skipLeftButton.inputEnabled = true;
+    this.skipLeftButton.useHandCursor = true;
+    this.skipLeftButton.events.onInputDown.add(() => {
+      this.previousSong();
+      this.setButtonActive('skipLeft', 100);
+    });
+    
+    this.seekLeftButton.inputEnabled = true;
+    this.seekLeftButton.useHandCursor = true;
+    this.seekLeftButton.events.onInputDown.add(() => this.mouseSeekLeftHeld = true);
+    this.seekLeftButton.events.onInputUp.add(() => this.mouseSeekLeftHeld = false);
+    
+    this.pauseButton.inputEnabled = true;
+    this.pauseButton.useHandCursor = true;
+    this.pauseButton.events.onInputDown.add(() => {
+      this.togglePlayback();
+      this.setButtonActive('pause', 100);
+    });
+    
+    this.seekRightButton.inputEnabled = true;
+    this.seekRightButton.useHandCursor = true;
+    this.seekRightButton.events.onInputDown.add(() => this.mouseSeekRightHeld = true);
+    this.seekRightButton.events.onInputUp.add(() => this.mouseSeekRightHeld = false);
+    
+    this.skipRightButton.inputEnabled = true;
+    this.skipRightButton.useHandCursor = true;
+    this.skipRightButton.events.onInputDown.add(() => {
+      this.nextSong();
+      this.setButtonActive('skipRight', 100);
+    });
+    
+    this.menuButton.inputEnabled = true;
+    this.menuButton.useHandCursor = true;
+    this.menuButton.events.onInputDown.add(() => {
+      this.showMenu();
+      this.setButtonActive('menu');
+    });
   }
 
   setupVisualizer() {
@@ -396,7 +482,7 @@ class Jukebox {
     const barWidth = 132 * progress;
     
     this.progressBar.clear();
-    this.progressBar.lineStyle(2, 0x76fcde, 1);
+    this.progressBar.lineStyle(2, this.isMouseSeeking ? 0xffffff : 0x76fcde, 1);
     this.progressBar.moveTo(0, 0);
     this.progressBar.lineTo(barWidth, 0);
   }
@@ -468,11 +554,11 @@ class Jukebox {
     
     // Update pause button based on playback state
     const pauseFrame = this.isPlaying ? 0 : 1; // 0 = pause icon, 1 = play icon
-    this.pauseButton.frame = pauseFrame;
+    this.pauseButton.frame = this.buttonActiveTimers.pause > currentTime ? 2 : pauseFrame;
     
     // Update seek buttons based on held state
-    this.seekLeftButton.frame = gamepad.held.left ? 1 : 0;
-    this.seekRightButton.frame = gamepad.held.right ? 1 : 0;
+    this.seekLeftButton.frame = this.mouseSeekLeftHeld ? 1 : 0;
+    this.seekRightButton.frame = this.mouseSeekRightHeld ? 1 : 0;
     
     // Update skip buttons based on active timers
     this.skipLeftButton.frame = this.buttonActiveTimers.skipLeft > currentTime ? 1 : 0;
@@ -578,6 +664,12 @@ class Jukebox {
     
     // Show active frame on visualization button for shuffle
     this.setButtonActive('visualization', 100);
+    
+    // Show shuffle state label
+    this.shuffleLabel.visible = true;
+    this.shuffleLabel.write(`SHUFFLE: ${this.isShuffled ? 'ON' : 'OFF'}`);
+    
+    game.time.events.add(1500, () => this.shuffleLabel.visible = false);
   }
 
   seekForward() {
@@ -591,7 +683,33 @@ class Jukebox {
     const newTime = Math.max(currentTime - this.seekSpeed, 0);
     this.audioElement.currentTime = newTime;
   }
-
+  
+  seekToMousePosition() {
+    if (!this.audioElement || !this.audioElement.duration || !TimeUtils.isValidTime(this.audioElement.duration)) {
+      return;
+    }
+    
+    const pointer = mouse.pointer;
+    
+    // Calculate click position relative to progress bar
+    const barStartX = 30;
+    const barEndX = 162; // 30 + 132
+    const mouseX = pointer.worldX;
+    
+    // Clamp to bar bounds
+    const clampedX = Math.max(barStartX, Math.min(barEndX, mouseX));
+    
+    // Calculate progress percentage (0 to 1)
+    const progress = (clampedX - barStartX) / 132;
+    
+    // Calculate new time
+    const newTime = progress * this.audioElement.duration;
+    
+    // Seek to position
+    const wasPlaying = this.isPlaying;
+    this.audioElement.currentTime = newTime;
+  }
+  
   changeVisualizerMode() {
     const modes = ['bars', 'symmetrical', 'waveform', 'circular'];
     const currentIndex = modes.indexOf(this.visualizerMode);
@@ -660,11 +778,14 @@ class Jukebox {
     this.setButtonActive('menu', 100);
     
     const menuBg = game.add.graphics(0, 0);
+    menuBg.width = game.width;
+    menuBg.height = game.width;
     menuBg.beginFill(0x000000, 0.7);
     menuBg.drawRect(0, 0, game.width, game.height);
     menuBg.endFill();
+    menuBg.inputEnabled = true;
     
-    const menu = new CarouselMenu(60, 40, 72, 40, {
+    const menu = new CarouselMenu(60, 40, 72, 70, {
       bgcolor: 'brown',
       fgcolor: '#ffffff',
       align: 'center'
@@ -813,15 +934,24 @@ class Jukebox {
     // Seek handling
     if (currentTime - this.lastSeekTime > this.seekCooldown) {
       // Single press - seek
-      if (gamepad.held.left) {
+      if (gamepad.held.left || this.mouseSeekLeftHeld) {
         this.seekBackward();
         this.lastSeekTime = currentTime;
       }
       
-      if (gamepad.held.right) {
+      if (gamepad.held.right || this.mouseSeekRightHeld) {
         this.seekForward();
         this.lastSeekTime = currentTime;
       }
+    }
+    
+    // Mouse seek
+    if (this.isMouseSeeking) {
+      if (currentTime - this.lastSeekTime > this.seekCooldown) {
+        this.seekToMousePosition();
+      }
+      
+      this.updateProgressBar();
     }
     
     // Double press detection for song change

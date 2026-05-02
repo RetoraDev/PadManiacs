@@ -202,7 +202,6 @@ const ACHIEVEMENT_DEFINITIONS = [
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: (_, song) => song.judgements.marvelous >= song.totalNotes,
-    condition: stats => stats.perfectGames >= 1 && stats.maxMarvelousInGame >= 50,
     hidden: false
   },
   {

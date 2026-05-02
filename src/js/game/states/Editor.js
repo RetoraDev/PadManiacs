@@ -139,7 +139,15 @@ class Editor {
       this.refreshLyrics();
       this.hideLoadingScreen();
     }
+    this.setupMouseEvents();
     this.showHomeScreen();
+  }
+  
+  setupMouseEvents() {
+    mouse.onDown.add(this.onMouseDown, this);
+    mouse.onUp.add(this.onMouseUp, this);
+    mouse.onMove.add(this.onMouseMove, this);
+    mouse.onWheel.add(this.onMouseWheel, this);
   }
 
   createNewSong() {
@@ -986,6 +994,167 @@ class Editor {
         });
     }
   }
+  
+onMouseDown(button, x, y) {
+  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+  
+  const column = this.getColumnAtPosition(x);
+  if (column === -1) return;
+  
+  const beat = this.getSnappedBeat(this.getBeatAtPosition(y));
+  const note = this.getNoteAt(column, beat);
+  
+  if (button === 'left') {
+    // Start selection drag
+    this.mouseSelectStart = { x, y, column, beat };
+    this.mouseSelectRect = null;
+    
+    if (note) {
+      if (!this.selectedNotes.includes(note)) {
+        this.selectedNotes = [note];
+      }
+    } else {
+      this.selectedNotes = [];
+    }
+    this.updateInfoText();
+  } else if (button === 'right') {
+    // Start placement drag
+    this.mousePlaceStart = { column, beat };
+    
+    if (note) {
+      this.deleteNoteAt(column, beat);
+      this.mousePlaceStart = null;
+    }
+  }
+}
+
+onMouseMove(x, y) {
+  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+  
+  // Handle rectangular selection (left drag)
+  if (mouse.pressed.left && this.mouseSelectStart && !this.mouseSelectRect) {
+    const dx = Math.abs(x - this.mouseSelectStart.x);
+    const dy = Math.abs(y - this.mouseSelectStart.y);
+    if (dx > 5 || dy > 5) {
+      this.mouseSelectRect = true;
+      this.areaSelectStart = {
+        beat: this.mouseSelectStart.beat,
+        column: this.mouseSelectStart.column
+      };
+    }
+  }
+  
+  // Update rectangular selection area
+  if (this.mouseSelectRect && mouse.pressed.left) {
+    const endBeat = this.getSnappedBeat(this.getBeatAtPosition(y));
+    const endColumn = this.getColumnAtPosition(x);
+    if (endColumn !== -1) {
+      this.cursorBeat = endBeat;
+      this.cursorColumn = endColumn;
+      this.updateSelectionRect();
+    }
+  }
+  
+  // Handle freeze placement (right drag)
+  if (mouse.pressed.right && this.mousePlaceStart && !this.mousePlaceFreeze) {
+    const dy = Math.abs(y - this.getYFromBeat(this.mousePlaceStart.beat));
+    if (dy > 10) {
+      this.mousePlaceFreeze = true;
+    }
+  }
+}
+
+onMouseUp(button, x, y) {
+  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+  
+  if (button === 'left') {
+    if (this.mouseSelectRect) {
+      // Complete rectangular selection
+      this.endAreaSelection();
+    }
+    this.mouseSelectStart = null;
+    this.mouseSelectRect = false;
+    
+  } else if (button === 'right') {
+    if (this.mousePlaceFreeze && this.mousePlaceStart) {
+      // Place freeze note
+      const endBeat = this.getSnappedBeat(this.getBeatAtPosition(y));
+      const startBeat = this.mousePlaceStart.beat;
+      const duration = Math.abs(endBeat - startBeat);
+      if (duration > 0.01) {
+        this.placeFreeze(this.mousePlaceStart.column, Math.min(startBeat, endBeat), duration, "2", true);
+      }
+    } else if (this.mousePlaceStart && !this.mousePlaceFreeze) {
+      // Place regular note
+      this.placeNote(this.mousePlaceStart.column, this.mousePlaceStart.beat, false, false, true);
+    }
+    
+    this.mousePlaceStart = null;
+    this.mousePlaceFreeze = false;
+  }
+}
+
+onMouseWheel(direction) {
+  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+  
+  if (direction === 'up') {
+    this.moveCursor(0, -this.getDivisionSize() * 4);
+  } else if (direction === 'down') {
+    this.moveCursor(0, this.getDivisionSize() * 4);
+  }
+}
+  
+getNoteAt(column, beat) {
+  const notes = this.getCurrentChartNotes();
+  return notes.find(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
+}
+
+deleteNoteAt(column, beat) {
+  const notes = this.getCurrentChartNotes();
+  const index = notes.findIndex(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
+  if (index !== -1) {
+    this.chartRenderer.killNote(notes[index]);
+    notes.splice(index, 1);
+    this.updateInfoText();
+  }
+}
+
+getColumnAtPosition(x) {
+  const leftOffset = this.chartRenderer.calculateLeftOffset();
+  const colWidth = this.chartRenderer.COLUMN_SIZE + this.chartRenderer.COLUMN_SEPARATION;
+  const colHitWidth = this.chartRenderer.COLUMN_SIZE;
+  
+  for (let col = 0; col < 4; col++) {
+    const colX = leftOffset + (col * colWidth);
+    if (x >= colX && x <= colX + colHitWidth) {
+      return col;
+    }
+  }
+  return -1;
+}
+
+getBeatAtPosition(y) {
+  const { now, beat } = this.getCurrentTime();
+  const yPos = y;
+  
+  // Convert screen Y to beat using renderer's position calculation
+  // This is the inverse of getYPos
+  if (this.chartRenderer.speedMod === "C-MOD") {
+    const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
+    const deltaSec = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
+    const targetSec = now + deltaSec;
+    return this.chartRenderer.secToBeat(targetSec);
+  } else {
+    const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
+    const deltaBeat = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
+    return beat + deltaBeat;
+  }
+}
+
+getYFromBeat(targetBeat) {
+  const { now, beat } = this.getCurrentTime();
+  return this.chartRenderer.getYPos(now, beat, targetBeat);
+}
 
   changeSnapDivision(direction) {
     const currentIndex = this.divisions.indexOf(this.snapDivision);

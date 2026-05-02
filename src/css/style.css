@@ -51,6 +51,7 @@ body {
 
 #canvas_parent canvas {
   position: absolute;
+  cursor: none;
   bottom: 0;
 }
 

@@ -82,7 +82,7 @@ class StatsMenu {
     gamepad.update();
     
     // Press any key to go back
-    if (gamepad.pressed.any) {
+    if (gamepad.pressed.any || mouse.pressed.any) {
       game.state.start("MainMenu");
     }
   }

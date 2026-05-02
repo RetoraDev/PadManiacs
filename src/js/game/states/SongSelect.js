@@ -96,6 +96,7 @@ class SongSelect {
       fgcolor: "#ffffff",
       align: "left",
       animate: true,
+      doubleClickConfirm: true,
       margin: { left: 2 }
     });
 
@@ -150,22 +151,25 @@ class SongSelect {
       this.previewAudio.play();
     }
     
-    this.previewCtx.clearRect(0, 0, 192, 112);
-    this.bannerSprite.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
-    
     if (song.bannerUrl) {
       if (!this.autoSelect) this.loadingDots.visible = true;
       this.bannerImg.src = song.bannerUrl;
       this.bannerImg.onload = () => {
         if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
         
+        this.previewCtx.clearRect(0, 0, 96, 32);
         this.previewCtx.drawImage(this.bannerImg, 0, 0, 96, 32);
         
         const texture = PIXI.Texture.fromCanvas(this.previewCanvas);
         
         this.bannerSprite.loadTexture(texture);
       };
-      this.bannerImg.onerror = () => this.loadingDots.visible = false;
+      this.bannerImg.onerror = () => {
+        this.loadingDots.visible = false;
+        this.bannerSprite.loadTexture('ui_banner_no_image');
+      };
+    } else {
+      this.bannerSprite.loadTexture('ui_banner_no_image');
     }
     
     this.metadataText.write(this.getMetadataText(song));
@@ -338,7 +342,9 @@ class SongSelect {
   
   shutdown() {
     this.previewAudio.pause();
-    this.previewAudio.src = null;
+    this.previewAudio.src = "";
+    this.bannerImg.onload = null;
+    this.bannerImg.onerror = null;
     this.bannerImg.src = "";
     this.bannerImg = null;
     this.previewCanvas = null;

@@ -95,7 +95,6 @@ class AchievementsMenu {
     this.carousel.onCancel.add(() => {
       game.state.start("MainMenu");
     });
-    
   }
 
   showAchievementDetails(achievement) {

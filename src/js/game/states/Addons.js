@@ -1,6 +1,7 @@
 class Addons {
   create() {
     game.camera.fadeIn(0x000000);
+    gamepad.releaseAll();
 
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
@@ -10,19 +11,23 @@ class Addons {
     this.previewCtx = this.previewCanvas.getContext("2d");
     this.previewImg = new Image();
     
+    this.previewSprite = game.add.sprite(8, 4, null);
+    
     this.windowManager = new WindowManager();
     
-    gamepad.releaseAll();
+    this.descriptionText = new Text(84, 4, "");
     
-    this.showAddonManager();
+    this.carousel = new CarouselMenu(0, 56, 80, 56, {
+      align: 'left',
+      bgcolor: '#9b59b6',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
     
-    // Execute addon behaviors for this state
-    addonManager.executeStateBehaviors(this.constructor.name, this);
-  }
-  
-  update() {
-    gamepad.update();
-    this.windowManager.update();
+    this.needsReload = false;
+    
+    this.loadAddons();
   }
   
   showNoAddonsDialog() {
@@ -34,149 +39,147 @@ class Addons {
       },
       () => {
         this.showMainMenu();
-      }
+      },
+      "VISIT COMMUNITY",
+      "RETURN"
     );
   }
   
-  showAddonManager() {
-    // TODO: Clean addon manager interface and logic split in methods here 
+  loadAddons() {
+    this.carousel.destroy();
     
-    const detailText = new Text(4, 4, "");
+    this.carousel = new CarouselMenu(0, 56, 80, 56, {
+      align: 'left',
+      bgcolor: '#9b59b6',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+
+    const addons = addonManager.getAddonList();
     
-    const preview = game.add.sprite(112, 4);
-      
-    const showInstalledAddons = () => {
-      const addons = addonManager.getAddonList();
-      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
-        align: 'left',
-        bgcolor: 'brown',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      
-      if (addons.length === 0) {
-        carousel.destroy();
-        this.showNoAddonsDialog();
-        return;
-      } else {
-        addons.forEach(addon => {
-          const statusColor = addon.isHibernating ? "gray" : (addon.isEnabled ? "#00cc00" : "brown")
-          carousel.addItem(
-            `${addon.name} v${addon.version}`,
-            () => showAddonDetails(addon),
-            { addon, bgcolor: statusColor }
-          );
-        });
-        
-        carousel.onSelect.add((index, item) => {
-          if (item.data && item.data.addon) {
-            previewAddon(item.data.addon);
-          }
-        });
-        
-        previewAddon(addons[0]);
-      }
-      
-      game.onMenuIn.dispatch('addons', carousel);
-      
-      carousel.addItem("< Back", () => applyChanges());
-      carousel.onCancel.add(() => applyChanges());
-    };
-    
-    let needsReload = false;
-    
-    const previewAddon = (addon) => {
-      detailText.write(
-        `${addon.name}\n` +
-        `V${addon.version}\n` +
-        `By ${addon.author}\n` +
-        `BEHAVIORS:${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
-        `ASSETS:${addon.assets ? addon.assets.length : 0}\n\n` +
-        `${addon.description}\n` +
-        'STATE: ' + 
-        (addon.isHibernating ?
-          'Hybernating'
-          :
-        (addon.isEnabled ?
-          'Enabled' : 'Disabled')) + '\n'
-      ).wrap(112);
-      if (addon.icon) {
-        this.previewImg.src = addon.icon;
-        this.previewImg.onload = () => {
-          this.previewCtx.drawImage(this.previewImg, 0, 0, 50, 50);
-          preview.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
-        };
-      }
+    if (!addons.length) {
+      this.showNoAddonsDialog();
+      return;
     }
     
-    const showAddonDetails = (addon) => {
-      const carousel = new CarouselMenu(192 / 2, 112 / 2, 192 / 2, 112 / 2, {
-        align: 'left',
-        bgcolor: '#9b59b6',
-        fgcolor: '#ffffff',
-        animate: true,
-        crop: false
-      });
-      
-      if (addon.isHibernating) {
-        carousel.addItem("Wake Addon", () => {
-          addonManager.wakeAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-      } else if (addon.isEnabled) {
-        carousel.addItem("Disable Addon", () => {
-          addonManager.disableAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-        carousel.addItem("Hibernate Addon", () => {
-          addonManager.hibernateAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
-      } else {
-        carousel.addItem("Enable Addon", () => {
-          addonManager.enableAddon(addon.id);
-          needsReload = true;
-          showInstalledAddons();
-        });
+    addons.forEach(addon => {
+      const statusColor = addon.isHibernating ? "gray" : (addon.isEnabled ? "#00cc00" : "brown")
+      this.carousel.addItem(
+        `${addon.name} v${addon.version}`,
+        () => this.showAddonDetails(addon),
+        { addon, bgcolor: statusColor }
+      );
+    });
+        
+    this.carousel.onSelect.add((index, item) => {
+      if (item.data && item.data.addon) {
+        this.previewAddon(item.data.addon);
       }
-      
-      carousel.addItem("Uninstall Addon", () => this.confirmDialog("The addon folder will be removed. Continue?", () => {
-        addonManager.uninstallAddon(addon.id);
-        needsReload = true;
-        showInstalledAddons();
-      }, () => showInstalledAddons()));
-      
-      game.onMenuIn.dispatch('addonDetails', carousel);
-      
-      carousel.addItem("< Back", () => showInstalledAddons());
-      carousel.onCancel.add(() => showInstalledAddons());
-    };
+    });
     
-    const applyChanges = () => {
-      if (needsReload || addonManager.needsReload()) {
-        this.confirmDialog("Reload required. Restart now?", () => {
-          location.reload();
-        }, () => {
-          preview.destroy();
-          detailText.destroy();
-          this.showMainMenu();
-        });
-      } else {
-        preview.destroy();
-        detailText.destroy();
-        this.showMainMenu();
-      }
-    };
+    this.previewAddon(addons[0]);
     
-    showInstalledAddons();
+    this.carousel.addItem("< Back", () => this.applyChanges());
+    this.carousel.onCancel.add(() => this.applyChanges());
   }
+  
+  previewAddon(addon) {
+   this.descriptionText.write(
+      `${addon.name}\n\n` +
+      'STATE: ' + 
+      (addon.isHibernating ?
+        'Hybernating'
+        :
+      (addon.isEnabled ?
+        'Enabled' : 'Disabled')) + '\n' +
+      `VERSION: V${addon.version}\n` +
+      `AUTHOR: ${addon.author}\n` +
+      `BEHAVIORS: ${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
+      `ASSETS: ${addon.assets ? addon.assets.length : 0}\n\n` +
+      `${addon.description}\n`
+    ).wrapPreserveNewlines(112 - 4);
+    
+    if (addon.icon) {
+      this.previewImg.src = addon.icon;
+      this.previewImg.onload = () => {
+        this.previewCtx.clearRect(0, 0, 64, 50);
+        this.previewCtx.drawImage(this.previewImg, 0, 0, 64, 50);
+        this.previewSprite.loadTexture(PIXI.Texture.fromCanvas(this.previewCanvas));
+      };
+      this.previewImg.onerror = () => this.previewSprite.loadTexture("ui_addon_no_image");
+    } else {
+      this.previewSprite.loadTexture("ui_addon_no_image");
+    }
+  }
+  
+  showAddonDetails(addon) {
+    this.carousel.destroy();
+    
+    this.carousel = new CarouselMenu(0, 56, 80, 56, {
+      align: 'left',
+      bgcolor: '#9b59b6',
+      fgcolor: '#ffffff',
+      animate: true,
+      crop: false
+    });
+    
+    if (addon.isHibernating) {
+      this.carousel.addItem("Wake Addon", () => {
+        addonManager.wakeAddon(addon.id);
+        this.needsReload = true;
+        this.loadAddons();
+      });
+    } else if (addon.isEnabled) {
+      this.carousel.addItem("Disable Addon", () => {
+        addonManager.disableAddon(addon.id);
+        this.needsReload = false;
+        this.loadAddons();
+      });
+      this.carousel.addItem("Hibernate Addon", () => {
+        addonManager.hibernateAddon(addon.id);
+        this.needsReload = true;
+        this.loadAddons();
+      });
+    } else {
+      this.carousel.addItem("Enable Addon", () => {
+        addonManager.enableAddon(addon.id);
+        this.needsReload = true;
+        this.loadAddons();
+      });
+    }
+    
+    this.carousel.addItem("Uninstall Addon", () => this.confirmDialog("The addon will be removed from storage. Continue?", () => {
+      addonManager.uninstallAddon(addon.id);
+      this.needsReload = true;
+      this.loadAddons();
+    }));
+    
+    game.onMenuIn.dispatch('addonDetails', this.carousel);
+    
+    this.carousel.addItem("< Back", () => this.loadAddons());
+    this.carousel.onCancel.add(() => this.loadAddons());
+  }
+  
+  applyChanges() {
+    if (this.needsReload || addonManager.needsReload()) {
+      this.confirmDialog("Reload required. Restart now?", () => {
+        window.location.reload();
+      }, () => {
+        this.showMainMenu();
+      });
+    } else {
+      this.showMainMenu();
+    }
+  };
   
   showMainMenu() {
     game.state.start("MainMenu");
+  }
+  
+  update() {
+    gamepad.update();
+    this.windowManager.update();
   }
   
   confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {

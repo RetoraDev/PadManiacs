@@ -21,6 +21,7 @@ class Window extends Phaser.Sprite {
     this.font = "default";
     this.fontTint = 0x76fcde;
     this.disableScrollBar = false;
+    this.disableMouse = false;
 
     if (parent) {
       parent.addChild(this);
@@ -101,12 +102,13 @@ class Window extends Phaser.Sprite {
     itemText.addChild(itemValueText);
     
     const item = {
+      index: this.items.length,
       text: itemText,
       valueText: itemValueText,
       callback: callback,
       backButton: backButton,
       type: 'item',
-      visible: true,
+      visible: false,
       setText: text => {
         itemText.write(text);
       },
@@ -138,13 +140,14 @@ class Window extends Phaser.Sprite {
     itemText.addChild(valueText);
 
     const item = {
+      index: this.items.length,
       text: itemText,
       valueText: valueText,
       options: options,
       currentIndex: currentIndex,
       callback: callback,
       type: 'setting',
-      visible: true
+      visible: false
     };
 
     this.items.push(item);
@@ -167,12 +170,13 @@ class Window extends Phaser.Sprite {
     itemText.addChild(valueText);
 
     const item = {
+      index: this.items.length,
       text: itemText,
       valueText: valueText,
       min, max, step, value, suffix,
       callback: callback,
       type: 'range',
-      visible: true
+      visible: false 
     };
 
     this.items.push(item);
@@ -430,6 +434,17 @@ class Window extends Phaser.Sprite {
       }
     });
     this.onCancel.dispatch(this.selectedIndex);
+  }
+  
+  scroll(delta = 0) {
+    this.scrollOffset += delta;
+    this.selectedIndex += delta;
+    this.adjustScroll();
+    if (this.selectedIndex < 0) {
+      this.selectedIndex = 0;
+    } else if (this.selectedIndex >= this.items.length) {
+      this.selectedIndex = this.items.length - 1;
+    }
   }
   
   removeAll() {

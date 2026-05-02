@@ -10,6 +10,7 @@ class DialogWindow extends Phaser.Sprite {
       buttons = ['OK'],
       defaultButton = 0,
       enableTextScroll = false,
+      disableMouse = false,
       parent = null
     } = options;
 
@@ -21,6 +22,7 @@ class DialogWindow extends Phaser.Sprite {
     this.buttons = buttons;
     this.selectedButton = defaultButton;
     this.enableTextScroll = enableTextScroll;
+    this.disableMouse = disableMouse;
     this.currentScroll = 0;
     this.maxScroll = 0;
     this.fontTint = 0x76fcde;
@@ -195,6 +197,12 @@ class DialogWindow extends Phaser.Sprite {
       
       // Move to next button position
       currentX += buttonWidths[index] + buttonSpacing;
+      
+      // Add mouse event listeners
+      button.inputEnabled = !this.disableMouse;
+      button.useHandCursor = true;
+      button.events.onInputDown.add(() => this.confirm());
+      button.events.onInputOver.add(() => this.selectIndex(index));
     });
     
     this.updateButtonSelection();
@@ -278,6 +286,11 @@ class DialogWindow extends Phaser.Sprite {
     gamepad.signals.pressed.a.add(this.onAPressed, this);
     gamepad.signals.pressed.b.add(this.onBPressed, this);
   }
+  
+  selectIndex(index) {
+    this.selectedButton = index;
+    this.updateButtonSelection();
+  }
 
   onLeftPressed() {
     if (!this.isActive) return;
@@ -301,7 +314,6 @@ class DialogWindow extends Phaser.Sprite {
     if (this.currentScroll > 0) {
       this.currentScroll--;
       this.refreshTextContent();
-      ENABLE_UI_SFX && Audio.play('ui_nav');
     }
   }
 
@@ -311,7 +323,6 @@ class DialogWindow extends Phaser.Sprite {
     if (this.currentScroll < this.maxScroll) {
       this.currentScroll++;
       this.refreshTextContent();
-      ENABLE_UI_SFX && Audio.play('ui_nav');
     }
   }
 
@@ -401,6 +412,13 @@ class DialogWindow extends Phaser.Sprite {
           button.alpha = 1.0;
         }
       });
+    }
+    
+    // Update mouse wheel scrolling
+    if (mouse.wheel.up) {
+      this.onUpPressed();
+    } else if (mouse.wheel.down) {
+      this.onDownPressed();
     }
   }
 

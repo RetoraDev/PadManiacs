@@ -61,6 +61,7 @@ class BuildSystem {
       'js/ui/NotificationSystem.js',
       'js/ui/Lyrics.js',
       'js/ui/OffsetAssistant.js',
+      'js/ui/MouseCursor.js',
       
       // Filesystem
       'js/filesystem/filesystem.js',

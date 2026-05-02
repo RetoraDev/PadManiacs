@@ -26,6 +26,10 @@ Please Report The Developer Immediately!
     gamepad.signals.pressed.any.addOnce(() => {
       game.state.start(this.recoverStateKey);
     });
+    
+    mouse.onDown.addOnce(() => {
+      game.state.start(this.recoverStateKey);
+    });
   }
   update() {
     gamepad.update();
