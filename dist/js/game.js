@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v0.9.1
- * Build: 5/2/2026, 12:07:47 PM
+ * Build: 5/4/2026, 9:13:31 AM
  * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
@@ -8965,16 +8965,16 @@ const bootGame = () => {
     forceSetTimeOut: false,
     clearBeforeRender: true,
     forceSingleUpdate: false,
-    maxPointers: 0,
+    maxPointers: Account.settings.enableTouch || Account.settings.enableMouse ? 2 : 0,
     keyboard: true,
-    mouse: true,
-    mouseWheel: true,
+    mouse: !!Account.settings.enableMouse,
+    mouseWheel: !!Account.settings.enableMouse,
     mspointer: false,
     multiTexture: false,
     pointerLock: false,
     preserveDrawingBuffer: false,
     roundPixels: true,
-    touch: true,
+    touch: Account.settings.enableTouch,
     transparent: false,
     parent: "canvas_parent",
     state: {
@@ -9055,15 +9055,16 @@ const Audio = {
 (() => {
   const script = document.createElement("script");
   script.text = `
-  window.onerror = (details, file, line) => {
-    localStorage.setItem('gameLastCrashed', 'true');
-    if (!window.DEBUG && typeof window.eruda !== "undefined") eruda.init(); 
-    const filename = file ? file.split('/').pop() : 'unknown file';
-    const message = details + " On Line " + line + " of " + filename;
-    console.error(message);
-    game.state.add('ErrorScreen', ErrorScreen);
-    game.state.start('ErrorScreen', false, false, message, 'Boot');
-  };`;
+    window.onerror = (details, file, line) => {
+      localStorage.setItem('gameLastCrashed', 'true');
+      if (!window.DEBUG && typeof window.eruda !== "undefined") eruda.init(); 
+      const filename = file ? file.split('/').pop() : 'unknown file';
+      const message = details + " On Line " + line + " of " + filename;
+      console.error(message);
+      game.state.add('ErrorScreen', ErrorScreen);
+      game.state.start('ErrorScreen', false, false, message, 'Boot');
+    };
+  `;
   document.head.appendChild(script);
 })();
 
@@ -14398,6 +14399,8 @@ class Settings {
     const settingsWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     settingsWindow.fontTint = 0x76fcde;
     
+    let restartNeeded = false;
+    
     this.windowManager.focus(settingsWindow);
     
     // Volume setting
@@ -14441,16 +14444,27 @@ class Settings {
       }
     );
     
-    // Visualizer setting
-    const visualizerOptions = ['NONE', 'BPM', 'ACCURACY', 'AUDIO'];
-    const currentVisualizerIndex = visualizerOptions.indexOf(Account.settings.visualizer || 'NONE');
+    // Mouse 
     settingsWindow.addSettingItem(
-      "Visualizer",
-      visualizerOptions,
-      currentVisualizerIndex,
+      "Enable Mouse",
+      ["YES", "NO"],
+      Account.settings.enableMouse ? 0 : 1,
       index => {
-        Account.settings.visualizer = visualizerOptions[index];
+        Account.settings.enableMouse = index === 0;
         saveAccount();
+        restartNeeded = true;
+      }
+    );
+    
+    // Touch 
+    settingsWindow.addSettingItem(
+      "Enable Touch",
+      ["YES", "NO"],
+      Account.settings.enableTouch ? 0 : 1,
+      index => {
+        Account.settings.enableTouch = index === 0;
+        saveAccount();
+        restartNeeded = true;
       }
     );
     
@@ -14607,7 +14621,6 @@ class Settings {
     );
     
     // Renderer
-    let restartNeeded = false;
     settingsWindow.addSettingItem(
       "Renderer",
       ["AUTO", "CANVAS", "WEBGL"],
@@ -23199,6 +23212,15 @@ class Player {
     
     // Copy receptors from renderer
     this.receptors = this.renderer.receptors;
+    
+    // Initialize receptors touch interactivity
+    for (let i = 0; i < 4; i++) {
+      const receptor = this.receptors[i];
+      
+      receptor.inputEnabled = true;
+      receptor.events.onInputDown.add(() => this.handleInput(i, true));
+      receptor.events.onInputUp.add(() => this.handleInput(i, false));
+    };
     
     // Create UI text elements
     this.judgementText =

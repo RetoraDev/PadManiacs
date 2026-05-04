@@ -28,8 +28,6 @@ body {
   font-weight: 300;
   margin: 0;
   padding: 0;
-  touch-action: none;
-  -webkit-touch-callout: none;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -39,7 +37,6 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  touch-action: none;
   overflow: hidden;
 }
 
@@ -58,7 +55,6 @@ body {
 #controller_parent {
   display: none;
   width: 100%;
-  touch-action: none;
   opacity: 0.8;
   pointer-events: none;
 }

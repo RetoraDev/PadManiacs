@@ -25,6 +25,8 @@ class Settings {
     const settingsWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     settingsWindow.fontTint = 0x76fcde;
     
+    let restartNeeded = false;
+    
     this.windowManager.focus(settingsWindow);
     
     // Volume setting
@@ -68,16 +70,27 @@ class Settings {
       }
     );
     
-    // Visualizer setting
-    const visualizerOptions = ['NONE', 'BPM', 'ACCURACY', 'AUDIO'];
-    const currentVisualizerIndex = visualizerOptions.indexOf(Account.settings.visualizer || 'NONE');
+    // Mouse 
     settingsWindow.addSettingItem(
-      "Visualizer",
-      visualizerOptions,
-      currentVisualizerIndex,
+      "Enable Mouse",
+      ["YES", "NO"],
+      Account.settings.enableMouse ? 0 : 1,
       index => {
-        Account.settings.visualizer = visualizerOptions[index];
+        Account.settings.enableMouse = index === 0;
         saveAccount();
+        restartNeeded = true;
+      }
+    );
+    
+    // Touch 
+    settingsWindow.addSettingItem(
+      "Enable Touch",
+      ["YES", "NO"],
+      Account.settings.enableTouch ? 0 : 1,
+      index => {
+        Account.settings.enableTouch = index === 0;
+        saveAccount();
+        restartNeeded = true;
       }
     );
     
@@ -234,7 +247,6 @@ class Settings {
     );
     
     // Renderer
-    let restartNeeded = false;
     settingsWindow.addSettingItem(
       "Renderer",
       ["AUTO", "CANVAS", "WEBGL"],

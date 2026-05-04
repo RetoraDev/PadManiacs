@@ -18,10 +18,14 @@ class ChartRenderer {
       enableBGRendering: false,
       judgeLineYFalling: 90,
       judgeLineYRising: 25,
+      speedMod: "X-MOD",
+      scrollDirection: "falling",
+      noteSpeedMultiplier: 1,
+      displayPosition: "center",
       ...options
     };
 
-    this.scrollDirection = Account.settings.scrollDirection || "falling";
+    this.scrollDirection = this.options.scrollDirection || "falling";
 
     // Visual constants
     this.VERTICAL_SEPARATION = 1.25;
@@ -33,9 +37,11 @@ class ChartRenderer {
     this.COLUMN_SEPARATION = 4;
     this.INACTIVE_COLOR = 0x888888;
 
+    this.displayPosition = this.options.displayPosition;
+
     this.noteSpeedMultiplier = this.NOTE_SPEED_MULTIPLIER;
 
-    this.speedMod = Account.settings.speedMod || "X-MOD";
+    this.speedMod = this.options.speedMod || "X-MOD";
     
     // Note color option (default to NOTE)
     this.noteColorOption = Account.settings.noteColorOption || "NOTE";
@@ -202,7 +208,13 @@ class ChartRenderer {
 
   calculateLeftOffset() {
     const totalWidth = 4 * this.COLUMN_SIZE + 3 * this.COLUMN_SEPARATION;
-    return (192 - totalWidth) / 2;
+    if (this.displayPosition == "left") {
+      return 8;
+    } else if (this.displayPosition == "right") {
+      return 192 - totalWidth - 8;
+    } else {
+      return (192 - totalWidth) / 2;
+    }
   }
   
   calculateFullWidth() {

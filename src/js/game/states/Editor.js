@@ -69,9 +69,9 @@ class Editor {
       judgeLineYFalling: 70,
       judgeLineYRising: 50,
       enableChartBackground: Account.settings.enableChartBackground || false,
-      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
+      chartBackgroundOpacity: Account.settings.chartBackgroundOpacit || 0.3
     });
-
+    
     this.homeOverlay = game.add.graphics(0, 0);
     this.homeOverlay.beginFill(0x000000, 0.5);
     this.homeOverlay.drawRect(0, 0, game.width, game.height);

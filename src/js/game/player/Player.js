@@ -1,6 +1,6 @@
 class Player {
   constructor(scene) {
-    this.scene = scene
+    this.scene = scene;
     
     // Use ChartRenderer for rendering
     this.renderer = new ChartRenderer(scene, JSON.parse(JSON.stringify(scene.song)), scene.song.difficultyIndex, {
@@ -11,7 +11,11 @@ class Player {
       enableMissChecking: true,
       enableBeatLines: Account.settings.beatLines || false,
       enableChartBackground: Account.settings.enableChartBackground || false,
-      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
+      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3,
+      speedMod: Account.settings.speedMod,
+      scrollDirection: Account.settings.scrollDirection,
+      noteSpeedMultiplier: Account.settings.noteSpeedMult,
+      displayPosition: "center"
     });
     
     // Copy references from renderer
@@ -78,6 +82,15 @@ class Player {
     
     // Copy receptors from renderer
     this.receptors = this.renderer.receptors;
+    
+    // Initialize receptors touch interactivity
+    for (let i = 0; i < 4; i++) {
+      const receptor = this.receptors[i];
+      
+      receptor.inputEnabled = true;
+      receptor.events.onInputDown.add(() => this.handleInput(i, true));
+      receptor.events.onInputUp.add(() => this.handleInput(i, false));
+    };
     
     // Create UI text elements
     this.judgementText =

@@ -23,16 +23,16 @@ const bootGame = () => {
     forceSetTimeOut: false,
     clearBeforeRender: true,
     forceSingleUpdate: false,
-    maxPointers: 0,
+    maxPointers: Account.settings.enableTouch || Account.settings.enableMouse ? 2 : 0,
     keyboard: true,
-    mouse: true,
-    mouseWheel: true,
+    mouse: !!Account.settings.enableMouse,
+    mouseWheel: !!Account.settings.enableMouse,
     mspointer: false,
     multiTexture: false,
     pointerLock: false,
     preserveDrawingBuffer: false,
     roundPixels: true,
-    touch: true,
+    touch: Account.settings.enableTouch,
     transparent: false,
     parent: "canvas_parent",
     state: {
@@ -113,14 +113,15 @@ const Audio = {
 (() => {
   const script = document.createElement("script");
   script.text = `
-  window.onerror = (details, file, line) => {
-    localStorage.setItem('gameLastCrashed', 'true');
-    if (!window.DEBUG && typeof window.eruda !== "undefined") eruda.init(); 
-    const filename = file ? file.split('/').pop() : 'unknown file';
-    const message = details + " On Line " + line + " of " + filename;
-    console.error(message);
-    game.state.add('ErrorScreen', ErrorScreen);
-    game.state.start('ErrorScreen', false, false, message, 'Boot');
-  };`;
+    window.onerror = (details, file, line) => {
+      localStorage.setItem('gameLastCrashed', 'true');
+      if (!window.DEBUG && typeof window.eruda !== "undefined") eruda.init(); 
+      const filename = file ? file.split('/').pop() : 'unknown file';
+      const message = details + " On Line " + line + " of " + filename;
+      console.error(message);
+      game.state.add('ErrorScreen', ErrorScreen);
+      game.state.start('ErrorScreen', false, false, message, 'Boot');
+    };
+  `;
   document.head.appendChild(script);
 })();
