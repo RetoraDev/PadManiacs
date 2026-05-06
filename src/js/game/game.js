@@ -1,4 +1,4 @@
-let game, gamepad, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
+let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 let Account = {
   ...DEFAULT_ACCOUNT,
@@ -108,6 +108,25 @@ const Audio = {
   }
 };
 
+const createGradientBackground = (x, y, width, height, color) => {
+  const bitmap = game.add.bitmapData(width, height);
+    
+  const gradient = bitmap.context.createLinearGradient(width, 0, 0, 0);
+    
+  const bgcolor = color || "rgba(44, 90, 198, 0.6)";
+    
+  gradient.addColorStop(0, 'transparent');
+  gradient.addColorStop(0.3, bgcolor);
+  gradient.addColorStop(0.7, bgcolor);
+  gradient.addColorStop(1, 'transparent');
+    
+  bitmap.context.fillStyle = gradient;
+  bitmap.context.fillRect(0, 0, width, height);
+    
+  const sprite = game.add.sprite(x, y, bitmap);
+  return sprite;
+};
+
 // Register recovery listener
 // TODO: Implement recovery from JavaScript freeze correctly
 (() => {
@@ -125,3 +144,31 @@ const Audio = {
   `;
   document.head.appendChild(script);
 })();
+
+// Multiplayer settings
+const DEFAULT_PLAYER_SETTINGS = {
+  autoplay: Account.settings.autoplay,
+  scrollDirection: Account.settings.scrollDirection,
+  noteColorOption: Account.settings.noteColorOption,
+  noteSpeedMult: Account.settings.noteSpeedMult,
+  speedMod: Account.settings.speedMod
+};
+
+window.multiplayerState = {
+  song: null,
+  difficultyIndex: 0,
+  player1: {
+    settings: { ...DEFAULT_PLAYER_SETTINGS },
+    ready: false
+  },
+  player2: {
+    settings: { ...DEFAULT_PLAYER_SETTINGS },
+    joined: false,
+    ready: false
+  },
+  counter: {
+    player1: 0,
+    player2: 0,
+    draw: 0
+  }
+};

@@ -15,6 +15,7 @@ class CarouselMenu extends Phaser.Sprite {
       hoverAlpha: 0.7,
       activeAlpha: 0.9,
       doubleClickConfirm: false,
+      gradient: true,
       ...config,
       margin: { top: 4, bottom: 4, left: 4, right: 4, ...(config.margin || {}) },
     };
@@ -177,7 +178,8 @@ class CarouselMenu extends Phaser.Sprite {
       gradient.addColorStop(1, 'transparent');
     }
     
-    bitmap.context.fillStyle = gradient;
+    bitmap.context.fillStyle = this.config.gradient ? gradient : bgcolor;
+    
     bitmap.context.fillRect(0, 0, width, height);
     
     const sprite = game.add.sprite(0, 0, bitmap);

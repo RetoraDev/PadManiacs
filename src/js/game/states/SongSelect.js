@@ -22,6 +22,11 @@ class SongSelect {
     
     this.autoSelect = autoSelect || false;
     
+    window.multiplayerState.player1.ready = false;
+    window.multiplayerState.player2.ready = false;
+    window.multiplayerState.player2.joined = false;
+    this.multiplayerState = window.multiplayerState;
+    
     if (this.startingIndex + 1 > this.songs.length) {
       this.startingIndex = 0;
     } 
@@ -61,7 +66,14 @@ class SongSelect {
     this.highScoreText = new Text(104, 50, "");
     
     this.loadingDots = new LoadingDots();
+    this.loadingDots.y -= 8;
     this.loadingDots.visible = false;
+    
+    this.windowManager1 = new WindowManager(); // For Player 1
+    this.windowManager2 = new WindowManager(); // For Player 2
+    
+    this.windowManager1.gamepad = gamepad1;
+    this.windowManager2.gamepad = gamepad2;
     
     this.visibilityChangeListener = () => {
       if (document.hidden) {
@@ -277,14 +289,14 @@ class SongSelect {
       this.difficultyCarousel.selectIndex(song.lastDifficultySelectedIndex);
     }
     
-    game.onMenuIn.dispatch('difficulty', this.songCarousel);
+    game.onMenuIn.dispatch('difficulty', this.difficultyCarousel);
     
     // Add difficulties
     song.difficulties.sort((a, b) => a.rating - b.rating).forEach((diff, index) => {
       this.difficultyCarousel.addItem(
         `${diff.type} (${diff.rating})`,
         (item) => {
-          this.startGame(song, index);
+          this.showGameModeSelection(song, index);
         },
         {
           difficulty: diff,
@@ -297,6 +309,140 @@ class SongSelect {
     this.difficultyCarousel.onCancel.add(() => {
       this.createSongSelectionMenu();
     });
+  }
+  
+  showGameModeSelection(song, difficultyIndex) {
+    const x = 0;
+    const y = 37;
+    const width = game.width / 2;
+    const height = game.height;
+
+    this.gamemodeCarousel = new CarouselMenu(x, y, width, height, {
+      bgcolor: "#e67e22",
+      fgcolor: "#ffffff",
+      align: "center",
+      animate: true
+    });
+    
+    this.gamemodeCarousel.onSelect.add((index) => {
+      window.lastGameModeSelectedIndex = index;
+    });
+    
+    if (window.lastGameModeSelectedIndex) {
+      this.gamemodeCarousel.selectIndex(window.lastGameModeSelectedIndex);
+    }
+    
+    game.onMenuIn.dispatch('gamemode', this.gamemodeCarousel);
+    
+    this.gamemodeCarousel.addItem("Single Player", () => this.startGame(song, difficultyIndex, true));
+    this.gamemodeCarousel.addItem("Multiplayer", () => this.showMultiplayerScreen(song, difficultyIndex));
+    
+    this.gamemodeCarousel.onCancel.add(() => {
+      this.showDifficultySelection(song);
+    });
+  }
+
+  showMultiplayerScreen(song, difficultyIndex) {
+    this.multiplayerScreen = game.add.group();
+    
+    this.player1Frame = this.windowManager1.createWindow(0.5, 5, 11, 8, "1", this.multiplayerScreen);
+    this.player2Frame = this.windowManager2.createWindow(12.5, 5, 11, 8, "1", this.multiplayerScreen);
+    
+    this.populatePlayerFrame(this.player1Frame, 1);
+    this.populatePlayerFrame(this.player2Frame, 2);
+    
+    this.windowManager1.focus(this.player1Frame);
+            
+    // Create ready text
+    this.p1ReadyBackground = createGradientBackground(this.player1Frame.x + this.player1Frame.size.width * 8 / 2, this.player1Frame.y + this.player1Frame.size.height * 8 / 2, this.player1Frame.size.width * 8, 10);
+    this.p2ReadyBackground = createGradientBackground(this.player2Frame.x + this.player2Frame.size.width * 8 / 2, this.player2Frame.y + this.player2Frame.size.height * 8 / 2, this.player2Frame.size.width * 8, 10);
+    
+    this.p1ReadyBackground.anchor.set(0.5);
+    this.p2ReadyBackground.anchor.set(0.5);
+    
+    this.p1ReadyText = new Text(0, 0, "READY", null, this.p1ReadyBackground);
+    this.p2ReadyText = new Text(0, 0, "READY", null, this.p2ReadyBackground);
+    
+    this.p1ReadyText.anchor.set(0.5);
+    this.p2ReadyText.anchor.set(0.5);
+    
+    this.multiplayerScreen.addChild(this.p1ReadyBackground);
+    this.multiplayerScreen.addChild(this.p2ReadyBackground);
+
+    // Prompt player 2 to press start
+    this.playerJoinInstructionText = new Text(96 + 44, 40 + 32, "PLAYER 2\n< PRESS START >", null, this.multiplayerScreen);
+    this.playerJoinInstructionText.anchor.set(0.5);
+    
+    // Prompt both players to press start
+    this.startInstructionText = new Text(game.width / 2, 90, "PRESS START TO BEGIN", null, this.multiplayerScreen);
+    this.startInstructionText.visible = false;
+    this.startInstructionText.anchor.set(0.5);
+    
+    this.player2Frame.visible = false;
+    
+    this.highScoreText.visible = false;
+    
+    this.multiplayerState.song = song;
+    this.multiplayerState.difficultyIndex = difficultyIndex;
+  }
+  
+  startMultiplayer() {
+    this.multiplayerScreen.destroy();
+    this.multiplayerScreen = null;
+    
+    // Start gameplay with selected song and settings 
+    game.state.start("PlayMulti", true, false, this.multiplayerState);
+  }
+  
+  populatePlayerFrame(window, playerNumber) {
+    const settings = this.multiplayerState["player" + playerNumber].settings;
+    
+    // Auto-play
+    window.addSettingItem(
+      "Auto-play",
+      ["OFF", "ON"], 
+      settings.autoplay ? 1 : 0,
+      index => settings.autoplay = index === 1
+    );
+    
+    // Scroll Direction
+    window.addSettingItem(
+      "Scroll",
+      ["FALLING", "RISING"],
+      settings.scrollDirection === 'falling' ? 0 : 1,
+      index => settings.scrollDirection = index === 0 ? 'falling' : 'rising'
+    );
+    
+    // Note colors
+    const noteOptions = [
+      { value: 'NOTE', display: 'NOTE' },
+      { value: 'VIVID', display: 'VIVID' },
+      { value: 'FLAT', display: 'FLAT' },
+      { value: 'RAINBOW', display: 'RAINBOW' }
+    ];
+    const currentNoteIndex = noteOptions.findIndex(opt => opt.value === settings.noteColorOption);
+    window.addSettingItem(
+      "Note Colors",
+      noteOptions.map(opt => opt.display),
+      currentNoteIndex,
+      index => settings.noteColorOption = noteOptions[index].value
+    );
+
+    // Note speed
+    window.addSettingItem(
+      "Note Speed",
+      ["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
+      settings.noteSpeedMult - 1,
+      index => settings.noteSpeedMult = index + 1
+    );
+    
+    // Speed mod
+    window.addSettingItem(
+      "Speed Mod",
+      ["X-MOD", "C-MOD"],
+      settings.speedMod === 'C-MOD' ? 1 : 0,
+      index => settings.speedMod = index === 1 ? 'C-MOD' : 'X-MOD'
+    );
   }
 
   getDifficultyColor(value) {
@@ -322,9 +468,9 @@ class SongSelect {
     return `#${hexR}${hexG}${hexB}`;
   }
 
-  startGame(song, difficultyIndex) {
+  startGame(song, difficultyIndex, singlePlayer = true) {
     // Start gameplay with selected song
-    game.state.start("Play", true, false, {
+    game.state.start(singlePlayer ? "Play" : "PlayMulti", true, false, {
       chart: song,
       difficultyIndex
     });
@@ -338,6 +484,86 @@ class SongSelect {
     }
     
     this.autoplayText.write(Account.settings.autoplay ? "AUTOPLAY" : "");
+    
+    if (this.multiplayerScreen) {
+      if (gamepad1.pressed.b) {
+        if (this.multiplayerState.player1.ready) {
+          this.multiplayerState.player1.ready = false;
+        } else {
+          this.multiplayerState.player1.ready = false;
+          this.multiplayerState.player2.ready = false;
+          this.multiplayerState.player2.joined = false;
+        
+          this.showGameModeSelection(this.multiplayerState.song, this.multiplayerState.difficultyIndex);
+          this.multiplayerScreen.destroy();
+          this.multiplayerScreen = null;
+          return;
+        }
+      }
+      
+      if (gamepad2.pressed.b) {
+        if (this.multiplayerState.player2.ready && this.multiplayerState.player2.joined) {
+          this.multiplayerState.player2.ready = false;
+        } else {
+          this.multiplayerState.player1.ready = false;
+          this.multiplayerState.player2.ready = false;
+          this.multiplayerState.player2.joined = false;
+        
+          this.showGameModeSelection(this.multiplayerState.song, this.multiplayerState.difficultyIndex);
+          this.multiplayerScreen.destroy();
+          this.multiplayerScreen = null;
+          return;
+        }
+      }
+      
+      if (!this.multiplayerState.player1.ready) this.windowManager1.update();
+    
+      if (this.multiplayerState.player2.joined && !this.multiplayerState.player2.ready) this.windowManager2.update();
+      
+      this.player1Frame.alpha = this.multiplayerState.player1.ready ? 0.2 : 1;
+      this.player2Frame.alpha = this.multiplayerState.player2.ready ? 0.2 : 1;
+      this.p1ReadyBackground.visible = this.multiplayerState.player1.ready;
+      this.p2ReadyBackground.visible = this.multiplayerState.player2.ready;
+      
+      this.player2Frame.visible = this.multiplayerState.player2.joined;
+      
+      if (this.multiplayerState.player1.ready && this.multiplayerState.player2.ready) {
+        this.startInstructionText.visible = true;
+        
+        if (gamepad.pressed.start) {
+          this.startMultiplayer();
+          ENABLE_UI_SFX && Audio.play('ui_select');
+          
+          return;
+        }
+      } else {
+        this.startInstructionText.visible = false;
+      }
+
+      if (gamepad1.pressed.start) {
+        this.multiplayerState.player1.ready = !this.multiplayerState.player1.ready;
+        this.windowManager1.focus(this.player1Frame);
+        gamepad.pressed.start = false;
+        ENABLE_UI_SFX && Audio.play('ui_nav');
+      }
+      
+      if (this.multiplayerState.player2.joined && gamepad2.pressed.start) {
+        this.multiplayerState.player2.ready = !this.multiplayerState.player2.ready;
+        this.windowManager2.focus(this.player2Frame);
+        this.player2Frame.playNavSound();
+        gamepad.pressed.start = false;
+        ENABLE_UI_SFX && Audio.play('ui_nav');
+      }
+      
+      if (!this.multiplayerState.player2.joined && gamepad2.pressed.start) {
+        this.multiplayerState.player2.joined = true;
+        this.playerJoinInstructionText.visible = false;
+        this.windowManager2.focus(this.player2Frame);
+        this.player2Frame.playNavSound();
+        gamepad.pressed.start = false;
+        ENABLE_UI_SFX && Audio.play('ui_nav');
+      }
+    }
   }
   
   shutdown() {

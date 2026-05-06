@@ -1,6 +1,11 @@
 class Player {
-  constructor(scene) {
+  constructor(scene, playerSide = "center", settings = {}) {
     this.scene = scene;
+    this.playerSide = playerSide; // "center", "left", or "right"
+    
+    this.gamepad = gamepad1;
+    
+    this.hud = scene.hud;
     
     // Use ChartRenderer for rendering
     this.renderer = new ChartRenderer(scene, JSON.parse(JSON.stringify(scene.song)), scene.song.difficultyIndex, {
@@ -12,10 +17,12 @@ class Player {
       enableBeatLines: Account.settings.beatLines || false,
       enableChartBackground: Account.settings.enableChartBackground || false,
       chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3,
-      speedMod: Account.settings.speedMod,
-      scrollDirection: Account.settings.scrollDirection,
-      noteSpeedMultiplier: Account.settings.noteSpeedMult,
-      displayPosition: "center"
+      speedMod: settings.speedMod || Account.settings.speedMod,
+      scrollDirection: settings.scrollDirection || Account.settings.scrollDirection,
+      noteSpeedMultiplier: settings.noteSpeedMult || Account.settings.noteSpeedMult,
+      noteColor: settings.noteColorOption || Account.settings.noteColorOption || "NOTE",
+      displayPosition: playerSide,
+      player: this
     });
     
     // Copy references from renderer
@@ -23,7 +30,7 @@ class Player {
     this.bpmChanges = this.renderer.bpmChanges;
     this.stops = this.renderer.stops;
     
-    this.autoplay = scene.autoplay;
+    this.autoplay = settings.autoplay || scene.autoplay;
     this.autoplayActiveHolds = new Set();
 
     // Gamepad keymap
@@ -78,7 +85,6 @@ class Player {
     
     // Calculate total notes for accuracy
     this.calculateTotalNotes();
-    this.updateAccuracy();
     
     // Copy receptors from renderer
     this.receptors = this.renderer.receptors;
@@ -92,30 +98,31 @@ class Player {
       receptor.events.onInputUp.add(() => this.handleInput(i, false));
     };
     
-    // Create UI text elements
-    this.judgementText =
-      this.scene.judgementText ||
-      new Text(96, 20, "", {
-        tint: 0xffffff
-      });
+    const judgementText = this.playerSide == 'right' ? this.scene.p2JudgementText : (this.scene.judgementText || this.scene.p1JudgementText);
+    const comboText = this.playerSide == 'right' ? this.scene.p2ComboText : (this.scene.comboText || this.scene.p1ComboText);
+    const scoreText = this.playerSide == 'right' ? this.scene.p2ScoreText : (this.scene.scoreText || this.scene.p1ScoreText);
+    const healthText = this.playerSide == 'right' ? this.scene.p2HealthText : (this.scene.healthText || this.scene.p1HealthText);
+    const lifebarStart = this.playerSide == 'right' ? this.scene.p2LifebarStart : (this.scene.lifebarStart || this.scene.p1LifebarStart);
+    const lifebarMiddle = this.playerSide == 'right' ? this.scene.p2LifebarMiddle : (this.scene.lifebarMiddle || this.scene.p1LifebarMiddle);
+    const lifebarEnd = this.playerSide == 'right' ? this.scene.p2LifebarEnd : (this.scene.lifebarEnd || this.scene.p1LifebarEnd);
+    const accuracyBar = this.playerSide == 'right' ? this.scene.p2AccuracyBar : (this.scene.accuracyBar || this.scene.p1AccuracyBar);
     
-    this.comboText =
-      this.scene.comboText ||
-      new Text(96, 40, "0", {
-        tint: 0xffffff
-      });
-
-    this.scoreText =
-      this.scene.scoreText ||
-      new Text(8, 8, "00000000", {
-        tint: 0xffffff
-      });
-
-    this.healthText =
-      this.scene.healthText ||
-      new Text(184, 8, "100%", {
-        tint: 0xffffff
-      });
+    // Get UI elements or create placeholders 
+    this.judgementText = judgementText || new Text(-100, -100, "");
+    this.comboText = comboText || new Text(-100, -100, "");
+    this.scoreText = scoreText || new Text(-100, -100, "");
+    this.healthText = healthText || new Text(-100, -100, "");
+    this.lifebarStart = lifebarStart || game.add.sprite();
+    this.lifebarMiddle = lifebarMiddle || game.add.sprite();
+    this.lifebarEnd = lifebarEnd || game.add.sprite();
+    this.accuracyBar = accuracyBar || game.add.sprite();
+    
+    this.updateAccuracy();
+    
+    // Define constants
+    this.HEALTH_X = this.lifebarStart.x;
+    this.HEALTH_WIDTH = 102; // Width of the variable area of the health bar
+    this.ACCURACY_BAR_WIDTH = 150;
   }
   
   calculateTotalNotes() {
@@ -402,7 +409,7 @@ class Player {
   }
   
   vibrate(duration = 25) {
-    Account.settings.hapticFeedback && gamepad.vibrate(duration);
+    Account.settings.hapticFeedback && this.this.gamepad.vibrate(duration);
   }
   
   getAdjustedJudgementWindows() {
@@ -581,9 +588,9 @@ class Player {
     this.accuracy = Phaser.Math.clamp(this.accuracy, 0, 100);
     
     // Update accuracy bar in HUD if it exists
-    if (this.scene.accuracyBar) {
-      const accuracyWidth = Math.floor(Math.max(1, (this.accuracy / 100) * 150));
-      this.scene.accuracyBar.crop(new Phaser.Rectangle(0, 0, accuracyWidth, 2));
+    if (this.accuracyBar) {
+      const accuracyWidth = Math.floor(Math.max(1, (this.accuracy / 100) * this.ACCURACY_BAR_WIDTH));
+      this.accuracyBar.crop(new Phaser.Rectangle(0, 0, accuracyWidth, 2));
     }
   }
 
@@ -597,6 +604,8 @@ class Player {
     if (this.combo > 0) {
       this.pulseText(this.comboText);
     }
+    
+    this.hud.alpha = this.gameOver ? 0.5 : 1;
   }
   
   getScoreRating() {
@@ -710,8 +719,8 @@ class Player {
     // Input handling
     if (!this.autoplay) {
       Object.keys(this.keymap).forEach(key => {
-        if (gamepad.pressed[key]) this.handleInput(this.keymap[key], true);
-        else if (gamepad.released[key]) this.handleInput(this.keymap[key], false);
+        if (this.gamepad.pressed[key]) this.handleInput(this.keymap[key], true);
+        else if (this.gamepad.released[key]) this.handleInput(this.keymap[key], false);
       });
       
       // Check mines for currently pressed columns
@@ -756,21 +765,28 @@ class Player {
     // Update health
     if (this.health != this.previousHealth) {
       this.previousHealth = this.health;
-      const tween = game.add.tween(this.scene.lifebarMiddle);
-      tween.to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
-      tween.onUpdateCallback(() => this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width);
+      
+      const tween = game.add.tween(this.lifebarMiddle);
+      tween.to({ width: (this.health / this.getMaxHealth()) * this.HEALTH_WIDTH }, 100, Phaser.Easing.Quadratic.In, true);
+      tween.onUpdateCallback(() => {
+        this.lifebarEnd.x = this.lifebarMiddle.width;
+      });
+      
       if (this.health <= 0) {
         this.gameOver = true;
         this.health = 0;
       };
+      
       this.healthText.write(this.health.toString());
     }
-    this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
-    if (this.scene.accuracyBar) {
+    
+    this.lifebarEnd.x = this.lifebarMiddle.width;
+        
+    if (this.accuracyBar) {
       if (this.accuracy <= 0) {
-        this.scene.accuracyBar.visible = false;
+        this.accuracyBar.visible = false;
       } else {
-        this.scene.accuracyBar.visible = true;
+        this.accuracyBar.visible = true;
       }
     }
     

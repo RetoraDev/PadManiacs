@@ -73,10 +73,16 @@ class BuildSystem {
       'js/game/game.js',
       
       // Utils
-      'js/utils/Gamepad.js',
       'js/utils/ScreenRecorder.js',
       'js/utils/Metronome.js',
       'js/utils/TimeUtils.js',
+      
+      // Input
+      'js/input/GamepadListener.js',
+      'js/input/KeyboardListener.js',
+      'js/input/InputManager.js',
+      'js/input/Gamepad.js',
+      'js/input/AllPads.js',
       
       // Audio
       'js/audio/BackgroundMusic.js',
@@ -115,7 +121,9 @@ class BuildSystem {
       'js/game/states/AchievementsMenu.js',
       'js/game/states/StatsMenu.js',
       'js/game/states/Play.js',
+      'js/game/states/PlayMulti.js',
       'js/game/states/Results.js',
+      'js/game/states/ResultsMulti.js',
       'js/game/states/Jukebox.js',
       'js/game/states/Editor.js',
       'js/game/states/Credits.js',
@@ -124,6 +132,8 @@ class BuildSystem {
       // Note Rendering and Player
       'js/game/player/ChartRenderer.js',
       'js/game/player/Player.js',
+      'js/game/player/FirstPlayer.js',
+      'js/game/player/SecondPlayer.js',
     ];
   }
   

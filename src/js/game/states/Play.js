@@ -17,7 +17,7 @@ class Play {
     this.userOffset = Account.settings.userOffset;
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
-    this.hasLyricsFile = song.chart.lyricsContent ? true : false;
+    this.hasLyricsFile = this.song.chart.lyricsContent ? true : false;
     this.visualizerType = Account.settings.visualizer || 'NONE';
     this.lastVisualizerUpdateTime = 0;
     this.metronome = null;
@@ -33,11 +33,11 @@ class Play {
     
     // Save last song to Account
     Account.lastSong = {
-      url: song.chart.audioUrl,
-      title: song.chart.title,
-      artist: song.chart.artist,
-      sampleStart: song.chart.sampleStart || 0,
-      isExternal: song.chart.files !== undefined, // Flag for external songs
+      url: this.song.chart.audioUrl,
+      title: this.song.chart.title,
+      artist: this.song.chart.artist,
+      sampleStart: this.song.chart.sampleStart || 0,
+      isExternal: this.song.chart.files !== undefined, // Flag for external songs
       score: 0,
       accuracy: 0,
       maxCombo: 0,
@@ -51,7 +51,7 @@ class Play {
       },
       totalNotes: 0,
       skillsUsed: 0,
-      difficultyRating: song.chart.difficulties[song.difficultyIndex].rating,
+      difficultyRating: this.song.chart.difficulties[this.difficultyIndex].rating,
       complete: false
     };
     saveAccount();
@@ -238,12 +238,7 @@ class Play {
     this.comboText.anchor.set(1);
   }
   
-  createVisualizer() {
-    const visualizerX = 2;
-    const visualizerY = 103;
-    const visualizerWidth = 36;
-    const visualizerHeight = 7;
-
+  createVisualizer(visualizerX = 2, visualizerY = 103, visualizerWidth = 36, visualizerHeight = 7) {
     // Remove existing visualizer
     if (this.visualizer) {
       this.visualizer.destroy();
@@ -643,6 +638,25 @@ class Play {
     // TODO: When applying bg effects take in account bg.fadeOut and bg.effect
   }
   
+  getGameResults(player = this.player) {
+    return {
+      score: player.score,
+      accuracy: player.accuracy,
+      maxCombo: player.maxCombo,
+      character: this.currentCharacter,
+      autoplay: player.autoplay,
+      complete: !player.autoplay && player.accuracy >= 40,
+      judgements: { ...player.judgementCounts },
+      totalNotes: this.song.chart.notes.length,
+      skillsUsed: this.skillSystem.getSkillsUsed(),
+      difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
+    };
+  }
+  
+  restartSong() {
+    game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode, this.autoplay);
+  }
+  
   songEnd() {
     // Forget preloaded backgrounds
     Object.entries(this.preloadedBackgroundElements).map(entry => entry[1] || null).forEach(element => {
@@ -658,17 +672,7 @@ class Play {
     }
     
     // Update character stats
-    const gameResults = {
-      score: this.player.score,
-      accuracy: this.player.accuracy,
-      maxCombo: this.player.maxCombo,
-      character: this.currentCharacter,
-      complete: !this.autoplay && this.player.accuracy >= 40,
-      judgements: { ...this.player.judgementCounts },
-      totalNotes: this.song.chart.notes.length,
-      skillsUsed: this.skillSystem.getSkillsUsed(),
-      difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
-    };
+    const gameResults = this.getGameResults(this.player);
     
     // Calculate experience gain (0 if autoplay is enabled)
     const expGain = this.autoplay ? 0 : this.characterManager.calculateExperienceGain(gameResults);
@@ -765,6 +769,10 @@ class Play {
     this.hidePauseMenu();
   }
   
+  getStatsContent() {
+    return Object.entries(this.player.judgementCounts).map(entry => `${entry[0]}: ${entry[1]}`).join('\n');
+  }
+  
   showPauseMenu() {
     this.pauseBg = game.add.graphics(0, 0);
     
@@ -776,7 +784,7 @@ class Play {
     this.pauseStatsText.anchor.set(1, 0.5);
     this.pauseStatsText.tint = 0xECECEC;
     
-    const statsContent = Object.entries(this.player.judgementCounts).map(entry => `${entry[0]}: ${entry[1]}`).join('\n');
+    const statsContent = this.getStatsContent();
     
     this.pauseStatsText.write(statsContent);
     
@@ -801,7 +809,7 @@ class Play {
         this.pauseCarousel.addItem("ENABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
       }
     }
-    this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode, this.autoplay));
+    this.pauseCarousel.addItem("RESTART", () => this.restartSong());
     this.pauseCarousel.addItem(this.playtestMode ? "BACK TO EDITOR" : "GIVE UP", () => this.songEnd());
     
     game.onMenuIn.dispatch('pause', this.pauseCarousel);
@@ -938,7 +946,6 @@ class Play {
     if (this.started) this.updateBackgrounds();
     
     this.hud.bringToTop();
-    this.hud.alpha = this.player.gameOver ? 0.5 : 1;
     
     this.overHud.bringToTop();
     

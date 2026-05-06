@@ -11,7 +11,6 @@ class Results {
     game.camera.fadeIn(0x000000);
     
     new FuturisticLines();
-    
     new BackgroundGradient();
     
     const { song, player } = this.gameData;

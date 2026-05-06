@@ -29,7 +29,7 @@ class Boot {
     }
   }
   create() {
-    gamepad = new Gamepad(game, Account.mapping?.keyboard, Account.mapping?.gamepad);
+    window.inputManager = new InputManager(game);
 
     notifications = new NotificationSystem();
     
@@ -60,7 +60,9 @@ class Boot {
     game.state.add("AchievementsMenu", AchievementsMenu);
     game.state.add("StatsMenu", StatsMenu);
     game.state.add("Play", Play);
+    game.state.add("PlayMulti", PlayMulti);
     game.state.add("Results", Results);
+    game.state.add("ResultsMulti", ResultsMulti);
     game.state.add("Editor", Editor);
     game.state.add("Jukebox", Jukebox);
     game.state.add("Credits", Credits);
@@ -86,6 +88,17 @@ class Boot {
       {
         key: "ui_hud_background",
         url: "ui/hud_background.png"
+      },
+      {
+        key: "ui_hud_background_multi",
+        url: "ui/hud_background_multi.png"
+      },
+      {
+        key: "ui_hud_player_parent_multi",
+        url: "ui/hud_player_parent_multi.png",
+        type: "spritesheet",
+        frameWidth: 192,
+        frameHeight: 112
       },
       {
         key: "ui_editor_icons",
@@ -137,6 +150,10 @@ class Boot {
       {
         key: "ui_accuracy_bar",
         url: "ui/accuracy_bar.png"
+      },
+      {
+        key: "ui_accuracy_bar_multi",
+        url: "ui/accuracy_bar_multi.png"
       },
       {
         key: "ui_mouse_cursor",

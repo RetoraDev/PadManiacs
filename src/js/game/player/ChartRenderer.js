@@ -21,16 +21,20 @@ class ChartRenderer {
       speedMod: "X-MOD",
       scrollDirection: "falling",
       noteSpeedMultiplier: 1,
+      noteColorOption: "NOTE",
       displayPosition: "center",
+      player: null,
       ...options
     };
+    
+    this.player = this.options.player || this.scene.player;
 
     this.scrollDirection = this.options.scrollDirection || "falling";
 
     // Visual constants
     this.VERTICAL_SEPARATION = 1.25;
-    this.SCREEN_CONSTANT = Account.settings.speedMod === "C-MOD" ? 240 / 60 : 1;
-    this.NOTE_SPEED_MULTIPLIER = Account.settings.noteSpeedMult + this.SCREEN_CONSTANT;
+    this.SCREEN_CONSTANT = this.options.speedMod === "C-MOD" ? 240 / 60 : 1;
+    this.NOTE_SPEED_MULTIPLIER = this.options.noteSpeedMultiplier + this.SCREEN_CONSTANT;
     this.JUDGE_LINE = this.scrollDirection === "falling" ? this.options.judgeLineYFalling : this.options.judgeLineYRising;
     this.DIRECTION = this.scrollDirection === "falling" ? -1 : 1;
     this.COLUMN_SIZE = 16;
@@ -44,7 +48,7 @@ class ChartRenderer {
     this.speedMod = this.options.speedMod || "X-MOD";
     
     // Note color option (default to NOTE)
-    this.noteColorOption = Account.settings.noteColorOption || "NOTE";
+    this.noteColorOption = this.options.noteColorOption || "NOTE";
 
     // Define color constants for spritesheet frames
     const COLORS = {
@@ -220,6 +224,10 @@ class ChartRenderer {
   calculateFullWidth() {
     return this.COLUMN_SIZE * 4 + this.COLUMN_SEPARATION * 3;
   }
+  
+  calculateCenter() {
+    return this.calculateLeftOffset() + this.calculateFullWidth() / 2;
+  }
 
   getNoteFrame(note) {
     const beat = note.beat;
@@ -339,8 +347,8 @@ class ChartRenderer {
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos > game.height) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
-          this.scene.player.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.player && this.player.processJudgement) {
+          this.player.processJudgement(note, "miss", note.column);
         }
       }
 
@@ -397,8 +405,8 @@ class ChartRenderer {
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos < -this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
-          this.scene.player.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.player && this.player.processJudgement) {
+          this.player.processJudgement(note, "miss", note.column);
         }
       }
 
@@ -551,13 +559,13 @@ class ChartRenderer {
     if (this.options.enableMissChecking && !note.miss && !note.holdActive) {
       if (direction === "falling" && yPos > this.JUDGE_LINE + this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
-          this.scene.player.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.player && this.player.processJudgement) {
+          this.player.processJudgement(note, "miss", note.column);
         }
       } else if (direction === "rising" && yPos < this.JUDGE_LINE - this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
-          this.scene.player.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.player && this.player.processJudgement) {
+          this.player.processJudgement(note, "miss", note.column);
         }
       }
     }

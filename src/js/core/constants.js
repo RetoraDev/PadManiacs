@@ -294,23 +294,47 @@ const GAMEPAD_KEY_NAMES = {
 
 // Keyboard button mapping
 const DEFAULT_KEYBOARD_MAPPING = {
-  up: [Phaser.KeyCode.UP, Phaser.KeyCode.J, Phaser.KeyCode.B],
-  down: [Phaser.KeyCode.DOWN, Phaser.KeyCode.F, Phaser.KeyCode.V],
-  left: [Phaser.KeyCode.LEFT, Phaser.KeyCode.D, Phaser.KeyCode.C],
-  right: [Phaser.KeyCode.RIGHT, Phaser.KeyCode.K, Phaser.KeyCode.N],
-  a: [Phaser.KeyCode.Z],
-  b: [Phaser.KeyCode.X],
-  select: [Phaser.KeyCode.SPACEBAR],
-  start: [Phaser.KeyCode.ENTER]
+  player1: {
+    up: [Phaser.KeyCode.W,],
+    down: [Phaser.KeyCode.S],
+    left: [Phaser.KeyCode.D],
+    right: [Phaser.KeyCode.A],
+    a: [Phaser.KeyCode.K],
+    b: [Phaser.KeyCode.J],
+    select: [Phaser.KeyCode.SHIFT],
+    start: [Phaser.KeyCode.ENTER]
+  },
+  player2: {
+    up: [Phaser.KeyCode.UP],
+    down: [Phaser.KeyCode.DOWN],
+    left: [Phaser.KeyCode.LEFT],
+    right: [Phaser.KeyCode.RIGHT],
+    a: [Phaser.KeyCode.NUMPAD_1],
+    b: [Phaser.KeyCode.NUMPAD_2],
+    select: [Phaser.KeyCode.NUMPAD_ADD],
+    start: [Phaser.KeyCode.NUMPAD_SUBTRACT]
+  }
 };
 
 const DEFAULT_GAMEPAD_MAPPING = {
-  up: 12,
-  down: 13,
-  left: 14,
-  right: 15,
-  a: 1,
-  b: 0,
-  select: 8,
-  start: 9
+  player1: {
+    up: 12,
+    down: 13,
+    left: 14,
+    right: 15,
+    a: 1,
+    b: 0,
+    select: 8,
+    start: 9
+  },
+  player2: {
+    up: 12,
+    down: 13,
+    left: 14,
+    right: 15,
+    a: 1,
+    b: 0,
+    select: 8,
+    start: 9
+  }
 };

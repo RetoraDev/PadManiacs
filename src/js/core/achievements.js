@@ -1390,6 +1390,8 @@ const ACHIEVEMENT_DEFINITIONS = [
     condition: stats => stats.maxSkillsInGame >= 10,
     hidden: false
   },
+  
+  // TODO: Multiplayer achievements 
 
   // Miscellaneous
   {
