@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.0.0
- * Build: 5/8/2026, 12:17:59 AM
+ * Build: 5/8/2026, 12:43:27 AM
  * Platform: Web
  * Debug: false
  * Minified: false

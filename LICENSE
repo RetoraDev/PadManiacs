@@ -1,4 +1,4 @@
-Copyright (c) RETORA 2025
+Copyright (c) RETORA 2026
 
 PERMISSION GRANT
 You are hereby granted permission to:
@@ -11,10 +11,34 @@ CONDITIONS AND RESTRICTIONS
    prominent attribution to the original author "RETORA"
 2. NON-COMMERCIAL: No commercial use, distribution, or monetization is 
    permitted without explicit written permission
-3. NO REDISTRIBUTION OF MODIFIED VERSIONS: Modified versions may not be 
-   distributed publicly without explicit written permission
-4. LICENSE INCLUSION: All distributed copies must include this complete 
-   unmodified license file
+3. MODIFIED VERSIONS: Modified versions may be distributed ONLY under the 
+   following conditions:
+   a) Must maintain complete and prominent attribution to RETORA
+   b) Must include the text "Based on PadManiacs by RETORA"
+   c) Must be distributed under this exact same license
+   d) May NOT use the name "PadManiacs" or similar confusing names
+   e) Must document significant changes made to the original work
+4. LICENSE INCLUSION: All distributed copies (modified or unmodified) must 
+   include this complete unmodified license file
+
+THIRD-PARTY COMPONENTS EXCEPTION
+The restrictions in sections 2 and 3 apply ONLY to the original work created 
+by RETORA. Third-party components included in this software (Phaser CE, 
+Eruda.js, Terser.js) are governed by their own licenses (MIT/BSD) and may 
+be used, modified, and distributed according to those licenses regardless 
+of any restrictions in this document.
+
+STEPMANIA FORMAT DISCLAIMER
+This software uses the StepMania (.sm and .ssc) chart format specification 
+for compatibility. PadManiacs is not affiliated with, endorsed by, or 
+connected to StepMania or its developers. The chart format is a de facto 
+standard; format specifications are not subject to copyright.
+
+MEDIA CONTENT DISCLAIMER
+All song charts, audio files, and associated media included with or loaded 
+into PadManiacs belong to their respective copyright holders. Users are 
+responsible for ensuring they have proper rights to use any external songs 
+or charts loaded into the application.
 
 DISCLAIMER
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -24,47 +48,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
-THIRD-PARTY COMPONENTS ATTRIBUTION
-This software includes third-party libraries that have their own license terms:
-
-1. Phaser CE 2.20.2
-   - Source: https://github.com/phaserjs/phaser-ce
-   - License: MIT License
-   - Copyright: Richard Davey, Photon Storm Ltd.
-
-2. Eruda.js
-   - Source: https://github.com/liriliri/eruda
-   - License: MIT License
-   - Copyright: liriliri
-
-3. Terser.js
-   - Source: https://github.com/terser/terser
-   - License: BSD-2-Clause License
-   - Copyright: Mihai Bazon
-
-MEDIA FORMAT COMPATIBILITY
-This software uses the StepMania (.sm and .ssc) chart format specification.
-PadManiacs is not affiliated with, endorsed by, or connected to StepMania 
-or its developers.
-
-StepMania Credits:
-- StepMania software: Copyright © 2001-2024 StepMania Team
-- Chart format specification: Derived from StepMania open-source project
-- StepMania is licensed under the MIT License
-
-MEDIA CONTENT DISCLAIMER
-All song charts, audio files, and associated media included with or loaded 
-into PadManiacs belong to their respective copyright holders. The Software 
-developers do not claim ownership over any musical content, chart data, or 
-artistic works created by third parties.
-
-Users are responsible for ensuring they have the proper rights to use any 
-external songs or charts loaded into the application.
-
-REDISTRIBUTION REQUIREMENTS
-Any distribution of this software must include:
-1. This complete unmodified LICENSE file
-2. All third-party attribution notices
-3. All copyright notices from the original software
-4. Clear attribution to "RETORA" as the original author

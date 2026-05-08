@@ -408,22 +408,59 @@ class BuildSystem {
   copyStaticFiles() {
     this.log('Copying static files...', 'info');
     
-    // Copy favicon from src
-    const faviconSrc = path.join(this.config.srcDir, 'favicon.png');
-    const faviconDest = path.join(this.config.distDir, 'favicon.png');
-    if (fs.existsSync(faviconSrc)) {
-      fs.copyFileSync(faviconSrc, faviconDest);
+    // Copy favicon.png from src
+    const faviconPngSrc = path.join(this.config.srcDir, 'favicon.png');
+    const faviconPngDest = path.join(this.config.distDir, 'favicon.png');
+    if (fs.existsSync(faviconPngSrc)) {
+      fs.copyFileSync(faviconPngSrc, faviconPngDest);
+      this.log('favicon.png copied', 'success');
     }
     
-    // Copy root favicon as fallback
-    const rootFavicon = './favicon.png';
-    if (fs.existsSync(rootFavicon) && !fs.existsSync(faviconDest)) {
-      fs.copyFileSync(rootFavicon, faviconDest);
+    // Copy favicon.ico from src
+    const faviconIcoSrc = path.join(this.config.srcDir, 'favicon.ico');
+    const faviconIcoDest = path.join(this.config.distDir, 'favicon.ico');
+    if (fs.existsSync(faviconIcoSrc)) {
+      fs.copyFileSync(faviconIcoSrc, faviconIcoDest);
+      this.log('favicon.ico copied', 'success');
     }
     
-    this.log('Static files copied', 'success');
+    // Copy icon.png from src (para PWA y NW.js)
+    const iconPngSrc = path.join(this.config.srcDir, 'icon.png');
+    const iconPngDest = path.join(this.config.distDir, 'icon.png');
+    if (fs.existsSync(iconPngSrc)) {
+      fs.copyFileSync(iconPngSrc, iconPngDest);
+      this.log('icon.png copied', 'success');
+    }
+    
+    // También copiar a la carpeta icons/ si existe para PWA
+    const iconsDestDir = path.join(this.config.distDir, 'icons');
+    if (fs.existsSync(iconPngSrc) && !fs.existsSync(iconPngDest)) {
+      this.ensureDir(iconsDestDir);
+      fs.copyFileSync(iconPngSrc, path.join(iconsDestDir, 'icon-192.png'));
+      fs.copyFileSync(iconPngSrc, path.join(iconsDestDir, 'icon-512.png'));
+      this.log('icon.png copied to icons/ for PWA', 'success');
+    }
+    
+    // Fallback: copy root favicon if exists and src ones don't
+    const rootFaviconPng = './favicon.png';
+    if (fs.existsSync(rootFaviconPng) && !fs.existsSync(faviconPngDest)) {
+      fs.copyFileSync(rootFaviconPng, faviconPngDest);
+      this.log('fallback favicon.png copied from root', 'success');
+    }
+    
+    const rootFaviconIco = './favicon.ico';
+    if (fs.existsSync(rootFaviconIco) && !fs.existsSync(faviconIcoDest)) {
+      fs.copyFileSync(rootFaviconIco, faviconIcoDest);
+      this.log('fallback favicon.ico copied from root', 'success');
+    }
+    
+    const rootIconPng = './icon.png';
+    if (fs.existsSync(rootIconPng) && !fs.existsSync(iconPngDest)) {
+      fs.copyFileSync(rootIconPng, iconPngDest);
+      this.log('fallback icon.png copied from root', 'success');
+    }
   }
-
+  
   processIndexHTML(platform) {
     this.log(`Processing index.html for ${this.getPlatformDisplayName(platform)}...`, 'info');
     
@@ -753,7 +790,7 @@ class BuildSystem {
     this.ensureDir(tempWebDir);
     
     // Copy only web files to temp directory (no cordova, no platform builds)
-    this.copyDir(this.config.distDir, tempWebDir, ['www.zip', 'padmaniacs-*.zip', '*.apk', 'temp', 'cordova']);
+    this.copyDir(this.config.distDir, tempWebDir, ['www.zip', 'padmaniacs-*.zip', '*.apk', '*.apk.idsig', 'temp', 'cordova']);
     
     // Create www.zip from temp web build
     const webZipPath = '../../www.zip';
@@ -800,7 +837,7 @@ class BuildSystem {
       fs.writeFileSync(path.join(jsDest, 'game.js'), nwjsGameJS);
       
       // Copy other web files to NW.js www folder (no cordova)
-      this.copyDir(this.config.distDir, path.join(tempNwDir, 'www'), ['www.zip', 'padmaniacs-*.zip', '*.apk', 'temp', 'cordova', 'js']);
+      this.copyDir(this.config.distDir, path.join(tempNwDir, 'www'), ['www.zip', 'padmaniacs-*.zip', '*.apk', '*.apk.idsig', 'temp', 'cordova', 'js']);
       
       // Create 7z archive for NW.js from temp directory
       const nwZipName = `padmaniacs-v${this.packageInfo.version}-nwjs-win-x64.zip`;
@@ -839,7 +876,7 @@ class BuildSystem {
       fs.writeFileSync(path.join(jsDest, 'game.js'), androidGameJS);
       
       // Copy other web files to Android www folder
-      this.copyDir(this.config.distDir, wwwDest, ['www.zip', 'padmaniacs-*.zip', '*.apk', 'temp', 'js']);
+      this.copyDir(this.config.distDir, wwwDest, ['www.zip', 'padmaniacs-*.zip', '*.apk', '*.apk.idsig', 'temp', 'js']);
       
       // Copy cordova files specifically for Android
       const cordovaStatic = path.join(this.config.srcDir, 'static/cordova');
