@@ -4,21 +4,18 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.0.0 dev
- * Build: 5/6/2026, 7:02:18 PM
- * Platform: Development
- * Debug: true
+ * Version: v1.0.0
+ * Build: 5/8/2026, 12:17:59 AM
+ * Platform: Web
+ * Debug: false
  * Minified: false
  */
 
-
-
-// ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.0.0 dev";
+const VERSION = "v1.0.0";
 
-window.DEBUG = true;
+window.DEBUG = false;
 
 const FONTS = {
   default: { font: "font_tiny" },
@@ -313,8 +310,8 @@ const DEFAULT_KEYBOARD_MAPPING = {
   player1: {
     up: [Phaser.KeyCode.W,],
     down: [Phaser.KeyCode.S],
-    left: [Phaser.KeyCode.D],
-    right: [Phaser.KeyCode.A],
+    left: [Phaser.KeyCode.A],
+    right: [Phaser.KeyCode.D],
     a: [Phaser.KeyCode.K],
     b: [Phaser.KeyCode.J],
     select: [Phaser.KeyCode.SHIFT],
@@ -325,8 +322,8 @@ const DEFAULT_KEYBOARD_MAPPING = {
     down: [Phaser.KeyCode.DOWN],
     left: [Phaser.KeyCode.LEFT],
     right: [Phaser.KeyCode.RIGHT],
-    a: [Phaser.KeyCode.NUMPAD_1],
-    b: [Phaser.KeyCode.NUMPAD_2],
+    a: [Phaser.KeyCode.NUMPAD_2],
+    b: [Phaser.KeyCode.NUMPAD_1],
     select: [Phaser.KeyCode.NUMPAD_ADD],
     start: [Phaser.KeyCode.NUMPAD_SUBTRACT]
   }
@@ -355,9 +352,6 @@ const DEFAULT_GAMEPAD_MAPPING = {
   }
 };
 
-
-
-// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -367,7 +361,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -392,9 +386,6 @@ const REGULAR_VIBRATION_INTENSITY = 75;
 const WEAK_VIBRATION_INTENSITY = 50;
 const STRONG_VIBRATION_INTENSITY = 50;
 
-
-
-// ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 6,
@@ -1104,9 +1095,6 @@ const CHARACTER_ITEMS = {
   ]
 };
 
-
-
-// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
   settings: {
     volume: 100,
@@ -1221,9 +1209,6 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
-
-
-// ======== js/core/achievements.js ========
 // Achievements system constants
 const ACHIEVEMENTS = {
   EXPERIENCE_VALUES: {
@@ -2670,9 +2655,6 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
-
-
-// ======== js/character/Character.js ========
 class Character {
   constructor(data) {
     this.name = data.name;
@@ -2919,9 +2901,6 @@ class Character {
   }
 }
 
-
-
-// ======== js/character/CharacterDisplay.js ========
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
@@ -3047,9 +3026,6 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/character/CharacterCroppedDisplay.js ========
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
@@ -3078,27 +3054,18 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterPortrait.js ========
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterCloseShot.js ========
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterManager.js ========
 class CharacterManager {
   constructor() {
     this.characters = new Map();
@@ -3320,9 +3287,6 @@ class CharacterManager {
   }
 }
 
-
-
-// ======== js/character/CharacterSkillSystem.js ========
 class CharacterSkillSystem {
   constructor(scene, character) {
     this.scene = scene;
@@ -3706,9 +3670,6 @@ class CharacterSkillSystem {
   }
 }
 
-
-
-// ======== js/achievements/AchievementsManager.js ========
 class AchievementsManager {
   constructor() {
     this.newAchievements = [];
@@ -4239,9 +4200,6 @@ class AchievementsManager {
   }
 }
 
-
-
-// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config, parent) {
     config = {
@@ -4550,9 +4508,6 @@ class Text extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -5045,9 +5000,6 @@ class Window extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
@@ -5328,9 +5280,6 @@ class WindowManager {
   }
 }
 
-
-
-// ======== js/ui/DialogWindow.js ========
 class DialogWindow extends Phaser.Sprite {
   constructor(text, options = {}) {
     const {
@@ -5780,9 +5729,6 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/CarouselMenu.js ========
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -6503,9 +6449,6 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/CanvasBackground.js ========
 class CanvasBackground extends Phaser.Sprite {
   constructor(canvas) {
     super(game, 0, 0);
@@ -6525,9 +6468,6 @@ class CanvasBackground extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/BackgroundGradient.js ========
 class BackgroundGradient extends Phaser.Sprite {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, "ui_background_gradient");
@@ -6540,9 +6480,6 @@ class BackgroundGradient extends Phaser.Sprite {
   }
 } 
 
-
-
-// ======== js/ui/Background.js ========
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, key);
@@ -6555,9 +6492,6 @@ class Background extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -6745,9 +6679,6 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -6761,9 +6692,6 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -6813,9 +6741,6 @@ class Logo extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(frame = 0) {
     super(game, 0, 0, 'ui_navigation_hint_screens');
@@ -6835,9 +6760,6 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 4, text, FONTS.default);
@@ -6846,9 +6768,6 @@ class ProgressText extends Text {
   }
 }
 
-
-
-// ======== js/ui/ExperienceBar.js ========
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
@@ -6896,9 +6815,6 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/SkillBar.js ========
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
@@ -6926,9 +6842,6 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/TextInput.js ========
 class TextInput extends Phaser.Sprite {
   constructor(text = "", maxLength = 6, onConfirm, onCancel) {
     super(game, 96, 28);
@@ -7063,9 +6976,6 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/ValueInput.js ========
 class ValueInput extends Phaser.Sprite {
   constructor(value = 0, min = 0, max = Infinity, step = 1, onConfirm, onCancel) {
     super(game, 96, 28);
@@ -7229,9 +7139,6 @@ class ValueInput extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -7726,9 +7633,6 @@ class NotificationSystem {
   }
 }
 
-
-
-// ======== js/ui/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -7920,9 +7824,6 @@ class Lyrics {
   }
 }
 
-
-
-// ======== js/ui/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -8215,9 +8116,6 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/MouseCursor.js ========
 class MouseCursor {
   constructor() {
     this.sprite = null;
@@ -8410,9 +8308,6 @@ class MouseCursor {
   }
 }
 
-
-
-// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -8508,9 +8403,6 @@ class FileSystemTools {
   }
 }
 
-
-
-// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -8920,9 +8812,6 @@ class NodeFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -9038,9 +8927,6 @@ class CordovaFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -9084,9 +8970,6 @@ class FallbackFileSystem {
   }
 }
 
-
-
-// ======== js/game/game.js ========
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 let Account = {
@@ -9262,9 +9145,6 @@ window.multiplayerState = {
   }
 };
 
-
-
-// ======== js/utils/ScreenRecorder.js ========
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -9634,9 +9514,6 @@ class ScreenRecorder {
   }
 }
 
-
-
-// ======== js/utils/Metronome.js ========
 class Metronome {
   constructor(scene) {
     this.scene = scene;
@@ -9799,9 +9676,6 @@ class Metronome {
   }
 }
 
-
-
-// ======== js/utils/TimeUtils.js ========
 class TimeUtils {
   static isValidTime(time) {
     return typeof time != undefined && typeof time != null && !isNaN(time) && time != Infinity;
@@ -9815,9 +9689,6 @@ class TimeUtils {
   }
 }
 
-
-
-// ======== js/input/GamepadListener.js ========
 class GamepadListener {
   constructor(game) {
     this.game = game;
@@ -9836,9 +9707,6 @@ class GamepadListener {
   }
 }
 
-
-
-// ======== js/input/KeyboardListener.js ========
 class KeyboardListener {
   constructor(game) {
     this.game = game;
@@ -9852,9 +9720,6 @@ class KeyboardListener {
   }
 }
 
-
-
-// ======== js/input/InputManager.js ========
 let inputManager, gamepad, gamepad1, gamepad2;
 
 class InputManager {
@@ -9880,9 +9745,6 @@ class InputManager {
   }
 }
 
-
-
-// ======== js/input/Gamepad.js ========
 class Gamepad {
   constructor(game, keyboardMap, gamepadMap, playerIndex = 0) {
     this.game = game;
@@ -10473,9 +10335,6 @@ class Gamepad {
   }
 }
 
-
-
-// ======== js/input/AllPads.js ========
 class AllPads extends Gamepad {
   constructor(game, gamepads) {
     super(game, undefined, undefined, 0);
@@ -10586,9 +10445,6 @@ class AllPads extends Gamepad {
   destroy() {}
 }
 
-
-
-// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -10824,9 +10680,6 @@ class BackgroundMusic {
   }
 }
 
-
-
-// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -10851,9 +10704,6 @@ class Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -10894,9 +10744,6 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -10963,9 +10810,6 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -11058,9 +10902,6 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -11419,9 +11260,6 @@ class FullScreenAudioVisualizer {
   }
 }
 
-
-
-// ======== js/parsers/SMFile.js ========
 class SMFile {
   static generateSM(songData) {
     let smContent = "";
@@ -11713,9 +11551,6 @@ class SMFile {
   }
 }
 
-
-
-// ======== js/parsers/FileTools.js ========
 class FileTools {
   static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
@@ -11865,9 +11700,6 @@ class FileTools {
   }
 }
 
-
-
-// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   constructor() {
     this.baseUrl = "";
@@ -12139,9 +11971,6 @@ class LocalSMParser {
   }
 }
 
-
-
-// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   async parseSM(files, smContent) {
@@ -12608,9 +12437,6 @@ class ExternalSMParser {
   }
 }
 
-
-
-// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -13022,9 +12848,6 @@ class AddonManager {
   }
 }
 
-
-
-// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -13421,9 +13244,6 @@ class Boot {
   }
 }
 
-
-
-// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -13471,9 +13291,6 @@ class Load {
   }
 }
 
-
-
-// ======== js/game/states/LoadCordova.js ========
 class LoadCordova {
   create() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
@@ -13521,9 +13338,6 @@ class LoadCordova {
   }
 }
 
-
-
-// ======== js/game/states/LoadAddons.js ========
 class LoadAddons {
   create() {
     this.progressText = new ProgressText("LOADING ADD-ONS");
@@ -13546,9 +13360,6 @@ class LoadAddons {
   }
 }
 
-
-
-// ======== js/game/states/LoadLocalSongs.js ========
 class LoadLocalSongs {
   create() {
     this.progressText = new ProgressText("LOADING SONGS");
@@ -13621,9 +13432,6 @@ class LoadLocalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadExternalSongs.js ========
 class LoadExternalSongs {
   init(nextState, nextStateParams) {
     this.nextState = nextState || 'SongSelect';
@@ -13965,9 +13773,6 @@ class LoadExternalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadSongFolder.js ========
 class LoadSongFolder {
   create() {
     this.progressText = new ProgressText("SELECT SONG FOLDER");
@@ -14165,9 +13970,6 @@ class LoadSongFolder {
   }
 }
 
-
-
-// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -14201,22 +14003,34 @@ class Title {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   resetKeybindings() {
-    Account.mapping.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
-    Account.mapping.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
-    saveAccount();
-    gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
-    notifications.show("Keybindings reset!");
+    if (confirm("!! EMERGENCY RESET TRIGGERED !! Holding 3+ buttons during the title animation has triggered the emergency reset of the control settings. Proceed only if the controls have become unusable during remapping. This will reset keyboard and gamepad mappings to their initial state. Proceed?")) {
+      Account.mapping.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
+      Account.mapping.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
+      saveAccount();
+      gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
+      notifications.show("Keybindings reset!");
+    }
+  }
+  restoreDefaults() {
+    if (confirm("!! EMERGENCY RESET TRIGGERED !! Holding 6+ buttons has triggered a full factory reset. This will restore ALL settings, controls, and preferences to their default state. Proceed?")) {
+      Account.settings = DEFAULT_ACCOUNT.settings;
+      saveAccount();
+      window.location.reload();
+    }
   }
   update() {
     gamepad.update();
 
-    let heldButtons = Object.values(gamepad.held).reduce((acc, held) => (held ? acc + 1 : acc));
 
     if (this.introEnded && !this.outroStarted && (mouse.pressed.left || gamepad.pressed.any)) {
       this.outroStarted = true;
       this.text.alpha = 0;
       this.logo.outro(() => {
-        if (heldButtons >= 3) {
+        let heldButtons = Object.values(gamepad.held).reduce((acc, held) => (held ? acc + 1 : acc));
+        if (heldButtons >= 6) {
+          this.restoreDefaults();
+          gamepad.vibrate(100);
+        } else if (heldButtons >= 3) {
           this.resetKeybindings();
           gamepad.vibrate(100);
         } 
@@ -14227,9 +14041,6 @@ class Title {
   }
 }
 
-
-
-// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -14644,9 +14455,6 @@ class MainMenu {
   }
 }
 
-
-
-// ======== js/game/states/Addons.js ========
 class Addons {
   create() {
     game.camera.fadeIn(0x000000);
@@ -14854,9 +14662,6 @@ class Addons {
   }
 }
 
-
-
-// ======== js/game/states/Settings.js ========
 class Settings {
   create() {
     game.camera.fadeIn(0x000000);
@@ -15233,9 +15038,6 @@ class Settings {
   }
 }
 
-
-
-// ======== js/game/states/Keybindings.js ========
 class Keybindings {
   create() {
     game.camera.fadeIn(0x000000);
@@ -15766,9 +15568,6 @@ class Keybindings {
   }
 }
 
-
-
-// ======== js/game/states/SongSelect.js ========
 class SongSelect {
   init(songs, index, autoSelect, type = "auto") {
     this.type = type;
@@ -16350,9 +16149,6 @@ class SongSelect {
   }
 }
 
-
-
-// ======== js/game/states/CharacterSelect.js ========
 class CharacterSelect {
   create() {
     game.camera.fadeIn(0x000000);
@@ -17546,9 +17342,6 @@ class CharacterSelect {
   }
 }
 
-
-
-// ======== js/game/states/AchievementsMenu.js ========
 class AchievementsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -17687,9 +17480,6 @@ class AchievementsMenu {
   }
 }
 
-
-
-// ======== js/game/states/StatsMenu.js ========
 class StatsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -17786,9 +17576,6 @@ class StatsMenu {
   }
 }
 
-
-
-// ======== js/game/states/Play.js ========
 class Play {
   init(song, difficultyIndex, playtestMode, autoplay) {
     this.song = song;
@@ -18799,9 +18586,6 @@ class Play {
   }
 }
 
-
-
-// ======== js/game/states/PlayMulti.js ========
 class PlayMulti extends Play {
   constructor() {
     super();
@@ -19063,9 +18847,6 @@ class PlayMulti extends Play {
   }
 }
 
-
-
-// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData;
@@ -19355,9 +19136,6 @@ class Results {
   }
 }
 
-
-
-// ======== js/game/states/ResultsMulti.js ========
 class ResultsMulti extends Results {
   constructor() {
     super();
@@ -19529,9 +19307,6 @@ class ResultsMulti extends Results {
   }
 }
 
-
-
-// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
@@ -20542,9 +20317,6 @@ class Jukebox {
   }
 }
 
-
-
-// ======== js/game/states/Editor.js ========
 class Editor {
   init(song = null) {
     this.song = song || this.createNewSong();
@@ -23026,9 +22798,6 @@ BEAT: ${bg.beat}`);
   }
 }
 
-
-
-// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
@@ -23324,9 +23093,6 @@ class Credits {
   }
 }
 
-
-
-// ======== js/game/states/ErrorScreen.js ========
 class ErrorScreen {
   init(message, recoverStateKey) {
     this.message = message || "The causes of this failure are unknown yet";
@@ -23365,9 +23131,6 @@ Please Report The Developer Immediately!
   }
 }
 
-
-
-// ======== js/game/player/ChartRenderer.js ========
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -24328,9 +24091,6 @@ class ChartRenderer {
   }
 }
 
-
-
-// ======== js/game/player/Player.js ========
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
     this.scene = scene;
@@ -25186,9 +24946,6 @@ class Player {
   }
 }
 
-
-
-// ======== js/game/player/FirstPlayer.js ========
 class FirstPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "left" side
@@ -25206,9 +24963,6 @@ class FirstPlayer extends Player {
   }
 }
 
-
-
-// ======== js/game/player/SecondPlayer.js ========
 class SecondPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "right" side

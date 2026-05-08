@@ -297,8 +297,8 @@ const DEFAULT_KEYBOARD_MAPPING = {
   player1: {
     up: [Phaser.KeyCode.W,],
     down: [Phaser.KeyCode.S],
-    left: [Phaser.KeyCode.D],
-    right: [Phaser.KeyCode.A],
+    left: [Phaser.KeyCode.A],
+    right: [Phaser.KeyCode.D],
     a: [Phaser.KeyCode.K],
     b: [Phaser.KeyCode.J],
     select: [Phaser.KeyCode.SHIFT],
@@ -309,8 +309,8 @@ const DEFAULT_KEYBOARD_MAPPING = {
     down: [Phaser.KeyCode.DOWN],
     left: [Phaser.KeyCode.LEFT],
     right: [Phaser.KeyCode.RIGHT],
-    a: [Phaser.KeyCode.NUMPAD_1],
-    b: [Phaser.KeyCode.NUMPAD_2],
+    a: [Phaser.KeyCode.NUMPAD_2],
+    b: [Phaser.KeyCode.NUMPAD_1],
     select: [Phaser.KeyCode.NUMPAD_ADD],
     start: [Phaser.KeyCode.NUMPAD_SUBTRACT]
   }
