@@ -427,29 +427,10 @@ class CharacterSelect {
     this.originalAppearance = { ...this.selectedCharacter.appearance };
   }
   
-  createGradientBackground(x, y, width, height, color) {
-    const bitmap = game.add.bitmapData(width, height);
-    
-    const gradient = bitmap.context.createLinearGradient(width, 0, 0, 0);
-    
-    const bgcolor = color || "rgba(44, 90, 198, 0.6)";
-    
-    gradient.addColorStop(0, 'transparent');
-    gradient.addColorStop(0.3, bgcolor);
-    gradient.addColorStop(0.7, bgcolor);
-    gradient.addColorStop(1, 'transparent');
-    
-    bitmap.context.fillStyle = gradient;
-    bitmap.context.fillRect(0, 0, width, height);
-    
-    const sprite = game.add.sprite(x, y, bitmap);
-    return sprite;
-  }
-  
   customizeSkinTone() {
     const skinOptions = ["PALE", "LIGHT", "TAN", "DARK", "PURPLE"];
     
-    const background = this.createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
     
     const skinText = new Text(96, 80, "SKIN TONE", FONTS.shaded);
@@ -491,7 +472,7 @@ class CharacterSelect {
     
     this.navigationHint.change(4);
     
-    const background = this.createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
 
     const colorText = new Text(96, 80, "HAIR COLOR", FONTS.shaded);
@@ -547,7 +528,7 @@ class CharacterSelect {
     const options = unlocked.map(id => CHARACTER_SYSTEM.HAIR_STYLES[type === "frontHair" ? "front" : "back"][id-1]);
     const values = unlocked;
     
-    const background = this.createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
     
     const hairText = new Text(96, 80, `${type.toUpperCase()}`, FONTS.shaded);
@@ -590,7 +571,7 @@ class CharacterSelect {
       return item ? item.name : id;
     });
     
-    const background = this.createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
 
     const clothingText = new Text(96, 80, "CLOTHING", FONTS.shaded);
@@ -637,7 +618,7 @@ class CharacterSelect {
       })
     ];
 
-    const background = this.createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
     
     const accessoryText = new Text(96, 80, "ACCESSORY", FONTS.shaded);

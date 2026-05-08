@@ -4,18 +4,21 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v0.9.1
- * Build: 5/4/2026, 9:13:31 AM
- * Platform: Android (Cordova)
- * Debug: false
+ * Version: v1.0.0 dev
+ * Build: 5/6/2026, 7:02:18 PM
+ * Platform: Development
+ * Debug: true
  * Minified: false
  */
 
+
+
+// ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v0.9.1";
+const VERSION = "v1.0.0 dev";
 
-window.DEBUG = false;
+window.DEBUG = true;
 
 const FONTS = {
   default: { font: "font_tiny" },
@@ -307,27 +310,54 @@ const GAMEPAD_KEY_NAMES = {
 
 // Keyboard button mapping
 const DEFAULT_KEYBOARD_MAPPING = {
-  up: [Phaser.KeyCode.UP, Phaser.KeyCode.J, Phaser.KeyCode.B],
-  down: [Phaser.KeyCode.DOWN, Phaser.KeyCode.F, Phaser.KeyCode.V],
-  left: [Phaser.KeyCode.LEFT, Phaser.KeyCode.D, Phaser.KeyCode.C],
-  right: [Phaser.KeyCode.RIGHT, Phaser.KeyCode.K, Phaser.KeyCode.N],
-  a: [Phaser.KeyCode.Z],
-  b: [Phaser.KeyCode.X],
-  select: [Phaser.KeyCode.SPACEBAR],
-  start: [Phaser.KeyCode.ENTER]
+  player1: {
+    up: [Phaser.KeyCode.W,],
+    down: [Phaser.KeyCode.S],
+    left: [Phaser.KeyCode.D],
+    right: [Phaser.KeyCode.A],
+    a: [Phaser.KeyCode.K],
+    b: [Phaser.KeyCode.J],
+    select: [Phaser.KeyCode.SHIFT],
+    start: [Phaser.KeyCode.ENTER]
+  },
+  player2: {
+    up: [Phaser.KeyCode.UP],
+    down: [Phaser.KeyCode.DOWN],
+    left: [Phaser.KeyCode.LEFT],
+    right: [Phaser.KeyCode.RIGHT],
+    a: [Phaser.KeyCode.NUMPAD_1],
+    b: [Phaser.KeyCode.NUMPAD_2],
+    select: [Phaser.KeyCode.NUMPAD_ADD],
+    start: [Phaser.KeyCode.NUMPAD_SUBTRACT]
+  }
 };
 
 const DEFAULT_GAMEPAD_MAPPING = {
-  up: 12,
-  down: 13,
-  left: 14,
-  right: 15,
-  a: 1,
-  b: 0,
-  select: 8,
-  start: 9
+  player1: {
+    up: 12,
+    down: 13,
+    left: 14,
+    right: 15,
+    a: 1,
+    b: 0,
+    select: 8,
+    start: 9
+  },
+  player2: {
+    up: 12,
+    down: 13,
+    left: 14,
+    right: 15,
+    a: 1,
+    b: 0,
+    select: 8,
+    start: 9
+  }
 };
 
+
+
+// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -337,7 +367,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -362,6 +392,9 @@ const REGULAR_VIBRATION_INTENSITY = 75;
 const WEAK_VIBRATION_INTENSITY = 50;
 const STRONG_VIBRATION_INTENSITY = 50;
 
+
+
+// ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 6,
@@ -1071,6 +1104,9 @@ const CHARACTER_ITEMS = {
   ]
 };
 
+
+
+// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
   settings: {
     volume: 100,
@@ -1185,6 +1221,9 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
+
+
+// ======== js/core/achievements.js ========
 // Achievements system constants
 const ACHIEVEMENTS = {
   EXPERIENCE_VALUES: {
@@ -2577,6 +2616,8 @@ const ACHIEVEMENT_DEFINITIONS = [
     condition: stats => stats.maxSkillsInGame >= 10,
     hidden: false
   },
+  
+  // TODO: Multiplayer achievements 
 
   // Miscellaneous
   {
@@ -2629,6 +2670,9 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
+
+
+// ======== js/character/Character.js ========
 class Character {
   constructor(data) {
     this.name = data.name;
@@ -2875,6 +2919,9 @@ class Character {
   }
 }
 
+
+
+// ======== js/character/CharacterDisplay.js ========
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
@@ -3000,6 +3047,9 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/character/CharacterCroppedDisplay.js ========
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
@@ -3028,18 +3078,27 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
+
+
+// ======== js/character/CharacterPortrait.js ========
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
+
+
+// ======== js/character/CharacterCloseShot.js ========
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
+
+
+// ======== js/character/CharacterManager.js ========
 class CharacterManager {
   constructor() {
     this.characters = new Map();
@@ -3261,6 +3320,9 @@ class CharacterManager {
   }
 }
 
+
+
+// ======== js/character/CharacterSkillSystem.js ========
 class CharacterSkillSystem {
   constructor(scene, character) {
     this.scene = scene;
@@ -3644,6 +3706,9 @@ class CharacterSkillSystem {
   }
 }
 
+
+
+// ======== js/achievements/AchievementsManager.js ========
 class AchievementsManager {
   constructor() {
     this.newAchievements = [];
@@ -4174,6 +4239,9 @@ class AchievementsManager {
   }
 }
 
+
+
+// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config, parent) {
     config = {
@@ -4482,6 +4550,9 @@ class Text extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -4974,10 +5045,15 @@ class Window extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
     this.focusedWindow = null;
+    
+    this.gamepad = gamepad;
 
     // Track input states to prevent repeated inputs
     this.firstPressTime = undefined;
@@ -5075,9 +5151,9 @@ class WindowManager {
   
   handleGamepadNavigation() {
     // Handle gamepad navigation
-    const { up, down, left, right, a, b } = gamepad.held;
-    const pressed = gamepad.pressed;
-    const released = gamepad.released;
+    const { up, down, left, right, a, b } = this.gamepad.held;
+    const pressed = this.gamepad.pressed;
+    const released = this.gamepad.released;
     
     // Dynamic cooldown system
     let cooldown = 100;
@@ -5252,6 +5328,9 @@ class WindowManager {
   }
 }
 
+
+
+// ======== js/ui/DialogWindow.js ========
 class DialogWindow extends Phaser.Sprite {
   constructor(text, options = {}) {
     const {
@@ -5701,6 +5780,9 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/CarouselMenu.js ========
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -5718,6 +5800,7 @@ class CarouselMenu extends Phaser.Sprite {
       hoverAlpha: 0.7,
       activeAlpha: 0.9,
       doubleClickConfirm: false,
+      gradient: true,
       ...config,
       margin: { top: 4, bottom: 4, left: 4, right: 4, ...(config.margin || {}) },
     };
@@ -5880,7 +5963,8 @@ class CarouselMenu extends Phaser.Sprite {
       gradient.addColorStop(1, 'transparent');
     }
     
-    bitmap.context.fillStyle = gradient;
+    bitmap.context.fillStyle = this.config.gradient ? gradient : bgcolor;
+    
     bitmap.context.fillRect(0, 0, width, height);
     
     const sprite = game.add.sprite(0, 0, bitmap);
@@ -6419,6 +6503,9 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/CanvasBackground.js ========
 class CanvasBackground extends Phaser.Sprite {
   constructor(canvas) {
     super(game, 0, 0);
@@ -6438,6 +6525,9 @@ class CanvasBackground extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/BackgroundGradient.js ========
 class BackgroundGradient extends Phaser.Sprite {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, "ui_background_gradient");
@@ -6450,6 +6540,9 @@ class BackgroundGradient extends Phaser.Sprite {
   }
 } 
 
+
+
+// ======== js/ui/Background.js ========
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, key);
@@ -6462,6 +6555,9 @@ class Background extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -6649,6 +6745,9 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -6662,6 +6761,9 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -6711,6 +6813,9 @@ class Logo extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(frame = 0) {
     super(game, 0, 0, 'ui_navigation_hint_screens');
@@ -6730,6 +6835,9 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 4, text, FONTS.default);
@@ -6738,6 +6846,9 @@ class ProgressText extends Text {
   }
 }
 
+
+
+// ======== js/ui/ExperienceBar.js ========
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
@@ -6785,6 +6896,9 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/SkillBar.js ========
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
@@ -6812,6 +6926,9 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/TextInput.js ========
 class TextInput extends Phaser.Sprite {
   constructor(text = "", maxLength = 6, onConfirm, onCancel) {
     super(game, 96, 28);
@@ -6946,6 +7063,9 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/ValueInput.js ========
 class ValueInput extends Phaser.Sprite {
   constructor(value = 0, min = 0, max = Infinity, step = 1, onConfirm, onCancel) {
     super(game, 96, 28);
@@ -7109,6 +7229,9 @@ class ValueInput extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -7603,6 +7726,9 @@ class NotificationSystem {
   }
 }
 
+
+
+// ======== js/ui/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -7794,6 +7920,9 @@ class Lyrics {
   }
 }
 
+
+
+// ======== js/ui/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -8086,6 +8215,9 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/MouseCursor.js ========
 class MouseCursor {
   constructor() {
     this.sprite = null;
@@ -8278,6 +8410,9 @@ class MouseCursor {
   }
 }
 
+
+
+// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -8373,6 +8508,9 @@ class FileSystemTools {
   }
 }
 
+
+
+// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -8782,6 +8920,9 @@ class NodeFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -8897,6 +9038,9 @@ class CordovaFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -8940,7 +9084,10 @@ class FallbackFileSystem {
   }
 }
 
-let game, gamepad, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
+
+
+// ======== js/game/game.js ========
+let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 let Account = {
   ...DEFAULT_ACCOUNT,
@@ -9050,6 +9197,25 @@ const Audio = {
   }
 };
 
+const createGradientBackground = (x, y, width, height, color) => {
+  const bitmap = game.add.bitmapData(width, height);
+    
+  const gradient = bitmap.context.createLinearGradient(width, 0, 0, 0);
+    
+  const bgcolor = color || "rgba(44, 90, 198, 0.6)";
+    
+  gradient.addColorStop(0, 'transparent');
+  gradient.addColorStop(0.3, bgcolor);
+  gradient.addColorStop(0.7, bgcolor);
+  gradient.addColorStop(1, 'transparent');
+    
+  bitmap.context.fillStyle = gradient;
+  bitmap.context.fillRect(0, 0, width, height);
+    
+  const sprite = game.add.sprite(x, y, bitmap);
+  return sprite;
+};
+
 // Register recovery listener
 // TODO: Implement recovery from JavaScript freeze correctly
 (() => {
@@ -9068,9 +9234,660 @@ const Audio = {
   document.head.appendChild(script);
 })();
 
-class Gamepad {
-  constructor(game, keyboardMap, gamepadMap) {
+// Multiplayer settings
+const DEFAULT_PLAYER_SETTINGS = {
+  autoplay: Account.settings.autoplay,
+  scrollDirection: Account.settings.scrollDirection,
+  noteColorOption: Account.settings.noteColorOption,
+  noteSpeedMult: Account.settings.noteSpeedMult,
+  speedMod: Account.settings.speedMod
+};
+
+window.multiplayerState = {
+  song: null,
+  difficultyIndex: 0,
+  player1: {
+    settings: { ...DEFAULT_PLAYER_SETTINGS },
+    ready: false
+  },
+  player2: {
+    settings: { ...DEFAULT_PLAYER_SETTINGS },
+    joined: false,
+    ready: false
+  },
+  counter: {
+    player1: 0,
+    player2: 0,
+    draw: 0
+  }
+};
+
+
+
+// ======== js/utils/ScreenRecorder.js ========
+class ScreenRecorder {
+  constructor(game) {
     this.game = game;
+    this.mediaRecorder = null;
+    this.recordedBlobs = [];
+    this.isRecording = false;
+    this.stream = null;
+    this.videoBitsPerSecond = 1100000;
+    this.videoFrameRate = 25;
+    this.scale = 1; // Scale factor for videos TODO: rename it to videoScale
+    this.imageScale = 7;
+
+    this.canvas = game.canvas;  // Phaser CE game canvas element
+
+    // Check if canvas.captureStream is supported
+    if (!this.canvas.captureStream) {
+      console.error('Canvas captureStream is not supported in this browser');
+      return;
+    }
+  }
+
+  async start(audioElement = null, audioDelay = 0) {
+    if (this.isRecording) {
+      console.warn('Already recording');
+      return;
+    }
+
+    if (!this.canvas.captureStream) {
+      console.error('Screen recording not supported in this browser');
+      return;
+    }
+
+    try {
+      // Create a scaled canvas for high-resolution recording
+      this.scaledCanvas = document.createElement('canvas');
+      this.scaledCanvas.width = this.canvas.width * this.scale;
+      this.scaledCanvas.height = this.canvas.height * this.scale;
+      this.scaledContext = this.scaledCanvas.getContext('2d');
+      
+      // Set scaling quality
+      this.scaledContext.imageSmoothingEnabled = false;
+      this.scaledContext.webkitImageSmoothingEnabled = false;
+      this.scaledContext.mozImageSmoothingEnabled = false;
+
+      // Capture scaled canvas stream
+      this.stream = this.scaledCanvas.captureStream(this.videoFrameRate);
+
+      // Add audio to stream BEFORE starting the recorder
+      if (audioElement) {
+        await this.addAudioToStream(audioElement, audioDelay);
+      }
+
+      let options = {
+        mimeType: 'video/webm; codecs=vp9',
+        videoBitsPerSecond: this.videoBitsPerSecond
+      };
+
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = {
+          mimeType: 'video/webm; codecs=vp8',
+          videoBitsPerSecond: this.videoBitsPerSecond
+        };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options = {
+            mimeType: 'video/webm',
+            videoBitsPerSecond: this.videoBitsPerSecond
+          };
+        }
+      }
+
+      this.mediaRecorder = new MediaRecorder(this.stream, options);
+      this.recordedBlobs = [];
+
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          this.recordedBlobs.push(event.data);
+        }
+      };
+
+      this.mediaRecorder.onstop = () => {
+        this.save();
+        this.cleanup();
+      };
+
+      this.mediaRecorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event.error);
+        this.isRecording = false;
+        this.cleanup();
+      };
+
+      // Start recording with timeslice for better memory management
+      this.mediaRecorder.start(1000); // Collect data every second
+      this.isRecording = true;
+      
+      // Start rendering loop for scaled recording
+      this.startRenderingLoop();
+      
+      console.log(`Started recording with MIME type: ${options.mimeType}, audio delay: ${audioDelay}ms`);
+
+    } catch (e) {
+      console.error('MediaRecorder init failed:', e);
+      this.cleanup();
+    }
+  }
+
+  startRenderingLoop() {
+    const renderFrame = () => {
+      if (this.isRecording && this.scaledCanvas && this.scaledContext) {
+        // Fill with solid black background first to avoid transparent holes
+        this.scaledContext.fillStyle = '#000000';
+        this.scaledContext.fillRect(0, 0, this.scaledCanvas.width, this.scaledCanvas.height);
+        
+        // Draw scaled version of the game canvas
+        this.scaledContext.drawImage(
+          this.canvas,
+          0, 0, this.canvas.width, this.canvas.height,
+          0, 0, this.scaledCanvas.width, this.scaledCanvas.height
+        );
+        
+        // Continue the loop
+        requestAnimationFrame(renderFrame);
+      }
+    };
+    
+    // Start the rendering loop
+    renderFrame();
+  }
+
+  stop() {
+    if (!this.isRecording || !this.mediaRecorder) {
+      console.warn('Not recording');
+      return;
+    }
+
+    try {
+      this.mediaRecorder.stop();
+      this.isRecording = false;
+      console.log('Stopped recording');
+    } catch (e) {
+      console.error('Error stopping recorder:', e);
+      this.cleanup();
+    }
+  }
+
+  pause() {
+    if (this.isRecording && this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+      this.mediaRecorder.pause();
+      console.log('Recording paused');
+    }
+  }
+
+  resume() {
+    if (this.isRecording && this.mediaRecorder && this.mediaRecorder.state === 'paused') {
+      this.mediaRecorder.resume();
+      console.log('Recording resumed');
+    }
+  }
+  
+  screenshot() {
+    // Create a scaled canvas for high-resolution screenshot
+    const scaledCanvas = document.createElement('canvas');
+    scaledCanvas.width = this.game.width * this.imageScale
+    scaledCanvas.height = this.game.height * this.imageScale;
+    const scaledContext = scaledCanvas.getContext('2d');
+    
+    // Set scaling quality
+    scaledContext.imageSmoothingEnabled = false;
+    scaledContext.webkitImageSmoothingEnabled = false;
+    scaledContext.mozImageSmoothingEnabled = false;
+    
+    // Fill with solid black background first
+    scaledContext.fillStyle = '#000000';
+    scaledContext.fillRect(0, 0, scaledCanvas.width, scaledCanvas.height);
+    
+    // Create a temporary render texture at original size
+    const renderTexture = this.game.add.renderTexture(this.game.width, this.game.height, 'screenshotTemp');
+    renderTexture.renderXY(this.game.world, 0, 0, true);
+    
+    // Get the image and draw it scaled
+    const tempCanvas = renderTexture.getCanvas();
+    
+    // Draw the scaled version
+    scaledContext.drawImage(
+      tempCanvas,
+      0, 0, this.game.width, this.game.height,
+      0, 0, scaledCanvas.width, scaledCanvas.height
+    );
+    
+    // Convert to blob and save
+    scaledCanvas.toBlob(async (blob) => {
+      const filename = `screenshot-${Date.now()}.png`;
+      await this.saveFile(filename, blob);
+      console.log('Screenshot saved:', filename);
+    }, 'image/png');
+    
+    // Clean up
+    renderTexture.destroy();
+  }
+
+  async save(filename) {
+    if (this.recordedBlobs.length === 0) {
+      console.warn('No recording data available');
+      return;
+    }
+
+    const blob = new Blob(this.recordedBlobs, { type: 'video/webm' });
+    
+    if (!filename) filename = `recording_${Date.now()}.webm`;
+    
+    await this.saveFile(filename, blob);
+
+    console.log('Recording saved as:', filename);
+  }
+  
+  async saveFile(filename, blob) {
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+      const fileSystem = new FileSystemTools();
+      
+      // Make sure SCREENSHOTS_DIRECTORY is defined, or use a default
+      const screenshotsDir = typeof SCREENSHOTS_DIRECTORY !== 'undefined' ? SCREENSHOTS_DIRECTORY : 'Screenshots';
+      const directory = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + screenshotsDir);
+      
+      await fileSystem.saveFile(directory, blob, filename);
+    } else {
+      const url = window.URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+  
+      document.body.appendChild(a);
+      a.click();
+  
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    }
+  }
+
+  // Add audio to the stream
+  async addAudioToStream(audioElement = null, audioDelay = 0) {
+    try {
+      if (audioElement && audioElement.src) {
+        // Apply audio delay if specified
+        if (audioDelay > 0) {
+          console.log(`Applying audio delay: ${audioDelay}ms`);
+          
+          // Create a delay by setting currentTime back
+          if (audioElement.currentTime > 0) {
+            audioElement.currentTime = Math.max(0, audioElement.currentTime - (audioDelay / 1000));
+          }
+          
+          // Wait for the delay period
+          await new Promise(resolve => setTimeout(resolve, audioDelay));
+        }
+        
+        // Ensure audio element is playing and has a valid source
+        if (audioElement.paused) {
+          console.warn('Audio element is paused, attempting to play it');
+          try {
+            await audioElement.play();
+          } catch (playError) {
+            console.warn('Could not play audio element:', playError);
+          }
+        }
+        
+        // Check if captureStream is supported for this audio element
+        if (audioElement.captureStream) {
+          const audioStream = audioElement.captureStream();
+          
+          // Wait a bit for the stream to initialize
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          if (audioStream && audioStream.getAudioTracks().length > 0) {
+            audioStream.getAudioTracks().forEach(track => {
+              console.log('Adding audio track:', track);
+              this.stream.addTrack(track);
+            });
+            console.log('Game audio added to recording');
+            return true;
+          } else {
+            console.warn('Audio stream has no audio tracks');
+          }
+        } else {
+          console.warn('Audio element does not support captureStream');
+        }
+      }
+      
+      // Fall back to user microphone if audio element failed or not provided
+      console.log('Falling back to microphone audio');
+      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioStream.getAudioTracks().forEach(track => {
+        this.stream.addTrack(track);
+      });
+      console.log('Microphone audio added to recording');
+      return true;
+      
+    } catch (e) {
+      console.warn('Could not add audio to recording:', e);
+      return false;
+    }
+  }
+
+  // Method to add audio after recording has started (experimental)
+  async addAudioAfterStart(audioElement = null, audioDelay = 0) {
+    if (!this.isRecording || !this.mediaRecorder) {
+      console.warn('Cannot add audio - recording not started');
+      return false;
+    }
+    
+    // Pause recording to modify the stream
+    this.mediaRecorder.pause();
+    
+    try {
+      const success = await this.addAudioToStream(audioElement, audioDelay);
+      
+      // Resume recording
+      this.mediaRecorder.resume();
+      
+      return success;
+    } catch (e) {
+      console.error('Error adding audio after start:', e);
+      this.mediaRecorder.resume(); // Always resume even if audio fails
+      return false;
+    }
+  }
+
+  cleanup() {
+    // Stop the rendering loop
+    this.isRecording = false;
+    
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
+    
+    // Clean up scaled canvas
+    if (this.scaledCanvas) {
+      this.scaledCanvas = null;
+      this.scaledContext = null;
+    }
+    
+    this.mediaRecorder = null;
+  }
+
+  // Check if recording is supported
+  static isSupported() {
+    return !!(HTMLCanvasElement.prototype.captureStream && window.MediaRecorder);
+  }
+
+  // Get recording state
+  getState() {
+    return this.mediaRecorder ? this.mediaRecorder.state : 'inactive';
+  }
+  
+  // Method to change scale factor
+  setScale(newScale) {
+    this.scale = newScale;
+    console.log(`Scale factor set to: ${this.scale}`);
+  }
+  
+  // Method to get current scale factor
+  getScale() {
+    return this.scale;
+  }
+}
+
+
+
+// ======== js/utils/Metronome.js ========
+class Metronome {
+  constructor(scene) {
+    this.scene = scene;
+    this.player = scene.player;
+    this.mode = Account.settings.metronome;
+    this.enabled = this.mode !== 'OFF';
+    this.beatDivisions = {
+      'OFF': 0,
+      'Quarters': 1,       // Every whole beat (1, 2, 3, 4...)
+      'Eighths': 2,        // Every half beat (1, 1.5, 2, 2.5...)
+      'Sixteenths': 4,     // Every quarter beat (1, 1.25, 1.5, 1.75...)
+      'Thirty-seconds': 8, // Every eighth beat (1, 1.125, 1.25, 1.375...)
+      'Note': 'Note'       // Special mode - plays when notes reach their beat time
+    };
+    
+    this.lastDivisionValue = -1;
+    this.currentDivision = this.beatDivisions[this.mode];
+    
+    // For NOTE mode
+    this.noteIndex = 0; // Current note index to check
+    this.lastNoteBeat = -1; // Last note beat that triggered a tick
+    this.notes = []; // Array of unique note beats
+    
+    // Bind the toggle method to the scene
+    this.scene.onSelectPressed = this.toggle.bind(this);
+  }
+
+  update() {
+    if (!this.enabled) return;
+    
+    if (this.mode === 'Note') {
+      this.updateNoteMode();
+    } else {
+      this.updateBeatMode();
+    }
+  }
+  
+  updateBeatMode() {
+    if (this.currentDivision === 0) return;
+    
+    const { beat } = this.scene.getCurrentTime();
+    const currentDivisionValue = this.getCurrentDivisionValue(beat);
+    
+    // Check if we've crossed a new division
+    if (currentDivisionValue !== this.lastDivisionValue) {
+      this.playTick();
+      this.lastDivisionValue = currentDivisionValue;
+    }
+  }
+
+  updateNoteMode() {
+    const { beat } = this.scene.getCurrentTime();
+    const currentBeat = beat;
+    
+    // Initialize notes array if empty
+    if (this.notes.length === 0) {
+      this.initializeNotes();
+    }
+    
+    // If we've processed all notes, return
+    if (this.noteIndex >= this.notes.length) return;
+    
+    // Get the next note beat to check
+    const nextNoteBeat = this.notes[this.noteIndex];
+    
+    // Check if current time has reached the next note's beat
+    if (currentBeat >= nextNoteBeat) {
+      // Play tick and move to next note
+      this.playTick();
+      this.lastNoteBeat = nextNoteBeat;
+      this.noteIndex++;
+      
+      // Skip any notes with the same beat (group them together)
+      while (this.noteIndex < this.notes.length && this.notes[this.noteIndex] === this.lastNoteBeat) {
+        this.noteIndex++;
+      }
+    }
+  }
+
+  initializeNotes() {
+    // Get all notes from the current difficulty
+    const difficulty = this.scene.song.chart.difficulties[this.scene.song.difficultyIndex];
+    const difficultyKey = `${difficulty.type}${difficulty.rating}`;
+    const allNotes = this.scene.song.chart.notes[difficultyKey];
+    
+    if (!allNotes) {
+      this.notes = [];
+      return;
+    }
+    
+    // Extract unique note beats (only regular notes, no duplicates, sorted)
+    const uniqueBeats = new Set();
+    
+    for (const note of allNotes) {
+      // Skip mines and freeze end
+      if (note.type === "1" || note.type === "2" || note.type === "4") {
+        // Round to 3 decimal places to handle floating point precision
+        const roundedBeat = Math.round(note.beat * 1000) / 1000;
+        uniqueBeats.add(roundedBeat);
+      }
+    }
+    
+    // Convert to sorted array
+    this.notes = Array.from(uniqueBeats).sort((a, b) => a - b);
+    this.noteIndex = 0;
+    this.lastNoteBeat = -1;
+  }
+
+  getCurrentDivisionValue(beat) {
+    if (this.currentDivision === 0) return -1;
+    
+    // Calculate the current division value
+    return Math.floor(beat * this.currentDivision);
+  }
+
+  playTick() {
+    Audio.play('assist_tick');
+  }
+
+  toggle() {
+    if (this.mode == 'OFF') return;
+    
+    this.enabled = !this.enabled;
+    this.lastDivisionValue = -1; // Reset to ensure tick plays on next division
+    this.resetNoteMode(); // Reset note mode state
+  }
+
+  resetNoteMode() {
+    this.noteIndex = 0;
+    this.lastNoteBeat = -1;
+    this.notes = [];
+  }
+
+  setMode(mode) {
+    if (this.beatDivisions.hasOwnProperty(mode)) {
+      this.mode = mode;
+      this.currentDivision = this.beatDivisions[mode];
+      this.lastDivisionValue = -1; // Reset division tracking
+      this.resetNoteMode(); // Reset note mode state
+      
+      // Update enabled state based on mode
+      this.enabled = mode !== 'OFF';
+      
+      // Update account settings
+      Account.settings.metronome = mode;
+      saveAccount();
+    }
+  }
+
+  destroy() {
+    this.enabled = false;
+    this.lastDivisionValue = -1;
+    this.resetNoteMode();
+    
+    // Clean up text display
+    if (this.statusText) {
+      this.statusText.destroy();
+      this.statusText = null;
+    }
+  }
+}
+
+
+
+// ======== js/utils/TimeUtils.js ========
+class TimeUtils {
+  static isValidTime(time) {
+    return typeof time != undefined && typeof time != null && !isNaN(time) && time != Infinity;
+  }
+  static formatTime(time) {
+    if (!TimeUtils.isValidTime(time)) return "--:--";
+
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  }
+}
+
+
+
+// ======== js/input/GamepadListener.js ========
+class GamepadListener {
+  constructor(game) {
+    this.game = game;
+    
+    this.game.input.gamepad.start();
+    
+    this.onConnect = new Phaser.Signal();
+    this.onDisconnect = new Phaser.Signal();
+    this.onDown = new Phaser.Signal();
+    this.onUp = new Phaser.Signal();
+    
+    this.game.input.onConnectCallback = (index) => this.onConnect.dispatch(index);
+    this.game.input.onDisconnectCallback = (index) => this.onDisconnect.dispatch(index);
+    this.game.input.onDownCallback = (code, _, index) => this.onDown.dispatch(index, code);
+    this.game.input.onUpCallback = (code, _, index) => this.onUp.dispatch(index, code);
+  }
+}
+
+
+
+// ======== js/input/KeyboardListener.js ========
+class KeyboardListener {
+  constructor(game) {
+    this.game = game;
+    
+    this.onDown = new Phaser.Signal();
+    this.onUp = new Phaser.Signal();
+    
+    // Global keyboard listeners
+    this.game.input.keyboard.onDownCallback = (event) => this.onDown.dispatch(event.keyCode, event);
+    this.game.input.keyboard.onUpCallback = (event) => this.onUp.dispatch(event.keyCode, event);
+  }
+}
+
+
+
+// ======== js/input/InputManager.js ========
+let inputManager, gamepad, gamepad1, gamepad2;
+
+class InputManager {
+  constructor(game) {
+    this.game = game;
+    
+    inputManager = this;
+    
+    this.gamepadListener = new GamepadListener(game);
+    this.keyboardListener = new KeyboardListener(game);
+    
+    window.gamepadListener = this.gamepadListener;
+    window.keyboardListener = this.keyboardListener;
+    
+    // Create both input managers
+    this.gamepad1 = new Gamepad(game, Account.mapping.keyboard.player1, Account.mapping.gamepad.player1, 0);
+    this.gamepad2 = new Gamepad(game, Account.mapping.keyboard.player2, Account.mapping.gamepad.player2, 1);
+
+    gamepad1 = this.gamepad1;
+    gamepad2 = this.gamepad2;
+
+    gamepad = new AllPads(game, [gamepad1, gamepad2]);
+  }
+}
+
+
+
+// ======== js/input/Gamepad.js ========
+class Gamepad {
+  constructor(game, keyboardMap, gamepadMap, playerIndex = 0) {
+    this.game = game;
+    
+    this.playerIndex = playerIndex; // 0 for player 1, 1 for player 2
 
     // Define the control keys we want to track
     this.keys = [
@@ -9129,7 +9946,6 @@ class Gamepad {
     this.touchControlsVisible = false;
 
     // Set up all input methods
-    this.setupKeyboard();
     this.setupGamepad();
     this.setupTouch();
     this.setupInputDetection();
@@ -9145,9 +9961,6 @@ class Gamepad {
   }
 
   setupKeyboard() {
-    // Clear any existing key captures
-    this.game.input.keyboard.clearCaptures();
-    
     // Clear any existing keyboard state
     this.releaseAll();
   
@@ -9170,36 +9983,36 @@ class Gamepad {
     this.game.input.keyboard.addKeyCapture(uniqueKeyCapture);
   
     // Global keyboard listeners
-    this.game.input.keyboard.onDownCallback = (event) => {
-      const action = this.keyCodeToAction[event.keyCode];
+    inputManager.keyboardListener.onDown.add((keyCode) => {
+      const action = this.keyCodeToAction[keyCode];
       if (action) {
         this.held[action] = true;
       }
       this.detectInputSource('keyboard');
-    };
+    });
   
-    this.game.input.keyboard.onUpCallback = (event) => {
-      const action = this.keyCodeToAction[event.keyCode];
+    inputManager.keyboardListener.onUp.add((keyCode) => {
+      const action = this.keyCodeToAction[keyCode];
       if (action) {
         this.held[action] = false;
       }
-    };
+    });
     
     this.update();
   }
 
   setupGamepad() {
-    // Start gamepad polling
-    if (!this.game.input.gamepad.supported) return
+    this.gamepadState = {
+      isConnected: false
+    };
     
-    this.game.input.gamepad.start();
-    
-    this.gamepadState = {};
     this.keys.forEach(key => {
       this.gamepadState[key] = false;
     });
     
-    this.game.input.gamepad.onDownCallback = keyCode => {
+    inputManager.gamepadListener.onDown.add((keyCode, _, index) => {
+      if (index !== this.playerIndex) return; // Ignore other gamepadState
+      
       this.keys.forEach(key => {
         if (this.gamepadMap[key] == keyCode) {
           this.held[key] = true;
@@ -9207,19 +10020,39 @@ class Gamepad {
           this.detectInputSource('gamepad');
         }
       });
-    };
+    });
     
-    this.game.input.gamepad.onUpCallback = keyCode => {
+    inputManager.gamepadListener.onUp.add((keyCode, _, index) => {
+      if (index !== this.playerIndex) return; // Ignore other gamepadState
+      
       this.keys.forEach(key => {
         if (this.gamepadMap[key] == keyCode) {
           this.held[key] = false;
           this.gamepadState[key] = false;
         }
       });
-    };
+    });
+    
+    inputManager.gamepadListener.onConnect.add((index) => {
+      if (index !== this.playerIndex) return; // Ignore other gamepadState
+      
+      console.log(`Gamepad ${index + 1} connected`);
+      
+      this.gamepadState.isConnected = true;
+    });
+    
+    inputManager.gamepadListener.onDisconnect.add((index) => {
+      if (index !== this.playerIndex) return; // Ignore other gamepadState
+      
+      console.log(`Gamepad ${index + 1} disconnected`);
+      
+      this.gamepadState.isConnected = false;
+    });
   }
 
   setupTouch() {
+    if (this.playerIndex > 0) return; // Only Player 1 uses touch
+    
     // Get controller elements
     this.controllerElement = document.getElementById('controller_parent');
     
@@ -9640,550 +10473,122 @@ class Gamepad {
   }
 }
 
-class ScreenRecorder {
-  constructor(game) {
-    this.game = game;
-    this.mediaRecorder = null;
-    this.recordedBlobs = [];
-    this.isRecording = false;
-    this.stream = null;
-    this.videoBitsPerSecond = 1100000;
-    this.videoFrameRate = 25;
-    this.scale = 1; // Scale factor for videos TODO: rename it to videoScale
-    this.imageScale = 7;
 
-    this.canvas = game.canvas;  // Phaser CE game canvas element
 
-    // Check if canvas.captureStream is supported
-    if (!this.canvas.captureStream) {
-      console.error('Canvas captureStream is not supported in this browser');
-      return;
-    }
+// ======== js/input/AllPads.js ========
+class AllPads extends Gamepad {
+  constructor(game, gamepads) {
+    super(game, undefined, undefined, 0);
+    
+    this.gamepads = gamepads || [];
   }
-
-  async start(audioElement = null, audioDelay = 0) {
-    if (this.isRecording) {
-      console.warn('Already recording');
-      return;
-    }
-
-    if (!this.canvas.captureStream) {
-      console.error('Screen recording not supported in this browser');
-      return;
-    }
-
-    try {
-      // Create a scaled canvas for high-resolution recording
-      this.scaledCanvas = document.createElement('canvas');
-      this.scaledCanvas.width = this.canvas.width * this.scale;
-      this.scaledCanvas.height = this.canvas.height * this.scale;
-      this.scaledContext = this.scaledCanvas.getContext('2d');
-      
-      // Set scaling quality
-      this.scaledContext.imageSmoothingEnabled = false;
-      this.scaledContext.webkitImageSmoothingEnabled = false;
-      this.scaledContext.mozImageSmoothingEnabled = false;
-
-      // Capture scaled canvas stream
-      this.stream = this.scaledCanvas.captureStream(this.videoFrameRate);
-
-      // Add audio to stream BEFORE starting the recorder
-      if (audioElement) {
-        await this.addAudioToStream(audioElement, audioDelay);
-      }
-
-      let options = {
-        mimeType: 'video/webm; codecs=vp9',
-        videoBitsPerSecond: this.videoBitsPerSecond
-      };
-
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options = {
-          mimeType: 'video/webm; codecs=vp8',
-          videoBitsPerSecond: this.videoBitsPerSecond
-        };
-        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-          options = {
-            mimeType: 'video/webm',
-            videoBitsPerSecond: this.videoBitsPerSecond
-          };
-        }
-      }
-
-      this.mediaRecorder = new MediaRecorder(this.stream, options);
-      this.recordedBlobs = [];
-
-      this.mediaRecorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          this.recordedBlobs.push(event.data);
-        }
-      };
-
-      this.mediaRecorder.onstop = () => {
-        this.save();
-        this.cleanup();
-      };
-
-      this.mediaRecorder.onerror = (event) => {
-        console.error('MediaRecorder error:', event.error);
-        this.isRecording = false;
-        this.cleanup();
-      };
-
-      // Start recording with timeslice for better memory management
-      this.mediaRecorder.start(1000); // Collect data every second
-      this.isRecording = true;
-      
-      // Start rendering loop for scaled recording
-      this.startRenderingLoop();
-      
-      console.log(`Started recording with MIME type: ${options.mimeType}, audio delay: ${audioDelay}ms`);
-
-    } catch (e) {
-      console.error('MediaRecorder init failed:', e);
-      this.cleanup();
-    }
-  }
-
-  startRenderingLoop() {
-    const renderFrame = () => {
-      if (this.isRecording && this.scaledCanvas && this.scaledContext) {
-        // Fill with solid black background first to avoid transparent holes
-        this.scaledContext.fillStyle = '#000000';
-        this.scaledContext.fillRect(0, 0, this.scaledCanvas.width, this.scaledCanvas.height);
-        
-        // Draw scaled version of the game canvas
-        this.scaledContext.drawImage(
-          this.canvas,
-          0, 0, this.canvas.width, this.canvas.height,
-          0, 0, this.scaledCanvas.width, this.scaledCanvas.height
-        );
-        
-        // Continue the loop
-        requestAnimationFrame(renderFrame);
-      }
-    };
-    
-    // Start the rendering loop
-    renderFrame();
-  }
-
-  stop() {
-    if (!this.isRecording || !this.mediaRecorder) {
-      console.warn('Not recording');
-      return;
-    }
-
-    try {
-      this.mediaRecorder.stop();
-      this.isRecording = false;
-      console.log('Stopped recording');
-    } catch (e) {
-      console.error('Error stopping recorder:', e);
-      this.cleanup();
-    }
-  }
-
-  pause() {
-    if (this.isRecording && this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-      this.mediaRecorder.pause();
-      console.log('Recording paused');
-    }
-  }
-
-  resume() {
-    if (this.isRecording && this.mediaRecorder && this.mediaRecorder.state === 'paused') {
-      this.mediaRecorder.resume();
-      console.log('Recording resumed');
-    }
-  }
-  
-  screenshot() {
-    // Create a scaled canvas for high-resolution screenshot
-    const scaledCanvas = document.createElement('canvas');
-    scaledCanvas.width = this.game.width * this.imageScale
-    scaledCanvas.height = this.game.height * this.imageScale;
-    const scaledContext = scaledCanvas.getContext('2d');
-    
-    // Set scaling quality
-    scaledContext.imageSmoothingEnabled = false;
-    scaledContext.webkitImageSmoothingEnabled = false;
-    scaledContext.mozImageSmoothingEnabled = false;
-    
-    // Fill with solid black background first
-    scaledContext.fillStyle = '#000000';
-    scaledContext.fillRect(0, 0, scaledCanvas.width, scaledCanvas.height);
-    
-    // Create a temporary render texture at original size
-    const renderTexture = this.game.add.renderTexture(this.game.width, this.game.height, 'screenshotTemp');
-    renderTexture.renderXY(this.game.world, 0, 0, true);
-    
-    // Get the image and draw it scaled
-    const tempCanvas = renderTexture.getCanvas();
-    
-    // Draw the scaled version
-    scaledContext.drawImage(
-      tempCanvas,
-      0, 0, this.game.width, this.game.height,
-      0, 0, scaledCanvas.width, scaledCanvas.height
-    );
-    
-    // Convert to blob and save
-    scaledCanvas.toBlob(async (blob) => {
-      const filename = `screenshot-${Date.now()}.png`;
-      await this.saveFile(filename, blob);
-      console.log('Screenshot saved:', filename);
-    }, 'image/png');
-    
-    // Clean up
-    renderTexture.destroy();
-  }
-
-  async save(filename) {
-    if (this.recordedBlobs.length === 0) {
-      console.warn('No recording data available');
-      return;
-    }
-
-    const blob = new Blob(this.recordedBlobs, { type: 'video/webm' });
-    
-    if (!filename) filename = `recording_${Date.now()}.webm`;
-    
-    await this.saveFile(filename, blob);
-
-    console.log('Recording saved as:', filename);
-  }
-  
-  async saveFile(filename, blob) {
-    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
-      const fileSystem = new FileSystemTools();
-      
-      // Make sure SCREENSHOTS_DIRECTORY is defined, or use a default
-      const screenshotsDir = typeof SCREENSHOTS_DIRECTORY !== 'undefined' ? SCREENSHOTS_DIRECTORY : 'Screenshots';
-      const directory = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + screenshotsDir);
-      
-      await fileSystem.saveFile(directory, blob, filename);
-    } else {
-      const url = window.URL.createObjectURL(blob);
-      
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = filename;
-  
-      document.body.appendChild(a);
-      a.click();
-  
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 100);
-    }
-  }
-
-  // Add audio to the stream
-  async addAudioToStream(audioElement = null, audioDelay = 0) {
-    try {
-      if (audioElement && audioElement.src) {
-        // Apply audio delay if specified
-        if (audioDelay > 0) {
-          console.log(`Applying audio delay: ${audioDelay}ms`);
-          
-          // Create a delay by setting currentTime back
-          if (audioElement.currentTime > 0) {
-            audioElement.currentTime = Math.max(0, audioElement.currentTime - (audioDelay / 1000));
-          }
-          
-          // Wait for the delay period
-          await new Promise(resolve => setTimeout(resolve, audioDelay));
-        }
-        
-        // Ensure audio element is playing and has a valid source
-        if (audioElement.paused) {
-          console.warn('Audio element is paused, attempting to play it');
-          try {
-            await audioElement.play();
-          } catch (playError) {
-            console.warn('Could not play audio element:', playError);
-          }
-        }
-        
-        // Check if captureStream is supported for this audio element
-        if (audioElement.captureStream) {
-          const audioStream = audioElement.captureStream();
-          
-          // Wait a bit for the stream to initialize
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          if (audioStream && audioStream.getAudioTracks().length > 0) {
-            audioStream.getAudioTracks().forEach(track => {
-              console.log('Adding audio track:', track);
-              this.stream.addTrack(track);
-            });
-            console.log('Game audio added to recording');
-            return true;
-          } else {
-            console.warn('Audio stream has no audio tracks');
-          }
-        } else {
-          console.warn('Audio element does not support captureStream');
-        }
-      }
-      
-      // Fall back to user microphone if audio element failed or not provided
-      console.log('Falling back to microphone audio');
-      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioStream.getAudioTracks().forEach(track => {
-        this.stream.addTrack(track);
-      });
-      console.log('Microphone audio added to recording');
-      return true;
-      
-    } catch (e) {
-      console.warn('Could not add audio to recording:', e);
-      return false;
-    }
-  }
-
-  // Method to add audio after recording has started (experimental)
-  async addAudioAfterStart(audioElement = null, audioDelay = 0) {
-    if (!this.isRecording || !this.mediaRecorder) {
-      console.warn('Cannot add audio - recording not started');
-      return false;
-    }
-    
-    // Pause recording to modify the stream
-    this.mediaRecorder.pause();
-    
-    try {
-      const success = await this.addAudioToStream(audioElement, audioDelay);
-      
-      // Resume recording
-      this.mediaRecorder.resume();
-      
-      return success;
-    } catch (e) {
-      console.error('Error adding audio after start:', e);
-      this.mediaRecorder.resume(); // Always resume even if audio fails
-      return false;
-    }
-  }
-
-  cleanup() {
-    // Stop the rendering loop
-    this.isRecording = false;
-    
-    if (this.stream) {
-      this.stream.getTracks().forEach(track => track.stop());
-      this.stream = null;
-    }
-    
-    // Clean up scaled canvas
-    if (this.scaledCanvas) {
-      this.scaledCanvas = null;
-      this.scaledContext = null;
-    }
-    
-    this.mediaRecorder = null;
-  }
-
-  // Check if recording is supported
-  static isSupported() {
-    return !!(HTMLCanvasElement.prototype.captureStream && window.MediaRecorder);
-  }
-
-  // Get recording state
-  getState() {
-    return this.mediaRecorder ? this.mediaRecorder.state : 'inactive';
-  }
-  
-  // Method to change scale factor
-  setScale(newScale) {
-    this.scale = newScale;
-    console.log(`Scale factor set to: ${this.scale}`);
-  }
-  
-  // Method to get current scale factor
-  getScale() {
-    return this.scale;
-  }
-}
-
-class Metronome {
-  constructor(scene) {
-    this.scene = scene;
-    this.player = scene.player;
-    this.mode = Account.settings.metronome;
-    this.enabled = this.mode !== 'OFF';
-    this.beatDivisions = {
-      'OFF': 0,
-      'Quarters': 1,       // Every whole beat (1, 2, 3, 4...)
-      'Eighths': 2,        // Every half beat (1, 1.5, 2, 2.5...)
-      'Sixteenths': 4,     // Every quarter beat (1, 1.25, 1.5, 1.75...)
-      'Thirty-seconds': 8, // Every eighth beat (1, 1.125, 1.25, 1.375...)
-      'Note': 'Note'       // Special mode - plays when notes reach their beat time
-    };
-    
-    this.lastDivisionValue = -1;
-    this.currentDivision = this.beatDivisions[this.mode];
-    
-    // For NOTE mode
-    this.noteIndex = 0; // Current note index to check
-    this.lastNoteBeat = -1; // Last note beat that triggered a tick
-    this.notes = []; // Array of unique note beats
-    
-    // Bind the toggle method to the scene
-    this.scene.onSelectPressed = this.toggle.bind(this);
-  }
-
   update() {
-    if (!this.enabled) return;
+    this.keys.forEach(key => {
+      this.held[key] = false;
+      this.pressed[key] = false;
+      this.released[key] = false;
+      this.prevState[key] = false;
+    });
     
-    if (this.mode === 'Note') {
-      this.updateNoteMode();
-    } else {
-      this.updateBeatMode();
-    }
+    let anyHeld = false;
+    let anyPressed = false;
+    let anyReleased = false;
+    
+    this.gamepads.forEach(pad => {
+      pad.update();
+      
+      this.keys.forEach(key => {
+        const held = pad.held[key];
+        const pressed = pad.pressed[key];
+        const released = pad.released[key];
+        const prevState = pad.prevState[key];
+
+        if (held) {
+          this.held[key] = true;
+          anyHeld = true;
+        }
+        
+        if (pressed) {
+          this.pressed[key] = true;
+          anyPressed = true;
+        }
+        
+        if (released) {
+          this.released[key] = true;
+          anyReleased = true;
+        }
+        
+        if (prevState) {
+          this.prevState[key] = true;
+        }
+      });
+    });
+    
+    this.keys.forEach(key => {
+      if (this.pressed[key]) {
+        this.signals.pressed[key].dispatch();
+      }
+      if (this.released[key]) {
+        this.signals.released[key].dispatch();
+      }
+    });
+    
+    // Dispatch 'any' signals
+    if (anyPressed) this.signals.pressed.any.dispatch(anyPressed);
+    if (anyReleased) this.signals.released.any.dispatch(anyReleased);
+    
+    // Update 'any' states
+    this.pressed.any = anyPressed;
+    this.released.any = anyReleased;
+    this.held.any = anyHeld;
   }
   
-  updateBeatMode() {
-    if (this.currentDivision === 0) return;
-    
-    const { beat } = this.scene.getCurrentTime();
-    const currentDivisionValue = this.getCurrentDivisionValue(beat);
-    
-    // Check if we've crossed a new division
-    if (currentDivisionValue !== this.lastDivisionValue) {
-      this.playTick();
-      this.lastDivisionValue = currentDivisionValue;
-    }
+  updateMapping() {}
+  setupKeyboard() {}
+  setupGamepad() {}
+  setupTouch() {}
+  setupInputDetection() {}
+  detectInputSource() {}
+  updateTouchControlsVisibility() {}
+  setupControllerTouchEvents() {}
+  handleTouchStart() {}
+  handleTouchMove() {}
+  handleTouchEnd() {}
+  getButtonFromTouch() {}
+  isTouchControlled() { return false }
+  updateButtonStates() {}
+  
+  releaseAll() {
+    this.gamepads.forEach(pad => pad.releaseAll());
   }
-
-  updateNoteMode() {
-    const { beat } = this.scene.getCurrentTime();
-    const currentBeat = beat;
-    
-    // Initialize notes array if empty
-    if (this.notes.length === 0) {
-      this.initializeNotes();
-    }
-    
-    // If we've processed all notes, return
-    if (this.noteIndex >= this.notes.length) return;
-    
-    // Get the next note beat to check
-    const nextNoteBeat = this.notes[this.noteIndex];
-    
-    // Check if current time has reached the next note's beat
-    if (currentBeat >= nextNoteBeat) {
-      // Play tick and move to next note
-      this.playTick();
-      this.lastNoteBeat = nextNoteBeat;
-      this.noteIndex++;
-      
-      // Skip any notes with the same beat (group them together)
-      while (this.noteIndex < this.notes.length && this.notes[this.noteIndex] === this.lastNoteBeat) {
-        this.noteIndex++;
-      }
-    }
+  press(key) {
+    this.gamepads[0]?.press(key);
   }
-
-  initializeNotes() {
-    // Get all notes from the current difficulty
-    const difficulty = this.scene.song.chart.difficulties[this.scene.song.difficultyIndex];
-    const difficultyKey = `${difficulty.type}${difficulty.rating}`;
-    const allNotes = this.scene.song.chart.notes[difficultyKey];
-    
-    if (!allNotes) {
-      this.notes = [];
-      return;
-    }
-    
-    // Extract unique note beats (only regular notes, no duplicates, sorted)
-    const uniqueBeats = new Set();
-    
-    for (const note of allNotes) {
-      // Skip mines and freeze end
-      if (note.type === "1" || note.type === "2" || note.type === "4") {
-        // Round to 3 decimal places to handle floating point precision
-        const roundedBeat = Math.round(note.beat * 1000) / 1000;
-        uniqueBeats.add(roundedBeat);
+  isDirectionPressed() {
+    for (const pad of this.gamepads) {
+      if (pad.held.up || pad.held.down || pad.held.left || pad.held.right) {
+        return true;
       }
     }
     
-    // Convert to sorted array
-    this.notes = Array.from(uniqueBeats).sort((a, b) => a - b);
-    this.noteIndex = 0;
-    this.lastNoteBeat = -1;
+    return false;
   }
-
-  getCurrentDivisionValue(beat) {
-    if (this.currentDivision === 0) return -1;
-    
-    // Calculate the current division value
-    return Math.floor(beat * this.currentDivision);
+  getDirection() {
+    return this.gamepads[0]?.getDirection();
   }
-
-  playTick() {
-    Audio.play('assist_tick');
+  vibrate(duration) {
+    this.gamepads.forEach(pad => pad.vibrate(duration));
   }
-
-  toggle() {
-    if (this.mode == 'OFF') return;
-    
-    this.enabled = !this.enabled;
-    this.lastDivisionValue = -1; // Reset to ensure tick plays on next division
-    this.resetNoteMode(); // Reset note mode state
+  reset() {
+    this.gamepads.forEach(pad => pad.reset());
   }
-
-  resetNoteMode() {
-    this.noteIndex = 0;
-    this.lastNoteBeat = -1;
-    this.notes = [];
-  }
-
-  setMode(mode) {
-    if (this.beatDivisions.hasOwnProperty(mode)) {
-      this.mode = mode;
-      this.currentDivision = this.beatDivisions[mode];
-      this.lastDivisionValue = -1; // Reset division tracking
-      this.resetNoteMode(); // Reset note mode state
-      
-      // Update enabled state based on mode
-      this.enabled = mode !== 'OFF';
-      
-      // Update account settings
-      Account.settings.metronome = mode;
-      saveAccount();
-    }
-  }
-
-  destroy() {
-    this.enabled = false;
-    this.lastDivisionValue = -1;
-    this.resetNoteMode();
-    
-    // Clean up text display
-    if (this.statusText) {
-      this.statusText.destroy();
-      this.statusText = null;
-    }
-  }
+  
+  destroy() {}
 }
 
-class TimeUtils {
-  static isValidTime(time) {
-    return typeof time != undefined && typeof time != null && !isNaN(time) && time != Infinity;
-  }
-  static formatTime(time) {
-    if (!TimeUtils.isValidTime(time)) return "--:--";
 
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  }
-}
 
+// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -10419,6 +10824,9 @@ class BackgroundMusic {
   }
 }
 
+
+
+// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -10443,6 +10851,9 @@ class Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -10483,6 +10894,9 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -10549,6 +10963,9 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -10641,6 +11058,9 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -10999,6 +11419,9 @@ class FullScreenAudioVisualizer {
   }
 }
 
+
+
+// ======== js/parsers/SMFile.js ========
 class SMFile {
   static generateSM(songData) {
     let smContent = "";
@@ -11290,6 +11713,9 @@ class SMFile {
   }
 }
 
+
+
+// ======== js/parsers/FileTools.js ========
 class FileTools {
   static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
@@ -11439,6 +11865,9 @@ class FileTools {
   }
 }
 
+
+
+// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   constructor() {
     this.baseUrl = "";
@@ -11710,6 +12139,9 @@ class LocalSMParser {
   }
 }
 
+
+
+// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   async parseSM(files, smContent) {
@@ -12176,6 +12608,9 @@ class ExternalSMParser {
   }
 }
 
+
+
+// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -12587,6 +13022,9 @@ class AddonManager {
   }
 }
 
+
+
+// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -12618,7 +13056,7 @@ class Boot {
     }
   }
   create() {
-    gamepad = new Gamepad(game, Account.mapping?.keyboard, Account.mapping?.gamepad);
+    window.inputManager = new InputManager(game);
 
     notifications = new NotificationSystem();
     
@@ -12649,7 +13087,9 @@ class Boot {
     game.state.add("AchievementsMenu", AchievementsMenu);
     game.state.add("StatsMenu", StatsMenu);
     game.state.add("Play", Play);
+    game.state.add("PlayMulti", PlayMulti);
     game.state.add("Results", Results);
+    game.state.add("ResultsMulti", ResultsMulti);
     game.state.add("Editor", Editor);
     game.state.add("Jukebox", Jukebox);
     game.state.add("Credits", Credits);
@@ -12675,6 +13115,17 @@ class Boot {
       {
         key: "ui_hud_background",
         url: "ui/hud_background.png"
+      },
+      {
+        key: "ui_hud_background_multi",
+        url: "ui/hud_background_multi.png"
+      },
+      {
+        key: "ui_hud_player_parent_multi",
+        url: "ui/hud_player_parent_multi.png",
+        type: "spritesheet",
+        frameWidth: 192,
+        frameHeight: 112
       },
       {
         key: "ui_editor_icons",
@@ -12726,6 +13177,10 @@ class Boot {
       {
         key: "ui_accuracy_bar",
         url: "ui/accuracy_bar.png"
+      },
+      {
+        key: "ui_accuracy_bar_multi",
+        url: "ui/accuracy_bar_multi.png"
       },
       {
         key: "ui_mouse_cursor",
@@ -12966,6 +13421,9 @@ class Boot {
   }
 }
 
+
+
+// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -13013,6 +13471,9 @@ class Load {
   }
 }
 
+
+
+// ======== js/game/states/LoadCordova.js ========
 class LoadCordova {
   create() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
@@ -13060,6 +13521,9 @@ class LoadCordova {
   }
 }
 
+
+
+// ======== js/game/states/LoadAddons.js ========
 class LoadAddons {
   create() {
     this.progressText = new ProgressText("LOADING ADD-ONS");
@@ -13082,6 +13546,9 @@ class LoadAddons {
   }
 }
 
+
+
+// ======== js/game/states/LoadLocalSongs.js ========
 class LoadLocalSongs {
   create() {
     this.progressText = new ProgressText("LOADING SONGS");
@@ -13154,6 +13621,9 @@ class LoadLocalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadExternalSongs.js ========
 class LoadExternalSongs {
   init(nextState, nextStateParams) {
     this.nextState = nextState || 'SongSelect';
@@ -13495,6 +13965,9 @@ class LoadExternalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadSongFolder.js ========
 class LoadSongFolder {
   create() {
     this.progressText = new ProgressText("SELECT SONG FOLDER");
@@ -13692,6 +14165,9 @@ class LoadSongFolder {
   }
 }
 
+
+
+// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -13751,6 +14227,9 @@ class Title {
   }
 }
 
+
+
+// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -14165,6 +14644,9 @@ class MainMenu {
   }
 }
 
+
+
+// ======== js/game/states/Addons.js ========
 class Addons {
   create() {
     game.camera.fadeIn(0x000000);
@@ -14372,6 +14854,9 @@ class Addons {
   }
 }
 
+
+
+// ======== js/game/states/Settings.js ========
 class Settings {
   create() {
     game.camera.fadeIn(0x000000);
@@ -14748,6 +15233,9 @@ class Settings {
   }
 }
 
+
+
+// ======== js/game/states/Keybindings.js ========
 class Keybindings {
   create() {
     game.camera.fadeIn(0x000000);
@@ -14790,17 +15278,29 @@ class Keybindings {
     
     this.windowManager.focus(settingsWindow);
     
-    settingsWindow.addItem("KEYBOARD KEYS", ">", () => {
+    // NEW: Player-specific categories
+    settingsWindow.addItem("PLAYER 1 KEYBOARD", ">", () => {
       this.windowManager.remove(settingsWindow, true);
-      this.showKeyboardCustomization();
+      this.showKeyboardCustomization(1);
     });
     
-    settingsWindow.addItem("GAMEPAD KEYS", ">", () => {
+    settingsWindow.addItem("PLAYER 2 KEYBOARD", ">", () => {
       this.windowManager.remove(settingsWindow, true);
-      this.showGamepadCustomization();
+      this.showKeyboardCustomization(2);
+    });
+    
+    settingsWindow.addItem("PLAYER 1 GAMEPAD", ">", () => {
+      this.windowManager.remove(settingsWindow, true);
+      this.showGamepadCustomization(1);
+    });
+    
+    settingsWindow.addItem("PLAYER 2 GAMEPAD", ">", () => {
+      this.windowManager.remove(settingsWindow, true);
+      this.showGamepadCustomization(2);
     });
     
     settingsWindow.addItem("RESET TO DEFAULTS", "", () => {
+      // RESET both players
       this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(
         "Reset all keybindings to default settings?",
@@ -14808,7 +15308,8 @@ class Keybindings {
           Account.mapping.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
           Account.mapping.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
           saveAccount();
-          gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
+          gamepad1.updateMapping(Account.mapping.keyboard.player1, Account.mapping.gamepad.player1);
+          gamepad2.updateMapping(Account.mapping.keyboard.player2, Account.mapping.gamepad.player2);
           game.state.restart();
           notifications.show("Keybindings reset!");
         },
@@ -14827,51 +15328,37 @@ class Keybindings {
     game.onMenuIn.dispatch('keybindings', settingsWindow);
   }
   
-  showKeyboardCustomization(selectedIndex = 0, returnIndex = null) {
+  showKeyboardCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
     const keysWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     keysWindow.fontTint = 0x76fcde;
     
-    if (returnIndex !== null) {
-      keysWindow.selectIndex(returnIndex);
-    } else {
-      keysWindow.selectIndex(selectedIndex);
-    }
-    
-    this.windowManager.focus(keysWindow);
-    
     const keyboardControls = [
-      { key: "UP", description: "UP ARROW", mappingKey: "up", index: 0 },
-      { key: "DOWN", description: "DOWN ARROW", mappingKey: "down", index: 0 },
-      { key: "LEFT", description: "LEFT ARROW", mappingKey: "left", index: 0 },
-      { key: "RIGHT", description: "RIGHT ARROW", mappingKey: "right", index: 0 },
-      { key: "DANCE LEFT", description: "DANCE LEFT", mappingKey: "left", index: 1 },
-      { key: "DANCE DOWN", description: "DANCE DOWN", mappingKey: "down", index: 1 },
-      { key: "DANCE UP", description: "DANCE UP", mappingKey: "up", index: 1 },
-      { key: "DANCE RIGHT", description: "DANCE RIGHT", mappingKey: "right", index: 1 },
-      { key: "SECONDARY DANCE LEFT", description: "SECONDARY DANCE LEFT", mappingKey: "left", index: 2 },
-      { key: "SECONDARY DANCE DOWN", description: "SECONDARY DANCE DOWN", mappingKey: "down", index: 2 },
-      { key: "SECONDARY DANCE UP", description: "SECONDARY DANCE UP", mappingKey: "up", index: 2 },
-      { key: "SECONDARY DANCE RIGHT", description: "SECONDARY DANCE RIGHT", mappingKey: "right", index: 2 },
+      { key: "UP", description: "UP", mappingKey: "up", index: 0 },
+      { key: "DOWN", description: "DOWN", mappingKey: "down", index: 0 },
+      { key: "LEFT", description: "LEFT", mappingKey: "left", index: 0 },
+      { key: "RIGHT", description: "RIGHT", mappingKey: "right", index: 0 },
       { key: "CONFIRM", description: "CONFIRM", mappingKey: "a", index: 0 },
       { key: "CANCEL", description: "CANCEL", mappingKey: "b", index: 0 },
       { key: "START", description: "START", mappingKey: "start", index: 0 },
       { key: "SELECT", description: "SELECT", mappingKey: "select", index: 0 }
     ];
     
+    const playerPrefix = playerNum === 1 ? "player1." : "player2.";
+    
     keyboardControls.forEach(control => {
-      const currentKey = this.getKeyboardKeyDisplay(control.mappingKey, control.index);
-      keysWindow.addItem(control.key, currentKey, () => {
-        // Guardar la ventana actual para poder volver
+      const currentKey = this.getKeyboardKeyDisplay(playerPrefix + control.mappingKey, control.index);
+      keysWindow.addItem(`${playerNum === 1 ? "P1" : "P2"} ${control.key}`, currentKey, () => {
         this.waitingState = {
           type: "keyboard",
+          playerNum: playerNum,
           mappingKey: control.mappingKey,
           index: control.index,
-          description: control.description,
+          description: `${playerNum === 1 ? "Player 1" : "Player 2"} ${control.description}`,
           selectedIndex: keysWindow.selectedIndex,
           menuWindow: keysWindow
         };
         this.windowManager.remove(keysWindow, true);
-        this.showKeyWaitOverlay(`PRESS KEY FOR: ${control.description}`);
+        this.showKeyWaitOverlay(`PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
       });
     });
     
@@ -14880,45 +15367,38 @@ class Keybindings {
       this.windowManager.unfocus();
       this.showKeybindingsMenu();
     }, true);
-    
-    game.onMenuIn.dispatch('keyboardCustomization', keysWindow);
   }
   
-  showGamepadCustomization(selectedIndex = 0, returnIndex = null) {
+  showGamepadCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
     const gamepadWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     gamepadWindow.fontTint = 0x76fcde;
     
-    if (returnIndex !== null) {
-      gamepadWindow.selectIndex(returnIndex);
-    } else {
-      gamepadWindow.selectIndex(selectedIndex);
-    }
-    
-    this.windowManager.focus(gamepadWindow);
-    
     const gamepadControls = [
-      { key: "UP", description: "UP ARROW", mappingKey: "up" },
-      { key: "DOWN", description: "DOWN ARROW", mappingKey: "down" },
-      { key: "LEFT", description: "LEFT ARROW", mappingKey: "left" },
-      { key: "RIGHT", description: "RIGHT ARROW", mappingKey: "right" },
-      { key: "CONFIRM/RIGHT", description: "CONFIRM/RIGHT", mappingKey: "a" },
-      { key: "CANCEL/DOWN", description: "CANCEL/DOWN", mappingKey: "b" },
+      { key: "UP", description: "UP", mappingKey: "up" },
+      { key: "DOWN", description: "DOWN", mappingKey: "down" },
+      { key: "LEFT", description: "LEFT", mappingKey: "left" },
+      { key: "RIGHT", description: "RIGHT", mappingKey: "right" },
+      { key: "CONFIRM", description: "CONFIRM", mappingKey: "a" },
+      { key: "CANCEL", description: "CANCEL", mappingKey: "b" },
       { key: "START", description: "START", mappingKey: "start" },
       { key: "SELECT", description: "SELECT", mappingKey: "select" }
     ];
     
+    const playerPrefix = playerNum === 1 ? "player1." : "player2.";
+    
     gamepadControls.forEach(control => {
-      const currentButton = this.getGamepadButtonDisplay(control.mappingKey);
-      gamepadWindow.addItem(control.key, currentButton, () => {
+      const currentButton = this.getGamepadButtonDisplay(playerPrefix + control.mappingKey);
+      gamepadWindow.addItem(`${playerNum === 1 ? "P1" : "P2"} ${control.key}`, currentButton, () => {
         this.waitingState = {
           type: "gamepad",
+          playerNum: playerNum,
           mappingKey: control.mappingKey,
-          description: control.description,
+          description: `${playerNum === 1 ? "Player 1" : "Player 2"} ${control.description}`,
           selectedIndex: gamepadWindow.selectedIndex,
           menuWindow: gamepadWindow
         };
         this.windowManager.remove(gamepadWindow, true);
-        this.showKeyWaitOverlay(`PRESS GAMEPAD BUTTON FOR: ${control.description}`);
+        this.showKeyWaitOverlay(`PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
       });
     });
     
@@ -14927,8 +15407,6 @@ class Keybindings {
       this.windowManager.unfocus();
       this.showKeybindingsMenu();
     }, true);
-    
-    game.onMenuIn.dispatch('gamepadCustomization', gamepadWindow);
   }
   
   showKeyWaitOverlay(message) {
@@ -15134,43 +15612,55 @@ class Keybindings {
     if (keyCode === Phaser.KeyCode.ESC) return;
     
     const mapping = Account.mapping.keyboard;
-    const { mappingKey, index } = this.waitingState;
+    const { playerNum, mappingKey, index } = this.waitingState;
+    const playerKey = playerNum === 1 ? "player1" : "player2";
     
-    if (!mapping[mappingKey]) {
-      mapping[mappingKey] = [];
+    if (!mapping[playerKey][mappingKey]) {
+      mapping[playerKey][mappingKey] = [];
     }
     
-    while (mapping[mappingKey].length <= index) {
-      mapping[mappingKey].push(null);
+    while (mapping[playerKey][mappingKey].length <= index) {
+      mapping[playerKey][mappingKey].push(null);
     }
     
-    mapping[mappingKey][index] = keyCode;
+    mapping[playerKey][mappingKey][index] = keyCode;
     
     saveAccount();
-    gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
+    // Update appropriate gamepad
+    if (playerNum === 1) {
+      gamepad1.updateMapping(Account.mapping.keyboard.player1, Account.mapping.gamepad.player1);
+    } else {
+      gamepad2.updateMapping(Account.mapping.keyboard.player2, Account.mapping.gamepad.player2);
+    }
     
     notifications.show(`MAPPED: ${this.getKeyName(keyCode)}`);
     
-    // Volver al menú
     const selectedIndex = this.waitingState.selectedIndex;
     this.cleanupWaitOverlay();
-    this.showKeyboardCustomization(selectedIndex, selectedIndex);
+    this.showKeyboardCustomization(playerNum, selectedIndex, selectedIndex);
     this.waitingState = null;
   }
   
   handleGamepadButtonPress(buttonCode) {
     if (!this.waitingState || this.waitingState.type !== "gamepad") return;
     
-    Account.mapping.gamepad[this.waitingState.mappingKey] = buttonCode;
+    const { playerNum, mappingKey } = this.waitingState;
+    const playerKey = playerNum === 1 ? "player1" : "player2";
+    
+    Account.mapping.gamepad[playerKey][mappingKey] = buttonCode;
     
     saveAccount();
-    gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
+    if (playerNum === 1) {
+      gamepad1.updateMapping(Account.mapping.keyboard.player1, Account.mapping.gamepad.player1);
+    } else {
+      gamepad2.updateMapping(Account.mapping.keyboard.player2, Account.mapping.gamepad.player2);
+    }
     
     notifications.show(`MAPPED: ${GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`}`);
     
     const selectedIndex = this.waitingState.selectedIndex;
     this.cleanupWaitOverlay();
-    this.showGamepadCustomization(selectedIndex, selectedIndex);
+    this.showGamepadCustomization(playerNum, selectedIndex, selectedIndex);
     this.waitingState = null;
   }
   
@@ -15213,8 +15703,9 @@ class Keybindings {
     this.waitingState = null;
   }
   
-  getKeyboardKeyDisplay(mappingKey, index) {
-    const mapping = Account.mapping.keyboard[mappingKey];
+  getKeyboardKeyDisplay(mappingPath, index) {
+    const [player, mappingKey] = mappingPath.split('.');
+    const mapping = Account.mapping.keyboard[player][mappingKey];
     
     if (!mapping || !Array.isArray(mapping) || index >= mapping.length || !mapping[index]) {
       return "---";
@@ -15223,8 +15714,9 @@ class Keybindings {
     return this.getKeyName(mapping[index]);
   }
   
-  getGamepadButtonDisplay(mappingKey) {
-    const buttonCode = Account.mapping.gamepad[mappingKey];
+  getGamepadButtonDisplay(mappingPath) {
+    const [player, mappingKey] = mappingPath.split('.');
+    const buttonCode = Account.mapping.gamepad[player][mappingKey];
     
     if (buttonCode === undefined || buttonCode === null) {
       return "---";
@@ -15274,6 +15766,9 @@ class Keybindings {
   }
 }
 
+
+
+// ======== js/game/states/SongSelect.js ========
 class SongSelect {
   init(songs, index, autoSelect, type = "auto") {
     this.type = type;
@@ -15297,6 +15792,11 @@ class SongSelect {
     window.selectedSongs = this.songs;
     
     this.autoSelect = autoSelect || false;
+    
+    window.multiplayerState.player1.ready = false;
+    window.multiplayerState.player2.ready = false;
+    window.multiplayerState.player2.joined = false;
+    this.multiplayerState = window.multiplayerState;
     
     if (this.startingIndex + 1 > this.songs.length) {
       this.startingIndex = 0;
@@ -15337,7 +15837,14 @@ class SongSelect {
     this.highScoreText = new Text(104, 50, "");
     
     this.loadingDots = new LoadingDots();
+    this.loadingDots.y -= 8;
     this.loadingDots.visible = false;
+    
+    this.windowManager1 = new WindowManager(); // For Player 1
+    this.windowManager2 = new WindowManager(); // For Player 2
+    
+    this.windowManager1.gamepad = gamepad1;
+    this.windowManager2.gamepad = gamepad2;
     
     this.visibilityChangeListener = () => {
       if (document.hidden) {
@@ -15553,14 +16060,14 @@ class SongSelect {
       this.difficultyCarousel.selectIndex(song.lastDifficultySelectedIndex);
     }
     
-    game.onMenuIn.dispatch('difficulty', this.songCarousel);
+    game.onMenuIn.dispatch('difficulty', this.difficultyCarousel);
     
     // Add difficulties
     song.difficulties.sort((a, b) => a.rating - b.rating).forEach((diff, index) => {
       this.difficultyCarousel.addItem(
         `${diff.type} (${diff.rating})`,
         (item) => {
-          this.startGame(song, index);
+          this.showGameModeSelection(song, index);
         },
         {
           difficulty: diff,
@@ -15573,6 +16080,140 @@ class SongSelect {
     this.difficultyCarousel.onCancel.add(() => {
       this.createSongSelectionMenu();
     });
+  }
+  
+  showGameModeSelection(song, difficultyIndex) {
+    const x = 0;
+    const y = 37;
+    const width = game.width / 2;
+    const height = game.height;
+
+    this.gamemodeCarousel = new CarouselMenu(x, y, width, height, {
+      bgcolor: "#e67e22",
+      fgcolor: "#ffffff",
+      align: "center",
+      animate: true
+    });
+    
+    this.gamemodeCarousel.onSelect.add((index) => {
+      window.lastGameModeSelectedIndex = index;
+    });
+    
+    if (window.lastGameModeSelectedIndex) {
+      this.gamemodeCarousel.selectIndex(window.lastGameModeSelectedIndex);
+    }
+    
+    game.onMenuIn.dispatch('gamemode', this.gamemodeCarousel);
+    
+    this.gamemodeCarousel.addItem("Single Player", () => this.startGame(song, difficultyIndex, true));
+    this.gamemodeCarousel.addItem("Multiplayer", () => this.showMultiplayerScreen(song, difficultyIndex));
+    
+    this.gamemodeCarousel.onCancel.add(() => {
+      this.showDifficultySelection(song);
+    });
+  }
+
+  showMultiplayerScreen(song, difficultyIndex) {
+    this.multiplayerScreen = game.add.group();
+    
+    this.player1Frame = this.windowManager1.createWindow(0.5, 5, 11, 8, "1", this.multiplayerScreen);
+    this.player2Frame = this.windowManager2.createWindow(12.5, 5, 11, 8, "1", this.multiplayerScreen);
+    
+    this.populatePlayerFrame(this.player1Frame, 1);
+    this.populatePlayerFrame(this.player2Frame, 2);
+    
+    this.windowManager1.focus(this.player1Frame);
+            
+    // Create ready text
+    this.p1ReadyBackground = createGradientBackground(this.player1Frame.x + this.player1Frame.size.width * 8 / 2, this.player1Frame.y + this.player1Frame.size.height * 8 / 2, this.player1Frame.size.width * 8, 10);
+    this.p2ReadyBackground = createGradientBackground(this.player2Frame.x + this.player2Frame.size.width * 8 / 2, this.player2Frame.y + this.player2Frame.size.height * 8 / 2, this.player2Frame.size.width * 8, 10);
+    
+    this.p1ReadyBackground.anchor.set(0.5);
+    this.p2ReadyBackground.anchor.set(0.5);
+    
+    this.p1ReadyText = new Text(0, 0, "READY", null, this.p1ReadyBackground);
+    this.p2ReadyText = new Text(0, 0, "READY", null, this.p2ReadyBackground);
+    
+    this.p1ReadyText.anchor.set(0.5);
+    this.p2ReadyText.anchor.set(0.5);
+    
+    this.multiplayerScreen.addChild(this.p1ReadyBackground);
+    this.multiplayerScreen.addChild(this.p2ReadyBackground);
+
+    // Prompt player 2 to press start
+    this.playerJoinInstructionText = new Text(96 + 44, 40 + 32, "PLAYER 2\n< PRESS START >", null, this.multiplayerScreen);
+    this.playerJoinInstructionText.anchor.set(0.5);
+    
+    // Prompt both players to press start
+    this.startInstructionText = new Text(game.width / 2, 90, "PRESS START TO BEGIN", null, this.multiplayerScreen);
+    this.startInstructionText.visible = false;
+    this.startInstructionText.anchor.set(0.5);
+    
+    this.player2Frame.visible = false;
+    
+    this.highScoreText.visible = false;
+    
+    this.multiplayerState.song = song;
+    this.multiplayerState.difficultyIndex = difficultyIndex;
+  }
+  
+  startMultiplayer() {
+    this.multiplayerScreen.destroy();
+    this.multiplayerScreen = null;
+    
+    // Start gameplay with selected song and settings 
+    game.state.start("PlayMulti", true, false, this.multiplayerState);
+  }
+  
+  populatePlayerFrame(window, playerNumber) {
+    const settings = this.multiplayerState["player" + playerNumber].settings;
+    
+    // Auto-play
+    window.addSettingItem(
+      "Auto-play",
+      ["OFF", "ON"], 
+      settings.autoplay ? 1 : 0,
+      index => settings.autoplay = index === 1
+    );
+    
+    // Scroll Direction
+    window.addSettingItem(
+      "Scroll",
+      ["FALLING", "RISING"],
+      settings.scrollDirection === 'falling' ? 0 : 1,
+      index => settings.scrollDirection = index === 0 ? 'falling' : 'rising'
+    );
+    
+    // Note colors
+    const noteOptions = [
+      { value: 'NOTE', display: 'NOTE' },
+      { value: 'VIVID', display: 'VIVID' },
+      { value: 'FLAT', display: 'FLAT' },
+      { value: 'RAINBOW', display: 'RAINBOW' }
+    ];
+    const currentNoteIndex = noteOptions.findIndex(opt => opt.value === settings.noteColorOption);
+    window.addSettingItem(
+      "Note Colors",
+      noteOptions.map(opt => opt.display),
+      currentNoteIndex,
+      index => settings.noteColorOption = noteOptions[index].value
+    );
+
+    // Note speed
+    window.addSettingItem(
+      "Note Speed",
+      ["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
+      settings.noteSpeedMult - 1,
+      index => settings.noteSpeedMult = index + 1
+    );
+    
+    // Speed mod
+    window.addSettingItem(
+      "Speed Mod",
+      ["X-MOD", "C-MOD"],
+      settings.speedMod === 'C-MOD' ? 1 : 0,
+      index => settings.speedMod = index === 1 ? 'C-MOD' : 'X-MOD'
+    );
   }
 
   getDifficultyColor(value) {
@@ -15598,9 +16239,9 @@ class SongSelect {
     return `#${hexR}${hexG}${hexB}`;
   }
 
-  startGame(song, difficultyIndex) {
+  startGame(song, difficultyIndex, singlePlayer = true) {
     // Start gameplay with selected song
-    game.state.start("Play", true, false, {
+    game.state.start(singlePlayer ? "Play" : "PlayMulti", true, false, {
       chart: song,
       difficultyIndex
     });
@@ -15614,6 +16255,86 @@ class SongSelect {
     }
     
     this.autoplayText.write(Account.settings.autoplay ? "AUTOPLAY" : "");
+    
+    if (this.multiplayerScreen) {
+      if (gamepad1.pressed.b) {
+        if (this.multiplayerState.player1.ready) {
+          this.multiplayerState.player1.ready = false;
+        } else {
+          this.multiplayerState.player1.ready = false;
+          this.multiplayerState.player2.ready = false;
+          this.multiplayerState.player2.joined = false;
+        
+          this.showGameModeSelection(this.multiplayerState.song, this.multiplayerState.difficultyIndex);
+          this.multiplayerScreen.destroy();
+          this.multiplayerScreen = null;
+          return;
+        }
+      }
+      
+      if (gamepad2.pressed.b) {
+        if (this.multiplayerState.player2.ready && this.multiplayerState.player2.joined) {
+          this.multiplayerState.player2.ready = false;
+        } else {
+          this.multiplayerState.player1.ready = false;
+          this.multiplayerState.player2.ready = false;
+          this.multiplayerState.player2.joined = false;
+        
+          this.showGameModeSelection(this.multiplayerState.song, this.multiplayerState.difficultyIndex);
+          this.multiplayerScreen.destroy();
+          this.multiplayerScreen = null;
+          return;
+        }
+      }
+      
+      if (!this.multiplayerState.player1.ready) this.windowManager1.update();
+    
+      if (this.multiplayerState.player2.joined && !this.multiplayerState.player2.ready) this.windowManager2.update();
+      
+      this.player1Frame.alpha = this.multiplayerState.player1.ready ? 0.2 : 1;
+      this.player2Frame.alpha = this.multiplayerState.player2.ready ? 0.2 : 1;
+      this.p1ReadyBackground.visible = this.multiplayerState.player1.ready;
+      this.p2ReadyBackground.visible = this.multiplayerState.player2.ready;
+      
+      this.player2Frame.visible = this.multiplayerState.player2.joined;
+      
+      if (this.multiplayerState.player1.ready && this.multiplayerState.player2.ready) {
+        this.startInstructionText.visible = true;
+        
+        if (gamepad.pressed.start) {
+          this.startMultiplayer();
+          ENABLE_UI_SFX && Audio.play('ui_select');
+          
+          return;
+        }
+      } else {
+        this.startInstructionText.visible = false;
+      }
+
+      if (gamepad1.pressed.start) {
+        this.multiplayerState.player1.ready = !this.multiplayerState.player1.ready;
+        this.windowManager1.focus(this.player1Frame);
+        gamepad.pressed.start = false;
+        ENABLE_UI_SFX && Audio.play('ui_nav');
+      }
+      
+      if (this.multiplayerState.player2.joined && gamepad2.pressed.start) {
+        this.multiplayerState.player2.ready = !this.multiplayerState.player2.ready;
+        this.windowManager2.focus(this.player2Frame);
+        this.player2Frame.playNavSound();
+        gamepad.pressed.start = false;
+        ENABLE_UI_SFX && Audio.play('ui_nav');
+      }
+      
+      if (!this.multiplayerState.player2.joined && gamepad2.pressed.start) {
+        this.multiplayerState.player2.joined = true;
+        this.playerJoinInstructionText.visible = false;
+        this.windowManager2.focus(this.player2Frame);
+        this.player2Frame.playNavSound();
+        gamepad.pressed.start = false;
+        ENABLE_UI_SFX && Audio.play('ui_nav');
+      }
+    }
   }
   
   shutdown() {
@@ -15629,6 +16350,9 @@ class SongSelect {
   }
 }
 
+
+
+// ======== js/game/states/CharacterSelect.js ========
 class CharacterSelect {
   create() {
     game.camera.fadeIn(0x000000);
@@ -16058,29 +16782,10 @@ class CharacterSelect {
     this.originalAppearance = { ...this.selectedCharacter.appearance };
   }
   
-  createGradientBackground(x, y, width, height, color) {
-    const bitmap = game.add.bitmapData(width, height);
-    
-    const gradient = bitmap.context.createLinearGradient(width, 0, 0, 0);
-    
-    const bgcolor = color || "rgba(44, 90, 198, 0.6)";
-    
-    gradient.addColorStop(0, 'transparent');
-    gradient.addColorStop(0.3, bgcolor);
-    gradient.addColorStop(0.7, bgcolor);
-    gradient.addColorStop(1, 'transparent');
-    
-    bitmap.context.fillStyle = gradient;
-    bitmap.context.fillRect(0, 0, width, height);
-    
-    const sprite = game.add.sprite(x, y, bitmap);
-    return sprite;
-  }
-  
   customizeSkinTone() {
     const skinOptions = ["PALE", "LIGHT", "TAN", "DARK", "PURPLE"];
     
-    const background = this.createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
     
     const skinText = new Text(96, 80, "SKIN TONE", FONTS.shaded);
@@ -16122,7 +16827,7 @@ class CharacterSelect {
     
     this.navigationHint.change(4);
     
-    const background = this.createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
 
     const colorText = new Text(96, 80, "HAIR COLOR", FONTS.shaded);
@@ -16178,7 +16883,7 @@ class CharacterSelect {
     const options = unlocked.map(id => CHARACTER_SYSTEM.HAIR_STYLES[type === "frontHair" ? "front" : "back"][id-1]);
     const values = unlocked;
     
-    const background = this.createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
     
     const hairText = new Text(96, 80, `${type.toUpperCase()}`, FONTS.shaded);
@@ -16221,7 +16926,7 @@ class CharacterSelect {
       return item ? item.name : id;
     });
     
-    const background = this.createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
 
     const clothingText = new Text(96, 80, "CLOTHING", FONTS.shaded);
@@ -16268,7 +16973,7 @@ class CharacterSelect {
       })
     ];
 
-    const background = this.createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
     
     const accessoryText = new Text(96, 80, "ACCESSORY", FONTS.shaded);
@@ -16841,6 +17546,9 @@ class CharacterSelect {
   }
 }
 
+
+
+// ======== js/game/states/AchievementsMenu.js ========
 class AchievementsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -16979,6 +17687,9 @@ class AchievementsMenu {
   }
 }
 
+
+
+// ======== js/game/states/StatsMenu.js ========
 class StatsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -17075,6 +17786,9 @@ class StatsMenu {
   }
 }
 
+
+
+// ======== js/game/states/Play.js ========
 class Play {
   init(song, difficultyIndex, playtestMode, autoplay) {
     this.song = song;
@@ -17094,7 +17808,7 @@ class Play {
     this.userOffset = Account.settings.userOffset;
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
-    this.hasLyricsFile = song.chart.lyricsContent ? true : false;
+    this.hasLyricsFile = this.song.chart.lyricsContent ? true : false;
     this.visualizerType = Account.settings.visualizer || 'NONE';
     this.lastVisualizerUpdateTime = 0;
     this.metronome = null;
@@ -17110,11 +17824,11 @@ class Play {
     
     // Save last song to Account
     Account.lastSong = {
-      url: song.chart.audioUrl,
-      title: song.chart.title,
-      artist: song.chart.artist,
-      sampleStart: song.chart.sampleStart || 0,
-      isExternal: song.chart.files !== undefined, // Flag for external songs
+      url: this.song.chart.audioUrl,
+      title: this.song.chart.title,
+      artist: this.song.chart.artist,
+      sampleStart: this.song.chart.sampleStart || 0,
+      isExternal: this.song.chart.files !== undefined, // Flag for external songs
       score: 0,
       accuracy: 0,
       maxCombo: 0,
@@ -17128,7 +17842,7 @@ class Play {
       },
       totalNotes: 0,
       skillsUsed: 0,
-      difficultyRating: song.chart.difficulties[song.difficultyIndex].rating,
+      difficultyRating: this.song.chart.difficulties[this.difficultyIndex].rating,
       complete: false
     };
     saveAccount();
@@ -17315,12 +18029,7 @@ class Play {
     this.comboText.anchor.set(1);
   }
   
-  createVisualizer() {
-    const visualizerX = 2;
-    const visualizerY = 103;
-    const visualizerWidth = 36;
-    const visualizerHeight = 7;
-
+  createVisualizer(visualizerX = 2, visualizerY = 103, visualizerWidth = 36, visualizerHeight = 7) {
     // Remove existing visualizer
     if (this.visualizer) {
       this.visualizer.destroy();
@@ -17720,6 +18429,25 @@ class Play {
     // TODO: When applying bg effects take in account bg.fadeOut and bg.effect
   }
   
+  getGameResults(player = this.player) {
+    return {
+      score: player.score,
+      accuracy: player.accuracy,
+      maxCombo: player.maxCombo,
+      character: this.currentCharacter,
+      autoplay: player.autoplay,
+      complete: !player.autoplay && player.accuracy >= 40,
+      judgements: { ...player.judgementCounts },
+      totalNotes: this.song.chart.notes.length,
+      skillsUsed: this.skillSystem.getSkillsUsed(),
+      difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
+    };
+  }
+  
+  restartSong() {
+    game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode, this.autoplay);
+  }
+  
   songEnd() {
     // Forget preloaded backgrounds
     Object.entries(this.preloadedBackgroundElements).map(entry => entry[1] || null).forEach(element => {
@@ -17735,17 +18463,7 @@ class Play {
     }
     
     // Update character stats
-    const gameResults = {
-      score: this.player.score,
-      accuracy: this.player.accuracy,
-      maxCombo: this.player.maxCombo,
-      character: this.currentCharacter,
-      complete: !this.autoplay && this.player.accuracy >= 40,
-      judgements: { ...this.player.judgementCounts },
-      totalNotes: this.song.chart.notes.length,
-      skillsUsed: this.skillSystem.getSkillsUsed(),
-      difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
-    };
+    const gameResults = this.getGameResults(this.player);
     
     // Calculate experience gain (0 if autoplay is enabled)
     const expGain = this.autoplay ? 0 : this.characterManager.calculateExperienceGain(gameResults);
@@ -17842,6 +18560,10 @@ class Play {
     this.hidePauseMenu();
   }
   
+  getStatsContent() {
+    return Object.entries(this.player.judgementCounts).map(entry => `${entry[0]}: ${entry[1]}`).join('\n');
+  }
+  
   showPauseMenu() {
     this.pauseBg = game.add.graphics(0, 0);
     
@@ -17853,7 +18575,7 @@ class Play {
     this.pauseStatsText.anchor.set(1, 0.5);
     this.pauseStatsText.tint = 0xECECEC;
     
-    const statsContent = Object.entries(this.player.judgementCounts).map(entry => `${entry[0]}: ${entry[1]}`).join('\n');
+    const statsContent = this.getStatsContent();
     
     this.pauseStatsText.write(statsContent);
     
@@ -17878,7 +18600,7 @@ class Play {
         this.pauseCarousel.addItem("ENABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
       }
     }
-    this.pauseCarousel.addItem("RESTART", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode, this.autoplay));
+    this.pauseCarousel.addItem("RESTART", () => this.restartSong());
     this.pauseCarousel.addItem(this.playtestMode ? "BACK TO EDITOR" : "GIVE UP", () => this.songEnd());
     
     game.onMenuIn.dispatch('pause', this.pauseCarousel);
@@ -18015,7 +18737,6 @@ class Play {
     if (this.started) this.updateBackgrounds();
     
     this.hud.bringToTop();
-    this.hud.alpha = this.player.gameOver ? 0.5 : 1;
     
     this.overHud.bringToTop();
     
@@ -18078,6 +18799,273 @@ class Play {
   }
 }
 
+
+
+// ======== js/game/states/PlayMulti.js ========
+class PlayMulti extends Play {
+  constructor() {
+    super();
+  }
+  
+  init(config) {
+    const { song, difficultyIndex } = config;
+    
+    super.init({ chart: song, difficultyIndex }, difficultyIndex, false, false);
+    
+    this.config = config;
+    
+    // Disable character system
+    this.currentCharacter = null;
+    this.skillSystem.character = null;
+  }
+  
+  create() {
+    super.create();
+  }
+  
+  createHud() {
+    this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
+
+    this.hud = game.add.sprite(0, 0, "ui_hud_background_multi", 0);
+    
+    this.p1Hud = game.add.sprite(0, 0, "ui_hud_player_parent_multi", 0);
+    this.hud.addChild(this.p1Hud);
+    
+    this.p2Hud = game.add.sprite(0, 0, "ui_hud_player_parent_multi", 1);
+    this.hud.addChild(this.p2Hud);
+    
+    this.overHud = game.add.sprite(0, 0);
+    
+    // Get song title
+    const title = this.song.chart.titleTranslit || this.song.chart.title;
+    
+    // Song title text
+    this.songTitleText = new Text(game.width / 2, 11, "", null, this.hud);
+    this.songTitleText.anchor.x = 0.5;
+    this.songTitleText.write(title, 21);
+    
+    // P1 Health Text
+    this.p1HealthText = new Text(1, 3, "100", null, this.p1Hud);
+    
+    // P2 Health Text
+    this.p2HealthText = new Text(game.width - 1, 3, "100", null, this.p2Hud);
+    this.p2HealthText.anchor.x = 1;
+    
+    // Tint both texts
+    this.p1HealthText.tint = 0x96918e;
+    this.p2HealthText.tint = 0x96918e;
+    
+    // P1 Score Text 
+    this.p1ScoreText = new Text(16, 7, "00000000", null, this.hud);
+    
+    // P2 Score Text 
+    this.p2ScoreText = new Text(game.width - 16, 7, "00000000", null, this.hud);
+    this.p2ScoreText.anchor.x = 1;
+    
+    // P1 Judgement Text
+    this.p1JudgementText = new Text(0, 60, "", FONTS.shaded);
+    this.p1JudgementText.anchor.set(0.5);
+    
+    // P2 Judgement Text
+    this.p2JudgementText = new Text(0, 60, "", FONTS.shaded);
+    this.p2JudgementText.anchor.set(0.5);
+    
+    // P1 Accuracy Bar
+    this.p1AccuracyBar = game.add.sprite(2, 108, "ui_accuracy_bar_multi");
+    this.hud.addChild(this.p1AccuracyBar);
+    
+    // P2 Accuracy Bar
+    this.p2AccuracyBar = game.add.sprite(117, 108, "ui_accuracy_bar_multi");
+    this.hud.addChild(this.p2AccuracyBar);
+    
+    // P1 Combo Number
+    this.p1ComboText = new Text(1, 106, "0", FONTS.combo);
+    this.p1ComboText.anchor.y = 1;
+
+    // P2 Combo Number
+    this.p2ComboText = new Text(191, 106, "0", FONTS.combo);
+    this.p2ComboText.anchor.set(1);
+    
+    // P1 Lifebar
+    this.p1LifebarStart = game.add.sprite(14, 3, "ui_lifebar", 0);
+    this.p1LifebarMiddle = game.add.sprite(1, 0, "ui_lifebar", 1);
+    this.p1LifebarMiddle.width = 71;
+    this.p1LifebarEnd = game.add.sprite(14, 0, "ui_lifebar", 2);
+    this.p1LifebarStart.addChild(this.p1LifebarMiddle);
+    this.p1LifebarStart.addChild(this.p1LifebarEnd);
+    this.p1Hud.addChild(this.p1LifebarStart);
+    
+    // P2 Lifebar
+    this.p2LifebarStart = game.add.sprite(105, 3, "ui_lifebar", 0);
+    this.p2LifebarMiddle = game.add.sprite(1, 0, "ui_lifebar", 1);
+    this.p2LifebarMiddle.width = 71;
+    this.p2LifebarEnd = game.add.sprite(105, 0, "ui_lifebar", 2);
+    this.p2LifebarStart.addChild(this.p2LifebarMiddle);
+    this.p2LifebarStart.addChild(this.p2LifebarEnd);
+    this.p2Hud.addChild(this.p2LifebarStart);
+    
+    // Autoplay texts
+    this.autoplayText = new Text(game.width / 2, 93, "METRONOME", FONTS.stroke, this.hud);
+    this.autoplayText.anchor.x = 0.5;
+    
+    this.p1AutoplayText = new Text(2, 16, "AUTOPLAY", FONTS.stroke, this.hud);
+    
+    this.p2AutoplayText = new Text(190, 16, "AUTOPLAY", FONTS.stroke, this.hud);
+    this.p2AutoplayText.anchor.x = 1;
+  }
+  
+  createVisualizer() {
+    super.createVisualizer(78, 103, 36, 7);
+  }
+  
+  setupPlayer() {
+    this.player1 = new FirstPlayer(this, this.config.player1.settings);
+    this.player2 = new SecondPlayer(this, this.config.player2.settings);
+    
+    this.player = this.player1;
+  }
+  
+  getStatsContent() {
+    return "";
+  }
+  
+  getGameResults() {
+    return {
+      song: this.song,
+      difficultyIndex: this.difficultyIndex,
+      results: {
+        player1: super.getGameResults(this.player1),
+        player2: super.getGameResults(this.player2)
+      },
+      player1: this.player1,
+      player2: this.player2
+    };
+  }
+  
+  restartSong() {
+    game.state.start("PlayMulti", true, false, this.config);
+  }
+  
+  songEnd() {
+    // Forget preloaded backgrounds
+    Object.entries(this.preloadedBackgroundElements).map(entry => entry[1] || null).forEach(element => {
+      if (element) {
+        element.src = "";
+      }
+    });
+    
+    // Return to editor if on playtest mode
+    if (this.playtestMode) {
+      game.state.start("Editor", true, false, this.song);
+      return;
+    }
+    
+    // Get results
+    const gameResults = this.getGameResults();
+    
+    game.state.start("ResultsMulti", true, false, gameResults, this.config);
+  }
+  
+  checkFullCombo(player) {
+    if (!this.started && player.fullComboStarted) return;
+    
+    player.fullComboStarted = true;
+    
+    let hitNotes = 0;
+      
+    for (const [judgement, count] of Object.entries(player.judgementCounts)) {
+      if (judgement != "miss") {
+        hitNotes += count;
+      }
+    }
+      
+    if (hitNotes >= player.totalNotes) {
+      const flawless = this.player.accuracy >= 99.75;
+          
+      game.tweens.removeFrom(player.judgementText);
+          
+      player.judgementText.visible = true;
+      player.judgementText.alpha = 1;
+      player.judgementText.tint = flawless ? 0xffb200 : 0xdad2eb;
+      player.judgementText.write(flawless ? "FLAWLESS!" : "FULL COMBO!");
+      
+      game.time.events.loop(100, () => {
+        if (player.judgementText.alpha) {
+          player.judgementText.alpha = 0;
+        } else {
+          player.judgementText.alpha = 1;
+        }
+      });
+    }
+  }
+  
+  update() {
+    gamepad.update();
+        
+    if (this.isPaused) return;
+    
+    // Pause with start button
+    if (gamepad.pressed.start) {
+      this.togglePause();
+    }
+
+    // Update lyrics with current time
+    if (this.hasLyricsFile && this.lyrics && this.started) {
+      const currentTime = this.getCurrentTime().now;
+      this.lyrics.move(currentTime);
+    }
+    
+    // Update visualizer
+    if (this.visualizer && game.time.now - this.lastVisualizerUpdateTime >= game.time.elapsedMS * 2) {
+      this.visualizer.update();
+      this.lastVisualizerUpdateTime = game.time.now;
+    }
+    
+    // Handle assist tick toggle with Select button
+    if (gamepad.pressed.select) {
+      this.metronome.toggle();
+    }
+    
+    // Update assist tick metronome
+    if (this.metronome) {
+      this.metronome.update();
+    }
+    
+    // Update autoplay text (used for metronome)
+    this.autoplayText.visible = this.metronome.enabled;
+
+    this.p1AutoplayText.visible = this.player1.autoplay;
+    this.p2AutoplayText.visible = this.player2.autoplay;
+    
+    this.player1.update();
+    this.player2.update();
+    
+    if (this.started) this.updateBackgrounds();
+    
+    this.hud.bringToTop();
+    
+    this.overHud.bringToTop();
+    
+    this.p1JudgementText.bringToTop();
+    this.p2JudgementText.bringToTop();
+    this.p1ComboText.bringToTop();
+    this.p2ComboText.bringToTop();
+    
+    this.checkFullCombo(this.player1);
+    this.checkFullCombo(this.player2);
+  }
+  
+  render() {
+    if (this.player1 && this.player2) {
+      this.player1.render();
+      this.player2.render();
+    }
+  }
+}
+
+
+
+// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData;
@@ -18091,7 +19079,6 @@ class Results {
     game.camera.fadeIn(0x000000);
     
     new FuturisticLines();
-    
     new BackgroundGradient();
     
     const { song, player } = this.gameData;
@@ -18368,6 +19355,183 @@ class Results {
   }
 }
 
+
+
+// ======== js/game/states/ResultsMulti.js ========
+class ResultsMulti extends Results {
+  constructor() {
+    super();
+  }
+  
+  init(gameResults, config) {
+    this.gameResults = gameResults;
+    this.config = config;
+    this.song = gameResults.song;
+    this.difficultyIndex = gameResults.difficultyIndex;
+  }
+  
+  create() {
+    game.camera.fadeIn(0x000000);
+    
+    new FuturisticLines();
+    
+    new BackgroundGradient();
+    
+    this.displayResults();
+  }
+  
+  displayResults() {
+    // Banner
+    this.bannerImg = document.createElement("img");
+    
+    this.bannerCanvas = document.createElement("canvas");
+    this.bannerCtx = this.bannerCanvas.getContext("2d");
+    
+    this.bannerSprite = game.add.sprite(192 - 10 - 64, 10);
+    
+    // Load and play audio
+    this.previewAudio = document.createElement("audio");
+    this.previewAudio.volume = Account.settings.volume / 100;
+    
+    this.visibilityChangeListener = () => {
+      if (document.hidden) {
+        this.previewAudio?.pause();
+      } else {
+        this.previewAudio?.play();
+      }
+    };
+    
+    window.addEventListener('visibilitychange', this.visibilityChangeListener);
+
+    if (this.song.chart.audioUrl) {
+      this.previewAudio.src = this.song.chart.audioUrl;
+      this.previewAudio.currentTime = this.song.chart.sampleStart || 0;
+      this.previewAudio.play();
+    }
+    
+    // Display banner 
+    if (this.song.chart.bannerUrl) {
+      this.bannerImg.src = this.song.chart.bannerUrl;
+      this.bannerImg.onload = () => {
+        this.bannerCtx.drawImage(this.bannerImg, 0, 0, 64, 16);
+        this.bannerSprite.loadTexture(PIXI.Texture.fromCanvas(this.bannerCanvas));
+      };
+      this.bannerImg.onerror = () => this.bannerSprite.loadTexture('ui_banner_no_image_small');
+    } else {
+      this.bannerSprite.loadTexture('ui_banner_no_image_small');
+    }
+    
+    // Song info
+    const title = this.song.chart.titleTranslit || this.song.chart.title;
+    const difficulty = this.song.chart.difficulties[this.difficultyIndex];
+    
+    this.songText = new Text(8, 10, `${title}`, FONTS.shaded);
+    this.diffText = new Text(10, 20, `${difficulty.type} (${difficulty.rating})`);
+    this.diffText.tint = new Play().getDifficultyColor(difficulty.rating);
+    
+    if (title.length > 25) this.songText.scrollwrite(title, 25);
+    
+    this.winner = this.getWinner();
+    
+    this.showPlayerResults(1);
+    this.showPlayerResults(2);
+    
+    if (this.winner == 0) {
+      const drawText = new Text(game.width / 2, 112 - 14, "DRAW", FONTS.shaded);
+      drawText.anchor.x = 0.5;
+      drawText.tint = 0xFF007F; // Purple color
+      
+      window.multiplayerState.counter.draw ++;
+    } else if (this.winner == 1) {
+      window.multiplayerState.counter.player1 ++;
+    } else if (this.winner == 2) {
+      window.multiplayerState.counter.player1 ++;
+    }
+    
+    this.showMenu();
+  }
+  
+  getWinner() {
+    const { player1, player2 } = this.gameResults.results;
+    
+    // TODO: Winner calculation would more complex logic
+    if (player1.autoplay || player2.autoplay) {
+      return 0; // Draw case: Autoplay
+    } else if (player1.score == player2.score) {
+      return 0; // Draw case: Both players have same score
+    } else if (player1.score > player2.score) {
+      return 1; // Player 1 wins
+    } else {
+      return 2; // Player 2 wins
+    }
+  }
+  
+  showPlayerResults(playerNumber = playerNumber) {
+    const player = this.gameResults["player" + playerNumber];
+    
+    const xPos = playerNumber == 1 ? 10 : 192 - 10;
+    const xAnchor = playerNumber == 1 ? 0 : 1;
+    
+    // Don't celebrate if autoplay is enabled
+    const autoplay = player.autoplay;
+    
+    // Score
+    const scoreText = new Text(xPos, 30, `SCORE: ${autoplay ? "---" : player.score.toLocaleString()}`, FONTS.default);
+    scoreText.anchor.x = xAnchor;
+    
+    // Accuracy
+    const accuracyText = new Text(xPos, 40, `ACCURACY: ${autoplay ? "---" : `${player.accuracy.toFixed(2)}%`}`, FONTS.default);
+    accuracyText.anchor.x = xAnchor;
+    
+    // Rating
+    const scoreRating = player.getScoreRating();
+    
+    const ratingText = new Text(xPos, 50, `RATING: ${autoplay ? "AUTO" : scoreRating}`, FONTS.shaded);
+    ratingText.tint = this.getRatingColor(scoreRating);
+    ratingText.anchor.x = xAnchor;
+    
+    // Combo
+    const comboText = new Text(xPos, 60, `MAX COMBO: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
+    comboText.anchor.x = xAnchor;
+    
+    // Judgements
+    const judgementsText = new Text(xPos, 70, autoplay ? "\nAUTOPLAY ENABLED" : this.getJudgementsText(player.judgementCounts));
+    judgementsText.tint = autoplay ? 0xff0000 : 0xffffff;
+    judgementsText.anchor.x = xAnchor;
+    
+    // Winner record indicator
+    if (!autoplay && this.winner == playerNumber) {
+      const winnerText = new Text(game.width / 2, 112 - 14, `PLAYER ${playerNumber} WINS!`, FONTS.shaded);
+      winnerText.anchor.x = 0.5;
+      winnerText.tint = 0xFFD700; // Gold color
+      
+      // Pulse animation for new record
+      game.add.tween(winnerText.scale).to({ x: 1.2, y: 1.2 }, 500, "Linear", true).yoyo(true).repeat(-1);
+    }
+  }
+  
+  showMenu() {
+    const menu = new CarouselMenu(game.width / 2 - 25, 50, 50, 80, {
+      gradient: false,
+      bgcolor: 'brown',
+      fgcolor: '#ffffff',
+      margin: { top: 0, bottom: 0, left: 0, right: 0 },
+    });
+    
+    menu.addItem("NEXT", () => {
+      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto");
+    });
+    menu.addItem("CONTINUE", () => game.state.start("SongSelect"));
+    menu.addItem("RETRY", () => game.state.start("PlayMulti", true, false, this.config));
+    menu.addItem("QUIT", () => game.state.start("MainMenu"));
+    
+    game.onMenuIn.dispatch('results_multi', menu);
+  }
+}
+
+
+
+// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
@@ -19378,6 +20542,9 @@ class Jukebox {
   }
 }
 
+
+
+// ======== js/game/states/Editor.js ========
 class Editor {
   init(song = null) {
     this.song = song || this.createNewSong();
@@ -19449,9 +20616,9 @@ class Editor {
       judgeLineYFalling: 70,
       judgeLineYRising: 50,
       enableChartBackground: Account.settings.enableChartBackground || false,
-      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
+      chartBackgroundOpacity: Account.settings.chartBackgroundOpacit || 0.3
     });
-
+    
     this.homeOverlay = game.add.graphics(0, 0);
     this.homeOverlay.beginFill(0x000000, 0.5);
     this.homeOverlay.drawRect(0, 0, game.width, game.height);
@@ -21859,6 +23026,9 @@ BEAT: ${bg.beat}`);
   }
 }
 
+
+
+// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
@@ -22154,6 +23324,9 @@ class Credits {
   }
 }
 
+
+
+// ======== js/game/states/ErrorScreen.js ========
 class ErrorScreen {
   init(message, recoverStateKey) {
     this.message = message || "The causes of this failure are unknown yet";
@@ -22192,6 +23365,9 @@ Please Report The Developer Immediately!
   }
 }
 
+
+
+// ======== js/game/player/ChartRenderer.js ========
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -22212,27 +23388,37 @@ class ChartRenderer {
       enableBGRendering: false,
       judgeLineYFalling: 90,
       judgeLineYRising: 25,
+      speedMod: "X-MOD",
+      scrollDirection: "falling",
+      noteSpeedMultiplier: 1,
+      noteColorOption: "NOTE",
+      displayPosition: "center",
+      player: null,
       ...options
     };
+    
+    this.player = this.options.player || this.scene.player;
 
-    this.scrollDirection = Account.settings.scrollDirection || "falling";
+    this.scrollDirection = this.options.scrollDirection || "falling";
 
     // Visual constants
     this.VERTICAL_SEPARATION = 1.25;
-    this.SCREEN_CONSTANT = Account.settings.speedMod === "C-MOD" ? 240 / 60 : 1;
-    this.NOTE_SPEED_MULTIPLIER = Account.settings.noteSpeedMult + this.SCREEN_CONSTANT;
+    this.SCREEN_CONSTANT = this.options.speedMod === "C-MOD" ? 240 / 60 : 1;
+    this.NOTE_SPEED_MULTIPLIER = this.options.noteSpeedMultiplier + this.SCREEN_CONSTANT;
     this.JUDGE_LINE = this.scrollDirection === "falling" ? this.options.judgeLineYFalling : this.options.judgeLineYRising;
     this.DIRECTION = this.scrollDirection === "falling" ? -1 : 1;
     this.COLUMN_SIZE = 16;
     this.COLUMN_SEPARATION = 4;
     this.INACTIVE_COLOR = 0x888888;
 
+    this.displayPosition = this.options.displayPosition;
+
     this.noteSpeedMultiplier = this.NOTE_SPEED_MULTIPLIER;
 
-    this.speedMod = Account.settings.speedMod || "X-MOD";
+    this.speedMod = this.options.speedMod || "X-MOD";
     
     // Note color option (default to NOTE)
-    this.noteColorOption = Account.settings.noteColorOption || "NOTE";
+    this.noteColorOption = this.options.noteColorOption || "NOTE";
 
     // Define color constants for spritesheet frames
     const COLORS = {
@@ -22396,11 +23582,21 @@ class ChartRenderer {
 
   calculateLeftOffset() {
     const totalWidth = 4 * this.COLUMN_SIZE + 3 * this.COLUMN_SEPARATION;
-    return (192 - totalWidth) / 2;
+    if (this.displayPosition == "left") {
+      return 8;
+    } else if (this.displayPosition == "right") {
+      return 192 - totalWidth - 8;
+    } else {
+      return (192 - totalWidth) / 2;
+    }
   }
   
   calculateFullWidth() {
     return this.COLUMN_SIZE * 4 + this.COLUMN_SEPARATION * 3;
+  }
+  
+  calculateCenter() {
+    return this.calculateLeftOffset() + this.calculateFullWidth() / 2;
   }
 
   getNoteFrame(note) {
@@ -22521,8 +23717,8 @@ class ChartRenderer {
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos > game.height) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
-          this.scene.player.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.player && this.player.processJudgement) {
+          this.player.processJudgement(note, "miss", note.column);
         }
       }
 
@@ -22579,8 +23775,8 @@ class ChartRenderer {
       // Miss checking (only in gameplay)
       if (this.options.enableMissChecking && note.type !== "M" && note.type != "2" && note.type != "4" && !note.hit && !note.miss && yPos < -this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
-          this.scene.player.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.player && this.player.processJudgement) {
+          this.player.processJudgement(note, "miss", note.column);
         }
       }
 
@@ -22733,13 +23929,13 @@ class ChartRenderer {
     if (this.options.enableMissChecking && !note.miss && !note.holdActive) {
       if (direction === "falling" && yPos > this.JUDGE_LINE + this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
-          this.scene.player.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.player && this.player.processJudgement) {
+          this.player.processJudgement(note, "miss", note.column);
         }
       } else if (direction === "rising" && yPos < this.JUDGE_LINE - this.COLUMN_SIZE) {
         note.miss = true;
-        if (this.options.enableGameplayLogic && this.scene.player && this.scene.player.processJudgement) {
-          this.scene.player.processJudgement(note, "miss", note.column);
+        if (this.options.enableGameplayLogic && this.player && this.player.processJudgement) {
+          this.player.processJudgement(note, "miss", note.column);
         }
       }
     }
@@ -23132,9 +24328,17 @@ class ChartRenderer {
   }
 }
 
+
+
+// ======== js/game/player/Player.js ========
 class Player {
-  constructor(scene) {
-    this.scene = scene
+  constructor(scene, playerSide = "center", settings = {}) {
+    this.scene = scene;
+    this.playerSide = playerSide; // "center", "left", or "right"
+    
+    this.gamepad = gamepad1;
+    
+    this.hud = scene.hud;
     
     // Use ChartRenderer for rendering
     this.renderer = new ChartRenderer(scene, JSON.parse(JSON.stringify(scene.song)), scene.song.difficultyIndex, {
@@ -23145,7 +24349,13 @@ class Player {
       enableMissChecking: true,
       enableBeatLines: Account.settings.beatLines || false,
       enableChartBackground: Account.settings.enableChartBackground || false,
-      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
+      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3,
+      speedMod: settings.speedMod || Account.settings.speedMod,
+      scrollDirection: settings.scrollDirection || Account.settings.scrollDirection,
+      noteSpeedMultiplier: settings.noteSpeedMult || Account.settings.noteSpeedMult,
+      noteColor: settings.noteColorOption || Account.settings.noteColorOption || "NOTE",
+      displayPosition: playerSide,
+      player: this
     });
     
     // Copy references from renderer
@@ -23153,7 +24363,7 @@ class Player {
     this.bpmChanges = this.renderer.bpmChanges;
     this.stops = this.renderer.stops;
     
-    this.autoplay = scene.autoplay;
+    this.autoplay = settings.autoplay || scene.autoplay;
     this.autoplayActiveHolds = new Set();
 
     // Gamepad keymap
@@ -23208,7 +24418,6 @@ class Player {
     
     // Calculate total notes for accuracy
     this.calculateTotalNotes();
-    this.updateAccuracy();
     
     // Copy receptors from renderer
     this.receptors = this.renderer.receptors;
@@ -23222,30 +24431,31 @@ class Player {
       receptor.events.onInputUp.add(() => this.handleInput(i, false));
     };
     
-    // Create UI text elements
-    this.judgementText =
-      this.scene.judgementText ||
-      new Text(96, 20, "", {
-        tint: 0xffffff
-      });
+    const judgementText = this.playerSide == 'right' ? this.scene.p2JudgementText : (this.scene.judgementText || this.scene.p1JudgementText);
+    const comboText = this.playerSide == 'right' ? this.scene.p2ComboText : (this.scene.comboText || this.scene.p1ComboText);
+    const scoreText = this.playerSide == 'right' ? this.scene.p2ScoreText : (this.scene.scoreText || this.scene.p1ScoreText);
+    const healthText = this.playerSide == 'right' ? this.scene.p2HealthText : (this.scene.healthText || this.scene.p1HealthText);
+    const lifebarStart = this.playerSide == 'right' ? this.scene.p2LifebarStart : (this.scene.lifebarStart || this.scene.p1LifebarStart);
+    const lifebarMiddle = this.playerSide == 'right' ? this.scene.p2LifebarMiddle : (this.scene.lifebarMiddle || this.scene.p1LifebarMiddle);
+    const lifebarEnd = this.playerSide == 'right' ? this.scene.p2LifebarEnd : (this.scene.lifebarEnd || this.scene.p1LifebarEnd);
+    const accuracyBar = this.playerSide == 'right' ? this.scene.p2AccuracyBar : (this.scene.accuracyBar || this.scene.p1AccuracyBar);
     
-    this.comboText =
-      this.scene.comboText ||
-      new Text(96, 40, "0", {
-        tint: 0xffffff
-      });
-
-    this.scoreText =
-      this.scene.scoreText ||
-      new Text(8, 8, "00000000", {
-        tint: 0xffffff
-      });
-
-    this.healthText =
-      this.scene.healthText ||
-      new Text(184, 8, "100%", {
-        tint: 0xffffff
-      });
+    // Get UI elements or create placeholders 
+    this.judgementText = judgementText || new Text(-100, -100, "");
+    this.comboText = comboText || new Text(-100, -100, "");
+    this.scoreText = scoreText || new Text(-100, -100, "");
+    this.healthText = healthText || new Text(-100, -100, "");
+    this.lifebarStart = lifebarStart || game.add.sprite();
+    this.lifebarMiddle = lifebarMiddle || game.add.sprite();
+    this.lifebarEnd = lifebarEnd || game.add.sprite();
+    this.accuracyBar = accuracyBar || game.add.sprite();
+    
+    this.updateAccuracy();
+    
+    // Define constants
+    this.HEALTH_X = this.lifebarStart.x;
+    this.HEALTH_WIDTH = 102; // Width of the variable area of the health bar
+    this.ACCURACY_BAR_WIDTH = 150;
   }
   
   calculateTotalNotes() {
@@ -23532,7 +24742,7 @@ class Player {
   }
   
   vibrate(duration = 25) {
-    Account.settings.hapticFeedback && gamepad.vibrate(duration);
+    Account.settings.hapticFeedback && this.this.gamepad.vibrate(duration);
   }
   
   getAdjustedJudgementWindows() {
@@ -23711,9 +24921,9 @@ class Player {
     this.accuracy = Phaser.Math.clamp(this.accuracy, 0, 100);
     
     // Update accuracy bar in HUD if it exists
-    if (this.scene.accuracyBar) {
-      const accuracyWidth = Math.floor(Math.max(1, (this.accuracy / 100) * 150));
-      this.scene.accuracyBar.crop(new Phaser.Rectangle(0, 0, accuracyWidth, 2));
+    if (this.accuracyBar) {
+      const accuracyWidth = Math.floor(Math.max(1, (this.accuracy / 100) * this.ACCURACY_BAR_WIDTH));
+      this.accuracyBar.crop(new Phaser.Rectangle(0, 0, accuracyWidth, 2));
     }
   }
 
@@ -23727,6 +24937,8 @@ class Player {
     if (this.combo > 0) {
       this.pulseText(this.comboText);
     }
+    
+    this.hud.alpha = this.gameOver ? 0.5 : 1;
   }
   
   getScoreRating() {
@@ -23840,8 +25052,8 @@ class Player {
     // Input handling
     if (!this.autoplay) {
       Object.keys(this.keymap).forEach(key => {
-        if (gamepad.pressed[key]) this.handleInput(this.keymap[key], true);
-        else if (gamepad.released[key]) this.handleInput(this.keymap[key], false);
+        if (this.gamepad.pressed[key]) this.handleInput(this.keymap[key], true);
+        else if (this.gamepad.released[key]) this.handleInput(this.keymap[key], false);
       });
       
       // Check mines for currently pressed columns
@@ -23886,21 +25098,28 @@ class Player {
     // Update health
     if (this.health != this.previousHealth) {
       this.previousHealth = this.health;
-      const tween = game.add.tween(this.scene.lifebarMiddle);
-      tween.to({ width: (this.health / this.getMaxHealth()) * 102 }, 100, Phaser.Easing.Quadratic.In, true);
-      tween.onUpdateCallback(() => this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width);
+      
+      const tween = game.add.tween(this.lifebarMiddle);
+      tween.to({ width: (this.health / this.getMaxHealth()) * this.HEALTH_WIDTH }, 100, Phaser.Easing.Quadratic.In, true);
+      tween.onUpdateCallback(() => {
+        this.lifebarEnd.x = this.lifebarMiddle.width;
+      });
+      
       if (this.health <= 0) {
         this.gameOver = true;
         this.health = 0;
       };
+      
       this.healthText.write(this.health.toString());
     }
-    this.scene.lifebarEnd.x = this.scene.lifebarMiddle.width;
-    if (this.scene.accuracyBar) {
+    
+    this.lifebarEnd.x = this.lifebarMiddle.width;
+        
+    if (this.accuracyBar) {
       if (this.accuracy <= 0) {
-        this.scene.accuracyBar.visible = false;
+        this.accuracyBar.visible = false;
       } else {
-        this.scene.accuracyBar.visible = true;
+        this.accuracyBar.visible = true;
       }
     }
     
@@ -23964,6 +25183,46 @@ class Player {
     if (this.renderer) {
       this.renderer.destroy();
     }
+  }
+}
+
+
+
+// ======== js/game/player/FirstPlayer.js ========
+class FirstPlayer extends Player {
+  constructor(scene, settings = {}) {
+    // Call parent with "left" side
+    super(scene, "left", settings);
+    
+    this.gamepad = gamepad1; // Use Player 1
+    
+    this.HEALTH_X = 14;
+    this.HEALTH_WIDTH = 71;
+    this.ACCURACY_BAR_WIDTH = 73;
+    
+    scene.p1JudgementText.x = this.renderer.calculateCenter();
+    
+    this.hud = scene.p1Hud;
+  }
+}
+
+
+
+// ======== js/game/player/SecondPlayer.js ========
+class SecondPlayer extends Player {
+  constructor(scene, settings = {}) {
+    // Call parent with "right" side
+    super(scene, "right", settings);
+    
+    this.gamepad = gamepad2; // Use Player 2
+    
+    this.HEALTH_X = 104;
+    this.HEALTH_WIDTH = 71;
+    this.ACCURACY_BAR_WIDTH = 73;
+    
+    scene.p2JudgementText.x = this.renderer.calculateCenter();
+    
+    this.hud = scene.p2Hud;
   }
 }
 

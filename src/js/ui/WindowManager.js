@@ -2,6 +2,8 @@ class WindowManager {
   constructor() {
     this.windows = [];
     this.focusedWindow = null;
+    
+    this.gamepad = gamepad;
 
     // Track input states to prevent repeated inputs
     this.firstPressTime = undefined;
@@ -99,9 +101,9 @@ class WindowManager {
   
   handleGamepadNavigation() {
     // Handle gamepad navigation
-    const { up, down, left, right, a, b } = gamepad.held;
-    const pressed = gamepad.pressed;
-    const released = gamepad.released;
+    const { up, down, left, right, a, b } = this.gamepad.held;
+    const pressed = this.gamepad.pressed;
+    const released = this.gamepad.released;
     
     // Dynamic cooldown system
     let cooldown = 100;

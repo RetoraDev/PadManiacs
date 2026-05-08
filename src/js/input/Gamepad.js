@@ -1,6 +1,8 @@
 class Gamepad {
-  constructor(game, keyboardMap, gamepadMap) {
+  constructor(game, keyboardMap, gamepadMap, playerIndex = 0) {
     this.game = game;
+    
+    this.playerIndex = playerIndex; // 0 for player 1, 1 for player 2
 
     // Define the control keys we want to track
     this.keys = [
@@ -59,7 +61,6 @@ class Gamepad {
     this.touchControlsVisible = false;
 
     // Set up all input methods
-    this.setupKeyboard();
     this.setupGamepad();
     this.setupTouch();
     this.setupInputDetection();
@@ -75,9 +76,6 @@ class Gamepad {
   }
 
   setupKeyboard() {
-    // Clear any existing key captures
-    this.game.input.keyboard.clearCaptures();
-    
     // Clear any existing keyboard state
     this.releaseAll();
   
@@ -100,36 +98,36 @@ class Gamepad {
     this.game.input.keyboard.addKeyCapture(uniqueKeyCapture);
   
     // Global keyboard listeners
-    this.game.input.keyboard.onDownCallback = (event) => {
-      const action = this.keyCodeToAction[event.keyCode];
+    inputManager.keyboardListener.onDown.add((keyCode) => {
+      const action = this.keyCodeToAction[keyCode];
       if (action) {
         this.held[action] = true;
       }
       this.detectInputSource('keyboard');
-    };
+    });
   
-    this.game.input.keyboard.onUpCallback = (event) => {
-      const action = this.keyCodeToAction[event.keyCode];
+    inputManager.keyboardListener.onUp.add((keyCode) => {
+      const action = this.keyCodeToAction[keyCode];
       if (action) {
         this.held[action] = false;
       }
-    };
+    });
     
     this.update();
   }
 
   setupGamepad() {
-    // Start gamepad polling
-    if (!this.game.input.gamepad.supported) return
+    this.gamepadState = {
+      isConnected: false
+    };
     
-    this.game.input.gamepad.start();
-    
-    this.gamepadState = {};
     this.keys.forEach(key => {
       this.gamepadState[key] = false;
     });
     
-    this.game.input.gamepad.onDownCallback = keyCode => {
+    inputManager.gamepadListener.onDown.add((keyCode, _, index) => {
+      if (index !== this.playerIndex) return; // Ignore other gamepadState
+      
       this.keys.forEach(key => {
         if (this.gamepadMap[key] == keyCode) {
           this.held[key] = true;
@@ -137,19 +135,39 @@ class Gamepad {
           this.detectInputSource('gamepad');
         }
       });
-    };
+    });
     
-    this.game.input.gamepad.onUpCallback = keyCode => {
+    inputManager.gamepadListener.onUp.add((keyCode, _, index) => {
+      if (index !== this.playerIndex) return; // Ignore other gamepadState
+      
       this.keys.forEach(key => {
         if (this.gamepadMap[key] == keyCode) {
           this.held[key] = false;
           this.gamepadState[key] = false;
         }
       });
-    };
+    });
+    
+    inputManager.gamepadListener.onConnect.add((index) => {
+      if (index !== this.playerIndex) return; // Ignore other gamepadState
+      
+      console.log(`Gamepad ${index + 1} connected`);
+      
+      this.gamepadState.isConnected = true;
+    });
+    
+    inputManager.gamepadListener.onDisconnect.add((index) => {
+      if (index !== this.playerIndex) return; // Ignore other gamepadState
+      
+      console.log(`Gamepad ${index + 1} disconnected`);
+      
+      this.gamepadState.isConnected = false;
+    });
   }
 
   setupTouch() {
+    if (this.playerIndex > 0) return; // Only Player 1 uses touch
+    
     // Get controller elements
     this.controllerElement = document.getElementById('controller_parent');
     

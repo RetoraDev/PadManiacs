@@ -40,17 +40,29 @@ class Keybindings {
     
     this.windowManager.focus(settingsWindow);
     
-    settingsWindow.addItem("KEYBOARD KEYS", ">", () => {
+    // NEW: Player-specific categories
+    settingsWindow.addItem("PLAYER 1 KEYBOARD", ">", () => {
       this.windowManager.remove(settingsWindow, true);
-      this.showKeyboardCustomization();
+      this.showKeyboardCustomization(1);
     });
     
-    settingsWindow.addItem("GAMEPAD KEYS", ">", () => {
+    settingsWindow.addItem("PLAYER 2 KEYBOARD", ">", () => {
       this.windowManager.remove(settingsWindow, true);
-      this.showGamepadCustomization();
+      this.showKeyboardCustomization(2);
+    });
+    
+    settingsWindow.addItem("PLAYER 1 GAMEPAD", ">", () => {
+      this.windowManager.remove(settingsWindow, true);
+      this.showGamepadCustomization(1);
+    });
+    
+    settingsWindow.addItem("PLAYER 2 GAMEPAD", ">", () => {
+      this.windowManager.remove(settingsWindow, true);
+      this.showGamepadCustomization(2);
     });
     
     settingsWindow.addItem("RESET TO DEFAULTS", "", () => {
+      // RESET both players
       this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(
         "Reset all keybindings to default settings?",
@@ -58,7 +70,8 @@ class Keybindings {
           Account.mapping.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
           Account.mapping.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
           saveAccount();
-          gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
+          gamepad1.updateMapping(Account.mapping.keyboard.player1, Account.mapping.gamepad.player1);
+          gamepad2.updateMapping(Account.mapping.keyboard.player2, Account.mapping.gamepad.player2);
           game.state.restart();
           notifications.show("Keybindings reset!");
         },
@@ -77,51 +90,37 @@ class Keybindings {
     game.onMenuIn.dispatch('keybindings', settingsWindow);
   }
   
-  showKeyboardCustomization(selectedIndex = 0, returnIndex = null) {
+  showKeyboardCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
     const keysWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     keysWindow.fontTint = 0x76fcde;
     
-    if (returnIndex !== null) {
-      keysWindow.selectIndex(returnIndex);
-    } else {
-      keysWindow.selectIndex(selectedIndex);
-    }
-    
-    this.windowManager.focus(keysWindow);
-    
     const keyboardControls = [
-      { key: "UP", description: "UP ARROW", mappingKey: "up", index: 0 },
-      { key: "DOWN", description: "DOWN ARROW", mappingKey: "down", index: 0 },
-      { key: "LEFT", description: "LEFT ARROW", mappingKey: "left", index: 0 },
-      { key: "RIGHT", description: "RIGHT ARROW", mappingKey: "right", index: 0 },
-      { key: "DANCE LEFT", description: "DANCE LEFT", mappingKey: "left", index: 1 },
-      { key: "DANCE DOWN", description: "DANCE DOWN", mappingKey: "down", index: 1 },
-      { key: "DANCE UP", description: "DANCE UP", mappingKey: "up", index: 1 },
-      { key: "DANCE RIGHT", description: "DANCE RIGHT", mappingKey: "right", index: 1 },
-      { key: "SECONDARY DANCE LEFT", description: "SECONDARY DANCE LEFT", mappingKey: "left", index: 2 },
-      { key: "SECONDARY DANCE DOWN", description: "SECONDARY DANCE DOWN", mappingKey: "down", index: 2 },
-      { key: "SECONDARY DANCE UP", description: "SECONDARY DANCE UP", mappingKey: "up", index: 2 },
-      { key: "SECONDARY DANCE RIGHT", description: "SECONDARY DANCE RIGHT", mappingKey: "right", index: 2 },
+      { key: "UP", description: "UP", mappingKey: "up", index: 0 },
+      { key: "DOWN", description: "DOWN", mappingKey: "down", index: 0 },
+      { key: "LEFT", description: "LEFT", mappingKey: "left", index: 0 },
+      { key: "RIGHT", description: "RIGHT", mappingKey: "right", index: 0 },
       { key: "CONFIRM", description: "CONFIRM", mappingKey: "a", index: 0 },
       { key: "CANCEL", description: "CANCEL", mappingKey: "b", index: 0 },
       { key: "START", description: "START", mappingKey: "start", index: 0 },
       { key: "SELECT", description: "SELECT", mappingKey: "select", index: 0 }
     ];
     
+    const playerPrefix = playerNum === 1 ? "player1." : "player2.";
+    
     keyboardControls.forEach(control => {
-      const currentKey = this.getKeyboardKeyDisplay(control.mappingKey, control.index);
-      keysWindow.addItem(control.key, currentKey, () => {
-        // Guardar la ventana actual para poder volver
+      const currentKey = this.getKeyboardKeyDisplay(playerPrefix + control.mappingKey, control.index);
+      keysWindow.addItem(`${playerNum === 1 ? "P1" : "P2"} ${control.key}`, currentKey, () => {
         this.waitingState = {
           type: "keyboard",
+          playerNum: playerNum,
           mappingKey: control.mappingKey,
           index: control.index,
-          description: control.description,
+          description: `${playerNum === 1 ? "Player 1" : "Player 2"} ${control.description}`,
           selectedIndex: keysWindow.selectedIndex,
           menuWindow: keysWindow
         };
         this.windowManager.remove(keysWindow, true);
-        this.showKeyWaitOverlay(`PRESS KEY FOR: ${control.description}`);
+        this.showKeyWaitOverlay(`PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
       });
     });
     
@@ -130,45 +129,38 @@ class Keybindings {
       this.windowManager.unfocus();
       this.showKeybindingsMenu();
     }, true);
-    
-    game.onMenuIn.dispatch('keyboardCustomization', keysWindow);
   }
   
-  showGamepadCustomization(selectedIndex = 0, returnIndex = null) {
+  showGamepadCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
     const gamepadWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
     gamepadWindow.fontTint = 0x76fcde;
     
-    if (returnIndex !== null) {
-      gamepadWindow.selectIndex(returnIndex);
-    } else {
-      gamepadWindow.selectIndex(selectedIndex);
-    }
-    
-    this.windowManager.focus(gamepadWindow);
-    
     const gamepadControls = [
-      { key: "UP", description: "UP ARROW", mappingKey: "up" },
-      { key: "DOWN", description: "DOWN ARROW", mappingKey: "down" },
-      { key: "LEFT", description: "LEFT ARROW", mappingKey: "left" },
-      { key: "RIGHT", description: "RIGHT ARROW", mappingKey: "right" },
-      { key: "CONFIRM/RIGHT", description: "CONFIRM/RIGHT", mappingKey: "a" },
-      { key: "CANCEL/DOWN", description: "CANCEL/DOWN", mappingKey: "b" },
+      { key: "UP", description: "UP", mappingKey: "up" },
+      { key: "DOWN", description: "DOWN", mappingKey: "down" },
+      { key: "LEFT", description: "LEFT", mappingKey: "left" },
+      { key: "RIGHT", description: "RIGHT", mappingKey: "right" },
+      { key: "CONFIRM", description: "CONFIRM", mappingKey: "a" },
+      { key: "CANCEL", description: "CANCEL", mappingKey: "b" },
       { key: "START", description: "START", mappingKey: "start" },
       { key: "SELECT", description: "SELECT", mappingKey: "select" }
     ];
     
+    const playerPrefix = playerNum === 1 ? "player1." : "player2.";
+    
     gamepadControls.forEach(control => {
-      const currentButton = this.getGamepadButtonDisplay(control.mappingKey);
-      gamepadWindow.addItem(control.key, currentButton, () => {
+      const currentButton = this.getGamepadButtonDisplay(playerPrefix + control.mappingKey);
+      gamepadWindow.addItem(`${playerNum === 1 ? "P1" : "P2"} ${control.key}`, currentButton, () => {
         this.waitingState = {
           type: "gamepad",
+          playerNum: playerNum,
           mappingKey: control.mappingKey,
-          description: control.description,
+          description: `${playerNum === 1 ? "Player 1" : "Player 2"} ${control.description}`,
           selectedIndex: gamepadWindow.selectedIndex,
           menuWindow: gamepadWindow
         };
         this.windowManager.remove(gamepadWindow, true);
-        this.showKeyWaitOverlay(`PRESS GAMEPAD BUTTON FOR: ${control.description}`);
+        this.showKeyWaitOverlay(`PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
       });
     });
     
@@ -177,8 +169,6 @@ class Keybindings {
       this.windowManager.unfocus();
       this.showKeybindingsMenu();
     }, true);
-    
-    game.onMenuIn.dispatch('gamepadCustomization', gamepadWindow);
   }
   
   showKeyWaitOverlay(message) {
@@ -384,43 +374,55 @@ class Keybindings {
     if (keyCode === Phaser.KeyCode.ESC) return;
     
     const mapping = Account.mapping.keyboard;
-    const { mappingKey, index } = this.waitingState;
+    const { playerNum, mappingKey, index } = this.waitingState;
+    const playerKey = playerNum === 1 ? "player1" : "player2";
     
-    if (!mapping[mappingKey]) {
-      mapping[mappingKey] = [];
+    if (!mapping[playerKey][mappingKey]) {
+      mapping[playerKey][mappingKey] = [];
     }
     
-    while (mapping[mappingKey].length <= index) {
-      mapping[mappingKey].push(null);
+    while (mapping[playerKey][mappingKey].length <= index) {
+      mapping[playerKey][mappingKey].push(null);
     }
     
-    mapping[mappingKey][index] = keyCode;
+    mapping[playerKey][mappingKey][index] = keyCode;
     
     saveAccount();
-    gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
+    // Update appropriate gamepad
+    if (playerNum === 1) {
+      gamepad1.updateMapping(Account.mapping.keyboard.player1, Account.mapping.gamepad.player1);
+    } else {
+      gamepad2.updateMapping(Account.mapping.keyboard.player2, Account.mapping.gamepad.player2);
+    }
     
     notifications.show(`MAPPED: ${this.getKeyName(keyCode)}`);
     
-    // Volver al menú
     const selectedIndex = this.waitingState.selectedIndex;
     this.cleanupWaitOverlay();
-    this.showKeyboardCustomization(selectedIndex, selectedIndex);
+    this.showKeyboardCustomization(playerNum, selectedIndex, selectedIndex);
     this.waitingState = null;
   }
   
   handleGamepadButtonPress(buttonCode) {
     if (!this.waitingState || this.waitingState.type !== "gamepad") return;
     
-    Account.mapping.gamepad[this.waitingState.mappingKey] = buttonCode;
+    const { playerNum, mappingKey } = this.waitingState;
+    const playerKey = playerNum === 1 ? "player1" : "player2";
+    
+    Account.mapping.gamepad[playerKey][mappingKey] = buttonCode;
     
     saveAccount();
-    gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
+    if (playerNum === 1) {
+      gamepad1.updateMapping(Account.mapping.keyboard.player1, Account.mapping.gamepad.player1);
+    } else {
+      gamepad2.updateMapping(Account.mapping.keyboard.player2, Account.mapping.gamepad.player2);
+    }
     
     notifications.show(`MAPPED: ${GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`}`);
     
     const selectedIndex = this.waitingState.selectedIndex;
     this.cleanupWaitOverlay();
-    this.showGamepadCustomization(selectedIndex, selectedIndex);
+    this.showGamepadCustomization(playerNum, selectedIndex, selectedIndex);
     this.waitingState = null;
   }
   
@@ -463,8 +465,9 @@ class Keybindings {
     this.waitingState = null;
   }
   
-  getKeyboardKeyDisplay(mappingKey, index) {
-    const mapping = Account.mapping.keyboard[mappingKey];
+  getKeyboardKeyDisplay(mappingPath, index) {
+    const [player, mappingKey] = mappingPath.split('.');
+    const mapping = Account.mapping.keyboard[player][mappingKey];
     
     if (!mapping || !Array.isArray(mapping) || index >= mapping.length || !mapping[index]) {
       return "---";
@@ -473,8 +476,9 @@ class Keybindings {
     return this.getKeyName(mapping[index]);
   }
   
-  getGamepadButtonDisplay(mappingKey) {
-    const buttonCode = Account.mapping.gamepad[mappingKey];
+  getGamepadButtonDisplay(mappingPath) {
+    const [player, mappingKey] = mappingPath.split('.');
+    const buttonCode = Account.mapping.gamepad[player][mappingKey];
     
     if (buttonCode === undefined || buttonCode === null) {
       return "---";

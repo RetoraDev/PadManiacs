@@ -1,6 +1,6 @@
 {
   "name": "padmaniacs",
-  "version": "0.9.1",
+  "version": "1.0.0",
   "description": "Pocket Pixel Art StepMania clone",
   "main": "index.js",
   "scripts": {
