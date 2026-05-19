@@ -4,7 +4,7 @@ class Settings {
 
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
-    this.navigationHint = new NavigationHint(0);
+    this.navigationHint = new NavigationHint('general');
     
     this.windowManager = new WindowManager();
     
@@ -102,6 +102,21 @@ class Settings {
       index => {
         Account.settings.scrollDirection = index === 0 ? 'falling' : 'rising';
         saveAccount();
+      }
+    );
+    
+    // Button Style
+    settingsWindow.addSettingItem(
+      "Button Style",
+      ["X-BOX", "PLAYSTATION"],
+      (Account.settings.buttonStyle || 'xbox') === 'xbox' ? 0 : 1,
+      index => {
+        Account.settings.buttonStyle = index === 0 ? 'xbox' : 'ps';
+        saveAccount();
+        
+        if (window.currentNavigationHint) {
+          window.currentNavigationHint.setButtonStyle(Account.settings.buttonStyle);
+        }
       }
     );
     

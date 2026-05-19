@@ -5,7 +5,7 @@ class AchievementsMenu {
     new FuturisticLines();
     new BackgroundGradient();
     
-    this.navigationHint = new NavigationHint(6);
+    this.navigationHint = new NavigationHint('achievements');
     
     this.showingUnlocked = true;
     

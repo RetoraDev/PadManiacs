@@ -22,6 +22,8 @@ class SongSelect {
     
     this.autoSelect = autoSelect || false;
     
+    this.currentBannerTexture = null;
+  
     window.multiplayerState.player1.ready = false;
     window.multiplayerState.player2.ready = false;
     window.multiplayerState.player2.joined = false;
@@ -29,7 +31,7 @@ class SongSelect {
     
     if (this.startingIndex + 1 > this.songs.length) {
       this.startingIndex = 0;
-    } 
+    }
   }
   
   create() {
@@ -55,7 +57,7 @@ class SongSelect {
     this.previewCanvas = document.createElement("canvas");
     this.previewCtx = this.previewCanvas.getContext("2d");
     
-    this.navigationHint = new NavigationHint(2);
+    this.navigationHint = new NavigationHint('song_select');
     
     this.autoplayText = new Text(4, 104, "");
     
@@ -139,7 +141,7 @@ class SongSelect {
     // Handle carousel events
     this.songCarousel.onSelect.add((index, item) => {
       if (item.data && item.data.song) {
-        this.previewSong(item.data.song);
+        this.previewSong(item.data.song, index);
       }
     });
 
@@ -154,6 +156,12 @@ class SongSelect {
   }
 
   previewSong(song) {
+    // Destroy previous banner texture
+    if (this.currentBannerTexture) {
+      this.currentBannerTexture.destroy(true);
+      this.currentBannerTexture = null;
+    }
+    
     let index = this.songCarousel.selectedIndex;
     
     if (song.audioUrl) {
@@ -173,6 +181,7 @@ class SongSelect {
         this.previewCtx.drawImage(this.bannerImg, 0, 0, 96, 32);
         
         const texture = PIXI.Texture.fromCanvas(this.previewCanvas);
+        this.currentBannerTexture = texture;
         
         this.bannerSprite.loadTexture(texture);
       };
@@ -567,14 +576,21 @@ class SongSelect {
   }
   
   shutdown() {
-    this.previewAudio.pause();
-    this.previewAudio.src = "";
-    this.bannerImg.onload = null;
-    this.bannerImg.onerror = null;
-    this.bannerImg.src = "";
-    this.bannerImg = null;
-    this.previewCanvas = null;
-    this.previewCtx = null;
-    window.removeEventListener("visibilitychange", this.visibilityChangeListener);
+    if (this.currentBannerTexture) {
+      this.currentBannerTexture.destroy(true);
+      this.currentBannerTexture = null;
+    }
+    if (this.previewAudio) {
+      this.previewAudio.pause();
+      this.previewAudio.src = "";
+    }
+    if (this.bannerImg) {
+      this.bannerImg.onload = null;
+      this.bannerImg.onerror = null;
+      this.bannerImg.src = "";
+    }
+    if (this.visibilityChangeListener) {
+      window.removeEventListener("visibilitychange", this.visibilityChangeListener);
+    }
   }
 }

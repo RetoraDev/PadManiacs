@@ -4,16 +4,16 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.0.0
- * Build: 5/8/2026, 12:43:27 AM
- * Platform: Web
+ * Version: v1.0.1
+ * Build: 5/19/2026, 5:01:30 AM
+ * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
  */
 
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.0.0";
+const VERSION = "v1.0.1";
 
 window.DEBUG = false;
 
@@ -27,6 +27,177 @@ const FONTS = {
 };
 
 const WINDOW_PANELS = ["1"];
+
+const NAVIGATION_HINT_PRESETS = {
+  general: [
+    {
+      position: "right",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "right",
+      icon: "a",
+      text: "OK"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "BACK"
+    }
+  ],
+  general_no_a: [
+    {
+      position: "right",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "BACK"
+    }
+  ],
+  general_no_b: [
+    {
+      position: "right",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "BACK"
+    }
+  ],
+  song_select: [
+    {
+      position: "right",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "right",
+      icon: "a",
+      text: "OK"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "BACK"
+    },
+    {
+      position: "right",
+      icon: "select",
+      text: "AUTO"
+    }
+  ],
+  jukebox: [
+    {
+      position: "left",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "center",
+      icon: "a",
+      text: "∥/▶" 
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "FULL"
+    }
+  ],
+  color_input: [
+    {
+      position: "left",
+      icon: "d-pad",
+      text: " /"
+    },
+    {
+      position: "left",
+      icon: "a",
+      text: " /"
+    },
+    {
+      position: "left",
+      icon: "b",
+      text: " COLOR"
+    },
+    {
+      position: "right",
+      icon: "start",
+      text: "OK"
+    }
+  ],
+  text_input: [
+    {
+      position: "left",
+      icon: "d-pad",
+      text: " /"
+    },
+    {
+      position: "left",
+      icon: "a",
+      text: " /"
+    },
+    {
+      position: "left",
+      icon: "b",
+      text: " TEXT"
+    },
+    {
+      position: "right",
+      icon: "start",
+      text: "OK"
+    }
+  ],
+  achievements: [
+    {
+      position: "left",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "right",
+      icon: "select",
+      text: "DISPLAY"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "BACK"
+    }
+  ],
+  editor: [
+    {
+      position: "left",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "left",
+      icon: "start",
+      text: "MENU"
+    },
+    {
+      position: "left",
+      icon: "select",
+      text: "∥/▶"
+    },
+    {
+      position: "right",
+      icon: "a",
+      text: "SELECT"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "NOTE"
+    }
+  ]
+};
 
 const DEFAULT_SONG_FOLDERS = [
   "MikiMikiRomanticNight",
@@ -361,7 +532,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -1114,6 +1285,8 @@ const DEFAULT_ACCOUNT = {
     speedMod: "X-MOD",
     hapticFeedback: false,
     videoFps: 1,
+    enableMouse: true,
+    enableTouch: true,
     // Addon system settings
     safeMode: false,
     enabledAddons: [],
@@ -4204,7 +4377,7 @@ class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config, parent) {
     config = {
       font: "font_tiny",
-      fontMap: " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\"`•<>=%",
+      fontMap: " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\"`•<>=%∥▶",
       fontWidth: 4,
       fontHeight: 6,
       typewriter: false,
@@ -6742,21 +6915,398 @@ class Logo extends Phaser.Sprite {
 }
 
 class NavigationHint extends Phaser.Sprite {
-  constructor(frame = 0) {
-    super(game, 0, 0, 'ui_navigation_hint_screens');
+  constructor(hints = []) {
+    super(game, 0, game.height - 6);
     
-    this.frame = frame;
+    if (typeof hints === 'string') hints = NAVIGATION_HINT_PRESETS[hints] || [];
+    
+    this.hints = hints;
+    this.items = [];
+    this.alternateTimer = null;
+    this.currentAlternatePlayer = 1;
+    this.alternateMode = Account.settings.alternateHintMode || false;
+    
+    // Cache last state to avoid unnecessary refreshes
+    this.lastState = {
+      inputSource: null,
+      activePlayer: null,
+      buttonStyle: null,
+      alternateMode: null
+    };
+    
+    this.setupInputTracking();
+    this.createHints();
+    
+    if (this.alternateMode) this.startAlternateMode();
     
     game.add.existing(this);
+    
+    window.currentNavigationHint = this;
   }
-  change(value) {
-    this.frame = value;
+  
+  setupInputTracking() {
+    const updateCondition = () => {
+      if (this.alternateMode) return;
+      const currentSource = this.getInputSource();
+      const currentPlayer = this.getActivePlayer();
+      const currentStyle = Account.settings.buttonStyle || 'xbox';
+      
+      if (currentSource !== this.lastState.inputSource ||
+          currentPlayer !== this.lastState.activePlayer ||
+          currentStyle !== this.lastState.buttonStyle) {
+        this.refreshHints();
+      }
+    };
+    
+    if (gamepad1) gamepad1.signals.pressed.any.add(updateCondition);
+    if (gamepad2) gamepad2.signals.pressed.any.add(updateCondition);
+    
+    if (game.input && game.input.keyboard) {
+      const originalCallback = game.input.keyboard.onDownCallback;
+      game.input.keyboard.onDownCallback = (event) => {
+        if (originalCallback) originalCallback(event);
+        updateCondition();
+      };
+    }
+    
+    if (mouse) mouse.onDown.add(updateCondition);
   }
-  hide() {
-    this.visible = false;
+  
+  startAlternateMode() {
+    if (this.alternateTimer) game.time.events.remove(this.alternateTimer);
+    this.alternateTimer = game.time.events.loop(2000, () => {
+      this.currentAlternatePlayer = this.currentAlternatePlayer === 1 ? 2 : 1;
+      this.refreshHints();
+    });
   }
-  show() {
-    this.visible = true;
+  
+  stopAlternateMode() {
+    if (this.alternateTimer) {
+      game.time.events.remove(this.alternateTimer);
+      this.alternateTimer = null;
+    }
+  }
+  
+  setAlternateMode(enabled) {
+    this.alternateMode = enabled;
+    Account.settings.alternateHintMode = enabled;
+    saveAccount();
+    if (enabled) {
+      this.currentAlternatePlayer = gamepad?.lastPlayerId || 1;
+      this.startAlternateMode();
+    } else {
+      this.stopAlternateMode();
+    }
+    this.refreshHints();
+  }
+  
+  getActivePlayer() {
+    if (this.alternateMode) return this.currentAlternatePlayer;
+    return gamepad?.lastPlayerId || 1;
+  }
+  
+  getInputSource() {
+    if (this.alternateMode) return 'gamepad';
+    return gamepad?.lastInputSource || 'keyboard';
+  }
+  
+  refreshHints() {
+    // Update cached state
+    this.lastState.inputSource = this.getInputSource();
+    this.lastState.activePlayer = this.getActivePlayer();
+    this.lastState.buttonStyle = Account.settings.buttonStyle || 'xbox';
+    this.lastState.alternateMode = this.alternateMode;
+    
+    // Destroy all existing items
+    this.items.forEach(item => {
+      if (item.group) {
+        item.group.destroy(true);
+      } else {
+        if (item.iconSprite) item.iconSprite.destroy();
+        if (item.keySprite) item.keySprite.destroy();
+        if (item.descriptionSprite) item.descriptionSprite.destroy();
+      }
+    });
+    this.items = [];
+    this.createHints();
+  }
+  
+  createHints() {
+    const activePlayer = this.getActivePlayer();
+    const inputSource = this.getInputSource();
+    const buttonStyle = Account.settings.buttonStyle || 'xbox';
+    
+    const groupedHints = { left: [], center: [], right: [] };
+    this.hints.forEach(hint => groupedHints[hint.position].push(hint));
+    
+    this.createPositionHints('left', groupedHints.left, activePlayer, inputSource, buttonStyle);
+    this.createPositionHints('center', groupedHints.center, activePlayer, inputSource, buttonStyle);
+    this.createPositionHints('right', groupedHints.right, activePlayer, inputSource, buttonStyle);
+  }
+  
+  createPositionHints(position, hints, activePlayer, inputSource, buttonStyle) {
+    if (hints.length === 0) return;
+    
+    // Calculate total width
+    let totalWidth = 0;
+    for (const hint of hints) {
+      const iconWidth = this.getIconWidth(hint, inputSource, buttonStyle, activePlayer);
+      const keyText = this.getKeyText(hint, inputSource, activePlayer);
+      const descriptionText = hint.text;
+      const descriptionWidth = descriptionText ? (descriptionText.length * 4) : 0;
+      totalWidth += iconWidth + descriptionWidth + 4;
+    }
+    totalWidth -= 4;
+    
+    // Calculate start X
+    let currentX;
+    if (position === 'left') currentX = 4;
+    else if (position === 'center') currentX = (game.width / 2) - (totalWidth / 2);
+    else currentX = game.width - 4 - totalWidth;
+    
+    // Create each hint
+    for (const hint of hints) {
+      const iconGroup = this.createIcon(hint, inputSource, buttonStyle, activePlayer, currentX);
+      if (iconGroup) {
+        this.addChild(iconGroup.group);
+        currentX += iconGroup.width;
+      }
+      
+      const descriptionText = hint.text;
+      if (descriptionText) {
+        const descSprite = new Text(0, 0, descriptionText, FONTS.default);
+        descSprite.anchor.y = 0.5;
+        descSprite.x = currentX;
+        this.addChild(descSprite);
+        currentX += descSprite.width + 4;
+        this.items.push({ descriptionSprite: descSprite });
+      } else {
+        currentX += 4;
+      }
+    }
+  }
+  
+  createIcon(hint, inputSource, buttonStyle, activePlayer, x) {
+    const keyText = this.getKeyText(hint, inputSource, activePlayer);
+    const useKeySprite = (inputSource === 'keyboard' && keyText !== null);
+    const iconFrame = this.getIconFrame(hint.icon, inputSource, buttonStyle, activePlayer);
+    const useDedicatedFrame = (iconFrame !== undefined && iconFrame !== -1);
+    
+    let group = null;
+    let width = 0;
+    
+    // Case 1: Custom key sprite (for keyboard action buttons)
+    if (useKeySprite && !useDedicatedFrame) {
+      group = this.createKeySprite(keyText, 0, 0);
+      width = group.width;
+      group.x = x;
+    }
+    // Case 2: Dedicated frame (D-PAD, cursor, space, enter, or gamepad buttons)
+    else if (useDedicatedFrame) {
+      const sprite = game.add.sprite(0, 0, 'ui_navigation_icons', iconFrame);
+      sprite.anchor.y = 0.5;
+      group = new Phaser.Group(game);
+      group.add(sprite);
+      group.x = x;
+      width = 10;
+    }
+    
+    if (group) {
+      this.items.push({ group: group, hint: hint });
+      return { group: group, width: width };
+    }
+    return null;
+  }
+  
+  createKeySprite(keyText, x, y) {
+    const group = game.add.group();
+    group.x = x;
+    group.y = y;
+    
+    const textWidth = keyText.length * 4;
+    const totalWidth = 3 + textWidth + 3;
+    
+    // Left cap
+    const left = game.add.sprite(0, 0, 'ui_navigation_key', 0);
+    left.anchor.y = 0.5;
+    group.add(left);
+    
+    // Center slices (each 4px)
+    let currentX = 3;
+    for (let i = 0; i < textWidth; i += 4) {
+      const center = game.add.sprite(currentX, 0, 'ui_navigation_key', 1);
+      center.anchor.y = 0.5;
+      group.add(center);
+      currentX += 4;
+    }
+    
+    // Right cap
+    const right = game.add.sprite(totalWidth - 3, 0, 'ui_navigation_key', 2);
+    right.anchor.y = 0.5;
+    group.add(right);
+    
+    // Text label
+    const label = new Text(1 + totalWidth / 2, 0, keyText, FONTS.default);
+    label.anchor.set(0.5, 0.5);
+    group.add(label);
+    
+    return group;
+  }
+  
+  calculateKeyWidth(keyText) {
+    return 3 + (keyText.length * 4) + 3;
+  }
+  
+  getIconWidth(hint, inputSource, buttonStyle, activePlayer) {
+    const keyText = this.getKeyText(hint, inputSource, activePlayer);
+    const useKeySprite = (inputSource === 'keyboard' && keyText !== null);
+    const iconFrame = this.getIconFrame(hint.icon, inputSource, buttonStyle, activePlayer);
+    const useDedicatedFrame = (iconFrame !== undefined && iconFrame !== -1);
+    const frameWidths = {
+      12: 12,
+      13: 12,
+      14: 12,
+      15: 12,
+      16: 12,
+      20: 12,
+      21: 12
+    };
+    
+    if (useKeySprite && !useDedicatedFrame) return this.calculateKeyWidth(keyText);
+    if (useDedicatedFrame) return frameWidths[iconFrame] || 10;
+    return 0;
+  }
+  
+  getIconFrame(icon, inputSource, buttonStyle, activePlayer) {
+    // Keyboard mode: dedicated frames for special icons, others use -1 (custom key sprite)
+    if (inputSource === 'keyboard') {
+      const keyboardFrames = {
+        'd-pad': 16,
+        'cursor': 16
+      };
+      if (keyboardFrames[icon] !== undefined) return keyboardFrames[icon];
+      return -1; // Signal to use custom key sprite
+    }
+    
+    // Gamepad mode
+    if (icon === 'd-pad' || icon === 'cursor') return 1;
+    
+    const mappedButton = this.getButtonMapping(icon, activePlayer);
+    if (mappedButton !== undefined && mappedButton !== null) {
+      if (buttonStyle === 'xbox') {
+        const xboxFrames = {
+          0: 3,
+          1: 2,
+          2: 4,
+          3: 5,
+          8: 10,
+          9: 11, 
+          4: -1,
+          5: -1,
+          6: -1,
+          7: -1
+        };
+        return xboxFrames[mappedButton] !== undefined ? xboxFrames[mappedButton] : -1;
+      } else {
+        const psFrames = {
+          0: 7,
+          1: 6,
+          2: 8,
+          3: 9,
+          8: 10,
+          9: 11,
+          4: -1,
+          5: -1,
+          6: -1,
+          7: -1
+        };
+        return psFrames[mappedButton] !== undefined ? psFrames[mappedButton] : -1;
+      }
+    }
+    return -1;
+  }
+  
+  getButtonMapping(icon, playerId) {
+    const player = playerId === 1 ? 'player1' : 'player2';
+    const actionMap = {
+      'a': 'a', 'b': 'b', 'x': 'a', 'y': 'b',
+      'select': 'select', 'start': 'start'
+    };
+    const action = actionMap[icon];
+    if (!action) return null;
+    return Account.mapping.gamepad[player][action];
+  }
+  
+  getKeyText(hint, inputSource, activePlayer) {
+    if (inputSource !== 'keyboard') {
+      const triggerIcons = ['lb', 'rb', 'lt', 'rt'];
+      if (triggerIcons.includes(hint.icon)) {
+        const buttonNames = { 'lb': 'LB', 'rb': 'RB', 'lt': 'LT', 'rt': 'RT' };
+        return buttonNames[hint.icon];
+      }
+      return null;
+    }
+    
+    // Icons that use dedicated keyboard frames do not need key text
+    const dedicatedIcons = ['d-pad', 'cursor', 'space', 'enter'];
+    if (dedicatedIcons.includes(hint.icon)) return null;
+    
+    // Get mapped key for action buttons
+    const player = activePlayer === 1 ? 'player1' : 'player2';
+    const mapping = Account.mapping.keyboard[player];
+    let keyCode = null;
+    
+    switch (hint.icon) {
+      case 'a': keyCode = mapping.a?.[0]; break;
+      case 'b': keyCode = mapping.b?.[0]; break;
+      case 'select': keyCode = mapping.select?.[0]; break;
+      case 'start': keyCode = mapping.start?.[0]; break;
+      case 'x': keyCode = mapping.a?.[0]; break;
+      case 'y': keyCode = mapping.b?.[0]; break;
+    }
+    
+    if (keyCode) return this.keyCodeToString(keyCode);
+    
+    // Fallbacks
+    const fallbacks = { 'a': 'K', 'b': 'J', 'select': 'SHIFT', 'start': 'ENTER' };
+    return fallbacks[hint.icon] || null;
+  }  
+
+  keyCodeToString(keyCode) {
+    const keyNames = {
+      65:'A',66:'B',67:'C',68:'D',69:'E',70:'F',71:'G',72:'H',73:'I',74:'J',
+      75:'K',76:'L',77:'M',78:'N',79:'O',80:'P',81:'Q',82:'R',83:'S',84:'T',
+      85:'U',86:'V',87:'W',88:'X',89:'Y',90:'Z',
+      48:'0',49:'1',50:'2',51:'3',52:'4',53:'5',54:'6',55:'7',56:'8',57:'9',
+      16:'SHIFT',17:'CTRL',18:'ALT',13:'ENTER',32:'SPACE',
+      37:'◄',38:'▲',39:'►',40:'▼'
+    };
+    return keyNames[keyCode] || String.fromCharCode(keyCode);
+  }
+  
+  setButtonStyle(style) {
+    Account.settings.buttonStyle = style;
+    saveAccount();
+    this.refreshHints();
+  }
+  
+  updateHints(hints) {
+    if (typeof hints === 'string') hints = NAVIGATION_HINT_PRESETS[hints] || [];
+    this.hints = hints;
+    this.refreshHints();
+  }
+  
+  destroy() {
+    this.stopAlternateMode();
+    this.items.forEach(item => {
+      if (item.group) item.group.destroy(true);
+      else {
+        if (item.iconSprite) item.iconSprite.destroy();
+        if (item.keySprite) item.keySprite.destroy();
+        if (item.descriptionSprite) item.descriptionSprite.destroy();
+      }
+    });
+    super.destroy();
   }
 }
 
@@ -9700,10 +10250,10 @@ class GamepadListener {
     this.onDown = new Phaser.Signal();
     this.onUp = new Phaser.Signal();
     
-    this.game.input.onConnectCallback = (index) => this.onConnect.dispatch(index);
-    this.game.input.onDisconnectCallback = (index) => this.onDisconnect.dispatch(index);
-    this.game.input.onDownCallback = (code, _, index) => this.onDown.dispatch(index, code);
-    this.game.input.onUpCallback = (code, _, index) => this.onUp.dispatch(index, code);
+    this.game.input.gamepad.onConnectCallback = (index) => this.onConnect.dispatch(index);
+    this.game.input.gamepad.onDisconnectCallback = (index) => this.onDisconnect.dispatch(index);
+    this.game.input.gamepad.onDownCallback = (code, _, index) => this.onDown.dispatch(index, code);
+    this.game.input.gamepad.onUpCallback = (code, _, index) => this.onUp.dispatch(index, code);
   }
 }
 
@@ -9872,7 +10422,7 @@ class Gamepad {
       this.gamepadState[key] = false;
     });
     
-    inputManager.gamepadListener.onDown.add((keyCode, _, index) => {
+    inputManager.gamepadListener.onDown.add((keyCode, index) => {
       if (index !== this.playerIndex) return; // Ignore other gamepadState
       
       this.keys.forEach(key => {
@@ -9884,7 +10434,7 @@ class Gamepad {
       });
     });
     
-    inputManager.gamepadListener.onUp.add((keyCode, _, index) => {
+    inputManager.gamepadListener.onUp.add((keyCode, index) => {
       if (index !== this.playerIndex) return; // Ignore other gamepadState
       
       this.keys.forEach(key => {
@@ -10103,6 +10653,55 @@ class Gamepad {
     const key = id.replace('controller_', '');
     
     return this.keys.includes(key) || key.startsWith('rhythm_') ? key : null;
+  }
+  
+  getButtonForAction(action) {
+    const buttonCode = this.gamepadMap[action];
+    if (buttonCode === undefined) return null;
+    
+    // Determinar el nombre del botón según el estilo
+    const buttonStyle = Account.settings.buttonStyle || 'xbox';
+    
+    // Mapeo de códigos a nombres de botones
+    const buttonNames = {
+      // Xbox style
+      xbox: {
+        0: 'A',
+        1: 'B', 
+        2: 'X',
+        3: 'Y',
+        4: 'LB',
+        5: 'RB',
+        6: 'LT',
+        7: 'RT',
+        8: 'SELECT',
+        9: 'START',
+        12: 'DPAD_UP',
+        13: 'DPAD_DOWN',
+        14: 'DPAD_LEFT',
+        15: 'DPAD_RIGHT'
+      },
+      // PlayStation style
+      ps: {
+        0: 'CROSS',
+        1: 'CIRCLE',
+        2: 'SQUARE',
+        3: 'TRIANGLE',
+        4: 'L1',
+        5: 'R1',
+        6: 'L2',
+        7: 'R2',
+        8: 'SELECT',
+        9: 'START',
+        12: 'DPAD_UP',
+        13: 'DPAD_DOWN',
+        14: 'DPAD_LEFT',
+        15: 'DPAD_RIGHT'
+      }
+    };
+    
+    const names = buttonNames[buttonStyle];
+    return names[buttonCode] || null;
   }
 
   update() {
@@ -10340,6 +10939,7 @@ class AllPads extends Gamepad {
     super(game, undefined, undefined, 0);
     
     this.gamepads = gamepads || [];
+    this.lastPlayerId = 1;
   }
   update() {
     this.keys.forEach(key => {
@@ -10364,17 +10964,19 @@ class AllPads extends Gamepad {
 
         if (held) {
           this.held[key] = true;
-          anyHeld = true;
+          anyHeld = key;
         }
         
         if (pressed) {
           this.pressed[key] = true;
-          anyPressed = true;
+          anyPressed = key;
+          this.lastPlayerId = pad.playerIndex + 1;
+          this.lastInputSource = pad.lastInputSource;
         }
         
         if (released) {
           this.released[key] = true;
-          anyReleased = true;
+          anyReleased = key;
         }
         
         if (prevState) {
@@ -10385,10 +10987,10 @@ class AllPads extends Gamepad {
     
     this.keys.forEach(key => {
       if (this.pressed[key]) {
-        this.signals.pressed[key].dispatch();
+        this.signals.pressed[key].dispatch(key);
       }
       if (this.released[key]) {
-        this.signals.released[key].dispatch();
+        this.signals.released[key].dispatch(key);
       }
     });
     
@@ -12973,6 +13575,20 @@ class Boot {
         frameHeight: 112
       },
       {
+        key: "ui_navigation_icons",
+        url: "ui/navigation_icons.png",
+        type: "spritesheet",
+        frameWidth: 10,
+        frameHeight: 10
+      },
+      {
+        key: "ui_navigation_key",
+        url: "ui/navigation_key.png",
+        type: "spritesheet",
+        frameWidth: 4,
+        frameHeight: 8
+      },
+      {
         key: "ui_glitch_animation",
         url: "ui/glitch_animation.png",
         type: "spritesheet",
@@ -14047,7 +14663,7 @@ class MainMenu {
     
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
-    this.navigationHint = new NavigationHint(0);
+    this.navigationHint = new NavigationHint('general');
     
     // Check for feedback dialogs before showing menu
     this.checkInitialDialogs();
@@ -14462,7 +15078,7 @@ class Addons {
 
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
-    this.navigationHint = new NavigationHint(0);
+    this.navigationHint = new NavigationHint('general');
     
     this.previewCanvas = document.createElement("canvas");
     this.previewCtx = this.previewCanvas.getContext("2d");
@@ -14668,7 +15284,7 @@ class Settings {
 
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
-    this.navigationHint = new NavigationHint(0);
+    this.navigationHint = new NavigationHint('general');
     
     this.windowManager = new WindowManager();
     
@@ -14766,6 +15382,21 @@ class Settings {
       index => {
         Account.settings.scrollDirection = index === 0 ? 'falling' : 'rising';
         saveAccount();
+      }
+    );
+    
+    // Button Style
+    settingsWindow.addSettingItem(
+      "Button Style",
+      ["X-BOX", "PLAYSTATION"],
+      (Account.settings.buttonStyle || 'xbox') === 'xbox' ? 0 : 1,
+      index => {
+        Account.settings.buttonStyle = index === 0 ? 'xbox' : 'ps';
+        saveAccount();
+        
+        if (window.currentNavigationHint) {
+          window.currentNavigationHint.setButtonStyle(Account.settings.buttonStyle);
+        }
       }
     );
     
@@ -15044,7 +15675,7 @@ class Keybindings {
 
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
-    this.navigationHint = new NavigationHint(0);
+    this.navigationHint = new NavigationHint('general');
     
     this.windowManager = new WindowManager();
     
@@ -15592,6 +16223,8 @@ class SongSelect {
     
     this.autoSelect = autoSelect || false;
     
+    this.currentBannerTexture = null;
+  
     window.multiplayerState.player1.ready = false;
     window.multiplayerState.player2.ready = false;
     window.multiplayerState.player2.joined = false;
@@ -15599,7 +16232,7 @@ class SongSelect {
     
     if (this.startingIndex + 1 > this.songs.length) {
       this.startingIndex = 0;
-    } 
+    }
   }
   
   create() {
@@ -15625,7 +16258,7 @@ class SongSelect {
     this.previewCanvas = document.createElement("canvas");
     this.previewCtx = this.previewCanvas.getContext("2d");
     
-    this.navigationHint = new NavigationHint(2);
+    this.navigationHint = new NavigationHint('song_select');
     
     this.autoplayText = new Text(4, 104, "");
     
@@ -15709,7 +16342,7 @@ class SongSelect {
     // Handle carousel events
     this.songCarousel.onSelect.add((index, item) => {
       if (item.data && item.data.song) {
-        this.previewSong(item.data.song);
+        this.previewSong(item.data.song, index);
       }
     });
 
@@ -15724,6 +16357,12 @@ class SongSelect {
   }
 
   previewSong(song) {
+    // Destroy previous banner texture
+    if (this.currentBannerTexture) {
+      this.currentBannerTexture.destroy(true);
+      this.currentBannerTexture = null;
+    }
+    
     let index = this.songCarousel.selectedIndex;
     
     if (song.audioUrl) {
@@ -15743,6 +16382,7 @@ class SongSelect {
         this.previewCtx.drawImage(this.bannerImg, 0, 0, 96, 32);
         
         const texture = PIXI.Texture.fromCanvas(this.previewCanvas);
+        this.currentBannerTexture = texture;
         
         this.bannerSprite.loadTexture(texture);
       };
@@ -16137,15 +16777,22 @@ class SongSelect {
   }
   
   shutdown() {
-    this.previewAudio.pause();
-    this.previewAudio.src = "";
-    this.bannerImg.onload = null;
-    this.bannerImg.onerror = null;
-    this.bannerImg.src = "";
-    this.bannerImg = null;
-    this.previewCanvas = null;
-    this.previewCtx = null;
-    window.removeEventListener("visibilitychange", this.visibilityChangeListener);
+    if (this.currentBannerTexture) {
+      this.currentBannerTexture.destroy(true);
+      this.currentBannerTexture = null;
+    }
+    if (this.previewAudio) {
+      this.previewAudio.pause();
+      this.previewAudio.src = "";
+    }
+    if (this.bannerImg) {
+      this.bannerImg.onload = null;
+      this.bannerImg.onerror = null;
+      this.bannerImg.src = "";
+    }
+    if (this.visibilityChangeListener) {
+      window.removeEventListener("visibilitychange", this.visibilityChangeListener);
+    }
   }
 }
 
@@ -16160,7 +16807,7 @@ class CharacterSelect {
     new Background('ui_lobby_overlay', true, 0.3, 0.5);
     new FuturisticLines();
 
-    this.navigationHint = new NavigationHint(0);
+    this.navigationHint = new NavigationHint('general');
 
     this.createUI();
     this.updateDisplay();
@@ -16611,7 +17258,7 @@ class CharacterSelect {
 
       skinValueText.write(skinOptions[currentIndex]);
     };
-
+    
     gamepad.signals.pressed.any.add(skinHandler);
   }
 
@@ -16621,7 +17268,7 @@ class CharacterSelect {
     let g = (color >> 8) & 0xff;
     let b = color & 0xff;
     
-    this.navigationHint.change(4);
+    this.navigationHint.updateHints('color_input');
     
     const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
@@ -16664,7 +17311,7 @@ class CharacterSelect {
           rgbText.destroy();
           background.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
-          this.navigationHint.change(0);
+          this.navigationHint.updateHints('general');
           this.showCustomizationMenu();
           return;
       }
@@ -17093,13 +17740,13 @@ class CharacterSelect {
           rgbText.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
           callback();
-          this.navigationHint.change(0);
+          this.navigationHint.updateHints('general');
           return;
         case "select":
           // Go back to navigation
           rgbText.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
-          this.navigationHint.change(0);
+          this.navigationHint.updateHints('general');
           this.showCreationNavigationMenu();
           return;
       }
@@ -17107,7 +17754,7 @@ class CharacterSelect {
       rgbText.write(updateColor());
     };
     
-    this.navigationHint.change(4);
+    this.navigationHint.updateHints('color_input');
     
     gamepad.signals.pressed.any.add(colorHandler);
   }
@@ -17258,7 +17905,7 @@ class CharacterSelect {
     const nameText = new Text(96, 80, "ENTER CHARACTER NAME", FONTS.shaded);
     nameText.anchor.set(0.5);
     
-    this.navigationHint.change(5);
+    this.navigationHint.updateHints('text_input');
     
     new TextInput(
       this.generateName(),
@@ -17269,7 +17916,7 @@ class CharacterSelect {
         if (newChar) {
           this.selectedCharacter = newChar;
           nameText.destroy();
-          this.navigationHint.change(0);
+          this.navigationHint.updateHints('general');
           
           // Clean up temporary display
           if (this.tempCharacterDisplay) {
@@ -17281,7 +17928,7 @@ class CharacterSelect {
           this.showHomeUI();
         } else {
           notifications.show("Character name already exists");
-          this.navigationHint.change(0);
+          this.navigationHint.updateHints('general');
           // Retry naming
           this.creationNameCharacter(callback);
         }
@@ -17289,7 +17936,7 @@ class CharacterSelect {
       () => {
         // Cancel creation
         nameText.destroy();
-        this.navigationHint.change(0);
+        this.navigationHint.updateHints('general');
         this.cancelCharacterCreation();
       }
     );
@@ -17349,7 +17996,7 @@ class AchievementsMenu {
     new FuturisticLines();
     new BackgroundGradient();
     
-    this.navigationHint = new NavigationHint(6);
+    this.navigationHint = new NavigationHint('achievements');
     
     this.showingUnlocked = true;
     
@@ -19067,7 +19714,7 @@ class Results {
   }
   
   showMenu() {
-    this.navigationHint = new NavigationHint(1);
+    this.navigationHint = new NavigationHint('general_no_b');
     
     const height = this.gameData.character ? 72 : 80;
     const y = this.gameData.character ? 53 : 40;
@@ -19375,7 +20022,7 @@ class Jukebox {
     this.setupLyrics();
     
     // Add navigation hint
-    this.navigationHint = new NavigationHint(3);
+    this.navigationHint = new NavigationHint('jukebox');
     
     // Load first song
     this.loadSong(this.currentIndex);
@@ -20397,7 +21044,7 @@ class Editor {
     this.homeOverlay.endFill();
     this.homeOverlay.visible = false;
 
-    this.navigationHint = new NavigationHint(0);
+    this.navigationHint = new NavigationHint('general');
 
     this.cursorSprite = game.add.graphics(0, 0);
     this.selectionRect = game.add.graphics(0, 0);
@@ -20507,7 +21154,7 @@ class Editor {
     this.currentScreen = "metadata";
     this.clearUI();
     this.stopPlayback();
-    this.navigationHint.change(0);
+    this.navigationHint.updateHints('general');
     this.homeOverlay.visible = true;
     this.bannerSprite.visible = true;
     
@@ -20764,7 +21411,7 @@ class Editor {
     this.stopPlayback();
     this.homeOverlay.visible = false;
     this.bannerSprite.visible = false;
-    this.navigationHint.change(7);
+    this.navigationHint.updateHints('editor');
 
     this.chartRenderer.load(this.song, this.currentDifficultyIndex);
 

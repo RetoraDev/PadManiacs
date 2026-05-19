@@ -5,7 +5,7 @@ class Addons {
 
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
-    this.navigationHint = new NavigationHint(0);
+    this.navigationHint = new NavigationHint('general');
     
     this.previewCanvas = document.createElement("canvas");
     this.previewCtx = this.previewCanvas.getContext("2d");

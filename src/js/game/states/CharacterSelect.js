@@ -9,7 +9,7 @@ class CharacterSelect {
     new Background('ui_lobby_overlay', true, 0.3, 0.5);
     new FuturisticLines();
 
-    this.navigationHint = new NavigationHint(0);
+    this.navigationHint = new NavigationHint('general');
 
     this.createUI();
     this.updateDisplay();
@@ -460,7 +460,7 @@ class CharacterSelect {
 
       skinValueText.write(skinOptions[currentIndex]);
     };
-
+    
     gamepad.signals.pressed.any.add(skinHandler);
   }
 
@@ -470,7 +470,7 @@ class CharacterSelect {
     let g = (color >> 8) & 0xff;
     let b = color & 0xff;
     
-    this.navigationHint.change(4);
+    this.navigationHint.updateHints('color_input');
     
     const background = createGradientBackground(92, 85, 92, 24);
     background.anchor.set(0.5);
@@ -513,7 +513,7 @@ class CharacterSelect {
           rgbText.destroy();
           background.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
-          this.navigationHint.change(0);
+          this.navigationHint.updateHints('general');
           this.showCustomizationMenu();
           return;
       }
@@ -942,13 +942,13 @@ class CharacterSelect {
           rgbText.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
           callback();
-          this.navigationHint.change(0);
+          this.navigationHint.updateHints('general');
           return;
         case "select":
           // Go back to navigation
           rgbText.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
-          this.navigationHint.change(0);
+          this.navigationHint.updateHints('general');
           this.showCreationNavigationMenu();
           return;
       }
@@ -956,7 +956,7 @@ class CharacterSelect {
       rgbText.write(updateColor());
     };
     
-    this.navigationHint.change(4);
+    this.navigationHint.updateHints('color_input');
     
     gamepad.signals.pressed.any.add(colorHandler);
   }
@@ -1107,7 +1107,7 @@ class CharacterSelect {
     const nameText = new Text(96, 80, "ENTER CHARACTER NAME", FONTS.shaded);
     nameText.anchor.set(0.5);
     
-    this.navigationHint.change(5);
+    this.navigationHint.updateHints('text_input');
     
     new TextInput(
       this.generateName(),
@@ -1118,7 +1118,7 @@ class CharacterSelect {
         if (newChar) {
           this.selectedCharacter = newChar;
           nameText.destroy();
-          this.navigationHint.change(0);
+          this.navigationHint.updateHints('general');
           
           // Clean up temporary display
           if (this.tempCharacterDisplay) {
@@ -1130,7 +1130,7 @@ class CharacterSelect {
           this.showHomeUI();
         } else {
           notifications.show("Character name already exists");
-          this.navigationHint.change(0);
+          this.navigationHint.updateHints('general');
           // Retry naming
           this.creationNameCharacter(callback);
         }
@@ -1138,7 +1138,7 @@ class CharacterSelect {
       () => {
         // Cancel creation
         nameText.destroy();
-        this.navigationHint.change(0);
+        this.navigationHint.updateHints('general');
         this.cancelCharacterCreation();
       }
     );

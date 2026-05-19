@@ -66,7 +66,7 @@ class Jukebox {
     this.setupLyrics();
     
     // Add navigation hint
-    this.navigationHint = new NavigationHint(3);
+    this.navigationHint = new NavigationHint('jukebox');
     
     // Load first song
     this.loadSong(this.currentIndex);

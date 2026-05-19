@@ -17,6 +17,8 @@ const DEFAULT_ACCOUNT = {
     speedMod: "X-MOD",
     hapticFeedback: false,
     videoFps: 1,
+    enableMouse: true,
+    enableTouch: true,
     // Addon system settings
     safeMode: false,
     enabledAddons: [],

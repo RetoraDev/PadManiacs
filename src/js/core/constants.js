@@ -15,6 +15,177 @@ const FONTS = {
 
 const WINDOW_PANELS = ["1"];
 
+const NAVIGATION_HINT_PRESETS = {
+  general: [
+    {
+      position: "right",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "right",
+      icon: "a",
+      text: "OK"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "BACK"
+    }
+  ],
+  general_no_a: [
+    {
+      position: "right",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "BACK"
+    }
+  ],
+  general_no_b: [
+    {
+      position: "right",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "BACK"
+    }
+  ],
+  song_select: [
+    {
+      position: "right",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "right",
+      icon: "a",
+      text: "OK"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "BACK"
+    },
+    {
+      position: "right",
+      icon: "select",
+      text: "AUTO"
+    }
+  ],
+  jukebox: [
+    {
+      position: "left",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "center",
+      icon: "a",
+      text: "∥/▶" 
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "FULL"
+    }
+  ],
+  color_input: [
+    {
+      position: "left",
+      icon: "d-pad",
+      text: " /"
+    },
+    {
+      position: "left",
+      icon: "a",
+      text: " /"
+    },
+    {
+      position: "left",
+      icon: "b",
+      text: " COLOR"
+    },
+    {
+      position: "right",
+      icon: "start",
+      text: "OK"
+    }
+  ],
+  text_input: [
+    {
+      position: "left",
+      icon: "d-pad",
+      text: " /"
+    },
+    {
+      position: "left",
+      icon: "a",
+      text: " /"
+    },
+    {
+      position: "left",
+      icon: "b",
+      text: " TEXT"
+    },
+    {
+      position: "right",
+      icon: "start",
+      text: "OK"
+    }
+  ],
+  achievements: [
+    {
+      position: "left",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "right",
+      icon: "select",
+      text: "DISPLAY"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "BACK"
+    }
+  ],
+  editor: [
+    {
+      position: "left",
+      icon: "d-pad",
+      text: "NAVIGATE"
+    },
+    {
+      position: "left",
+      icon: "start",
+      text: "MENU"
+    },
+    {
+      position: "left",
+      icon: "select",
+      text: "∥/▶"
+    },
+    {
+      position: "right",
+      icon: "a",
+      text: "SELECT"
+    },
+    {
+      position: "right",
+      icon: "b",
+      text: "NOTE"
+    }
+  ]
+};
+
 const DEFAULT_SONG_FOLDERS = [
   "MikiMikiRomanticNight",
   "ThousandCherryBlossoms",

@@ -218,7 +218,7 @@ class Results {
   }
   
   showMenu() {
-    this.navigationHint = new NavigationHint(1);
+    this.navigationHint = new NavigationHint('general_no_b');
     
     const height = this.gameData.character ? 72 : 80;
     const y = this.gameData.character ? 53 : 40;

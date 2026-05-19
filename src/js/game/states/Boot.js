@@ -123,6 +123,20 @@ class Boot {
         frameHeight: 112
       },
       {
+        key: "ui_navigation_icons",
+        url: "ui/navigation_icons.png",
+        type: "spritesheet",
+        frameWidth: 10,
+        frameHeight: 10
+      },
+      {
+        key: "ui_navigation_key",
+        url: "ui/navigation_key.png",
+        type: "spritesheet",
+        frameWidth: 4,
+        frameHeight: 8
+      },
+      {
         key: "ui_glitch_animation",
         url: "ui/glitch_animation.png",
         type: "spritesheet",

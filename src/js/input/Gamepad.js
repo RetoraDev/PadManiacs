@@ -125,7 +125,7 @@ class Gamepad {
       this.gamepadState[key] = false;
     });
     
-    inputManager.gamepadListener.onDown.add((keyCode, _, index) => {
+    inputManager.gamepadListener.onDown.add((keyCode, index) => {
       if (index !== this.playerIndex) return; // Ignore other gamepadState
       
       this.keys.forEach(key => {
@@ -137,7 +137,7 @@ class Gamepad {
       });
     });
     
-    inputManager.gamepadListener.onUp.add((keyCode, _, index) => {
+    inputManager.gamepadListener.onUp.add((keyCode, index) => {
       if (index !== this.playerIndex) return; // Ignore other gamepadState
       
       this.keys.forEach(key => {
@@ -356,6 +356,55 @@ class Gamepad {
     const key = id.replace('controller_', '');
     
     return this.keys.includes(key) || key.startsWith('rhythm_') ? key : null;
+  }
+  
+  getButtonForAction(action) {
+    const buttonCode = this.gamepadMap[action];
+    if (buttonCode === undefined) return null;
+    
+    // Determinar el nombre del botón según el estilo
+    const buttonStyle = Account.settings.buttonStyle || 'xbox';
+    
+    // Mapeo de códigos a nombres de botones
+    const buttonNames = {
+      // Xbox style
+      xbox: {
+        0: 'A',
+        1: 'B', 
+        2: 'X',
+        3: 'Y',
+        4: 'LB',
+        5: 'RB',
+        6: 'LT',
+        7: 'RT',
+        8: 'SELECT',
+        9: 'START',
+        12: 'DPAD_UP',
+        13: 'DPAD_DOWN',
+        14: 'DPAD_LEFT',
+        15: 'DPAD_RIGHT'
+      },
+      // PlayStation style
+      ps: {
+        0: 'CROSS',
+        1: 'CIRCLE',
+        2: 'SQUARE',
+        3: 'TRIANGLE',
+        4: 'L1',
+        5: 'R1',
+        6: 'L2',
+        7: 'R2',
+        8: 'SELECT',
+        9: 'START',
+        12: 'DPAD_UP',
+        13: 'DPAD_DOWN',
+        14: 'DPAD_LEFT',
+        15: 'DPAD_RIGHT'
+      }
+    };
+    
+    const names = buttonNames[buttonStyle];
+    return names[buttonCode] || null;
   }
 
   update() {

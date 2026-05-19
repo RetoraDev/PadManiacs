@@ -2,7 +2,7 @@ class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config, parent) {
     config = {
       font: "font_tiny",
-      fontMap: " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\"`•<>=%",
+      fontMap: " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\"`•<>=%∥▶",
       fontWidth: 4,
       fontHeight: 6,
       typewriter: false,

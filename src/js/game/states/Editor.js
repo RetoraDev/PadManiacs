@@ -78,7 +78,7 @@ class Editor {
     this.homeOverlay.endFill();
     this.homeOverlay.visible = false;
 
-    this.navigationHint = new NavigationHint(0);
+    this.navigationHint = new NavigationHint('general');
 
     this.cursorSprite = game.add.graphics(0, 0);
     this.selectionRect = game.add.graphics(0, 0);
@@ -188,7 +188,7 @@ class Editor {
     this.currentScreen = "metadata";
     this.clearUI();
     this.stopPlayback();
-    this.navigationHint.change(0);
+    this.navigationHint.updateHints('general');
     this.homeOverlay.visible = true;
     this.bannerSprite.visible = true;
     
@@ -445,7 +445,7 @@ class Editor {
     this.stopPlayback();
     this.homeOverlay.visible = false;
     this.bannerSprite.visible = false;
-    this.navigationHint.change(7);
+    this.navigationHint.updateHints('editor');
 
     this.chartRenderer.load(this.song, this.currentDifficultyIndex);
 

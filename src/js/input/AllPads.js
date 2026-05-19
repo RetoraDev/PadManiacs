@@ -3,6 +3,7 @@ class AllPads extends Gamepad {
     super(game, undefined, undefined, 0);
     
     this.gamepads = gamepads || [];
+    this.lastPlayerId = 1;
   }
   update() {
     this.keys.forEach(key => {
@@ -27,17 +28,19 @@ class AllPads extends Gamepad {
 
         if (held) {
           this.held[key] = true;
-          anyHeld = true;
+          anyHeld = key;
         }
         
         if (pressed) {
           this.pressed[key] = true;
-          anyPressed = true;
+          anyPressed = key;
+          this.lastPlayerId = pad.playerIndex + 1;
+          this.lastInputSource = pad.lastInputSource;
         }
         
         if (released) {
           this.released[key] = true;
-          anyReleased = true;
+          anyReleased = key;
         }
         
         if (prevState) {
@@ -48,10 +51,10 @@ class AllPads extends Gamepad {
     
     this.keys.forEach(key => {
       if (this.pressed[key]) {
-        this.signals.pressed[key].dispatch();
+        this.signals.pressed[key].dispatch(key);
       }
       if (this.released[key]) {
-        this.signals.released[key].dispatch();
+        this.signals.released[key].dispatch(key);
       }
     });
     

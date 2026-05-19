@@ -4,7 +4,7 @@ class Keybindings {
 
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
-    this.navigationHint = new NavigationHint(0);
+    this.navigationHint = new NavigationHint('general');
     
     this.windowManager = new WindowManager();
     
