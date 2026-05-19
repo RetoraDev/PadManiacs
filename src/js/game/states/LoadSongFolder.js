@@ -88,10 +88,13 @@ class LoadSongFolder {
     const zipContent = await zip.loadAsync(file);
 
     // Import the project
-    await this.processZipContent(zipContent);
+    await this.processZipContent(zipContent, callback => {
+      // Start gameplay directly with this single song
+      game.state.start("SongSelect", true, false, [ chart ], 0, true);
+    });
   }
 
-  async processZipContent(zipContent) {
+  async processZipContent(zipContent, callback) {
     // Find .sm file
     let smFile = null;
     let smFilename = null;
@@ -183,8 +186,7 @@ class LoadSongFolder {
       }
     }
     
-    // Start gameplay directly with this single song
-    game.state.start("SongSelect", true, false, [ chart ], 0, true);
+    callback(chart);
   }  
   
   showError(message) {

@@ -95,6 +95,13 @@ class FileTools {
     return parts[parts.length - 1] || "";
   }
   
+  static getDirectory(url) {
+    if (!url || url === "no-media") return "";
+    const parts = url.split('/');
+    parts.pop();
+    return parts.join('/');
+  }
+  
   static getExtension(url) {
     if (!url || url === "no-media") return "";
     const parts = url.split('.');
@@ -143,6 +150,15 @@ class FileTools {
       reader.onload = () => resolve(reader.result);
       reader.onerror = () => reject(reader.error);
       reader.readAsText(file);
+    });
+  }
+  
+  static readBinaryFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsBinaryString(file);
     });
   }
 }

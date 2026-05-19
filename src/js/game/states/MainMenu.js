@@ -219,6 +219,7 @@ class MainMenu {
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       carousel.addItem("User Songs", () => this.loadExternalSongs());
+      carousel.addItem("Filesystem", () => this.startFileSelect());
     }
     carousel.addItem("Load Single Song", () => this.loadSingleSong());
     
@@ -354,6 +355,15 @@ class MainMenu {
 
   loadExternalSongs() {
     game.state.start("LoadExternalSongs");
+  }
+  
+  startFileSelect() {
+    game.state.start('FileSelect', true, false, ['sm', 'zip'], (entry) => {
+      const fileName = entry.name;
+      const folderPath = FileTools.getDirectory(entry.fullPath);
+      
+      game.state.start('LoadExternalSongFile', true, false, fileName, folderPath);
+    });
   }
 
   loadSingleSong() {

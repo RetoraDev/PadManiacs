@@ -118,7 +118,10 @@ class CarouselMenu extends Phaser.Sprite {
       bgWidth - 8 : 8;
     const textAnchor = this.config.align === 'right' ? 1 : 0;
     
-    const itemText = new Text(textX, 0, item.textContent, {
+    const itemIcon = item.data.icon ? game.add.sprite(textX, 0, 'ui_icons', item.data.icon - 1) : null;
+    if (itemIcon) itemParent.addChild(itemIcon);
+    
+    const itemText = new Text(itemIcon ? textX * 2 : textX, 0, item.textContent, {
       ...FONTS.default,
       tint: data.fgcolor || this.config.fgcolor
     });

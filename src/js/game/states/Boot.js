@@ -50,12 +50,14 @@ class Boot {
     game.state.add("LoadLocalSongs", LoadLocalSongs);
     game.state.add("LoadExternalSongs", LoadExternalSongs);
     game.state.add("LoadSongFolder", LoadSongFolder);
+    game.state.add("LoadExternalSongFile", LoadExternalSongFile);
     game.state.add("Title", Title);
     game.state.add("MainMenu", MainMenu);
     game.state.add("Addons", Addons);
     game.state.add("Settings", Settings);
     game.state.add("Keybindings", Keybindings);
     game.state.add("SongSelect", SongSelect);
+    game.state.add("FileSelect", FileSelect);
     game.state.add("CharacterSelect", CharacterSelect);
     game.state.add("AchievementsMenu", AchievementsMenu);
     game.state.add("StatsMenu", StatsMenu);
@@ -116,11 +118,11 @@ class Boot {
         url: "ui/lobby_overlay.png"
       },
       {
-        key: "ui_navigation_hint_screens",
-        url: "ui/navigation_hint_screens.png",
+        key: "ui_icons",
+        url: "ui/icons.png",
         type: "spritesheet",
-        frameWidth: 192,
-        frameHeight: 112
+        frameWidth: 8,
+        frameHeight: 8
       },
       {
         key: "ui_navigation_icons",

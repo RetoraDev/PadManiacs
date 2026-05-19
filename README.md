@@ -18,15 +18,14 @@ PadManiacs is a lightweight rhythm game that brings the StepMania experience to 
 ### Keyboard Controls
 
 **Directional Inputs:**
-- **Arrow Keys**: Primary directional inputs (Left, Down, Up, Right)
-- **D/F/J/K**: Primary dance pad layout
-- **C/V/B/N**: Secondary dance pad layout
+- **WASD**: Directional input
+- **A/S/J/K**: Dance pad layout
 
 **Action Buttons:**
-- **Z** or **J**: A button / Right column
-- **X** or **K**: B button / Down column
-- **Shift**, **Tab**, or **Space Bar**: Select button
-- **Enter**, **Escape**, or **P**: Start button
+- **J**: B button / Up column
+- **K**: A button / Right column
+- **Shift**: Select button
+- **Enter**: Start button
 
 Gamepad and touchscreen are supported
 
@@ -91,7 +90,7 @@ Accessible from the main menu, the Add-on Manager allows you to:
 
 ## License
 
-Copyright © 2025 RETORA
+Copyright © 2026 RETORA
 
 This software is provided under the PadManiacs License. See the LICENSE file for complete terms.
 

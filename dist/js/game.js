@@ -5,8 +5,8 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.0.1
- * Build: 5/19/2026, 5:01:30 AM
- * Platform: Android (Cordova)
+ * Build: 5/19/2026, 10:37:42 AM
+ * Platform: Web
  * Debug: false
  * Minified: false
  */
@@ -532,7 +532,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -6022,7 +6022,10 @@ class CarouselMenu extends Phaser.Sprite {
       bgWidth - 8 : 8;
     const textAnchor = this.config.align === 'right' ? 1 : 0;
     
-    const itemText = new Text(textX, 0, item.textContent, {
+    const itemIcon = item.data.icon ? game.add.sprite(textX, 0, 'ui_icons', item.data.icon - 1) : null;
+    if (itemIcon) itemParent.addChild(itemIcon);
+    
+    const itemText = new Text(itemIcon ? textX * 2 : textX, 0, item.textContent, {
       ...FONTS.default,
       tint: data.fgcolor || this.config.fgcolor
     });
@@ -12250,6 +12253,13 @@ class FileTools {
     return parts[parts.length - 1] || "";
   }
   
+  static getDirectory(url) {
+    if (!url || url === "no-media") return "";
+    const parts = url.split('/');
+    parts.pop();
+    return parts.join('/');
+  }
+  
   static getExtension(url) {
     if (!url || url === "no-media") return "";
     const parts = url.split('.');
@@ -12298,6 +12308,15 @@ class FileTools {
       reader.onload = () => resolve(reader.result);
       reader.onerror = () => reject(reader.error);
       reader.readAsText(file);
+    });
+  }
+  
+  static readBinaryFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsBinaryString(file);
     });
   }
 }
@@ -13502,12 +13521,14 @@ class Boot {
     game.state.add("LoadLocalSongs", LoadLocalSongs);
     game.state.add("LoadExternalSongs", LoadExternalSongs);
     game.state.add("LoadSongFolder", LoadSongFolder);
+    game.state.add("LoadExternalSongFile", LoadExternalSongFile);
     game.state.add("Title", Title);
     game.state.add("MainMenu", MainMenu);
     game.state.add("Addons", Addons);
     game.state.add("Settings", Settings);
     game.state.add("Keybindings", Keybindings);
     game.state.add("SongSelect", SongSelect);
+    game.state.add("FileSelect", FileSelect);
     game.state.add("CharacterSelect", CharacterSelect);
     game.state.add("AchievementsMenu", AchievementsMenu);
     game.state.add("StatsMenu", StatsMenu);
@@ -13568,11 +13589,11 @@ class Boot {
         url: "ui/lobby_overlay.png"
       },
       {
-        key: "ui_navigation_hint_screens",
-        url: "ui/navigation_hint_screens.png",
+        key: "ui_icons",
+        url: "ui/icons.png",
         type: "spritesheet",
-        frameWidth: 192,
-        frameHeight: 112
+        frameWidth: 8,
+        frameHeight: 8
       },
       {
         key: "ui_navigation_icons",
@@ -14479,10 +14500,13 @@ class LoadSongFolder {
     const zipContent = await zip.loadAsync(file);
 
     // Import the project
-    await this.processZipContent(zipContent);
+    await this.processZipContent(zipContent, callback => {
+      // Start gameplay directly with this single song
+      game.state.start("SongSelect", true, false, [ chart ], 0, true);
+    });
   }
 
-  async processZipContent(zipContent) {
+  async processZipContent(zipContent, callback) {
     // Find .sm file
     let smFile = null;
     let smFilename = null;
@@ -14574,8 +14598,7 @@ class LoadSongFolder {
       }
     }
     
-    // Start gameplay directly with this single song
-    game.state.start("SongSelect", true, false, [ chart ], 0, true);
+    callback(chart);
   }  
   
   showError(message) {
@@ -14583,6 +14606,121 @@ class LoadSongFolder {
     game.time.events.add(3000, () => {
       game.state.start("MainMenu");
     });
+  }
+}
+
+class LoadExternalSongFile {
+  init(fileName, filePath, nextState, nextStateParams) {
+    this.fileName = fileName;
+    this.filePath = filePath;
+    this.nextState = nextState || 'SongSelect';
+    this.nextStateParams = nextStateParams || [];
+  }
+  
+  create() {
+    this.loadingDots = new LoadingDots();
+    
+    this.progressText = new ProgressText("LOADING SONG DATA");
+    
+    this.fileSystem = new FileSystemTools();
+    this.parser = new ExternalSMParser();
+    
+    if (this.fileName.endsWith('.zip')) {
+      this.loadZipFileData();
+    } else {
+      this.loadSongData();
+    }
+  }
+  
+  async loadSongData() {
+    const dirEntry = await this.fileSystem.getDirectory(this.filePath);
+          
+    const files = await this.fileSystem.listFiles(dirEntry);
+    const chartFiles = {};
+
+    for (const fileEntry of files) {
+      const file = await this.fileSystem.getFile(fileEntry);
+      chartFiles[file.name.toLowerCase()] = file;
+    }
+    
+    try {
+      const smFile = chartFiles[this.fileName.toLowerCase()];
+      
+      // Try to parse the chart file
+      const content = await this.fileSystem.readFileContent(smFile);
+      const chart = await this.parser.parseSM(chartFiles, content);
+      
+      if (chart && chart.difficulties && chart.difficulties.length > 0) {
+        // Chart file parsed successfully
+        chart.folderName = dirEntry.name || `External_Song_${this.fileName.toLowerCase()}`;
+        chart.loaded = true;
+        this.finish(chart);
+        return;
+      }
+    } catch (parseError) {
+      // Failed to parse, continue loading next chart
+      this.showError(`Failed to parse ${this.fileName}:`);
+      console.warn(`Failed to parse ${this.fileName}:`, parseError);
+      return;
+    }
+    
+    this.showError(`Failed to parse ${this.fileName}`);
+  }
+  
+  async loadZipFileData() {
+    const dirEntry = await this.fileSystem.getDirectory(this.filePath);
+          
+    const files = await this.fileSystem.listFiles(dirEntry);
+    
+    let file = null;
+
+    for (const fileEntry of files) {
+      if (fileEntry.name == this.fileName) {
+        file = await this.fileSystem.getFile(fileEntry);
+        break;
+      }
+    }
+    
+    if (file) {
+      file = await FileTools.readBinaryFile(file);
+    }
+    
+    const JSZip = window.JSZip;
+    if (!JSZip) {
+      this.showError("Couldn't load ZIP file");
+      throw new Error("JSZip library not loaded");
+    }
+    
+    if (!file) {
+      this.showError("Couldn't load ZIP file");
+      throw new Error("Undefined .zip file");
+    }
+    
+    const zip = new JSZip();
+    const zipContent = await zip.loadAsync(file);
+
+    // Import the project
+    await LoadSongFolder.prototype.processZipContent.call(this, zipContent, chart => this.finish(chart));
+  }
+  
+  showError(message) {
+    this.progressText.write(message);
+    game.time.events.add(3000, () => {
+      game.state.start("MainMenu");
+    });
+  }
+  
+  finish(chart = null) {
+    if (!chart) {
+      this.showError("Couldn't load song");
+      return;
+    }
+    
+    if (this.nextStateParams.length) {
+      game.state.start(this.nextState, true, false, chart, ...this.nextStateParams);
+    } else {
+      game.state.start(this.nextState, true, false, [ chart ], null, false, "external");
+    }
   }
 }
 
@@ -14878,6 +15016,7 @@ class MainMenu {
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       carousel.addItem("User Songs", () => this.loadExternalSongs());
+      carousel.addItem("Filesystem", () => this.startFileSelect());
     }
     carousel.addItem("Load Single Song", () => this.loadSingleSong());
     
@@ -15013,6 +15152,15 @@ class MainMenu {
 
   loadExternalSongs() {
     game.state.start("LoadExternalSongs");
+  }
+  
+  startFileSelect() {
+    game.state.start('FileSelect', true, false, ['sm', 'zip'], (entry) => {
+      const fileName = entry.name;
+      const folderPath = FileTools.getDirectory(entry.fullPath);
+      
+      game.state.start('LoadExternalSongFile', true, false, fileName, folderPath);
+    });
   }
 
   loadSingleSong() {
@@ -16196,6 +16344,227 @@ class Keybindings {
     });
     
     return dialog;
+  }
+}
+
+class FileSelect {
+  init(extensions = null, onSelect = null, onCancel = null, allowCancel = true) {
+    this.extensions = extensions;
+    this.onSelect = onSelect;
+    this.onCancel = onCancel;
+    this.allowCancel = allowCancel;
+    this.currentPath = '';
+    this.currentDir = null;
+    this.history = []; // Stack for navigation history
+    this.fileSystem = new FileSystemTools();
+  }
+
+  create() {
+    game.camera.fadeIn(0x000000);
+    
+    this.backgroundGradient = new BackgroundGradient();
+    this.futuristicLines = new FuturisticLines();
+    this.navigationHint = new NavigationHint([
+      { position: "left", icon: "cursor", text: "NAVIGATE" },
+      { position: "right", icon: "a", text: "SELECT" },
+      { position: "right", icon: "b", text: this.allowCancel ? "BACK/CANCEL" : "BACK" }
+    ]);
+    
+    this.pathText = new Text(4, 4, "PATH: /", FONTS.default);
+    this.pathText.wrapPreserveNewlines(180);
+    
+    this.emptyFolderText = new Text(game.width / 2, game.height / 2, "This folder is empty", FONTS.shaded);
+    this.emptyFolderText.anchor.set(0.5);
+    this.emptyFolderText.visible = false;
+    
+    this.loadDirectory();
+  }
+
+  async loadDirectory(dirEntry = null) {
+    this.emptyFolderText.visible = false;
+    
+    // Show loading indicator
+    if (this.loadingDots) this.loadingDots.destroy();
+    this.loadingDots = new LoadingDots();
+    this.loadingDots.y -= 8;
+    
+    // Clear existing carousel
+    if (this.carousel) {
+      this.carousel.destroy();
+    }
+    
+    // Get directory contents
+    let entries = [];
+    
+    if (dirEntry === null) {
+      // Load root directory
+      try {
+        this.currentDir = await this.fileSystem.getDirectory('');
+        entries = await this.fileSystem.listDirectories(this.currentDir);
+        // Add files from root too
+        const files = await this.fileSystem.listFiles(this.currentDir);
+        entries = [...entries, ...files];
+      } catch (error) {
+        console.error("Failed to load root directory:", error);
+        this.showError("Cannot access file system");
+        return;
+      }
+    } else {
+      this.currentDir = dirEntry;
+      const dirs = await this.fileSystem.listDirectories(this.currentDir);
+      const files = await this.fileSystem.listFiles(this.currentDir);
+      entries = [...dirs, ...files];
+    }
+    
+    // Filter by extensions if specified
+    if (this.extensions !== null) {
+      entries = entries.filter(entry => {
+        if (entry.isDirectory) return true;
+        const ext = FileTools.getExtension(entry.name);
+        return this.extensions.includes(ext);
+      });
+    }
+    
+    // Separate directories and files
+    const directories = entries.filter(e => e.isDirectory);
+    const files = entries.filter(e => e.isFile);
+    
+    // Sort alphabetically
+    directories.sort((a, b) => a.name.localeCompare(b.name));
+    files.sort((a, b) => a.name.localeCompare(b.name));
+    
+    // Combine (directories first, then files)
+    const sortedEntries = [...directories, ...files];
+    
+    // Create carousel
+    this.carousel = new CarouselMenu(0, 16, game.width, game.height - 24, {
+      bgcolor: '#2c3e50',
+      fgcolor: '#ffffff',
+      align: 'left',
+      animate: true,
+      disableCancel: !this.allowCancel
+    });
+    
+    // Add parent directory entry (..) if not in root
+    if (this.history.length > 0 || (this.currentDir && this.currentDir.fullPath !== '/')) {
+      this.carousel.addItem("..", () => this.goToParent(), {
+        entry: null,
+        icon: 4,
+        isParent: true,
+        bgcolor: '#34495e'
+      });
+    }
+    
+    // Add all entries
+    sortedEntries.forEach(entry => {
+      const ext = FileTools.getExtension(entry.name);
+      const fileIcons = {
+        wav: 3,
+        mp3: 3,
+        ogg: 3,
+        wma: 3,
+        sm: 5,
+        scc: 5,
+        zip: 5
+      };
+      
+      this.carousel.addItem(entry.name, () => this.onEntrySelected(entry), {
+        entry: entry,
+        icon: entry.isDirectory ? 2 : fileIcons[ext] || 1,
+        isDirectory: entry.isDirectory,
+        bgcolor: entry.isDirectory ? '#2980b9' : '#8e44ad'
+      });
+    });
+    
+    if (sortedEntries.length === 0 && (!this.history.length && this.currentDir && this.currentDir.fullPath === '/')) {
+      this.emptyFolderText.visible = true;
+    }
+    
+    // Update path display
+    this.updatePathDisplay();
+    
+    // Handle cancel
+    this.carousel.onCancel.add(() => {
+      if (this.history.length > 0) {
+        this.goBack();
+      } else if (this.allowCancel && this.onCancel) {
+        this.onCancel();
+        game.state.start("MainMenu");
+      } else if (this.allowCancel) {
+        game.state.start("MainMenu");
+      }
+    });
+    
+    // Destroy loading indicator
+    this.loadingDots.destroy();
+    this.loadingDots = null;
+  }
+  
+  onEntrySelected(entry) {
+    if (entry.isDirectory) {
+      // Push current path to history and navigate into directory
+      this.history.push(this.currentDir);
+      this.loadDirectory(entry);
+    } else {
+      // File selected
+      if (this.onSelect) {
+        this.onSelect(entry);
+      } else {
+        game.state.start("MainMenu");
+      }
+    }
+  }
+  
+  async goToParent() {
+    if (this.history.length > 0) {
+      const parent = this.history.pop();
+      this.loadDirectory(parent);
+    } else if (this.currentDir && this.currentDir.fullPath !== '/') {
+      // Navigate to parent directory
+      const parentPath = this.currentDir.fullPath.split('/').slice(0, -1).join('/') || '/';
+      try {
+        const parentDir = await this.fileSystem.getDirectory(parentPath);
+        this.loadDirectory(parentDir);
+      } catch (error) {
+        console.error("Failed to navigate to parent:", error);
+      }
+    }
+  }
+  
+  goBack() {
+    if (this.history.length > 0) {
+      const previous = this.history.pop();
+      this.loadDirectory(previous);
+    }
+  }
+  
+  updatePathDisplay() {
+    let path = this.currentDir ? this.currentDir.fullPath : '/';
+    if (path === '') path = '/';
+    this.pathText.write("PATH: " + path);
+    this.pathText.wrapPreserveNewlines(180);
+  }
+  
+  showError(message) {
+    this.loadingDots?.destroy();
+    this.carousel?.destroy();
+    
+    const errorText = new Text(game.width / 2, game.height / 2, message, FONTS.shaded);
+    errorText.anchor.set(0.5);
+    
+    game.time.events.add(2000, () => {
+      errorText.destroy();
+      game.state.start("MainMenu");
+    });
+  }
+  
+  update() {
+    gamepad.update();
+  }
+  
+  shutdown() {
+    if (this.loadingDots) this.loadingDots.destroy();
+    if (this.carousel) this.carousel.destroy();
   }
 }
 
