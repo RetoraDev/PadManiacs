@@ -151,7 +151,7 @@ class Gamepad {
     inputManager.gamepadListener.onConnect.add((index) => {
       if (index !== this.playerIndex) return; // Ignore other gamepadState
       
-      console.log(`Gamepad ${index + 1} connected`);
+      console.log(`Pad ${index + 1} connected`);
       
       this.gamepadState.isConnected = true;
     });
@@ -159,7 +159,7 @@ class Gamepad {
     inputManager.gamepadListener.onDisconnect.add((index) => {
       if (index !== this.playerIndex) return; // Ignore other gamepadState
       
-      console.log(`Gamepad ${index + 1} disconnected`);
+      console.log(`Pad ${index + 1} disconnected`);
       
       this.gamepadState.isConnected = false;
     });

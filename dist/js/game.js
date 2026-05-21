@@ -4,16 +4,16 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.0.1
- * Build: 5/19/2026, 10:37:42 AM
- * Platform: Web
+ * Version: v1.0.1 dev
+ * Build: 5/21/2026, 12:25:42 AM
+ * Platform: Development
  * Debug: false
  * Minified: false
  */
 
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.0.1";
+const VERSION = "v1.0.1 dev";
 
 window.DEBUG = false;
 
@@ -352,7 +352,7 @@ const KEYBOARD_KEY_NAMES = {
   // TODO: Add Korean and Japanese keyboard key codes, and Dead keycodes for Linux
   
   // Function keys
-    "F1": "F1",
+  "F1": "F1",
   "F2": "F2",
   "F3": "F3", 
   "F4": "F4",
@@ -532,7 +532,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -10268,8 +10268,15 @@ class KeyboardListener {
     this.onUp = new Phaser.Signal();
     
     // Global keyboard listeners
-    this.game.input.keyboard.onDownCallback = (event) => this.onDown.dispatch(event.keyCode, event);
-    this.game.input.keyboard.onUpCallback = (event) => this.onUp.dispatch(event.keyCode, event);
+    this.game.input.keyboard.onDownCallback = (event) => {
+      this.onDown.dispatch(event.keyCode, event);
+      event.preventDefault();
+    };
+    
+    this.game.input.keyboard.onUpCallback = (event) => {
+      this.onUp.dispatch(event.keyCode, event);
+      event.preventDefault();
+    };
   }
 }
 
@@ -10451,7 +10458,7 @@ class Gamepad {
     inputManager.gamepadListener.onConnect.add((index) => {
       if (index !== this.playerIndex) return; // Ignore other gamepadState
       
-      console.log(`Gamepad ${index + 1} connected`);
+      console.log(`Pad ${index + 1} connected`);
       
       this.gamepadState.isConnected = true;
     });
@@ -10459,7 +10466,7 @@ class Gamepad {
     inputManager.gamepadListener.onDisconnect.add((index) => {
       if (index !== this.playerIndex) return; // Ignore other gamepadState
       
-      console.log(`Gamepad ${index + 1} disconnected`);
+      console.log(`Pad ${index + 1} disconnected`);
       
       this.gamepadState.isConnected = false;
     });
@@ -16006,7 +16013,7 @@ class Keybindings {
     instructionText.anchor.set(0.5, 0.5);
     instructionText.fontSize = 2;
     
-    const helpText = new Text(96, 80, "PRESS ESC TO CANCEL\nHOLD TO UNMAP");
+    const helpText = new Text(96, 80, "HOLD ESC TO UNMAP");
     helpText.anchor.set(0.5, 0.5);
     
     const progressBarBg = game.add.graphics(0, 0);
@@ -16077,7 +16084,6 @@ class Keybindings {
           escIsHeld = false;
           resetProgress();
         }
-        this.handleKeyboardKeyPress(event.keyCode);
       }
     };
     
@@ -16088,11 +16094,9 @@ class Keybindings {
         const holdTime = Date.now() - escHoldStartTime;
         escIsHeld = false;
         resetProgress();
-        
-        if (holdTime < holdDuration * 0.8) {
-          this.cancelKeyWait();
-        }
       }
+      
+      this.handleKeyboardKeyPress(event.keyCode);
     };
     
     const gamepadListener = (buttonCode) => {
@@ -16190,7 +16194,6 @@ class Keybindings {
   
   handleKeyboardKeyPress(keyCode) {
     if (!this.waitingState || this.waitingState.type !== "keyboard") return;
-    if (keyCode === Phaser.KeyCode.ESC) return;
     
     const mapping = Account.mapping.keyboard;
     const { playerNum, mappingKey, index } = this.waitingState;
@@ -16289,7 +16292,7 @@ class Keybindings {
     const mapping = Account.mapping.keyboard[player][mappingKey];
     
     if (!mapping || !Array.isArray(mapping) || index >= mapping.length || !mapping[index]) {
-      return "---";
+      return "???";
     }
     
     return this.getKeyName(mapping[index]);
@@ -16300,7 +16303,7 @@ class Keybindings {
     const buttonCode = Account.mapping.gamepad[player][mappingKey];
     
     if (buttonCode === undefined || buttonCode === null) {
-      return "---";
+      return "???";
     }
     
     return GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`;

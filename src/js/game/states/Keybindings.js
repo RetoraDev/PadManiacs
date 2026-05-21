@@ -187,7 +187,7 @@ class Keybindings {
     instructionText.anchor.set(0.5, 0.5);
     instructionText.fontSize = 2;
     
-    const helpText = new Text(96, 80, "PRESS ESC TO CANCEL\nHOLD TO UNMAP");
+    const helpText = new Text(96, 80, "HOLD ESC TO UNMAP");
     helpText.anchor.set(0.5, 0.5);
     
     const progressBarBg = game.add.graphics(0, 0);
@@ -258,7 +258,6 @@ class Keybindings {
           escIsHeld = false;
           resetProgress();
         }
-        this.handleKeyboardKeyPress(event.keyCode);
       }
     };
     
@@ -269,11 +268,9 @@ class Keybindings {
         const holdTime = Date.now() - escHoldStartTime;
         escIsHeld = false;
         resetProgress();
-        
-        if (holdTime < holdDuration * 0.8) {
-          this.cancelKeyWait();
-        }
       }
+      
+      this.handleKeyboardKeyPress(event.keyCode);
     };
     
     const gamepadListener = (buttonCode) => {
@@ -371,7 +368,6 @@ class Keybindings {
   
   handleKeyboardKeyPress(keyCode) {
     if (!this.waitingState || this.waitingState.type !== "keyboard") return;
-    if (keyCode === Phaser.KeyCode.ESC) return;
     
     const mapping = Account.mapping.keyboard;
     const { playerNum, mappingKey, index } = this.waitingState;
@@ -470,7 +466,7 @@ class Keybindings {
     const mapping = Account.mapping.keyboard[player][mappingKey];
     
     if (!mapping || !Array.isArray(mapping) || index >= mapping.length || !mapping[index]) {
-      return "---";
+      return "???";
     }
     
     return this.getKeyName(mapping[index]);
@@ -481,7 +477,7 @@ class Keybindings {
     const buttonCode = Account.mapping.gamepad[player][mappingKey];
     
     if (buttonCode === undefined || buttonCode === null) {
-      return "---";
+      return "???";
     }
     
     return GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`;

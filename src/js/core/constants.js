@@ -339,7 +339,7 @@ const KEYBOARD_KEY_NAMES = {
   // TODO: Add Korean and Japanese keyboard key codes, and Dead keycodes for Linux
   
   // Function keys
-    "F1": "F1",
+  "F1": "F1",
   "F2": "F2",
   "F3": "F3", 
   "F4": "F4",
