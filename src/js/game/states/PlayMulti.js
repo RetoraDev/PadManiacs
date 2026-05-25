@@ -22,29 +22,55 @@ class PlayMulti extends Play {
   createHud() {
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
-    this.hud = game.add.sprite(0, 0, "ui_hud_background_multi", 0);
+    this.hud = game.add.sprite(0, 0);
+        
+    this.hudFlashShape = game.add.sprite(game.width / 2, game.height / 2, 'ui_hud_flash_shape_multi');
+    this.hudFlashShape.anchor.set(0.5);
+    this.hudFlashShape.alpha = 0;
+    this.hud.addChild(this.hudFlashShape);
+    
+    this.hudTop = game.add.sprite(0, -40, 'ui_hud_background_top_multi');
+    this.hudTop.alpha = 0;
+    this.hud.addChild(this.hudTop);
+    
+    this.hudBottom = game.add.sprite(0, 40, 'ui_hud_background_bottom_multi');
+    this.hudBottom.alpha = 0;
+    this.hud.addChild(this.hudBottom);
     
     this.p1Hud = game.add.sprite(0, 0, "ui_hud_player_parent_multi", 0);
-    this.hud.addChild(this.p1Hud);
+    this.hudTop.addChild(this.p1Hud);
     
     this.p2Hud = game.add.sprite(0, 0, "ui_hud_player_parent_multi", 1);
-    this.hud.addChild(this.p2Hud);
+    this.hudTop.addChild(this.p2Hud);
     
     this.overHud = game.add.sprite(0, 0);
+    
+    // Get song difficulty
+    const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
+    
+    this.difficultyBanner = game.add.sprite(game.width / 2, 0, "ui_difficulty_banner_multi", 0);
+    this.difficultyBanner.tint = this.getDifficultyColor(difficulty.rating);
+    this.difficultyBanner.anchor.x = 0.5;
+    this.hudTop.addChild(this.difficultyBanner);
+    
+    this.difficultyTypeText = new Text(0, 1, difficulty.type.substr(0, 9), FONTS.default, this.difficultyBanner);
+    this.difficultyTypeText.anchor.x = 0.5;
+    this.difficultyTypeText.alpha = 0.7;
+    game.add.tween(this.difficultyTypeText).to({ alpha: 1 }, 400, "Linear", true).repeat(-1).yoyo(true);
     
     // Get song title
     const title = this.song.chart.titleTranslit || this.song.chart.title;
     
     // Song title text
-    this.songTitleText = new Text(game.width / 2, 11, "", null, this.hud);
+    this.songTitleText = new Text(game.width / 2, 11, "", null, this.hudTop);
     this.songTitleText.anchor.x = 0.5;
     this.songTitleText.write(title, 21);
     
     // P1 Health Text
-    this.p1HealthText = new Text(1, 3, "100", null, this.p1Hud);
+    this.p1HealthText = new Text(1, 3, "100", FONTS.tiny_number, this.p1Hud);
     
     // P2 Health Text
-    this.p2HealthText = new Text(game.width - 1, 3, "100", null, this.p2Hud);
+    this.p2HealthText = new Text(game.width - 1, 3, "100", FONTS.tiny_number, this.p2Hud);
     this.p2HealthText.anchor.x = 1;
     
     // Tint both texts
@@ -52,34 +78,36 @@ class PlayMulti extends Play {
     this.p2HealthText.tint = 0x96918e;
     
     // P1 Score Text 
-    this.p1ScoreText = new Text(16, 7, "00000000", null, this.hud);
+    this.p1ScoreText = new Text(16, 7, "00000000", FONTS.tiny_number, this.p1Hud);
     
     // P2 Score Text 
-    this.p2ScoreText = new Text(game.width - 16, 7, "00000000", null, this.hud);
+    this.p2ScoreText = new Text(game.width - 16, 7, "00000000", FONTS.tiny_number, this.p2Hud);
     this.p2ScoreText.anchor.x = 1;
     
     // P1 Judgement Text
-    this.p1JudgementText = new Text(0, 60, "", FONTS.shaded);
+    this.p1JudgementText = game.add.sprite(0, 75, "judgement", 0);
+    this.p1JudgementText.alpha = 0;
     this.p1JudgementText.anchor.set(0.5);
-    
+
     // P2 Judgement Text
-    this.p2JudgementText = new Text(0, 60, "", FONTS.shaded);
+    this.p2JudgementText = game.add.sprite(0, 75, "judgement", 0);
+    this.p2JudgementText.alpha = 0;
     this.p2JudgementText.anchor.set(0.5);
     
     // P1 Accuracy Bar
-    this.p1AccuracyBar = game.add.sprite(2, 108, "ui_accuracy_bar_multi");
+    this.p1AccuracyBar = game.add.sprite(2, 136, "ui_accuracy_bar_multi");
     this.hud.addChild(this.p1AccuracyBar);
     
     // P2 Accuracy Bar
-    this.p2AccuracyBar = game.add.sprite(117, 108, "ui_accuracy_bar_multi");
+    this.p2AccuracyBar = game.add.sprite(146, 136, "ui_accuracy_bar_multi");
     this.hud.addChild(this.p2AccuracyBar);
     
     // P1 Combo Number
-    this.p1ComboText = new Text(1, 106, "0", FONTS.combo);
+    this.p1ComboText = new Text(1, 140 - 6, "0", FONTS.biscuitlocker_combo, this.hudBottom);
     this.p1ComboText.anchor.y = 1;
 
     // P2 Combo Number
-    this.p2ComboText = new Text(191, 106, "0", FONTS.combo);
+    this.p2ComboText = new Text(240 - 1, 140 - 6, "0", FONTS.biscuitlocker_combo, this.hudBottom);
     this.p2ComboText.anchor.set(1);
     
     // P1 Lifebar
@@ -92,7 +120,7 @@ class PlayMulti extends Play {
     this.p1Hud.addChild(this.p1LifebarStart);
     
     // P2 Lifebar
-    this.p2LifebarStart = game.add.sprite(105, 3, "ui_lifebar", 0);
+    this.p2LifebarStart = game.add.sprite(153, 3, "ui_lifebar", 0);
     this.p2LifebarMiddle = game.add.sprite(1, 0, "ui_lifebar", 1);
     this.p2LifebarMiddle.width = 71;
     this.p2LifebarEnd = game.add.sprite(105, 0, "ui_lifebar", 2);
@@ -101,17 +129,17 @@ class PlayMulti extends Play {
     this.p2Hud.addChild(this.p2LifebarStart);
     
     // Autoplay texts
-    this.autoplayText = new Text(game.width / 2, 93, "METRONOME", FONTS.stroke, this.hud);
+    this.autoplayText = new Text(game.width / 2, 93, "METRONOME", FONTS.tiny_stroke, this.hud);
     this.autoplayText.anchor.x = 0.5;
     
-    this.p1AutoplayText = new Text(2, 16, "AUTOPLAY", FONTS.stroke, this.hud);
+    this.p1AutoplayText = new Text(2, 16, "AUTOPLAY", FONTS.tiny_stroke, this.hud);
     
-    this.p2AutoplayText = new Text(190, 16, "AUTOPLAY", FONTS.stroke, this.hud);
+    this.p2AutoplayText = new Text(190, 16, "AUTOPLAY", FONTS.tiny_stroke, this.hud);
     this.p2AutoplayText.anchor.x = 1;
   }
   
   createVisualizer() {
-    super.createVisualizer(78, 103, 36, 7);
+    super.createVisualizer(97, 131, 46, 7);
   }
   
   setupPlayer() {

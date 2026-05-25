@@ -25,8 +25,8 @@ class SongSelect {
     this.currentBannerTexture = null;
   
     window.multiplayerState.player1.ready = false;
-    window.multiplayerState.player2.ready = false;
-    window.multiplayerState.player2.joined = false;
+    window.multiplayerState.player2.ready = true;
+    window.multiplayerState.player2.joined = true;
     this.multiplayerState = window.multiplayerState;
     
     if (this.startingIndex + 1 > this.songs.length) {
@@ -59,13 +59,13 @@ class SongSelect {
     
     this.navigationHint = new NavigationHint('song_select');
     
-    this.autoplayText = new Text(4, 104, "");
+    this.autoplayText = new Text(4, 132, "");
     
     this.bannerSprite = game.add.sprite(4, 4, null);
 
     this.metadataText = new Text(102, 4, "");
     
-    this.highScoreText = new Text(104, 50, "");
+    this.highScoreText = new Text(game.width / 2 + 8, 58, "");
     
     this.loadingDots = new LoadingDots();
     this.loadingDots.y -= 8;
@@ -103,7 +103,7 @@ class SongSelect {
     const x = 0;
     const y = 35;
     const width = game.width / 2;
-    const height = 72;
+    const height = 100;
 
     this.songCarousel = new CarouselMenu(x, y, width, height, {
       bgcolor: "#9b59b6",
@@ -194,7 +194,7 @@ class SongSelect {
     }
     
     this.metadataText.write(this.getMetadataText(song));
-    this.metadataText.wrapPreserveNewlines(80);
+    this.metadataText.wrap(136);
     
     this.displayHighScores(song);
     
@@ -354,8 +354,8 @@ class SongSelect {
   showMultiplayerScreen(song, difficultyIndex) {
     this.multiplayerScreen = game.add.group();
     
-    this.player1Frame = this.windowManager1.createWindow(0.5, 5, 11, 8, "1", this.multiplayerScreen);
-    this.player2Frame = this.windowManager2.createWindow(12.5, 5, 11, 8, "1", this.multiplayerScreen);
+    this.player1Frame = this.windowManager1.createWindow(1, 5, 14, 10, "1", this.multiplayerScreen);
+    this.player2Frame = this.windowManager2.createWindow(15.5, 5, 14, 10, "1", this.multiplayerScreen);
     
     this.populatePlayerFrame(this.player1Frame, 1);
     this.populatePlayerFrame(this.player2Frame, 2);
@@ -369,8 +369,8 @@ class SongSelect {
     this.p1ReadyBackground.anchor.set(0.5);
     this.p2ReadyBackground.anchor.set(0.5);
     
-    this.p1ReadyText = new Text(0, 0, "READY", null, this.p1ReadyBackground);
-    this.p2ReadyText = new Text(0, 0, "READY", null, this.p2ReadyBackground);
+    this.p1ReadyText = new Text(0, 1, "READY", null, this.p1ReadyBackground);
+    this.p2ReadyText = new Text(0, 1, "READY", null, this.p2ReadyBackground);
     
     this.p1ReadyText.anchor.set(0.5);
     this.p2ReadyText.anchor.set(0.5);
@@ -379,11 +379,11 @@ class SongSelect {
     this.multiplayerScreen.addChild(this.p2ReadyBackground);
 
     // Prompt player 2 to press start
-    this.playerJoinInstructionText = new Text(96 + 44, 40 + 32, "PLAYER 2\n< PRESS START >", null, this.multiplayerScreen);
+    this.playerJoinInstructionText = new Text(120 + 55, 50 + 32, "PLAYER 2\n< PRESS START >", null, this.multiplayerScreen);
     this.playerJoinInstructionText.anchor.set(0.5);
     
     // Prompt both players to press start
-    this.startInstructionText = new Text(game.width / 2, 90, "PRESS START TO BEGIN", null, this.multiplayerScreen);
+    this.startInstructionText = new Text(game.width / 2, 100, "PRESS START TO BEGIN", null, this.multiplayerScreen);
     this.startInstructionText.visible = false;
     this.startInstructionText.anchor.set(0.5);
     

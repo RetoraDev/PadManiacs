@@ -16,13 +16,14 @@ class ChartRenderer {
       chartBackgroundOpacity: 0.3,
       enableSpeedRendering: false,
       enableBGRendering: false,
-      judgeLineYFalling: 90,
-      judgeLineYRising: 25,
+      judgeLineYFalling: 112,
+      judgeLineYRising: 30,
       speedMod: "X-MOD",
       scrollDirection: "falling",
       noteSpeedMultiplier: 1,
       noteColorOption: "NOTE",
       displayPosition: "center",
+      parent: null,
       player: null,
       ...options
     };
@@ -37,7 +38,7 @@ class ChartRenderer {
     this.NOTE_SPEED_MULTIPLIER = this.options.noteSpeedMultiplier + this.SCREEN_CONSTANT;
     this.JUDGE_LINE = this.scrollDirection === "falling" ? this.options.judgeLineYFalling : this.options.judgeLineYRising;
     this.DIRECTION = this.scrollDirection === "falling" ? -1 : 1;
-    this.COLUMN_SIZE = 16;
+    this.COLUMN_SIZE = 20;
     this.COLUMN_SEPARATION = 4;
     this.INACTIVE_COLOR = 0x888888;
 
@@ -146,6 +147,19 @@ class ChartRenderer {
     this.minesGroup = new Phaser.Group(game);
     this.explosionsGroup = new Phaser.SpriteBatch(game);
     this.tagsGroup = new Phaser.Group(game);
+    
+    // Add groups to parent if needed
+    if (this.options.parent) {
+      this.parent = this.options.parent;
+      this.parent.addChild(this.linesGroup);
+      this.parent.addChild(this.receptorsGroup);
+      this.parent.addChild(this.freezeBodyGroup);
+      this.parent.addChild(this.freezeEndGroup);
+      this.parent.addChild(this.notesGroup);
+      this.parent.addChild(this.minesGroup);
+      this.parent.addChild(this.explosionsGroup);
+      this.parent.addChild(this.tagsGroup);
+    }
 
     this.receptors = [];
     this.initialize();
@@ -215,9 +229,9 @@ class ChartRenderer {
     if (this.displayPosition == "left") {
       return 8;
     } else if (this.displayPosition == "right") {
-      return 192 - totalWidth - 8;
+      return game.width - totalWidth - 8;
     } else {
-      return (192 - totalWidth) / 2;
+      return (game.width - totalWidth) / 2;
     }
   }
   
@@ -700,12 +714,7 @@ class ChartRenderer {
   createTag(beat, type, x, y) {
     const existingChild = this.tagsGroup.getFirstDead();
 
-    const tagText = existingChild || new Text(x, y, "---", {
-      font: "font_tiny",
-      fontMap: " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\"`•<>=%",
-      fontWidth: 4,
-      fontHeight: 6
-    }, this.tagsGroup);
+    const tagText = existingChild || new Text(x, y, "---", FONTS.tiny_default, this.tagsGroup);
     
     if (!tagText.alive) tagText.revive();
     

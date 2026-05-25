@@ -22,6 +22,7 @@ class Player {
       noteSpeedMultiplier: settings.noteSpeedMult || Account.settings.noteSpeedMult,
       noteColor: settings.noteColorOption || Account.settings.noteColorOption || "NOTE",
       displayPosition: playerSide,
+      parent: settings.parent || null,
       player: this
     });
     
@@ -118,11 +119,11 @@ class Player {
     this.accuracyBar = accuracyBar || game.add.sprite();
     
     this.updateAccuracy();
-    
+
     // Define constants
     this.HEALTH_X = this.lifebarStart.x;
-    this.HEALTH_WIDTH = 102; // Width of the variable area of the health bar
-    this.ACCURACY_BAR_WIDTH = 150;
+    this.HEALTH_WIDTH = 145; // Width of the variable area of the health bar
+    this.ACCURACY_BAR_WIDTH = 187;
   }
   
   calculateTotalNotes() {
@@ -151,7 +152,7 @@ class Player {
     
     const candidateNotes = this.notes.filter(n => 
       !n.hit && 
-      n.column === column && 
+      column === -1 || n.column === column && 
       noteTypes.includes(n.type) && 
       Math.abs(n.beat - beat) <= searchRangeBeats
     );
@@ -362,7 +363,9 @@ class Player {
       this.processNoteIfInWindow(closestHold, now, column, (note, timeDelta) => {
         const judgement = this.getJudgement(timeDelta);
         
-        this.processJudgement(note, judgement, column);
+        if (!note.progress) {
+          this.processJudgement(note, judgement, column);
+        }
         
         this.activeHolds[column] = {
           note: note,
@@ -634,23 +637,43 @@ class Player {
       ok: 0x00cc00,
       ng: 0x22ffff
     };
+    const frames = {
+      marvelous: 0,
+      perfect: 1,
+      great: 2,
+      good: 3,
+      boo: 4,
+      miss: 5,
+      ok: 0,
+      ng: 4
+    };
     
     let tintColor = colors[judgement.replace("n.g.", "ng")];
-    
+     
     if (type == "freeze") {
-      const text = new Text(this.renderer.receptors[column].x, this.renderer.JUDGE_LINE + 12 * this.renderer.DIRECTION, judgement, FONTS.stroke);
+      const text = new Text(this.renderer.receptors[column].x, this.renderer.JUDGE_LINE + 12 * this.renderer.DIRECTION, judgement, FONTS.tiny_stroke);
       text.tint = tintColor;
       text.anchor.setTo(0.5);
       game.add.tween(text).to({ alpha: 0, y: text.y + (8 * this.renderer.DIRECTION) }, 250, "Linear", true, 25).onComplete.addOnce(() => text.destroy());
     } else {
-      this.judgementText.write(judgement.toUpperCase());
-      this.judgementText.tint = tintColor;
+      this.judgementText.frame = frames[judgement.replace('n.g.', 'ng')];
       this.judgementText.alpha = 1;
       this.judgementText.scale.set(1);
   
       game.tweens.removeFrom(this.judgementText);
-      game.add.tween(this.judgementText.scale).to({ x: 1.5, y: 1 }, 200, "Linear", true).yoyo(true);
-      game.add.tween(this.judgementText).to({ alpha: 0 }, 200, "Linear", true, 200);
+      
+      // NOTE: This is the old tween animation, disabled and replaced by this new one
+      //game.add.tween(this.judgementText.scale).to({ x: 1.5, y: 1 }, 200, "Linear", true).yoyo(true);
+      //game.add.tween(this.judgementText).to({ alpha: 0 }, 200, "Linear", true, 200);
+      
+      const duration = 200;
+      
+      game.add
+        .tween(this.judgementText.scale)
+        .to({ x: 0.4, y: 1.4 }, duration / 4, "Linear", true, 0)
+        .yoyo(true);
+      game.add.tween(this.judgementText.scale).to({ x: 1.3 }, duration, "Linear", true, duration);
+      game.add.tween(this.judgementText).to({ alpha: 0 }, duration, "Linear", true, duration);
       
       if (column !== undefined && judgement !== "miss") {
         const receptor = this.receptors[column];
@@ -711,6 +734,8 @@ class Player {
 
     const { now, beat } = this.scene.getCurrentTime();
     this.renderer.render(now, beat);
+    
+    return { now, beat };
   }
   
   update() {
@@ -844,6 +869,8 @@ class Player {
         delete this.activeHolds[col];
       }
     });
+    
+    return { now, beat };
   }
 
   destroy() {

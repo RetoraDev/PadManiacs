@@ -7,7 +7,7 @@ class SecondPlayer extends Player {
     
     this.HEALTH_X = 104;
     this.HEALTH_WIDTH = 71;
-    this.ACCURACY_BAR_WIDTH = 73;
+    this.ACCURACY_BAR_WIDTH = 92;
     
     scene.p2JudgementText.x = this.renderer.calculateCenter();
     

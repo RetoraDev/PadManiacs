@@ -10,8 +10,8 @@ const saveAccount = () => localStorage.setItem("Account", JSON.stringify(Account
 const bootGame = () => {
   if (game) game.destroy();
   game = new Phaser.Game({
-    width: 192,
-    height: 112,
+    width: 240,
+    height: 140,
     renderer: Account.settings.renderer,
     scaleMode: Phaser.ScaleManager.SHOW_ALL,
     crisp: Account.settings.pixelated,
@@ -49,7 +49,7 @@ const bootGame = () => {
 window.onload = bootGame;
 
 const addFpsText = () => {
-  const text = new Text(190, 2, "");
+  const text = new Text(238, 2, "");
   text.anchor.x = 1;
   game.time.events.loop(100, () => text.write(`${game.time.fps} (${game.renderer.renderSession.drawCount - 1})`));
   return text;

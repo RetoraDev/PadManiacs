@@ -20,6 +20,7 @@ class Window extends Phaser.Sprite {
     this.skin = skin;
     this.font = "default";
     this.fontTint = 0x76fcde;
+    this.disableHighlight = false;
     this.disableScrollBar = false;
     this.disableMouse = false;
 
@@ -38,7 +39,15 @@ class Window extends Phaser.Sprite {
     this.selector.animations.add('blink', [9, 10], 4, true);
     this.selector.animations.play('blink');
     this.addChild(this.selector);
-
+    
+    // Highlight rectangle
+    this.highlight = game.add.graphics(0, 0);
+    this.highlight.alpha = 0; // Start hidden
+    this.highlight.beginFill(this.fontTint, 0.8);
+    this.highlight.drawRect(0, 0, this.size.width * 8, 8);
+    this.highlight.endFill();
+    this.addChild(this.highlight);
+    
     // Scroll bar
     this.scrollBar = game.add.graphics(this.size.width * 8 - 3, 8);
     this.scrollBar.alpha = 0; // Start hidden
@@ -258,6 +267,25 @@ class Window extends Phaser.Sprite {
     } else {
       this.selector.visible = false;
     }
+    
+    // Update highlight
+    this.updateHighlight();
+  }
+  
+  updateHighlight() {
+    if (this.forcedHighlightY || this.selector.visible && !this.disableHighlight) {
+      // Position with selector arrow
+      this.highlight.y = this.forcedHighlightY || this.selector.y - 1;
+      
+      // Tween highlight alpha
+      this.highlight.alpha = 0.6 + (0.4 * Math.sin(Date.now() * 0.01));
+    } else {
+      this.highlight.alpha = 0;
+    }
+  }
+  
+  forceHighlight(y) {
+    this.forcedHighlightY = y;
   }
   
   updateScrollBar() {

@@ -6,7 +6,7 @@ class CarouselMenu extends Phaser.Sprite {
       animate: true,
       align: 'left',
       bgcolor: '#3498db',
-      fgcolor: '#ffffff',
+      fgcolor: 0xffffff,
       disableScrollBar: false,
       disableConfirm: false,
       disableCancel: false,
@@ -122,8 +122,7 @@ class CarouselMenu extends Phaser.Sprite {
     if (itemIcon) itemParent.addChild(itemIcon);
     
     const itemText = new Text(itemIcon ? textX * 2 : textX, 0, item.textContent, {
-      ...FONTS.default,
-      tint: data.fgcolor || this.config.fgcolor
+      ...FONTS.small
     });
     itemText.anchor.x = textAnchor;
     itemText.y = 1;

@@ -240,6 +240,6 @@ body {
     height: 52px;
   }
   #controller_rhythm_pad {
-    top: 106px;
+    visibility: hidden;
   }
 }

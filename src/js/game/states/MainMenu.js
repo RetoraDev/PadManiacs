@@ -167,7 +167,7 @@ class MainMenu {
   }
 
   showHomeMenu() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+    const carousel = new CarouselMenu(0, game.height / 2 - 16, 112, 64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -193,7 +193,7 @@ class MainMenu {
   }
 
   startGame() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+    const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -209,7 +209,7 @@ class MainMenu {
   }
 
   showExtraSongs() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+    const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -217,7 +217,7 @@ class MainMenu {
       crop: false
     });
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
       carousel.addItem("User Songs", () => this.loadExternalSongs());
       carousel.addItem("Filesystem", () => this.startFileSelect());
     }
@@ -237,7 +237,7 @@ class MainMenu {
   }
 
   showExtras() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+    const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -262,7 +262,7 @@ class MainMenu {
   }
 
   showFeedback() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+    const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',

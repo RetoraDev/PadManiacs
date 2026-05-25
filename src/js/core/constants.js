@@ -4,13 +4,98 @@ const VERSION = "%";
 
 window.DEBUG = %;
 
+const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★";
+const TINY_FONT_MAP = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\" •<>=%∥▶";
+
 const FONTS = {
-  default: { font: "font_tiny" },
-  tiny: { font: "font_tiny" },
-  shaded: { font: "font_tiny_shaded" },
-  stroke: { font: "font_tiny_stroke", fontWidth: 5 },
-  number: { font: "font_tiny_number", fontMap: "1234567890 " },
-  combo: { font: "font_combo", fontMap: "0123456789 ", fontWidth: 8, fontHeight: 8 }
+  default: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_default",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 4,
+    fontHeight: 7,
+    autoUpperCase: false
+  },
+  default_shadow: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_defaul_shadow",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 4,
+    fontHeight: 7,
+    autoUpperCase: false
+  },
+  default_stroke: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_defaul_stroke",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 5,
+    fontHeight: 8,
+    autoUpperCase: false
+  },
+  bold: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_bold",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 6,
+    fontHeight: 7,
+    autoUpperCase: false
+  },
+  bold_shadow: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_bold_shadow",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 6,
+    fontHeight: 7,
+    autoUpperCase: false
+  },
+  bold_stroke: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_bold_stroke",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 7,
+    fontHeight: 8,
+    autoUpperCase: false
+  },
+  tiny_default: {
+    credit: COPYRIGHT,
+    font: "font_tiny_default",
+    fontMap: TINY_FONT_MAP,
+    fontWidth: 4,
+    fontHeight: 6,
+    autoUpperCase: true 
+  },
+  tiny_shaded: {
+    credit: COPYRIGHT,
+    font: "font_tiny_shaded",
+    fontMap: TINY_FONT_MAP,
+    fontWidth: 4,
+    fontHeight: 6,
+    autoUpperCase: true
+  },
+  tiny_stroke: {
+    credit: COPYRIGHT,
+    font: "font_tiny_stroke",
+    fontMap: TINY_FONT_MAP,
+    fontWidth: 5,
+    fontHeight: 6,
+    autoUpperCase: true
+  },
+  tiny_number: {
+    credit: COPYRIGHT,
+    font: "font_tiny_number",
+    fontMap: "1234567890 ",
+    fontWidth: 4,
+    fontHeight: 6,
+    autoUpperCase: false
+  },
+  biscuitlocker_combo: {
+    credit: "From 'Pixel GB Block Numbers' by Biscuit Locker 2025 (games@biscuitlocker.com)",
+    font: "font_combo",
+    fontMap: "0123456789 ",
+    fontWidth: 8,
+    fontHeight: 8,
+    autoUpperCase: false
+  }
 };
 
 const WINDOW_PANELS = ["1"];
@@ -399,7 +484,7 @@ const KEYBOARD_KEY_NAMES = {
   // TODO: Add TV, Apps, Mail and Documents keys
 
   // Numeric keypad keys
-    // Number Pad
+  // Number Pad
   "Numpad0": "NUM 0",
   "Numpad1": "NUM 1",
   "Numpad2": "NUM 2",

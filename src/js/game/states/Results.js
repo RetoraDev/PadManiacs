@@ -111,7 +111,7 @@ class Results {
     this.bannerCanvas = document.createElement("canvas");
     this.bannerCtx = this.bannerCanvas.getContext("2d");
     
-    this.bannerSprite = game.add.sprite(112, 10);
+    this.bannerSprite = game.add.sprite(160, 10);
     
     if (song.chart.audioUrl) {
       // Load and play preview
@@ -162,7 +162,7 @@ class Results {
     
     // New record indicator
     if (!autoplay && this.isNewRecord) {
-      this.recordText = new Text(this.scoreText.right + 4, this.scoreText.y, "NEW RECORD!", FONTS.shaded);
+      this.recordText = new Text(this.scoreText.right + 16, this.scoreText.y, "NEW RECORD!", FONTS.default_shadow);
       this.recordText.anchor.x = 0.5;
       this.recordText.x += this.scoreText.width / 2;
       this.recordText.tint = 0xFFD700; // Gold color
@@ -173,13 +173,13 @@ class Results {
   }
   
   showCharacterExp() {
-    const portrait = new CharacterPortrait(112, 41, this.gameData.character || null);
+    const portrait = new CharacterPortrait(160, 41, this.gameData.character || null);
     
-    const nameText = new Text(128, 42, "", FONTS.shaded);
+    const nameText = new Text(176, 42, "", FONTS.shaded);
     
     const levelText = new Text(0, 42, "");
     
-    const expBar = new ExperienceBar(129, 50, 40, 3);
+    const expBar = new ExperienceBar(177, 50, 40, 3);
     
     if (this.gameData.character) {
       nameText.write(this.gameData.character.name);
@@ -223,7 +223,7 @@ class Results {
     const height = this.gameData.character ? 72 : 80;
     const y = this.gameData.character ? 53 : 40;
     
-    const menu = new CarouselMenu(108, y, 80, height, {
+    const menu = new CarouselMenu(160 - 4, y, 80, height, {
       bgcolor: 'brown',
       fgcolor: '#ffffff'
     });

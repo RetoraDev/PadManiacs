@@ -434,6 +434,8 @@ class DialogWindow extends Phaser.Sprite {
     gamepad.signals.pressed.down.remove(this.onDownPressed, this);
     gamepad.signals.pressed.a.remove(this.onAPressed, this);
     gamepad.signals.pressed.b.remove(this.onBPressed, this);
+    gamepad.pressed.a = false;
+    gamepad.pressed.b = false;
   }
 
   destroy() {

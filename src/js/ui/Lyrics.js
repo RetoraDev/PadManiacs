@@ -1,7 +1,7 @@
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
-    this.maxLineLength = options.maxLineLength || 30; // Maximum characters per line
+    this.maxLineLength = options.maxLineLength || 40; // Maximum characters per line
     this.currentTime = 0;
     this.lrcData = [];
     this.rangeLrc = [];

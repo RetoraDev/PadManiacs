@@ -9,7 +9,7 @@ class ErrorScreen {
     this.background.drawRect(0, 0, game.width, game.height);
     this.background.endFill();
     
-    const text = new Text(96, 52, "");
+    const text = new Text(120, 64, "");
     
     text.write(`AN ERROR HAS OCURRED!
     
@@ -17,21 +17,19 @@ ${this.message}
 
 Please Report The Developer Immediately!
 
-=== Press Any Key To Recover ===`);
-    text.wrapPreserveNewlines(188);
+• Press Any Key To Recover
+• ${game.device.touch ? 'Tap' : 'Click'} the blue screen to report`);
+    text.wrap(236);
 
     text.anchor.set(0.5);
     
-    // TODO: Check if gamepad didn't crashed before using it, fallback to window event listeners
-    gamepad.signals.pressed.any.addOnce(() => {
+    window.addEventListener("keydown", () => {
       game.state.start(this.recoverStateKey);
-    });
+    }, { once: true });
     
-    mouse.onDown.addOnce(() => {
+    game.canvas.parentNode.addEventListener("click", () => {
+      openExternalUrl(FEEDBACK_BUG_REPORT_URL);
       game.state.start(this.recoverStateKey);
-    });
-  }
-  update() {
-    gamepad.update();
+    }, { once: true });
   }
 }

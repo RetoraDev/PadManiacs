@@ -17,7 +17,7 @@ class CharacterSelect {
 
   createUI() {
     // Create all UI elements that persist throughout the state
-    this.characterDisplay = new CharacterDisplay(46, 6, this.selectedCharacter);
+    this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
     this.createDetailsText();
     
     // Initialize menus as null
@@ -33,14 +33,14 @@ class CharacterSelect {
 
   createDetailsText() {
     // Create text display for character details
-    this.nameText = new Text(115, 10, "", FONTS.shaded);
-    this.levelText = new Text(140, 10, "", FONTS.default);
-    this.selectedSkillText = new Text(115, 34, "", FONTS.default);
-    this.skillDescriptionText = new Text(117, 42, "", FONTS.default);
+    this.nameText = new Text(144, 10, "", FONTS.shaded);
+    this.levelText = new Text(175, 10, "", FONTS.default);
+    this.selectedSkillText = new Text(144, 34, "", FONTS.default);
+    this.skillDescriptionText = new Text(146, 42, "", FONTS.default);
     
     // Create experience bar and skill bar
-    this.expBar = new ExperienceBar(140, 16, 36, 3);
-    this.skillBar = new SkillBar(117, 18);
+    this.expBar = new ExperienceBar(175, 16, 36, 3);
+    this.skillBar = new SkillBar(146, 18);
   }
   
   showHomeUI() {
@@ -121,7 +121,7 @@ class CharacterSelect {
       if (skill) {
         this.selectedSkillText.write(skill.name);
         this.skillDescriptionText.write(skill.description);
-        this.skillDescriptionText.wrapPreserveNewlines(70);
+        this.skillDescriptionText.wrap(70);
         this.selectedSkillText.bringToTop();
         this.skillDescriptionText.bringToTop();
       } else {
@@ -146,7 +146,7 @@ class CharacterSelect {
     if (this.characterDisplay) {
       this.characterDisplay.destroy();
     }
-    this.characterDisplay = new CharacterDisplay(46, 6, this.selectedCharacter);
+    this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
 
     if (this.characterCarousel) {
       this.characterCarousel.bringToTop();
@@ -158,7 +158,7 @@ class CharacterSelect {
 
   showCharacterList() {
     // Character list carousel (left)
-    this.characterCarousel = new CarouselMenu(0, 8, 80, 104, {
+    this.characterCarousel = new CarouselMenu(0, 8, 100, 130, {
       bgcolor: "#9b59b6",
       fgcolor: "#ffffff",
       align: "left",
@@ -212,7 +212,7 @@ class CharacterSelect {
     this.clearAllMenus();
     this.hideCharacterDetails();
 
-    this.actionMenu = new CarouselMenu(60, 60, 72, 48, {
+    this.actionMenu = new CarouselMenu(75, 75, 72, 48, {
       bgcolor: "#34495e",
       fgcolor: "#ffffff",
       align: "center",
@@ -241,10 +241,10 @@ class CharacterSelect {
     this.hideCharacterDetails();
     
     // Create skill preview text
-    this.skillPreviewText = new Text(110, 4, "", FONTS.default);
-    this.skillPreviewText.wrapPreserveNewlines(70);
+    this.skillPreviewText = new Text(240 - 70, 8, "", FONTS.default);
+    this.skillPreviewText.wrap(70);
     
-    this.skillsCarousel = new CarouselMenu(0, 8, 80, 104, {
+    this.skillsCarousel = new CarouselMenu(0, 8, 100, 130, {
       bgcolor: "#9b59b6",
       fgcolor: "#ffffff",
       align: "left",
@@ -389,7 +389,7 @@ class CharacterSelect {
     }
     
     this.skillPreviewText.write(previewText);
-    this.skillPreviewText.wrapPreserveNewlines(80);
+    this.skillPreviewText.wrap(70);
     
     this.skillPreviewText.bringToTop();
   }
@@ -401,7 +401,7 @@ class CharacterSelect {
   showCustomizationMenu() {
     this.clearAllMenus();
 
-    this.customizationMenu = new CarouselMenu(10, 60, 172, 48, {
+    this.customizationMenu = new CarouselMenu(75, 75, 72, 48, {
       bgcolor: "#2c3e50",
       fgcolor: "#ffffff",
       align: "center",
@@ -430,14 +430,14 @@ class CharacterSelect {
   customizeSkinTone() {
     const skinOptions = ["PALE", "LIGHT", "TAN", "DARK", "PURPLE"];
     
-    const background = createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(115, 100, 92, 30);
     background.anchor.set(0.5);
     
-    const skinText = new Text(96, 80, "SKIN TONE", FONTS.shaded);
+    const skinText = new Text(120, 100, "SKIN TONE", FONTS.shaded);
     skinText.anchor.set(0.5);
 
     let currentIndex = this.selectedCharacter.appearance.skinTone;
-    const skinValueText = new Text(96, 90, skinOptions[currentIndex], FONTS.default);
+    const skinValueText = new Text(120, 110, skinOptions[currentIndex], FONTS.default);
     skinValueText.anchor.set(0.5);
 
     const skinHandler = key => {
@@ -472,13 +472,13 @@ class CharacterSelect {
     
     this.navigationHint.updateHints('color_input');
     
-    const background = createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(115, 100, 92, 30);
     background.anchor.set(0.5);
 
-    const colorText = new Text(96, 80, "HAIR COLOR", FONTS.shaded);
+    const colorText = new Text(120, 100, "HAIR COLOR", FONTS.shaded);
     colorText.anchor.set(0.5);
 
-    const rgbText = new Text(96, 90, `R:${r} G:${g} B:${b}`, FONTS.default);
+    const rgbText = new Text(120, 110, `R:${r} G:${g} B:${b}`, FONTS.default);
     rgbText.anchor.set(0.5);
 
     const updateColor = () => {
@@ -528,15 +528,15 @@ class CharacterSelect {
     const options = unlocked.map(id => CHARACTER_SYSTEM.HAIR_STYLES[type === "frontHair" ? "front" : "back"][id-1]);
     const values = unlocked;
     
-    const background = createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(115, 100, 92, 30);
     background.anchor.set(0.5);
     
-    const hairText = new Text(96, 80, `${type.toUpperCase()}`, FONTS.shaded);
+    const hairText = new Text(120, 100, `${type.toUpperCase()}`, FONTS.shaded);
     hairText.anchor.set(0.5);
     
     let currentIndex = this.selectedCharacter.appearance[type] - 1;
     
-    const hairValueText = new Text(96, 90, "", FONTS.default);
+    const hairValueText = new Text(120, 110, "", FONTS.default);
     hairValueText.write(options[currentIndex], 18);
     hairValueText.anchor.set(0.5);
 
@@ -571,16 +571,16 @@ class CharacterSelect {
       return item ? item.name : id;
     });
     
-    const background = createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(115, 100, 92, 30);
     background.anchor.set(0.5);
 
-    const clothingText = new Text(96, 80, "CLOTHING", FONTS.shaded);
+    const clothingText = new Text(120, 100, "CLOTHING", FONTS.shaded);
     clothingText.anchor.set(0.5);
 
     let currentIndex = unlocked.indexOf(this.selectedCharacter.appearance.clothing);
     if (currentIndex === -1) currentIndex = 0;
     
-    const clothingValueText = new Text(96, 90, "", FONTS.default);
+    const clothingValueText = new Text(120, 110, "", FONTS.default);
     clothingValueText.write(options[currentIndex], 18)
     clothingValueText.anchor.set(0.5);
 
@@ -618,15 +618,15 @@ class CharacterSelect {
       })
     ];
 
-    const background = createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(115, 100, 92, 30);
     background.anchor.set(0.5);
     
-    const accessoryText = new Text(96, 80, "ACCESSORY", FONTS.shaded);
+    const accessoryText = new Text(120, 100, "ACCESSORY", FONTS.shaded);
     accessoryText.anchor.set(0.5);
 
     const currentIndex = this.selectedCharacter.appearance.accessory ? unlocked.indexOf(this.selectedCharacter.appearance.accessory) + 1 : 0;
     let selectedIndex = currentIndex;
-    const accessoryValueText = new Text(96, 90, "", FONTS.default);
+    const accessoryValueText = new Text(120, 110, "", FONTS.default);
     accessoryValueText.write(options[selectedIndex], 18);
     accessoryValueText.anchor.set(0.5);
 
@@ -686,67 +686,23 @@ class CharacterSelect {
     // Clear any existing menus
     this.clearAllMenus();
     
-    // Create confirmation text
-    const confirmText = new Text(96, 60, message, FONTS.shaded);
-    confirmText.anchor.set(0.5);
-    
-    // Create confirmation menu
-    const confirmMenu = new CarouselMenu(60, 70, 72, 32, {
-      bgcolor: "#2c3e50",
-      fgcolor: "#ffffff",
-      align: "center"
+    const dialog = new DialogWindow(message, {
+      buttons: ["Yes", "No"],
+      defaultButton: recommended == 'no' ? 1 : 0
     });
     
-    // Determine button colors based on recommended option
-    let yesColor = "#34495e"; // Default
-    let noColor = "#34495e";  // Default
-    let initialSelection = 0; // Start on first item (YES)
-    
-    switch (recommended) {
-      case "yes":
-        yesColor = "#27ae60"; // Green for recommended
-        noColor = "#c0392b";  // Red for not recommended
-        initialSelection = 0; // Start on YES
-        break;
-      case "no":
-        yesColor = "#c0392b"; // Red for not recommended
-        noColor = "#27ae60";  // Green for recommended
-        initialSelection = 1; // Start on NO
-        break;
-      default: // "none" or undefined
-        yesColor = "#34495e";
-        noColor = "#34495e";
-        initialSelection = 0;
-        break;
-    }
-    
-    // Add buttons with appropriate colors
-    confirmMenu.addItem("YES", () => {
-      confirmText.destroy();
-      confirmMenu.destroy();
-      onConfirm?.();
-    }, {
-      bgcolor: yesColor
+    dialog.onConfirm.add((buttonIndex, buttonText) => {
+      if (buttonIndex === 0) {
+        onConfirm?.();
+      } else {
+        onCancel?.();
+      }
+      dialog.destroy();
     });
     
-    confirmMenu.addItem("NO", () => {
-      confirmText.destroy();
-      confirmMenu.destroy();
+    dialog.onCancel.add(() => {
       onCancel?.();
-    }, {
-      bgcolor: noColor
-    });
-    
-    // Set initial selection based on recommended option
-    if (initialSelection === 1) {
-      confirmMenu.selectIndex(1);
-    }
-    
-    // Set up cancel handling
-    confirmMenu.onCancel.add(() => {
-      confirmText.destroy();
-      confirmMenu.destroy();
-      onCancel?.();
+      dialog.destroy();
     });
   }
 
@@ -766,7 +722,7 @@ class CharacterSelect {
     this.hideCharacterDetails();
     
     // Create temporary character display for creation
-    this.tempCharacterDisplay = new CharacterDisplay(46, 6, {
+    this.tempCharacterDisplay = new CharacterDisplay(70, 24, {
       name: "NEW CHARACTER",
       appearance: this.newCharacterAppearance
     });
@@ -824,7 +780,7 @@ class CharacterSelect {
     if (this.creationStep < steps.length) {
       const step = steps[this.creationStep];
       
-      this.creationWindow = this.creationWindowManager.createWindow(12, 7, 10, 5, "1");
+      this.creationWindow = this.creationWindowManager.createWindow(15, 10, 10, 5, "1");
       this.creationWindow.x -= (this.creationWindow.size.width / 2) * 8;
       
       this.creationWindow.offset = {
@@ -832,9 +788,11 @@ class CharacterSelect {
         y: 8
       };
       
+      this.creationWindow.forceHighlight(22);
+          
       this.creationWindow.disableScrollBar = true;
       
-      this.creationText = new Text(96, 70, step.title, FONTS.shaded);
+      this.creationText = new Text(120, 92, step.title, FONTS.default);
       this.creationText.anchor.set(0.5);
       
       // Show customization interface first
@@ -847,6 +805,8 @@ class CharacterSelect {
   
   showCreationNavigationMenu() {
     gamepad.releaseAll();
+    
+    this.creationWindow.forcedHighlightY = null;
     
     this.creationWindow.addItem("NEXT", "", () => {
       this.creationStep++;
@@ -868,10 +828,10 @@ class CharacterSelect {
   }
   
   creationCustomizeSkinTone(callback) {
-    const skinOptions = ["LIGHT", "DARK"];
+    const skinOptions = ["LIGHTER", "LIGHT", "MEDIUM", "TAN", "ANOTHER"];
     let currentIndex = this.newCharacterAppearance.skinTone;
     
-    const skinText = new Text(96, 80, skinOptions[currentIndex], FONTS.default);
+    const skinText = new Text(120, 107, skinOptions[currentIndex], FONTS.default);
     skinText.anchor.set(0.5);
     
     const skinHandler = key => {
@@ -914,7 +874,7 @@ class CharacterSelect {
       return `R:${r} G:${g} B:${b}`;
     };
     
-    const rgbText = new Text(96, 80, updateColor(), FONTS.default);
+    const rgbText = new Text(120, 107, updateColor(), FONTS.default);
     rgbText.anchor.set(0.5);
     
     const colorHandler = key => {
@@ -968,7 +928,7 @@ class CharacterSelect {
 
     let currentIndex = this.newCharacterAppearance[type] - 1;
     
-    const hairText = new Text(96, 80, options[currentIndex], FONTS.default);
+    const hairText = new Text(120, 107, options[currentIndex], FONTS.default);
     hairText.anchor.set(0.5);
 
     const updateHair = () => {
@@ -1015,7 +975,7 @@ class CharacterSelect {
     let currentIndex = unlocked.indexOf(this.newCharacterAppearance.clothing);
     if (currentIndex === -1) currentIndex = 0;
     
-    const clothingText = new Text(96, 80, options[currentIndex], FONTS.default);
+    const clothingText = new Text(120, 107, options[currentIndex], FONTS.default);
     clothingText.anchor.set(0.5);
     
     const clothingHandler = key => {
@@ -1060,7 +1020,7 @@ class CharacterSelect {
     let currentIndex = this.newCharacterAppearance.accessory ? 
       unlocked.indexOf(this.newCharacterAppearance.accessory) + 1 : 0;
     
-    const accessoryText = new Text(96, 80, options[currentIndex], FONTS.default);
+    const accessoryText = new Text(120, 107, options[currentIndex], FONTS.default);
     accessoryText.anchor.set(0.5);
     
     const accessoryHandler = key => {
@@ -1104,20 +1064,26 @@ class CharacterSelect {
       this.creationWindow.visible = false;
     }
     
-    const nameText = new Text(96, 80, "ENTER CHARACTER NAME", FONTS.shaded);
+    const nameText = new Text(120, 20, "Name your character", FONTS.shaded);
     nameText.anchor.set(0.5);
     
-    this.navigationHint.updateHints('text_input');
+    this.navigationHint.visible = false;
     
-    new TextInput(
-      this.generateName(),
-      CHARACTER_SYSTEM.MAX_NAME_LENGTH,
-      name => {
+    gamepad.releaseAll();
+    
+    const keyboard = new OnScreenKeyboard();
+    
+    window.focusedElement = new TextInput({
+      text: this.generateName(),
+      maxLength: CHARACTER_SYSTEM.MAX_NAME_LENGTH,
+      useNewline: false,
+      onConfirm: name => {
         // Finalize character creation
         const newChar = this.characterManager.createCharacter(name, this.newCharacterAppearance);
         if (newChar) {
           this.selectedCharacter = newChar;
           nameText.destroy();
+          keyboard.destroy();
           this.navigationHint.updateHints('general');
           
           // Clean up temporary display
@@ -1135,13 +1101,14 @@ class CharacterSelect {
           this.creationNameCharacter(callback);
         }
       },
-      () => {
+      onCancel: () => {
         // Cancel creation
         nameText.destroy();
+        keyboard.destroy();
         this.navigationHint.updateHints('general');
         this.cancelCharacterCreation();
       }
-    );
+    });
   }
   
   generateName() {

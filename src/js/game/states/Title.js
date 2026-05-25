@@ -4,19 +4,20 @@ class Title {
 
     this.background = new BackgroundGradient();
     this.lines = new FuturisticLines();
+    
     this.logo = new Logo();
 
-    this.inputInstructionText = new Text(game.width / 2, 80, "PRESS ANY KEY");
+    this.inputInstructionText = new Text(game.width / 2, 100, "PRESS ANY KEY");
     this.inputInstructionText.anchor.x = 0.5;
     game.add.tween(this.inputInstructionText).to({ alpha: 0 }, 500, "Linear", true, 0, -1).yoyo(true);
 
     this.text = game.add.sprite(0, 0);
 
-    this.creditText = new Text(2, 110, COPYRIGHT, this.text);
+    this.creditText = new Text(2, game.height, COPYRIGHT, FONTS.small, this.text);
     this.creditText.anchor.y = 1;
 
-    this.creditText = new Text(190, 110, VERSION, this.text);
-    this.creditText.anchor.set(1);
+    this.versionText = new Text(game.width - 2, game.height, VERSION, FONTS.small, this.text);
+    this.versionText.anchor.set(1);
 
     if (!backgroundMusic) {
       backgroundMusic = new BackgroundMusic();

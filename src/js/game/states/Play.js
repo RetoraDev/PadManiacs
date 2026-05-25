@@ -63,6 +63,8 @@ class Play {
     this.JUDGE_WINDOWS = JUDGE_WINDOWS;
     
     this.SCORE_VALUES = SCORE_VALUES;
+    
+    this.FIXED_DELAY = 2000; 
   }
   
   create() {
@@ -75,14 +77,14 @@ class Play {
     
     // Canvas for background rendering   
     this.backgroundCanvas = document.createElement("canvas");
-    this.backgroundCanvas.width = 192;
-    this.backgroundCanvas.height = 112;
+    this.backgroundCanvas.width = 240;
+    this.backgroundCanvas.height = 140;
     this.backgroundCtx = this.backgroundCanvas.getContext("2d");
     
     // Create background
     this.backgroundLayer = game.add.group();
     this.backgroundSprite = new CanvasBackground(this.backgroundCanvas);
-    this.backgroundSprite.alpha = 0.7;
+    this.backgroundSprite.alpha = 1;
     
     this.visibilityChangeListener = () => {
       if (document.hidden) {
@@ -135,6 +137,9 @@ class Play {
       
       // Create visualizer after audio initialized since some visualizers spect the audio to exist
       this.createVisualizer();
+      
+      // Setup song temperature change detection
+      this.setupSongTemperature();
     });
   }
   
@@ -184,7 +189,20 @@ class Play {
   createHud() {
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
-    this.hud = game.add.sprite(0, 0, "ui_hud_background", 0);
+    this.hud = game.add.sprite(0, 0);
+    
+    this.hudFlashShape = game.add.sprite(game.width / 2, game.height / 2, 'ui_hud_flash_shape');
+    this.hudFlashShape.anchor.set(0.5);
+    this.hudFlashShape.alpha = 0;
+    this.hud.addChild(this.hudFlashShape);
+    
+    this.hudTop = game.add.sprite(0, -40, 'ui_hud_background_top');
+    this.hudTop.alpha = 0;
+    this.hud.addChild(this.hudTop);
+    
+    this.hudBottom = game.add.sprite(0, 40, 'ui_hud_background_bottom');
+    this.hudBottom.alpha = 0;
+    this.hud.addChild(this.hudBottom);
     
     this.overHud = game.add.sprite(0, 0);
     
@@ -192,53 +210,55 @@ class Play {
     
     this.difficultyBanner = game.add.sprite(0, 0, "ui_difficulty_banner", 0);
     this.difficultyBanner.tint = this.getDifficultyColor(difficulty.rating);
-    this.hud.addChild(this.difficultyBanner);
+    this.hudTop.addChild(this.difficultyBanner);
     
-    this.difficultyTypeText = new Text(5, 1, difficulty.type.substr(0, 7), null, this.difficultyBanner);
+    this.difficultyTypeText = new Text(5, 1, difficulty.type.substr(0, 9), FONTS.default, this.difficultyBanner);
+    this.difficultyTypeText.alpha = 0.7;
+    game.add.tween(this.difficultyTypeText).to({ alpha: 1 }, 400, "Linear", true).repeat(-1).yoyo(true);
     
     const title = this.song.chart.titleTranslit || this.song.chart.title;
     
-    this.songTitleText = new Text(34, 1, "", null, this.hud);
-    this.songTitleText.write(title, 28);
+    this.songTitleText = new Text(41, 1, "", null, this.hudTop);
+    this.songTitleText.write(title, 41);
     
-    this.playerName = new Text(4, 8, "", FONTS.shaded, this.hud);
-    this.playerName.write(this.currentCharacter ? this.currentCharacter.name : "NONE", 4);
+    this.playerName = new Text(5, 9, "", FONTS.tiny_shaded, this.hudTop);
+    this.playerName.write(this.currentCharacter ? this.currentCharacter.name : "NONE", 8);
     
     this.playerName.tint = this.currentCharacter ? this.currentCharacter.appearance.hairColor : 0xffffff;
     
-    this.skillBar = new SkillBar(6, 15);
-    this.hud.addChild(this.skillBar);
+    this.skillBar = new SkillBar(6, 16);
+    this.hudTop.addChild(this.skillBar);
     
     if (!this.currentCharacter) this.skillBar.visible = false;
     
-    this.scoreText = new Text(22, 12, "0".repeat(9), null, this.hud);
+    this.scoreText = new Text(35, 14, "0".repeat(9), FONTS.tiny_number, this.hudTop);
     
-    this.lifebarStart = game.add.sprite(21, 8, "ui_lifebar", 0);
+    this.lifebarStart = game.add.sprite(37, 9, "ui_lifebar", 0);
     this.lifebarMiddle = game.add.sprite(1, 0, "ui_lifebar", 1);
-    this.lifebarMiddle.width = 102;
-    this.lifebarEnd = game.add.sprite(103, 0, "ui_lifebar", 2);
+    this.lifebarMiddle.width = 145;
+    this.lifebarEnd = game.add.sprite(146, 0, "ui_lifebar", 2);
     
-    this.hud.addChild(this.lifebarStart);
+    this.hudTop.addChild(this.lifebarStart);
     this.lifebarStart.addChild(this.lifebarMiddle);
     this.lifebarStart.addChild(this.lifebarEnd);
     
     // Autoplay text
-    this.autoplayText = new Text(4, 90, this.autoplay ? "AUTOPLAY" : "", FONTS.stroke, this.hud);
+    this.autoplayText = new Text(4, 120, this.autoplay ? "AUTOPLAY" : "", FONTS.tiny_stroke, this.hud);
     
-    this.healthText = new Text(137, 8, "100", FONTS.number, this.hud);
-    this.healthText.anchor.x = 1;
+    this.healthText = new Text(185, 9, "100", FONTS.tiny_number, this.hudTop);
     
-    this.judgementText = new Text(game.width / 2, 60, "", FONTS.shaded);
+    this.judgementText = game.add.sprite(game.width / 2, 75, "judgement", 0);
+    this.judgementText.alpha = 0;
     this.judgementText.anchor.set(0.5);
     
-    this.accuracyBar = game.add.sprite(41, 108, "ui_accuracy_bar");
-    this.hud.addChild(this.accuracyBar);
+    this.accuracyBar = game.add.sprite(51, 136, "ui_accuracy_bar");
+    this.hudBottom.addChild(this.accuracyBar);
     
-    this.comboText = new Text(191, 106, "0", FONTS.combo);
+    this.comboText = new Text(240 - 1, 140 - 6, "0", FONTS.biscuitlocker_combo, this.hudBottom);
     this.comboText.anchor.set(1);
   }
   
-  createVisualizer(visualizerX = 2, visualizerY = 103, visualizerWidth = 36, visualizerHeight = 7) {
+  createVisualizer(visualizerX = 2, visualizerY = 131, visualizerWidth = 46, visualizerHeight = 7) {
     // Remove existing visualizer
     if (this.visualizer) {
       this.visualizer.destroy();
@@ -261,12 +281,26 @@ class Play {
     }
     
     if (this.visualizer) {
-      this.hud.addChild(this.visualizer.graphics);
+      this.hudBottom.addChild(this.visualizer.graphics);
     }
   }
   
+  setupSongTemperature() {
+    const meter = new AudioTemperatureMeter(this, this.audio, this.song.chart);
+    
+    meter.onHighTemperature.add(() => {
+      this.startHudFlash();
+    });
+    
+    meter.onLowTemperature.add(() => {
+      this.stopHudFlash();
+    });
+    
+    this.temperature = meter;
+  }
+  
   setupPlayer() {
-    this.player = new Player(this);
+    this.player = new Player(this, "center");
   }
   
   setupLyrics() {
@@ -274,7 +308,7 @@ class Play {
       const lrcContent = this.song.chart.lyricsContent; 
       
       // Create lyrics text element
-      this.lyricsText = new Text(game.width / 2, 72, "", FONTS.stroke);
+      this.lyricsText = new Text(game.width / 2, 90, "", FONTS.default_stroke);
       this.lyricsText.anchor.set(0.5);
       
       // Initialize lyrics system
@@ -327,7 +361,9 @@ class Play {
   songStart() {
     this.setInitialBackground();
     
-    const FIXED_DELAY = 2000; 
+    const FIXED_DELAY = this.FIXED_DELAY; 
+    
+    this.showSongInfo();
     
     const chartOffset = this.song.chart.offset || 0;
     
@@ -337,24 +373,156 @@ class Play {
       this.audio?.play();
       this.started = true;
       if (window.recordNextGame) game.recorder.start(this.audio, 0);
+      this.showHud();
     }, FIXED_DELAY + this.userOffset);
     
     this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
   }
   
+  showSongInfo() {
+    const texts = [
+      {
+        value: this.song.chart.titleTranslit || this.song.chart.title,
+        font: 'bold_shadow',
+        height: 8,
+        tint: 0xffffff,
+        alpha: 1
+      },
+      {
+        value: this.song.chart.subtitleTranslit || this.song.chart.subtitle,
+        font: 'default_shadow',
+        height:  12,
+        tint: 0xffffff,
+        delay: 50,
+        alpha: 0.8
+      },
+      {
+        value: this.song.chart.artistTranslit || this.song.chart.artist,
+        font: 'default_shadow',
+        height:  8,
+        tint: 0x00cbff,
+        delay: 100,
+        alpha: 1
+      },
+      {
+        value: this.song.chart.credit,
+        prefix: 'Chart by ',
+        font: 'default_shadow',
+        delay: 150,
+        height:  8,
+        tint: 0x00cbff,
+        alpha: 0.8
+      }
+    ];
+    
+    if (!Account.settings.enableSongInfo) return;
+    
+    const banner = game.add.sprite(0, 75);
+    banner.anchor.y = 0.5;
+    
+    const bannerGraphics = game.add.graphics(0, 0);
+    banner.addChild(bannerGraphics);
+    
+    let y = 0;
+    let height = 6;
+    
+    const FIXED_DELAY = this.FIXED_DELAY; 
+    const entranceDuration = 200;
+    const exitDuration = 200;
+    
+    for (const object of texts) {
+      if (object.value) {
+        const text = new Text(-240, y, object.prefix ? object.prefix + object.value : object.value, FONTS[object.font], banner);
+        text.alpha = object.alpha;
+        text.tint = object.tint;
+        text.x -= text.width * 2;
+        text.anchor.x = 0.5;
+        
+        const delay = object.delay || 0;
+        
+        game.add.tween(text).to({ x: 120, alpha: 1 }, entranceDuration * 2, Phaser.Easing.Quadratic.Out, true).onComplete.add(() => {
+          game.add.tween(text).to({ x: 240 + text.width * 2, alpha: 0 }, exitDuration * 2, Phaser.Easing.Quadratic.In, true, FIXED_DELAY - entranceDuration - entranceDuration - exitDuration - exitDuration);
+        });
+        
+        y += object.height;
+        height += object.height;
+      }
+    }
+    
+    if (!y) {
+      banner.destroy();
+      return;
+    }
+        
+    height += 4;
+    
+    bannerGraphics.beginFill(0x000000, 0.6);
+    bannerGraphics.drawRect(0, -6, 240, height);
+    bannerGraphics.endFill();
+    
+    banner.alpha = 0;
+    
+    game.add.tween(banner).to({ alpha: 1 }, entranceDuration, Phaser.Easing.Quadratic.In, true).onComplete.add(() => {
+      game.add.tween(banner).to({ alpha: 0 }, exitDuration, Phaser.Easing.Quadratic.Out, true, FIXED_DELAY - entranceDuration - exitDuration).onComplete.add(() => {
+        banner.destroy();
+      });
+    });
+  }
+  
+  startHudFlash() {
+    this.hudFlashShape.alpha = 1;
+    
+    const interval = this.player.renderer.beatToSec(1) * 1000;
+    
+    game.add.tween(this.hudFlashShape).to({ alpha: 0 }, interval, Phaser.Easing.Quadratic.Out, true).repeat(-1);
+    game.add.tween(this.hudFlashShape.scale).to({ x: 0.9, y: 0.9 }, interval, Phaser.Easing.Quadratic.Out, true).repeat(-1);
+  }
+  
+  stopHudFlash() {
+    game.tweens.removeFrom(this.hudFlashShape);
+    game.add.tween(this.hudFlashShape).to({ alpha: 0 }, 100, Phaser.Easing.Quadratic.Out, true);
+    game.add.tween(this.hudFlashShape.scale).to({ x: 1, y: 1 }, 100, Phaser.Easing.Quadratic.Out, true).repeat(-1);
+  }
+  
+  showHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
+    game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.Out, true);
+    game.add.tween(this.hudTop).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
+    game.add.tween(this.hudBottom).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
+  }
+  
+  hideHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
+    game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.In, true);
+    game.add.tween(this.hudTop).to({ y: -40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
+    game.add.tween(this.hudBottom).to({ y: 40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
+  }
+  
   showCharacterCloseShot(duration) {
     const displayTime = Math.max(500, duration - 400);
-    const closeShot = new CharacterCloseShot(2, 103, this.currentCharacter);
+    const closeShot = new CharacterCloseShot(2, 131, this.currentCharacter);
     closeShot.visible = false;
     this.overHud.addChild(closeShot);
     
     if (this.visualizer) {
       this.visualizer.graphics.visible = false;
     }
-
-    const noiseSprite = game.add.sprite(2, 103, 'character_noise');
-    noiseSprite.animations.add('static', [0, 1, 2, 3, 4, 5, 6, 7], 60, true);
-    noiseSprite.animations.play('static');
+    
+    const timer = {
+      time: displayTime + 200
+    };
+    
+    const timerText = new Text(47, 132, "0s", null, this.overHud);
+    timerText.anchor.x = 1;
+    
+    const timeTween = game.add.tween(timer).to({ time: 0 }, duration, "Linear", true);
+    timeTween.onUpdateCallback(() => {
+      const time = timer.time;
+      const formattedTime = TimeUtils.formatSeconds(timer.time);
+      timerText.write(formattedTime);
+    });
+    
+    const noiseSprite = game.add.sprite(2, 131, 'character_noise');
+    noiseSprite.animations.add('noise', [0, 1, 2, 3, 4, 5, 6, 7], 60, true);
+    noiseSprite.animations.play('noise');
     this.overHud.addChild(noiseSprite);
 
     game.time.events.add(200, () => {
@@ -365,15 +533,17 @@ class Play {
 
     game.time.events.add(displayTime, () => {
       closeShot.visible = false;
-      const endNoise = game.add.sprite(2, 103, 'character_noise');
-      endNoise.animations.add('static', [0, 1, 2, 3, 4, 5, 6, 7], 60, true);
-      endNoise.animations.play('static');
+      timerText.visible = false;
+      const endNoise = game.add.sprite(2, 131, 'character_noise');
+      endNoise.animations.add('noise', [0, 1, 2, 3, 4, 5, 6, 7], 60, true);
+      endNoise.animations.play('noise');
       this.overHud.addChild(endNoise);
       
       game.time.events.add(200, () => {
         if (this.visualizer) {
           this.visualizer.graphics.visible = true;
         }
+        timerText.destroy();
         endNoise.destroy();
         closeShot.destroy();
       });
@@ -390,6 +560,10 @@ class Play {
   }
   
   showFullCombo() {
+    if (this.fullComboAnimationStarted) {
+      return;
+    }
+    
     // Create overlay parent
     this.fullComboOverlay = game.add.sprite(0, 0);
     
@@ -421,7 +595,7 @@ class Play {
     this.fullComboBg.scale.y = 0;
     this.fullComboOverlay.addChild(this.fullComboBg);
     
-    this.fullComboText = new Text(game.width, 5, flawless ? "FLAWLESS!!" : "FULL COMBO!!", "", FONTS.default);
+    this.fullComboText = new Text(game.width, 6, flawless ? "FLAWLESS!!" : "FULL COMBO!!", "", FONTS.default);
     this.fullComboText.anchor.x = 0.5;
     this.fullComboText.anchor.y = 0.5;
     this.fullComboText.alpha = 0;
@@ -478,7 +652,7 @@ class Play {
     }
     
     try {
-      this.backgroundCtx.drawImage(element, 0, 0, 192, 112);
+      this.backgroundCtx.drawImage(element, 0, 0, 240, 140);
       this.updateBackgroundTexture();
     } catch (error) {
       console.error("Error drawing background:", error);
@@ -500,7 +674,7 @@ class Play {
   
   clearBackground() {
     this.backgroundCtx.fillStyle = "#000000";
-    this.backgroundCtx.fillRect(0, 0, 192, 112);
+    this.backgroundCtx.fillRect(0, 0, game.width, game.height);
     this.updateBackgroundTexture();
     this.backgroundGradient.visible = true;
   }  
@@ -697,6 +871,9 @@ class Play {
       gameResults: gameResults
     };
     
+    // Hide HUD
+    this.hideHud(500, 1, 0);
+    
     game.state.start("Results", true, false, gameData);
   }
   
@@ -770,7 +947,7 @@ class Play {
   }
   
   getStatsContent() {
-    return Object.entries(this.player.judgementCounts).map(entry => `${entry[0]}: ${entry[1]}`).join('\n');
+    return Object.entries(this.player.judgementCounts).map(entry => `${entry[0]}: ${entry[1]}`.toUpperCase()).join('\n');
   }
   
   showPauseMenu() {
@@ -795,22 +972,22 @@ class Play {
       animate: true
     });
     
-    this.pauseCarousel.addItem("CONTINUE", () => this.resume());
+    this.pauseCarousel.addItem("Continue", () => this.resume());
     if (this.autoplay && !this.playtestMode) {
-      this.pauseCarousel.addItem("DISABLE AUTOPLAY", () => {
+      this.pauseCarousel.addItem("Disable Autoplay", () => {
         Account.settings.autoplay = false;
         game.state.start("SongSelect", true, false, null, null, true);
       });
     }
     if (this.playtestMode) {
       if (this.autoplay) {
-        this.pauseCarousel.addItem("DISABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false));
+        this.pauseCarousel.addItem("Disable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false));
       } else {
-        this.pauseCarousel.addItem("ENABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
+        this.pauseCarousel.addItem("Enable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
       }
     }
-    this.pauseCarousel.addItem("RESTART", () => this.restartSong());
-    this.pauseCarousel.addItem(this.playtestMode ? "BACK TO EDITOR" : "GIVE UP", () => this.songEnd());
+    this.pauseCarousel.addItem("Restart", () => this.restartSong());
+    this.pauseCarousel.addItem(this.playtestMode ? "< Back To Editor" : "Give Up", () => this.songEnd());
     
     game.onMenuIn.dispatch('pause', this.pauseCarousel);
     
@@ -941,7 +1118,11 @@ class Play {
     }
     if (this.autoplayText.text != text) this.autoplayText.write(text);
     
-    this.player.update();
+    const { now, beat } = this.player.update();
+    
+    if (this.started && Account.settings.enableTemperature) {
+      this.temperature.update(now, beat);
+    }
     
     if (this.started) this.updateBackgrounds();
     
@@ -981,6 +1162,9 @@ class Play {
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.audio.pause();
     this.audio.src = "";
+    
+    this.temperature.destroy();
+    this.temperature = null;
     
     if (this.video) {
       this.video.pause();
