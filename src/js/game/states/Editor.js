@@ -66,7 +66,7 @@ class Editor {
       enableBeatLines: true,
       enableSpeedRendering: true,
       enableBGRendering: true,
-      judgeLineYFalling: 70,
+      judgeLineYFalling: 90,
       judgeLineYRising: 50,
       enableChartBackground: Account.settings.enableChartBackground || false,
       chartBackgroundOpacity: Account.settings.chartBackgroundOpacit || 0.3
@@ -85,13 +85,13 @@ class Editor {
     this.freezePreviewSprite = game.add.graphics(0, 0);
     this.updateCursorPosition();
     
-    this.lyricsText = new Text(game.width / 2, 85, "", FONTS.stroke);
+    this.lyricsText = new Text(game.width / 2, 106, "", FONTS.default_stroke);
     this.lyricsText.anchor.set(0.5);
     this.lyricsText.visible = false;
     
     this.bannerSprite = game.add.sprite(8, 56, null);
     
-    this.icons = game.add.sprite(8, 90);
+    this.icons = game.add.sprite(8, 130);
     
     this.audioIcon = game.add.sprite(0, 0, "ui_editor_icons", 0);
     this.bgIcon = game.add.sprite(9, 0, "ui_editor_icons", 1);
@@ -106,7 +106,7 @@ class Editor {
     this.icons.addChild(this.extraIcon);
 
     this.infoText = new Text(4, 4, "");
-    this.bgInfoText = new Text(0, 90, "", null, this.infoText);
+    this.bgInfoText = new Text(0, 112, "", null, this.infoText);
     
     this.updateInfoText();
     
@@ -214,8 +214,9 @@ class Editor {
     game.onMenuIn.dispatch("editorMain", this.mainCarousel);
 
     // Right side: Song info
-    this.songInfoText = new Text(leftWidth + 4, 4, this.getSongInfoText());
-    this.songInfoText.wrapPreserveNewlines(rightWidth - 8);
+    this.songInfoText = new Text(240 - 4, 4, this.getSongInfoText());
+    this.songInfoText.anchor.x = 1;
+    this.songInfoText.wrap(rightWidth - 8);
 
     this.updateInfoText();
   }
@@ -995,166 +996,166 @@ class Editor {
     }
   }
   
-onMouseDown(button, x, y) {
-  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
-  
-  const column = this.getColumnAtPosition(x);
-  if (column === -1) return;
-  
-  const beat = this.getSnappedBeat(this.getBeatAtPosition(y));
-  const note = this.getNoteAt(column, beat);
-  
-  if (button === 'left') {
-    // Start selection drag
-    this.mouseSelectStart = { x, y, column, beat };
-    this.mouseSelectRect = null;
+  onMouseDown(button, x, y) {
+    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
-    if (note) {
-      if (!this.selectedNotes.includes(note)) {
-        this.selectedNotes = [note];
+    const column = this.getColumnAtPosition(x);
+    if (column === -1) return;
+    
+    const beat = this.getSnappedBeat(this.getBeatAtPosition(y));
+    const note = this.getNoteAt(column, beat);
+    
+    if (button === 'left') {
+      // Start selection drag
+      this.mouseSelectStart = { x, y, column, beat };
+      this.mouseSelectRect = null;
+      
+      if (note) {
+        if (!this.selectedNotes.includes(note)) {
+          this.selectedNotes = [note];
+        }
+      } else {
+        this.selectedNotes = [];
       }
-    } else {
-      this.selectedNotes = [];
+      this.updateInfoText();
+    } else if (button === 'right') {
+      // Start placement drag
+      this.mousePlaceStart = { column, beat };
+      
+      if (note) {
+        this.deleteNoteAt(column, beat);
+        this.mousePlaceStart = null;
+      }
     }
-    this.updateInfoText();
-  } else if (button === 'right') {
-    // Start placement drag
-    this.mousePlaceStart = { column, beat };
+  }
+  
+  onMouseMove(x, y) {
+    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
-    if (note) {
-      this.deleteNoteAt(column, beat);
-      this.mousePlaceStart = null;
+    // Handle rectangular selection (left drag)
+    if (mouse.pressed.left && this.mouseSelectStart && !this.mouseSelectRect) {
+      const dx = Math.abs(x - this.mouseSelectStart.x);
+      const dy = Math.abs(y - this.mouseSelectStart.y);
+      if (dx > 5 || dy > 5) {
+        this.mouseSelectRect = true;
+        this.areaSelectStart = {
+          beat: this.mouseSelectStart.beat,
+          column: this.mouseSelectStart.column
+        };
+      }
     }
-  }
-}
-
-onMouseMove(x, y) {
-  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
-  
-  // Handle rectangular selection (left drag)
-  if (mouse.pressed.left && this.mouseSelectStart && !this.mouseSelectRect) {
-    const dx = Math.abs(x - this.mouseSelectStart.x);
-    const dy = Math.abs(y - this.mouseSelectStart.y);
-    if (dx > 5 || dy > 5) {
-      this.mouseSelectRect = true;
-      this.areaSelectStart = {
-        beat: this.mouseSelectStart.beat,
-        column: this.mouseSelectStart.column
-      };
-    }
-  }
-  
-  // Update rectangular selection area
-  if (this.mouseSelectRect && mouse.pressed.left) {
-    const endBeat = this.getSnappedBeat(this.getBeatAtPosition(y));
-    const endColumn = this.getColumnAtPosition(x);
-    if (endColumn !== -1) {
-      this.cursorBeat = endBeat;
-      this.cursorColumn = endColumn;
-      this.updateSelectionRect();
-    }
-  }
-  
-  // Handle freeze placement (right drag)
-  if (mouse.pressed.right && this.mousePlaceStart && !this.mousePlaceFreeze) {
-    const dy = Math.abs(y - this.getYFromBeat(this.mousePlaceStart.beat));
-    if (dy > 10) {
-      this.mousePlaceFreeze = true;
-    }
-  }
-}
-
-onMouseUp(button, x, y) {
-  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
-  
-  if (button === 'left') {
-    if (this.mouseSelectRect) {
-      // Complete rectangular selection
-      this.endAreaSelection();
-    }
-    this.mouseSelectStart = null;
-    this.mouseSelectRect = false;
     
-  } else if (button === 'right') {
-    if (this.mousePlaceFreeze && this.mousePlaceStart) {
-      // Place freeze note
+    // Update rectangular selection area
+    if (this.mouseSelectRect && mouse.pressed.left) {
       const endBeat = this.getSnappedBeat(this.getBeatAtPosition(y));
-      const startBeat = this.mousePlaceStart.beat;
-      const duration = Math.abs(endBeat - startBeat);
-      if (duration > 0.01) {
-        this.placeFreeze(this.mousePlaceStart.column, Math.min(startBeat, endBeat), duration, "2", true);
+      const endColumn = this.getColumnAtPosition(x);
+      if (endColumn !== -1) {
+        this.cursorBeat = endBeat;
+        this.cursorColumn = endColumn;
+        this.updateSelectionRect();
       }
-    } else if (this.mousePlaceStart && !this.mousePlaceFreeze) {
-      // Place regular note
-      this.placeNote(this.mousePlaceStart.column, this.mousePlaceStart.beat, false, false, true);
     }
     
-    this.mousePlaceStart = null;
-    this.mousePlaceFreeze = false;
-  }
-}
-
-onMouseWheel(direction) {
-  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
-  
-  if (direction === 'up') {
-    this.moveCursor(0, -this.getDivisionSize() * 4);
-  } else if (direction === 'down') {
-    this.moveCursor(0, this.getDivisionSize() * 4);
-  }
-}
-  
-getNoteAt(column, beat) {
-  const notes = this.getCurrentChartNotes();
-  return notes.find(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
-}
-
-deleteNoteAt(column, beat) {
-  const notes = this.getCurrentChartNotes();
-  const index = notes.findIndex(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
-  if (index !== -1) {
-    this.chartRenderer.killNote(notes[index]);
-    notes.splice(index, 1);
-    this.updateInfoText();
-  }
-}
-
-getColumnAtPosition(x) {
-  const leftOffset = this.chartRenderer.calculateLeftOffset();
-  const colWidth = this.chartRenderer.COLUMN_SIZE + this.chartRenderer.COLUMN_SEPARATION;
-  const colHitWidth = this.chartRenderer.COLUMN_SIZE;
-  
-  for (let col = 0; col < 4; col++) {
-    const colX = leftOffset + (col * colWidth);
-    if (x >= colX && x <= colX + colHitWidth) {
-      return col;
+    // Handle freeze placement (right drag)
+    if (mouse.pressed.right && this.mousePlaceStart && !this.mousePlaceFreeze) {
+      const dy = Math.abs(y - this.getYFromBeat(this.mousePlaceStart.beat));
+      if (dy > 10) {
+        this.mousePlaceFreeze = true;
+      }
     }
   }
-  return -1;
-}
-
-getBeatAtPosition(y) {
-  const { now, beat } = this.getCurrentTime();
-  const yPos = y;
   
-  // Convert screen Y to beat using renderer's position calculation
-  // This is the inverse of getYPos
-  if (this.chartRenderer.speedMod === "C-MOD") {
-    const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
-    const deltaSec = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
-    const targetSec = now + deltaSec;
-    return this.chartRenderer.secToBeat(targetSec);
-  } else {
-    const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
-    const deltaBeat = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
-    return beat + deltaBeat;
+  onMouseUp(button, x, y) {
+    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    
+    if (button === 'left') {
+      if (this.mouseSelectRect) {
+        // Complete rectangular selection
+        this.endAreaSelection();
+      }
+      this.mouseSelectStart = null;
+      this.mouseSelectRect = false;
+      
+    } else if (button === 'right') {
+      if (this.mousePlaceFreeze && this.mousePlaceStart) {
+        // Place freeze note
+        const endBeat = this.getSnappedBeat(this.getBeatAtPosition(y));
+        const startBeat = this.mousePlaceStart.beat;
+        const duration = Math.abs(endBeat - startBeat);
+        if (duration > 0.01) {
+          this.placeFreeze(this.mousePlaceStart.column, Math.min(startBeat, endBeat), duration, "2", true);
+        }
+      } else if (this.mousePlaceStart && !this.mousePlaceFreeze) {
+        // Place regular note
+        this.placeNote(this.mousePlaceStart.column, this.mousePlaceStart.beat, false, false, true);
+      }
+      
+      this.mousePlaceStart = null;
+      this.mousePlaceFreeze = false;
+    }
   }
-}
-
-getYFromBeat(targetBeat) {
-  const { now, beat } = this.getCurrentTime();
-  return this.chartRenderer.getYPos(now, beat, targetBeat);
-}
+  
+  onMouseWheel(direction) {
+    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    
+    if (direction === 'up') {
+      this.moveCursor(0, -this.getDivisionSize() * 4);
+    } else if (direction === 'down') {
+      this.moveCursor(0, this.getDivisionSize() * 4);
+    }
+  }
+    
+  getNoteAt(column, beat) {
+    const notes = this.getCurrentChartNotes();
+    return notes.find(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
+  }
+  
+  deleteNoteAt(column, beat) {
+    const notes = this.getCurrentChartNotes();
+    const index = notes.findIndex(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
+    if (index !== -1) {
+      this.chartRenderer.killNote(notes[index]);
+      notes.splice(index, 1);
+      this.updateInfoText();
+    }
+  }
+  
+  getColumnAtPosition(x) {
+    const leftOffset = this.chartRenderer.calculateLeftOffset();
+    const colWidth = this.chartRenderer.COLUMN_SIZE + this.chartRenderer.COLUMN_SEPARATION;
+    const colHitWidth = this.chartRenderer.COLUMN_SIZE;
+    
+    for (let col = 0; col < 4; col++) {
+      const colX = leftOffset + (col * colWidth);
+      if (x >= colX && x <= colX + colHitWidth) {
+        return col;
+      }
+    }
+    return -1;
+  }
+  
+  getBeatAtPosition(y) {
+    const { now, beat } = this.getCurrentTime();
+    const yPos = y;
+    
+    // Convert screen Y to beat using renderer's position calculation
+    // This is the inverse of getYPos
+    if (this.chartRenderer.speedMod === "C-MOD") {
+      const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
+      const deltaSec = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
+      const targetSec = now + deltaSec;
+      return this.chartRenderer.secToBeat(targetSec);
+    } else {
+      const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
+      const deltaBeat = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
+      return beat + deltaBeat;
+    }
+  }
+  
+  getYFromBeat(targetBeat) {
+    const { now, beat } = this.getCurrentTime();
+    return this.chartRenderer.getYPos(now, beat, targetBeat);
+  }
 
   changeSnapDivision(direction) {
     const currentIndex = this.divisions.indexOf(this.snapDivision);
@@ -1934,28 +1935,47 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
   editMetadataField(field) {
     const currentValue = this.song.chart[field] || "";
-    const textInput = new TextInput(
-      currentValue,
-      20,
-      newValue => {
+    
+    const keyboard = new OnScreenKeyboard(10, 44);
+    
+    window.focusedElement = new TextInput({
+      text: currentValue,
+      maxLength: 28,
+      useNewline: true,
+      width: 15,
+      height: 2,
+      x: 72,
+      y: 28,
+      onConfirm: (newValue) => {
         this.song.chart[field] = newValue;
         this.showMetadataEdit();
         this.updateInfoText();
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.showMetadataEdit();
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
+    });
   }
-
+  
   editSongBpm() {
     const bpm = this.song.chart.bpmChanges[0]?.bpm || 120;
-    const input = new ValueInput(
-      bpm,
-      0,
-      1000,
-      1,
-      value => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: bpm,
+      min: 0,
+      max: 1000,
+      decimals: 0,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (value) => {
         if (!this.song.chart.bpmChanges[0]) {
           this.song.chart.bpmChanges[0] = { beat: 0, bpm: value, sec: 0 };
         } else {
@@ -1964,82 +1984,109 @@ SAMPLE LENGTH: ${chart.sampleLength}
         this.showMetadataEdit();
         this.updateInfoText();
         notifications.show("BPM UPDATED");
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.showMetadataEdit();
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
-    input.x = 48;
-    input.y = 20;
+    });
   }
 
   editSongOffset() {
     const offset = this.song.chart.offset || 0;
-    const input = new ValueInput(
-      offset,
-      -32,
-      32,
-      0.001,
-      value => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: offset,
+      min: -32,
+      max: 32,
+      decimals: 3,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (value) => {
         this.song.chart.offset = value;
         this.showMetadataEdit();
         notifications.show("AUDIO OFFSET UPDATED");
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.showMetadataEdit();
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
-    input.x = 48;
-    input.y = 20;
+    });
   }
 
   editSampleStart() {
     const sampleStart = this.song.chart.sampleStart || 0;
-    const input = new ValueInput(
-      sampleStart,
-      0,
-      this.audio.duration || 100,
-      0.1,
-      value => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: sampleStart,
+      min: 0,
+      max: this.audio.duration || 100,
+      decimals: 1,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (value) => {
         this.song.chart.sampleStart = value;
 
-        // Preview the sample
         if (this.audio && this.audio.src) {
           this.playPreview(value, this.song.chart.sampleLength);
         }
         
         this.updateInfoText();
         this.showMetadataEdit();
-        
         notifications.show("SAMPLE START UPDATED");
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.showMetadataEdit();
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
-    input.x = 48;
-    input.y = 20;
+    });
   }
 
   editSampleLength() {
     const sampleLength = this.song.chart.sampleLength || 10;
-    const input = new ValueInput(
-      sampleLength,
-      1,
-      30,
-      0.1,
-      value => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: sampleLength,
+      min: 1,
+      max: 30,
+      decimals: 1,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (value) => {
         this.song.chart.sampleLength = value;
         this.updateInfoText();
         this.showMetadataEdit();
         notifications.show("SAMPLE LENGTH UPDATED");
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.showMetadataEdit();
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
-    input.x = 48;
-    input.y = 20;
+    });
   }
 
   editBGChangeFiles() {
@@ -2069,7 +2116,7 @@ INDEX: ${index + 1}
 TIME: ${TimeUtils.formatTime(this.chartRenderer.beatToSec(bg.beat))}
 BEAT: ${bg.beat}`);
 
-        this.songInfoText.wrapPreserveNewlines(game.width / 2 - 8);
+        this.songInfoText.wrap(game.width / 2 - 8);
       }
     });
     
@@ -2212,9 +2259,19 @@ BEAT: ${bg.beat}`);
 
   addBPMChange() {
     this.menuVisible = true;
-
-    new ValueInput(120, 0, 1000, 1,
-      value => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: 120,
+      min: 0,
+      max: 1000,
+      decimals: 0,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (value) => {
         this.song.chart.bpmChanges.push({
           beat: this.cursorBeat,
           bpm: value,
@@ -2223,11 +2280,15 @@ BEAT: ${bg.beat}`);
         this.song.chart.bpmChanges.sort((a, b) => a.beat - b.beat);
         this.updateInfoText();
         this.menuVisible = false;
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.menuVisible = false;
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
+    });
   }
 
   getBPMChange() {
@@ -2239,21 +2300,31 @@ BEAT: ${bg.beat}`);
     if (bpmChange) {
       this.menuVisible = true;
       
-      new ValueInput(
-        bpmChange.bpm,
-        0,
-        1000,
-        1,
-        bpm => {
+      const keyboard = new NumericTypeOnScreenKeyboard();
+      
+      window.focusedElement = new NumberInput({
+        text: bpmChange.bpm,
+        min: 0,
+        max: 1000,
+        decimals: 0,
+        x: 96,
+        y: 40,
+        width: 10,
+        height: 2,
+        onConfirm: (bpm) => {
           const index = this.song.chart.bpmChanges.indexOf(bpmChange);
           if (index != -1) this.song.chart.bpmChanges[index].bpm = bpm;
           this.updateInfoText();
           this.menuVisible = false;
+          keyboard.destroy();
+          window.focusedElement = null;
         },
-        () => {
+        onCancel: () => {
           this.menuVisible = false;
+          keyboard.destroy();
+          window.focusedElement = null;
         }
-      );
+      });
     }
   }
   
@@ -2269,13 +2340,19 @@ BEAT: ${bg.beat}`);
 
   addStop() {
     this.menuVisible = true;
-
-    new ValueInput(
-      1,
-      0,
-      360,
-      0.001,
-      length => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: 1,
+      min: 0,
+      max: 360,
+      decimals: 3,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (length) => {
         this.song.chart.stops.push({
           beat: this.cursorBeat,
           len: length,
@@ -2284,13 +2361,17 @@ BEAT: ${bg.beat}`);
         this.song.chart.stops.sort((a, b) => a.beat - b.beat);
         this.updateInfoText();
         this.menuVisible = false;
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.menuVisible = false;
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
-  }
-  
+    });
+  }  
+
   getStop() {
     return this.song.chart.stops.find(s => Math.abs(s.beat - this.cursorBeat) < 0.001);
   }
@@ -2300,21 +2381,31 @@ BEAT: ${bg.beat}`);
     if (stop) {
       this.menuVisible = true;
       
-      new ValueInput(
-        stop.len,
-        0,
-        360,
-        0.001,
-        length => {
+      const keyboard = new NumericTypeOnScreenKeyboard();
+      
+      window.focusedElement = new NumberInput({
+        text: stop.len,
+        min: 0,
+        max: 360,
+        decimals: 3,
+        x: 96,
+        y: 40,
+        width: 10,
+        height: 2,
+        onConfirm: (length) => {
           const index = this.song.chart.stops.indexOf(stop);
           if (index != -1) this.song.chart.stops[index].len = length;
           this.updateInfoText();
           this.menuVisible = false;
+          keyboard.destroy();
+          window.focusedElement = null;
         },
-        () => {
+        onCancel: () => {
           this.menuVisible = false;
+          keyboard.destroy();
+          window.focusedElement = null;
         }
-      );
+      });
     }
   }
 

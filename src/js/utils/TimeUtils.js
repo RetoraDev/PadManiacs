@@ -9,4 +9,10 @@ class TimeUtils {
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }
+  static formatSeconds(time) {
+    if (!TimeUtils.isValidTime(time)) return "0s";
+    
+    const seconds = time / 1000 % 60;
+    return `${seconds.toFixed(2)}s`;
+  }
 }

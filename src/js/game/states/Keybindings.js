@@ -4,7 +4,23 @@ class Keybindings {
 
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
-    this.navigationHint = new NavigationHint('general');
+    this.navigationHint = new NavigationHint([
+      {
+        position: "right",
+        icon: "d-pad",
+        text: "NAVIGATE"
+      },
+      {
+        position: "right",
+        icon: "a",
+        text: "CHANGE"
+      },
+      {
+        position: "right",
+        icon: "b",
+        text: "BACK"
+      }
+    ]);
     
     this.windowManager = new WindowManager();
     
@@ -35,7 +51,7 @@ class Keybindings {
   }
   
   showKeybindingsMenu() {
-    const settingsWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
+    const settingsWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     settingsWindow.fontTint = 0x76fcde;
     
     this.windowManager.focus(settingsWindow);
@@ -91,7 +107,7 @@ class Keybindings {
   }
   
   showKeyboardCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
-    const keysWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
+    const keysWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     keysWindow.fontTint = 0x76fcde;
     
     const keyboardControls = [
@@ -120,7 +136,7 @@ class Keybindings {
           menuWindow: keysWindow
         };
         this.windowManager.remove(keysWindow, true);
-        this.showKeyWaitOverlay(`PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
+        this.showKeyWaitOverlay(playerNum, `PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
       });
     });
     
@@ -132,7 +148,7 @@ class Keybindings {
   }
   
   showGamepadCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
-    const gamepadWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
+    const gamepadWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     gamepadWindow.fontTint = 0x76fcde;
     
     const gamepadControls = [
@@ -160,7 +176,7 @@ class Keybindings {
           menuWindow: gamepadWindow
         };
         this.windowManager.remove(gamepadWindow, true);
-        this.showKeyWaitOverlay(`PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
+        this.showKeyWaitOverlay(playerNum, `PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
       });
     });
     
@@ -171,29 +187,32 @@ class Keybindings {
     }, true);
   }
   
-  showKeyWaitOverlay(message) {
+  showKeyWaitOverlay(playerNum = 1, message = "PRESS ANY KEY") {
     // Limpiar cualquier overlay existente
     this.cleanupWaitOverlay();
     
     this.waitOverlayActive = true;
     
+    this.navigationHint.visible = false;
+    
     // Crear elementos visuales
     const overlay = game.add.graphics(0, 0);
     overlay.beginFill(0x000000, 0.7);
-    overlay.drawRect(0, 0, 192, 112);
+    overlay.drawRect(0, 0, 240, 140);
     overlay.endFill();
     
-    const instructionText = new Text(96, 40, message);
+    const instructionText = new Text(120, 50, message);
     instructionText.anchor.set(0.5, 0.5);
     instructionText.fontSize = 2;
     
-    const helpText = new Text(96, 80, "HOLD ESC TO UNMAP");
+    const helpText = new Text(120, 100, "Hold ESC or MENU to unmap");
     helpText.anchor.set(0.5, 0.5);
     
     const progressBarBg = game.add.graphics(0, 0);
     progressBarBg.beginFill(0x333333, 0.8);
-    progressBarBg.drawRect(48, 60, 96, 8);
+    progressBarBg.drawRect(0, 146, 240, 4);
     progressBarBg.endFill();
+    progressBarBg.visible = false;
     
     const progressBar = game.add.graphics(0, 0);
     
@@ -207,18 +226,20 @@ class Keybindings {
     const updateProgress = () => {
       if (!escIsHeld || !this.waitOverlayActive) return;
       
+      progressBarBg.visible = true;
+      
       const elapsed = Date.now() - escHoldStartTime;
       const progress = Math.min(elapsed / holdDuration, 1);
       
       progressBar.clear();
       progressBar.beginFill(0xffffff, 1);
-      progressBar.drawRect(48, 60, 96 * progress, 8);
+      progressBarBg.drawRect(0, 146, 240 * progress, 4);
       progressBar.endFill();
       
       const overlayAlpha = 0.7 * (1 - progress * 0.7);
       overlay.clear();
       overlay.beginFill(0x000000, overlayAlpha);
-      overlay.drawRect(0, 0, 192, 112);
+      overlay.drawRect(0, 0, 240, 140);
       overlay.endFill();
       
       if (progress >= 1) {
@@ -238,7 +259,7 @@ class Keybindings {
       progressBar.clear();
       overlay.clear();
       overlay.beginFill(0x000000, 0.7);
-      overlay.drawRect(0, 0, 192, 112);
+      overlay.drawRect(0, 0, 240, 140);
       overlay.endFill();
     };
     
@@ -273,8 +294,8 @@ class Keybindings {
       this.handleKeyboardKeyPress(event.keyCode);
     };
     
-    const gamepadListener = (buttonCode) => {
-      if (!this.waitOverlayActive || !this.waitingState) return;
+    const gamepadListener = (buttonCode, _, index) => {
+      if (!this.waitOverlayActive || !this.waitingState || index + 1 != playerNum) return;
       
       if (this.waitingState.type === "gamepad") {
         this.handleGamepadButtonPress(buttonCode);
@@ -315,7 +336,7 @@ class Keybindings {
     
     // Limpiar intervalo
     if (this.waitOverlayElements?.progressInterval) {
-      clearInterval(this.waitOverlayElements.progressInterval);
+      clearInterval(this.waitOverlayElements.pro.gressInterval);
     }
     
     // Destruir elementos gráficos
@@ -325,6 +346,9 @@ class Keybindings {
         this.waitOverlayElements[el].destroy();
       }
     }
+    
+    // Mostrar lo que fue oculto
+    this.navigationHint.visible = true;
     
     // Restaurar callbacks originales
     if (this.originalCallbacks.keyboardDown !== undefined) {

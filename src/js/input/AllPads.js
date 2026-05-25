@@ -85,6 +85,7 @@ class AllPads extends Gamepad {
   
   releaseAll() {
     this.gamepads.forEach(pad => pad.releaseAll());
+    super.releaseAll();
   }
   press(key) {
     this.gamepads[0]?.press(key);

@@ -4,26 +4,111 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.0.1 dev
- * Build: 5/21/2026, 12:25:42 AM
- * Platform: Development
+ * Version: v1.1.0
+ * Build: 5/25/2026, 12:29:59 PM
+ * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
  */
 
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.0.1 dev";
+const VERSION = "v1.1.0";
 
 window.DEBUG = false;
 
+const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★";
+const TINY_FONT_MAP = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\" •<>=%∥▶";
+
 const FONTS = {
-  default: { font: "font_tiny" },
-  tiny: { font: "font_tiny" },
-  shaded: { font: "font_tiny_shaded" },
-  stroke: { font: "font_tiny_stroke", fontWidth: 5 },
-  number: { font: "font_tiny_number", fontMap: "1234567890 " },
-  combo: { font: "font_combo", fontMap: "0123456789 ", fontWidth: 8, fontHeight: 8 }
+  default: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_default",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 4,
+    fontHeight: 7,
+    autoUpperCase: false
+  },
+  default_shadow: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_defaul_shadow",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 4,
+    fontHeight: 7,
+    autoUpperCase: false
+  },
+  default_stroke: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_defaul_stroke",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 5,
+    fontHeight: 8,
+    autoUpperCase: false
+  },
+  bold: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_bold",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 6,
+    fontHeight: 7,
+    autoUpperCase: false
+  },
+  bold_shadow: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_bold_shadow",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 6,
+    fontHeight: 7,
+    autoUpperCase: false
+  },
+  bold_stroke: {
+    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    font: "font_bold_stroke",
+    fontMap: DEFAULT_FONT_MAP,
+    fontWidth: 7,
+    fontHeight: 8,
+    autoUpperCase: false
+  },
+  tiny_default: {
+    credit: COPYRIGHT,
+    font: "font_tiny_default",
+    fontMap: TINY_FONT_MAP,
+    fontWidth: 4,
+    fontHeight: 6,
+    autoUpperCase: true 
+  },
+  tiny_shaded: {
+    credit: COPYRIGHT,
+    font: "font_tiny_shaded",
+    fontMap: TINY_FONT_MAP,
+    fontWidth: 4,
+    fontHeight: 6,
+    autoUpperCase: true
+  },
+  tiny_stroke: {
+    credit: COPYRIGHT,
+    font: "font_tiny_stroke",
+    fontMap: TINY_FONT_MAP,
+    fontWidth: 5,
+    fontHeight: 6,
+    autoUpperCase: true
+  },
+  tiny_number: {
+    credit: COPYRIGHT,
+    font: "font_tiny_number",
+    fontMap: "1234567890 ",
+    fontWidth: 4,
+    fontHeight: 6,
+    autoUpperCase: false
+  },
+  biscuitlocker_combo: {
+    credit: "From 'Pixel GB Block Numbers' by Biscuit Locker 2025 (games@biscuitlocker.com)",
+    font: "font_combo",
+    fontMap: "0123456789 ",
+    fontWidth: 8,
+    fontHeight: 8,
+    autoUpperCase: false
+  }
 };
 
 const WINDOW_PANELS = ["1"];
@@ -412,7 +497,7 @@ const KEYBOARD_KEY_NAMES = {
   // TODO: Add TV, Apps, Mail and Documents keys
 
   // Numeric keypad keys
-    // Number Pad
+  // Number Pad
   "Numpad0": "NUM 0",
   "Numpad1": "NUM 1",
   "Numpad2": "NUM 2",
@@ -532,7 +617,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -559,7 +644,7 @@ const STRONG_VIBRATION_INTENSITY = 50;
 
 // Character system constants
 const CHARACTER_SYSTEM = {
-  MAX_NAME_LENGTH: 6,
+  MAX_NAME_LENGTH: 12,
   DEFAULT_CHARACTER: "EIRI",
   MAX_SKILL_LEVEL: 5,
   EXPERIENCE_CURVE: level => Math.floor(10 * Math.pow(level, 1.03)),
@@ -574,7 +659,7 @@ const CHARACTER_SYSTEM = {
   HAIR_COOLDOWN_LEVELS: 2,
   ITEM_COOLDOWN_LEVELS: 2,
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
-  CLOSE_SHOT_CROP: { x: 32, y: 15, w: 36, h: 7 },
+  CLOSE_SHOT_CROP: { x: 36, y: 15, w: 46, h: 7 },
   HAIR_STYLES: {
     front: ["Casual", "Smart", "Daring", "Simple", "Bulky", "Afro", "Emotional", "Clean"],
     back: ["Casual", "Smart", "Curly", "Ponytails", "Short", "Afro", "Diva", "Clean"],
@@ -1267,6 +1352,7 @@ const CHARACTER_ITEMS = {
 };
 
 const DEFAULT_ACCOUNT = {
+  version: 1.0,
   settings: {
     volume: 100,
     autoplay: false,
@@ -1287,6 +1373,13 @@ const DEFAULT_ACCOUNT = {
     videoFps: 1,
     enableMouse: true,
     enableTouch: true,
+    backgroundOpacity: 0.7,
+    buttonStyle: 'xbox',
+    enableChartBackground: false,
+    chartBackgroundOpacity: 0.3,
+    videoFps: 1, // 60 FPS
+    enableSongInfo: true,
+    enableTemperature: false,
     // Addon system settings
     safeMode: false,
     enabledAddons: [],
@@ -4374,36 +4467,33 @@ class AchievementsManager {
 }
 
 class Text extends Phaser.Sprite {
-  constructor(x, y, text = "", config, parent) {
-    config = {
-      font: "font_tiny",
-      fontMap: " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\"`•<>=%∥▶",
-      fontWidth: 4,
-      fontHeight: 6,
+  constructor(x, y, text = "", config = {}, parent) {
+    super(game, x, y, null);
+    
+    this.config = {
+      ...FONTS.default,
+      tint: 0xffffff,
       typewriter: false,
       typewriterInterval: 100,
       ...config
     };
     
-    super(game, x, y, null);
-    
-    this.config = config;
-
-    this.texture = new Phaser.RetroFont(game, config.font, config.fontWidth, config.fontHeight, config.fontMap);
+    this.texture = new Phaser.RetroFont(game, this.config.font, this.config.fontWidth, this.config.fontHeight, this.config.fontMap);
 
     this.texture.multiLine = true;
-    this.texture.autoUpperCase = true;
+    this.texture.autoUpperCase = this.config.autoUpperCase;
 
     this.timer = game.time.create(false);
 
-    this.typewriterInterval = config.typewriterInterval;
+    this.typewriterInterval = this.config.typewriterInterval;
 
-    if (config.typewriter) {
+    this.tint = this.config.tint;
+    
+    if (this.config.typewriter) {
       this.typewriter(text);
     } else {
       this.write(text);
     }
-
     
     if (parent) {
       if (parent instanceof Phaser.Group) parent.add(this);
@@ -4452,7 +4542,7 @@ class Text extends Phaser.Sprite {
     // Prepare the text with separation spaces
     const fullText = text + ' '.repeat(separation);
     let position = 0;
-    let direction = 1; // 1 for forward, -1 for backward (optional)
+    let direction = 1; // 1 for forward, -1 for backward
     let isScrolling = true;
 
     const update = () => {
@@ -4480,10 +4570,7 @@ class Text extends Phaser.Sprite {
 
     // Return methods to control the scrolling
     return {
-      stop: () => {
-        isScrolling = false;
-        this.timer.stop();
-      },
+      stop: () => this.stopScrolling(),
       pause: () => {
         isScrolling = false;
       },
@@ -4507,7 +4594,7 @@ class Text extends Phaser.Sprite {
     return this.timer.running;
   }
   
-  wrap(maxWidth, lineSpacing = 1) {
+  wrapOld(maxWidth, lineSpacing = 1) {
     if (!this.texture.text) return this;
     
     const originalText = this.texture.text;
@@ -4564,15 +4651,20 @@ class Text extends Phaser.Sprite {
     
     return this;
   }
-
-  wrapPreserveNewlines(maxWidth, lineSpacing = 1) {
-    if (!this.texture.text) return this;
+  
+  getMaxCharsPerLine(maxWidth = 1) {
+    const charWidth = this.config.fontWidth || 4;
+    return Math.floor(maxWidth / charWidth);
+  }
+  
+  getWrappedText(maxWidth = 1) {
+    if (!this.texture.text) return this.texture.text;
     
     const originalText = this.texture.text;
-    const charWidth = this.config.fontWidth || 4;
-    const maxCharsPerLine = Math.floor(maxWidth / charWidth);
     
-    if (maxCharsPerLine <= 0) return this;
+    const maxCharsPerLine = this.getMaxCharsPerLine(maxWidth);
+    
+    if (maxCharsPerLine <= 0) return this.texture.text;
     
     const originalLines = originalText.split('\n');
     const wrappedLines = [];
@@ -4624,60 +4716,12 @@ class Text extends Phaser.Sprite {
       }
     }
     
-    const wrappedText = wrappedLines.join('\n');
-    this.write(wrappedText);
-    
-    return this;
+    return wrappedLines.join('\n');
   }
-
-  getWrappedText(maxWidth) {
-    if (!this.texture.text) return '';
-    
-    const originalText = this.texture.text;
-    const charWidth = this.config.fontWidth || 4;
-    const maxCharsPerLine = Math.floor(maxWidth / charWidth);
-    
-    if (maxCharsPerLine <= 0) return originalText;
-    
-    const words = originalText.split(' ');
-    const lines = [];
-    let currentLine = '';
-    
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i];
-      
-      if (word.length > maxCharsPerLine) {
-        if (currentLine) {
-          lines.push(currentLine);
-          currentLine = '';
-        }
-        
-        let wordChunk = '';
-        for (let j = 0; j < word.length; j++) {
-          wordChunk += word[j];
-          if (wordChunk.length >= maxCharsPerLine || j === word.length - 1) {
-            lines.push(wordChunk);
-            wordChunk = '';
-          }
-        }
-        continue;
-      }
-      
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      
-      if (testLine.length <= maxCharsPerLine) {
-        currentLine = testLine;
-      } else {
-        lines.push(currentLine);
-        currentLine = word;
-      }
-    }
-    
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-    
-    return lines.join('\n');
+  
+  wrap(maxWidth) {
+    this.write(this.getWrappedText(maxWidth));
+    return this;
   }
 }
 
@@ -4703,6 +4747,7 @@ class Window extends Phaser.Sprite {
     this.skin = skin;
     this.font = "default";
     this.fontTint = 0x76fcde;
+    this.disableHighlight = false;
     this.disableScrollBar = false;
     this.disableMouse = false;
 
@@ -4721,7 +4766,15 @@ class Window extends Phaser.Sprite {
     this.selector.animations.add('blink', [9, 10], 4, true);
     this.selector.animations.play('blink');
     this.addChild(this.selector);
-
+    
+    // Highlight rectangle
+    this.highlight = game.add.graphics(0, 0);
+    this.highlight.alpha = 0; // Start hidden
+    this.highlight.beginFill(this.fontTint, 0.8);
+    this.highlight.drawRect(0, 0, this.size.width * 8, 8);
+    this.highlight.endFill();
+    this.addChild(this.highlight);
+    
     // Scroll bar
     this.scrollBar = game.add.graphics(this.size.width * 8 - 3, 8);
     this.scrollBar.alpha = 0; // Start hidden
@@ -4941,6 +4994,25 @@ class Window extends Phaser.Sprite {
     } else {
       this.selector.visible = false;
     }
+    
+    // Update highlight
+    this.updateHighlight();
+  }
+  
+  updateHighlight() {
+    if (this.forcedHighlightY || this.selector.visible && !this.disableHighlight) {
+      // Position with selector arrow
+      this.highlight.y = this.forcedHighlightY || this.selector.y - 1;
+      
+      // Tween highlight alpha
+      this.highlight.alpha = 0.6 + (0.4 * Math.sin(Date.now() * 0.01));
+    } else {
+      this.highlight.alpha = 0;
+    }
+  }
+  
+  forceHighlight(y) {
+    this.forcedHighlightY = y;
   }
   
   updateScrollBar() {
@@ -5889,6 +5961,8 @@ class DialogWindow extends Phaser.Sprite {
     gamepad.signals.pressed.down.remove(this.onDownPressed, this);
     gamepad.signals.pressed.a.remove(this.onAPressed, this);
     gamepad.signals.pressed.b.remove(this.onBPressed, this);
+    gamepad.pressed.a = false;
+    gamepad.pressed.b = false;
   }
 
   destroy() {
@@ -5910,7 +5984,7 @@ class CarouselMenu extends Phaser.Sprite {
       animate: true,
       align: 'left',
       bgcolor: '#3498db',
-      fgcolor: '#ffffff',
+      fgcolor: 0xffffff,
       disableScrollBar: false,
       disableConfirm: false,
       disableCancel: false,
@@ -6026,8 +6100,7 @@ class CarouselMenu extends Phaser.Sprite {
     if (itemIcon) itemParent.addChild(itemIcon);
     
     const itemText = new Text(itemIcon ? textX * 2 : textX, 0, item.textContent, {
-      ...FONTS.default,
-      tint: data.fgcolor || this.config.fgcolor
+      ...FONTS.small
     });
     itemText.anchor.x = textAnchor;
     itemText.y = 1;
@@ -7077,7 +7150,7 @@ class NavigationHint extends Phaser.Sprite {
       
       const descriptionText = hint.text;
       if (descriptionText) {
-        const descSprite = new Text(0, 0, descriptionText, FONTS.default);
+        const descSprite = new Text(0, 2, descriptionText, FONTS.small);
         descSprite.anchor.y = 0.5;
         descSprite.x = currentX;
         this.addChild(descSprite);
@@ -7149,7 +7222,7 @@ class NavigationHint extends Phaser.Sprite {
     group.add(right);
     
     // Text label
-    const label = new Text(1 + totalWidth / 2, 0, keyText, FONTS.default);
+    const label = new Text(1 + totalWidth / 2, 1, keyText, FONTS.small);
     label.anchor.set(0.5, 0.5);
     group.add(label);
     
@@ -7315,7 +7388,7 @@ class NavigationHint extends Phaser.Sprite {
 
 class ProgressText extends Text {
   constructor(text) {
-    super(4, game.height - 4, text, FONTS.default);
+    super(4, game.height - 2, text, FONTS.default);
     
     this.anchor.y = 1;
   }
@@ -7396,299 +7469,399 @@ class SkillBar extends Phaser.Sprite {
 }
 
 class TextInput extends Phaser.Sprite {
-  constructor(text = "", maxLength = 6, onConfirm, onCancel) {
-    super(game, 96, 28);
+  constructor(config = {}) {
+    config = {
+      text: "",
+      x: 120,
+      y: 35,
+      width: 8,
+      height: 2,
+      useNewLine: true,
+      maxLength: 28,
+      onConfirm: null,
+      onCancel: null,
+      charset: null, // allow any character
+      limitedCharacters: null, // do not limit characters
+      ...config
+    };
+    
+    const { x, y, width, height } = config;
+    
+    super(game, x, y);
     this.anchor.x = 0.5;
+    
+    this.config = config;
+    
+    this.size = {
+      cells: {
+        x: width,
+        y: height
+      },
+      width: (width - 1) * 8,
+      height: height * 8
+    };
 
-    this.characterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ. ";
-
-    this.window = new Window(0, 0, maxLength, 2, "1", this);
+    this.window = new Window(0, 0, width, height, "1", this);
     this.window.x -= (this.window.size.width / 2) * 8;
     
-    text = text.slice(0, maxLength);
+    this.maxLength = config.maxLength;
+    this.text = config.text.slice(0, this.maxLength);
+    this.currentIndex = this.text.length;
     
-    console.log(text);
-
-    this.stackedText = text.slice(0, text.length - 1).toUpperCase();
-    this.currentIndex = 0;
-    
-    this.takeChar(this.getLastChar(text));
-    
-    this.maxLength = maxLength;
-    this.text = "";
-
-    this.textLayer = new Text(3, 5, text);
+    this.textLayer = new Text(3, 5, "");
     this.textLayer.tint = this.window.fontTint;
     this.window.addChild(this.textLayer);
 
-    this.cursor = game.add.graphics(0, 1);
+    this.cursor = game.add.graphics(0, 0);
     this.cursor.beginFill(this.window.fontTint, 1);
-    this.cursor.drawRect(0, 0, 2, 4);
+    this.cursor.drawRect(0, 0, 2, 5);
     this.cursor.endFill();
     this.textLayer.addChild(this.cursor);
-
+    
     this.lastCursorBlinkTime = 0;
     this.cursorVisible = false;
-
+    
     this.onConfirm = new Phaser.Signal();
     this.onCancel = new Phaser.Signal();
+    
+    this.updateCursor();
 
-    if (onConfirm) {
-      this.onConfirm.add(onConfirm);
+    if (config.onConfirm) {
+      this.onConfirm.add(config.onConfirm);
     }
-    if (onCancel) {
-      this.onCancel.add(onCancel);
+    if (config.onCancel) {
+      this.onCancel.add(config.onCancel);
     }
 
     game.add.existing(this);
   }
-  getCharacterToInsert() {
-    return this.characterSet[this.currentIndex];
+  
+  validateCharInput(char) {
+    const isValidChar = typeof char == 'string' && char.length == 1;
+    const isCharAllowed = this.config.charset ? this.config.charset.includes(char) : true;
+    const isCharLimited = this.config.limitedCharacters && typeof this.config.limitedCharacters[char] != undefined; 
+    const isCharExhausted = isCharLimited && this.config.limitedCharacters[char] <= this.countCharacter(char);
+    return isValidChar && isCharAllowed && !isCharExhausted;
   }
-  getLastChar(text) {
-    const lastChar = text && text.length ? text[ text.length - 1 ] : this.getCharacterToInsert();
-    return lastChar.toUpperCase();
+  
+  countCharacter(char) {
+    let count = 0;
+    
+    for (const c of this.text) {
+      if (c == char) count ++;
+    }
+    
+    return count;
   }
-  takeChar(char) {
-    const index = this.characterSet.toUpperCase().indexOf(char.toUpperCase());
-    if (index != -1) {
-      this.currentIndex = index;
+
+  receiveInput(key, input) {
+    const isAtMaxLength = this.isAtMaxLength();
+    
+    // Insert glyph 
+    if (!isAtMaxLength) {
+      if (!key.action) {
+        this.insertCharacter(input);
+      }
+    } else {
+      // buzzer sound goes here
+    }
+    
+    // Special keys logic
+    if (key.action) {
+      switch (key.action) {
+        // Move cursor
+        case 'up':
+        case 'down':
+        case 'left':
+        case 'right':
+          this.moveCursor(key.action);
+          break;
+          
+        // Insert newline or confirm
+        case 'enter':
+          if (this.useNewLine) { // TODO: Limit new line
+            this.insertCharacter('\n');
+          } else {
+            this.confirm();
+          }
+          break;
+        
+        // Remove glyph
+        case 'erase':
+          this.erase();
+          break;
+      }
     }
   }
-  update() {
-    const isAtMaxLength = this.stackedText.length >= this.maxLength;
-
-    this.text = isAtMaxLength ? this.stackedText : this.stackedText + this.getCharacterToInsert();
+  
+  insertCharacter(input) {
+    const left = this.text.slice(0, this.currentIndex);
+    const right = this.text.slice(this.currentIndex);
+    
+    if (this.validateCharInput(input)) {
+      this.text = left + input + right;
+      this.currentIndex ++;
+      this.updateCursor();
+    }
+  }
+  
+  erase() {
+    const left = this.text.slice(0, this.currentIndex);
+    const right = this.text.slice(this.currentIndex);
+    
+    if (left.length) {
+      this.text = left.slice(0, left.length -1) + right;
+      this.currentIndex --;
+      this.updateCursor();
+    }
+  }
+  
+  moveCursor(dir) {
+    switch (dir) {
+      case 'left':
+        if (this.currentIndex > 0) this.currentIndex--;
+        break;
+      case 'right':
+        if (this.currentIndex < this.text.length) this.currentIndex++;
+        break;
+      case 'up':
+        const lineWidth = this.getMaxCharsPerLine();
+        this.currentIndex -= lineWidth;
+        if (this.currentIndex < 0) this.currentIndex = 0;
+        break;
+      case 'down':
+        const lineWidthDown = this.getMaxCharsPerLine();
+        this.currentIndex += lineWidthDown;
+        if (this.currentIndex > this.text.length) this.currentIndex = this.text.length;
+        break;
+    }
+    
+    this.updateCursor();
+  }
+  
+  getMaxCharsPerLine() {
+    return this.textLayer.getMaxCharsPerLine(this.size.width);
+  }
+  
+  isAtMaxLength() {
+    return this.text.length >= this.maxLength;
+  }
+  
+  getLocalCursorPosition() {
+    const maxChars = this.getMaxCharsPerLine();
+    
+    let i = 0, x = 0, y = 0;
+    
+    // Count chars one by one to get position 
+    for (const char of this.text) {
+      if (i == this.currentIndex) {
+        return { x, y };
+      }
+      if (char == '\n') {
+        x = 0;
+        y ++;
+      } else if (x >= maxChars) {
+        x = 1;
+        y ++;
+      } else {
+        x ++;
+      }
+      i++;
+    }
+    
+    return { x, y };
+  }
+  
+  updateCursor() {
+    const isAtMaxLength = this.isAtMaxLength();
 
     this.textLayer.write(this.text);
+    this.textLayer.wrap(this.size.width);
 
-    this.cursor.x = this.text.length * 4;
-    this.cursor.visible = !isAtMaxLength && this.cursorVisible;
+    const { x, y } = this.getLocalCursorPosition();
+    
+    this.cursor.x = x * 4;
+    this.cursor.y = y * 7;
+  }
 
-    let newIndex = this.currentIndex;
-
-    // Change letter
-    if (gamepad.pressed.up) {
-      newIndex--;
-    }
-    if (gamepad.pressed.down) {
-      newIndex++;
-    }
-
-    if (newIndex < 0) newIndex = this.characterSet.length - 1;
-    if (newIndex > this.characterSet.length - 1) newIndex = 0;
-
-    this.currentIndex = newIndex;
-
-    // Insert letter
-    if (gamepad.pressed.a) {
-      if (!isAtMaxLength) {
-        this.stackedText += this.getCharacterToInsert();
-      } else {
-        this.confirm();
-      }
-    }
-
-    // Remove letter
-    if (gamepad.pressed.b) {
-      if (this.stackedText.length) {
-        this.takeChar(this.getLastChar(this.stackedText));
-        this.stackedText = this.stackedText.slice(0, this.stackedText.length - 1);
-      } else {
-        this.cancel();
-      }
-    }
+  update() {
+    this.cursor.visible = !this.isAtMaxLength() && this.cursorVisible;
 
     // Blink cursor
     if (game.time.now - this.lastCursorBlinkTime >= 350) {
       this.cursorVisible = !this.cursorVisible;
       this.lastCursorBlinkTime = game.time.now;
     }
-
-    // Confirm
-    if (gamepad.pressed.start) {
-      this.confirm();
-    }
-
-    // Cancel
-    if (gamepad.pressed.select) {
-      this.cancel();
-    }
   }
+  
   confirm() {
     this.onConfirm.dispatch(this.text);
     this.destroy();
   }
+  
   cancel() {
     this.onCancel.dispatch(this.text);
     this.destroy();
   }
+  
   destroy() {
     super.destroy();
     this.onConfirm.dispose();
+    this.onCancel.dispose();
+    if (window.focusedElement == this) {
+      window.focusedElement = null;
+    }
   }
 }
 
-class ValueInput extends Phaser.Sprite {
-  constructor(value = 0, min = 0, max = Infinity, step = 1, onConfirm, onCancel) {
-    super(game, 96, 28);
+class NumberInput extends TextInput {
+  constructor(config = {}) {
+    config = {
+      text: "0",
+      min: 0,
+      max: Infinity,
+      decimals: 0,
+      x: 120,
+      y: 35,
+      width: 10,
+      height: 2,
+      onConfirm: null,
+      onCancel: null,
+      ...config
+    };
     
-    this.anchor.x = 0.5;
-
-    this.window = new Window(0, 0, 8, 2, "1", this);
-    this.window.x -= (this.window.size.width / 2) * 8;
+    const initialValue = typeof config.text === 'number' ? config.text : parseFloat(config.text) || 0;
+    const clampedValue = Math.min(config.max, Math.max(config.min, initialValue));
+    const displayText = config.decimals > 0 ? clampedValue.toFixed(config.decimals) : clampedValue.toString();
     
-    this.value = value;
-    this.min = min;
-    this.max = max;
-    this.step = step;
+    super({
+      text: displayText,
+      x: config.x,
+      y: config.y,
+      width: config.width,
+      height: config.height,
+      useNewLine: false,
+      maxLength: 12,
+      charset: config.decimals > 0 ? "1234567890.-" : "1234567890-",
+      limitedCharacters: config.decimals > 0 ? { ".": 1, "-": 1 } : { "-": 1 },
+      onConfirm: config.onConfirm,
+      onCancel: config.onCancel
+    });
     
-    // Track input states
-    this.firstPressTime = undefined;
-    this.lastPress = 0;
-    
-    this.textLayer = new Text(3, 5, "");
-    this.textLayer.tint = this.window.fontTint;
-    this.window.addChild(this.textLayer);
-    
-    this.cursor = game.add.graphics(0, 1);
-    this.cursor.beginFill(this.window.fontTint, 1);
-    this.cursor.drawRect(0, 0, 2, 4);
-    this.cursor.endFill();
-    this.textLayer.addChild(this.cursor);
-
-    this.lastCursorBlinkTime = 0;
-
-    this.onConfirm = new Phaser.Signal();
-    this.onCancel = new Phaser.Signal();
-
-    if (onConfirm) {
-      this.onConfirm.add(onConfirm);
-    }
-    if (onCancel) {
-      this.onCancel.add(onCancel);
-    }
-
-    game.add.existing(this);
+    this.min = config.min;
+    this.max = config.max;
+    this.decimals = config.decimals;
   }
+  
+  getNumericValue() {
+    let value = parseFloat(this.text);
+    if (isNaN(value)) value = this.min;
+    return Math.min(this.max, Math.max(this.min, value));
+  }
+  
+  validateCharInput(char) {
+    if (char === '-') {
+      return this.text.length === 0;
+    }
+    
+    if (char === '.') {
+      return this.decimals > 0 && !this.text.includes('.');
+    }
+    
+    return super.validateCharInput(char);
+  }
+  
+  receiveInput(key, input) {
+    const oldValue = this.getNumericValue();
+    
+    if (key.action) {
+      switch (key.action) {
+        case 'up':
+        case 'add':
+          this.increment();
+          break;
+        case 'down':
+        case 'subtract':
+          this.decrement();
+          break;
+        case 'left':
+          this.moveCursor('left');
+          break;
+        case 'right':
+          this.moveCursor('right');
+          break;
+        case 'enter':
+          this.confirm();
+          break;
+        case 'erase':
+          this.erase();
+          break;
+      }
+      return;
+    }
+    
+    super.receiveInput(key, input);
+    
+    const newValue = this.getNumericValue();
+    if (newValue !== oldValue) {
+      this.clampAndUpdateDisplay();
+    }
+  }
+  
+  increment() {
+    let step = Math.pow(10, -this.decimals);
+    let newValue = this.getNumericValue() + step;
+    newValue = Math.min(this.max, newValue);
+    this.setValue(newValue);
+  }
+  
+  decrement() {
+    let step = Math.pow(10, -this.decimals);
+    let newValue = this.getNumericValue() - step;
+    newValue = Math.max(this.min, newValue);
+    this.setValue(newValue);
+  }
+  
+  setValue(value) {
+    value = Math.min(this.max, Math.max(this.min, value));
+    let displayValue;
+    if (this.decimals > 0) {
+      displayValue = value.toFixed(this.decimals);
+    } else {
+      displayValue = Math.floor(value).toString();
+    }
+    this.text = displayValue;
+    this.currentIndex = this.text.length;
+    this.updateCursor();
+  }
+  
+  clampAndUpdateDisplay() {
+    let value = this.getNumericValue();
+    let newDisplay;
+    
+    if (this.decimals > 0) {
+      newDisplay = value.toFixed(this.decimals);
+    } else {
+      newDisplay = Math.floor(value).toString();
+    }
+    
+    if (this.text !== newDisplay) {
+      this.text = newDisplay;
+      this.currentIndex = Math.min(this.currentIndex, this.text.length);
+      this.updateCursor();
+    }
+  }
+  
   confirm() {
-    this.onConfirm.dispatch(parseFloat(this.value.toFixed(3)));
+    const numericValue = this.getNumericValue();
+    this.onConfirm.dispatch(numericValue);
     this.destroy();
   }
+  
   cancel() {
-    this.onCancel.dispatch(parseFloat(this.value.toFixed(3)));
+    const numericValue = this.getNumericValue();
+    this.onCancel.dispatch(numericValue);
     this.destroy();
-  }
-  update() {
-    // Update text layer
-    this.textLayer.write(`${this.value.toFixed(this.getDecimalPlaces())}`);
-    
-    // Update cursor position
-    this.cursor.x = this.textLayer.texture.text.length * 4;
-
-    // Blink cursor
-    if (game.time.now - this.lastCursorBlinkTime >= 350) {
-      this.cursor.visible = !this.cursor.visible;
-      this.lastCursorBlinkTime = game.time.now;
-    }
-    
-    // Handle navigation
-    const { up, down, left, right, a, b } = gamepad.held;
-    const pressed = gamepad.pressed;
-    const released = gamepad.released;
-  
-    // Dynamic cooldown system
-    let cooldown = 100;
-    
-    // Calculate time since last held press
-    const timeSinceLastPress = game.time.now - this.lastPress;
-    const timeSinceFirstPress = game.time.now - (this.firstPressTime || 0);
-    
-    // Dynamic cooldown logic: 
-    if (timeSinceFirstPress < 1000) {
-      cooldown = 400;
-    } else if (timeSinceFirstPress < 1500) {
-      cooldown = 200;
-    } else if (timeSinceFirstPress < 1700) {
-      cooldown = 100;
-    } else if (timeSinceLastPress < 5000) {
-      cooldown = 50;
-    } else {
-      cooldown = 16;
-    }
-    
-    const cooldownEnded = timeSinceLastPress >= cooldown;
-  
-    // Handle pressed buttons
-    if (pressed.up) {
-      this.value = Math.min(this.max, this.value + this.step);
-      this.resetPressTiming();
-      return;
-    } else if (pressed.down) {
-      this.value = Math.max(this.min, this.value - this.step);
-      this.resetPressTiming();
-      return;
-    } else if (pressed.left) {
-      this.value = Math.max(this.min, this.value - this.step * 5);
-      this.resetPressTiming();
-      return;
-    } else if (pressed.right) {
-      this.value = Math.min(this.max, this.value + this.step * 5);
-      this.resetPressTiming();
-      return;
-    }
-    
-    if (gamepad.pressed.a || gamepad.pressed.start) {
-      this.confirm();
-    }
-    
-    if (gamepad.pressed.b || gamepad.pressed.select) {
-      this.cancel();
-    }
-    
-    if (cooldownEnded) {
-      if (gamepad.held.down) {
-        this.value = Math.max(this.min, this.value - this.step);
-        this.lastInputTime = game.time.now;
-      }
-      if (gamepad.held.up) {
-        this.value = Math.min(this.max, this.value + this.step);
-        this.lastInputTime = game.time.now;
-      }
-      if (gamepad.held.left) {
-        this.value = Math.max(this.min, this.value - this.step * 5);
-        this.lastInputTime = game.time.now;
-      }
-      if (gamepad.held.right) {
-        this.value = Math.min(this.max, this.value + this.step * 5);
-        this.lastInputTime = game.time.now;
-      }
-    }
-  }
-  updatePressTiming() {
-    // Track first press time
-    if (this.firstPressTime === undefined) {
-      this.firstPressTime = game.time.now;
-    }
-    
-    // Update last press time
-    this.lastPress = game.time.now;
-  }
-  resetPressTiming() {
-    this.firstPressTime = game.time.now;
-    this.lastPress = game.time.now;
-  }
-  getDecimalPlaces() {
-    const split = this.step.toString().split('.');
-    if (split[1]) {
-      return split[1].length;
-    } else {
-      return 0;
-    }
-  }
-  destroy() {
-    super.destroy();
-    this.onConfirm.dispose();
   }
 }
 
@@ -8189,7 +8362,7 @@ class NotificationSystem {
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
-    this.maxLineLength = options.maxLineLength || 30; // Maximum characters per line
+    this.maxLineLength = options.maxLineLength || 40; // Maximum characters per line
     this.currentTime = 0;
     this.lrcData = [];
     this.rangeLrc = [];
@@ -9535,8 +9708,8 @@ const saveAccount = () => localStorage.setItem("Account", JSON.stringify(Account
 const bootGame = () => {
   if (game) game.destroy();
   game = new Phaser.Game({
-    width: 192,
-    height: 112,
+    width: 240,
+    height: 140,
     renderer: Account.settings.renderer,
     scaleMode: Phaser.ScaleManager.SHOW_ALL,
     crisp: Account.settings.pixelated,
@@ -9574,7 +9747,7 @@ const bootGame = () => {
 window.onload = bootGame;
 
 const addFpsText = () => {
-  const text = new Text(190, 2, "");
+  const text = new Text(238, 2, "");
   text.anchor.x = 1;
   game.time.events.loop(100, () => text.write(`${game.time.fps} (${game.renderer.renderSession.drawCount - 1})`));
   return text;
@@ -10240,6 +10413,12 @@ class TimeUtils {
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }
+  static formatSeconds(time) {
+    if (!TimeUtils.isValidTime(time)) return "0s";
+    
+    const seconds = time / 1000 % 60;
+    return `${seconds.toFixed(2)}s`;
+  }
 }
 
 class GamepadListener {
@@ -10270,12 +10449,10 @@ class KeyboardListener {
     // Global keyboard listeners
     this.game.input.keyboard.onDownCallback = (event) => {
       this.onDown.dispatch(event.keyCode, event);
-      event.preventDefault();
     };
     
     this.game.input.keyboard.onUpCallback = (event) => {
       this.onUp.dispatch(event.keyCode, event);
-      event.preventDefault();
     };
   }
 }
@@ -10302,6 +10479,8 @@ class InputManager {
     gamepad2 = this.gamepad2;
 
     gamepad = new AllPads(game, [gamepad1, gamepad2]);
+    
+    this.gamepad = gamepad;
   }
 }
 
@@ -10405,10 +10584,13 @@ class Gamepad {
     this.game.input.keyboard.addKeyCapture(uniqueKeyCapture);
   
     // Global keyboard listeners
-    inputManager.keyboardListener.onDown.add((keyCode) => {
+    inputManager.keyboardListener.onDown.add((keyCode, event) => {
       const action = this.keyCodeToAction[keyCode];
       if (action) {
+        event.preventDefault();
         this.held[action] = true;
+      } else if (window.focusedElement) {
+        event.preventDefault();
       }
       this.detectInputSource('keyboard');
     });
@@ -10417,6 +10599,9 @@ class Gamepad {
       const action = this.keyCodeToAction[keyCode];
       if (action) {
         this.held[action] = false;
+        event.preventDefault();
+      } else if (window.focusedElement) {
+        event.preventDefault();
       }
     });
     
@@ -11031,6 +11216,7 @@ class AllPads extends Gamepad {
   
   releaseAll() {
     this.gamepads.forEach(pad => pad.releaseAll());
+    super.releaseAll();
   }
   press(key) {
     this.gamepads[0]?.press(key);
@@ -11055,6 +11241,242 @@ class AllPads extends Gamepad {
   }
   
   destroy() {}
+}
+
+class OnScreenKeyboard extends Phaser.Sprite {
+  constructor(x, y) {
+    super(game, x || 60, y || 75, "ui_keyboard", 0);
+    
+    this.keys = [
+      { top: 4, left: 4, width: 7, height: 7, code: "1", symbol: "1" }, 
+      { top: 4, left: 14, width: 7, height: 7, code: "2", symbol: "2" },
+      { top: 4, left: 24, width: 7, height: 7, code: "3", symbol: "3" },
+      { top: 4, left: 34, width: 7, height: 7, code: "4", symbol: "4" },
+      { top: 4, left: 44, width: 7, height: 7, code: "5", symbol: "5" },
+      { top: 4, left: 54, width: 7, height: 7, code: "6", symbol: "6" },
+      { top: 4, left: 64, width: 7, height: 7, code: "7", symbol: "7" },
+      { top: 4, left: 74, width: 7, height: 7, code: "8", symbol: "8" },
+      { top: 4, left: 84, width: 7, height: 7, code: "9", symbol: "9" },
+      { top: 4, left: 94, width: 7, height: 7, code: "0", symbol: "0" },
+      { top: 4, left: 104, width: 11, height: 7, code: "Backspace", action: "erase", shortcut: "b" },
+      { top: 14, left: 4, width: 7, height: 7, code: "q", symbol: "%" },
+      { top: 14, left: 14, width: 7, height: 7, code: "w", symbol: "\\" },
+      { top: 14, left: 24, width: 7, height: 7, code: "e", symbol: "|" },
+      { top: 14, left: 34, width: 7, height: 7, code: "r", symbol: "=" },
+      { top: 14, left: 44, width: 7, height: 7, code: "t", symbol: "[" },
+      { top: 14, left: 54, width: 7, height: 7, code: "y", symbol: "]" },
+      { top: 14, left: 64, width: 7, height: 7, code: "u", symbol: "<" },
+      { top: 14, left: 74, width: 7, height: 7, code: "i", symbol: ">" },
+      { top: 14, left: 84, width: 7, height: 7, code: "o", symbol: "{" },
+      { top: 14, left: 94, width: 7, height: 7, code: "p", symbol: "}" },
+      { top: 14, left: 104, width: 11, height: 7, action: "symbol" },
+      { top: 24, left: 4, width: 7, height: 7, code: "a", symbol: "@" },
+      { top: 24, left: 14, width: 7, height: 7, code: "s", symbol: "#" },
+      { top: 24, left: 24, width: 7, height: 7, code: "d", symbol: "$" },
+      { top: 24, left: 34, width: 7, height: 7, code: "f", symbol: "^" },
+      { top: 24, left: 44, width: 7, height: 7, code: "g", symbol: "&" },
+      { top: 24, left: 54, width: 7, height: 7, code: "h", symbol: "-" },
+      { top: 24, left: 64, width: 7, height: 7, code: "i", symbol: "+" },
+      { top: 24, left: 74, width: 7, height: 7, code: "k", symbol: "(" },
+      { top: 24, left: 84, width: 7, height: 7, code: "l", symbol: ")" },
+      { top: 24, left: 94, width: 7, height: 7, char: ";", symbol: "/" },
+      { top: 24, left: 104, width: 11, height: 7, code: "Enter", action: 'enter', char: "\n", symbol: "\n", shortcut: "a" },
+      { top: 34, left: 4, width: 9, height: 7, code: "Shift", action: "shift" },
+      { top: 34, left: 16, width: 7, height: 7, code: "z", symbol: "*" },
+      { top: 34, left: 26, width: 7, height: 7, code: "x", symbol: "\"" },
+      { top: 34, left: 36, width: 7, height: 7, code: "c", symbol: "'" },
+      { top: 34, left: 46, width: 7, height: 7, code: "v", symbol: ":" },
+      { top: 34, left: 56, width: 7, height: 7, code: "b", symbol: ";" },
+      { top: 34, left: 66, width: 7, height: 7, code: "n", symbol: "!" },
+      { top: 34, left: 76, width: 7, height: 7, code: "m", symbol: "?" },
+      { top: 34, left: 86, width: 7, height: 7, char: "_", symbol: "∥" },
+      { top: 34, left: 96, width: 7, height: 7, char: ".", symbol: "▶" },
+      { top: 34, left: 106, width: 9, height: 7, code: "Shift", action: "shift", shortcut: "select" },
+      { top: 44, left: 4, width: 7, height: 7, gamepad: true, code: 0 },
+      { top: 44, left: 14, width: 7, height: 7, gamepad: true, code: 1, symbol: "•" },
+      { top: 44, left: 24, width: 7, height: 7, gamepad: true, code: 2, symbol: "❤" },
+      { top: 44, left: 34, width: 7, height: 7, gamepad: true, code: 3, symbol: "★" },
+      { top: 44, left: 44, width: 31, height: 7, code: " ", char: " ", symbol: " " },
+      { top: 44, left: 98, width: 7, height: 7, code: "ArrowLeft", action: "left", shortcut: "left" },
+      { top: 44, left: 88, width: 7, height: 7, code: "ArrowDown", action: "down", shortcut: "down" },
+      { top: 44, left: 78, width: 7, height: 7, code: "ArrowUp", action: "up", shortcut: "up" },
+      { top: 44, left: 108, width: 7, height: 7, code: "ArrowRight", action: "right", shortcut: "right" }
+    ];
+    
+    this.highlight = game.add.graphics(0, 0);
+    this.addChild(this.highlight);
+    
+    this.visible = true;
+    
+    this.activeKey = null;
+    this.keyboardKey = null;
+    this.previousShiftState = false;
+    this.previousActiveKey = null;
+    
+    this.keycode = null;
+    
+    this.symbol = false;
+    this.shift = false;
+    
+    this.onDown = new Phaser.Signal();
+    this.onUp = new Phaser.Signal();
+    
+    this.addListeners();
+    
+    game.add.existing(this);
+  }
+  
+  addListeners() {
+    inputManager.keyboardListener.onDown.add((_, event) => {
+      // Press the corresponding key
+      const key = this.keys.find(k => !k.gamepad && k.code == event.key);
+      
+      if (key) {
+        this.keyboardKey = key;
+      }
+    });
+    
+    inputManager.keyboardListener.onUp.add(() => this.keyboardKey = null);
+  }
+  
+  getKeyUnderPointer(pointer) {
+    let { x, y } = pointer;
+    
+    x -= this.x;
+    y -= this.y;
+    
+    for (const key of this.keys) {
+      if (x >= key.left && y >= key.top && x <= key.left + key.width && y <= key.top + key.height) {
+        return key;
+      }
+    }
+    
+    return null;
+  }
+  
+  toggleSymbol() {
+    this.symbol = !this.symbol;
+    
+    this.frame = this.symbol ? 1 : 0;
+  }
+  
+  toggleShift() {
+    this.shift = !this.shift;
+  }
+  
+  onKeyDown(key) {
+    if (key.gamepad) {
+      if (this.symbol && !key.symbol) {
+        return;
+      }
+    }
+    
+    this.keycode = key.code || null;
+    
+    const rawInput = this.symbol ? key.symbol || key.char || key.code || '' : key.char || key.code || key.symbol || '';
+    const input = this.shift ? rawInput.toUpperCase() : rawInput.toLowerCase();
+    
+    this.onDown.dispatch(key, input);
+    
+    if (key.action) {
+      switch(key.action) {
+        case 'symbol':
+          this.toggleSymbol();
+          break;
+        case 'shift':
+          this.toggleShift();
+          break;
+        default:
+          this.sendInput(key, input);
+          break;
+      }
+    } else {
+      this.sendInput(key, input);
+    }
+  }
+  
+  sendInput(key = {}, input = '') {
+    if (window.focusedElement && typeof window.focusedElement.receiveInput == 'function') {
+      window.focusedElement.receiveInput(key, input);
+    }
+  }
+  
+  onKeyUp(key) {
+    this.keycode = null;
+    this.onUp.dispatch(key);
+  }
+  
+  update() {
+    const pointer = game.input.activePointer;
+    
+    
+    if (pointer.isDown) {
+      this.activeKey = this.getKeyUnderPointer(pointer);
+    } else if (this.activeKey) {
+      this.activeKey = this.keyboardKey;
+    }
+    
+    this.keys.forEach(key => {
+      if (key.shortcut && gamepad.pressed[key.shortcut]) {
+        this.activeKey = key;
+      } 
+    });
+    
+    if (this.activeKey != this.previousActiveKey) {
+      this.highlight.clear();
+      
+      const symbolActions = ["symbol", "erase", "enter", "left", "right", "up", "down", "shift"];
+    
+      if (this.activeKey && !(this.symbol && !symbolActions.includes(this.activeKey.action) && !this.activeKey.symbol)) {
+        this.highlight.beginFill(this.tint, 1);
+        this.highlight.drawRect(this.activeKey.left, this.activeKey.top, this.activeKey.width, this.activeKey.height);
+        this.highlight.endFill();
+        this.onKeyDown(this.activeKey);
+      } else {
+        this.onKeyUp(this.previousActiveKey);
+      }
+    }
+    
+    if (this.shift) {
+      const shiftKeys = this.keys.filter(key => key.action == 'shift');
+      
+      shiftKeys.forEach(key => {
+        this.highlight.beginFill(this.tint, 0.8);
+        this.highlight.drawRect(key.left, key.top, key.width, key.height);
+        this.highlight.endFill();
+      });
+    }
+    
+    this.previousShiftState = this.shift;
+    this.previousActiveKey = this.activeKey;
+  }
+}
+
+class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
+  constructor(x, y) {
+    super(80, 70);
+    
+    this.loadTexture('ui_keyboard_numeric');
+    
+    this.keys = [
+      { top: 4, left: 4, width: 7, height: 7, code: "7" }, 
+      { top: 4, left: 14, width: 7, height: 7, code: "8" }, 
+      { top: 4, left: 24, width: 7, height: 7, code: "9" }, 
+      { top: 4, left: 34, width: 7, height: 7, code: "Backspace", action: "erase", shortcut: "b" }, 
+      { top: 14, left: 4, width: 7, height: 7, code: "4" }, 
+      { top: 14, left: 14, width: 7, height: 7, code: "5" }, 
+      { top: 14, left: 24, width: 7, height: 7, code: "6" }, 
+      { top: 14, left: 34, width: 7, height: 7, code: "+", action: "add", shortcut: "up" }, 
+      { top: 24, left: 4, width: 7, height: 7, code: "1" }, 
+      { top: 24, left: 14, width: 7, height: 7, code: "2" }, 
+      { top: 24, left: 24, width: 7, height: 7, code: "3" }, 
+      { top: 24, left: 34, width: 7, height: 7, code: "-", action: "subtract", shortcut: "down" }, 
+      { top: 34, left: 4, width: 7, height: 7, code: "c", action: "clear" }, 
+      { top: 34, left: 14, width: 7, height: 7, code: "0" }, 
+      { top: 34, left: 24, width: 7, height: 7, code: "." }, 
+      { top: 34, left: 34, width: 7, height: 7, code: "Enter", action: 'enter', shortcut: "a"  }, 
+    ];
+  }
 }
 
 class BackgroundMusic {
@@ -13506,6 +13928,37 @@ class Boot {
       saveAccount();
     }
   }
+  fixSettings() {
+    const currentVersion = DEFAULT_ACCOUNT.version;
+    const oldVersion = Account.version;
+    const difference = currentVersion - oldVersion;
+    
+    // Fix settings from old versions
+    if (!oldVersion) {
+      // Try to migrate settings and progress
+      Account = {
+        ...DEFAULT_ACCOUNT,
+        settings: {
+          ...DEFAULT_ACCOUNT.settings,
+          ...Account.settings
+        },
+        characters: {
+          ...DEFAULT_ACCOUNT.characters,
+          ...Account.characters
+        },
+        stats: {
+          ...DEFAULT_ACCOUNT.stats,
+          ...Account.stats
+        },
+        achievements: Account.achievements,
+        highscores: Account.highscores,
+      };
+      
+    }
+    
+    Account.version = currentVersion;
+    saveAccount();
+  }
   create() {
     window.inputManager = new InputManager(game);
 
@@ -13554,8 +14007,8 @@ class Boot {
         key: "ui_loading_dots",
         url: "ui/loading_dots.png",
         type: "spritesheet",
-        frameWidth: 26,
-        frameHeight: 6
+        frameWidth: 31,
+        frameHeight: 7
       },
       {
         key: "ui_background_gradient",
@@ -13566,19 +14019,35 @@ class Boot {
         url: "ui/logo_shape.png"
       },
       {
-        key: "ui_hud_background",
-        url: "ui/hud_background.png"
+        key: "ui_hud_background_top",
+        url: "ui/hud_background_top.png"
       },
       {
-        key: "ui_hud_background_multi",
-        url: "ui/hud_background_multi.png"
+        key: "ui_hud_background_bottom",
+        url: "ui/hud_background_bottom.png"
+      },
+      {
+        key: "ui_hud_background_top_multi",
+        url: "ui/hud_background_top_multi.png"
+      },
+      {
+        key: "ui_hud_background_bottom_multi",
+        url: "ui/hud_background_bottom_multi.png"
       },
       {
         key: "ui_hud_player_parent_multi",
         url: "ui/hud_player_parent_multi.png",
         type: "spritesheet",
-        frameWidth: 192,
-        frameHeight: 112
+        frameWidth: 240,
+        frameHeight: 140
+      },
+      {
+        key: "ui_hud_flash_shape",
+        url: "ui/hud_flash_shape.png",
+      },
+      {
+        key: "ui_hud_flash_shape_multi",
+        url: "ui/hud_flash_shape_multi.png",
       },
       {
         key: "ui_editor_icons",
@@ -13614,18 +14083,33 @@ class Boot {
         url: "ui/navigation_key.png",
         type: "spritesheet",
         frameWidth: 4,
-        frameHeight: 8
+        frameHeight: 9
+      },
+      {
+        key: "ui_keyboard",
+        url: "ui/keyboard.png",
+        type: "spritesheet",
+        frameWidth: 119,
+        frameHeight: 55
+      },
+      {
+        key: "ui_keyboard_numeric",
+        url: "ui/keyboard_numeric.png"
       },
       {
         key: "ui_glitch_animation",
         url: "ui/glitch_animation.png",
         type: "spritesheet",
-        frameWidth: 192,
-        frameHeight: 112
+        frameWidth: 240,
+        frameHeight: 140
       },
       {
         key: "ui_difficulty_banner",
         url: "ui/difficulty_banner.png"
+      },
+      {
+        key: "ui_difficulty_banner_multi",
+        url: "ui/difficulty_banner_multi.png"
       },
       {
         key: "ui_lifebar",
@@ -13660,36 +14144,36 @@ class Boot {
         key: "ui_jukebox_pause_toggle",
         url: "ui/jukebox_pause_toggle.png",
         type: "spritesheet",
-        frameWidth: 12,
-        frameHeight: 12
+        frameWidth: 16,
+        frameHeight: 16
       },
       {
         key: "ui_jukebox_seek",
         url: "ui/jukebox_seek.png",
         type: "spritesheet",
-        frameWidth: 8,
-        frameHeight: 8
+        frameWidth: 9,
+        frameHeight: 9
       },
       {
         key: "ui_jukebox_skip",
         url: "ui/jukebox_skip.png",
         type: "spritesheet",
-        frameWidth: 8,
-        frameHeight: 8
+        frameWidth: 9,
+        frameHeight: 9
       },
       {
         key: "ui_jukebox_menu",
         url: "ui/jukebox_menu.png",
         type: "spritesheet",
-        frameWidth: 8,
-        frameHeight: 8
+        frameWidth: 9,
+        frameHeight: 9
       },
       {
         key: "ui_jukebox_visualization",
         url: "ui/jukebox_visualization.png",
         type: "spritesheet",
-        frameWidth: 8,
-        frameHeight: 8
+        frameWidth: 9,
+        frameHeight: 9
       },
       {
         key: "ui_addon_no_image",
@@ -13729,15 +14213,22 @@ class Boot {
         key: "arrows",
         url: "chart/arrows.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 16
+        frameWidth: 20,
+        frameHeight: 20
+      },
+      {
+        key: "judgement",
+        url: "chart/judgement.png",
+        type: "spritesheet",
+        frameWidth: 60,
+        frameHeight: 7
       },
       {
         key: "receptor",
         url: "chart/receptor.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 16
+        frameWidth: 20,
+        frameHeight: 20
       },
       {
         key: "explosion",
@@ -13753,36 +14244,36 @@ class Boot {
         key: "mine",
         url: "chart/mine.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 16
+        frameWidth: 20,
+        frameHeight: 20
       },
       {
         key: "hold_end",
         url: "chart/hold_end.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 8
+        frameWidth: 20,
+        frameHeight: 10
       },
       {
         key: "hold_body",
         url: "chart/hold_body.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 112
+        frameWidth: 20,
+        frameHeight: 140
       },
       {
         key: "roll_end",
         url: "chart/roll_end.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 8
+        frameWidth: 20,
+        frameHeight: 10
       },
       {
         key: "roll_body",
         url: "chart/roll_body.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 16
+        frameWidth: 20,
+        frameHeight: 140
       },
       // Character assets
       {
@@ -13851,7 +14342,7 @@ class Boot {
         key: "character_noise",
         url: "ui/character_noise.png",
         type: "spritesheet",
-        frameWidth: 36,
+        frameWidth: 46,
         frameHeight: 7
       }
     ];
@@ -14737,19 +15228,20 @@ class Title {
 
     this.background = new BackgroundGradient();
     this.lines = new FuturisticLines();
+    
     this.logo = new Logo();
 
-    this.inputInstructionText = new Text(game.width / 2, 80, "PRESS ANY KEY");
+    this.inputInstructionText = new Text(game.width / 2, 100, "PRESS ANY KEY");
     this.inputInstructionText.anchor.x = 0.5;
     game.add.tween(this.inputInstructionText).to({ alpha: 0 }, 500, "Linear", true, 0, -1).yoyo(true);
 
     this.text = game.add.sprite(0, 0);
 
-    this.creditText = new Text(2, 110, COPYRIGHT, this.text);
+    this.creditText = new Text(2, game.height, COPYRIGHT, FONTS.small, this.text);
     this.creditText.anchor.y = 1;
 
-    this.creditText = new Text(190, 110, VERSION, this.text);
-    this.creditText.anchor.set(1);
+    this.versionText = new Text(game.width - 2, game.height, VERSION, FONTS.small, this.text);
+    this.versionText.anchor.set(1);
 
     if (!backgroundMusic) {
       backgroundMusic = new BackgroundMusic();
@@ -14971,7 +15463,7 @@ class MainMenu {
   }
 
   showHomeMenu() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+    const carousel = new CarouselMenu(0, game.height / 2 - 16, 112, 64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -14997,7 +15489,7 @@ class MainMenu {
   }
 
   startGame() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+    const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -15013,7 +15505,7 @@ class MainMenu {
   }
 
   showExtraSongs() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+    const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -15021,7 +15513,7 @@ class MainMenu {
       crop: false
     });
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
       carousel.addItem("User Songs", () => this.loadExternalSongs());
       carousel.addItem("Filesystem", () => this.startFileSelect());
     }
@@ -15041,7 +15533,7 @@ class MainMenu {
   }
 
   showExtras() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+    const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -15066,7 +15558,7 @@ class MainMenu {
   }
 
   showFeedback() {
-    const carousel = new CarouselMenu(0, 112 / 2 - 16, 112,   64, {
+    const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
       bgcolor: 'brown',
       fgcolor: '#ffffff',
@@ -15457,7 +15949,7 @@ class Settings {
   }
   
   showSettings() {
-    const settingsWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
+    const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
     
     let restartNeeded = false;
@@ -15606,9 +16098,44 @@ class Settings {
       }
     );
     
+    settingsWindow.addSettingItem(
+      "Enable Temperature (Experimental)",
+      ["YES", "NO"], 
+      Account.settings.enableTemperature ? 0 : 1,
+      index => {
+        Account.settings.enableTemperature = index === 0;
+        saveAccount();
+      }
+    );
+    
+    // Background opacity
+    settingsWindow.addRangeItem(
+      "Background Opacity",
+      0,
+      100,
+      1,
+      Account.settings.backgroundOpacity * 100,
+      "%",
+      value => {
+        Account.settings.backgroundOpacity = value / 100;
+        saveAccount();
+      }
+    );
+    
+    // Song Intro
+    settingsWindow.addSettingItem(
+      "Song Info",
+      ["YES", "NO"],
+      Account.settings.enableSongInfo ? 0 : 1,
+      index => {
+        Account.settings.enableSongInfo = index === 0;
+        saveAccount();
+      }
+    );
+    
     // Beat lines
     settingsWindow.addSettingItem(
-      "Beat Lines",
+      "Enable Beat Lines",
       ["YES", "NO"],
       Account.settings.beatLines ? 0 : 1,
       index => {
@@ -15830,7 +16357,23 @@ class Keybindings {
 
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
-    this.navigationHint = new NavigationHint('general');
+    this.navigationHint = new NavigationHint([
+      {
+        position: "right",
+        icon: "d-pad",
+        text: "NAVIGATE"
+      },
+      {
+        position: "right",
+        icon: "a",
+        text: "CHANGE"
+      },
+      {
+        position: "right",
+        icon: "b",
+        text: "BACK"
+      }
+    ]);
     
     this.windowManager = new WindowManager();
     
@@ -15861,7 +16404,7 @@ class Keybindings {
   }
   
   showKeybindingsMenu() {
-    const settingsWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
+    const settingsWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     settingsWindow.fontTint = 0x76fcde;
     
     this.windowManager.focus(settingsWindow);
@@ -15917,7 +16460,7 @@ class Keybindings {
   }
   
   showKeyboardCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
-    const keysWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
+    const keysWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     keysWindow.fontTint = 0x76fcde;
     
     const keyboardControls = [
@@ -15946,7 +16489,7 @@ class Keybindings {
           menuWindow: keysWindow
         };
         this.windowManager.remove(keysWindow, true);
-        this.showKeyWaitOverlay(`PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
+        this.showKeyWaitOverlay(playerNum, `PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
       });
     });
     
@@ -15958,7 +16501,7 @@ class Keybindings {
   }
   
   showGamepadCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
-    const gamepadWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
+    const gamepadWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     gamepadWindow.fontTint = 0x76fcde;
     
     const gamepadControls = [
@@ -15986,7 +16529,7 @@ class Keybindings {
           menuWindow: gamepadWindow
         };
         this.windowManager.remove(gamepadWindow, true);
-        this.showKeyWaitOverlay(`PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
+        this.showKeyWaitOverlay(playerNum, `PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
       });
     });
     
@@ -15997,29 +16540,32 @@ class Keybindings {
     }, true);
   }
   
-  showKeyWaitOverlay(message) {
+  showKeyWaitOverlay(playerNum = 1, message = "PRESS ANY KEY") {
     // Limpiar cualquier overlay existente
     this.cleanupWaitOverlay();
     
     this.waitOverlayActive = true;
     
+    this.navigationHint.visible = false;
+    
     // Crear elementos visuales
     const overlay = game.add.graphics(0, 0);
     overlay.beginFill(0x000000, 0.7);
-    overlay.drawRect(0, 0, 192, 112);
+    overlay.drawRect(0, 0, 240, 140);
     overlay.endFill();
     
-    const instructionText = new Text(96, 40, message);
+    const instructionText = new Text(120, 50, message);
     instructionText.anchor.set(0.5, 0.5);
     instructionText.fontSize = 2;
     
-    const helpText = new Text(96, 80, "HOLD ESC TO UNMAP");
+    const helpText = new Text(120, 100, "Hold ESC or MENU to unmap");
     helpText.anchor.set(0.5, 0.5);
     
     const progressBarBg = game.add.graphics(0, 0);
     progressBarBg.beginFill(0x333333, 0.8);
-    progressBarBg.drawRect(48, 60, 96, 8);
+    progressBarBg.drawRect(0, 146, 240, 4);
     progressBarBg.endFill();
+    progressBarBg.visible = false;
     
     const progressBar = game.add.graphics(0, 0);
     
@@ -16033,18 +16579,20 @@ class Keybindings {
     const updateProgress = () => {
       if (!escIsHeld || !this.waitOverlayActive) return;
       
+      progressBarBg.visible = true;
+      
       const elapsed = Date.now() - escHoldStartTime;
       const progress = Math.min(elapsed / holdDuration, 1);
       
       progressBar.clear();
       progressBar.beginFill(0xffffff, 1);
-      progressBar.drawRect(48, 60, 96 * progress, 8);
+      progressBarBg.drawRect(0, 146, 240 * progress, 4);
       progressBar.endFill();
       
       const overlayAlpha = 0.7 * (1 - progress * 0.7);
       overlay.clear();
       overlay.beginFill(0x000000, overlayAlpha);
-      overlay.drawRect(0, 0, 192, 112);
+      overlay.drawRect(0, 0, 240, 140);
       overlay.endFill();
       
       if (progress >= 1) {
@@ -16064,7 +16612,7 @@ class Keybindings {
       progressBar.clear();
       overlay.clear();
       overlay.beginFill(0x000000, 0.7);
-      overlay.drawRect(0, 0, 192, 112);
+      overlay.drawRect(0, 0, 240, 140);
       overlay.endFill();
     };
     
@@ -16099,8 +16647,8 @@ class Keybindings {
       this.handleKeyboardKeyPress(event.keyCode);
     };
     
-    const gamepadListener = (buttonCode) => {
-      if (!this.waitOverlayActive || !this.waitingState) return;
+    const gamepadListener = (buttonCode, _, index) => {
+      if (!this.waitOverlayActive || !this.waitingState || index + 1 != playerNum) return;
       
       if (this.waitingState.type === "gamepad") {
         this.handleGamepadButtonPress(buttonCode);
@@ -16141,7 +16689,7 @@ class Keybindings {
     
     // Limpiar intervalo
     if (this.waitOverlayElements?.progressInterval) {
-      clearInterval(this.waitOverlayElements.progressInterval);
+      clearInterval(this.waitOverlayElements.pro.gressInterval);
     }
     
     // Destruir elementos gráficos
@@ -16151,6 +16699,9 @@ class Keybindings {
         this.waitOverlayElements[el].destroy();
       }
     }
+    
+    // Mostrar lo que fue oculto
+    this.navigationHint.visible = true;
     
     // Restaurar callbacks originales
     if (this.originalCallbacks.keyboardDown !== undefined) {
@@ -16374,7 +16925,7 @@ class FileSelect {
     ]);
     
     this.pathText = new Text(4, 4, "PATH: /", FONTS.default);
-    this.pathText.wrapPreserveNewlines(180);
+    this.pathText.wrap(180);
     
     this.emptyFolderText = new Text(game.width / 2, game.height / 2, "This folder is empty", FONTS.shaded);
     this.emptyFolderText.anchor.set(0.5);
@@ -16418,7 +16969,11 @@ class FileSelect {
       const files = await this.fileSystem.listFiles(this.currentDir);
       entries = [...dirs, ...files];
     }
-    
+  
+    // Destroy loading indicator
+    this.loadingDots.destroy();
+    this.loadingDots = null;
+  
     // Filter by extensions if specified
     if (this.extensions !== null) {
       entries = entries.filter(entry => {
@@ -16446,6 +17001,18 @@ class FileSelect {
       align: 'left',
       animate: true,
       disableCancel: !this.allowCancel
+    });
+    
+    // Handle cancel
+    this.carousel.onCancel.add(() => {
+      if (this.history.length > 0) {
+        this.goBack();
+      } else if (this.allowCancel && this.onCancel) {
+        this.onCancel();
+        game.state.start("MainMenu");
+      } else if (this.allowCancel) {
+        game.state.start("MainMenu");
+      }
     });
     
     // Add parent directory entry (..) if not in root
@@ -16485,22 +17052,6 @@ class FileSelect {
     
     // Update path display
     this.updatePathDisplay();
-    
-    // Handle cancel
-    this.carousel.onCancel.add(() => {
-      if (this.history.length > 0) {
-        this.goBack();
-      } else if (this.allowCancel && this.onCancel) {
-        this.onCancel();
-        game.state.start("MainMenu");
-      } else if (this.allowCancel) {
-        game.state.start("MainMenu");
-      }
-    });
-    
-    // Destroy loading indicator
-    this.loadingDots.destroy();
-    this.loadingDots = null;
   }
   
   onEntrySelected(entry) {
@@ -16545,7 +17096,7 @@ class FileSelect {
     let path = this.currentDir ? this.currentDir.fullPath : '/';
     if (path === '') path = '/';
     this.pathText.write("PATH: " + path);
-    this.pathText.wrapPreserveNewlines(180);
+    this.pathText.wrapPreserveNewlines(240 - 10);
   }
   
   showError(message) {
@@ -16598,8 +17149,8 @@ class SongSelect {
     this.currentBannerTexture = null;
   
     window.multiplayerState.player1.ready = false;
-    window.multiplayerState.player2.ready = false;
-    window.multiplayerState.player2.joined = false;
+    window.multiplayerState.player2.ready = true;
+    window.multiplayerState.player2.joined = true;
     this.multiplayerState = window.multiplayerState;
     
     if (this.startingIndex + 1 > this.songs.length) {
@@ -16632,13 +17183,13 @@ class SongSelect {
     
     this.navigationHint = new NavigationHint('song_select');
     
-    this.autoplayText = new Text(4, 104, "");
+    this.autoplayText = new Text(4, 132, "");
     
     this.bannerSprite = game.add.sprite(4, 4, null);
 
     this.metadataText = new Text(102, 4, "");
     
-    this.highScoreText = new Text(104, 50, "");
+    this.highScoreText = new Text(game.width / 2 + 8, 58, "");
     
     this.loadingDots = new LoadingDots();
     this.loadingDots.y -= 8;
@@ -16676,7 +17227,7 @@ class SongSelect {
     const x = 0;
     const y = 35;
     const width = game.width / 2;
-    const height = 72;
+    const height = 100;
 
     this.songCarousel = new CarouselMenu(x, y, width, height, {
       bgcolor: "#9b59b6",
@@ -16767,7 +17318,7 @@ class SongSelect {
     }
     
     this.metadataText.write(this.getMetadataText(song));
-    this.metadataText.wrapPreserveNewlines(80);
+    this.metadataText.wrap(136);
     
     this.displayHighScores(song);
     
@@ -16927,8 +17478,8 @@ class SongSelect {
   showMultiplayerScreen(song, difficultyIndex) {
     this.multiplayerScreen = game.add.group();
     
-    this.player1Frame = this.windowManager1.createWindow(0.5, 5, 11, 8, "1", this.multiplayerScreen);
-    this.player2Frame = this.windowManager2.createWindow(12.5, 5, 11, 8, "1", this.multiplayerScreen);
+    this.player1Frame = this.windowManager1.createWindow(1, 5, 14, 10, "1", this.multiplayerScreen);
+    this.player2Frame = this.windowManager2.createWindow(15.5, 5, 14, 10, "1", this.multiplayerScreen);
     
     this.populatePlayerFrame(this.player1Frame, 1);
     this.populatePlayerFrame(this.player2Frame, 2);
@@ -16942,8 +17493,8 @@ class SongSelect {
     this.p1ReadyBackground.anchor.set(0.5);
     this.p2ReadyBackground.anchor.set(0.5);
     
-    this.p1ReadyText = new Text(0, 0, "READY", null, this.p1ReadyBackground);
-    this.p2ReadyText = new Text(0, 0, "READY", null, this.p2ReadyBackground);
+    this.p1ReadyText = new Text(0, 1, "READY", null, this.p1ReadyBackground);
+    this.p2ReadyText = new Text(0, 1, "READY", null, this.p2ReadyBackground);
     
     this.p1ReadyText.anchor.set(0.5);
     this.p2ReadyText.anchor.set(0.5);
@@ -16952,11 +17503,11 @@ class SongSelect {
     this.multiplayerScreen.addChild(this.p2ReadyBackground);
 
     // Prompt player 2 to press start
-    this.playerJoinInstructionText = new Text(96 + 44, 40 + 32, "PLAYER 2\n< PRESS START >", null, this.multiplayerScreen);
+    this.playerJoinInstructionText = new Text(120 + 55, 50 + 32, "PLAYER 2\n< PRESS START >", null, this.multiplayerScreen);
     this.playerJoinInstructionText.anchor.set(0.5);
     
     // Prompt both players to press start
-    this.startInstructionText = new Text(game.width / 2, 90, "PRESS START TO BEGIN", null, this.multiplayerScreen);
+    this.startInstructionText = new Text(game.width / 2, 100, "PRESS START TO BEGIN", null, this.multiplayerScreen);
     this.startInstructionText.visible = false;
     this.startInstructionText.anchor.set(0.5);
     
@@ -17187,7 +17738,7 @@ class CharacterSelect {
 
   createUI() {
     // Create all UI elements that persist throughout the state
-    this.characterDisplay = new CharacterDisplay(46, 6, this.selectedCharacter);
+    this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
     this.createDetailsText();
     
     // Initialize menus as null
@@ -17203,14 +17754,14 @@ class CharacterSelect {
 
   createDetailsText() {
     // Create text display for character details
-    this.nameText = new Text(115, 10, "", FONTS.shaded);
-    this.levelText = new Text(140, 10, "", FONTS.default);
-    this.selectedSkillText = new Text(115, 34, "", FONTS.default);
-    this.skillDescriptionText = new Text(117, 42, "", FONTS.default);
+    this.nameText = new Text(144, 10, "", FONTS.shaded);
+    this.levelText = new Text(175, 10, "", FONTS.default);
+    this.selectedSkillText = new Text(144, 34, "", FONTS.default);
+    this.skillDescriptionText = new Text(146, 42, "", FONTS.default);
     
     // Create experience bar and skill bar
-    this.expBar = new ExperienceBar(140, 16, 36, 3);
-    this.skillBar = new SkillBar(117, 18);
+    this.expBar = new ExperienceBar(175, 16, 36, 3);
+    this.skillBar = new SkillBar(146, 18);
   }
   
   showHomeUI() {
@@ -17291,7 +17842,7 @@ class CharacterSelect {
       if (skill) {
         this.selectedSkillText.write(skill.name);
         this.skillDescriptionText.write(skill.description);
-        this.skillDescriptionText.wrapPreserveNewlines(70);
+        this.skillDescriptionText.wrap(70);
         this.selectedSkillText.bringToTop();
         this.skillDescriptionText.bringToTop();
       } else {
@@ -17316,7 +17867,7 @@ class CharacterSelect {
     if (this.characterDisplay) {
       this.characterDisplay.destroy();
     }
-    this.characterDisplay = new CharacterDisplay(46, 6, this.selectedCharacter);
+    this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
 
     if (this.characterCarousel) {
       this.characterCarousel.bringToTop();
@@ -17328,7 +17879,7 @@ class CharacterSelect {
 
   showCharacterList() {
     // Character list carousel (left)
-    this.characterCarousel = new CarouselMenu(0, 8, 80, 104, {
+    this.characterCarousel = new CarouselMenu(0, 8, 100, 130, {
       bgcolor: "#9b59b6",
       fgcolor: "#ffffff",
       align: "left",
@@ -17382,7 +17933,7 @@ class CharacterSelect {
     this.clearAllMenus();
     this.hideCharacterDetails();
 
-    this.actionMenu = new CarouselMenu(60, 60, 72, 48, {
+    this.actionMenu = new CarouselMenu(75, 75, 72, 48, {
       bgcolor: "#34495e",
       fgcolor: "#ffffff",
       align: "center",
@@ -17411,10 +17962,10 @@ class CharacterSelect {
     this.hideCharacterDetails();
     
     // Create skill preview text
-    this.skillPreviewText = new Text(110, 4, "", FONTS.default);
-    this.skillPreviewText.wrapPreserveNewlines(70);
+    this.skillPreviewText = new Text(240 - 70, 8, "", FONTS.default);
+    this.skillPreviewText.wrap(70);
     
-    this.skillsCarousel = new CarouselMenu(0, 8, 80, 104, {
+    this.skillsCarousel = new CarouselMenu(0, 8, 100, 130, {
       bgcolor: "#9b59b6",
       fgcolor: "#ffffff",
       align: "left",
@@ -17559,7 +18110,7 @@ class CharacterSelect {
     }
     
     this.skillPreviewText.write(previewText);
-    this.skillPreviewText.wrapPreserveNewlines(80);
+    this.skillPreviewText.wrap(70);
     
     this.skillPreviewText.bringToTop();
   }
@@ -17571,7 +18122,7 @@ class CharacterSelect {
   showCustomizationMenu() {
     this.clearAllMenus();
 
-    this.customizationMenu = new CarouselMenu(10, 60, 172, 48, {
+    this.customizationMenu = new CarouselMenu(75, 75, 72, 48, {
       bgcolor: "#2c3e50",
       fgcolor: "#ffffff",
       align: "center",
@@ -17600,14 +18151,14 @@ class CharacterSelect {
   customizeSkinTone() {
     const skinOptions = ["PALE", "LIGHT", "TAN", "DARK", "PURPLE"];
     
-    const background = createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(115, 100, 92, 30);
     background.anchor.set(0.5);
     
-    const skinText = new Text(96, 80, "SKIN TONE", FONTS.shaded);
+    const skinText = new Text(120, 100, "SKIN TONE", FONTS.shaded);
     skinText.anchor.set(0.5);
 
     let currentIndex = this.selectedCharacter.appearance.skinTone;
-    const skinValueText = new Text(96, 90, skinOptions[currentIndex], FONTS.default);
+    const skinValueText = new Text(120, 110, skinOptions[currentIndex], FONTS.default);
     skinValueText.anchor.set(0.5);
 
     const skinHandler = key => {
@@ -17642,13 +18193,13 @@ class CharacterSelect {
     
     this.navigationHint.updateHints('color_input');
     
-    const background = createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(115, 100, 92, 30);
     background.anchor.set(0.5);
 
-    const colorText = new Text(96, 80, "HAIR COLOR", FONTS.shaded);
+    const colorText = new Text(120, 100, "HAIR COLOR", FONTS.shaded);
     colorText.anchor.set(0.5);
 
-    const rgbText = new Text(96, 90, `R:${r} G:${g} B:${b}`, FONTS.default);
+    const rgbText = new Text(120, 110, `R:${r} G:${g} B:${b}`, FONTS.default);
     rgbText.anchor.set(0.5);
 
     const updateColor = () => {
@@ -17698,15 +18249,15 @@ class CharacterSelect {
     const options = unlocked.map(id => CHARACTER_SYSTEM.HAIR_STYLES[type === "frontHair" ? "front" : "back"][id-1]);
     const values = unlocked;
     
-    const background = createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(115, 100, 92, 30);
     background.anchor.set(0.5);
     
-    const hairText = new Text(96, 80, `${type.toUpperCase()}`, FONTS.shaded);
+    const hairText = new Text(120, 100, `${type.toUpperCase()}`, FONTS.shaded);
     hairText.anchor.set(0.5);
     
     let currentIndex = this.selectedCharacter.appearance[type] - 1;
     
-    const hairValueText = new Text(96, 90, "", FONTS.default);
+    const hairValueText = new Text(120, 110, "", FONTS.default);
     hairValueText.write(options[currentIndex], 18);
     hairValueText.anchor.set(0.5);
 
@@ -17741,16 +18292,16 @@ class CharacterSelect {
       return item ? item.name : id;
     });
     
-    const background = createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(115, 100, 92, 30);
     background.anchor.set(0.5);
 
-    const clothingText = new Text(96, 80, "CLOTHING", FONTS.shaded);
+    const clothingText = new Text(120, 100, "CLOTHING", FONTS.shaded);
     clothingText.anchor.set(0.5);
 
     let currentIndex = unlocked.indexOf(this.selectedCharacter.appearance.clothing);
     if (currentIndex === -1) currentIndex = 0;
     
-    const clothingValueText = new Text(96, 90, "", FONTS.default);
+    const clothingValueText = new Text(120, 110, "", FONTS.default);
     clothingValueText.write(options[currentIndex], 18)
     clothingValueText.anchor.set(0.5);
 
@@ -17788,15 +18339,15 @@ class CharacterSelect {
       })
     ];
 
-    const background = createGradientBackground(92, 85, 92, 24);
+    const background = createGradientBackground(115, 100, 92, 30);
     background.anchor.set(0.5);
     
-    const accessoryText = new Text(96, 80, "ACCESSORY", FONTS.shaded);
+    const accessoryText = new Text(120, 100, "ACCESSORY", FONTS.shaded);
     accessoryText.anchor.set(0.5);
 
     const currentIndex = this.selectedCharacter.appearance.accessory ? unlocked.indexOf(this.selectedCharacter.appearance.accessory) + 1 : 0;
     let selectedIndex = currentIndex;
-    const accessoryValueText = new Text(96, 90, "", FONTS.default);
+    const accessoryValueText = new Text(120, 110, "", FONTS.default);
     accessoryValueText.write(options[selectedIndex], 18);
     accessoryValueText.anchor.set(0.5);
 
@@ -17856,67 +18407,23 @@ class CharacterSelect {
     // Clear any existing menus
     this.clearAllMenus();
     
-    // Create confirmation text
-    const confirmText = new Text(96, 60, message, FONTS.shaded);
-    confirmText.anchor.set(0.5);
-    
-    // Create confirmation menu
-    const confirmMenu = new CarouselMenu(60, 70, 72, 32, {
-      bgcolor: "#2c3e50",
-      fgcolor: "#ffffff",
-      align: "center"
+    const dialog = new DialogWindow(message, {
+      buttons: ["Yes", "No"],
+      defaultButton: recommended == 'no' ? 1 : 0
     });
     
-    // Determine button colors based on recommended option
-    let yesColor = "#34495e"; // Default
-    let noColor = "#34495e";  // Default
-    let initialSelection = 0; // Start on first item (YES)
-    
-    switch (recommended) {
-      case "yes":
-        yesColor = "#27ae60"; // Green for recommended
-        noColor = "#c0392b";  // Red for not recommended
-        initialSelection = 0; // Start on YES
-        break;
-      case "no":
-        yesColor = "#c0392b"; // Red for not recommended
-        noColor = "#27ae60";  // Green for recommended
-        initialSelection = 1; // Start on NO
-        break;
-      default: // "none" or undefined
-        yesColor = "#34495e";
-        noColor = "#34495e";
-        initialSelection = 0;
-        break;
-    }
-    
-    // Add buttons with appropriate colors
-    confirmMenu.addItem("YES", () => {
-      confirmText.destroy();
-      confirmMenu.destroy();
-      onConfirm?.();
-    }, {
-      bgcolor: yesColor
+    dialog.onConfirm.add((buttonIndex, buttonText) => {
+      if (buttonIndex === 0) {
+        onConfirm?.();
+      } else {
+        onCancel?.();
+      }
+      dialog.destroy();
     });
     
-    confirmMenu.addItem("NO", () => {
-      confirmText.destroy();
-      confirmMenu.destroy();
+    dialog.onCancel.add(() => {
       onCancel?.();
-    }, {
-      bgcolor: noColor
-    });
-    
-    // Set initial selection based on recommended option
-    if (initialSelection === 1) {
-      confirmMenu.selectIndex(1);
-    }
-    
-    // Set up cancel handling
-    confirmMenu.onCancel.add(() => {
-      confirmText.destroy();
-      confirmMenu.destroy();
-      onCancel?.();
+      dialog.destroy();
     });
   }
 
@@ -17936,7 +18443,7 @@ class CharacterSelect {
     this.hideCharacterDetails();
     
     // Create temporary character display for creation
-    this.tempCharacterDisplay = new CharacterDisplay(46, 6, {
+    this.tempCharacterDisplay = new CharacterDisplay(70, 24, {
       name: "NEW CHARACTER",
       appearance: this.newCharacterAppearance
     });
@@ -17994,7 +18501,7 @@ class CharacterSelect {
     if (this.creationStep < steps.length) {
       const step = steps[this.creationStep];
       
-      this.creationWindow = this.creationWindowManager.createWindow(12, 7, 10, 5, "1");
+      this.creationWindow = this.creationWindowManager.createWindow(15, 10, 10, 5, "1");
       this.creationWindow.x -= (this.creationWindow.size.width / 2) * 8;
       
       this.creationWindow.offset = {
@@ -18002,9 +18509,11 @@ class CharacterSelect {
         y: 8
       };
       
+      this.creationWindow.forceHighlight(22);
+          
       this.creationWindow.disableScrollBar = true;
       
-      this.creationText = new Text(96, 70, step.title, FONTS.shaded);
+      this.creationText = new Text(120, 92, step.title, FONTS.default);
       this.creationText.anchor.set(0.5);
       
       // Show customization interface first
@@ -18017,6 +18526,8 @@ class CharacterSelect {
   
   showCreationNavigationMenu() {
     gamepad.releaseAll();
+    
+    this.creationWindow.forcedHighlightY = null;
     
     this.creationWindow.addItem("NEXT", "", () => {
       this.creationStep++;
@@ -18038,10 +18549,10 @@ class CharacterSelect {
   }
   
   creationCustomizeSkinTone(callback) {
-    const skinOptions = ["LIGHT", "DARK"];
+    const skinOptions = ["LIGHTER", "LIGHT", "MEDIUM", "TAN", "ANOTHER"];
     let currentIndex = this.newCharacterAppearance.skinTone;
     
-    const skinText = new Text(96, 80, skinOptions[currentIndex], FONTS.default);
+    const skinText = new Text(120, 107, skinOptions[currentIndex], FONTS.default);
     skinText.anchor.set(0.5);
     
     const skinHandler = key => {
@@ -18084,7 +18595,7 @@ class CharacterSelect {
       return `R:${r} G:${g} B:${b}`;
     };
     
-    const rgbText = new Text(96, 80, updateColor(), FONTS.default);
+    const rgbText = new Text(120, 107, updateColor(), FONTS.default);
     rgbText.anchor.set(0.5);
     
     const colorHandler = key => {
@@ -18138,7 +18649,7 @@ class CharacterSelect {
 
     let currentIndex = this.newCharacterAppearance[type] - 1;
     
-    const hairText = new Text(96, 80, options[currentIndex], FONTS.default);
+    const hairText = new Text(120, 107, options[currentIndex], FONTS.default);
     hairText.anchor.set(0.5);
 
     const updateHair = () => {
@@ -18185,7 +18696,7 @@ class CharacterSelect {
     let currentIndex = unlocked.indexOf(this.newCharacterAppearance.clothing);
     if (currentIndex === -1) currentIndex = 0;
     
-    const clothingText = new Text(96, 80, options[currentIndex], FONTS.default);
+    const clothingText = new Text(120, 107, options[currentIndex], FONTS.default);
     clothingText.anchor.set(0.5);
     
     const clothingHandler = key => {
@@ -18230,7 +18741,7 @@ class CharacterSelect {
     let currentIndex = this.newCharacterAppearance.accessory ? 
       unlocked.indexOf(this.newCharacterAppearance.accessory) + 1 : 0;
     
-    const accessoryText = new Text(96, 80, options[currentIndex], FONTS.default);
+    const accessoryText = new Text(120, 107, options[currentIndex], FONTS.default);
     accessoryText.anchor.set(0.5);
     
     const accessoryHandler = key => {
@@ -18274,20 +18785,26 @@ class CharacterSelect {
       this.creationWindow.visible = false;
     }
     
-    const nameText = new Text(96, 80, "ENTER CHARACTER NAME", FONTS.shaded);
+    const nameText = new Text(120, 20, "Name your character", FONTS.shaded);
     nameText.anchor.set(0.5);
     
-    this.navigationHint.updateHints('text_input');
+    this.navigationHint.visible = false;
     
-    new TextInput(
-      this.generateName(),
-      CHARACTER_SYSTEM.MAX_NAME_LENGTH,
-      name => {
+    gamepad.releaseAll();
+    
+    const keyboard = new OnScreenKeyboard();
+    
+    window.focusedElement = new TextInput({
+      text: this.generateName(),
+      maxLength: CHARACTER_SYSTEM.MAX_NAME_LENGTH,
+      useNewline: false,
+      onConfirm: name => {
         // Finalize character creation
         const newChar = this.characterManager.createCharacter(name, this.newCharacterAppearance);
         if (newChar) {
           this.selectedCharacter = newChar;
           nameText.destroy();
+          keyboard.destroy();
           this.navigationHint.updateHints('general');
           
           // Clean up temporary display
@@ -18305,13 +18822,14 @@ class CharacterSelect {
           this.creationNameCharacter(callback);
         }
       },
-      () => {
+      onCancel: () => {
         // Cancel creation
         nameText.destroy();
+        keyboard.destroy();
         this.navigationHint.updateHints('general');
         this.cancelCharacterCreation();
       }
-    );
+    });
   }
   
   generateName() {
@@ -18484,7 +19002,7 @@ class AchievementsMenu {
       }
     }
     
-    this.detailsText.write(details).wrapPreserveNewlines(game.width / 2 - 16);
+    this.detailsText.write(details).wrap(game.width / 2 - 16);
   }
 
   update() {
@@ -18506,16 +19024,16 @@ class StatsMenu {
     new FuturisticLines();
     new BackgroundGradient();
     
-    this.titleText = new Text(92, 8, "PLAYER STATISTICS");
+    this.titleText = new Text(120, 10, "PLAYER STATISTICS");
     this.titleText.anchor.x = 0.5;
     
-    this.leftColumn = new Text(8, 56, "");
+    this.leftColumn = new Text(20, 70, "");
     this.leftColumn.anchor.y = 0.5;
     
-    this.rightColumn = new Text(92, 56, "");
+    this.rightColumn = new Text(130, 70, "");
     this.rightColumn.anchor.y = 0.5;
     
-    this.instructionText = new Text(92, 92, "PRESS ANY KEY TO LEAVE");
+    this.instructionText = new Text(120, 120, "PRESS ANY KEY TO LEAVE");
     this.instructionText.anchor.x = 0.5;
     
     this.updateStatsText();
@@ -18660,6 +19178,8 @@ class Play {
     this.JUDGE_WINDOWS = JUDGE_WINDOWS;
     
     this.SCORE_VALUES = SCORE_VALUES;
+    
+    this.FIXED_DELAY = 2000; 
   }
   
   create() {
@@ -18672,14 +19192,14 @@ class Play {
     
     // Canvas for background rendering   
     this.backgroundCanvas = document.createElement("canvas");
-    this.backgroundCanvas.width = 192;
-    this.backgroundCanvas.height = 112;
+    this.backgroundCanvas.width = 240;
+    this.backgroundCanvas.height = 140;
     this.backgroundCtx = this.backgroundCanvas.getContext("2d");
     
     // Create background
     this.backgroundLayer = game.add.group();
     this.backgroundSprite = new CanvasBackground(this.backgroundCanvas);
-    this.backgroundSprite.alpha = 0.7;
+    this.backgroundSprite.alpha = 1;
     
     this.visibilityChangeListener = () => {
       if (document.hidden) {
@@ -18732,6 +19252,9 @@ class Play {
       
       // Create visualizer after audio initialized since some visualizers spect the audio to exist
       this.createVisualizer();
+      
+      // Setup song temperature change detection
+      this.setupSongTemperature();
     });
   }
   
@@ -18781,7 +19304,20 @@ class Play {
   createHud() {
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
-    this.hud = game.add.sprite(0, 0, "ui_hud_background", 0);
+    this.hud = game.add.sprite(0, 0);
+    
+    this.hudFlashShape = game.add.sprite(game.width / 2, game.height / 2, 'ui_hud_flash_shape');
+    this.hudFlashShape.anchor.set(0.5);
+    this.hudFlashShape.alpha = 0;
+    this.hud.addChild(this.hudFlashShape);
+    
+    this.hudTop = game.add.sprite(0, -40, 'ui_hud_background_top');
+    this.hudTop.alpha = 0;
+    this.hud.addChild(this.hudTop);
+    
+    this.hudBottom = game.add.sprite(0, 40, 'ui_hud_background_bottom');
+    this.hudBottom.alpha = 0;
+    this.hud.addChild(this.hudBottom);
     
     this.overHud = game.add.sprite(0, 0);
     
@@ -18789,53 +19325,55 @@ class Play {
     
     this.difficultyBanner = game.add.sprite(0, 0, "ui_difficulty_banner", 0);
     this.difficultyBanner.tint = this.getDifficultyColor(difficulty.rating);
-    this.hud.addChild(this.difficultyBanner);
+    this.hudTop.addChild(this.difficultyBanner);
     
-    this.difficultyTypeText = new Text(5, 1, difficulty.type.substr(0, 7), null, this.difficultyBanner);
+    this.difficultyTypeText = new Text(5, 1, difficulty.type.substr(0, 9), FONTS.default, this.difficultyBanner);
+    this.difficultyTypeText.alpha = 0.7;
+    game.add.tween(this.difficultyTypeText).to({ alpha: 1 }, 400, "Linear", true).repeat(-1).yoyo(true);
     
     const title = this.song.chart.titleTranslit || this.song.chart.title;
     
-    this.songTitleText = new Text(34, 1, "", null, this.hud);
-    this.songTitleText.write(title, 28);
+    this.songTitleText = new Text(41, 1, "", null, this.hudTop);
+    this.songTitleText.write(title, 41);
     
-    this.playerName = new Text(4, 8, "", FONTS.shaded, this.hud);
-    this.playerName.write(this.currentCharacter ? this.currentCharacter.name : "NONE", 4);
+    this.playerName = new Text(5, 9, "", FONTS.tiny_shaded, this.hudTop);
+    this.playerName.write(this.currentCharacter ? this.currentCharacter.name : "NONE", 8);
     
     this.playerName.tint = this.currentCharacter ? this.currentCharacter.appearance.hairColor : 0xffffff;
     
-    this.skillBar = new SkillBar(6, 15);
-    this.hud.addChild(this.skillBar);
+    this.skillBar = new SkillBar(6, 16);
+    this.hudTop.addChild(this.skillBar);
     
     if (!this.currentCharacter) this.skillBar.visible = false;
     
-    this.scoreText = new Text(22, 12, "0".repeat(9), null, this.hud);
+    this.scoreText = new Text(35, 14, "0".repeat(9), FONTS.tiny_number, this.hudTop);
     
-    this.lifebarStart = game.add.sprite(21, 8, "ui_lifebar", 0);
+    this.lifebarStart = game.add.sprite(37, 9, "ui_lifebar", 0);
     this.lifebarMiddle = game.add.sprite(1, 0, "ui_lifebar", 1);
-    this.lifebarMiddle.width = 102;
-    this.lifebarEnd = game.add.sprite(103, 0, "ui_lifebar", 2);
+    this.lifebarMiddle.width = 145;
+    this.lifebarEnd = game.add.sprite(146, 0, "ui_lifebar", 2);
     
-    this.hud.addChild(this.lifebarStart);
+    this.hudTop.addChild(this.lifebarStart);
     this.lifebarStart.addChild(this.lifebarMiddle);
     this.lifebarStart.addChild(this.lifebarEnd);
     
     // Autoplay text
-    this.autoplayText = new Text(4, 90, this.autoplay ? "AUTOPLAY" : "", FONTS.stroke, this.hud);
+    this.autoplayText = new Text(4, 120, this.autoplay ? "AUTOPLAY" : "", FONTS.tiny_stroke, this.hud);
     
-    this.healthText = new Text(137, 8, "100", FONTS.number, this.hud);
-    this.healthText.anchor.x = 1;
+    this.healthText = new Text(185, 9, "100", FONTS.tiny_number, this.hudTop);
     
-    this.judgementText = new Text(game.width / 2, 60, "", FONTS.shaded);
+    this.judgementText = game.add.sprite(game.width / 2, 75, "judgement", 0);
+    this.judgementText.alpha = 0;
     this.judgementText.anchor.set(0.5);
     
-    this.accuracyBar = game.add.sprite(41, 108, "ui_accuracy_bar");
-    this.hud.addChild(this.accuracyBar);
+    this.accuracyBar = game.add.sprite(51, 136, "ui_accuracy_bar");
+    this.hudBottom.addChild(this.accuracyBar);
     
-    this.comboText = new Text(191, 106, "0", FONTS.combo);
+    this.comboText = new Text(240 - 1, 140 - 6, "0", FONTS.biscuitlocker_combo, this.hudBottom);
     this.comboText.anchor.set(1);
   }
   
-  createVisualizer(visualizerX = 2, visualizerY = 103, visualizerWidth = 36, visualizerHeight = 7) {
+  createVisualizer(visualizerX = 2, visualizerY = 131, visualizerWidth = 46, visualizerHeight = 7) {
     // Remove existing visualizer
     if (this.visualizer) {
       this.visualizer.destroy();
@@ -18858,12 +19396,26 @@ class Play {
     }
     
     if (this.visualizer) {
-      this.hud.addChild(this.visualizer.graphics);
+      this.hudBottom.addChild(this.visualizer.graphics);
     }
   }
   
+  setupSongTemperature() {
+    const meter = new AudioTemperatureMeter(this, this.audio, this.song.chart);
+    
+    meter.onHighTemperature.add(() => {
+      this.startHudFlash();
+    });
+    
+    meter.onLowTemperature.add(() => {
+      this.stopHudFlash();
+    });
+    
+    this.temperature = meter;
+  }
+  
   setupPlayer() {
-    this.player = new Player(this);
+    this.player = new Player(this, "center");
   }
   
   setupLyrics() {
@@ -18871,7 +19423,7 @@ class Play {
       const lrcContent = this.song.chart.lyricsContent; 
       
       // Create lyrics text element
-      this.lyricsText = new Text(game.width / 2, 72, "", FONTS.stroke);
+      this.lyricsText = new Text(game.width / 2, 90, "", FONTS.default_stroke);
       this.lyricsText.anchor.set(0.5);
       
       // Initialize lyrics system
@@ -18924,7 +19476,9 @@ class Play {
   songStart() {
     this.setInitialBackground();
     
-    const FIXED_DELAY = 2000; 
+    const FIXED_DELAY = this.FIXED_DELAY; 
+    
+    this.showSongInfo();
     
     const chartOffset = this.song.chart.offset || 0;
     
@@ -18934,24 +19488,156 @@ class Play {
       this.audio?.play();
       this.started = true;
       if (window.recordNextGame) game.recorder.start(this.audio, 0);
+      this.showHud();
     }, FIXED_DELAY + this.userOffset);
     
     this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
   }
   
+  showSongInfo() {
+    const texts = [
+      {
+        value: this.song.chart.titleTranslit || this.song.chart.title,
+        font: 'bold_shadow',
+        height: 8,
+        tint: 0xffffff,
+        alpha: 1
+      },
+      {
+        value: this.song.chart.subtitleTranslit || this.song.chart.subtitle,
+        font: 'default_shadow',
+        height:  12,
+        tint: 0xffffff,
+        delay: 50,
+        alpha: 0.8
+      },
+      {
+        value: this.song.chart.artistTranslit || this.song.chart.artist,
+        font: 'default_shadow',
+        height:  8,
+        tint: 0x00cbff,
+        delay: 100,
+        alpha: 1
+      },
+      {
+        value: this.song.chart.credit,
+        prefix: 'Chart by ',
+        font: 'default_shadow',
+        delay: 150,
+        height:  8,
+        tint: 0x00cbff,
+        alpha: 0.8
+      }
+    ];
+    
+    if (!Account.settings.enableSongInfo) return;
+    
+    const banner = game.add.sprite(0, 75);
+    banner.anchor.y = 0.5;
+    
+    const bannerGraphics = game.add.graphics(0, 0);
+    banner.addChild(bannerGraphics);
+    
+    let y = 0;
+    let height = 6;
+    
+    const FIXED_DELAY = this.FIXED_DELAY; 
+    const entranceDuration = 200;
+    const exitDuration = 200;
+    
+    for (const object of texts) {
+      if (object.value) {
+        const text = new Text(-240, y, object.prefix ? object.prefix + object.value : object.value, FONTS[object.font], banner);
+        text.alpha = object.alpha;
+        text.tint = object.tint;
+        text.x -= text.width * 2;
+        text.anchor.x = 0.5;
+        
+        const delay = object.delay || 0;
+        
+        game.add.tween(text).to({ x: 120, alpha: 1 }, entranceDuration * 2, Phaser.Easing.Quadratic.Out, true).onComplete.add(() => {
+          game.add.tween(text).to({ x: 240 + text.width * 2, alpha: 0 }, exitDuration * 2, Phaser.Easing.Quadratic.In, true, FIXED_DELAY - entranceDuration - entranceDuration - exitDuration - exitDuration);
+        });
+        
+        y += object.height;
+        height += object.height;
+      }
+    }
+    
+    if (!y) {
+      banner.destroy();
+      return;
+    }
+        
+    height += 4;
+    
+    bannerGraphics.beginFill(0x000000, 0.6);
+    bannerGraphics.drawRect(0, -6, 240, height);
+    bannerGraphics.endFill();
+    
+    banner.alpha = 0;
+    
+    game.add.tween(banner).to({ alpha: 1 }, entranceDuration, Phaser.Easing.Quadratic.In, true).onComplete.add(() => {
+      game.add.tween(banner).to({ alpha: 0 }, exitDuration, Phaser.Easing.Quadratic.Out, true, FIXED_DELAY - entranceDuration - exitDuration).onComplete.add(() => {
+        banner.destroy();
+      });
+    });
+  }
+  
+  startHudFlash() {
+    this.hudFlashShape.alpha = 1;
+    
+    const interval = this.player.renderer.beatToSec(1) * 1000;
+    
+    game.add.tween(this.hudFlashShape).to({ alpha: 0 }, interval, Phaser.Easing.Quadratic.Out, true).repeat(-1);
+    game.add.tween(this.hudFlashShape.scale).to({ x: 0.9, y: 0.9 }, interval, Phaser.Easing.Quadratic.Out, true).repeat(-1);
+  }
+  
+  stopHudFlash() {
+    game.tweens.removeFrom(this.hudFlashShape);
+    game.add.tween(this.hudFlashShape).to({ alpha: 0 }, 100, Phaser.Easing.Quadratic.Out, true);
+    game.add.tween(this.hudFlashShape.scale).to({ x: 1, y: 1 }, 100, Phaser.Easing.Quadratic.Out, true).repeat(-1);
+  }
+  
+  showHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
+    game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.Out, true);
+    game.add.tween(this.hudTop).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
+    game.add.tween(this.hudBottom).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
+  }
+  
+  hideHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
+    game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.In, true);
+    game.add.tween(this.hudTop).to({ y: -40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
+    game.add.tween(this.hudBottom).to({ y: 40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
+  }
+  
   showCharacterCloseShot(duration) {
     const displayTime = Math.max(500, duration - 400);
-    const closeShot = new CharacterCloseShot(2, 103, this.currentCharacter);
+    const closeShot = new CharacterCloseShot(2, 131, this.currentCharacter);
     closeShot.visible = false;
     this.overHud.addChild(closeShot);
     
     if (this.visualizer) {
       this.visualizer.graphics.visible = false;
     }
-
-    const noiseSprite = game.add.sprite(2, 103, 'character_noise');
-    noiseSprite.animations.add('static', [0, 1, 2, 3, 4, 5, 6, 7], 60, true);
-    noiseSprite.animations.play('static');
+    
+    const timer = {
+      time: displayTime + 200
+    };
+    
+    const timerText = new Text(47, 132, "0s", null, this.overHud);
+    timerText.anchor.x = 1;
+    
+    const timeTween = game.add.tween(timer).to({ time: 0 }, duration, "Linear", true);
+    timeTween.onUpdateCallback(() => {
+      const time = timer.time;
+      const formattedTime = TimeUtils.formatSeconds(timer.time);
+      timerText.write(formattedTime);
+    });
+    
+    const noiseSprite = game.add.sprite(2, 131, 'character_noise');
+    noiseSprite.animations.add('noise', [0, 1, 2, 3, 4, 5, 6, 7], 60, true);
+    noiseSprite.animations.play('noise');
     this.overHud.addChild(noiseSprite);
 
     game.time.events.add(200, () => {
@@ -18962,15 +19648,17 @@ class Play {
 
     game.time.events.add(displayTime, () => {
       closeShot.visible = false;
-      const endNoise = game.add.sprite(2, 103, 'character_noise');
-      endNoise.animations.add('static', [0, 1, 2, 3, 4, 5, 6, 7], 60, true);
-      endNoise.animations.play('static');
+      timerText.visible = false;
+      const endNoise = game.add.sprite(2, 131, 'character_noise');
+      endNoise.animations.add('noise', [0, 1, 2, 3, 4, 5, 6, 7], 60, true);
+      endNoise.animations.play('noise');
       this.overHud.addChild(endNoise);
       
       game.time.events.add(200, () => {
         if (this.visualizer) {
           this.visualizer.graphics.visible = true;
         }
+        timerText.destroy();
         endNoise.destroy();
         closeShot.destroy();
       });
@@ -18987,6 +19675,10 @@ class Play {
   }
   
   showFullCombo() {
+    if (this.fullComboAnimationStarted) {
+      return;
+    }
+    
     // Create overlay parent
     this.fullComboOverlay = game.add.sprite(0, 0);
     
@@ -19018,7 +19710,7 @@ class Play {
     this.fullComboBg.scale.y = 0;
     this.fullComboOverlay.addChild(this.fullComboBg);
     
-    this.fullComboText = new Text(game.width, 5, flawless ? "FLAWLESS!!" : "FULL COMBO!!", "", FONTS.default);
+    this.fullComboText = new Text(game.width, 6, flawless ? "FLAWLESS!!" : "FULL COMBO!!", "", FONTS.default);
     this.fullComboText.anchor.x = 0.5;
     this.fullComboText.anchor.y = 0.5;
     this.fullComboText.alpha = 0;
@@ -19075,7 +19767,7 @@ class Play {
     }
     
     try {
-      this.backgroundCtx.drawImage(element, 0, 0, 192, 112);
+      this.backgroundCtx.drawImage(element, 0, 0, 240, 140);
       this.updateBackgroundTexture();
     } catch (error) {
       console.error("Error drawing background:", error);
@@ -19097,7 +19789,7 @@ class Play {
   
   clearBackground() {
     this.backgroundCtx.fillStyle = "#000000";
-    this.backgroundCtx.fillRect(0, 0, 192, 112);
+    this.backgroundCtx.fillRect(0, 0, game.width, game.height);
     this.updateBackgroundTexture();
     this.backgroundGradient.visible = true;
   }  
@@ -19294,6 +19986,9 @@ class Play {
       gameResults: gameResults
     };
     
+    // Hide HUD
+    this.hideHud(500, 1, 0);
+    
     game.state.start("Results", true, false, gameData);
   }
   
@@ -19367,7 +20062,7 @@ class Play {
   }
   
   getStatsContent() {
-    return Object.entries(this.player.judgementCounts).map(entry => `${entry[0]}: ${entry[1]}`).join('\n');
+    return Object.entries(this.player.judgementCounts).map(entry => `${entry[0]}: ${entry[1]}`.toUpperCase()).join('\n');
   }
   
   showPauseMenu() {
@@ -19392,22 +20087,22 @@ class Play {
       animate: true
     });
     
-    this.pauseCarousel.addItem("CONTINUE", () => this.resume());
+    this.pauseCarousel.addItem("Continue", () => this.resume());
     if (this.autoplay && !this.playtestMode) {
-      this.pauseCarousel.addItem("DISABLE AUTOPLAY", () => {
+      this.pauseCarousel.addItem("Disable Autoplay", () => {
         Account.settings.autoplay = false;
         game.state.start("SongSelect", true, false, null, null, true);
       });
     }
     if (this.playtestMode) {
       if (this.autoplay) {
-        this.pauseCarousel.addItem("DISABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false));
+        this.pauseCarousel.addItem("Disable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false));
       } else {
-        this.pauseCarousel.addItem("ENABLE AUTOPLAY", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
+        this.pauseCarousel.addItem("Enable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
       }
     }
-    this.pauseCarousel.addItem("RESTART", () => this.restartSong());
-    this.pauseCarousel.addItem(this.playtestMode ? "BACK TO EDITOR" : "GIVE UP", () => this.songEnd());
+    this.pauseCarousel.addItem("Restart", () => this.restartSong());
+    this.pauseCarousel.addItem(this.playtestMode ? "< Back To Editor" : "Give Up", () => this.songEnd());
     
     game.onMenuIn.dispatch('pause', this.pauseCarousel);
     
@@ -19538,7 +20233,11 @@ class Play {
     }
     if (this.autoplayText.text != text) this.autoplayText.write(text);
     
-    this.player.update();
+    const { now, beat } = this.player.update();
+    
+    if (this.started && Account.settings.enableTemperature) {
+      this.temperature.update(now, beat);
+    }
     
     if (this.started) this.updateBackgrounds();
     
@@ -19578,6 +20277,9 @@ class Play {
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.audio.pause();
     this.audio.src = "";
+    
+    this.temperature.destroy();
+    this.temperature = null;
     
     if (this.video) {
       this.video.pause();
@@ -19629,29 +20331,55 @@ class PlayMulti extends Play {
   createHud() {
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
-    this.hud = game.add.sprite(0, 0, "ui_hud_background_multi", 0);
+    this.hud = game.add.sprite(0, 0);
+        
+    this.hudFlashShape = game.add.sprite(game.width / 2, game.height / 2, 'ui_hud_flash_shape_multi');
+    this.hudFlashShape.anchor.set(0.5);
+    this.hudFlashShape.alpha = 0;
+    this.hud.addChild(this.hudFlashShape);
+    
+    this.hudTop = game.add.sprite(0, -40, 'ui_hud_background_top_multi');
+    this.hudTop.alpha = 0;
+    this.hud.addChild(this.hudTop);
+    
+    this.hudBottom = game.add.sprite(0, 40, 'ui_hud_background_bottom_multi');
+    this.hudBottom.alpha = 0;
+    this.hud.addChild(this.hudBottom);
     
     this.p1Hud = game.add.sprite(0, 0, "ui_hud_player_parent_multi", 0);
-    this.hud.addChild(this.p1Hud);
+    this.hudTop.addChild(this.p1Hud);
     
     this.p2Hud = game.add.sprite(0, 0, "ui_hud_player_parent_multi", 1);
-    this.hud.addChild(this.p2Hud);
+    this.hudTop.addChild(this.p2Hud);
     
     this.overHud = game.add.sprite(0, 0);
+    
+    // Get song difficulty
+    const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
+    
+    this.difficultyBanner = game.add.sprite(game.width / 2, 0, "ui_difficulty_banner_multi", 0);
+    this.difficultyBanner.tint = this.getDifficultyColor(difficulty.rating);
+    this.difficultyBanner.anchor.x = 0.5;
+    this.hudTop.addChild(this.difficultyBanner);
+    
+    this.difficultyTypeText = new Text(0, 1, difficulty.type.substr(0, 9), FONTS.default, this.difficultyBanner);
+    this.difficultyTypeText.anchor.x = 0.5;
+    this.difficultyTypeText.alpha = 0.7;
+    game.add.tween(this.difficultyTypeText).to({ alpha: 1 }, 400, "Linear", true).repeat(-1).yoyo(true);
     
     // Get song title
     const title = this.song.chart.titleTranslit || this.song.chart.title;
     
     // Song title text
-    this.songTitleText = new Text(game.width / 2, 11, "", null, this.hud);
+    this.songTitleText = new Text(game.width / 2, 11, "", null, this.hudTop);
     this.songTitleText.anchor.x = 0.5;
     this.songTitleText.write(title, 21);
     
     // P1 Health Text
-    this.p1HealthText = new Text(1, 3, "100", null, this.p1Hud);
+    this.p1HealthText = new Text(1, 3, "100", FONTS.tiny_number, this.p1Hud);
     
     // P2 Health Text
-    this.p2HealthText = new Text(game.width - 1, 3, "100", null, this.p2Hud);
+    this.p2HealthText = new Text(game.width - 1, 3, "100", FONTS.tiny_number, this.p2Hud);
     this.p2HealthText.anchor.x = 1;
     
     // Tint both texts
@@ -19659,34 +20387,36 @@ class PlayMulti extends Play {
     this.p2HealthText.tint = 0x96918e;
     
     // P1 Score Text 
-    this.p1ScoreText = new Text(16, 7, "00000000", null, this.hud);
+    this.p1ScoreText = new Text(16, 7, "00000000", FONTS.tiny_number, this.p1Hud);
     
     // P2 Score Text 
-    this.p2ScoreText = new Text(game.width - 16, 7, "00000000", null, this.hud);
+    this.p2ScoreText = new Text(game.width - 16, 7, "00000000", FONTS.tiny_number, this.p2Hud);
     this.p2ScoreText.anchor.x = 1;
     
     // P1 Judgement Text
-    this.p1JudgementText = new Text(0, 60, "", FONTS.shaded);
+    this.p1JudgementText = game.add.sprite(0, 75, "judgement", 0);
+    this.p1JudgementText.alpha = 0;
     this.p1JudgementText.anchor.set(0.5);
-    
+
     // P2 Judgement Text
-    this.p2JudgementText = new Text(0, 60, "", FONTS.shaded);
+    this.p2JudgementText = game.add.sprite(0, 75, "judgement", 0);
+    this.p2JudgementText.alpha = 0;
     this.p2JudgementText.anchor.set(0.5);
     
     // P1 Accuracy Bar
-    this.p1AccuracyBar = game.add.sprite(2, 108, "ui_accuracy_bar_multi");
+    this.p1AccuracyBar = game.add.sprite(2, 136, "ui_accuracy_bar_multi");
     this.hud.addChild(this.p1AccuracyBar);
     
     // P2 Accuracy Bar
-    this.p2AccuracyBar = game.add.sprite(117, 108, "ui_accuracy_bar_multi");
+    this.p2AccuracyBar = game.add.sprite(146, 136, "ui_accuracy_bar_multi");
     this.hud.addChild(this.p2AccuracyBar);
     
     // P1 Combo Number
-    this.p1ComboText = new Text(1, 106, "0", FONTS.combo);
+    this.p1ComboText = new Text(1, 140 - 6, "0", FONTS.biscuitlocker_combo, this.hudBottom);
     this.p1ComboText.anchor.y = 1;
 
     // P2 Combo Number
-    this.p2ComboText = new Text(191, 106, "0", FONTS.combo);
+    this.p2ComboText = new Text(240 - 1, 140 - 6, "0", FONTS.biscuitlocker_combo, this.hudBottom);
     this.p2ComboText.anchor.set(1);
     
     // P1 Lifebar
@@ -19699,7 +20429,7 @@ class PlayMulti extends Play {
     this.p1Hud.addChild(this.p1LifebarStart);
     
     // P2 Lifebar
-    this.p2LifebarStart = game.add.sprite(105, 3, "ui_lifebar", 0);
+    this.p2LifebarStart = game.add.sprite(153, 3, "ui_lifebar", 0);
     this.p2LifebarMiddle = game.add.sprite(1, 0, "ui_lifebar", 1);
     this.p2LifebarMiddle.width = 71;
     this.p2LifebarEnd = game.add.sprite(105, 0, "ui_lifebar", 2);
@@ -19708,17 +20438,17 @@ class PlayMulti extends Play {
     this.p2Hud.addChild(this.p2LifebarStart);
     
     // Autoplay texts
-    this.autoplayText = new Text(game.width / 2, 93, "METRONOME", FONTS.stroke, this.hud);
+    this.autoplayText = new Text(game.width / 2, 93, "METRONOME", FONTS.tiny_stroke, this.hud);
     this.autoplayText.anchor.x = 0.5;
     
-    this.p1AutoplayText = new Text(2, 16, "AUTOPLAY", FONTS.stroke, this.hud);
+    this.p1AutoplayText = new Text(2, 16, "AUTOPLAY", FONTS.tiny_stroke, this.hud);
     
-    this.p2AutoplayText = new Text(190, 16, "AUTOPLAY", FONTS.stroke, this.hud);
+    this.p2AutoplayText = new Text(190, 16, "AUTOPLAY", FONTS.tiny_stroke, this.hud);
     this.p2AutoplayText.anchor.x = 1;
   }
   
   createVisualizer() {
-    super.createVisualizer(78, 103, 36, 7);
+    super.createVisualizer(97, 131, 46, 7);
   }
   
   setupPlayer() {
@@ -19979,7 +20709,7 @@ class Results {
     this.bannerCanvas = document.createElement("canvas");
     this.bannerCtx = this.bannerCanvas.getContext("2d");
     
-    this.bannerSprite = game.add.sprite(112, 10);
+    this.bannerSprite = game.add.sprite(160, 10);
     
     if (song.chart.audioUrl) {
       // Load and play preview
@@ -20030,7 +20760,7 @@ class Results {
     
     // New record indicator
     if (!autoplay && this.isNewRecord) {
-      this.recordText = new Text(this.scoreText.right + 4, this.scoreText.y, "NEW RECORD!", FONTS.shaded);
+      this.recordText = new Text(this.scoreText.right + 16, this.scoreText.y, "NEW RECORD!", FONTS.default_shadow);
       this.recordText.anchor.x = 0.5;
       this.recordText.x += this.scoreText.width / 2;
       this.recordText.tint = 0xFFD700; // Gold color
@@ -20041,13 +20771,13 @@ class Results {
   }
   
   showCharacterExp() {
-    const portrait = new CharacterPortrait(112, 41, this.gameData.character || null);
+    const portrait = new CharacterPortrait(160, 41, this.gameData.character || null);
     
-    const nameText = new Text(128, 42, "", FONTS.shaded);
+    const nameText = new Text(176, 42, "", FONTS.shaded);
     
     const levelText = new Text(0, 42, "");
     
-    const expBar = new ExperienceBar(129, 50, 40, 3);
+    const expBar = new ExperienceBar(177, 50, 40, 3);
     
     if (this.gameData.character) {
       nameText.write(this.gameData.character.name);
@@ -20091,7 +20821,7 @@ class Results {
     const height = this.gameData.character ? 72 : 80;
     const y = this.gameData.character ? 53 : 40;
     
-    const menu = new CarouselMenu(108, y, 80, height, {
+    const menu = new CarouselMenu(160 - 4, y, 80, height, {
       bgcolor: 'brown',
       fgcolor: '#ffffff'
     });
@@ -20184,7 +20914,7 @@ class ResultsMulti extends Results {
     this.bannerCanvas = document.createElement("canvas");
     this.bannerCtx = this.bannerCanvas.getContext("2d");
     
-    this.bannerSprite = game.add.sprite(192 - 10 - 64, 10);
+    this.bannerSprite = game.add.sprite(240 - 10 - 64, 10);
     
     // Load and play audio
     this.previewAudio = document.createElement("audio");
@@ -20222,8 +20952,8 @@ class ResultsMulti extends Results {
     const title = this.song.chart.titleTranslit || this.song.chart.title;
     const difficulty = this.song.chart.difficulties[this.difficultyIndex];
     
-    this.songText = new Text(8, 10, `${title}`, FONTS.shaded);
-    this.diffText = new Text(10, 20, `${difficulty.type} (${difficulty.rating})`);
+    this.songText = new Text(8, 10, `${title}`, FONTS.default_shadow);
+    this.diffText = new Text(10, 20, `${difficulty.type} (${difficulty.rating})`, FONTS.default);
     this.diffText.tint = new Play().getDifficultyColor(difficulty.rating);
     
     if (title.length > 25) this.songText.scrollwrite(title, 25);
@@ -20234,7 +20964,7 @@ class ResultsMulti extends Results {
     this.showPlayerResults(2);
     
     if (this.winner == 0) {
-      const drawText = new Text(game.width / 2, 112 - 14, "DRAW", FONTS.shaded);
+      const drawText = new Text(game.width / 2, 112 - 14, "DRAW", FONTS.bold);
       drawText.anchor.x = 0.5;
       drawText.tint = 0xFF007F; // Purple color
       
@@ -20266,7 +20996,7 @@ class ResultsMulti extends Results {
   showPlayerResults(playerNumber = playerNumber) {
     const player = this.gameResults["player" + playerNumber];
     
-    const xPos = playerNumber == 1 ? 10 : 192 - 10;
+    const xPos = playerNumber == 1 ? 10 : 240 - 10;
     const xAnchor = playerNumber == 1 ? 0 : 1;
     
     // Don't celebrate if autoplay is enabled
@@ -20298,7 +21028,7 @@ class ResultsMulti extends Results {
     
     // Winner record indicator
     if (!autoplay && this.winner == playerNumber) {
-      const winnerText = new Text(game.width / 2, 112 - 14, `PLAYER ${playerNumber} WINS!`, FONTS.shaded);
+      const winnerText = new Text(game.width / 2, 112 - 14, `PLAYER ${playerNumber} WINS!`, FONTS.bold);
       winnerText.anchor.x = 0.5;
       winnerText.tint = 0xFFD700; // Gold color
       
@@ -20436,10 +21166,13 @@ class Jukebox {
   }
 
   setupUI() {
+    // Window manager
+    this.windowManager = new WindowManager();
+    
     // Background gradient for readability
     this.uiBackground = game.add.graphics(0, 0);
     this.uiBackground.beginFill(0x000000, 0.7);
-    this.uiBackground.drawRect(0, 80, game.width, 32);
+    this.uiBackground.drawRect(0, 100, game.width, 40);
     this.uiBackground.endFill();
     
     // Song banner
@@ -20451,21 +21184,21 @@ class Jukebox {
     this.songCredit = new Text(104, 24, "", FONTS.default);
     
     // Playback time displays
-    this.currentTimeText = new Text(4, 84, "0:00", FONTS.default);
-    this.durationText = new Text(188, 84, "0:00", FONTS.default);
+    this.currentTimeText = new Text(4, 104, "0:00", FONTS.default);
+    this.durationText = new Text(240 - 4, 104, "0:00", FONTS.default);
     this.durationText.anchor.x = 1;
     
     // Progress bar
-    this.progressBarBg = game.add.graphics(30, 86);
+    this.progressBarBg = game.add.graphics(24, 106);
     this.progressBarBg.lineStyle(2, 0x666666, 1);
     this.progressBarBg.moveTo(0, 0);
-    this.progressBarBg.lineTo(132, 0);
+    this.progressBarBg.lineTo(188, 0);
     
-    this.progressBar = game.add.graphics(30, 86);
+    this.progressBar = game.add.graphics(24, 106);
     
     // Mouse interactivity for progress bar
-    this.progressBarInteractive = game.add.sprite(30, 84);
-    this.progressBarInteractive.width = 132;
+    this.progressBarInteractive = game.add.sprite(24, 104);
+    this.progressBarInteractive.width = 188;
     this.progressBarInteractive.height = 6;
     this.progressBarInteractive.inputEnabled = true;
     this.progressBarInteractive.useHandCursor = true;
@@ -20483,16 +21216,16 @@ class Jukebox {
     this.createPlaybackControls();
     
     // Create lyrics display
-    this.lyricsText = new Text(game.width / 2, 51, "", FONTS.stroke);
+    this.lyricsText = new Text(game.width / 2, 64, "", FONTS.default_stroke);
     this.lyricsText.anchor.set(0.5);
     this.lyricsText.visible = true; // Always visible
     
     // Shuffle Label
-    this.shuffleLabel = new Text(5, 70, "");
+    this.shuffleLabel = new Text(5, 90, "");
     this.shuffleLabel.visible = false;
     
     // Volume Label
-    this.volumeLabel = new Text(game.width - 5, 70, "");
+    this.volumeLabel = new Text(game.width - 5, 90, "");
     this.volumeLabel.visible = false;
     this.volumeLabel.anchor.x = 1;
   }
@@ -20515,15 +21248,15 @@ class Jukebox {
 
   createPlaybackControls() {
     const centerX = game.width / 2;
-    const yPos = 70;
+    const yPos = 90;
     const buttonSpacing = 2; // 2px separation between buttons
     
     const buttonWidths = {
-      visualization: 8,
-      skip: 8,
-      seek: 8,
-      pause: 12,
-      menu: 8
+      visualization: 9,
+      skip: 9,
+      seek: 9,
+      pause: 16,
+      menu: 9
     };
     
     // Calculate total width including buttons and spacing
@@ -20741,9 +21474,9 @@ class Jukebox {
     const song = this.currentSong;
     
     // Update text displays
-    this.songTitle.write(song.titleTranslit || song.title || "Unknown Title", 21);
-    this.songArtist.write(song.artistTranslit || song.artist || "Unknown Artist", 21);
-    this.songCredit.write(song.credit || "", 21);
+    this.songTitle.write(song.titleTranslit || song.title || "Unknown Title", 33);
+    this.songArtist.write(song.artistTranslit || song.artist || "Unknown Artist", 33);
+    this.songCredit.write(song.credit || "", 33);
     
     // Load banner
     if (song.bannerUrl && song.bannerUrl !== "no-media") {
@@ -20775,10 +21508,10 @@ class Jukebox {
       const bgImg = new Image();
       bgImg.onload = () => {
         const canvas = document.createElement('canvas');
-        canvas.width = 192;
-        canvas.height = 112;
+        canvas.width = 240;
+        canvas.height = 140;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(bgImg, 0, 0, 192, 112);
+        ctx.drawImage(bgImg, 0, 0, 240, 140);
         const texture = PIXI.Texture.fromCanvas(canvas);
         this.backgroundSprite.loadTexture(texture);
       };
@@ -20807,7 +21540,7 @@ class Jukebox {
     if (!TimeUtils.isValidTime(duration)) return;
     
     const progress = currentTime / duration;
-    const barWidth = 132 * progress;
+    const barWidth = 188 * progress;
     
     this.progressBar.clear();
     this.progressBar.lineStyle(2, this.isMouseSeeking ? 0xffffff : 0x76fcde, 1);
@@ -21020,15 +21753,15 @@ class Jukebox {
     const pointer = mouse.pointer;
     
     // Calculate click position relative to progress bar
-    const barStartX = 30;
-    const barEndX = 162; // 30 + 132
+    const barStartX = 24;
+    const barEndX = 24 + 188;
     const mouseX = pointer.worldX;
     
     // Clamp to bar bounds
     const clampedX = Math.max(barStartX, Math.min(barEndX, mouseX));
     
     // Calculate progress percentage (0 to 1)
-    const progress = (clampedX - barStartX) / 132;
+    const progress = (clampedX - barStartX) / 188;
     
     // Calculate new time
     const newTime = progress * this.audioElement.duration;
@@ -21052,34 +21785,33 @@ class Jukebox {
 
   showSongList() {
     this.songListMenuVisible = true;
-    
+
     const menuBg = game.add.graphics(0, 0);
-    menuBg.beginFill(0x000000, 0.7);
+    menuBg.width = game.width;
+    menuBg.height = game.width;
+    menuBg.inputEnabled = true;
+    
+    menuBg.beginFill(0x000000, 0.5);
     menuBg.drawRect(0, 0, game.width, game.height);
     menuBg.endFill();
     
-    const menu = new CarouselMenu(20, 20, 152, 72, {
-      bgcolor: 'brown',
-      fgcolor: '#ffffff',
-      align: 'left',
-      disableScrollBar: false
-    });
+    const menu = this.windowManager.createWindow(3, 1, 24, 15, "1");
     
     // Add all songs to the menu
     this.songs.forEach((song, index) => {
       const title = song.titleTranslit || song.title || `Song ${index + 1}`;
       const isCurrent = index === this.currentIndex;
-      const displayText = isCurrent ? `> ${title}` : `  ${title}`;
       
       menu.addItem(
-        displayText,
+        title,
+        isCurrent ? "NOW PLAYING" : "",
         () => {
           if (index !== this.currentIndex) {
             this.loadSong(index);
           }
           menu.destroy();
           menuBg.destroy();
-          this.songListMenuVisible = false;
+          setTimeout(() => this.songListMenuVisible = false);
         },
         { 
           song: song, 
@@ -21092,12 +21824,13 @@ class Jukebox {
     menu.onCancel.add(() => {
       menu.destroy();
       menuBg.destroy();
-      this.songListMenuVisible = false;
+      setTimeout(() => this.songListMenuVisible = false);
     });
     
     // Set initial selection to current song
-    menu.selectedIndex = this.currentIndex;
-    menu.updateSelection();
+    menu.selectIndex(this.currentIndex);
+    
+    this.windowManager.focus(menu);
   }
 
   showMenu() {
@@ -21108,46 +21841,36 @@ class Jukebox {
     const menuBg = game.add.graphics(0, 0);
     menuBg.width = game.width;
     menuBg.height = game.width;
-    menuBg.beginFill(0x000000, 0.7);
-    menuBg.drawRect(0, 0, game.width, game.height);
-    menuBg.endFill();
     menuBg.inputEnabled = true;
     
-    const menu = new CarouselMenu(60, 40, 72, 70, {
-      bgcolor: 'brown',
-      fgcolor: '#ffffff',
-      align: 'center'
-    });
+    if (this.fullscreenMode) {
+      menuBg.beginFill(0x000000, 0.5);
+      menuBg.drawRect(0, 0, game.width, game.height);
+      menuBg.endFill();
+    }
     
-    menu.addItem("Continue", () => {
-      menu.destroy();
-      menuBg.destroy();
-      this.menuVisible = false;
-    });
+    const menu = this.windowManager.createWindow(20, 4, 9, 8, "1");
     
-    menu.addItem("Song List", () => {
+    menu.addItem("Song List", ">", () => {
       menu.destroy();
       menuBg.destroy();
       this.menuVisible = false;
       this.showSongList();
     });
     
-    menu.addItem("Toggle Shuffle", () => {
-      this.toggleShuffle();
+    menu.addSettingItem("Shuffle", ["ON", "OFF"], this.isShuffled ? 0 : 1, () => this.toggleShuffle());
+    
+    menu.addItem("Close Menu", "", () => {
       menu.destroy();
       menuBg.destroy();
-      this.menuVisible = false;
-    });
+      setTimeout(() => this.menuVisible = false);
+    }, true);
     
-    menu.addItem("Exit Jukebox", () => {
+    menu.addItem("< Exit Jukebox", "", () => {
       this.exitJukebox();
     });
     
-    menu.onCancel.add(() => {
-      menu.destroy();
-      menuBg.destroy();
-      this.menuVisible = false;
-    });
+    this.windowManager.focus(menu);
   }
 
   exitJukebox() {
@@ -21192,10 +21915,10 @@ class Jukebox {
       if (currentTime - this.lastVideoUpdate >= 33) { // ~30fps
         this.lastVideoUpdate = currentTime;
         const canvas = document.createElement('canvas');
-        canvas.width = 192;
-        canvas.height = 112;
+        canvas.width = 240;
+        canvas.height = 140;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(this.videoElement, 0, 0, 192, 112);
+        ctx.drawImage(this.videoElement, 0, 0, 240, 140);
         const texture = PIXI.Texture.fromCanvas(canvas);
         this.backgroundSprite.loadTexture(texture);
       }
@@ -21216,8 +21939,9 @@ class Jukebox {
   handleInput() {
     const currentTime = game.time.now;
     
-    // Update gamepad
+    // Update gamepad and window manager
     gamepad.update();
+    this.windowManager.update();
     
     // Don't trigger actions if menu is visible
     if (this.menuVisible || this.songListMenuVisible) return;
@@ -21404,7 +22128,7 @@ class Editor {
       enableBeatLines: true,
       enableSpeedRendering: true,
       enableBGRendering: true,
-      judgeLineYFalling: 70,
+      judgeLineYFalling: 90,
       judgeLineYRising: 50,
       enableChartBackground: Account.settings.enableChartBackground || false,
       chartBackgroundOpacity: Account.settings.chartBackgroundOpacit || 0.3
@@ -21423,13 +22147,13 @@ class Editor {
     this.freezePreviewSprite = game.add.graphics(0, 0);
     this.updateCursorPosition();
     
-    this.lyricsText = new Text(game.width / 2, 85, "", FONTS.stroke);
+    this.lyricsText = new Text(game.width / 2, 106, "", FONTS.default_stroke);
     this.lyricsText.anchor.set(0.5);
     this.lyricsText.visible = false;
     
     this.bannerSprite = game.add.sprite(8, 56, null);
     
-    this.icons = game.add.sprite(8, 90);
+    this.icons = game.add.sprite(8, 130);
     
     this.audioIcon = game.add.sprite(0, 0, "ui_editor_icons", 0);
     this.bgIcon = game.add.sprite(9, 0, "ui_editor_icons", 1);
@@ -21444,7 +22168,7 @@ class Editor {
     this.icons.addChild(this.extraIcon);
 
     this.infoText = new Text(4, 4, "");
-    this.bgInfoText = new Text(0, 90, "", null, this.infoText);
+    this.bgInfoText = new Text(0, 112, "", null, this.infoText);
     
     this.updateInfoText();
     
@@ -21552,8 +22276,9 @@ class Editor {
     game.onMenuIn.dispatch("editorMain", this.mainCarousel);
 
     // Right side: Song info
-    this.songInfoText = new Text(leftWidth + 4, 4, this.getSongInfoText());
-    this.songInfoText.wrapPreserveNewlines(rightWidth - 8);
+    this.songInfoText = new Text(240 - 4, 4, this.getSongInfoText());
+    this.songInfoText.anchor.x = 1;
+    this.songInfoText.wrap(rightWidth - 8);
 
     this.updateInfoText();
   }
@@ -22333,166 +23058,166 @@ class Editor {
     }
   }
   
-onMouseDown(button, x, y) {
-  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
-  
-  const column = this.getColumnAtPosition(x);
-  if (column === -1) return;
-  
-  const beat = this.getSnappedBeat(this.getBeatAtPosition(y));
-  const note = this.getNoteAt(column, beat);
-  
-  if (button === 'left') {
-    // Start selection drag
-    this.mouseSelectStart = { x, y, column, beat };
-    this.mouseSelectRect = null;
+  onMouseDown(button, x, y) {
+    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
-    if (note) {
-      if (!this.selectedNotes.includes(note)) {
-        this.selectedNotes = [note];
+    const column = this.getColumnAtPosition(x);
+    if (column === -1) return;
+    
+    const beat = this.getSnappedBeat(this.getBeatAtPosition(y));
+    const note = this.getNoteAt(column, beat);
+    
+    if (button === 'left') {
+      // Start selection drag
+      this.mouseSelectStart = { x, y, column, beat };
+      this.mouseSelectRect = null;
+      
+      if (note) {
+        if (!this.selectedNotes.includes(note)) {
+          this.selectedNotes = [note];
+        }
+      } else {
+        this.selectedNotes = [];
       }
-    } else {
-      this.selectedNotes = [];
+      this.updateInfoText();
+    } else if (button === 'right') {
+      // Start placement drag
+      this.mousePlaceStart = { column, beat };
+      
+      if (note) {
+        this.deleteNoteAt(column, beat);
+        this.mousePlaceStart = null;
+      }
     }
-    this.updateInfoText();
-  } else if (button === 'right') {
-    // Start placement drag
-    this.mousePlaceStart = { column, beat };
+  }
+  
+  onMouseMove(x, y) {
+    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
-    if (note) {
-      this.deleteNoteAt(column, beat);
-      this.mousePlaceStart = null;
+    // Handle rectangular selection (left drag)
+    if (mouse.pressed.left && this.mouseSelectStart && !this.mouseSelectRect) {
+      const dx = Math.abs(x - this.mouseSelectStart.x);
+      const dy = Math.abs(y - this.mouseSelectStart.y);
+      if (dx > 5 || dy > 5) {
+        this.mouseSelectRect = true;
+        this.areaSelectStart = {
+          beat: this.mouseSelectStart.beat,
+          column: this.mouseSelectStart.column
+        };
+      }
     }
-  }
-}
-
-onMouseMove(x, y) {
-  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
-  
-  // Handle rectangular selection (left drag)
-  if (mouse.pressed.left && this.mouseSelectStart && !this.mouseSelectRect) {
-    const dx = Math.abs(x - this.mouseSelectStart.x);
-    const dy = Math.abs(y - this.mouseSelectStart.y);
-    if (dx > 5 || dy > 5) {
-      this.mouseSelectRect = true;
-      this.areaSelectStart = {
-        beat: this.mouseSelectStart.beat,
-        column: this.mouseSelectStart.column
-      };
-    }
-  }
-  
-  // Update rectangular selection area
-  if (this.mouseSelectRect && mouse.pressed.left) {
-    const endBeat = this.getSnappedBeat(this.getBeatAtPosition(y));
-    const endColumn = this.getColumnAtPosition(x);
-    if (endColumn !== -1) {
-      this.cursorBeat = endBeat;
-      this.cursorColumn = endColumn;
-      this.updateSelectionRect();
-    }
-  }
-  
-  // Handle freeze placement (right drag)
-  if (mouse.pressed.right && this.mousePlaceStart && !this.mousePlaceFreeze) {
-    const dy = Math.abs(y - this.getYFromBeat(this.mousePlaceStart.beat));
-    if (dy > 10) {
-      this.mousePlaceFreeze = true;
-    }
-  }
-}
-
-onMouseUp(button, x, y) {
-  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
-  
-  if (button === 'left') {
-    if (this.mouseSelectRect) {
-      // Complete rectangular selection
-      this.endAreaSelection();
-    }
-    this.mouseSelectStart = null;
-    this.mouseSelectRect = false;
     
-  } else if (button === 'right') {
-    if (this.mousePlaceFreeze && this.mousePlaceStart) {
-      // Place freeze note
+    // Update rectangular selection area
+    if (this.mouseSelectRect && mouse.pressed.left) {
       const endBeat = this.getSnappedBeat(this.getBeatAtPosition(y));
-      const startBeat = this.mousePlaceStart.beat;
-      const duration = Math.abs(endBeat - startBeat);
-      if (duration > 0.01) {
-        this.placeFreeze(this.mousePlaceStart.column, Math.min(startBeat, endBeat), duration, "2", true);
+      const endColumn = this.getColumnAtPosition(x);
+      if (endColumn !== -1) {
+        this.cursorBeat = endBeat;
+        this.cursorColumn = endColumn;
+        this.updateSelectionRect();
       }
-    } else if (this.mousePlaceStart && !this.mousePlaceFreeze) {
-      // Place regular note
-      this.placeNote(this.mousePlaceStart.column, this.mousePlaceStart.beat, false, false, true);
     }
     
-    this.mousePlaceStart = null;
-    this.mousePlaceFreeze = false;
-  }
-}
-
-onMouseWheel(direction) {
-  if (this.menuVisible || this.currentScreen !== "chartEdit") return;
-  
-  if (direction === 'up') {
-    this.moveCursor(0, -this.getDivisionSize() * 4);
-  } else if (direction === 'down') {
-    this.moveCursor(0, this.getDivisionSize() * 4);
-  }
-}
-  
-getNoteAt(column, beat) {
-  const notes = this.getCurrentChartNotes();
-  return notes.find(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
-}
-
-deleteNoteAt(column, beat) {
-  const notes = this.getCurrentChartNotes();
-  const index = notes.findIndex(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
-  if (index !== -1) {
-    this.chartRenderer.killNote(notes[index]);
-    notes.splice(index, 1);
-    this.updateInfoText();
-  }
-}
-
-getColumnAtPosition(x) {
-  const leftOffset = this.chartRenderer.calculateLeftOffset();
-  const colWidth = this.chartRenderer.COLUMN_SIZE + this.chartRenderer.COLUMN_SEPARATION;
-  const colHitWidth = this.chartRenderer.COLUMN_SIZE;
-  
-  for (let col = 0; col < 4; col++) {
-    const colX = leftOffset + (col * colWidth);
-    if (x >= colX && x <= colX + colHitWidth) {
-      return col;
+    // Handle freeze placement (right drag)
+    if (mouse.pressed.right && this.mousePlaceStart && !this.mousePlaceFreeze) {
+      const dy = Math.abs(y - this.getYFromBeat(this.mousePlaceStart.beat));
+      if (dy > 10) {
+        this.mousePlaceFreeze = true;
+      }
     }
   }
-  return -1;
-}
-
-getBeatAtPosition(y) {
-  const { now, beat } = this.getCurrentTime();
-  const yPos = y;
   
-  // Convert screen Y to beat using renderer's position calculation
-  // This is the inverse of getYPos
-  if (this.chartRenderer.speedMod === "C-MOD") {
-    const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
-    const deltaSec = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
-    const targetSec = now + deltaSec;
-    return this.chartRenderer.secToBeat(targetSec);
-  } else {
-    const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
-    const deltaBeat = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
-    return beat + deltaBeat;
+  onMouseUp(button, x, y) {
+    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    
+    if (button === 'left') {
+      if (this.mouseSelectRect) {
+        // Complete rectangular selection
+        this.endAreaSelection();
+      }
+      this.mouseSelectStart = null;
+      this.mouseSelectRect = false;
+      
+    } else if (button === 'right') {
+      if (this.mousePlaceFreeze && this.mousePlaceStart) {
+        // Place freeze note
+        const endBeat = this.getSnappedBeat(this.getBeatAtPosition(y));
+        const startBeat = this.mousePlaceStart.beat;
+        const duration = Math.abs(endBeat - startBeat);
+        if (duration > 0.01) {
+          this.placeFreeze(this.mousePlaceStart.column, Math.min(startBeat, endBeat), duration, "2", true);
+        }
+      } else if (this.mousePlaceStart && !this.mousePlaceFreeze) {
+        // Place regular note
+        this.placeNote(this.mousePlaceStart.column, this.mousePlaceStart.beat, false, false, true);
+      }
+      
+      this.mousePlaceStart = null;
+      this.mousePlaceFreeze = false;
+    }
   }
-}
-
-getYFromBeat(targetBeat) {
-  const { now, beat } = this.getCurrentTime();
-  return this.chartRenderer.getYPos(now, beat, targetBeat);
-}
+  
+  onMouseWheel(direction) {
+    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    
+    if (direction === 'up') {
+      this.moveCursor(0, -this.getDivisionSize() * 4);
+    } else if (direction === 'down') {
+      this.moveCursor(0, this.getDivisionSize() * 4);
+    }
+  }
+    
+  getNoteAt(column, beat) {
+    const notes = this.getCurrentChartNotes();
+    return notes.find(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
+  }
+  
+  deleteNoteAt(column, beat) {
+    const notes = this.getCurrentChartNotes();
+    const index = notes.findIndex(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
+    if (index !== -1) {
+      this.chartRenderer.killNote(notes[index]);
+      notes.splice(index, 1);
+      this.updateInfoText();
+    }
+  }
+  
+  getColumnAtPosition(x) {
+    const leftOffset = this.chartRenderer.calculateLeftOffset();
+    const colWidth = this.chartRenderer.COLUMN_SIZE + this.chartRenderer.COLUMN_SEPARATION;
+    const colHitWidth = this.chartRenderer.COLUMN_SIZE;
+    
+    for (let col = 0; col < 4; col++) {
+      const colX = leftOffset + (col * colWidth);
+      if (x >= colX && x <= colX + colHitWidth) {
+        return col;
+      }
+    }
+    return -1;
+  }
+  
+  getBeatAtPosition(y) {
+    const { now, beat } = this.getCurrentTime();
+    const yPos = y;
+    
+    // Convert screen Y to beat using renderer's position calculation
+    // This is the inverse of getYPos
+    if (this.chartRenderer.speedMod === "C-MOD") {
+      const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
+      const deltaSec = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
+      const targetSec = now + deltaSec;
+      return this.chartRenderer.secToBeat(targetSec);
+    } else {
+      const deltaY = this.chartRenderer.JUDGE_LINE - yPos;
+      const deltaBeat = deltaY / (this.chartRenderer.COLUMN_SIZE * this.chartRenderer.VERTICAL_SEPARATION * this.chartRenderer.noteSpeedMultiplier);
+      return beat + deltaBeat;
+    }
+  }
+  
+  getYFromBeat(targetBeat) {
+    const { now, beat } = this.getCurrentTime();
+    return this.chartRenderer.getYPos(now, beat, targetBeat);
+  }
 
   changeSnapDivision(direction) {
     const currentIndex = this.divisions.indexOf(this.snapDivision);
@@ -23272,28 +23997,47 @@ SAMPLE LENGTH: ${chart.sampleLength}
 
   editMetadataField(field) {
     const currentValue = this.song.chart[field] || "";
-    const textInput = new TextInput(
-      currentValue,
-      20,
-      newValue => {
+    
+    const keyboard = new OnScreenKeyboard(10, 44);
+    
+    window.focusedElement = new TextInput({
+      text: currentValue,
+      maxLength: 28,
+      useNewline: true,
+      width: 15,
+      height: 2,
+      x: 72,
+      y: 28,
+      onConfirm: (newValue) => {
         this.song.chart[field] = newValue;
         this.showMetadataEdit();
         this.updateInfoText();
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.showMetadataEdit();
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
+    });
   }
-
+  
   editSongBpm() {
     const bpm = this.song.chart.bpmChanges[0]?.bpm || 120;
-    const input = new ValueInput(
-      bpm,
-      0,
-      1000,
-      1,
-      value => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: bpm,
+      min: 0,
+      max: 1000,
+      decimals: 0,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (value) => {
         if (!this.song.chart.bpmChanges[0]) {
           this.song.chart.bpmChanges[0] = { beat: 0, bpm: value, sec: 0 };
         } else {
@@ -23302,82 +24046,109 @@ SAMPLE LENGTH: ${chart.sampleLength}
         this.showMetadataEdit();
         this.updateInfoText();
         notifications.show("BPM UPDATED");
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.showMetadataEdit();
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
-    input.x = 48;
-    input.y = 20;
+    });
   }
 
   editSongOffset() {
     const offset = this.song.chart.offset || 0;
-    const input = new ValueInput(
-      offset,
-      -32,
-      32,
-      0.001,
-      value => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: offset,
+      min: -32,
+      max: 32,
+      decimals: 3,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (value) => {
         this.song.chart.offset = value;
         this.showMetadataEdit();
         notifications.show("AUDIO OFFSET UPDATED");
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.showMetadataEdit();
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
-    input.x = 48;
-    input.y = 20;
+    });
   }
 
   editSampleStart() {
     const sampleStart = this.song.chart.sampleStart || 0;
-    const input = new ValueInput(
-      sampleStart,
-      0,
-      this.audio.duration || 100,
-      0.1,
-      value => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: sampleStart,
+      min: 0,
+      max: this.audio.duration || 100,
+      decimals: 1,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (value) => {
         this.song.chart.sampleStart = value;
 
-        // Preview the sample
         if (this.audio && this.audio.src) {
           this.playPreview(value, this.song.chart.sampleLength);
         }
         
         this.updateInfoText();
         this.showMetadataEdit();
-        
         notifications.show("SAMPLE START UPDATED");
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.showMetadataEdit();
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
-    input.x = 48;
-    input.y = 20;
+    });
   }
 
   editSampleLength() {
     const sampleLength = this.song.chart.sampleLength || 10;
-    const input = new ValueInput(
-      sampleLength,
-      1,
-      30,
-      0.1,
-      value => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: sampleLength,
+      min: 1,
+      max: 30,
+      decimals: 1,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (value) => {
         this.song.chart.sampleLength = value;
         this.updateInfoText();
         this.showMetadataEdit();
         notifications.show("SAMPLE LENGTH UPDATED");
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.showMetadataEdit();
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
-    input.x = 48;
-    input.y = 20;
+    });
   }
 
   editBGChangeFiles() {
@@ -23407,7 +24178,7 @@ INDEX: ${index + 1}
 TIME: ${TimeUtils.formatTime(this.chartRenderer.beatToSec(bg.beat))}
 BEAT: ${bg.beat}`);
 
-        this.songInfoText.wrapPreserveNewlines(game.width / 2 - 8);
+        this.songInfoText.wrap(game.width / 2 - 8);
       }
     });
     
@@ -23550,9 +24321,19 @@ BEAT: ${bg.beat}`);
 
   addBPMChange() {
     this.menuVisible = true;
-
-    new ValueInput(120, 0, 1000, 1,
-      value => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: 120,
+      min: 0,
+      max: 1000,
+      decimals: 0,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (value) => {
         this.song.chart.bpmChanges.push({
           beat: this.cursorBeat,
           bpm: value,
@@ -23561,11 +24342,15 @@ BEAT: ${bg.beat}`);
         this.song.chart.bpmChanges.sort((a, b) => a.beat - b.beat);
         this.updateInfoText();
         this.menuVisible = false;
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.menuVisible = false;
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
+    });
   }
 
   getBPMChange() {
@@ -23577,21 +24362,31 @@ BEAT: ${bg.beat}`);
     if (bpmChange) {
       this.menuVisible = true;
       
-      new ValueInput(
-        bpmChange.bpm,
-        0,
-        1000,
-        1,
-        bpm => {
+      const keyboard = new NumericTypeOnScreenKeyboard();
+      
+      window.focusedElement = new NumberInput({
+        text: bpmChange.bpm,
+        min: 0,
+        max: 1000,
+        decimals: 0,
+        x: 96,
+        y: 40,
+        width: 10,
+        height: 2,
+        onConfirm: (bpm) => {
           const index = this.song.chart.bpmChanges.indexOf(bpmChange);
           if (index != -1) this.song.chart.bpmChanges[index].bpm = bpm;
           this.updateInfoText();
           this.menuVisible = false;
+          keyboard.destroy();
+          window.focusedElement = null;
         },
-        () => {
+        onCancel: () => {
           this.menuVisible = false;
+          keyboard.destroy();
+          window.focusedElement = null;
         }
-      );
+      });
     }
   }
   
@@ -23607,13 +24402,19 @@ BEAT: ${bg.beat}`);
 
   addStop() {
     this.menuVisible = true;
-
-    new ValueInput(
-      1,
-      0,
-      360,
-      0.001,
-      length => {
+    
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    
+    window.focusedElement = new NumberInput({
+      text: 1,
+      min: 0,
+      max: 360,
+      decimals: 3,
+      x: 96,
+      y: 40,
+      width: 10,
+      height: 2,
+      onConfirm: (length) => {
         this.song.chart.stops.push({
           beat: this.cursorBeat,
           len: length,
@@ -23622,13 +24423,17 @@ BEAT: ${bg.beat}`);
         this.song.chart.stops.sort((a, b) => a.beat - b.beat);
         this.updateInfoText();
         this.menuVisible = false;
+        keyboard.destroy();
+        window.focusedElement = null;
       },
-      () => {
+      onCancel: () => {
         this.menuVisible = false;
+        keyboard.destroy();
+        window.focusedElement = null;
       }
-    );
-  }
-  
+    });
+  }  
+
   getStop() {
     return this.song.chart.stops.find(s => Math.abs(s.beat - this.cursorBeat) < 0.001);
   }
@@ -23638,21 +24443,31 @@ BEAT: ${bg.beat}`);
     if (stop) {
       this.menuVisible = true;
       
-      new ValueInput(
-        stop.len,
-        0,
-        360,
-        0.001,
-        length => {
+      const keyboard = new NumericTypeOnScreenKeyboard();
+      
+      window.focusedElement = new NumberInput({
+        text: stop.len,
+        min: 0,
+        max: 360,
+        decimals: 3,
+        x: 96,
+        y: 40,
+        width: 10,
+        height: 2,
+        onConfirm: (length) => {
           const index = this.song.chart.stops.indexOf(stop);
           if (index != -1) this.song.chart.stops[index].len = length;
           this.updateInfoText();
           this.menuVisible = false;
+          keyboard.destroy();
+          window.focusedElement = null;
         },
-        () => {
+        onCancel: () => {
           this.menuVisible = false;
+          keyboard.destroy();
+          window.focusedElement = null;
         }
-      );
+      });
     }
   }
 
@@ -23841,35 +24656,35 @@ class Credits {
     
     // Base credits content
     const creditsContent = [
-      { text: "PADMANIACS", font: FONTS.shaded, tint: 0x76fcde, spacing: 25 },
-      { text: "Created by Retora", font: FONTS.default, tint: 0xffffff, spacing: 15 },
+      { text: "PADMANIACS", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 15 },
+      { text: "Created by Retora", font: FONTS.default_shadow, tint: 0xffffff, spacing: 50 },
       
       // Dynamic song credits section
-      { text: "SONG CREDITS", font: FONTS.shaded, tint: 0x76fcde, spacing: 20 }
+      { text: "SONG CREDITS", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 30 }
     ];
     
     // Add credits from local songs
     const songCredits = this.getSongCredits();
     if (songCredits.length > 0) {
       creditsContent.push(...songCredits);
-      creditsContent.push({ text: "", font: FONTS.default, tint: 0xffffff, spacing: 15 });
+      creditsContent.push({ text: "", font: FONTS.default_shadow, tint: 0xffffff, spacing: 25 });
     }
     
     // Credit Atelier Magicae for some sound effects
-    creditsContent.push({ text: "SOUND EFFECTS", font: FONTS.shaded, tint: 0x76fcde, spacing: 20 });
-    creditsContent.push({ text: "Atelier Magicae", font: FONTS.default, tint: 0xffffff, spacing: 15 });
-    creditsContent.push({ text: "Retora", font: FONTS.default, tint: 0xffffff, spacing: 15 });
-    creditsContent.push({ text: "", font: FONTS.default, tint: 0xffffff, spacing: 15 });
+    creditsContent.push({ text: "SOUND EFFECTS", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 20 });
+    creditsContent.push({ text: "Atelier Magicae", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 });
+    creditsContent.push({ text: "Retora", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 });
+    creditsContent.push({ text: "", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 });
     
     // Continue with remaining credits
     creditsContent.push(
-      { text: "Special Thanks", font: FONTS.shaded, tint: 0x76fcde, spacing: 20 },
-      { text: "StepMania Team", font: FONTS.default, tint: 0xffffff, spacing: 8 },
-      { text: "photonstorm", font: FONTS.default, tint: 0xffffff, spacing: 8 },
-      { text: "itch.io", font: FONTS.default, tint: 0xffffff, spacing: 8 },
-      { text: "You!", font: FONTS.shaded, tint: 0xffffff, spacing: 25 },
+      { text: "Special Thanks", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 20 },
+      { text: "StepMania Team", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "photonstorm", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "itch.io", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "You!", font: FONTS.bold_shadow, tint: 0xffffff, spacing: 25 },
       
-      { text: COPYRIGHT, font: FONTS.default, tint: 0x888888, spacing: 40 },
+      { text: COPYRIGHT, font: FONTS.default_shadow, tint: 0x888888, spacing: 40 },
     );
     
     // Create all text elements
@@ -23878,7 +24693,7 @@ class Credits {
     creditsContent.forEach((credit, index) => {
       const text = new Text(game.width / 2, currentY, credit.text, credit.font, this.creditsContainer);
       text.anchor.set(0.5);
-      text.wrapPreserveNewlines(112);
+      text.wrap(140);
       text.tint = credit.tint;
       text.creditData = credit; // Store spacing info
       
@@ -23957,12 +24772,12 @@ class Credits {
     tempImg.onload = () => {
       // Create canvas for the background
       const canvas = document.createElement('canvas');
-      canvas.width = 192;
-      canvas.height = 112;
+      canvas.width = 240;
+      canvas.height = 140;
       const ctx = canvas.getContext('2d');
       
       // Draw and scale the image to fit
-      ctx.drawImage(tempImg, 0, 0, 192, 112);
+      ctx.drawImage(tempImg, 0, 0, 240, 140);
       
       // Create texture and apply to sprite
       const texture = PIXI.Texture.fromCanvas(canvas);
@@ -24032,8 +24847,8 @@ class Credits {
           
           // Add song title and credit
           songCredits.push(
-            { text: title, font: FONTS.default, tint: 0xffffff, spacing: 8 },
-            { text: `by ${credit}`, font: FONTS.default, tint: 0xe0e0e0, spacing: 12 }
+            { text: title, font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+            { text: `by ${credit}`, font: FONTS.default_shadow, tint: 0xe0e0e0, spacing: 25 }
           );
         }
       });
@@ -24041,8 +24856,8 @@ class Credits {
     
     // Also add disclaimer
     songCredits.push(
-      { text: "", font: FONTS.default, tint: 0xffffff, spacing: 8 },
-      { text: "All songs and charts belong to their respective copyright holders.", font: FONTS.default, tint: 0x888888, spacing: 12 }
+      { text: "", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "All songs and charts belong to their respective copyright holders.", font: FONTS.default_shadow, tint: 0x888888, spacing: 12 }
     );
     
     return songCredits;
@@ -24072,7 +24887,7 @@ class Credits {
 
   onCreditsComplete() {
     // Show continue prompt
-    this.continueText = new Text(game.width / 2, game.height / 2, "Thank you for playing", FONTS.shaded);
+    this.continueText = new Text(game.width / 2, game.height / 2, "Thank you for playing", FONTS.bold_shadow);
     this.continueText.anchor.set(0.5);
     this.continueText.alpha = 0;
     
@@ -24123,7 +24938,7 @@ class ErrorScreen {
     this.background.drawRect(0, 0, game.width, game.height);
     this.background.endFill();
     
-    const text = new Text(96, 52, "");
+    const text = new Text(120, 64, "");
     
     text.write(`AN ERROR HAS OCURRED!
     
@@ -24131,22 +24946,20 @@ ${this.message}
 
 Please Report The Developer Immediately!
 
-=== Press Any Key To Recover ===`);
-    text.wrapPreserveNewlines(188);
+• Press Any Key To Recover
+• ${game.device.touch ? 'Tap' : 'Click'} the blue screen to report`);
+    text.wrap(236);
 
     text.anchor.set(0.5);
     
-    // TODO: Check if gamepad didn't crashed before using it, fallback to window event listeners
-    gamepad.signals.pressed.any.addOnce(() => {
+    window.addEventListener("keydown", () => {
       game.state.start(this.recoverStateKey);
-    });
+    }, { once: true });
     
-    mouse.onDown.addOnce(() => {
+    game.canvas.parentNode.addEventListener("click", () => {
+      openExternalUrl(FEEDBACK_BUG_REPORT_URL);
       game.state.start(this.recoverStateKey);
-    });
-  }
-  update() {
-    gamepad.update();
+    }, { once: true });
   }
 }
 
@@ -24168,13 +24981,14 @@ class ChartRenderer {
       chartBackgroundOpacity: 0.3,
       enableSpeedRendering: false,
       enableBGRendering: false,
-      judgeLineYFalling: 90,
-      judgeLineYRising: 25,
+      judgeLineYFalling: 112,
+      judgeLineYRising: 30,
       speedMod: "X-MOD",
       scrollDirection: "falling",
       noteSpeedMultiplier: 1,
       noteColorOption: "NOTE",
       displayPosition: "center",
+      parent: null,
       player: null,
       ...options
     };
@@ -24189,7 +25003,7 @@ class ChartRenderer {
     this.NOTE_SPEED_MULTIPLIER = this.options.noteSpeedMultiplier + this.SCREEN_CONSTANT;
     this.JUDGE_LINE = this.scrollDirection === "falling" ? this.options.judgeLineYFalling : this.options.judgeLineYRising;
     this.DIRECTION = this.scrollDirection === "falling" ? -1 : 1;
-    this.COLUMN_SIZE = 16;
+    this.COLUMN_SIZE = 20;
     this.COLUMN_SEPARATION = 4;
     this.INACTIVE_COLOR = 0x888888;
 
@@ -24298,6 +25112,19 @@ class ChartRenderer {
     this.minesGroup = new Phaser.Group(game);
     this.explosionsGroup = new Phaser.SpriteBatch(game);
     this.tagsGroup = new Phaser.Group(game);
+    
+    // Add groups to parent if needed
+    if (this.options.parent) {
+      this.parent = this.options.parent;
+      this.parent.addChild(this.linesGroup);
+      this.parent.addChild(this.receptorsGroup);
+      this.parent.addChild(this.freezeBodyGroup);
+      this.parent.addChild(this.freezeEndGroup);
+      this.parent.addChild(this.notesGroup);
+      this.parent.addChild(this.minesGroup);
+      this.parent.addChild(this.explosionsGroup);
+      this.parent.addChild(this.tagsGroup);
+    }
 
     this.receptors = [];
     this.initialize();
@@ -24367,9 +25194,9 @@ class ChartRenderer {
     if (this.displayPosition == "left") {
       return 8;
     } else if (this.displayPosition == "right") {
-      return 192 - totalWidth - 8;
+      return game.width - totalWidth - 8;
     } else {
-      return (192 - totalWidth) / 2;
+      return (game.width - totalWidth) / 2;
     }
   }
   
@@ -24852,12 +25679,7 @@ class ChartRenderer {
   createTag(beat, type, x, y) {
     const existingChild = this.tagsGroup.getFirstDead();
 
-    const tagText = existingChild || new Text(x, y, "---", {
-      font: "font_tiny",
-      fontMap: " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\"`•<>=%",
-      fontWidth: 4,
-      fontHeight: 6
-    }, this.tagsGroup);
+    const tagText = existingChild || new Text(x, y, "---", FONTS.tiny_default, this.tagsGroup);
     
     if (!tagText.alive) tagText.revive();
     
@@ -25110,6 +25932,342 @@ class ChartRenderer {
   }
 }
 
+class AudioTemperatureMeter {
+  constructor(scene, audioElement) {
+    this.scene = scene;
+    this.audio = audioElement;
+    
+    this.onHighTemperature = new Phaser.Signal();
+    this.onLowTemperature = new Phaser.Signal();
+    
+    this.isHigh = false;
+    this.sampleStartSec = 9999;
+    this.sampleEndSec = 9999 + 1;
+    this.lastBPM = 120;
+    this.bpmSpikeActive = false;
+    this.bpmSpikeEndTime = 0;
+    this.inStop = false;
+    this.silenceStartTime = null;
+    this.silenceEndTime = null;
+    this.volumeHistory = [];
+    
+    this.config = {
+      debug: false,
+      ignoreFirstSeconds: 5,
+      volumeHistorySize: 10,
+      silenceThreshold: 0.05,
+      minSilenceSeconds: 0.3
+    };
+    
+    this.init();
+    this.setupVolumeDetection();
+    
+    if (this.config.debug) {
+      this.createDebugText();
+    }
+  }
+  
+  init() {
+    if (!this.scene || !this.scene.song) return;
+    
+    const chart = this.scene.song.chart;
+    this.sampleStartSec = chart.sampleStart || 0;
+    const sampleLength = chart.sampleLength || 10;
+    this.sampleEndSec = this.sampleStartSec + sampleLength;
+    
+    if (this.config.debug) {
+      console.log("Sample: " + this.sampleStartSec.toFixed(1) + "s to " + this.sampleEndSec.toFixed(1) + "s");
+    }
+  }
+  
+  setupVolumeDetection() {
+    if (!this.audio) return;
+    
+    try {
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      this.analyser = this.audioContext.createAnalyser();
+      this.analyser.fftSize = 256;
+      this.bufferLength = this.analyser.frequencyBinCount;
+      this.dataArray = new Uint8Array(this.bufferLength);
+      
+      const source = this.audioContext.createMediaElementSource(this.audio);
+      source.connect(this.analyser);
+      this.analyser.connect(this.audioContext.destination);
+    } catch (error) {
+      console.warn("Volume detection not available");
+    }
+  }
+  
+  getVolume() {
+    if (!this.analyser || !this.dataArray) return 0.5;
+    
+    this.analyser.getByteFrequencyData(this.dataArray);
+    let sum = 0;
+    for (let i = 0; i < this.bufferLength; i++) {
+      sum += this.dataArray[i] / 255;
+    }
+    return sum / this.bufferLength;
+  }
+  
+  getCurrentBPM(nowSec) {
+    if (!this.scene || !this.scene.player || !this.scene.player.renderer) {
+      return this.lastBPM;
+    }
+    
+    const bpmChanges = this.scene.player.renderer.bpmChanges;
+    if (!bpmChanges || bpmChanges.length === 0) {
+      return this.lastBPM;
+    }
+    
+    let currentBPM = bpmChanges[0].bpm;
+    for (let i = bpmChanges.length - 1; i >= 0; i--) {
+      const change = bpmChanges[i];
+      if (change.sec <= nowSec) {
+        currentBPM = change.bpm;
+        break;
+      }
+    }
+    
+    return currentBPM;
+  }
+  
+  checkForBPMSpike(nowSec) {
+    const currentBPM = this.getCurrentBPM(nowSec);
+    
+    if (currentBPM === this.lastBPM) {
+      return;
+    }
+    
+    if (nowSec <= this.config.ignoreFirstSeconds) {
+      return;
+    }
+    
+    const bpmDiff = currentBPM - this.lastBPM;
+    
+    // Only care about BPM increases
+    if (bpmDiff > 0) {
+      const changePercent = (bpmDiff / this.lastBPM) * 100;
+      
+      // Significant BPM increase detected
+      if (changePercent >= 10 || bpmDiff >= 20) {
+        // Calculate section length based on BPM (16 measures = 64 beats)
+        const beatsPerMinute = currentBPM;
+        const secondsPerBeat = 60 / beatsPerMinute;
+        const sectionLengthSeconds = 64 * secondsPerBeat; // 16 measures
+        
+        this.bpmSpikeActive = true;
+        this.bpmSpikeEndTime = nowSec + sectionLengthSeconds;
+        
+        if (this.config.debug) {
+          console.log("BPM spike at " + nowSec.toFixed(1) + "s: " + this.lastBPM + " -> " + currentBPM);
+          console.log("  Section length: " + sectionLengthSeconds.toFixed(1) + "s (" + 64 + " beats)");
+        }
+      }
+    }
+    
+    this.lastBPM = currentBPM;
+  }
+  
+  checkForSilence(nowSec) {
+    const volume = this.getVolume();
+    
+    this.volumeHistory.push({ time: nowSec, volume: volume });
+    while (this.volumeHistory.length > this.config.volumeHistorySize) {
+      this.volumeHistory.shift();
+    }
+    
+    const isSilent = volume < this.config.silenceThreshold;
+    
+    if (isSilent && this.silenceStartTime === null) {
+      this.silenceStartTime = nowSec;
+    } else if (!isSilent && this.silenceStartTime !== null) {
+      const silenceDuration = nowSec - this.silenceStartTime;
+      if (silenceDuration >= this.config.minSilenceSeconds) {
+        this.silenceEndTime = nowSec;
+        if (this.config.debug) {
+          console.log("Silence ended at " + nowSec.toFixed(1) + "s (duration: " + silenceDuration.toFixed(1) + "s)");
+        }
+      }
+      this.silenceStartTime = null;
+    }
+    
+    return { isSilent, silenceDuration: this.silenceStartTime !== null ? nowSec - this.silenceStartTime : 0 };
+  }
+  
+  checkForStops(nowSec) {
+    if (!this.scene || !this.scene.player || !this.scene.player.renderer) {
+      return;
+    }
+    
+    const stops = this.scene.player.renderer.stops;
+    if (!stops || stops.length === 0) return;
+    
+    for (let i = 0; i < stops.length; i++) {
+      const stop = stops[i];
+      const stopStartSec = stop.sec;
+      const stopEndSec = stop.sec + (stop.len || 0);
+      
+      if (!stop.triggered && nowSec >= stopStartSec && nowSec < stopEndSec) {
+        stop.triggered = true;
+        
+        this.inStop = true;
+        
+        if (this.config.debug) {
+          console.log("Stop at " + stopStartSec.toFixed(1) + "s, ends at " + stopEndSec.toFixed(1) + "s");
+        }
+        
+        setTimeout(function() {
+          this.inStop = false;
+          if (this.config.debug) {
+            console.log("Stop ended at " + stopEndSec.toFixed(1) + "s");
+          }
+        }.bind(this), (stopEndSec - nowSec) * 1000);
+        
+        break;
+      }
+    }
+  }
+  
+  update(nowSec, beat) {
+    if (!this.audio || !this.scene) return;
+    
+    this.checkForBPMSpike(nowSec);
+    this.checkForStops(nowSec);
+    const silence = this.checkForSilence(nowSec);
+    
+    let shouldBeHigh = false;
+    let reason = "";
+    
+    // Rule 1: Sample section (from chart)
+    if (nowSec >= this.sampleStartSec && nowSec <= this.sampleEndSec) {
+      shouldBeHigh = true;
+      reason = "sample";
+    }
+    
+    // Rule 2: BPM spike active (calculated from BPM)
+    if (this.bpmSpikeActive && nowSec < this.bpmSpikeEndTime) {
+      shouldBeHigh = true;
+      reason = "bpm spike";
+    } else if (this.bpmSpikeActive && nowSec >= this.bpmSpikeEndTime) {
+      this.bpmSpikeActive = false;
+      if (this.config.debug) {
+        console.log("BPM spike ended at " + nowSec.toFixed(1) + "s");
+      }
+    }
+    
+    // Rule 3: Silence after high - force low
+    if (silence.isSilent && silence.silenceDuration > this.config.minSilenceSeconds && this.isHigh) {
+      shouldBeHigh = false;
+      reason = "silence";
+    }
+    
+    // Rule 4: After silence ends, check if we should resume
+    if (this.silenceEndTime !== null && nowSec - this.silenceEndTime < 0.5) {
+      if (nowSec >= this.sampleStartSec && nowSec <= this.sampleEndSec) {
+        shouldBeHigh = true;
+        reason = "resume after silence";
+      } else if (this.bpmSpikeActive && nowSec < this.bpmSpikeEndTime) {
+        shouldBeHigh = true;
+        reason = "resume after silence (bpm)";
+      }
+    }
+    
+    // Rule 5: Stop forces low
+    if (this.inStop) {
+      shouldBeHigh = false;
+      reason = "stop";
+    }
+    
+    // Apply state change
+    if (shouldBeHigh && !this.isHigh) {
+      this.isHigh = true;
+      this.onHighTemperature.dispatch();
+      if (this.config.debug) {
+        console.log("HIGH at " + nowSec.toFixed(1) + "s - " + reason);
+      }
+    }
+    else if (!shouldBeHigh && this.isHigh) {
+      this.isHigh = false;
+      this.onLowTemperature.dispatch();
+      if (this.config.debug) {
+        console.log("LOW at " + nowSec.toFixed(1) + "s - " + reason);
+      }
+    }
+    
+    if (this.config.debug) {
+      this.updateDebugText(nowSec);
+    }
+  }
+  
+  createDebugText() {
+    this.debugText = new Text(4, 50, "", FONTS.default);
+    this.debugText.tint = 0x00ff00;
+    game.add.existing(this.debugText);
+  }
+  
+  updateDebugText(nowSec) {
+    if (!this.debugText) return;
+    
+    let status = this.isHigh ? "HIGH" : "LOW";
+    let info = "";
+    
+    if (nowSec >= this.sampleStartSec && nowSec <= this.sampleEndSec) {
+      info = " SAMPLE";
+    }
+    if (this.bpmSpikeActive && nowSec < this.bpmSpikeEndTime) {
+      const remaining = (this.bpmSpikeEndTime - nowSec).toFixed(0);
+      info = info + " SPIKE(" + remaining + "s)";
+    }
+    if (this.inStop) {
+      info = info + " STOP";
+    }
+    if (this.silenceStartTime !== null) {
+      const silenceDur = (nowSec - this.silenceStartTime).toFixed(1);
+      info = info + " SILENCE(" + silenceDur + "s)";
+    }
+    
+    let bpmInfo = " BPM:" + this.getCurrentBPM(nowSec).toFixed(0);
+    let volInfo = " VOL:" + this.getVolume().toFixed(2);
+    
+    this.debugText.write(
+      "TEMP: " + status + "\n" +
+      "TIME: " + nowSec.toFixed(1) + "s" + info + bpmInfo + volInfo
+    );
+  }
+  
+  reset() {
+    this.isHigh = false;
+    this.bpmSpikeActive = false;
+    this.inStop = false;
+    this.lastBPM = 120;
+    this.silenceStartTime = null;
+    this.silenceEndTime = null;
+    this.volumeHistory = [];
+  }
+  
+  getTemperature() {
+    return this.isHigh ? 100 : 0;
+  }
+  
+  isTemperatureHigh() {
+    return this.isHigh;
+  }
+  
+  destroy() {
+    this.onHighTemperature.removeAll();
+    this.onLowTemperature.removeAll();
+    
+    if (this.audioContext && this.audioContext.state !== 'closed') {
+      this.audioContext.close();
+    }
+    
+    if (this.debugText) {
+      this.debugText.destroy();
+      this.debugText = null;
+    }
+  }
+}
+
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
     this.scene = scene;
@@ -25134,6 +26292,7 @@ class Player {
       noteSpeedMultiplier: settings.noteSpeedMult || Account.settings.noteSpeedMult,
       noteColor: settings.noteColorOption || Account.settings.noteColorOption || "NOTE",
       displayPosition: playerSide,
+      parent: settings.parent || null,
       player: this
     });
     
@@ -25230,11 +26389,11 @@ class Player {
     this.accuracyBar = accuracyBar || game.add.sprite();
     
     this.updateAccuracy();
-    
+
     // Define constants
     this.HEALTH_X = this.lifebarStart.x;
-    this.HEALTH_WIDTH = 102; // Width of the variable area of the health bar
-    this.ACCURACY_BAR_WIDTH = 150;
+    this.HEALTH_WIDTH = 145; // Width of the variable area of the health bar
+    this.ACCURACY_BAR_WIDTH = 187;
   }
   
   calculateTotalNotes() {
@@ -25263,7 +26422,7 @@ class Player {
     
     const candidateNotes = this.notes.filter(n => 
       !n.hit && 
-      n.column === column && 
+      column === -1 || n.column === column && 
       noteTypes.includes(n.type) && 
       Math.abs(n.beat - beat) <= searchRangeBeats
     );
@@ -25474,7 +26633,9 @@ class Player {
       this.processNoteIfInWindow(closestHold, now, column, (note, timeDelta) => {
         const judgement = this.getJudgement(timeDelta);
         
-        this.processJudgement(note, judgement, column);
+        if (!note.progress) {
+          this.processJudgement(note, judgement, column);
+        }
         
         this.activeHolds[column] = {
           note: note,
@@ -25746,23 +26907,43 @@ class Player {
       ok: 0x00cc00,
       ng: 0x22ffff
     };
+    const frames = {
+      marvelous: 0,
+      perfect: 1,
+      great: 2,
+      good: 3,
+      boo: 4,
+      miss: 5,
+      ok: 0,
+      ng: 4
+    };
     
     let tintColor = colors[judgement.replace("n.g.", "ng")];
-    
+     
     if (type == "freeze") {
-      const text = new Text(this.renderer.receptors[column].x, this.renderer.JUDGE_LINE + 12 * this.renderer.DIRECTION, judgement, FONTS.stroke);
+      const text = new Text(this.renderer.receptors[column].x, this.renderer.JUDGE_LINE + 12 * this.renderer.DIRECTION, judgement, FONTS.tiny_stroke);
       text.tint = tintColor;
       text.anchor.setTo(0.5);
       game.add.tween(text).to({ alpha: 0, y: text.y + (8 * this.renderer.DIRECTION) }, 250, "Linear", true, 25).onComplete.addOnce(() => text.destroy());
     } else {
-      this.judgementText.write(judgement.toUpperCase());
-      this.judgementText.tint = tintColor;
+      this.judgementText.frame = frames[judgement.replace('n.g.', 'ng')];
       this.judgementText.alpha = 1;
       this.judgementText.scale.set(1);
   
       game.tweens.removeFrom(this.judgementText);
-      game.add.tween(this.judgementText.scale).to({ x: 1.5, y: 1 }, 200, "Linear", true).yoyo(true);
-      game.add.tween(this.judgementText).to({ alpha: 0 }, 200, "Linear", true, 200);
+      
+      // NOTE: This is the old tween animation, disabled and replaced by this new one
+      //game.add.tween(this.judgementText.scale).to({ x: 1.5, y: 1 }, 200, "Linear", true).yoyo(true);
+      //game.add.tween(this.judgementText).to({ alpha: 0 }, 200, "Linear", true, 200);
+      
+      const duration = 200;
+      
+      game.add
+        .tween(this.judgementText.scale)
+        .to({ x: 0.4, y: 1.4 }, duration / 4, "Linear", true, 0)
+        .yoyo(true);
+      game.add.tween(this.judgementText.scale).to({ x: 1.3 }, duration, "Linear", true, duration);
+      game.add.tween(this.judgementText).to({ alpha: 0 }, duration, "Linear", true, duration);
       
       if (column !== undefined && judgement !== "miss") {
         const receptor = this.receptors[column];
@@ -25823,6 +27004,8 @@ class Player {
 
     const { now, beat } = this.scene.getCurrentTime();
     this.renderer.render(now, beat);
+    
+    return { now, beat };
   }
   
   update() {
@@ -25956,6 +27139,8 @@ class Player {
         delete this.activeHolds[col];
       }
     });
+    
+    return { now, beat };
   }
 
   destroy() {
@@ -25974,7 +27159,7 @@ class FirstPlayer extends Player {
     
     this.HEALTH_X = 14;
     this.HEALTH_WIDTH = 71;
-    this.ACCURACY_BAR_WIDTH = 73;
+    this.ACCURACY_BAR_WIDTH = 92;
     
     scene.p1JudgementText.x = this.renderer.calculateCenter();
     
@@ -25991,7 +27176,7 @@ class SecondPlayer extends Player {
     
     this.HEALTH_X = 104;
     this.HEALTH_WIDTH = 71;
-    this.ACCURACY_BAR_WIDTH = 73;
+    this.ACCURACY_BAR_WIDTH = 92;
     
     scene.p2JudgementText.x = this.renderer.calculateCenter();
     

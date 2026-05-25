@@ -1,34 +1,31 @@
 class Text extends Phaser.Sprite {
-  constructor(x, y, text = "", config, parent) {
-    config = {
-      font: "font_tiny",
-      fontMap: " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\"`•<>=%∥▶",
-      fontWidth: 4,
-      fontHeight: 6,
+  constructor(x, y, text = "", config = {}, parent) {
+    super(game, x, y, null);
+    
+    this.config = {
+      ...FONTS.default,
+      tint: 0xffffff,
       typewriter: false,
       typewriterInterval: 100,
       ...config
     };
     
-    super(game, x, y, null);
-    
-    this.config = config;
-
-    this.texture = new Phaser.RetroFont(game, config.font, config.fontWidth, config.fontHeight, config.fontMap);
+    this.texture = new Phaser.RetroFont(game, this.config.font, this.config.fontWidth, this.config.fontHeight, this.config.fontMap);
 
     this.texture.multiLine = true;
-    this.texture.autoUpperCase = true;
+    this.texture.autoUpperCase = this.config.autoUpperCase;
 
     this.timer = game.time.create(false);
 
-    this.typewriterInterval = config.typewriterInterval;
+    this.typewriterInterval = this.config.typewriterInterval;
 
-    if (config.typewriter) {
+    this.tint = this.config.tint;
+    
+    if (this.config.typewriter) {
       this.typewriter(text);
     } else {
       this.write(text);
     }
-
     
     if (parent) {
       if (parent instanceof Phaser.Group) parent.add(this);
@@ -77,7 +74,7 @@ class Text extends Phaser.Sprite {
     // Prepare the text with separation spaces
     const fullText = text + ' '.repeat(separation);
     let position = 0;
-    let direction = 1; // 1 for forward, -1 for backward (optional)
+    let direction = 1; // 1 for forward, -1 for backward
     let isScrolling = true;
 
     const update = () => {
@@ -105,10 +102,7 @@ class Text extends Phaser.Sprite {
 
     // Return methods to control the scrolling
     return {
-      stop: () => {
-        isScrolling = false;
-        this.timer.stop();
-      },
+      stop: () => this.stopScrolling(),
       pause: () => {
         isScrolling = false;
       },
@@ -132,7 +126,7 @@ class Text extends Phaser.Sprite {
     return this.timer.running;
   }
   
-  wrap(maxWidth, lineSpacing = 1) {
+  wrapOld(maxWidth, lineSpacing = 1) {
     if (!this.texture.text) return this;
     
     const originalText = this.texture.text;
@@ -189,15 +183,20 @@ class Text extends Phaser.Sprite {
     
     return this;
   }
-
-  wrapPreserveNewlines(maxWidth, lineSpacing = 1) {
-    if (!this.texture.text) return this;
+  
+  getMaxCharsPerLine(maxWidth = 1) {
+    const charWidth = this.config.fontWidth || 4;
+    return Math.floor(maxWidth / charWidth);
+  }
+  
+  getWrappedText(maxWidth = 1) {
+    if (!this.texture.text) return this.texture.text;
     
     const originalText = this.texture.text;
-    const charWidth = this.config.fontWidth || 4;
-    const maxCharsPerLine = Math.floor(maxWidth / charWidth);
     
-    if (maxCharsPerLine <= 0) return this;
+    const maxCharsPerLine = this.getMaxCharsPerLine(maxWidth);
+    
+    if (maxCharsPerLine <= 0) return this.texture.text;
     
     const originalLines = originalText.split('\n');
     const wrappedLines = [];
@@ -249,59 +248,11 @@ class Text extends Phaser.Sprite {
       }
     }
     
-    const wrappedText = wrappedLines.join('\n');
-    this.write(wrappedText);
-    
-    return this;
+    return wrappedLines.join('\n');
   }
-
-  getWrappedText(maxWidth) {
-    if (!this.texture.text) return '';
-    
-    const originalText = this.texture.text;
-    const charWidth = this.config.fontWidth || 4;
-    const maxCharsPerLine = Math.floor(maxWidth / charWidth);
-    
-    if (maxCharsPerLine <= 0) return originalText;
-    
-    const words = originalText.split(' ');
-    const lines = [];
-    let currentLine = '';
-    
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i];
-      
-      if (word.length > maxCharsPerLine) {
-        if (currentLine) {
-          lines.push(currentLine);
-          currentLine = '';
-        }
-        
-        let wordChunk = '';
-        for (let j = 0; j < word.length; j++) {
-          wordChunk += word[j];
-          if (wordChunk.length >= maxCharsPerLine || j === word.length - 1) {
-            lines.push(wordChunk);
-            wordChunk = '';
-          }
-        }
-        continue;
-      }
-      
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      
-      if (testLine.length <= maxCharsPerLine) {
-        currentLine = testLine;
-      } else {
-        lines.push(currentLine);
-        currentLine = word;
-      }
-    }
-    
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-    
-    return lines.join('\n');
+  
+  wrap(maxWidth) {
+    this.write(this.getWrappedText(maxWidth));
+    return this;
   }
 }

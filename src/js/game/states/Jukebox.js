@@ -108,10 +108,13 @@ class Jukebox {
   }
 
   setupUI() {
+    // Window manager
+    this.windowManager = new WindowManager();
+    
     // Background gradient for readability
     this.uiBackground = game.add.graphics(0, 0);
     this.uiBackground.beginFill(0x000000, 0.7);
-    this.uiBackground.drawRect(0, 80, game.width, 32);
+    this.uiBackground.drawRect(0, 100, game.width, 40);
     this.uiBackground.endFill();
     
     // Song banner
@@ -123,21 +126,21 @@ class Jukebox {
     this.songCredit = new Text(104, 24, "", FONTS.default);
     
     // Playback time displays
-    this.currentTimeText = new Text(4, 84, "0:00", FONTS.default);
-    this.durationText = new Text(188, 84, "0:00", FONTS.default);
+    this.currentTimeText = new Text(4, 104, "0:00", FONTS.default);
+    this.durationText = new Text(240 - 4, 104, "0:00", FONTS.default);
     this.durationText.anchor.x = 1;
     
     // Progress bar
-    this.progressBarBg = game.add.graphics(30, 86);
+    this.progressBarBg = game.add.graphics(24, 106);
     this.progressBarBg.lineStyle(2, 0x666666, 1);
     this.progressBarBg.moveTo(0, 0);
-    this.progressBarBg.lineTo(132, 0);
+    this.progressBarBg.lineTo(188, 0);
     
-    this.progressBar = game.add.graphics(30, 86);
+    this.progressBar = game.add.graphics(24, 106);
     
     // Mouse interactivity for progress bar
-    this.progressBarInteractive = game.add.sprite(30, 84);
-    this.progressBarInteractive.width = 132;
+    this.progressBarInteractive = game.add.sprite(24, 104);
+    this.progressBarInteractive.width = 188;
     this.progressBarInteractive.height = 6;
     this.progressBarInteractive.inputEnabled = true;
     this.progressBarInteractive.useHandCursor = true;
@@ -155,16 +158,16 @@ class Jukebox {
     this.createPlaybackControls();
     
     // Create lyrics display
-    this.lyricsText = new Text(game.width / 2, 51, "", FONTS.stroke);
+    this.lyricsText = new Text(game.width / 2, 64, "", FONTS.default_stroke);
     this.lyricsText.anchor.set(0.5);
     this.lyricsText.visible = true; // Always visible
     
     // Shuffle Label
-    this.shuffleLabel = new Text(5, 70, "");
+    this.shuffleLabel = new Text(5, 90, "");
     this.shuffleLabel.visible = false;
     
     // Volume Label
-    this.volumeLabel = new Text(game.width - 5, 70, "");
+    this.volumeLabel = new Text(game.width - 5, 90, "");
     this.volumeLabel.visible = false;
     this.volumeLabel.anchor.x = 1;
   }
@@ -187,15 +190,15 @@ class Jukebox {
 
   createPlaybackControls() {
     const centerX = game.width / 2;
-    const yPos = 70;
+    const yPos = 90;
     const buttonSpacing = 2; // 2px separation between buttons
     
     const buttonWidths = {
-      visualization: 8,
-      skip: 8,
-      seek: 8,
-      pause: 12,
-      menu: 8
+      visualization: 9,
+      skip: 9,
+      seek: 9,
+      pause: 16,
+      menu: 9
     };
     
     // Calculate total width including buttons and spacing
@@ -413,9 +416,9 @@ class Jukebox {
     const song = this.currentSong;
     
     // Update text displays
-    this.songTitle.write(song.titleTranslit || song.title || "Unknown Title", 21);
-    this.songArtist.write(song.artistTranslit || song.artist || "Unknown Artist", 21);
-    this.songCredit.write(song.credit || "", 21);
+    this.songTitle.write(song.titleTranslit || song.title || "Unknown Title", 33);
+    this.songArtist.write(song.artistTranslit || song.artist || "Unknown Artist", 33);
+    this.songCredit.write(song.credit || "", 33);
     
     // Load banner
     if (song.bannerUrl && song.bannerUrl !== "no-media") {
@@ -447,10 +450,10 @@ class Jukebox {
       const bgImg = new Image();
       bgImg.onload = () => {
         const canvas = document.createElement('canvas');
-        canvas.width = 192;
-        canvas.height = 112;
+        canvas.width = 240;
+        canvas.height = 140;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(bgImg, 0, 0, 192, 112);
+        ctx.drawImage(bgImg, 0, 0, 240, 140);
         const texture = PIXI.Texture.fromCanvas(canvas);
         this.backgroundSprite.loadTexture(texture);
       };
@@ -479,7 +482,7 @@ class Jukebox {
     if (!TimeUtils.isValidTime(duration)) return;
     
     const progress = currentTime / duration;
-    const barWidth = 132 * progress;
+    const barWidth = 188 * progress;
     
     this.progressBar.clear();
     this.progressBar.lineStyle(2, this.isMouseSeeking ? 0xffffff : 0x76fcde, 1);
@@ -692,15 +695,15 @@ class Jukebox {
     const pointer = mouse.pointer;
     
     // Calculate click position relative to progress bar
-    const barStartX = 30;
-    const barEndX = 162; // 30 + 132
+    const barStartX = 24;
+    const barEndX = 24 + 188;
     const mouseX = pointer.worldX;
     
     // Clamp to bar bounds
     const clampedX = Math.max(barStartX, Math.min(barEndX, mouseX));
     
     // Calculate progress percentage (0 to 1)
-    const progress = (clampedX - barStartX) / 132;
+    const progress = (clampedX - barStartX) / 188;
     
     // Calculate new time
     const newTime = progress * this.audioElement.duration;
@@ -724,34 +727,33 @@ class Jukebox {
 
   showSongList() {
     this.songListMenuVisible = true;
-    
+
     const menuBg = game.add.graphics(0, 0);
-    menuBg.beginFill(0x000000, 0.7);
+    menuBg.width = game.width;
+    menuBg.height = game.width;
+    menuBg.inputEnabled = true;
+    
+    menuBg.beginFill(0x000000, 0.5);
     menuBg.drawRect(0, 0, game.width, game.height);
     menuBg.endFill();
     
-    const menu = new CarouselMenu(20, 20, 152, 72, {
-      bgcolor: 'brown',
-      fgcolor: '#ffffff',
-      align: 'left',
-      disableScrollBar: false
-    });
+    const menu = this.windowManager.createWindow(3, 1, 24, 15, "1");
     
     // Add all songs to the menu
     this.songs.forEach((song, index) => {
       const title = song.titleTranslit || song.title || `Song ${index + 1}`;
       const isCurrent = index === this.currentIndex;
-      const displayText = isCurrent ? `> ${title}` : `  ${title}`;
       
       menu.addItem(
-        displayText,
+        title,
+        isCurrent ? "NOW PLAYING" : "",
         () => {
           if (index !== this.currentIndex) {
             this.loadSong(index);
           }
           menu.destroy();
           menuBg.destroy();
-          this.songListMenuVisible = false;
+          setTimeout(() => this.songListMenuVisible = false);
         },
         { 
           song: song, 
@@ -764,12 +766,13 @@ class Jukebox {
     menu.onCancel.add(() => {
       menu.destroy();
       menuBg.destroy();
-      this.songListMenuVisible = false;
+      setTimeout(() => this.songListMenuVisible = false);
     });
     
     // Set initial selection to current song
-    menu.selectedIndex = this.currentIndex;
-    menu.updateSelection();
+    menu.selectIndex(this.currentIndex);
+    
+    this.windowManager.focus(menu);
   }
 
   showMenu() {
@@ -780,46 +783,36 @@ class Jukebox {
     const menuBg = game.add.graphics(0, 0);
     menuBg.width = game.width;
     menuBg.height = game.width;
-    menuBg.beginFill(0x000000, 0.7);
-    menuBg.drawRect(0, 0, game.width, game.height);
-    menuBg.endFill();
     menuBg.inputEnabled = true;
     
-    const menu = new CarouselMenu(60, 40, 72, 70, {
-      bgcolor: 'brown',
-      fgcolor: '#ffffff',
-      align: 'center'
-    });
+    if (this.fullscreenMode) {
+      menuBg.beginFill(0x000000, 0.5);
+      menuBg.drawRect(0, 0, game.width, game.height);
+      menuBg.endFill();
+    }
     
-    menu.addItem("Continue", () => {
-      menu.destroy();
-      menuBg.destroy();
-      this.menuVisible = false;
-    });
+    const menu = this.windowManager.createWindow(20, 4, 9, 8, "1");
     
-    menu.addItem("Song List", () => {
+    menu.addItem("Song List", ">", () => {
       menu.destroy();
       menuBg.destroy();
       this.menuVisible = false;
       this.showSongList();
     });
     
-    menu.addItem("Toggle Shuffle", () => {
-      this.toggleShuffle();
+    menu.addSettingItem("Shuffle", ["ON", "OFF"], this.isShuffled ? 0 : 1, () => this.toggleShuffle());
+    
+    menu.addItem("Close Menu", "", () => {
       menu.destroy();
       menuBg.destroy();
-      this.menuVisible = false;
-    });
+      setTimeout(() => this.menuVisible = false);
+    }, true);
     
-    menu.addItem("Exit Jukebox", () => {
+    menu.addItem("< Exit Jukebox", "", () => {
       this.exitJukebox();
     });
     
-    menu.onCancel.add(() => {
-      menu.destroy();
-      menuBg.destroy();
-      this.menuVisible = false;
-    });
+    this.windowManager.focus(menu);
   }
 
   exitJukebox() {
@@ -864,10 +857,10 @@ class Jukebox {
       if (currentTime - this.lastVideoUpdate >= 33) { // ~30fps
         this.lastVideoUpdate = currentTime;
         const canvas = document.createElement('canvas');
-        canvas.width = 192;
-        canvas.height = 112;
+        canvas.width = 240;
+        canvas.height = 140;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(this.videoElement, 0, 0, 192, 112);
+        ctx.drawImage(this.videoElement, 0, 0, 240, 140);
         const texture = PIXI.Texture.fromCanvas(canvas);
         this.backgroundSprite.loadTexture(texture);
       }
@@ -888,8 +881,9 @@ class Jukebox {
   handleInput() {
     const currentTime = game.time.now;
     
-    // Update gamepad
+    // Update gamepad and window manager
     gamepad.update();
+    this.windowManager.update();
     
     // Don't trigger actions if menu is visible
     if (this.menuVisible || this.songListMenuVisible) return;

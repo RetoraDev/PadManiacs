@@ -7,7 +7,7 @@ class FirstPlayer extends Player {
     
     this.HEALTH_X = 14;
     this.HEALTH_WIDTH = 71;
-    this.ACCURACY_BAR_WIDTH = 73;
+    this.ACCURACY_BAR_WIDTH = 92;
     
     scene.p1JudgementText.x = this.renderer.calculateCenter();
     

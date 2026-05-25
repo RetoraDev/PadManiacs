@@ -121,7 +121,7 @@ class AchievementsMenu {
       }
     }
     
-    this.detailsText.write(details).wrapPreserveNewlines(game.width / 2 - 16);
+    this.detailsText.write(details).wrap(game.width / 2 - 16);
   }
 
   update() {

@@ -28,6 +28,37 @@ class Boot {
       saveAccount();
     }
   }
+  fixSettings() {
+    const currentVersion = DEFAULT_ACCOUNT.version;
+    const oldVersion = Account.version;
+    const difference = currentVersion - oldVersion;
+    
+    // Fix settings from old versions
+    if (!oldVersion) {
+      // Try to migrate settings and progress
+      Account = {
+        ...DEFAULT_ACCOUNT,
+        settings: {
+          ...DEFAULT_ACCOUNT.settings,
+          ...Account.settings
+        },
+        characters: {
+          ...DEFAULT_ACCOUNT.characters,
+          ...Account.characters
+        },
+        stats: {
+          ...DEFAULT_ACCOUNT.stats,
+          ...Account.stats
+        },
+        achievements: Account.achievements,
+        highscores: Account.highscores,
+      };
+      
+    }
+    
+    Account.version = currentVersion;
+    saveAccount();
+  }
   create() {
     window.inputManager = new InputManager(game);
 
@@ -76,8 +107,8 @@ class Boot {
         key: "ui_loading_dots",
         url: "ui/loading_dots.png",
         type: "spritesheet",
-        frameWidth: 26,
-        frameHeight: 6
+        frameWidth: 31,
+        frameHeight: 7
       },
       {
         key: "ui_background_gradient",
@@ -88,19 +119,35 @@ class Boot {
         url: "ui/logo_shape.png"
       },
       {
-        key: "ui_hud_background",
-        url: "ui/hud_background.png"
+        key: "ui_hud_background_top",
+        url: "ui/hud_background_top.png"
       },
       {
-        key: "ui_hud_background_multi",
-        url: "ui/hud_background_multi.png"
+        key: "ui_hud_background_bottom",
+        url: "ui/hud_background_bottom.png"
+      },
+      {
+        key: "ui_hud_background_top_multi",
+        url: "ui/hud_background_top_multi.png"
+      },
+      {
+        key: "ui_hud_background_bottom_multi",
+        url: "ui/hud_background_bottom_multi.png"
       },
       {
         key: "ui_hud_player_parent_multi",
         url: "ui/hud_player_parent_multi.png",
         type: "spritesheet",
-        frameWidth: 192,
-        frameHeight: 112
+        frameWidth: 240,
+        frameHeight: 140
+      },
+      {
+        key: "ui_hud_flash_shape",
+        url: "ui/hud_flash_shape.png",
+      },
+      {
+        key: "ui_hud_flash_shape_multi",
+        url: "ui/hud_flash_shape_multi.png",
       },
       {
         key: "ui_editor_icons",
@@ -136,18 +183,33 @@ class Boot {
         url: "ui/navigation_key.png",
         type: "spritesheet",
         frameWidth: 4,
-        frameHeight: 8
+        frameHeight: 9
+      },
+      {
+        key: "ui_keyboard",
+        url: "ui/keyboard.png",
+        type: "spritesheet",
+        frameWidth: 119,
+        frameHeight: 55
+      },
+      {
+        key: "ui_keyboard_numeric",
+        url: "ui/keyboard_numeric.png"
       },
       {
         key: "ui_glitch_animation",
         url: "ui/glitch_animation.png",
         type: "spritesheet",
-        frameWidth: 192,
-        frameHeight: 112
+        frameWidth: 240,
+        frameHeight: 140
       },
       {
         key: "ui_difficulty_banner",
         url: "ui/difficulty_banner.png"
+      },
+      {
+        key: "ui_difficulty_banner_multi",
+        url: "ui/difficulty_banner_multi.png"
       },
       {
         key: "ui_lifebar",
@@ -182,36 +244,36 @@ class Boot {
         key: "ui_jukebox_pause_toggle",
         url: "ui/jukebox_pause_toggle.png",
         type: "spritesheet",
-        frameWidth: 12,
-        frameHeight: 12
+        frameWidth: 16,
+        frameHeight: 16
       },
       {
         key: "ui_jukebox_seek",
         url: "ui/jukebox_seek.png",
         type: "spritesheet",
-        frameWidth: 8,
-        frameHeight: 8
+        frameWidth: 9,
+        frameHeight: 9
       },
       {
         key: "ui_jukebox_skip",
         url: "ui/jukebox_skip.png",
         type: "spritesheet",
-        frameWidth: 8,
-        frameHeight: 8
+        frameWidth: 9,
+        frameHeight: 9
       },
       {
         key: "ui_jukebox_menu",
         url: "ui/jukebox_menu.png",
         type: "spritesheet",
-        frameWidth: 8,
-        frameHeight: 8
+        frameWidth: 9,
+        frameHeight: 9
       },
       {
         key: "ui_jukebox_visualization",
         url: "ui/jukebox_visualization.png",
         type: "spritesheet",
-        frameWidth: 8,
-        frameHeight: 8
+        frameWidth: 9,
+        frameHeight: 9
       },
       {
         key: "ui_addon_no_image",
@@ -251,15 +313,22 @@ class Boot {
         key: "arrows",
         url: "chart/arrows.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 16
+        frameWidth: 20,
+        frameHeight: 20
+      },
+      {
+        key: "judgement",
+        url: "chart/judgement.png",
+        type: "spritesheet",
+        frameWidth: 60,
+        frameHeight: 7
       },
       {
         key: "receptor",
         url: "chart/receptor.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 16
+        frameWidth: 20,
+        frameHeight: 20
       },
       {
         key: "explosion",
@@ -275,36 +344,36 @@ class Boot {
         key: "mine",
         url: "chart/mine.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 16
+        frameWidth: 20,
+        frameHeight: 20
       },
       {
         key: "hold_end",
         url: "chart/hold_end.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 8
+        frameWidth: 20,
+        frameHeight: 10
       },
       {
         key: "hold_body",
         url: "chart/hold_body.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 112
+        frameWidth: 20,
+        frameHeight: 140
       },
       {
         key: "roll_end",
         url: "chart/roll_end.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 8
+        frameWidth: 20,
+        frameHeight: 10
       },
       {
         key: "roll_body",
         url: "chart/roll_body.png",
         type: "spritesheet",
-        frameWidth: 16,
-        frameHeight: 16
+        frameWidth: 20,
+        frameHeight: 140
       },
       // Character assets
       {
@@ -373,7 +442,7 @@ class Boot {
         key: "character_noise",
         url: "ui/character_noise.png",
         type: "spritesheet",
-        frameWidth: 36,
+        frameWidth: 46,
         frameHeight: 7
       }
     ];

@@ -57,7 +57,7 @@ class BuildSystem {
       'js/ui/ExperienceBar.js',
       'js/ui/SkillBar.js',
       'js/ui/TextInput.js',
-      'js/ui/ValueInput.js',
+      'js/ui/NumberInput.js',
       'js/ui/NotificationSystem.js',
       'js/ui/Lyrics.js',
       'js/ui/OffsetAssistant.js',
@@ -83,6 +83,8 @@ class BuildSystem {
       'js/input/InputManager.js',
       'js/input/Gamepad.js',
       'js/input/AllPads.js',
+      'js/input/OnScreenKeyboard.js',
+      'js/input/NumericTypeOnScreenKeyboard.js',
       
       // Audio
       'js/audio/BackgroundMusic.js',
@@ -133,6 +135,7 @@ class BuildSystem {
       
       // Note Rendering and Player
       'js/game/player/ChartRenderer.js',
+      'js/game/player/AudioTemperatureMeter.js',
       'js/game/player/Player.js',
       'js/game/player/FirstPlayer.js',
       'js/game/player/SecondPlayer.js',

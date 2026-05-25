@@ -5,16 +5,16 @@ class StatsMenu {
     new FuturisticLines();
     new BackgroundGradient();
     
-    this.titleText = new Text(92, 8, "PLAYER STATISTICS");
+    this.titleText = new Text(120, 10, "PLAYER STATISTICS");
     this.titleText.anchor.x = 0.5;
     
-    this.leftColumn = new Text(8, 56, "");
+    this.leftColumn = new Text(20, 70, "");
     this.leftColumn.anchor.y = 0.5;
     
-    this.rightColumn = new Text(92, 56, "");
+    this.rightColumn = new Text(130, 70, "");
     this.rightColumn.anchor.y = 0.5;
     
-    this.instructionText = new Text(92, 92, "PRESS ANY KEY TO LEAVE");
+    this.instructionText = new Text(120, 120, "PRESS ANY KEY TO LEAVE");
     this.instructionText.anchor.x = 0.5;
     
     this.updateStatsText();

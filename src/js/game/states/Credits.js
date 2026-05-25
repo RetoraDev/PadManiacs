@@ -22,35 +22,35 @@ class Credits {
     
     // Base credits content
     const creditsContent = [
-      { text: "PADMANIACS", font: FONTS.shaded, tint: 0x76fcde, spacing: 25 },
-      { text: "Created by Retora", font: FONTS.default, tint: 0xffffff, spacing: 15 },
+      { text: "PADMANIACS", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 15 },
+      { text: "Created by Retora", font: FONTS.default_shadow, tint: 0xffffff, spacing: 50 },
       
       // Dynamic song credits section
-      { text: "SONG CREDITS", font: FONTS.shaded, tint: 0x76fcde, spacing: 20 }
+      { text: "SONG CREDITS", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 30 }
     ];
     
     // Add credits from local songs
     const songCredits = this.getSongCredits();
     if (songCredits.length > 0) {
       creditsContent.push(...songCredits);
-      creditsContent.push({ text: "", font: FONTS.default, tint: 0xffffff, spacing: 15 });
+      creditsContent.push({ text: "", font: FONTS.default_shadow, tint: 0xffffff, spacing: 25 });
     }
     
     // Credit Atelier Magicae for some sound effects
-    creditsContent.push({ text: "SOUND EFFECTS", font: FONTS.shaded, tint: 0x76fcde, spacing: 20 });
-    creditsContent.push({ text: "Atelier Magicae", font: FONTS.default, tint: 0xffffff, spacing: 15 });
-    creditsContent.push({ text: "Retora", font: FONTS.default, tint: 0xffffff, spacing: 15 });
-    creditsContent.push({ text: "", font: FONTS.default, tint: 0xffffff, spacing: 15 });
+    creditsContent.push({ text: "SOUND EFFECTS", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 20 });
+    creditsContent.push({ text: "Atelier Magicae", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 });
+    creditsContent.push({ text: "Retora", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 });
+    creditsContent.push({ text: "", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 });
     
     // Continue with remaining credits
     creditsContent.push(
-      { text: "Special Thanks", font: FONTS.shaded, tint: 0x76fcde, spacing: 20 },
-      { text: "StepMania Team", font: FONTS.default, tint: 0xffffff, spacing: 8 },
-      { text: "photonstorm", font: FONTS.default, tint: 0xffffff, spacing: 8 },
-      { text: "itch.io", font: FONTS.default, tint: 0xffffff, spacing: 8 },
-      { text: "You!", font: FONTS.shaded, tint: 0xffffff, spacing: 25 },
+      { text: "Special Thanks", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 20 },
+      { text: "StepMania Team", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "photonstorm", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "itch.io", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "You!", font: FONTS.bold_shadow, tint: 0xffffff, spacing: 25 },
       
-      { text: COPYRIGHT, font: FONTS.default, tint: 0x888888, spacing: 40 },
+      { text: COPYRIGHT, font: FONTS.default_shadow, tint: 0x888888, spacing: 40 },
     );
     
     // Create all text elements
@@ -59,7 +59,7 @@ class Credits {
     creditsContent.forEach((credit, index) => {
       const text = new Text(game.width / 2, currentY, credit.text, credit.font, this.creditsContainer);
       text.anchor.set(0.5);
-      text.wrapPreserveNewlines(112);
+      text.wrap(140);
       text.tint = credit.tint;
       text.creditData = credit; // Store spacing info
       
@@ -138,12 +138,12 @@ class Credits {
     tempImg.onload = () => {
       // Create canvas for the background
       const canvas = document.createElement('canvas');
-      canvas.width = 192;
-      canvas.height = 112;
+      canvas.width = 240;
+      canvas.height = 140;
       const ctx = canvas.getContext('2d');
       
       // Draw and scale the image to fit
-      ctx.drawImage(tempImg, 0, 0, 192, 112);
+      ctx.drawImage(tempImg, 0, 0, 240, 140);
       
       // Create texture and apply to sprite
       const texture = PIXI.Texture.fromCanvas(canvas);
@@ -213,8 +213,8 @@ class Credits {
           
           // Add song title and credit
           songCredits.push(
-            { text: title, font: FONTS.default, tint: 0xffffff, spacing: 8 },
-            { text: `by ${credit}`, font: FONTS.default, tint: 0xe0e0e0, spacing: 12 }
+            { text: title, font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+            { text: `by ${credit}`, font: FONTS.default_shadow, tint: 0xe0e0e0, spacing: 25 }
           );
         }
       });
@@ -222,8 +222,8 @@ class Credits {
     
     // Also add disclaimer
     songCredits.push(
-      { text: "", font: FONTS.default, tint: 0xffffff, spacing: 8 },
-      { text: "All songs and charts belong to their respective copyright holders.", font: FONTS.default, tint: 0x888888, spacing: 12 }
+      { text: "", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "All songs and charts belong to their respective copyright holders.", font: FONTS.default_shadow, tint: 0x888888, spacing: 12 }
     );
     
     return songCredits;
@@ -253,7 +253,7 @@ class Credits {
 
   onCreditsComplete() {
     // Show continue prompt
-    this.continueText = new Text(game.width / 2, game.height / 2, "Thank you for playing", FONTS.shaded);
+    this.continueText = new Text(game.width / 2, game.height / 2, "Thank you for playing", FONTS.bold_shadow);
     this.continueText.anchor.set(0.5);
     this.continueText.alpha = 0;
     

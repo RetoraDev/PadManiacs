@@ -1,6 +1,6 @@
 // Character system constants
 const CHARACTER_SYSTEM = {
-  MAX_NAME_LENGTH: 6,
+  MAX_NAME_LENGTH: 12,
   DEFAULT_CHARACTER: "EIRI",
   MAX_SKILL_LEVEL: 5,
   EXPERIENCE_CURVE: level => Math.floor(10 * Math.pow(level, 1.03)),
@@ -15,7 +15,7 @@ const CHARACTER_SYSTEM = {
   HAIR_COOLDOWN_LEVELS: 2,
   ITEM_COOLDOWN_LEVELS: 2,
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
-  CLOSE_SHOT_CROP: { x: 32, y: 15, w: 36, h: 7 },
+  CLOSE_SHOT_CROP: { x: 36, y: 15, w: 46, h: 7 },
   HAIR_STYLES: {
     front: ["Casual", "Smart", "Daring", "Simple", "Bulky", "Afro", "Emotional", "Clean"],
     back: ["Casual", "Smart", "Curly", "Ponytails", "Short", "Afro", "Diva", "Clean"],

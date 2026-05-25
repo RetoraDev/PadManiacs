@@ -20,5 +20,7 @@ class InputManager {
     gamepad2 = this.gamepad2;
 
     gamepad = new AllPads(game, [gamepad1, gamepad2]);
+    
+    this.gamepad = gamepad;
   }
 }

@@ -22,7 +22,7 @@ class FileSelect {
     ]);
     
     this.pathText = new Text(4, 4, "PATH: /", FONTS.default);
-    this.pathText.wrapPreserveNewlines(180);
+    this.pathText.wrap(180);
     
     this.emptyFolderText = new Text(game.width / 2, game.height / 2, "This folder is empty", FONTS.shaded);
     this.emptyFolderText.anchor.set(0.5);
@@ -66,7 +66,11 @@ class FileSelect {
       const files = await this.fileSystem.listFiles(this.currentDir);
       entries = [...dirs, ...files];
     }
-    
+  
+    // Destroy loading indicator
+    this.loadingDots.destroy();
+    this.loadingDots = null;
+  
     // Filter by extensions if specified
     if (this.extensions !== null) {
       entries = entries.filter(entry => {
@@ -94,6 +98,18 @@ class FileSelect {
       align: 'left',
       animate: true,
       disableCancel: !this.allowCancel
+    });
+    
+    // Handle cancel
+    this.carousel.onCancel.add(() => {
+      if (this.history.length > 0) {
+        this.goBack();
+      } else if (this.allowCancel && this.onCancel) {
+        this.onCancel();
+        game.state.start("MainMenu");
+      } else if (this.allowCancel) {
+        game.state.start("MainMenu");
+      }
     });
     
     // Add parent directory entry (..) if not in root
@@ -133,22 +149,6 @@ class FileSelect {
     
     // Update path display
     this.updatePathDisplay();
-    
-    // Handle cancel
-    this.carousel.onCancel.add(() => {
-      if (this.history.length > 0) {
-        this.goBack();
-      } else if (this.allowCancel && this.onCancel) {
-        this.onCancel();
-        game.state.start("MainMenu");
-      } else if (this.allowCancel) {
-        game.state.start("MainMenu");
-      }
-    });
-    
-    // Destroy loading indicator
-    this.loadingDots.destroy();
-    this.loadingDots = null;
   }
   
   onEntrySelected(entry) {
@@ -193,7 +193,7 @@ class FileSelect {
     let path = this.currentDir ? this.currentDir.fullPath : '/';
     if (path === '') path = '/';
     this.pathText.write("PATH: " + path);
-    this.pathText.wrapPreserveNewlines(180);
+    this.pathText.wrapPreserveNewlines(240 - 10);
   }
   
   showError(message) {

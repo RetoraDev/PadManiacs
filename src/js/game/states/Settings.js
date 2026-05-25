@@ -22,7 +22,7 @@ class Settings {
   }
   
   showSettings() {
-    const settingsWindow = this.windowManager.createWindow(3, 1, 18, 12, "1");
+    const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
     
     let restartNeeded = false;
@@ -171,9 +171,44 @@ class Settings {
       }
     );
     
+    settingsWindow.addSettingItem(
+      "Enable Temperature (Experimental)",
+      ["YES", "NO"], 
+      Account.settings.enableTemperature ? 0 : 1,
+      index => {
+        Account.settings.enableTemperature = index === 0;
+        saveAccount();
+      }
+    );
+    
+    // Background opacity
+    settingsWindow.addRangeItem(
+      "Background Opacity",
+      0,
+      100,
+      1,
+      Account.settings.backgroundOpacity * 100,
+      "%",
+      value => {
+        Account.settings.backgroundOpacity = value / 100;
+        saveAccount();
+      }
+    );
+    
+    // Song Intro
+    settingsWindow.addSettingItem(
+      "Song Info",
+      ["YES", "NO"],
+      Account.settings.enableSongInfo ? 0 : 1,
+      index => {
+        Account.settings.enableSongInfo = index === 0;
+        saveAccount();
+      }
+    );
+    
     // Beat lines
     settingsWindow.addSettingItem(
-      "Beat Lines",
+      "Enable Beat Lines",
       ["YES", "NO"],
       Account.settings.beatLines ? 0 : 1,
       index => {

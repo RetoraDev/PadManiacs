@@ -98,10 +98,13 @@ class Gamepad {
     this.game.input.keyboard.addKeyCapture(uniqueKeyCapture);
   
     // Global keyboard listeners
-    inputManager.keyboardListener.onDown.add((keyCode) => {
+    inputManager.keyboardListener.onDown.add((keyCode, event) => {
       const action = this.keyCodeToAction[keyCode];
       if (action) {
+        event.preventDefault();
         this.held[action] = true;
+      } else if (window.focusedElement) {
+        event.preventDefault();
       }
       this.detectInputSource('keyboard');
     });
@@ -110,6 +113,9 @@ class Gamepad {
       const action = this.keyCodeToAction[keyCode];
       if (action) {
         this.held[action] = false;
+        event.preventDefault();
+      } else if (window.focusedElement) {
+        event.preventDefault();
       }
     });
     

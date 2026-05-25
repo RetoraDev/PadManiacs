@@ -27,7 +27,7 @@ class ResultsMulti extends Results {
     this.bannerCanvas = document.createElement("canvas");
     this.bannerCtx = this.bannerCanvas.getContext("2d");
     
-    this.bannerSprite = game.add.sprite(192 - 10 - 64, 10);
+    this.bannerSprite = game.add.sprite(240 - 10 - 64, 10);
     
     // Load and play audio
     this.previewAudio = document.createElement("audio");
@@ -65,8 +65,8 @@ class ResultsMulti extends Results {
     const title = this.song.chart.titleTranslit || this.song.chart.title;
     const difficulty = this.song.chart.difficulties[this.difficultyIndex];
     
-    this.songText = new Text(8, 10, `${title}`, FONTS.shaded);
-    this.diffText = new Text(10, 20, `${difficulty.type} (${difficulty.rating})`);
+    this.songText = new Text(8, 10, `${title}`, FONTS.default_shadow);
+    this.diffText = new Text(10, 20, `${difficulty.type} (${difficulty.rating})`, FONTS.default);
     this.diffText.tint = new Play().getDifficultyColor(difficulty.rating);
     
     if (title.length > 25) this.songText.scrollwrite(title, 25);
@@ -77,7 +77,7 @@ class ResultsMulti extends Results {
     this.showPlayerResults(2);
     
     if (this.winner == 0) {
-      const drawText = new Text(game.width / 2, 112 - 14, "DRAW", FONTS.shaded);
+      const drawText = new Text(game.width / 2, 112 - 14, "DRAW", FONTS.bold);
       drawText.anchor.x = 0.5;
       drawText.tint = 0xFF007F; // Purple color
       
@@ -109,7 +109,7 @@ class ResultsMulti extends Results {
   showPlayerResults(playerNumber = playerNumber) {
     const player = this.gameResults["player" + playerNumber];
     
-    const xPos = playerNumber == 1 ? 10 : 192 - 10;
+    const xPos = playerNumber == 1 ? 10 : 240 - 10;
     const xAnchor = playerNumber == 1 ? 0 : 1;
     
     // Don't celebrate if autoplay is enabled
@@ -141,7 +141,7 @@ class ResultsMulti extends Results {
     
     // Winner record indicator
     if (!autoplay && this.winner == playerNumber) {
-      const winnerText = new Text(game.width / 2, 112 - 14, `PLAYER ${playerNumber} WINS!`, FONTS.shaded);
+      const winnerText = new Text(game.width / 2, 112 - 14, `PLAYER ${playerNumber} WINS!`, FONTS.bold);
       winnerText.anchor.x = 0.5;
       winnerText.tint = 0xFFD700; // Gold color
       

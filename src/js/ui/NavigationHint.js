@@ -158,7 +158,7 @@ class NavigationHint extends Phaser.Sprite {
       
       const descriptionText = hint.text;
       if (descriptionText) {
-        const descSprite = new Text(0, 0, descriptionText, FONTS.default);
+        const descSprite = new Text(0, 2, descriptionText, FONTS.small);
         descSprite.anchor.y = 0.5;
         descSprite.x = currentX;
         this.addChild(descSprite);
@@ -230,7 +230,7 @@ class NavigationHint extends Phaser.Sprite {
     group.add(right);
     
     // Text label
-    const label = new Text(1 + totalWidth / 2, 0, keyText, FONTS.default);
+    const label = new Text(1 + totalWidth / 2, 1, keyText, FONTS.small);
     label.anchor.set(0.5, 0.5);
     group.add(label);
     

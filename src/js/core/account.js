@@ -1,4 +1,5 @@
 const DEFAULT_ACCOUNT = {
+  version: 1.0,
   settings: {
     volume: 100,
     autoplay: false,
@@ -19,6 +20,13 @@ const DEFAULT_ACCOUNT = {
     videoFps: 1,
     enableMouse: true,
     enableTouch: true,
+    backgroundOpacity: 0.7,
+    buttonStyle: 'xbox',
+    enableChartBackground: false,
+    chartBackgroundOpacity: 0.3,
+    videoFps: 1, // 60 FPS
+    enableSongInfo: true,
+    enableTemperature: false,
     // Addon system settings
     safeMode: false,
     enabledAddons: [],
