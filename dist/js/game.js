@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.1.0
- * Build: 5/25/2026, 12:29:59 PM
+ * Build: 5/25/2026, 12:43:24 PM
  * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
@@ -1376,7 +1376,7 @@ const DEFAULT_ACCOUNT = {
     backgroundOpacity: 0.7,
     buttonStyle: 'xbox',
     enableChartBackground: false,
-    chartBackgroundOpacity: 0.3,
+    backgroundOpacity: 0.3,
     videoFps: 1, // 60 FPS
     enableSongInfo: true,
     enableTemperature: false,
@@ -13953,8 +13953,9 @@ class Boot {
         achievements: Account.achievements,
         highscores: Account.highscores,
       };
-      
     }
+    
+    if (isNaN(Account.settings.backgroundOpacity)) Account.settings.backgroundOpacity = 0.3; 
     
     Account.version = currentVersion;
     saveAccount();
@@ -14349,7 +14350,7 @@ class Boot {
 
     window.addEventListener("keydown", event => {
       // Only process if we're in the game and not in an input field
-      if (document.activeElement.tagName === "INPUT") return;
+      if (document.activeElement.tagName === "INPUT" || window.focusedElement) return;
 
       switch (event.code) {
         case "F8": // Screenshot

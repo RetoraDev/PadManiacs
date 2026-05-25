@@ -23,7 +23,7 @@ const DEFAULT_ACCOUNT = {
     backgroundOpacity: 0.7,
     buttonStyle: 'xbox',
     enableChartBackground: false,
-    chartBackgroundOpacity: 0.3,
+    backgroundOpacity: 0.3,
     videoFps: 1, // 60 FPS
     enableSongInfo: true,
     enableTemperature: false,
