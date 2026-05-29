@@ -4,8 +4,8 @@ class OffsetAssistant extends Phaser.Sprite {
     
     this.taps = [];
     this.confidenceThreshold = 0.8;
-    this.maxTaps = 16;
-    this.requiredTaps = 8;
+    this.maxTaps = 60;
+    this.requiredTaps = 16;
     this.tickBPM = 120;
     this.tickInterval = 60000 / this.tickBPM; // 500ms per tick
     this.snapMs = 1;
@@ -250,7 +250,7 @@ class OffsetAssistant extends Phaser.Sprite {
       // Fallback to last calculation if no averages stored
       const currentOffset = this.parseOffsetText();
       if (currentOffset !== null) {
-        Account.settings.userOffset = currentOffset;
+        Account.settings.userOffset = Math.floor(currentOffset * 100) * 100;
         saveAccount();
         notifications.show(`Offset set to ${currentOffset}ms`);
       }

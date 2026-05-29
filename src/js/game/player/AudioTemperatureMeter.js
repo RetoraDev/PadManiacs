@@ -318,15 +318,35 @@ class AudioTemperatureMeter {
   isTemperatureHigh() {
     return this.isHigh;
   }
-  
+    
   destroy() {
+    // Detener todas las señales primero
     this.onHighTemperature.removeAll();
     this.onLowTemperature.removeAll();
     
-    if (this.audioContext && this.audioContext.state !== 'closed') {
-      this.audioContext.close();
+    // Cerrar audio context correctamente
+    if (this.audioContext) {
+      this.audioContext.close().catch(e => console.warn("Error closing audio context:", e));
+      this.audioContext = null;
     }
     
+    // Limpiar referencias al audio
+    this.audio = null;
+    this.scene = null;
+    this.chart = null;
+    
+    // Limpiar analyser y source
+    if (this.analyser) {
+      this.analyser.disconnect();
+      this.analyser = null;
+    }
+    
+    if (this.source) {
+      this.source.disconnect();
+      this.source = null;
+    }
+    
+    // Limpiar debug text
     if (this.debugText) {
       this.debugText.destroy();
       this.debugText = null;

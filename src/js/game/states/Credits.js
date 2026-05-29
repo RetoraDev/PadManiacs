@@ -2,10 +2,12 @@ class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
     this.returnStateParams = returnStateParams;
-    this.scrollSpeed = 15; // pixels per second
     this.isWaitingForInput = false;
     this.backgroundInterval = 8000; // Change background every 8 seconds
     this.availableBackgrounds = [];
+    this.bpmChanges = null;
+    this.stops = null;
+    this.startTime = 0;
   }
 
   create() {
@@ -33,14 +35,14 @@ class Credits {
     const songCredits = this.getSongCredits();
     if (songCredits.length > 0) {
       creditsContent.push(...songCredits);
-      creditsContent.push({ text: "", font: FONTS.default_shadow, tint: 0xffffff, spacing: 25 });
+      creditsContent.push({ text: "", font: FONTS.default, tint: 0xffffff, spacing: 25 });
     }
     
     // Credit Atelier Magicae for some sound effects
     creditsContent.push({ text: "SOUND EFFECTS", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 20 });
     creditsContent.push({ text: "Atelier Magicae", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 });
     creditsContent.push({ text: "Retora", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 });
-    creditsContent.push({ text: "", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 });
+    creditsContent.push({ text: "", font: FONTS.default, tint: 0xffffff, spacing: 15 });
     
     // Continue with remaining credits
     creditsContent.push(
@@ -48,7 +50,7 @@ class Credits {
       { text: "StepMania Team", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "photonstorm", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "itch.io", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
-      { text: "You!", font: FONTS.bold_shadow, tint: 0xffffff, spacing: 25 },
+      { text: "You!", font: FONTS.bold_shadow, tint: [0xffffff, 0x05ff00], spacing: 25 },
       
       { text: COPYRIGHT, font: FONTS.default_shadow, tint: 0x888888, spacing: 40 },
     );
@@ -59,9 +61,25 @@ class Credits {
     creditsContent.forEach((credit, index) => {
       const text = new Text(game.width / 2, currentY, credit.text, credit.font, this.creditsContainer);
       text.anchor.set(0.5);
-      text.wrap(140);
-      text.tint = credit.tint;
+      text.wrap(200);
       text.creditData = credit; // Store spacing info
+      
+      if (typeof credit.tint == 'number') {
+        text.tint = credit.tint;
+      } else {
+        text.tint = credit.tint[0];
+        
+        let currentFrame = 0;
+        
+        game.time.events.loop(100, () => {
+          if (currentFrame < credit.tint.length-1) {
+            text.tint = credit.tint[currentFrame];
+            currentFrame++;
+          } else {
+            currentFrame = 0;
+          }
+        });
+      }
       
       currentY += credit.spacing;
     });
@@ -189,6 +207,11 @@ class Credits {
       this.creditsMusic.volume = Account.settings.volume / 100;
       this.creditsMusic.loop = true;
       
+      // Set bpm changes and stops
+      this.bpmChanges = randomSong.bpmChanges;
+      this.stops = randomSong.stops;
+      this.startTime = game.time.now;
+      
       // Start playback
       this.creditsMusic.play().catch(error => {
         console.warn("Could not play credits music:", error);
@@ -200,21 +223,20 @@ class Credits {
 
   getSongCredits() {
     const songCredits = [];
-    const seenCredits = new Set();
     
     if (window.localSongs && Array.isArray(window.localSongs)) {
       window.localSongs.forEach(song => {
         // Check if song has credit information
-        const credit = song.credit;
         const title = song.titleTranslit || song.title || "Unknown Song";
+        const artist = song.artistTranslit || song.artist;
+        const credit = song.credit;
         
-        if (credit && !seenCredits.has(credit.toLowerCase())) {
-          seenCredits.add(credit.toLowerCase());
-          
+        if (credit) {
           // Add song title and credit
           songCredits.push(
-            { text: title, font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
-            { text: `by ${credit}`, font: FONTS.default_shadow, tint: 0xe0e0e0, spacing: 25 }
+            { text: artist, font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+            { text: title, font: FONTS.bold_shadow, tint: 0xffffff, spacing: 8 },
+            { text: `Chart by ${credit}`, font: FONTS.default_shadow, tint: 0xa0a0a0, spacing: 25 }
           );
         }
       });
@@ -222,14 +244,55 @@ class Credits {
     
     // Also add disclaimer
     songCredits.push(
-      { text: "", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "", font: FONTS.default, tint: 0xffffff, spacing: 8 },
       { text: "All songs and charts belong to their respective copyright holders.", font: FONTS.default_shadow, tint: 0x888888, spacing: 12 }
     );
     
     return songCredits;
   }
+  
+  getSongTime() {
+    const elapsed = game.time.now - this.startTime;
+    return {
+      now: elapsed / 1000,
+      beat: this.secToBeat(elapsed / 1000)
+    };
+  }
+  
+  getLastBpm(beat) {
+    return this.bpmChanges.length ? this.bpmChanges.find((e, i, a) => i + 1 == a.length || a[i + 1].beat >= beat) : { bpm: 120 };
+  }
+  
+  getLastBpmAtSec(sec) {
+    return this.bpmChanges.length ? this.bpmChanges.find((e, i, a) => i + 1 == a.length || a[i + 1].sec >= sec) : { bpm: 120 };
+  }
+  
+  getLastStop(beat) {
+    return this.stops.length ? this.stops.find((e, i, a) => i + 1 == a.length || a[i + 1].beat >= beat) : null;
+  }
+
+  beatToSec(beat) {
+    if (!this.bpmChanges || this.bpmChanges.length === 0) return beat * 60 / 120;
+    
+    let b = this.getLastBpm(beat);
+    let x = ((beat - b.beat) / b.bpm) * 60 + b.sec;
+    let s = this.stops.filter(({ beat: i }) => i >= b.beat && i < beat).map(i => i.len);
+    for (let i in s) x += s[i];
+    return x;
+  }
+
+  secToBeat(sec) {
+    if (!this.bpmChanges || this.bpmChanges.length === 0) return sec * 120 / 60;
+    
+    let b = this.getLastBpmAtSec(sec);
+    let s = this.stops.filter(({ sec: i }) => i >= b.sec && i < sec).map(i => (i.sec + i.len > sec ? sec - i.sec : i.len));
+    for (let i in s) sec -= s[i];
+    return ((sec - b.sec) * b.bpm) / 60 + b.beat;
+  }
 
   update() {
+    const { now, beat } = this.getSongTime();
+    
     // Update audio visualizer
     if (this.visualizer) {
       this.visualizer.update();
@@ -240,8 +303,12 @@ class Credits {
     
     if (this.creditsComplete) return;
     
+    const currentBpm = this.getLastBpm(beat).bpm;
+    const isAtStop = this.getLastStop(beat) && this.getLastStop().beat == this.currentBeat ;
+    const scrollSpeed = isAtStop ? 0 : currentBpm / 10;
+    
     // Scroll credits upward
-    this.creditsContainer.y -= this.scrollSpeed * (gamepad.held.any || mouse.held.any ? 4 : 1) * (game.time.elapsed / 1000);
+    this.creditsContainer.y -= scrollSpeed * (gamepad.held.any || mouse.held.any ? 4 : 1) * (game.time.elapsed / 1000);
     
     // Check if credits have finished scrolling
     const bottomOfCredits = this.creditsContainer.y + this.totalHeight;

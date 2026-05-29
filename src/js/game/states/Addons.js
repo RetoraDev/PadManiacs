@@ -15,9 +15,9 @@ class Addons {
     
     this.windowManager = new WindowManager();
     
-    this.descriptionText = new Text(84, 4, "");
+    this.descriptionText = new Text(110, 4, "");
     
-    this.carousel = new CarouselMenu(0, 56, 80, 56, {
+    this.carousel = new CarouselMenu(0, 56, 100, 70, {
       align: 'left',
       bgcolor: '#9b59b6',
       fgcolor: '#ffffff',
@@ -46,15 +46,7 @@ class Addons {
   }
   
   loadAddons() {
-    this.carousel.destroy();
-    
-    this.carousel = new CarouselMenu(0, 56, 80, 56, {
-      align: 'left',
-      bgcolor: '#9b59b6',
-      fgcolor: '#ffffff',
-      animate: true,
-      crop: false
-    });
+    this.carousel = this.carousel.destroy(true);
 
     const addons = addonManager.getAddonList();
     
@@ -68,7 +60,7 @@ class Addons {
       this.carousel.addItem(
         `${addon.name} v${addon.version}`,
         () => this.showAddonDetails(addon),
-        { addon, bgcolor: statusColor }
+        { addon, bgcolor: statusColor, icon: 2 }
       );
     });
         
@@ -87,18 +79,18 @@ class Addons {
   previewAddon(addon) {
    this.descriptionText.write(
       `${addon.name}\n\n` +
-      'STATE: ' + 
+      'State: ' + 
       (addon.isHibernating ?
         'Hybernating'
         :
       (addon.isEnabled ?
         'Enabled' : 'Disabled')) + '\n' +
-      `VERSION: V${addon.version}\n` +
-      `AUTHOR: ${addon.author}\n` +
-      `BEHAVIORS: ${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
-      `ASSETS: ${addon.assets ? addon.assets.length : 0}\n\n` +
+      `Version: v${addon.version}\n` +
+      `Author: ${addon.author}\n` +
+      `Behaviors: ${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
+      `Assets: ${addon.assets ? addon.assets.length : 0}\n\n` +
       `${addon.description}\n`
-    ).wrapPreserveNewlines(112 - 4);
+    ).wrap(130 - 4);
     
     if (addon.icon) {
       this.previewImg.src = addon.icon;
@@ -114,15 +106,7 @@ class Addons {
   }
   
   showAddonDetails(addon) {
-    this.carousel.destroy();
-    
-    this.carousel = new CarouselMenu(0, 56, 80, 56, {
-      align: 'left',
-      bgcolor: '#9b59b6',
-      fgcolor: '#ffffff',
-      animate: true,
-      crop: false
-    });
+    this.carousel = this.carousel.destroy(true);
     
     if (addon.isHibernating) {
       this.carousel.addItem("Wake Addon", () => {

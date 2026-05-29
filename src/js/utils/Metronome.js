@@ -3,7 +3,7 @@ class Metronome {
     this.scene = scene;
     this.player = scene.player;
     this.mode = Account.settings.metronome;
-    this.enabled = this.mode !== 'OFF';
+    this.enabled = false;
     this.beatDivisions = {
       'OFF': 0,
       'Quarters': 1,       // Every whole beat (1, 2, 3, 4...)

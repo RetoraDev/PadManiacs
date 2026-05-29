@@ -92,7 +92,7 @@ class LocalSMParser {
               // Determine file type
               if (bgEntry.file) {
                 const ext = bgEntry.file.split(".").pop().toLowerCase();
-                bgEntry.type = ["mp4", "avi", "mov"].includes(ext) ? "video" : "image";
+                bgEntry.type = VIDEO_EXTENSIONS.includes(ext) ? "video" : "image";
                 bgEntry.url = this.resolveFileUrl(bgEntry.file, baseUrl);
               }
 

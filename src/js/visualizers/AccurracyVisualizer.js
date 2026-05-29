@@ -18,7 +18,7 @@ class AccuracyVisualizer extends Visualizer {
     }
     
     // Draw 0 line
-    this.graphics.lineStyle(1, 0xF0F0F0, 0.3);
+    this.graphics.lineStyle(1, 0xF0F0F0, 0.1);
     this.graphics.moveTo(0, 3);
     this.graphics.lineTo(this.width, 3);
       
@@ -30,7 +30,7 @@ class AccuracyVisualizer extends Visualizer {
       for (let i = 0; i < this.accuracyHistory.length; i++) {
         const x = (i / this.maxHistoryLength) * this.width;
         const accuracy = this.accuracyHistory[i];
-        const y = 2 + (accuracy / 0.4) * 3;
+        const y = 3 + (accuracy * 10) * 3;
         
         this.graphics.lineTo(x, y);
       }

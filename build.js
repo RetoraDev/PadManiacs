@@ -118,6 +118,7 @@ class BuildSystem {
       'js/game/states/MainMenu.js',
       'js/game/states/Addons.js',
       'js/game/states/Settings.js',
+      'js/game/states/ChartModifiers.js',
       'js/game/states/Keybindings.js',
       'js/game/states/FileSelect.js',
       'js/game/states/SongSelect.js',

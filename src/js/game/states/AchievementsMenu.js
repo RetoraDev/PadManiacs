@@ -35,7 +35,7 @@ class AchievementsMenu {
     });
     
     // Toggle button
-    this.toggleText = new Text(4, 4, "SHOWING: UNLOCKED");
+    this.toggleText = new Text(4, 3, "SHOWING: UNLOCKED");
     
     game.onMenuIn.dispatch('achievements', this.carousel);
     

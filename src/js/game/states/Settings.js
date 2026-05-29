@@ -70,6 +70,22 @@ class Settings {
       }
     );
     
+    // Visualizer 
+    const visualizerOptions = ['NONE', 'BPM', 'ACCURACY', 'AUDIO'];
+    const currentVisualizer = Account.settings.visualizer || 'NONE';
+    const currentVisualizerIndex = visualizerOptions.indexOf(currentVisualizer);
+    
+    settingsWindow.addSettingItem(
+      "Visualizer",
+      visualizerOptions,
+      currentVisualizerIndex,
+      index => {
+        const selectedVisualizer = visualizerOptions[index];
+        Account.settings.visualizer = selectedVisualizer;
+        saveAccount();
+      }
+    );
+    
     // Mouse 
     settingsWindow.addSettingItem(
       "Enable Mouse",
@@ -338,6 +354,9 @@ class Settings {
       this.showKeybindingsMenu()
     });
     
+    // Chart Modifiers
+    settingsWindow.addItem("Chart Modifiers", ">", () => this.showChartModifiersMenu());
+    
     // Danger zone
     settingsWindow.addItem("Erase Highscores", "", () => this.confirmEraseHighscores());
     settingsWindow.addItem("Restore Default Settings", "", () => this.confirmRestoreDefaults());
@@ -360,6 +379,10 @@ class Settings {
   
   showKeybindingsMenu() {
     game.state.start("Keybindings");
+  }
+  
+  showChartModifiersMenu() {
+    game.state.start("ChartModifiers", true, false, "MainMenu");
   }
 
   confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {

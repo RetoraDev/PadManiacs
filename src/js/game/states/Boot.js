@@ -87,6 +87,7 @@ class Boot {
     game.state.add("MainMenu", MainMenu);
     game.state.add("Addons", Addons);
     game.state.add("Settings", Settings);
+    game.state.add("ChartModifiers", ChartModifiers);
     game.state.add("Keybindings", Keybindings);
     game.state.add("SongSelect", SongSelect);
     game.state.add("FileSelect", FileSelect);

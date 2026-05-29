@@ -1,6 +1,7 @@
 class Play {
   init(song, difficultyIndex, playtestMode, autoplay) {
-    this.song = song;
+    this.originalSong = song;
+    this.song = structuredClone(song);
     this.difficultyIndex = difficultyIndex || song.difficultyIndex;
     this.player = null;
     this.backgroundQueue = [];
@@ -25,6 +26,7 @@ class Play {
     this.playtestMode = playtestMode;
     this.fullComboAnimationStarted = false;
     this.fullComboAnimationEnded = false;
+    this.shootingDown = false;
     
     // Initialize character system
     this.characterManager = new CharacterManager();
@@ -99,6 +101,8 @@ class Play {
     
     this.createHud();
     
+    this.applyChartModifiers();
+    
     this.setupPlayer();
     
     this.setupLyrics();
@@ -126,6 +130,130 @@ class Play {
     this.songStart();
   }
   
+  applyChartModifiers() {
+    const modifiers = Account.settings.chartModifiers || {};
+    
+    const order = ['NO MINES', 'NO FREEZES', 'NO HANDS', 'NO JUMPS', 'MIRRORED', 'RANDOMIZED'];
+    
+    const activeModifiers = order.filter(key => modifiers[key] === true);
+    
+    if (activeModifiers.length === 0) return;
+    
+    const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
+    const noteKey = difficulty.type + difficulty.rating;
+    let notes = this.song.chart.notes[noteKey];
+    if (!notes) return;
+    
+    notes = JSON.parse(JSON.stringify(notes));
+    
+    for (const modifier of activeModifiers) {
+      if (modifier === 'NO MINES') {
+        notes = notes.filter(n => n.type !== 'M');
+      }
+      else if (modifier === 'NO FREEZES') {
+        // Convertir holds (2) y rolls (4) en notas normales (1)
+        // Eliminar las colas (3)
+        for (let i = 0; i < notes.length; i++) {
+          const note = notes[i];
+          if (note.type === '2' || note.type === '4') {
+            note.type = '1';
+            delete note.beatLength;
+            delete note.secLength;
+            delete note.beatEnd;
+            delete note.secEnd;
+          } else if (note.type === '3') {
+            notes.splice(i, 1);
+            i--;
+          }
+        }
+      }
+      else if (modifier === 'NO HANDS') {
+        const beats = new Map();
+        for (const note of notes) {
+          const beatKey = note.beat.toFixed(6);
+          if (!beats.has(beatKey)) beats.set(beatKey, []);
+          beats.get(beatKey).push(note);
+        }
+        const newNotes = [];
+        for (const [beatKey, beatNotes] of beats) {
+          if (beatNotes.length >= 3) {
+            const shuffled = [...beatNotes];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            newNotes.push(shuffled[0], shuffled[1]);
+          } else {
+            newNotes.push(...beatNotes);
+          }
+        }
+        notes = newNotes;
+      }
+      else if (modifier === 'NO JUMPS') {
+        const beats = new Map();
+        for (const note of notes) {
+          const beatKey = note.beat.toFixed(6);
+          if (!beats.has(beatKey)) beats.set(beatKey, []);
+          beats.get(beatKey).push(note);
+        }
+        const newNotes = [];
+        for (const [beatKey, beatNotes] of beats) {
+          if (beatNotes.length >= 2) {
+            const randomIndex = Math.floor(Math.random() * beatNotes.length);
+            newNotes.push(beatNotes[randomIndex]);
+          } else {
+            newNotes.push(...beatNotes);
+          }
+        }
+        notes = newNotes;
+      }
+      else if (modifier === 'MIRRORED') {
+        for (const note of notes) {
+          note.column = 3 - note.column;
+        }
+      }
+      else if (modifier === 'RANDOMIZED') {
+        const beats = new Map();
+        for (const note of notes) {
+          const beatKey = note.beat.toFixed(6);
+          if (!beats.has(beatKey)) beats.set(beatKey, []);
+          beats.get(beatKey).push(note);
+        }
+        for (const [beatKey, beatNotes] of beats) {
+          if (beatNotes.length > 1) {
+            const columns = beatNotes.map(n => n.column);
+            for (let i = columns.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [columns[i], columns[j]] = [columns[j], columns[i]];
+            }
+            for (let i = 0; i < beatNotes.length; i++) {
+              beatNotes[i].column = columns[i];
+            }
+          }
+        }
+      }
+    }
+    
+    notes.sort((a, b) => a.beat - b.beat);
+    this.song.chart.notes[noteKey] = notes;
+    
+    if (this.player && this.player.renderer) {
+      this.player.renderer.notes = notes;
+      if (this.player.renderer.notesGroup) {
+        this.player.renderer.notesGroup.removeAll(true);
+      }
+      if (this.player.renderer.minesGroup) {
+        this.player.renderer.minesGroup.removeAll(true);
+      }
+      if (this.player.renderer.freezeBodyGroup) {
+        this.player.renderer.freezeBodyGroup.removeAll(true);
+      }
+      if (this.player.renderer.freezeEndGroup) {
+        this.player.renderer.freezeEndGroup.removeAll(true);
+      }
+    }
+  }
+  
   setupAudio() {
     return new Promise(resolve => {
       // Create audio element and wait for it to load
@@ -133,7 +261,7 @@ class Play {
       this.audio.volume = Account.settings.volume / 100;
       this.audio.src = this.song.chart.audioUrl;
       this.audio.addEventListener("canplaythrough", e => resolve());
-      this.audio.addEventListener("error", e => resolve());
+      this.audio.onerror = e => resolve();
       
       // Create visualizer after audio initialized since some visualizers spect the audio to exist
       this.createVisualizer();
@@ -362,6 +490,7 @@ class Play {
     this.setInitialBackground();
     
     const FIXED_DELAY = this.FIXED_DELAY; 
+    const DELAY = FIXED_DELAY + this.userOffset;
     
     this.showSongInfo();
     
@@ -369,14 +498,23 @@ class Play {
     
     this.startTime = game.time.now + FIXED_DELAY - chartOffset * 1000;
     
-    setTimeout(() => {
+    game.time.events.add(DELAY / 2, () => this.checkModifiersScreenButton());
+    
+    game.time.events.add(DELAY, () => {
       this.audio?.play();
       this.started = true;
       if (window.recordNextGame) game.recorder.start(this.audio, 0);
       this.showHud();
-    }, FIXED_DELAY + this.userOffset);
+      this.checkModifiersScreenButton();
+    });
     
     this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
+  }
+  
+  checkModifiersScreenButton() {
+    if (gamepad.held.start) {
+      game.state.start("ChartModifiers", true, false, "Play", this.originalSong, this.difficultyIndex, this.playtestMode, this.autoplay);
+    }
   }
   
   showSongInfo() {
@@ -662,6 +800,8 @@ class Play {
   }
   
   drawFallbackBackground() {
+    if (this.shootingDown) return;
+    
     // Use default song bg as fallback
     const element = this.preloadedBackgroundElements[this.song.chart.background];
     
@@ -684,8 +824,13 @@ class Play {
   }
   
   loadBackgroundImage(filename, url) {
+    if (filename == 'undefined' || !filename || !url) return;
+    
     // Pause any existing video
-    if (this.video) this.video.pause();
+    if (this.video) {
+      this.video.pause();
+      this.video = null;
+    }
     
     // Check if there is already a background preloaded
     if (this.preloadedBackgroundElements[filename]) {
@@ -726,8 +871,13 @@ class Play {
   }
   
   loadBackgroundVideo(filename, url) {
+    if (filename == 'undefined' || !filename || !url) return;
+        
     // Pause any existing video
-    if (this.video && this.video != this.preloadedBackgroundElements[filename]) this.video.pause();
+    if (this.video && this.video != this.preloadedBackgroundElements[filename]) {
+      this.video.pause();
+      this.video = null;
+    }
     
     // Check if there is already a background preloaded
     if (this.preloadedBackgroundElements[filename]) {
@@ -773,12 +923,13 @@ class Play {
     if (this.video && !this.video.__errored) {
       this.playVideo(this.video);
       this.backgroundGradient.visible = false;
-      this.video.addEventListener("error", () => {
+      this.video.onerror = () => {
         console.warn(`Video playback error: ${filename}`);
         this.video.__errored = true;
         this.backgroundGradient.visible = true;
         this.drawFallbackBackground();
-      }, { once: true });
+        this.video.onerror = null;
+      };
     }
   }
   
@@ -828,7 +979,7 @@ class Play {
   }
   
   restartSong() {
-    game.state.start("Play", true, false, this.song, this.difficultyIndex, this.playtestMode, this.autoplay);
+    game.state.start("Play", true, false, this.originalSong, this.difficultyIndex, this.playtestMode, this.autoplay);
   }
   
   songEnd() {
@@ -841,7 +992,7 @@ class Play {
     
     // Return to editor if on playtest mode
     if (this.playtestMode) {
-      game.state.start("Editor", true, false, this.song);
+      game.state.start("Editor", true, false, this.originalSong);
       return;
     }
     
@@ -1158,16 +1309,20 @@ class Play {
   shutdown() {
     this.shootingDown = true;
     
-    this.audio.removeEventListener("ended", this.audioEndListener);
-    window.removeEventListener("visibilitychange", this.visibilityChangeListener);
-    this.audio.pause();
-    this.audio.src = "";
-    
     this.temperature.destroy();
     this.temperature = null;
     
+    this.audio.removeEventListener("ended", this.audioEndListener);
+    window.removeEventListener("visibilitychange", this.visibilityChangeListener);
+    this.audio.pause();
+    this.audio.onload = null;
+    this.audio.onerror = null;
+    this.audio.src = "";
+    
     if (this.video) {
       this.video.pause();
+      this.video.onload = null;
+      this.video.onerror = null;
       this.video.src = "";
     }
     
@@ -1189,5 +1344,7 @@ class Play {
       game.recorder = null;
       window.recordNextGame = false;
     }
+    
+    this.song = null;
   }
 }

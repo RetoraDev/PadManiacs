@@ -27,6 +27,14 @@ const DEFAULT_ACCOUNT = {
     videoFps: 1, // 60 FPS
     enableSongInfo: true,
     enableTemperature: false,
+    chartModifiers: {
+      'NO JUMPS': false,
+      'NO HANDS': false,
+      'NO FREEZES': false,
+      'NO MINES': false,
+      'MIRRORED': false,
+      'RANDOMIZED': false 
+    },
     // Addon system settings
     safeMode: false,
     enabledAddons: [],

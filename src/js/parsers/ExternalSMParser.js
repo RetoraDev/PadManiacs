@@ -91,7 +91,7 @@ class ExternalSMParser {
 
               if (bgEntry.file) {
                 const ext = bgEntry.file.split(".").pop().toLowerCase();
-                bgEntry.type = ["mp4", "avi", "mov"].includes(ext) ? "video" : "image";
+                bgEntry.type = VIDEO_EXTENSIONS.includes(ext) ? "video" : "image";
                 // Create URL for the file if it exists
                 if (files[bgEntry.file.toLowerCase()]) {
                   const file = files[bgEntry.file.toLowerCase()];

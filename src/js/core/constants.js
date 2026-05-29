@@ -594,3 +594,5 @@ const DEFAULT_GAMEPAD_MAPPING = {
     start: 9
   }
 };
+
+const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg"];
