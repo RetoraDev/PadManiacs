@@ -65,7 +65,7 @@ const CHARACTER_SYSTEM = {
     "M",    "C.",  "K.",  "Y",   "YE",
     "WA",   "JA",  "JEI", "JO",  "LEI",
     "LOU",  "TI",  "NU",  "ES",  "SE",
-    "HAT",  "NE",  "TO",  "ME",  "TA"
+    "HAT",  "NE",  "TO",  "ME",  "TA",
   ]
 };
 

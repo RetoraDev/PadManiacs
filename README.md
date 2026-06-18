@@ -27,7 +27,14 @@ PadManiacs is a lightweight rhythm game that brings the StepMania experience to 
 - **Shift**: Select button
 - **Enter**: Start button
 
-Gamepad and touchscreen are supported
+**Player 2:**
+- **Cursor Keys**: Directional Input
+- **Numpad 1**: B button / Up column
+- **Numpad 2**: A button / Right column
+- **Numpad +**: Select button
+- **Numpad -**: Start button
+
+They're all rebindable. Gamepad and touchscreen supported
 
 ## Loading Your StepMania charts
 
@@ -62,7 +69,7 @@ Editor controls:
 - **SELECT**: Toggle playback
 - **START**: Show context menu
 
-The editor is accessible from Extras menu
+The editor is accessible from **Extras** menu
 
 ## Modding & Add-ons
 
@@ -85,7 +92,7 @@ Accessible from the main menu, the Add-on Manager allows you to:
 - SSC chart format support is not implemented
 - Background videos work, but .AVI format is not supported by HTML5 video players
 - Web version requires manual song loading
-- Doubles charts are converted to Singles format
+- Doubles charts are not supported since it's hard to implement Single Player Doubles on mobile
 - Most mobile file browsers may require selecting individual files one by one
 
 ## License

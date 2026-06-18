@@ -116,22 +116,22 @@ class ResultsMulti extends Results {
     const autoplay = player.autoplay;
     
     // Score
-    const scoreText = new Text(xPos, 30, `SCORE: ${autoplay ? "---" : player.score.toLocaleString()}`, FONTS.default);
+    const scoreText = new Text(xPos, 30, `Score: ${autoplay ? "---" : player.score.toLocaleString()}`, FONTS.default);
     scoreText.anchor.x = xAnchor;
     
     // Accuracy
-    const accuracyText = new Text(xPos, 40, `ACCURACY: ${autoplay ? "---" : `${player.accuracy.toFixed(2)}%`}`, FONTS.default);
+    const accuracyText = new Text(xPos, 40, `Accuracy: ${autoplay ? "---" : `${player.accuracy.toFixed(2)}%`}`, FONTS.default);
     accuracyText.anchor.x = xAnchor;
     
     // Rating
     const scoreRating = player.getScoreRating();
     
-    const ratingText = new Text(xPos, 50, `RATING: ${autoplay ? "AUTO" : scoreRating}`, FONTS.shaded);
+    const ratingText = new Text(xPos, 50, `Rating: ${autoplay ? "AUTO" : scoreRating}`, FONTS.shaded);
     ratingText.tint = this.getRatingColor(scoreRating);
     ratingText.anchor.x = xAnchor;
     
     // Combo
-    const comboText = new Text(xPos, 60, `MAX COMBO: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
+    const comboText = new Text(xPos, 60, `Max Combo: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
     comboText.anchor.x = xAnchor;
     
     // Judgements
@@ -158,12 +158,12 @@ class ResultsMulti extends Results {
       margin: { top: 0, bottom: 0, left: 0, right: 0 },
     });
     
-    menu.addItem("NEXT", () => {
+    menu.addItem("Next", () => {
       game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto");
     });
-    menu.addItem("CONTINUE", () => game.state.start("SongSelect"));
-    menu.addItem("RETRY", () => game.state.start("PlayMulti", true, false, this.config));
-    menu.addItem("QUIT", () => game.state.start("MainMenu"));
+    menu.addItem("Continue", () => game.state.start("SongSelect"));
+    menu.addItem("Retry", () => game.state.start("PlayMulti", true, false, this.config));
+    menu.addItem("Quit", () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results_multi', menu);
   }

@@ -12,6 +12,10 @@ class Settings {
     
     this.showSettings();
     
+    // File input element for loading backup files
+    this.fileInput = document.createElement("input");
+    this.fileInput.type = "file";
+    
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
@@ -359,6 +363,8 @@ class Settings {
     
     // Danger zone
     settingsWindow.addItem("Erase Highscores", "", () => this.confirmEraseHighscores());
+    settingsWindow.addItem("Import Backup Data", "", () => this.importBackupData());
+    settingsWindow.addItem("Export Backup Data", "", () => this.exportBackupData());
     settingsWindow.addItem("Restore Default Settings", "", () => this.confirmRestoreDefaults());
     
     game.onMenuIn.dispatch('settings', settingsWindow);
@@ -371,6 +377,119 @@ class Settings {
         this.showMainMenu();
       }
     }, true);
+  }
+  
+  async importBackupData() {
+    this.fileInput.accept = "application/json";
+  
+    this.fileInput.onchange = async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+  
+      const reader = new FileReader();
+      reader.onload = async e => {
+        try {
+          const backupData = JSON.parse(e.target.result);
+          
+          this.confirmDialog(
+            "This will overwrite your current account data including:\n" +
+            "- High scores\n- Settings\n- Characters\n- Achievements\n- Statistics\n\n" +
+            "This action cannot be undone!\n\nAre you sure you want to import this backup?",
+            () => {
+              // Merge backup with default structure to ensure all fields exist
+              const mergedAccount = {
+                ...DEFAULT_ACCOUNT,
+                ...backupData,
+                settings: { ...DEFAULT_ACCOUNT.settings, ...backupData.settings },
+                characters: { ...DEFAULT_ACCOUNT.characters, ...backupData.characters },
+                stats: { ...DEFAULT_ACCOUNT.stats, ...backupData.stats },
+                achievements: { ...DEFAULT_ACCOUNT.achievements, ...backupData.achievements },
+                mapping: { ...DEFAULT_ACCOUNT.mapping, ...backupData.mapping }
+              };
+              
+              // Update global Account object
+              Object.assign(Account, mergedAccount);
+              saveAccount();
+              
+              notifications.show("Backup imported successfully!");
+              
+              // Reload to apply all changes
+              setTimeout(() => {
+                this.confirmDialog(
+                  "Import complete. Restart the game to ensure all data is properly loaded?",
+                  () => location.reload(),
+                  () => this.showSettings(),
+                  "Restart Now",
+                  "Later"
+                );
+              }, 500);
+            },
+            () => {
+              this.showSettings();
+            },
+            "IMPORT",
+            "CANCEL"
+          );
+        } catch (error) {
+          console.error("Failed to parse backup file:", error);
+          notifications.show("Invalid backup file!");
+          this.showSettings();
+        }
+      };
+      
+      reader.readAsText(file);
+      this.fileInput.value = "";
+    };
+  
+    this.fileInput.click();
+  }
+  
+  async exportBackupData() {
+    // Create a backup object with all account data
+    const backupData = {
+      version: VERSION,
+      exportDate: new Date().toISOString(),
+      settings: Account.settings,
+      characters: Account.characters,
+      lastSong: Account.lastSong,
+      songSelectStartingIndex: Account.songSelectStartingIndex,
+      highScores: Account.highScores,
+      stats: Account.stats,
+      achievements: Account.achievements,
+      mapping: Account.mapping
+    };
+    
+    const backupJson = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([backupJson], { type: "application/json" });
+    const filename = `PadManiacs_Backup_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
+    
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.WEB) {
+      // Download in browser
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      notifications.show("Backup exported successfully!");
+      this.showSettings();
+    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+      // Save to filesystem
+      try {
+        const fileSystem = new FileSystemTools();
+        const documentsDir = await fileSystem.getDirectory("");
+        const backupDir = await fileSystem.createDirectory(documentsDir, "PadManiacsBackups");
+        await fileSystem.saveFile(backupDir, blob, filename);
+        notifications.show(`Backup saved to ${filename}`);
+        this.showSettings();
+      } catch (error) {
+        console.error("Failed to save backup:", error);
+        notifications.show("Failed to save backup!");
+        this.showSettings();
+      }
+    }
   }
   
   showMainMenu() {

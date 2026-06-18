@@ -69,7 +69,7 @@ class Editor {
       judgeLineYFalling: 90,
       judgeLineYRising: 50,
       enableChartBackground: Account.settings.enableChartBackground || false,
-      chartBackgroundOpacity: Account.settings.chartBackgroundOpacit || 0.3
+      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
     });
     
     this.homeOverlay = game.add.graphics(0, 0);
@@ -89,7 +89,7 @@ class Editor {
     this.lyricsText.anchor.set(0.5);
     this.lyricsText.visible = false;
     
-    this.bannerSprite = game.add.sprite(8, 56, null);
+    this.bannerSprite = game.add.sprite(8, 58, null);
     
     this.icons = game.add.sprite(8, 130);
     
@@ -243,10 +243,10 @@ class Editor {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        canvas.width = 192;
-        canvas.height = 112;
+        canvas.width = game.width;
+        canvas.height = game.height;
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, 192, 112);
+        ctx.drawImage(img, 0, 0, game.width, game.height);
         const texture = PIXI.Texture.fromCanvas(canvas);
         this.backgroundSprite.loadTexture(texture);
       };
@@ -493,7 +493,7 @@ class Editor {
     if (this.currentScreen === "chartEdit") {
       const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
       const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
-      const currentTime = this.audio.currentTime;
+      const currentTime = this.chartRenderer.beatToSec(this.cursorBeat);
       const formatedTime = TimeUtils.formatTime(currentTime);
       const currentBpm = this.chartRenderer ? this.chartRenderer.getCurrentBPM(this.cursorBeat) : "---";
 
@@ -780,7 +780,7 @@ class Editor {
     if (!this.isPlaying && this.audio && this.audio.src) {
       this.abortPreview();
 
-      this.audio.currentTime = start;
+      this.audio.currentTime = start + this.getAudioOffset();
 
       this.previewEndHandler = () => {
         this.audio.pause();
@@ -1167,6 +1167,10 @@ class Editor {
     this.snapDivision = this.divisions[newIndex];
     this.updateInfoText();
   }
+  
+  getAudioOffset() {
+    return Account.settings.userOffset + this.song.chart.offset;
+  }
 
   showContextMenu() {
     if (this.isPlaying || this.menuVisible) return;
@@ -1327,6 +1331,10 @@ class Editor {
     });
     this.refreshSelectedNotes();
   }
+  
+  rearrangeNotes() {
+    // TODO: Reassign correct beat and sec notes after one or more BPM changes have been added or modified
+  }
 
   convertNoteType(newType) {
     if (this.selectedNotes.length === 1) {
@@ -1414,20 +1422,21 @@ class Editor {
     });
 
     return `
-TITLE: ${chart.title}
-ARTIST: ${chart.artist}
-GENRE: ${chart.genre || "Unknown"}
-CREDIT: ${chart.credit || "Unknown"}
+Title: ${chart.title || "< empty >"}
+Subtitle: ${chart.subtitle || "< empty >"}
+Artist: ${chart.artist || "< empty >"}
+Genre: ${chart.genre || "< empty >"}
+Credit: ${chart.credit || "< empty >"}
 
-DIFFICULTIES: ${chart.difficulties.length}
-TOTAL NOTES: ${totalNotes}
-BPM CHANGES: ${chart.bpmChanges.length}
-STOPS: ${chart.stops.length}
-BG CHANGES: ${chart.backgrounds.length}
+Difficulties: ${chart.difficulties.length}
+Total Notes: ${totalNotes}
+Bpm Changes: ${chart.bpmChanges.length}
+Stops: ${chart.stops.length}
+Bg Changes: ${chart.backgrounds.length}
 
-OFFSET: ${chart.offset}
-SAMPLE START: ${chart.sampleStart}
-SAMPLE LENGTH: ${chart.sampleLength}
+Offset: ${chart.offset}
+Sample Start: ${chart.sampleStart}
+Sample Length: ${chart.sampleLength}
     `.trim();
   }
 
@@ -1921,6 +1930,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     });
 
     carousel.addItem("Edit Title", () => this.editMetadataField("title"));
+    carousel.addItem("Edit Subtitle", () => this.editMetadataField("subtitle"));
     carousel.addItem("Edit Artist", () => this.editMetadataField("artist"));
     carousel.addItem("Edit Genre", () => this.editMetadataField("genre"));
     carousel.addItem("Edit Credit", () => this.editMetadataField("credit"));
@@ -1969,8 +1979,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
     window.focusedElement = new NumberInput({
       text: bpm,
       min: 0,
-      max: 1000,
-      decimals: 0,
+      max: 3000,
+      decimals: 1,
       x: 96,
       y: 40,
       width: 10,
@@ -2278,6 +2288,7 @@ BEAT: ${bg.beat}`);
           sec: this.chartRenderer.beatToSec(this.cursorBeat)
         });
         this.song.chart.bpmChanges.sort((a, b) => a.beat - b.beat);
+        this.rearrangeNotes();
         this.updateInfoText();
         this.menuVisible = false;
         keyboard.destroy();
@@ -2314,6 +2325,8 @@ BEAT: ${bg.beat}`);
         onConfirm: (bpm) => {
           const index = this.song.chart.bpmChanges.indexOf(bpmChange);
           if (index != -1) this.song.chart.bpmChanges[index].bpm = bpm;
+          this.chartRenderer.load(this.song, this.currentDifficultyIndex);
+          this.rearrangeNotes();
           this.updateInfoText();
           this.menuVisible = false;
           keyboard.destroy();

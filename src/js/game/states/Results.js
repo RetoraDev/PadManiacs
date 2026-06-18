@@ -144,25 +144,25 @@ class Results {
     const autoplay = this.gameData.autoplay;
     
     // Score
-    this.scoreText = new Text(10, 30, `SCORE: ${autoplay ? "---" : this.finalScore.toLocaleString()}`, FONTS.default);
+    this.scoreText = new Text(10, 30, `Score: ${autoplay ? "---" : this.finalScore.toLocaleString()}`, FONTS.default);
     
     // Accuracy
-    this.accuracyText = new Text(10, 40, `ACCURACY: ${autoplay ? "---" : `${this.finalAccuracy.toFixed(2)}%`}`, FONTS.default);
+    this.accuracyText = new Text(10, 40, `Accuracy: ${autoplay ? "---" : `${this.finalAccuracy.toFixed(2)}%`}`, FONTS.default);
     
     // Rating
-    this.ratingText = new Text(10, 50, `RATING: ${autoplay ? "AUTO" : this.scoreRating}`, FONTS.shaded);
+    this.ratingText = new Text(10, 50, `Rating: ${autoplay ? "AUTO" : this.scoreRating}`, FONTS.default);
     this.ratingText.tint = this.getRatingColor(this.scoreRating);
     
     // Combo
-    this.comboText = new Text(10, 60, `MAX COMBO: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
+    this.comboText = new Text(10, 60, `Max Combo: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
     
     // Judgements
     this.judgementsText = new Text(15, 70, autoplay ? "\nAUTOPLAY ENABLED" : this.getJudgementsText(player.judgementCounts));
     this.judgementsText.tint = autoplay ? 0xff0000 : 0xffffff;
-    
+
     // New record indicator
     if (!autoplay && this.isNewRecord) {
-      this.recordText = new Text(this.scoreText.right + 16, this.scoreText.y, "NEW RECORD!", FONTS.default_shadow);
+      this.recordText = new Text(this.scoreText.right + 16, this.scoreText.y, "NEW RECORD!", FONTS.bold_shadow);
       this.recordText.anchor.x = 0.5;
       this.recordText.x += this.scoreText.width / 2;
       this.recordText.tint = 0xFFD700; // Gold color
@@ -228,29 +228,29 @@ class Results {
       fgcolor: '#ffffff'
     });
     
-    menu.addItem("NEXT", () => {
+    menu.addItem("Next", () => {
       game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto");
     });
-    menu.addItem("CONTINUE", () => game.state.start("SongSelect"));
+    menu.addItem("Continue", () => game.state.start("SongSelect"));
     if (Account.settings.autoplay) {
-      menu.addItem("DISABLE AUTOPLAY", () => {
+      menu.addItem("Disable Autoplay", () => {
         Account.settings.autoplay = false;
         game.state.start("SongSelect");
       });
     }
-    menu.addItem("RETRY", () => game.state.start("Play", true, false, this.gameData.song));
-    menu.addItem("QUIT", () => game.state.start("MainMenu"));
+    menu.addItem("Retry", () => game.state.start("Play", true, false, this.gameData.song));
+    menu.addItem("Quit", () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results', menu);
   }
   
   getJudgementsText(judgements) {
-    return `MARVELOUS: ${judgements.marvelous}\n` +
-           `PERFECT: ${judgements.perfect}\n` +
-           `GREAT: ${judgements.great}\n` +
-           `GOOD: ${judgements.good}\n` +
-           `BOO: ${judgements.boo}\n` +
-           `MISS: ${judgements.miss}`;
+    return `Marvelous: ${judgements.marvelous}\n` +
+           `Perfect: ${judgements.perfect}\n` +
+           `Great: ${judgements.great}\n` +
+           `Good: ${judgements.good}\n` +
+           `Boo: ${judgements.boo}\n` +
+           `Miss: ${judgements.miss}`;
   }
 
   getRatingColor(rating) {

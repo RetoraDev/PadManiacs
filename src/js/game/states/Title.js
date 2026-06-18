@@ -41,7 +41,7 @@ class Title {
     }
   }
   restoreDefaults() {
-    if (confirm("!! EMERGENCY RESET TRIGGERED !! Holding 6+ buttons has triggered a full factory reset. This will restore ALL settings, controls, and preferences to their default state. Proceed?")) {
+    if (confirm("!! EMERGENCY RESET TRIGGERED !! Holding 6+ buttons during the title animation has triggered a full factory reset. This will restore ALL settings, controls, and preferences to their default state. Proceed?")) {
       Account.settings = DEFAULT_ACCOUNT.settings;
       saveAccount();
       window.location.reload();
@@ -49,7 +49,6 @@ class Title {
   }
   update() {
     gamepad.update();
-
 
     if (this.introEnded && !this.outroStarted && (mouse.pressed.left || gamepad.pressed.any)) {
       this.outroStarted = true;

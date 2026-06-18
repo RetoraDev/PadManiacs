@@ -17,7 +17,6 @@ const DEFAULT_ACCOUNT = {
     beatsPerMeasure: 4, // TODO: Make this configurable
     speedMod: "X-MOD",
     hapticFeedback: false,
-    videoFps: 1,
     enableMouse: true,
     enableTouch: true,
     backgroundOpacity: 0.7,

@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.1.0
- * Build: 5/28/2026, 6:16:02 PM
+ * Build: 6/18/2026, 12:26:34 AM
  * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
@@ -711,7 +711,7 @@ const CHARACTER_SYSTEM = {
     "M",    "C.",  "K.",  "Y",   "YE",
     "WA",   "JA",  "JEI", "JO",  "LEI",
     "LOU",  "TI",  "NU",  "ES",  "SE",
-    "HAT",  "NE",  "TO",  "ME",  "TA"
+    "HAT",  "NE",  "TO",  "ME",  "TA",
   ]
 };
 
@@ -1372,7 +1372,6 @@ const DEFAULT_ACCOUNT = {
     beatsPerMeasure: 4, // TODO: Make this configurable
     speedMod: "X-MOD",
     hapticFeedback: false,
-    videoFps: 1,
     enableMouse: true,
     enableTouch: true,
     backgroundOpacity: 0.7,
@@ -9046,6 +9045,214 @@ class MouseCursor {
   }
 }
 
+class BarChart extends Phaser.Sprite {
+  constructor(x, y, width, height, data) {
+    super(game, x, y);
+    this.size = { width, height };
+    this.config = {
+      backgroundColor: 0x000000,
+      backgroundAlpha: 0.5,
+      borderColor: 0xffffff,
+      borderAlpha: 1,
+      barColor: 0x00ff00,
+      barAlpha: 0.8,
+      barSpacing: 2,
+      showLabels: true,
+      labelColor: 0xffffff,
+      showValues: false,
+      valueColor: 0xffffff
+    };
+    this.data = data || [];
+    this.graphics = game.add.graphics(0, 0);
+    this.addChild(this.graphics);
+    this.drawChart();
+    game.add.existing(this);
+  }
+  
+  drawChart() {
+    // Clear graphics
+    this.graphics.clear();
+    
+    const { width, height } = this.size;
+    
+    // Draw background
+    this.graphics.beginFill(this.config.backgroundColor, this.config.backgroundAlpha);
+    this.graphics.drawRect(0, 0, width, height);
+    this.graphics.endFill();
+    
+    // Draw border
+    this.graphics.lineStyle(1, this.config.borderColor, this.config.borderAlpha);
+    this.graphics.drawRect(0, 0, width, height);
+    this.graphics.endFill();
+    
+    if (!this.data || this.data.length === 0) return;
+    
+    // Find max value
+    let maxValue = Math.max(...this.data.map(item => item.value));
+    if (maxValue <= 0) maxValue = 1;
+    
+    // Calculate bar dimensions
+    const totalSpacing = this.config.barSpacing * (this.data.length - 1);
+    const barWidth = (width - totalSpacing) / this.data.length;
+    const actualBarWidth = Math.max(2, barWidth);
+    const actualSpacing = this.config.barSpacing;
+    
+    let currentX = 0;
+    
+    for (let i = 0; i < this.data.length; i++) {
+      const item = this.data[i];
+      const barHeight = (item.value / maxValue) * height;
+      const barY = height - barHeight;
+      
+      // Draw bar
+      this.graphics.beginFill(this.config.barColor, this.config.barAlpha);
+      this.graphics.drawRect(currentX, barY, actualBarWidth, barHeight);
+      this.graphics.endFill();
+      
+      // Draw label
+      if (this.config.showLabels && item.name) {
+        const label = new Text(currentX + actualBarWidth / 2, height + 2, item.name, FONTS.default);
+        label.anchor.set(0.5, 0);
+        label.tint = this.config.labelColor;
+        this.addChild(label);
+      }
+      
+      // Draw value text
+      if (this.config.showValues) {
+        const valueText = new Text(currentX + actualBarWidth / 2, barY - 2, item.value.toString(), FONTS.default);
+        valueText.anchor.set(0.5, 1);
+        valueText.tint = this.config.valueColor;
+        this.addChild(valueText);
+      }
+      
+      currentX += actualBarWidth + actualSpacing;
+    }
+  }
+  
+  setData(data) {
+    this.data = data;
+    this.drawChart();
+  }
+  
+  setConfig(config) {
+    Object.assign(this.config, config);
+    this.drawChart();
+  }
+}
+
+class LineChart extends Phaser.Sprite {
+  constructor(x, y, width, height, data) {
+    super(game, x, y);
+    this.size = { width, height };
+    this.config = {
+      backgroundColor: 0x000000,
+      backgroundAlpha: 0.5,
+      borderColor: 0xffffff,
+      borderAlpha: 1,
+      lineColor: 0x00ff00,
+      lineWidth: 1,
+      lineAlpha: 1,
+      zeroLineColor: 0xffffff,
+      zeroLineAlpha: 0.1,
+      fillUnderLine: false,
+      fillColor: 0x00ff00,
+      fillAlpha: 0.3,
+      pointRadius: 2,
+      showPoints: false
+    };
+    this.data = data || [];
+    this.graphics = game.add.graphics(0, 0);
+    this.addChild(this.graphics);
+    this.drawChart();
+    game.add.existing(this);
+  }
+  
+  drawChart() {
+    this.graphics.clear();
+    
+    const { width, height } = this.size;
+    
+    // Draw background
+    this.graphics.beginFill(this.config.backgroundColor, this.config.backgroundAlpha);
+    this.graphics.drawRect(0, 0, width, height);
+    this.graphics.endFill();
+    
+    // Draw border
+    this.graphics.lineStyle(1, this.config.borderColor, this.config.borderAlpha);
+    this.graphics.drawRect(0, 0, width, height);
+    this.graphics.endFill();
+    
+    if (!this.data || this.data.length < 2) return;
+    
+    // Find min and max values
+    let minValue = Math.min(...this.data);
+    let maxValue = Math.max(...this.data);
+    
+    if (minValue === maxValue) {
+      minValue = minValue - 1;
+      maxValue = maxValue + 1;
+    }
+    
+    const valueRange = maxValue - minValue;
+    const stepX = width / (this.data.length - 1);
+    
+    // Calculate points
+    const points = [];
+    for (let i = 0; i < this.data.length; i++) {
+      const xPos = i * stepX;
+      const normalizedValue = (this.data[i] - minValue) / valueRange;
+      const yPos = height - (normalizedValue * height);
+      points.push({ x: xPos, y: yPos });
+    }
+    
+    // Draw zero line
+    if (minValue <= 0 && maxValue >= 0) {
+      const zeroY = height - ((0 - minValue) / valueRange) * height;
+      this.graphics.lineStyle(1, this.config.zeroLineColor, this.config.zeroLineAlpha);
+      this.graphics.moveTo(0, zeroY);
+      this.graphics.lineTo(width, zeroY);
+    }
+    
+    // Fill under line if enabled
+    if (this.config.fillUnderLine && points.length > 0) {
+      this.graphics.beginFill(this.config.fillColor, this.config.fillAlpha);
+      this.graphics.moveTo(0, height);
+      for (const point of points) {
+        this.graphics.lineTo(point.x, point.y);
+      }
+      this.graphics.lineTo(width, height);
+      this.graphics.lineTo(0, height);
+      this.graphics.endFill();
+    }
+    
+    // Draw line
+    this.graphics.lineStyle(this.config.lineWidth, this.config.lineColor, this.config.lineAlpha);
+    this.graphics.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      this.graphics.lineTo(points[i].x, points[i].y);
+    }
+    
+    // Draw points
+    if (this.config.showPoints) {
+      for (const point of points) {
+        this.graphics.beginFill(this.config.lineColor, this.config.lineAlpha);
+        this.graphics.drawCircle(point.x, point.y, this.config.pointRadius);
+        this.graphics.endFill();
+      }
+    }
+  }
+  
+  setData(data) {
+    this.data = data;
+    this.drawChart();
+  }
+  
+  setConfig(config) {
+    Object.assign(this.config, config);
+    this.drawChart();
+  }
+}
+
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -15279,7 +15486,7 @@ class Title {
     }
   }
   restoreDefaults() {
-    if (confirm("!! EMERGENCY RESET TRIGGERED !! Holding 6+ buttons has triggered a full factory reset. This will restore ALL settings, controls, and preferences to their default state. Proceed?")) {
+    if (confirm("!! EMERGENCY RESET TRIGGERED !! Holding 6+ buttons during the title animation has triggered a full factory reset. This will restore ALL settings, controls, and preferences to their default state. Proceed?")) {
       Account.settings = DEFAULT_ACCOUNT.settings;
       saveAccount();
       window.location.reload();
@@ -15287,7 +15494,6 @@ class Title {
   }
   update() {
     gamepad.update();
-
 
     if (this.introEnded && !this.outroStarted && (mouse.pressed.left || gamepad.pressed.any)) {
       this.outroStarted = true;
@@ -15937,6 +16143,10 @@ class Settings {
     
     this.showSettings();
     
+    // File input element for loading backup files
+    this.fileInput = document.createElement("input");
+    this.fileInput.type = "file";
+    
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
@@ -16284,6 +16494,8 @@ class Settings {
     
     // Danger zone
     settingsWindow.addItem("Erase Highscores", "", () => this.confirmEraseHighscores());
+    settingsWindow.addItem("Import Backup Data", "", () => this.importBackupData());
+    settingsWindow.addItem("Export Backup Data", "", () => this.exportBackupData());
     settingsWindow.addItem("Restore Default Settings", "", () => this.confirmRestoreDefaults());
     
     game.onMenuIn.dispatch('settings', settingsWindow);
@@ -16296,6 +16508,119 @@ class Settings {
         this.showMainMenu();
       }
     }, true);
+  }
+  
+  async importBackupData() {
+    this.fileInput.accept = "application/json";
+  
+    this.fileInput.onchange = async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+  
+      const reader = new FileReader();
+      reader.onload = async e => {
+        try {
+          const backupData = JSON.parse(e.target.result);
+          
+          this.confirmDialog(
+            "This will overwrite your current account data including:\n" +
+            "- High scores\n- Settings\n- Characters\n- Achievements\n- Statistics\n\n" +
+            "This action cannot be undone!\n\nAre you sure you want to import this backup?",
+            () => {
+              // Merge backup with default structure to ensure all fields exist
+              const mergedAccount = {
+                ...DEFAULT_ACCOUNT,
+                ...backupData,
+                settings: { ...DEFAULT_ACCOUNT.settings, ...backupData.settings },
+                characters: { ...DEFAULT_ACCOUNT.characters, ...backupData.characters },
+                stats: { ...DEFAULT_ACCOUNT.stats, ...backupData.stats },
+                achievements: { ...DEFAULT_ACCOUNT.achievements, ...backupData.achievements },
+                mapping: { ...DEFAULT_ACCOUNT.mapping, ...backupData.mapping }
+              };
+              
+              // Update global Account object
+              Object.assign(Account, mergedAccount);
+              saveAccount();
+              
+              notifications.show("Backup imported successfully!");
+              
+              // Reload to apply all changes
+              setTimeout(() => {
+                this.confirmDialog(
+                  "Import complete. Restart the game to ensure all data is properly loaded?",
+                  () => location.reload(),
+                  () => this.showSettings(),
+                  "Restart Now",
+                  "Later"
+                );
+              }, 500);
+            },
+            () => {
+              this.showSettings();
+            },
+            "IMPORT",
+            "CANCEL"
+          );
+        } catch (error) {
+          console.error("Failed to parse backup file:", error);
+          notifications.show("Invalid backup file!");
+          this.showSettings();
+        }
+      };
+      
+      reader.readAsText(file);
+      this.fileInput.value = "";
+    };
+  
+    this.fileInput.click();
+  }
+  
+  async exportBackupData() {
+    // Create a backup object with all account data
+    const backupData = {
+      version: VERSION,
+      exportDate: new Date().toISOString(),
+      settings: Account.settings,
+      characters: Account.characters,
+      lastSong: Account.lastSong,
+      songSelectStartingIndex: Account.songSelectStartingIndex,
+      highScores: Account.highScores,
+      stats: Account.stats,
+      achievements: Account.achievements,
+      mapping: Account.mapping
+    };
+    
+    const backupJson = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([backupJson], { type: "application/json" });
+    const filename = `PadManiacs_Backup_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
+    
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.WEB) {
+      // Download in browser
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      notifications.show("Backup exported successfully!");
+      this.showSettings();
+    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+      // Save to filesystem
+      try {
+        const fileSystem = new FileSystemTools();
+        const documentsDir = await fileSystem.getDirectory("");
+        const backupDir = await fileSystem.createDirectory(documentsDir, "PadManiacsBackups");
+        await fileSystem.saveFile(backupDir, blob, filename);
+        notifications.show(`Backup saved to ${filename}`);
+        this.showSettings();
+      } catch (error) {
+        console.error("Failed to save backup:", error);
+        notifications.show("Failed to save backup!");
+        this.showSettings();
+      }
+    }
   }
   
   showMainMenu() {
@@ -19027,7 +19352,7 @@ class AchievementsMenu {
     });
     
     // Toggle button
-    this.toggleText = new Text(4, 3, "SHOWING: UNLOCKED");
+    this.toggleText = new Text(4, 3, "Showing: Unlocked");
     
     game.onMenuIn.dispatch('achievements', this.carousel);
     
@@ -19074,7 +19399,7 @@ class AchievementsMenu {
     }
     
     if (this.toggleText) {
-      this.toggleText.write(`SHOWING: ${this.showingUnlocked ? 'UNLOCKED' : 'LOCKED'}`);
+      this.toggleText.write(`Showing: ${this.showingUnlocked ? 'Unlocked' : 'Locked'}`);
     }
     
     // Handle carousel selection
@@ -19487,7 +19812,7 @@ class Play {
       this.audio.volume = Account.settings.volume / 100;
       this.audio.src = this.song.chart.audioUrl;
       this.audio.addEventListener("canplaythrough", e => resolve());
-      this.audio.addEventListener("error", e => resolve());
+      this.audio.onerror = e => resolve();
       
       // Create visualizer after audio initialized since some visualizers spect the audio to exist
       this.createVisualizer();
@@ -20149,12 +20474,13 @@ class Play {
     if (this.video && !this.video.__errored) {
       this.playVideo(this.video);
       this.backgroundGradient.visible = false;
-      this.video.addEventListener("error", () => {
+      this.video.onerror = () => {
         console.warn(`Video playback error: ${filename}`);
         this.video.__errored = true;
         this.backgroundGradient.visible = true;
         this.drawFallbackBackground();
-      }, { once: true });
+        this.video.onerror = null;
+      };
     }
   }
   
@@ -20540,10 +20866,14 @@ class Play {
     this.audio.removeEventListener("ended", this.audioEndListener);
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.audio.pause();
+    this.audio.onload = null;
+    this.audio.onerror = null;
     this.audio.src = "";
     
     if (this.video) {
       this.video.pause();
+      this.video.onload = null;
+      this.video.onerror = null;
       this.video.src = "";
     }
     
@@ -21005,25 +21335,25 @@ class Results {
     const autoplay = this.gameData.autoplay;
     
     // Score
-    this.scoreText = new Text(10, 30, `SCORE: ${autoplay ? "---" : this.finalScore.toLocaleString()}`, FONTS.default);
+    this.scoreText = new Text(10, 30, `Score: ${autoplay ? "---" : this.finalScore.toLocaleString()}`, FONTS.default);
     
     // Accuracy
-    this.accuracyText = new Text(10, 40, `ACCURACY: ${autoplay ? "---" : `${this.finalAccuracy.toFixed(2)}%`}`, FONTS.default);
+    this.accuracyText = new Text(10, 40, `Accuracy: ${autoplay ? "---" : `${this.finalAccuracy.toFixed(2)}%`}`, FONTS.default);
     
     // Rating
-    this.ratingText = new Text(10, 50, `RATING: ${autoplay ? "AUTO" : this.scoreRating}`, FONTS.shaded);
+    this.ratingText = new Text(10, 50, `Rating: ${autoplay ? "AUTO" : this.scoreRating}`, FONTS.default);
     this.ratingText.tint = this.getRatingColor(this.scoreRating);
     
     // Combo
-    this.comboText = new Text(10, 60, `MAX COMBO: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
+    this.comboText = new Text(10, 60, `Max Combo: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
     
     // Judgements
     this.judgementsText = new Text(15, 70, autoplay ? "\nAUTOPLAY ENABLED" : this.getJudgementsText(player.judgementCounts));
     this.judgementsText.tint = autoplay ? 0xff0000 : 0xffffff;
-    
+
     // New record indicator
     if (!autoplay && this.isNewRecord) {
-      this.recordText = new Text(this.scoreText.right + 16, this.scoreText.y, "NEW RECORD!", FONTS.default_shadow);
+      this.recordText = new Text(this.scoreText.right + 16, this.scoreText.y, "NEW RECORD!", FONTS.bold_shadow);
       this.recordText.anchor.x = 0.5;
       this.recordText.x += this.scoreText.width / 2;
       this.recordText.tint = 0xFFD700; // Gold color
@@ -21089,29 +21419,29 @@ class Results {
       fgcolor: '#ffffff'
     });
     
-    menu.addItem("NEXT", () => {
+    menu.addItem("Next", () => {
       game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto");
     });
-    menu.addItem("CONTINUE", () => game.state.start("SongSelect"));
+    menu.addItem("Continue", () => game.state.start("SongSelect"));
     if (Account.settings.autoplay) {
-      menu.addItem("DISABLE AUTOPLAY", () => {
+      menu.addItem("Disable Autoplay", () => {
         Account.settings.autoplay = false;
         game.state.start("SongSelect");
       });
     }
-    menu.addItem("RETRY", () => game.state.start("Play", true, false, this.gameData.song));
-    menu.addItem("QUIT", () => game.state.start("MainMenu"));
+    menu.addItem("Retry", () => game.state.start("Play", true, false, this.gameData.song));
+    menu.addItem("Quit", () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results', menu);
   }
   
   getJudgementsText(judgements) {
-    return `MARVELOUS: ${judgements.marvelous}\n` +
-           `PERFECT: ${judgements.perfect}\n` +
-           `GREAT: ${judgements.great}\n` +
-           `GOOD: ${judgements.good}\n` +
-           `BOO: ${judgements.boo}\n` +
-           `MISS: ${judgements.miss}`;
+    return `Marvelous: ${judgements.marvelous}\n` +
+           `Perfect: ${judgements.perfect}\n` +
+           `Great: ${judgements.great}\n` +
+           `Good: ${judgements.good}\n` +
+           `Boo: ${judgements.boo}\n` +
+           `Miss: ${judgements.miss}`;
   }
 
   getRatingColor(rating) {
@@ -21266,22 +21596,22 @@ class ResultsMulti extends Results {
     const autoplay = player.autoplay;
     
     // Score
-    const scoreText = new Text(xPos, 30, `SCORE: ${autoplay ? "---" : player.score.toLocaleString()}`, FONTS.default);
+    const scoreText = new Text(xPos, 30, `Score: ${autoplay ? "---" : player.score.toLocaleString()}`, FONTS.default);
     scoreText.anchor.x = xAnchor;
     
     // Accuracy
-    const accuracyText = new Text(xPos, 40, `ACCURACY: ${autoplay ? "---" : `${player.accuracy.toFixed(2)}%`}`, FONTS.default);
+    const accuracyText = new Text(xPos, 40, `Accuracy: ${autoplay ? "---" : `${player.accuracy.toFixed(2)}%`}`, FONTS.default);
     accuracyText.anchor.x = xAnchor;
     
     // Rating
     const scoreRating = player.getScoreRating();
     
-    const ratingText = new Text(xPos, 50, `RATING: ${autoplay ? "AUTO" : scoreRating}`, FONTS.shaded);
+    const ratingText = new Text(xPos, 50, `Rating: ${autoplay ? "AUTO" : scoreRating}`, FONTS.shaded);
     ratingText.tint = this.getRatingColor(scoreRating);
     ratingText.anchor.x = xAnchor;
     
     // Combo
-    const comboText = new Text(xPos, 60, `MAX COMBO: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
+    const comboText = new Text(xPos, 60, `Max Combo: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
     comboText.anchor.x = xAnchor;
     
     // Judgements
@@ -21308,12 +21638,12 @@ class ResultsMulti extends Results {
       margin: { top: 0, bottom: 0, left: 0, right: 0 },
     });
     
-    menu.addItem("NEXT", () => {
+    menu.addItem("Next", () => {
       game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto");
     });
-    menu.addItem("CONTINUE", () => game.state.start("SongSelect"));
-    menu.addItem("RETRY", () => game.state.start("PlayMulti", true, false, this.config));
-    menu.addItem("QUIT", () => game.state.start("MainMenu"));
+    menu.addItem("Continue", () => game.state.start("SongSelect"));
+    menu.addItem("Retry", () => game.state.start("PlayMulti", true, false, this.config));
+    menu.addItem("Quit", () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results_multi', menu);
   }
@@ -22394,7 +22724,7 @@ class Editor {
       judgeLineYFalling: 90,
       judgeLineYRising: 50,
       enableChartBackground: Account.settings.enableChartBackground || false,
-      chartBackgroundOpacity: Account.settings.chartBackgroundOpacit || 0.3
+      chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
     });
     
     this.homeOverlay = game.add.graphics(0, 0);
@@ -22414,7 +22744,7 @@ class Editor {
     this.lyricsText.anchor.set(0.5);
     this.lyricsText.visible = false;
     
-    this.bannerSprite = game.add.sprite(8, 56, null);
+    this.bannerSprite = game.add.sprite(8, 58, null);
     
     this.icons = game.add.sprite(8, 130);
     
@@ -22568,10 +22898,10 @@ class Editor {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        canvas.width = 192;
-        canvas.height = 112;
+        canvas.width = game.width;
+        canvas.height = game.height;
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, 192, 112);
+        ctx.drawImage(img, 0, 0, game.width, game.height);
         const texture = PIXI.Texture.fromCanvas(canvas);
         this.backgroundSprite.loadTexture(texture);
       };
@@ -22818,7 +23148,7 @@ class Editor {
     if (this.currentScreen === "chartEdit") {
       const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
       const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
-      const currentTime = this.audio.currentTime;
+      const currentTime = this.chartRenderer.beatToSec(this.cursorBeat);
       const formatedTime = TimeUtils.formatTime(currentTime);
       const currentBpm = this.chartRenderer ? this.chartRenderer.getCurrentBPM(this.cursorBeat) : "---";
 
@@ -23105,7 +23435,7 @@ class Editor {
     if (!this.isPlaying && this.audio && this.audio.src) {
       this.abortPreview();
 
-      this.audio.currentTime = start;
+      this.audio.currentTime = start + this.getAudioOffset();
 
       this.previewEndHandler = () => {
         this.audio.pause();
@@ -23492,6 +23822,10 @@ class Editor {
     this.snapDivision = this.divisions[newIndex];
     this.updateInfoText();
   }
+  
+  getAudioOffset() {
+    return Account.settings.userOffset + this.song.chart.offset;
+  }
 
   showContextMenu() {
     if (this.isPlaying || this.menuVisible) return;
@@ -23652,6 +23986,10 @@ class Editor {
     });
     this.refreshSelectedNotes();
   }
+  
+  rearrangeNotes() {
+    // TODO: Reassign correct beat and sec notes after one or more BPM changes have been added or modified
+  }
 
   convertNoteType(newType) {
     if (this.selectedNotes.length === 1) {
@@ -23739,20 +24077,21 @@ class Editor {
     });
 
     return `
-TITLE: ${chart.title}
-ARTIST: ${chart.artist}
-GENRE: ${chart.genre || "Unknown"}
-CREDIT: ${chart.credit || "Unknown"}
+Title: ${chart.title || "< empty >"}
+Subtitle: ${chart.subtitle || "< empty >"}
+Artist: ${chart.artist || "< empty >"}
+Genre: ${chart.genre || "< empty >"}
+Credit: ${chart.credit || "< empty >"}
 
-DIFFICULTIES: ${chart.difficulties.length}
-TOTAL NOTES: ${totalNotes}
-BPM CHANGES: ${chart.bpmChanges.length}
-STOPS: ${chart.stops.length}
-BG CHANGES: ${chart.backgrounds.length}
+Difficulties: ${chart.difficulties.length}
+Total Notes: ${totalNotes}
+Bpm Changes: ${chart.bpmChanges.length}
+Stops: ${chart.stops.length}
+Bg Changes: ${chart.backgrounds.length}
 
-OFFSET: ${chart.offset}
-SAMPLE START: ${chart.sampleStart}
-SAMPLE LENGTH: ${chart.sampleLength}
+Offset: ${chart.offset}
+Sample Start: ${chart.sampleStart}
+Sample Length: ${chart.sampleLength}
     `.trim();
   }
 
@@ -24246,6 +24585,7 @@ SAMPLE LENGTH: ${chart.sampleLength}
     });
 
     carousel.addItem("Edit Title", () => this.editMetadataField("title"));
+    carousel.addItem("Edit Subtitle", () => this.editMetadataField("subtitle"));
     carousel.addItem("Edit Artist", () => this.editMetadataField("artist"));
     carousel.addItem("Edit Genre", () => this.editMetadataField("genre"));
     carousel.addItem("Edit Credit", () => this.editMetadataField("credit"));
@@ -24294,8 +24634,8 @@ SAMPLE LENGTH: ${chart.sampleLength}
     window.focusedElement = new NumberInput({
       text: bpm,
       min: 0,
-      max: 1000,
-      decimals: 0,
+      max: 3000,
+      decimals: 1,
       x: 96,
       y: 40,
       width: 10,
@@ -24603,6 +24943,7 @@ BEAT: ${bg.beat}`);
           sec: this.chartRenderer.beatToSec(this.cursorBeat)
         });
         this.song.chart.bpmChanges.sort((a, b) => a.beat - b.beat);
+        this.rearrangeNotes();
         this.updateInfoText();
         this.menuVisible = false;
         keyboard.destroy();
@@ -24639,6 +24980,8 @@ BEAT: ${bg.beat}`);
         onConfirm: (bpm) => {
           const index = this.song.chart.bpmChanges.indexOf(bpmChange);
           if (index != -1) this.song.chart.bpmChanges[index].bpm = bpm;
+          this.chartRenderer.load(this.song, this.currentDifficultyIndex);
+          this.rearrangeNotes();
           this.updateInfoText();
           this.menuVisible = false;
           keyboard.destroy();
