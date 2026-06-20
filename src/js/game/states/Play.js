@@ -257,11 +257,18 @@ class Play {
   setupAudio() {
     return new Promise(resolve => {
       // Create audio element and wait for it to load
-      this.audio = document.createElement("audio");
+      this.audio = this.audio || document.createElement("audio");
       this.audio.volume = Account.settings.volume / 100;
+      this.audio.currentTime = 0;
       this.audio.src = this.song.chart.audioUrl;
-      this.audio.addEventListener("canplaythrough", e => resolve());
-      this.audio.onerror = e => resolve();
+      this.audio.oncanplaythrough = () => {
+        resolve();
+        this.audio.oncanplaythrough = null;
+      };
+      this.audio.onerror = () => {
+        resolve('error');
+        this.audio.onerror = null;
+      };
       
       // Create visualizer after audio initialized since some visualizers spect the audio to exist
       this.createVisualizer();
@@ -1309,15 +1316,11 @@ class Play {
   shutdown() {
     this.shootingDown = true;
     
-    this.temperature.destroy();
-    this.temperature = null;
-    
     this.audio.removeEventListener("ended", this.audioEndListener);
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.audio.pause();
     this.audio.onload = null;
     this.audio.onerror = null;
-    this.audio.src = "";
     
     if (this.video) {
       this.video.pause();
@@ -1326,8 +1329,6 @@ class Play {
       this.video.src = "";
     }
     
-    this.song.chart.backgrounds.forEach(bg => bg.activated = false);
-  
     if (this.visualizer) {
       this.visualizer.destroy();
       this.visualizer = null;
@@ -1337,6 +1338,9 @@ class Play {
       this.metronome.destroy();
       this.metronome = null;
     }
+    
+    this.temperature.destroy();
+    this.temperature = null;
     
     // Stop recording and show video
     if (window.recordNextGame) {

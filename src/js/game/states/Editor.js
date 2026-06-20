@@ -1795,7 +1795,7 @@ Sample Length: ${chart.sampleLength}
       console.error("Export failed:", error);
       this.hideLoadingScreen();
       this.showHomeScreen();
-      notifications.show("Export failed!");
+      notifications.show("Export failed!", 2000, "error");
     }
   }
 

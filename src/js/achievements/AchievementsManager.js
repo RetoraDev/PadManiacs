@@ -446,12 +446,6 @@ class AchievementsManager {
 
       if (currentCharacter) {
         currentCharacter.addExperience(achievement.expReward);
-
-        const { levelBefore, levelAfter, expBefore, expAfter } = currentCharacter.getLastExperienceStoryEntry();
-
-        // Show exp gain notification
-        //notifications.showExpGain(currentCharacter, achievement.expReward, levelBefore, levelAfter, expBefore, expAfter);
-
         characterManager.saveToAccount();
       }
     }

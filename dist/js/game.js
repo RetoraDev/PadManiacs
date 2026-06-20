@@ -4,16 +4,16 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.1.0
- * Build: 6/18/2026, 12:26:34 AM
- * Platform: Android (Cordova)
+ * Version: v1.1.0 dev
+ * Build: 6/20/2026, 1:21:07 PM
+ * Platform: Development
  * Debug: false
  * Minified: false
  */
 
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.1.0";
+const VERSION = "v1.1.0 dev";
 
 window.DEBUG = false;
 
@@ -111,7 +111,7 @@ const FONTS = {
   }
 };
 
-const WINDOW_PANELS = ["1"];
+const WINDOW_PANELS = ["1", "2", "3", "4", "5"];
 
 const NAVIGATION_HINT_PRESETS = {
   general: [
@@ -619,7 +619,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -630,14 +630,14 @@ const ADDONS_DIRECTORY = "Addons";
 const SCREENSHOTS_DIRECTORY = "Screenshots";
 const SONGS_DIRECTORY = "Songs";
 const EDITOR_OUTPUT_DIRECTORY = "Edits";
+const BACKUPS_DIRECTORY = "Backups";
 
 const ENABLE_PARALLEL_LOADING = true;
-const MAX_PARALLEL_DOWNLOADS = 128;
+const MAX_PARALLEL_DOWNLOADS = 16;
 
 const MAX_PARALLEL_ADDON_LOADS = 3;
-const ENABLE_ADDON_SAFE_MODE = true;
 
-const ENABLE_UI_SFX = false;
+const ENABLE_UI_SFX = true;
 const ENABLE_EXP_SFX = true;
 
 const REGULAR_VIBRATION_INTENSITY = 75;
@@ -1357,6 +1357,7 @@ const DEFAULT_ACCOUNT = {
   version: 1.0,
   settings: {
     volume: 100,
+    sfxVolume: 100,
     autoplay: false,
     enableMenuMusic: true,
     randomSong: false,
@@ -2992,7 +2993,7 @@ class Character {
         this.level >= CHARACTER_SYSTEM.MIN_LEVEL_FOR_SKILL) {
       const unlockedSkill = this.unlockRandomSkill();
       if (unlockedSkill) {
-        notifications.show(`New skill unlocked: ${unlockedSkill.name}`);
+        notifications.show(`New skill unlocked: ${unlockedSkill.name}`, 2000, "unlock");
       }
     }
     
@@ -3004,7 +3005,7 @@ class Character {
       if (unlockedHair) {
         this.lastHairUnlockLevel = this.level;
         
-        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1]}`);
+        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1]}`, 2000, "unlock");
       }
     }
     
@@ -3015,7 +3016,7 @@ class Character {
       const unlockedItem = this.unlockRandomItem();
       if (unlockedItem) {
         this.lastItemUnlockLevel = this.level;
-        notifications.show(`New item unlocked: ${unlockedItem.name}`);
+        notifications.show(`New item unlocked: ${unlockedItem.name}`, 2000, "unlock");
       }
     }
     
@@ -3025,7 +3026,7 @@ class Character {
         this.skillLevel < CHARACTER_SYSTEM.MAX_SKILL_LEVEL) {
       this.skillLevel++;
       this.lastSkillLevelUp = this.level;
-      notifications.show(`Skill level increased to ${this.skillLevel}`);
+      notifications.show(`Skill level increased to ${this.skillLevel}`, 2000, "unlock");
     }
   }
 
@@ -4393,12 +4394,6 @@ class AchievementsManager {
 
       if (currentCharacter) {
         currentCharacter.addExperience(achievement.expReward);
-
-        const { levelBefore, levelAfter, expBefore, expAfter } = currentCharacter.getLastExperienceStoryEntry();
-
-        // Show exp gain notification
-        //notifications.showExpGain(currentCharacter, achievement.expReward, levelBefore, levelAfter, expBefore, expAfter);
-
         characterManager.saveToAccount();
       }
     }
@@ -5169,6 +5164,10 @@ class Window extends Phaser.Sprite {
 
   playNavSound() {
     ENABLE_UI_SFX && Audio.play('ui_nav');
+  }
+  
+  setTint(tint) {
+    this.frameParts.forEach(part => part.tint = tint);
   }
 
   confirm() {
@@ -7888,6 +7887,7 @@ class NotificationSystem {
     this.charWidth = 4;
     
     this.notificationWindow = null;
+    this.notificationTint = null;
     this.notificationTexts = null;
     
     this.restrictedStates = new Set(['Title', 'Play', 'Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
@@ -7925,14 +7925,14 @@ class NotificationSystem {
   }
 
   // Main show method for regular text notifications
-  show(text, duration = 2000) {
+  show(text, duration = 2000, type = "normal") {
     const currentState = game.state.getCurrentState();
     const stateName = currentState?.constructor?.name || '';
     
     const wrappedText = this.wrapText(text);
     
     this.queue.push({ 
-      type: 'text',
+      type: type,
       text: wrappedText, 
       originalText: text,
       duration,
@@ -7955,29 +7955,6 @@ class NotificationSystem {
       text: `Achievement Unlocked!\n${achievement.name}\n${achievement.description.achieved}`,
       duration: 2500, // Longer for achievements
       endTime: Date.now() + 2500,
-      queuedInState: stateName
-    });
-    
-    if (this.isStateAllowed(stateName) && !this.isShowing) {
-      this.processNext();
-    }
-  }
-
-  // Show experience gain notification with animation
-  showExpGain(character, expGain, levelBefore, levelAfter, expBefore, expAfter) {
-    const currentState = game.state.getCurrentState();
-    const stateName = currentState?.constructor?.name || '';
-    
-    this.queue.push({
-      type: 'exp',
-      character: character,
-      expGain: expGain,
-      levelBefore: levelBefore,
-      levelAfter: levelAfter,
-      expBefore: expBefore,
-      expAfter: expAfter,
-      duration: 5000, // Longer for exp animations
-      endTime: Date.now() + 5000,
       queuedInState: stateName
     });
     
@@ -8012,23 +7989,62 @@ class NotificationSystem {
     // Handle different notification types
     switch (notification.type) {
       case 'achievement':
-        this.displayTextNotification(notification.text);
-        break;
-      case 'exp':
-        this.displayExpNotification(notification);
-        break;
-      case 'text':
+      case 'normal':
       default:
-        this.displayTextNotification(notification.text);
+        this.displayTextNotification(notification.text, notification.type);
         break;
     }
-
+    
+    this.animateNotificationTint(notification);
+    this.playNotificationSound(notification);
+    
     game.time.events.add(notification.duration, () => {
       this.hideCurrent();
     });
   }
+  
+  animateNotificationTint(notification) {
+    let tintAnimationIndex = 0;
+    this.tintAnimationLoop = game.time.events.loop(100, () => {
+      if (!this.notificationWindow) return;
+      
+      const tint = this.notificationTint[tintAnimationIndex];
+      
+      this.notificationWindow.tint = tint;
+      this.notificationWindow.setTint(tint);
+      this.notificationTexts.forEach(text => text.tint = tint);
 
-  displayTextNotification(text) {
+      if (tintAnimationIndex >= this.notificationTint.length -1) {
+        tintAnimationIndex = 0;
+      } else {
+        tintAnimationIndex++;
+      }
+    });
+
+    game.time.events.add(notification.duration + 300, () => {
+      game.time.events.remove(this.tintAnimationLoop);
+    });
+  }
+  
+  stopNotificationTintAnimation() {
+    if (this.tintAnimationLoop) {
+      game.time.events.remove(this.tintAnimationLoop);
+    }
+  }
+  
+  playNotificationSound(notification) {
+    const soundKey = {
+      'normal': 'ui_notification',
+      'error': 'ui_error',
+      'success': 'ui_notification', 
+      'unlock': 'unlock',
+      'achievement': 'unlock'
+    }[notification.type];
+    
+    ENABLE_UI_SFX && Audio.play(soundKey);
+  }
+
+  displayTextNotification(text, type = "normal") {
     const lines = text.split('\n');
     const lineCount = lines.length;
     
@@ -8038,9 +8054,20 @@ class NotificationSystem {
     
     const x = (game.width - windowWidth) / 2;
     const y = 4;
+    
+    const tint = {
+      "normal": [0x76fcde],
+      "error": [0xfd5409, 0xfa1409],
+      "success": [0x11b60f, 0x76fcde],
+      "unlock": [0xFFFF00, 0xffb200],
+      "achievement": [0x76fcde, 0x00cbff]
+    }[type];
+    
+    this.notificationTint = tint;
 
-    this.notificationWindow = new Window(x / 8, y / 8, windowWidth / 8, windowHeight / 8, "1");
+    this.notificationWindow = new Window(x / 8, y / 8, windowWidth / 8, windowHeight / 8, "2");
     this.notificationWindow.focus = false;
+    this.notificationWindow.tint = typeof tint == 'object' ? tint[0] : tint;
     this.notificationWindow.selector.visible = false;
     
     this.notificationTexts = [];
@@ -8050,10 +8077,7 @@ class NotificationSystem {
         windowWidth / 2,
         this.padding + (index * this.lineHeight) + (this.lineHeight / 2),
         line,
-        {
-          ...FONTS.default,
-          tint: 0x76fcde
-        }
+        FONTS.default
       );
       lineText.anchor.set(0.5);
       this.notificationWindow.addChild(lineText);
@@ -8062,145 +8086,6 @@ class NotificationSystem {
 
     this.notificationWindow.alpha = 0;
     game.add.tween(this.notificationWindow).to({ alpha: 1 }, 300, "Linear", true);
-  }
-  
-  displayExpNotification(notification) {
-    const windowWidth = 140;
-    const windowHeight = 40;
-    const x = (game.width - windowWidth) / 2;
-    const y = 4;
-
-    this.notificationWindow = new Window(x / 8, y / 8, windowWidth / 8, windowHeight / 8, "1");
-    this.notificationWindow.focus = false;
-    this.notificationWindow.selector.visible = false;
-    
-    // Title
-    const titleText = new Text(
-      windowWidth / 2,
-      7,
-      "EXPERIENCE GAIN!",
-      {
-        ...FONTS.default,
-        tint: 0x76FCDE
-      }
-    );
-    titleText.anchor.set(0.5);
-    this.notificationWindow.addChild(titleText);
-
-    // Character name and level
-    const charText = new Text(
-      windowWidth / 2,
-      14,
-      `${notification.character.name} - Level ${notification.levelBefore}`,
-      {
-        ...FONTS.default,
-        tint: 0xFFFFFF
-      }
-    );
-    charText.anchor.set(0.5);
-    this.notificationWindow.addChild(charText);
-
-    // Experience amount
-    const expText = new Text(
-      windowWidth / 2,
-      22,
-      `+${notification.expGain} EXP`,
-      {
-        ...FONTS.default,
-        tint: 0xFFFFFF
-      }
-    );
-    expText.anchor.set(0.5);
-    this.notificationWindow.addChild(expText);
-
-    // Experience bar background
-    const barBg = game.add.graphics(20, 30);
-    barBg.beginFill(0x333333);
-    barBg.drawRect(0, 0, windowWidth - 40, 4);
-    barBg.endFill();
-    this.notificationWindow.addChild(barBg);
-
-    // Experience bar foreground
-    const expBar = game.add.graphics(20, 30);
-    expBar.beginFill(0x76FCDE);
-    this.notificationWindow.addChild(expBar);
-
-    this.notificationWindow.alpha = 0;
-    game.add.tween(this.notificationWindow).to({ alpha: 1 }, 300, "Linear", true);
-
-    // Animate experience gain
-    this.animateExpBar(notification, expBar, windowWidth - 40);
-  }
-
-  animateExpBar(notification, expBar, barWidth) {
-    const expCurve = CHARACTER_SYSTEM.EXPERIENCE_CURVE;
-    let currentExp = notification.expBefore;
-    let currentLevel = notification.levelBefore;
-    const targetExp = notification.expAfter;
-    const targetLevel = notification.levelAfter;
-    
-    const animate = () => {
-      if (currentLevel < targetLevel || currentExp < targetExp) {
-        if (currentExp < expCurve(currentLevel)) {
-          currentExp++;
-        } else {
-          currentExp = 0;
-          currentLevel++;
-          
-          // Level up effect
-          this.showLevelUpEffect(currentLevel);
-        }
-        
-        // Update exp bar
-        const progress = currentExp / expCurve(currentLevel);
-        expBar.clear();
-        expBar.beginFill(0x76FCDE);
-        expBar.drawRect(0, 0, barWidth * progress, 4);
-        expBar.endFill();
-        
-        game.time.events.add(30, animate);
-      }
-    };
-    
-    game.time.events.add(500, animate);
-  }
-
-  showLevelUpEffect(level) {
-    // Create level up text effect
-    const levelText = new Text(
-      game.width / 2,
-      game.height / 2,
-      `LEVEL UP! ${level}`,
-      {
-        ...FONTS.shaded,
-        tint: 0xFFD700
-      }
-    );
-    levelText.anchor.set(0.5);
-    levelText.alpha = 0;
-    levelText.scale.set(1.5);
-    
-    game.world.add(levelText);
-    
-    // Animate level up text
-    const levelTween = game.add.tween(levelText).to({ 
-      alpha: 1,
-      scale: { x: 2, y: 2 }
-    }, 400, Phaser.Easing.Back.Out, true);
-    
-    levelTween.onComplete.add(() => {
-      game.add.tween(levelText).to({ 
-        alpha: 0,
-        y: levelText.y - 20
-      }, 600, Phaser.Easing.Cubic.In, true).onComplete.add(() => {
-        levelText.destroy();
-      });
-    });
-    
-    // Play level up sound if available
-    if (ENABLE_UI_SFX) {
-      Audio.play('level_up', 0.7);
-    }
   }
 
   // Existing helper methods
@@ -8295,20 +8180,18 @@ class NotificationSystem {
       // Re-display based on type
       switch (preserved.type) {
         case 'achievement':
-          this.displayTextNotification(preserved.text);
-          break;
-        case 'exp':
-          this.displayExpNotification(preserved);
-          break;
-        case 'text':
+        case 'normal':
         default:
-          this.displayTextNotification(preserved.text);
+          this.displayTextNotification(preserved.text, preserved.type);
           break;
       }
       
       this.isShowing = true;
       
       const remainingDuration = Math.max(500, preserved.remainingTime);
+      
+      this.animateNotificationTint(preserved);
+      this.playNotificationSound(preserved);
       
       game.time.events.add(remainingDuration, () => {
         this.hideCurrent();
@@ -8361,6 +8244,7 @@ class NotificationSystem {
     if (this.currentNotification) {
       this.hideCurrent();
     }
+    this.stopNotificationTintAnimation();
     this.preservedNotification = null;
   }
 
@@ -9322,7 +9206,7 @@ class FileSystemTools {
   createDirectory(rootDirEntry, dirName) {
     return this.fileSystem.createDirectory(rootDirEntry, dirName);
   }
-
+  
   // Additional utility methods
   getBasePath() {
     if (this.platform === 'nwjs' && this.fileSystem.getBasePath) {
@@ -9995,13 +9879,17 @@ const openExternalUrl = url => {
 
 const Audio = {
   pool: {},
-  add: function (key, volume = 1, loop = false, reset = true) {
+  add: function (key) {
     if (!reset || !this.pool[key]) {
       this.pool[key] = game.add.audio(key);
     }
     return this.pool[key];
   },
   play: function (key, volume = 1, loop = false, reset = true) {
+    // 
+    const MAX_VOLUME = typeof Account.settings.sfxVolume != undefined ? Account.settings.sfxVolume / 100 : 1;
+    volume = MAX_VOLUME * volume;
+    
     if (game) {
       if (!reset || !this.pool[key]) {
         this.pool[key] = game.add.audio(key);
@@ -14174,12 +14062,16 @@ class Boot {
       };
     }
     
-    if (isNaN(Account.settings.backgroundOpacity)) Account.settings.backgroundOpacity = 0.3; 
+    if (isNaN(Account.settings.backgroundOpacity) || typeof Account.settings.backgroundOpacity == undefined) Account.settings.backgroundOpacity = 0.3; 
+    
+    if (!Account.settings.sfxVolume && Account.settings.sfxVolume != 0) Account.settings.sfxVolume = 100;
     
     Account.version = currentVersion;
     saveAccount();
   }
   create() {
+    this.fixSettings();
+    
     window.inputManager = new InputManager(game);
 
     notifications = new NotificationSystem();
@@ -14429,6 +14321,36 @@ class Boot {
         type: "audio",
         url: "sfx/full_combo.ogg"
       },
+      {
+        key: "ui_select",
+        type: "audio",
+        url: "sfx/ui_select.ogg"
+      },
+      {
+        key: "ui_cancel",
+        type: "audio",
+        url: "sfx/ui_cancel.ogg"
+      },
+      {
+        key: "ui_nav",
+        type: "audio",
+        url: "sfx/ui_nav.ogg"
+      },
+      {
+        key: "ui_error",
+        type: "audio",
+        url: "sfx/ui_error.ogg"
+      },
+      {
+        key: "ui_notification",
+        type: "audio",
+        url: "sfx/ui_notification.ogg"
+      },
+      {
+        key: "unlock",
+        type: "audio",
+        url: "sfx/unlock.ogg"
+      },
       // Chart assets
       {
         key: "arrows",
@@ -14567,11 +14489,11 @@ class Boot {
         frameHeight: 7
       }
     ];
-
+/*
     window.addEventListener("keydown", event => {
       // Only process if we're in the game and not in an input field
       if (document.activeElement.tagName === "INPUT" || window.focusedElement) return;
-
+      
       switch (event.code) {
         case "F8": // Screenshot
           event.preventDefault();
@@ -14595,7 +14517,7 @@ class Boot {
           break;
       }
     });
-
+*/
     game.state.start("Load", true, false, window.gameResources, "LoadCordova");
   }
 }
@@ -15498,6 +15420,9 @@ class Title {
     if (this.introEnded && !this.outroStarted && (mouse.pressed.left || gamepad.pressed.any)) {
       this.outroStarted = true;
       this.text.alpha = 0;
+      
+      //ENABLE_UI_SFX && Audio.play("title_1");
+      
       this.logo.outro(() => {
         let heldButtons = Object.values(gamepad.held).reduce((acc, held) => (held ? acc + 1 : acc));
         if (heldButtons >= 6) {
@@ -16160,13 +16085,15 @@ class Settings {
     const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
     
+    this.settingsWindow = settingsWindow;
+    
     let restartNeeded = false;
     
     this.windowManager.focus(settingsWindow);
     
-    // Volume setting
+    // Music Voluem
     settingsWindow.addRangeItem(
-      "Volume",
+      "Music Playback Volume",
       0,
       100,
       1,
@@ -16174,6 +16101,23 @@ class Settings {
       "%",
       value => {
         Account.settings.volume = value;
+        saveAccount();
+        if (backgroundMusic && backgroundMusic.audio) {
+          backgroundMusic.audio.volume = value / 100;
+        }
+      }
+    );
+    
+    // Sfx Volume
+    settingsWindow.addRangeItem(
+      "Sound Effects Volume",
+      0,
+      100,
+      1,
+      Account.settings.sfxVolume,
+      "%",
+      value => {
+        Account.settings.sfxVolume = value;
         saveAccount();
         if (backgroundMusic && backgroundMusic.audio) {
           backgroundMusic.audio.volume = value / 100;
@@ -16334,7 +16278,7 @@ class Settings {
     
     // Background opacity
     settingsWindow.addRangeItem(
-      "Background Opacity",
+      "Song Background Opacity",
       0,
       100,
       1,
@@ -16346,9 +16290,9 @@ class Settings {
       }
     );
     
-    // Song Intro
+    // Song Info Intro
     settingsWindow.addSettingItem(
-      "Song Info",
+      "Display Song Info Intro",
       ["YES", "NO"],
       Account.settings.enableSongInfo ? 0 : 1,
       index => {
@@ -16522,8 +16466,12 @@ class Settings {
         try {
           const backupData = JSON.parse(e.target.result);
           
+          this.windowManager.remove(this.settingsWindow, true);
+      
           this.confirmDialog(
-            "This will overwrite your current account data including:\n" +
+            `Backup version: ${backupData.version || '???'}\n` +
+            `Backup date: ${backupData.exportDate ? new Date(backupData.exportDate).toDateString() : '???'}\n\n` +
+            "Importing will overwrite your current account data including:\n" +
             "- High scores\n- Settings\n- Characters\n- Achievements\n- Statistics\n\n" +
             "This action cannot be undone!\n\nAre you sure you want to import this backup?",
             () => {
@@ -16542,7 +16490,7 @@ class Settings {
               Object.assign(Account, mergedAccount);
               saveAccount();
               
-              notifications.show("Backup imported successfully!");
+              notifications.show("Backup imported successfully!", 2000, "success");
               
               // Reload to apply all changes
               setTimeout(() => {
@@ -16563,7 +16511,7 @@ class Settings {
           );
         } catch (error) {
           console.error("Failed to parse backup file:", error);
-          notifications.show("Invalid backup file!");
+          notifications.show("Invalid backup file!", 2000, "error");
           this.showSettings();
         }
       };
@@ -16604,20 +16552,19 @@ class Settings {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      notifications.show("Backup exported successfully!");
+      notifications.show("Backup exported successfully!", 2000, "success");
       this.showSettings();
     } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       // Save to filesystem
       try {
         const fileSystem = new FileSystemTools();
-        const documentsDir = await fileSystem.getDirectory("");
-        const backupDir = await fileSystem.createDirectory(documentsDir, "PadManiacsBackups");
-        await fileSystem.saveFile(backupDir, blob, filename);
-        notifications.show(`Backup saved to ${filename}`);
+        const outputDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + BACKUPS_DIRECTORY);
+        await fileSystem.saveFile(outputDir, blob, filename);
+        notifications.show(`Backup saved to ${filename}`, 2000, "success");
         this.showSettings();
       } catch (error) {
         console.error("Failed to save backup:", error);
-        notifications.show("Failed to save backup!");
+        notifications.show("Failed to save backup!", 2000, "error");
         this.showSettings();
       }
     }
@@ -16673,6 +16620,8 @@ class Settings {
   }
 
   confirmRestoreDefaults() {
+    this.windowManager.remove(this.settingsWindow, true);
+    
     this.confirmDialog(
       "All settings will be restored to their default values.\nThe game will need to restart.\n\nContinue?",
       () => {
@@ -17609,13 +17558,13 @@ class SongSelect {
       backgroundMusic.stop();
     }
     
-    this.previewAudio = document.createElement("audio");
+    this.previewAudio = this.previewAudio || document.createElement("audio");
     this.previewAudio.volume = Account.settings.volume / 100;
     
-    this.bannerImg = document.createElement("img");
+    this.bannerImg = this.bannerImg || document.createElement("img");
     
-    this.previewCanvas = document.createElement("canvas");
-    this.previewCtx = this.previewCanvas.getContext("2d");
+    this.bannerCanvas = this.bannerCanvas || document.createElement("canvas");
+    this.bannerCtx = this.bannerCtx || this.bannerCanvas.getContext("2d");
     
     this.navigationHint = new NavigationHint('song_select');
     
@@ -17737,10 +17686,10 @@ class SongSelect {
       this.bannerImg.onload = () => {
         if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
         
-        this.previewCtx.clearRect(0, 0, 96, 32);
-        this.previewCtx.drawImage(this.bannerImg, 0, 0, 96, 32);
+        this.bannerCtx.clearRect(0, 0, 96, 32);
+        this.bannerCtx.drawImage(this.bannerImg, 0, 0, 96, 32);
         
-        const texture = PIXI.Texture.fromCanvas(this.previewCanvas);
+        const texture = PIXI.Texture.fromCanvas(this.bannerCanvas);
         this.currentBannerTexture = texture;
         
         this.bannerSprite.loadTexture(texture);
@@ -18058,6 +18007,7 @@ class SongSelect {
       if (gamepad1.pressed.b) {
         if (this.multiplayerState.player1.ready) {
           this.multiplayerState.player1.ready = false;
+          ENABLE_UI_SFX && Audio.play('ui_cancel');
         } else {
           this.multiplayerState.player1.ready = false;
           this.multiplayerState.player2.ready = false;
@@ -18066,6 +18016,8 @@ class SongSelect {
           this.showGameModeSelection(this.multiplayerState.song, this.multiplayerState.difficultyIndex);
           this.multiplayerScreen.destroy();
           this.multiplayerScreen = null;
+          
+          ENABLE_UI_SFX && Audio.play('ui_cancel');
           return;
         }
       }
@@ -18073,6 +18025,7 @@ class SongSelect {
       if (gamepad2.pressed.b) {
         if (this.multiplayerState.player2.ready && this.multiplayerState.player2.joined) {
           this.multiplayerState.player2.ready = false;
+          ENABLE_UI_SFX && Audio.play('ui_cancel');
         } else {
           this.multiplayerState.player1.ready = false;
           this.multiplayerState.player2.ready = false;
@@ -18081,6 +18034,8 @@ class SongSelect {
           this.showGameModeSelection(this.multiplayerState.song, this.multiplayerState.difficultyIndex);
           this.multiplayerScreen.destroy();
           this.multiplayerScreen = null;
+          
+          ENABLE_UI_SFX && Audio.play('ui_cancel');
           return;
         }
       }
@@ -18113,7 +18068,7 @@ class SongSelect {
         this.multiplayerState.player1.ready = !this.multiplayerState.player1.ready;
         this.windowManager1.focus(this.player1Frame);
         gamepad.pressed.start = false;
-        ENABLE_UI_SFX && Audio.play('ui_nav');
+        ENABLE_UI_SFX && Audio.play('ui_select');
       }
       
       if (this.multiplayerState.player2.joined && gamepad2.pressed.start) {
@@ -18121,7 +18076,7 @@ class SongSelect {
         this.windowManager2.focus(this.player2Frame);
         this.player2Frame.playNavSound();
         gamepad.pressed.start = false;
-        ENABLE_UI_SFX && Audio.play('ui_nav');
+        ENABLE_UI_SFX && Audio.play('ui_select');
       }
       
       if (!this.multiplayerState.player2.joined && gamepad2.pressed.start) {
@@ -18130,7 +18085,7 @@ class SongSelect {
         this.windowManager2.focus(this.player2Frame);
         this.player2Frame.playNavSound();
         gamepad.pressed.start = false;
-        ENABLE_UI_SFX && Audio.play('ui_nav');
+        ENABLE_UI_SFX && Audio.play('ui_select');
       }
     }
   }
@@ -19808,11 +19763,18 @@ class Play {
   setupAudio() {
     return new Promise(resolve => {
       // Create audio element and wait for it to load
-      this.audio = document.createElement("audio");
+      this.audio = this.audio || document.createElement("audio");
       this.audio.volume = Account.settings.volume / 100;
+      this.audio.currentTime = 0;
       this.audio.src = this.song.chart.audioUrl;
-      this.audio.addEventListener("canplaythrough", e => resolve());
-      this.audio.onerror = e => resolve();
+      this.audio.oncanplaythrough = () => {
+        resolve();
+        this.audio.oncanplaythrough = null;
+      };
+      this.audio.onerror = () => {
+        resolve('error');
+        this.audio.onerror = null;
+      };
       
       // Create visualizer after audio initialized since some visualizers spect the audio to exist
       this.createVisualizer();
@@ -20860,15 +20822,11 @@ class Play {
   shutdown() {
     this.shootingDown = true;
     
-    this.temperature.destroy();
-    this.temperature = null;
-    
     this.audio.removeEventListener("ended", this.audioEndListener);
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.audio.pause();
     this.audio.onload = null;
     this.audio.onerror = null;
-    this.audio.src = "";
     
     if (this.video) {
       this.video.pause();
@@ -20877,8 +20835,6 @@ class Play {
       this.video.src = "";
     }
     
-    this.song.chart.backgrounds.forEach(bg => bg.activated = false);
-  
     if (this.visualizer) {
       this.visualizer.destroy();
       this.visualizer = null;
@@ -20888,6 +20844,9 @@ class Play {
       this.metronome.destroy();
       this.metronome = null;
     }
+    
+    this.temperature.destroy();
+    this.temperature = null;
     
     // Stop recording and show video
     if (window.recordNextGame) {
@@ -24450,7 +24409,7 @@ Sample Length: ${chart.sampleLength}
       console.error("Export failed:", error);
       this.hideLoadingScreen();
       this.showHomeScreen();
-      notifications.show("Export failed!");
+      notifications.show("Export failed!", 2000, "error");
     }
   }
 
@@ -26928,31 +26887,29 @@ class AudioTemperatureMeter {
     
   destroy() {
     // Detener todas las señales primero
-    this.onHighTemperature.removeAll();
-    this.onLowTemperature.removeAll();
+    this.onHighTemperature.dispose();
+    this.onLowTemperature.dispose();
     
+    // TODO: No idea why song audio mutes for every game if I destroy this. For now trust JavaScript garbage collection
+    /*
     // Cerrar audio context correctamente
     if (this.audioContext) {
-      this.audioContext.close().catch(e => console.warn("Error closing audio context:", e));
-      this.audioContext = null;
+      //this.audioContext.close().catch(e => console.warn("Error closing audio context:", e));
+      //this.audioContext = null;
     }
     
-    // Limpiar referencias al audio
-    this.audio = null;
-    this.scene = null;
-    this.chart = null;
     
     // Limpiar analyser y source
     if (this.analyser) {
-      this.analyser.disconnect();
+      //this.analyser.disconnect();
       this.analyser = null;
     }
     
     if (this.source) {
-      this.source.disconnect();
+      //this.source.disconnect();
       this.source = null;
     }
-    
+    */
     // Limpiar debug text
     if (this.debugText) {
       this.debugText.destroy();

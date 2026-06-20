@@ -434,6 +434,10 @@ class Window extends Phaser.Sprite {
   playNavSound() {
     ENABLE_UI_SFX && Audio.play('ui_nav');
   }
+  
+  setTint(tint) {
+    this.frameParts.forEach(part => part.tint = tint);
+  }
 
   confirm() {
     if (this.items.length > 0) {

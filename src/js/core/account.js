@@ -2,6 +2,7 @@ const DEFAULT_ACCOUNT = {
   version: 1.0,
   settings: {
     volume: 100,
+    sfxVolume: 100,
     autoplay: false,
     enableMenuMusic: true,
     randomSong: false,

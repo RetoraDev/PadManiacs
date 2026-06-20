@@ -49,13 +49,13 @@ class SongSelect {
       backgroundMusic.stop();
     }
     
-    this.previewAudio = document.createElement("audio");
+    this.previewAudio = this.previewAudio || document.createElement("audio");
     this.previewAudio.volume = Account.settings.volume / 100;
     
-    this.bannerImg = document.createElement("img");
+    this.bannerImg = this.bannerImg || document.createElement("img");
     
-    this.previewCanvas = document.createElement("canvas");
-    this.previewCtx = this.previewCanvas.getContext("2d");
+    this.bannerCanvas = this.bannerCanvas || document.createElement("canvas");
+    this.bannerCtx = this.bannerCtx || this.bannerCanvas.getContext("2d");
     
     this.navigationHint = new NavigationHint('song_select');
     
@@ -177,10 +177,10 @@ class SongSelect {
       this.bannerImg.onload = () => {
         if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
         
-        this.previewCtx.clearRect(0, 0, 96, 32);
-        this.previewCtx.drawImage(this.bannerImg, 0, 0, 96, 32);
+        this.bannerCtx.clearRect(0, 0, 96, 32);
+        this.bannerCtx.drawImage(this.bannerImg, 0, 0, 96, 32);
         
-        const texture = PIXI.Texture.fromCanvas(this.previewCanvas);
+        const texture = PIXI.Texture.fromCanvas(this.bannerCanvas);
         this.currentBannerTexture = texture;
         
         this.bannerSprite.loadTexture(texture);
@@ -498,6 +498,7 @@ class SongSelect {
       if (gamepad1.pressed.b) {
         if (this.multiplayerState.player1.ready) {
           this.multiplayerState.player1.ready = false;
+          ENABLE_UI_SFX && Audio.play('ui_cancel');
         } else {
           this.multiplayerState.player1.ready = false;
           this.multiplayerState.player2.ready = false;
@@ -506,6 +507,8 @@ class SongSelect {
           this.showGameModeSelection(this.multiplayerState.song, this.multiplayerState.difficultyIndex);
           this.multiplayerScreen.destroy();
           this.multiplayerScreen = null;
+          
+          ENABLE_UI_SFX && Audio.play('ui_cancel');
           return;
         }
       }
@@ -513,6 +516,7 @@ class SongSelect {
       if (gamepad2.pressed.b) {
         if (this.multiplayerState.player2.ready && this.multiplayerState.player2.joined) {
           this.multiplayerState.player2.ready = false;
+          ENABLE_UI_SFX && Audio.play('ui_cancel');
         } else {
           this.multiplayerState.player1.ready = false;
           this.multiplayerState.player2.ready = false;
@@ -521,6 +525,8 @@ class SongSelect {
           this.showGameModeSelection(this.multiplayerState.song, this.multiplayerState.difficultyIndex);
           this.multiplayerScreen.destroy();
           this.multiplayerScreen = null;
+          
+          ENABLE_UI_SFX && Audio.play('ui_cancel');
           return;
         }
       }
@@ -553,7 +559,7 @@ class SongSelect {
         this.multiplayerState.player1.ready = !this.multiplayerState.player1.ready;
         this.windowManager1.focus(this.player1Frame);
         gamepad.pressed.start = false;
-        ENABLE_UI_SFX && Audio.play('ui_nav');
+        ENABLE_UI_SFX && Audio.play('ui_select');
       }
       
       if (this.multiplayerState.player2.joined && gamepad2.pressed.start) {
@@ -561,7 +567,7 @@ class SongSelect {
         this.windowManager2.focus(this.player2Frame);
         this.player2Frame.playNavSound();
         gamepad.pressed.start = false;
-        ENABLE_UI_SFX && Audio.play('ui_nav');
+        ENABLE_UI_SFX && Audio.play('ui_select');
       }
       
       if (!this.multiplayerState.player2.joined && gamepad2.pressed.start) {
@@ -570,7 +576,7 @@ class SongSelect {
         this.windowManager2.focus(this.player2Frame);
         this.player2Frame.playNavSound();
         gamepad.pressed.start = false;
-        ENABLE_UI_SFX && Audio.play('ui_nav');
+        ENABLE_UI_SFX && Audio.play('ui_select');
       }
     }
   }

@@ -98,7 +98,7 @@ const FONTS = {
   }
 };
 
-const WINDOW_PANELS = ["1"];
+const WINDOW_PANELS = ["1", "2", "3", "4", "5"];
 
 const NAVIGATION_HINT_PRESETS = {
   general: [

@@ -55,12 +55,16 @@ class Boot {
       };
     }
     
-    if (isNaN(Account.settings.backgroundOpacity)) Account.settings.backgroundOpacity = 0.3; 
+    if (isNaN(Account.settings.backgroundOpacity) || typeof Account.settings.backgroundOpacity == undefined) Account.settings.backgroundOpacity = 0.3; 
+    
+    if (!Account.settings.sfxVolume && Account.settings.sfxVolume != 0) Account.settings.sfxVolume = 100;
     
     Account.version = currentVersion;
     saveAccount();
   }
   create() {
+    this.fixSettings();
+    
     window.inputManager = new InputManager(game);
 
     notifications = new NotificationSystem();
@@ -310,6 +314,36 @@ class Boot {
         type: "audio",
         url: "sfx/full_combo.ogg"
       },
+      {
+        key: "ui_select",
+        type: "audio",
+        url: "sfx/ui_select.ogg"
+      },
+      {
+        key: "ui_cancel",
+        type: "audio",
+        url: "sfx/ui_cancel.ogg"
+      },
+      {
+        key: "ui_nav",
+        type: "audio",
+        url: "sfx/ui_nav.ogg"
+      },
+      {
+        key: "ui_error",
+        type: "audio",
+        url: "sfx/ui_error.ogg"
+      },
+      {
+        key: "ui_notification",
+        type: "audio",
+        url: "sfx/ui_notification.ogg"
+      },
+      {
+        key: "unlock",
+        type: "audio",
+        url: "sfx/unlock.ogg"
+      },
       // Chart assets
       {
         key: "arrows",
@@ -448,11 +482,11 @@ class Boot {
         frameHeight: 7
       }
     ];
-
+/*
     window.addEventListener("keydown", event => {
       // Only process if we're in the game and not in an input field
       if (document.activeElement.tagName === "INPUT" || window.focusedElement) return;
-
+      
       switch (event.code) {
         case "F8": // Screenshot
           event.preventDefault();
@@ -476,7 +510,7 @@ class Boot {
           break;
       }
     });
-
+*/
     game.state.start("Load", true, false, window.gameResources, "LoadCordova");
   }
 }

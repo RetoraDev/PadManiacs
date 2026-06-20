@@ -60,7 +60,7 @@ class Character {
         this.level >= CHARACTER_SYSTEM.MIN_LEVEL_FOR_SKILL) {
       const unlockedSkill = this.unlockRandomSkill();
       if (unlockedSkill) {
-        notifications.show(`New skill unlocked: ${unlockedSkill.name}`);
+        notifications.show(`New skill unlocked: ${unlockedSkill.name}`, 2000, "unlock");
       }
     }
     
@@ -72,7 +72,7 @@ class Character {
       if (unlockedHair) {
         this.lastHairUnlockLevel = this.level;
         
-        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1]}`);
+        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1]}`, 2000, "unlock");
       }
     }
     
@@ -83,7 +83,7 @@ class Character {
       const unlockedItem = this.unlockRandomItem();
       if (unlockedItem) {
         this.lastItemUnlockLevel = this.level;
-        notifications.show(`New item unlocked: ${unlockedItem.name}`);
+        notifications.show(`New item unlocked: ${unlockedItem.name}`, 2000, "unlock");
       }
     }
     
@@ -93,7 +93,7 @@ class Character {
         this.skillLevel < CHARACTER_SYSTEM.MAX_SKILL_LEVEL) {
       this.skillLevel++;
       this.lastSkillLevelUp = this.level;
-      notifications.show(`Skill level increased to ${this.skillLevel}`);
+      notifications.show(`Skill level increased to ${this.skillLevel}`, 2000, "unlock");
     }
   }
 

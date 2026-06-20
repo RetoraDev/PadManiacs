@@ -67,7 +67,7 @@ class FileSystemTools {
   createDirectory(rootDirEntry, dirName) {
     return this.fileSystem.createDirectory(rootDirEntry, dirName);
   }
-
+  
   // Additional utility methods
   getBasePath() {
     if (this.platform === 'nwjs' && this.fileSystem.getBasePath) {

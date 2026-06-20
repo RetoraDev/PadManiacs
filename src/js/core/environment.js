@@ -18,14 +18,14 @@ const ADDONS_DIRECTORY = "Addons";
 const SCREENSHOTS_DIRECTORY = "Screenshots";
 const SONGS_DIRECTORY = "Songs";
 const EDITOR_OUTPUT_DIRECTORY = "Edits";
+const BACKUPS_DIRECTORY = "Backups";
 
 const ENABLE_PARALLEL_LOADING = true;
-const MAX_PARALLEL_DOWNLOADS = 128;
+const MAX_PARALLEL_DOWNLOADS = 16;
 
 const MAX_PARALLEL_ADDON_LOADS = 3;
-const ENABLE_ADDON_SAFE_MODE = true;
 
-const ENABLE_UI_SFX = false;
+const ENABLE_UI_SFX = true;
 const ENABLE_EXP_SFX = true;
 
 const REGULAR_VIBRATION_INTENSITY = 75;

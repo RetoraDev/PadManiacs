@@ -29,13 +29,15 @@ class Settings {
     const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
     
+    this.settingsWindow = settingsWindow;
+    
     let restartNeeded = false;
     
     this.windowManager.focus(settingsWindow);
     
-    // Volume setting
+    // Music Voluem
     settingsWindow.addRangeItem(
-      "Volume",
+      "Music Playback Volume",
       0,
       100,
       1,
@@ -43,6 +45,23 @@ class Settings {
       "%",
       value => {
         Account.settings.volume = value;
+        saveAccount();
+        if (backgroundMusic && backgroundMusic.audio) {
+          backgroundMusic.audio.volume = value / 100;
+        }
+      }
+    );
+    
+    // Sfx Volume
+    settingsWindow.addRangeItem(
+      "Sound Effects Volume",
+      0,
+      100,
+      1,
+      Account.settings.sfxVolume,
+      "%",
+      value => {
+        Account.settings.sfxVolume = value;
         saveAccount();
         if (backgroundMusic && backgroundMusic.audio) {
           backgroundMusic.audio.volume = value / 100;
@@ -203,7 +222,7 @@ class Settings {
     
     // Background opacity
     settingsWindow.addRangeItem(
-      "Background Opacity",
+      "Song Background Opacity",
       0,
       100,
       1,
@@ -215,9 +234,9 @@ class Settings {
       }
     );
     
-    // Song Intro
+    // Song Info Intro
     settingsWindow.addSettingItem(
-      "Song Info",
+      "Display Song Info Intro",
       ["YES", "NO"],
       Account.settings.enableSongInfo ? 0 : 1,
       index => {
@@ -391,8 +410,12 @@ class Settings {
         try {
           const backupData = JSON.parse(e.target.result);
           
+          this.windowManager.remove(this.settingsWindow, true);
+      
           this.confirmDialog(
-            "This will overwrite your current account data including:\n" +
+            `Backup version: ${backupData.version || '???'}\n` +
+            `Backup date: ${backupData.exportDate ? new Date(backupData.exportDate).toDateString() : '???'}\n\n` +
+            "Importing will overwrite your current account data including:\n" +
             "- High scores\n- Settings\n- Characters\n- Achievements\n- Statistics\n\n" +
             "This action cannot be undone!\n\nAre you sure you want to import this backup?",
             () => {
@@ -411,7 +434,7 @@ class Settings {
               Object.assign(Account, mergedAccount);
               saveAccount();
               
-              notifications.show("Backup imported successfully!");
+              notifications.show("Backup imported successfully!", 2000, "success");
               
               // Reload to apply all changes
               setTimeout(() => {
@@ -432,7 +455,7 @@ class Settings {
           );
         } catch (error) {
           console.error("Failed to parse backup file:", error);
-          notifications.show("Invalid backup file!");
+          notifications.show("Invalid backup file!", 2000, "error");
           this.showSettings();
         }
       };
@@ -473,20 +496,19 @@ class Settings {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      notifications.show("Backup exported successfully!");
+      notifications.show("Backup exported successfully!", 2000, "success");
       this.showSettings();
     } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       // Save to filesystem
       try {
         const fileSystem = new FileSystemTools();
-        const documentsDir = await fileSystem.getDirectory("");
-        const backupDir = await fileSystem.createDirectory(documentsDir, "PadManiacsBackups");
-        await fileSystem.saveFile(backupDir, blob, filename);
-        notifications.show(`Backup saved to ${filename}`);
+        const outputDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + BACKUPS_DIRECTORY);
+        await fileSystem.saveFile(outputDir, blob, filename);
+        notifications.show(`Backup saved to ${filename}`, 2000, "success");
         this.showSettings();
       } catch (error) {
         console.error("Failed to save backup:", error);
-        notifications.show("Failed to save backup!");
+        notifications.show("Failed to save backup!", 2000, "error");
         this.showSettings();
       }
     }
@@ -542,6 +564,8 @@ class Settings {
   }
 
   confirmRestoreDefaults() {
+    this.windowManager.remove(this.settingsWindow, true);
+    
     this.confirmDialog(
       "All settings will be restored to their default values.\nThe game will need to restart.\n\nContinue?",
       () => {

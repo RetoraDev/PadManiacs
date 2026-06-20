@@ -78,13 +78,17 @@ const openExternalUrl = url => {
 
 const Audio = {
   pool: {},
-  add: function (key, volume = 1, loop = false, reset = true) {
+  add: function (key) {
     if (!reset || !this.pool[key]) {
       this.pool[key] = game.add.audio(key);
     }
     return this.pool[key];
   },
   play: function (key, volume = 1, loop = false, reset = true) {
+    // 
+    const MAX_VOLUME = typeof Account.settings.sfxVolume != undefined ? Account.settings.sfxVolume / 100 : 1;
+    volume = MAX_VOLUME * volume;
+    
     if (game) {
       if (!reset || !this.pool[key]) {
         this.pool[key] = game.add.audio(key);
