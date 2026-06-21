@@ -252,7 +252,7 @@ class Character {
         console.log(`${this.name} developed "${bestCandidate.name}" personality! (score: ${bestScore.toFixed(2)})`);
       }
       
-      notification.show(`Seems like ${this.name} has become a ${bestCandidate.name.toLowerCase()} person.`);
+      notifications.show(`Seems like ${this.name} has become a ${bestCandidate.name.toLowerCase()} person.`);
       
       return bestCandidate;
     }

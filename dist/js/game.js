@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.1.0
- * Build: 6/21/2026, 6:51:07 AM
+ * Build: 6/21/2026, 7:25:22 AM
  * Platform: Android (Cordova)
  * Debug: true
  * Minified: false
@@ -4178,7 +4178,7 @@ class Character {
         console.log(`${this.name} developed "${bestCandidate.name}" personality! (score: ${bestScore.toFixed(2)})`);
       }
       
-      notification.show(`Seems like ${this.name} has become a ${bestCandidate.name.toLowerCase()} person.`);
+      notifications.show(`Seems like ${this.name} has become a ${bestCandidate.name.toLowerCase()} person.`);
       
       return bestCandidate;
     }
@@ -4846,15 +4846,7 @@ class CharacterManager {
 
     const newCharacter = new Character({
       name: name,
-      appearance: {
-        skinTone: appearance.skinTone || 0,
-        hairColor: appearance.hairColor || 0xFFFFFF,
-        frontHair: appearance.frontHair || "1",
-        backHair: appearance.backHair || "1",
-        clothing: appearance.clothing || "school_uniform",
-        accessory: appearance.accessory || null
-      },
-      tints: appearance.tints || {}
+      appearance
     });
 
     this.characters.set(name, newCharacter);

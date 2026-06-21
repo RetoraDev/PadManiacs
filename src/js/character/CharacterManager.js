@@ -30,15 +30,7 @@ class CharacterManager {
 
     const newCharacter = new Character({
       name: name,
-      appearance: {
-        skinTone: appearance.skinTone || 0,
-        hairColor: appearance.hairColor || 0xFFFFFF,
-        frontHair: appearance.frontHair || "1",
-        backHair: appearance.backHair || "1",
-        clothing: appearance.clothing || "school_uniform",
-        accessory: appearance.accessory || null
-      },
-      tints: appearance.tints || {}
+      appearance
     });
 
     this.characters.set(name, newCharacter);
