@@ -33,6 +33,8 @@ class Boot {
     const oldVersion = Account.version;
     const difference = currentVersion - oldVersion;
     
+    if (Math.abs(difference) > 0) console.log('Migrating:', oldVersion, '->', currentVersion);
+    
     // Fix settings from old versions
     if (!oldVersion) {
       // Try to migrate settings and progress
@@ -59,6 +61,49 @@ class Boot {
     
     if (!Account.settings.sfxVolume && Account.settings.sfxVolume != 0) Account.settings.sfxVolume = 100;
     
+    const forceMigrateCharacters = false;
+    
+    // Version 1.1 has better character customization
+    if (oldVersion < 1.1 || forceMigrateCharacters) {
+      // Convert old version characters to new character system
+      Account.characters.list = Account.characters.list.map(character => {
+        console.log('Migrating', character.name);
+        
+        if (!forceMigrateCharacters && typeof character.appearance.tints != 'undefined') {
+          console.log(character.name, 'is already compatible with current version');
+          return character;
+        }
+        
+        const newCharacter = structuredClone(character);
+        
+        newCharacter.appearance.clothing = DEFAULT_CHARACTER.appearance.clothing;
+        newCharacter.appearance.tints = DEFAULT_CHARACTER.appearance.tints;
+        newCharacter.appearance.tints.hair = character.appearance.hairColor;
+        
+        return newCharacter;
+      });
+      
+      // Reset clothing unlock state
+      Account.characters.unlockedItems = DEFAULT_ACCOUNT.characters.unlockedItems;
+      
+      console.log('Character list converted!');
+    }
+    
+    // Fix broken unlocked items
+    if (!Account.characters.unlockedItems) {
+      Account.characters.unlockedItems = [];
+    }
+    
+    if (currentVersion >= 1.1) {
+      // Ensure default items are always unlocked
+      const defaultItems = ['top_seifuku_default', 'bottom_skirt_blue', 'shoes_common'];
+      for (const itemId of defaultItems) {
+        if (!Account.characters.unlockedItems.includes(itemId)) {
+          Account.characters.unlockedItems.push(itemId);
+        }
+      }
+    }
+      
     Account.version = currentVersion;
     saveAccount();
   }
@@ -454,23 +499,27 @@ class Boot {
       // Clothing and accessories
       ...(() => {
         const resources = [];
-        CHARACTER_ITEMS.clothing.forEach(item => {
-          resources.push({
-            key: `character_clothing_${item.id}`,
-            url: `character/${item.id}.png`,
-            type: "spritesheet",
-            frameWidth: 100,
-            frameHeight: 100
-          });
-        });
-        CHARACTER_ITEMS.accessories.forEach(item => {
-          resources.push({
-            key: `character_accessory_${item.id}`,
-            url: `character/${item.id}.png`,
-            type: "spritesheet",
-            frameWidth: 100,
-            frameHeight: 100
-          });
+        CHARACTER_ITEMS.forEach(item => {
+          if (item.layers) {
+            for (let i = 0; i < item.layers.length; i++) {
+              const layer = item.layers[i];
+              resources.push({
+                key: `character_item_${item.id}_layer${i}`,
+                url: `character/${ layer.sprite ? layer.sprite : `${item.id}_layer${i}.png` }`,
+                type: "spritesheet",
+                frameWidth: 100,
+                frameHeight: 100
+              });
+            };
+          } else {
+            resources.push({
+              key: `character_item_${item.id}`,
+              url: `character/${item.id}.png`,
+              type: "spritesheet",
+              frameWidth: 100,
+              frameHeight: 100
+            });
+          }
         });
         return resources;
       })(),

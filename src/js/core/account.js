@@ -1,5 +1,5 @@
 const DEFAULT_ACCOUNT = {
-  version: 1.0,
+  version: 1.1,
   settings: {
     volume: 100,
     sfxVolume: 100,
@@ -45,7 +45,7 @@ const DEFAULT_ACCOUNT = {
       front: [1],
       back: [1]
     },
-    unlockedItems: ["school_uniform"],
+    unlockedItems: ["top_seifuku_default", "bottom_skirt_blue", "shoes_common"],
     currentCharacter: DEFAULT_CHARACTER.name,
     list: [JSON.parse(JSON.stringify(DEFAULT_CHARACTER))]
   },

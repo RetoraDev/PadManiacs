@@ -8,11 +8,23 @@ class Character {
     this.selectedSkill = data.selectedSkill || null;
     this.appearance = data.appearance || {
       skinTone: 0,
-      hairColor: 0xFFFFFF,
-      frontHair: "1",
-      backHair: "1",
-      clothing: "school_uniform",
-      accessory: "headphones"
+      frontHair: 1,
+      backHair: 1,
+      clothing: {
+        accessory: null,
+        top: "top_seifuku_default",
+        bottom: "bottom_skirt_blue",
+        shoes: "shoes_common",
+        special: null
+      },
+      tints: {
+        hair: 0xa8705a,
+        accessory: null,
+        top: null,
+        bottom: null,
+        shoes: null,
+        special: null
+      }
     };
     this.stats = data.stats || {
       gamesPlayed: 0,
@@ -152,14 +164,7 @@ class Character {
   }
 
   unlockRandomItem() {
-    const allItems = [
-      ...CHARACTER_ITEMS.clothing,
-      ...CHARACTER_ITEMS.accessories
-    ];
-    
-    const availableItems = allItems.filter(item => 
-      !Account.characters.unlockedItems.includes(item.id)
-    );
+    const availableItems = CHARACTER_ITEMS.filter(item => Account.characters.unlockedItems.includes(item.id));
     
     if (availableItems.length > 0) {
       const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
@@ -168,7 +173,7 @@ class Character {
       Account.characters.unlockedItems.push(randomItem.id);
       
       // Save to localStorage
-      localStorage.setItem("Account", JSON.stringify(Account));
+      saveAccount();
       
       return randomItem;
     }
@@ -186,6 +191,13 @@ class Character {
   getAvailableItems() {
     return Account.characters.unlockedItems;
   }
+  
+  static getItem(itemId) {
+    for (const item of CHARACTER_ITEMS) {
+      if (item.id === itemId) return item;
+    }
+    return null;
+  }
 
   changeHairStyle(type, hairId) {
     if (type === 'front' && Account.characters.unlockedHairs.front.includes(hairId)) {
@@ -197,16 +209,39 @@ class Character {
     }
     return false;
   }
+  
+  changeHairTint(tint) {
+    this.appearance.tints.hair = tint;
+    return true;
+  }
 
   changeClothing(itemId) {
     if (Account.characters.unlockedItems.includes(itemId)) {
       const item = CHARACTER_ITEMS.clothing.find(i => i.id === itemId) || 
                    CHARACTER_ITEMS.accessories.find(i => i.id === itemId);
       if (item) {
-        if (item.type === 'clothing') {
-          this.appearance.clothing = itemId;
-        } else if (item.type === 'accessory') {
-          this.appearance.accessory = itemId;
+        if (item.type === 'special') {
+          this.appearance.clothing.special = itemId;
+          if (item.layers) {
+            this.appearance.tints.special = [];
+            item.layers.forEach(layer => {
+              this.appearance.tints.special.push(layer.dyable ? layer.tint : null);
+            });
+          } else {
+            this.appearance.tints.special = item.dyable ? item.tint : null;
+          }
+        } else {
+          this.appearance.clothing.special = null;
+          this.appearance.tints.special = null;
+          this.appearance.clothing[item.type] = itemId;
+          if (item.layers) {
+            this.appearance.tints[item.type] = [];
+            item.layers.forEach(layer => {
+              this.appearance.tints[item.type].push(layer.dyable ? layer.tint : null);
+            });
+          } else {
+            this.appearance.tints[item.type] = item.dyable ? item.tint : null;
+          }
         }
         return true;
       }

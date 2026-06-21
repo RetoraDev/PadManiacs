@@ -17,9 +17,34 @@ const CHARACTER_SYSTEM = {
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
   CLOSE_SHOT_CROP: { x: 36, y: 15, w: 46, h: 7 },
   HAIR_STYLES: {
-    front: ["Casual", "Smart", "Daring", "Simple", "Bulky", "Afro", "Emotional", "Clean"],
-    back: ["Casual", "Smart", "Curly", "Ponytails", "Short", "Afro", "Diva", "Clean"],
+    front: [
+      { name: "Casual", description: "Relaxed and effortless style that frames the face naturally." },
+      { name: "Smart", description: "Clean and polished look with a sophisticated edge." },
+      { name: "Daring", description: "Bold and eye-catching with an adventurous spirit." },
+      { name: "Simple", description: "Minimalist and understated elegance at its finest." },
+      { name: "Bulky", description: "Voluminous and full of personality for a commanding presence." },
+      { name: "Afro", description: "Celebrating natural texture with a bold, iconic silhouette." },
+      { name: "Emotional", description: "Expressive and artistic with a touch of drama." },
+      { name: "Clean", description: "Crisp and precise with sharp, defined lines." }
+    ],
+    back: [
+      { name: "Casual", description: "Laid-back and natural flowing style." },
+      { name: "Smart", description: "Sleek and well-groomed from every angle." },
+      { name: "Curly", description: "Bouncy and playful with beautiful defined curls." },
+      { name: "Ponytails", description: "Playful and energetic with twin tails full of character." },
+      { name: "Short", description: "Chic and modern with a bold, cropped silhouette." },
+      { name: "Afro", description: "Natural and iconic with full, rounded volume." },
+      { name: "Diva", description: "Glamorous and show-stopping with undeniable presence." },
+      { name: "Clean", description: "Neat and refined with perfect symmetry." }
+    ]
   },
+  SKIN_TONES: [
+    { name: "Lighter", description: "Fair porcelain tone with a delicate, ethereal quality." },
+    { name: "Light", description: "Soft warm complexion with a natural glow." },
+    { name: "Medium", description: "Balanced earthy tone with healthy warmth." },
+    { name: "Tan", description: "Rich sun-kissed warmth with golden undertones." },
+    { name: "Another", description: "Unique and distinct tone for those who stand out." }
+  ],
   NAME_SYLLABLES: [
     // Two of these syllables are joined together to make anime style character name
     
@@ -69,6 +94,13 @@ const CHARACTER_SYSTEM = {
   ]
 };
 
+const DEFAULT_UNLOCKED_ITEMS = [
+  "top_seifuku_default",
+  "bottom_skirt_blue",
+  "shoes_common",
+  "accessory_hair_ties"
+];
+
 const DEFAULT_CHARACTER = {
   name: "EIRI",
   level: 1,
@@ -78,11 +110,23 @@ const DEFAULT_CHARACTER = {
   selectedSkill: "focus_boost",
   appearance: {
     skinTone: 0,
-    hairColor: 0xa8705a,
     frontHair: 1,
     backHair: 1,
-    clothing: "school_uniform",
-    accessory: null
+    clothing: {
+      accessory: null,
+      top: "top_seifuku_default",
+      bottom: "bottom_skirt_blue",
+      shoes: "shoes_common",
+      special: null 
+    },
+    tints: {
+      hair: 0xa8705a,
+      accessory: null,
+      top: null,
+      bottom: null,
+      shoes: null,
+      special: null
+    }
   },
   stats: {
     gamesPlayed: 0,
@@ -619,90 +663,306 @@ const CHARACTER_SKILLS = [
 ];
 
 // Character items
-const CHARACTER_ITEMS = {
-  clothing: [
-    {
-      id: "school_uniform",
-      name: "School Uniform",
-      type: "clothing"
-    },
-    {
-      id: "teacher_clothing",
-      name: "Teacher Clothing",
-      type: "clothing"
-    },
-    {
-      id: "daring_clothing",
-      name: "Daring",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_red",
-      name: "Short Dress (RED)",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_black",
-      name: "Short Dress (BLACK)",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_orange",
-      name: "Short Dress (ORANGE)",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_blue",
-      name: "Short Dress (BLUE)",
-      type: "clothing"
-    },
-    {
-      id: "dubstep_dress_black",
-      name: "Dubstep Dress (BLACK)",
-      type: "clothing"
-    },
-    {
-      id: "dubstep_dress_blue",
-      name: "Dubstep Dress (BLUE)",
-      type: "clothing"
-    },
-    {
-      id: "pinkachu",
-      name: "Pinkachu :D",
-      hideCharacter: true,
-      type: "clothing"
-    },
-    {
-      id: "lencery",
-      name: "Lencery (Remove this! For the love of god!)",
-      type: "clothing"
-    },
-  ],
-  accessories: [
-    {
-      id: "headphones",
-      name: "Headphones",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_red",
-      name: "Hair Ties (RED)",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_black",
-      name: "Hair Ties (BLACK)",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_orange",
-      name: "Hair Ties (ORANGE)",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_blue",
-      name: "Hair Ties (BLUE)",
-      type: "accessory"
-    },
-  ]
-};
+const CHARACTER_ITEMS = [
+  // Top
+  {
+    id: "top_blouse",
+    name: "Blouse",
+    description: "A simple blouse with rolled sleeves.",
+    type: "top",
+    tint: 0x0f1d42,
+    dyable: true
+  },
+  {
+    id: "top_dubstep_dress",
+    name: "Dubstep Dress",
+    description: "A dress that pulses with rhythm. The lights react to the beat!",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x0f1d42
+      },
+      {
+        name: "Lights",
+        dyable: true,
+        alternateTint: 0xffffff,
+        alternateFrequency: 100,
+        tint: 0x00cb4f
+      },
+    ],
+    dyable: true
+  },
+  {
+    id: "top_lencery",
+    name: "Lencery",
+    description: "A mysterious top with an otherworldly shimmer.",
+    type: "top",
+    tint: 0x352a34,
+    dyable: true,
+    lencery: true
+  },
+  {
+    id: "top_office_shirt",
+    name: "Office Shirt",
+    description: "Business casual. Perfect for the office... or the dance floor.",
+    type: "top",
+    dyable: false,
+  },
+  {
+    id: "top_seifuku",
+    name: "Seifuku (Dyable)",
+    description: "A classic school uniform. Customize every detail!",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xffffff
+      },
+      {
+        name: "Detail 1",
+        dyable: true,
+        tint: 0x0f1d42
+      },
+      {
+        name: "Detail 2",
+        dyable: true,
+        tint: 0xff0000
+      }
+    ],
+    dyable: true
+  },
+  {
+    id: "top_seifuku_default",
+    name: "Seifuku",
+    description: "A classic school uniform. Simple and elegant.",
+    type: "top",
+    dyable: false
+  },
+  {
+    id: "top_dress",
+    name: "Dress",
+    description: "A flowing dress with a golden trim.",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xffffff
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0xe8c258
+      },
+    ],
+    dyable: true
+  },
+  {
+    id: "top_tshirt",
+    name: "T-shirt",
+    description: "A casual t-shirt with a bold design.",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xcd4345
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0xfefefe
+      },
+    ],
+    dyable: true
+  },
+  // Bottom
+  {
+    id: "bottom_knee_length_jeans",
+    name: "Knee-length Jeans",
+    description: "Comfortable jeans that end just below the knee.",
+    type: "bottom",
+    tint: 0x0f1d42,
+    dyable: true
+  },
+  {
+    id: "bottom_lencery",
+    name: "Lencery",
+    description: "Mysterious pants with an otherworldly shimmer.",
+    type: "bottom",
+    tint: 0x352a34,
+    dyable: true,
+    lencery: true
+  },
+  {
+    id: "bottom_long_jeans",
+    name: "Long Jeans",
+    description: "Full-length jeans. Classic and reliable.",
+    type: "bottom",
+    tint: 0x0f1d42,
+    dyable: true
+  },
+  {
+    id: "bottom_shorts_type1",
+    name: "Shorts",
+    description: "Simple shorts. Perfect for warm days.",
+    type: "bottom",
+    dyable: false
+  },
+  {
+    id: "bottom_shorts_type2",
+    name: "Shorts",
+    description: "Stylish shorts with a unique pattern.",
+    type: "bottom",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x46767d
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0x9c7141
+      }
+    ],
+    dyable: true
+  },
+  {
+    id: "bottom_skirt_blue",
+    name: "Skirt",
+    description: "A blue skirt that flows with your movements.",
+    type: "bottom",
+    dyable: false
+  },
+  {
+    id: "bottom_skirt",
+    name: "Skirt (Dyable)",
+    description: "A skirt you can dye any color you like.",
+    type: "bottom",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x403660
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0x403660
+      }
+    ],
+    dyable: true 
+  },
+  // Shoes
+  {
+    id: "shoes_common",
+    name: "Common Shoes",
+    description: "Simple shoes that go with everything.",
+    type: "shoes",
+    dyable: false
+  },
+  {
+    id: "shoes_high_boots",
+    name: "High Boots",
+    description: "Boots that reach the knee. Command attention.",
+    type: "shoes",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x403660
+      },
+      {
+        name: "Lights",
+        dyable: true,
+        alternateTint: 0xffffff,
+        alternateFrequency: 100,
+        tint: 0x403660
+      }
+    ],
+    dyable: true 
+  },
+  {
+    id: "shoes_red_sports",
+    name: "Red Sports",
+    description: "Bold red sports shoes. Perfect for active dancers.",
+    type: "shoes",
+    dyable: false
+  },
+  {
+    id: "shoes_sports",
+    name: "Sports (Dyable)",
+    description: "Sports shoes you can color to match your outfit.",
+    type: "shoes",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xffffff
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0xffffff
+      }
+    ],
+    dyable: true 
+  },
+  // Accessories
+  {
+    id: "accessory_hair_ties",
+    name: "Hair Ties",
+    description: "Cute hair ties. Dye them to match your hair!",
+    type: "accessory",
+    tint: 0xffffff,
+    dyable: true 
+  },
+  {
+    id: "accessory_rubber_globes",
+    name: "Rubber Globes",
+    description: "Glowing accessories that pulse with energy.",
+    type: "accessory",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x0f1d42
+      },
+      {
+        name: "Lights",
+        dyable: true,
+        alternateTint: 0xffffff,
+        alternateFrequency: 100,
+        tint: 0x00cb4f
+      },
+    ],
+    dyable: true 
+  },
+  {
+    id: "accessory_shoulder_belt_left",
+    name: "Shoulder Belt (Left)",
+    description: "A belt that rests on the left shoulder. Edgy.",
+    type: "accessory",
+    dyable: false
+  },
+  {
+    id: "accessory_shoulder_belt_right",
+    name: "Shoulder Belt (Right)",
+    description: "A belt that rests on the right shoulder. Edgy.",
+    type: "accessory",
+    dyable: false
+  },
+  // Special
+  {
+    id: "special_pinkachu",
+    name: "Pinkachu :D",
+    description: "A pink creature that consumes your entire character!",
+    type: "special",
+    hideCharacter: true,
+    dyable: false
+  }
+];
