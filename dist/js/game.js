@@ -4,18 +4,23 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.1.0 dev
- * Build: 6/20/2026, 1:21:07 PM
- * Platform: Development
- * Debug: false
+ * Version: v1.1.0
+ * Build: 6/21/2026, 6:51:07 AM
+ * Platform: Android (Cordova)
+ * Debug: true
  * Minified: false
  */
 
+
+
+// ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.1.0 dev";
+const VERSION = "v1.1.0";
 
-window.DEBUG = false;
+window.DEBUG = true;
+
+window.LOG_PERSONALITY_STUDY = window.DEBUG;
 
 const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★";
 const TINY_FONT_MAP = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\" •<>=%∥▶";
@@ -610,6 +615,9 @@ const DEFAULT_GAMEPAD_MAPPING = {
 
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg"];
 
+
+
+// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -619,7 +627,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -644,6 +652,9 @@ const REGULAR_VIBRATION_INTENSITY = 75;
 const WEAK_VIBRATION_INTENSITY = 50;
 const STRONG_VIBRATION_INTENSITY = 50;
 
+
+
+// ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 12,
@@ -663,9 +674,34 @@ const CHARACTER_SYSTEM = {
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
   CLOSE_SHOT_CROP: { x: 36, y: 15, w: 46, h: 7 },
   HAIR_STYLES: {
-    front: ["Casual", "Smart", "Daring", "Simple", "Bulky", "Afro", "Emotional", "Clean"],
-    back: ["Casual", "Smart", "Curly", "Ponytails", "Short", "Afro", "Diva", "Clean"],
+    front: [
+      { name: "Casual", description: "Relaxed and effortless style that frames the face naturally." },
+      { name: "Smart", description: "Clean and polished look with a sophisticated edge." },
+      { name: "Daring", description: "Bold and eye-catching with an adventurous spirit." },
+      { name: "Simple", description: "Minimalist and understated elegance at its finest." },
+      { name: "Bulky", description: "Voluminous and full of personality for a commanding presence." },
+      { name: "Afro", description: "Celebrating natural texture with a bold, iconic silhouette." },
+      { name: "Emotional", description: "Expressive and artistic with a touch of drama." },
+      { name: "Clean", description: "Crisp and precise with sharp, defined lines." }
+    ],
+    back: [
+      { name: "Casual", description: "Laid-back and natural flowing style." },
+      { name: "Smart", description: "Sleek and well-groomed from every angle." },
+      { name: "Curly", description: "Bouncy and playful with beautiful defined curls." },
+      { name: "Ponytails", description: "Playful and energetic with twin tails full of character." },
+      { name: "Short", description: "Chic and modern with a bold, cropped silhouette." },
+      { name: "Afro", description: "Natural and iconic with full, rounded volume." },
+      { name: "Diva", description: "Glamorous and show-stopping with undeniable presence." },
+      { name: "Clean", description: "Neat and refined with perfect symmetry." }
+    ]
   },
+  SKIN_TONES: [
+    { name: "Lighter", description: "Fair porcelain tone with a delicate, ethereal quality." },
+    { name: "Light", description: "Soft warm complexion with a natural glow." },
+    { name: "Medium", description: "Balanced earthy tone with healthy warmth." },
+    { name: "Tan", description: "Rich sun-kissed warmth with golden undertones." },
+    { name: "Another", description: "Unique and distinct tone for those who stand out." }
+  ],
   NAME_SYLLABLES: [
     // Two of these syllables are joined together to make anime style character name
     
@@ -712,8 +748,728 @@ const CHARACTER_SYSTEM = {
     "WA",   "JA",  "JEI", "JO",  "LEI",
     "LOU",  "TI",  "NU",  "ES",  "SE",
     "HAT",  "NE",  "TO",  "ME",  "TA",
+  ],
+  PERSONALITIES: [
+    {
+      id: "chill",
+      name: "Chill",
+      description: "Relaxed and easygoing, takes things at their own pace.",
+      reasons: {
+        gamesPlayed: 5,
+        ratingThreshold: 0.3,
+        accuracyMin: 60,
+        comboMin: 50,
+        perfectStreakMin: 5
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "combo_shield"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 100, waitMax: 300 },
+        { distance: 2, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 50, waitMax: 150 },
+        { distance: 3, waitMin: 2000, waitMax: 4000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["focused", "steady"]
+    },
+    {
+      id: "focused",
+      name: "Focused",
+      description: "Intense concentration and unwavering determination.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 85,
+        comboMin: 200,
+        perfectStreakMin: 20,
+        ratingThreshold: 0.8
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_judgement_window", "modify_score_gain"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 3000, waitMax: 8000 },
+        { distance: 1, waitMin: 100, waitMax: 200 },
+        { distance: 3, waitMin: 2000, waitMax: 6000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["perfectionist", "rhythm_savant"]
+    },
+    {
+      id: "perfectionist",
+      name: "Perfectionist",
+      description: "Nothing less than perfect is acceptable.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 95,
+        perfectGames: 3,
+        ratingThreshold: 0.95,
+        maxMarvelous: 500
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_judgement_window", "modify_score_gain", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 4000, waitMax: 10000 },
+        { distance: 2, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 3000, waitMax: 8000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["rhythm_savant"]
+    },
+    {
+      id: "steady",
+      name: "Steady",
+      description: "Consistent and reliable, never misses a beat.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 70,
+        comboMin: 100,
+        maxMiss: 5,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "modify_hold_forgiveness", "modify_roll_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 200, waitMax: 500 },
+        { distance: 3, waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 100, waitMax: 200 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["unbreakable"]
+    },
+    {
+      id: "unbreakable",
+      name: "Unbreakable",
+      description: "No matter what happens, they never give up.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 60,
+        maxCombo: 500,
+        maxMiss: 20,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_low_health", "on_critical_health"],
+        effects: ["combo_shield", "burst_health_regen", "convert_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 500, waitMax: 1000 },
+        { distance: 2, waitMin: 1000, waitMax: 3000 },
+        { distance: 1, waitMin: 300, waitMax: 500 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["determined"]
+    },
+    {
+      id: "rhythm_savant",
+      name: "Rhythm Savant",
+      description: "Born with an innate sense of rhythm and timing.",
+      reasons: {
+        gamesPlayed: 40,
+        accuracyMin: 90,
+        perfectGames: 5,
+        maxMarvelous: 1000,
+        ratingThreshold: 0.9
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_note_speed", "modify_judgement_window", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 2000, waitMax: 5000 },
+        { distance: 1, waitMin: 100, waitMax: 300 },
+        { distance: 3, waitMin: 3000, waitMax: 7000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "determined",
+      name: "Determined",
+      description: "Nothing stands in their way. They will succeed.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 75,
+        comboMin: 300,
+        maxMiss: 10,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_low_health"],
+        effects: ["combo_shield", "modify_max_health", "modify_health_gain"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1500, waitMax: 4000 },
+        { distance: 0, waitMin: 300, waitMax: 600 },
+        { distance: 3, waitMin: 2000, waitMax: 5000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["unbreakable"]
+    },
+    {
+      id: "carefree",
+      name: "Carefree",
+      description: "Living in the moment, enjoying every note.",
+      reasons: {
+        gamesPlayed: 5,
+        accuracyMin: 50,
+        comboMin: 30,
+        ratingThreshold: 0.2
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["health_regen"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1000, waitMax: 4000 },
+        { distance: 2, waitMin: 100, waitMax: 300 },
+        { distance: 3, waitMin: 3000, waitMax: 6000 },
+        { distance: 1, waitMin: 500, waitMax: 800 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["chill", "playful"]
+    },
+    {
+      id: "playful",
+      name: "Playful",
+      description: "Full of energy and joy, turning every game into fun.",
+      reasons: {
+        gamesPlayed: 10,
+        accuracyMin: 55,
+        comboMin: 80,
+        ratingThreshold: 0.35
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_perfect_streak"],
+        effects: ["modify_score_gain", "modify_note_speed"]
+      },
+      eyesBehavior: [
+        { distance: [1, 3], waitMin: 500, waitMax: 2000 },
+        { distance: 0, waitMin: 50, waitMax: 150 },
+        { distance: [2, 3], waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 100, waitMax: 200 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["cheerful"]
+    },
+    {
+      id: "cheerful",
+      name: "Cheerful",
+      description: "Always smiling, spreading positivity through rhythm.",
+      reasons: {
+        gamesPlayed: 5,
+        accuracyMin: 60,
+        comboMin: 150,
+        perfectGames: 1,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_perfect_streak"],
+        effects: ["modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: [2, 3], waitMin: 500, waitMax: 1500 },
+        { distance: 0, waitMin: 100, waitMax: 250 },
+        { distance: 3, waitMin: 2000, waitMax: 4000 },
+        { distance: [1, 2], waitMin: 800, waitMax: 1200 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["energetic"]
+    },
+    {
+      id: "energetic",
+      name: "Energetic",
+      description: "Boundless energy that fuels every move.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 65,
+        comboMin: 200,
+        perfectGames: 2,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_perfect_streak"],
+        effects: ["modify_note_speed", "modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 300, waitMax: 800 },
+        { distance: 1, waitMin: 100, waitMax: 200 },
+        { distance: 3, waitMin: 500, waitMax: 1500 },
+        { distance: 0, waitMin: 50, waitMax: 100 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "mysterious",
+      name: "Mysterious",
+      description: "Enigmatic and unpredictable, keeps everyone guessing.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 70,
+        comboMin: 120,
+        ratingThreshold: 0.55
+      },
+      skillTendencies: {
+        activation: ["on_mine_hit", "on_miss"],
+        effects: ["reduce_mine_damage", "convert_judgement"]
+      },
+      eyesBehavior: [
+        { distance: [0, 3], waitMin: 2000, waitMax: 6000 },
+        { distance: 2, waitMin: 100, waitMax: 400 },
+        { distance: [0, 1], waitMin: 3000, waitMax: 8000 },
+        { distance: 3, waitMin: 1500, waitMax: 3000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["enigmatic"]
+    },
+    {
+      id: "enigmatic",
+      name: "Enigmatic",
+      description: "Deep and complex, with layers of personality.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 75,
+        comboMin: 250,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_mine_hit", "on_low_health"],
+        effects: ["reduce_mine_damage", "combo_shield", "convert_judgement"]
+      },
+      eyesBehavior: [
+        { distance: [0, 1], waitMin: 3000, waitMax: 8000 },
+        { distance: 2, waitMin: 200, waitMax: 500 },
+        { distance: [0, 3], waitMin: 4000, waitMax: 10000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "serious",
+      name: "Serious",
+      description: "Focused and disciplined, treats every game with gravity.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 80,
+        comboMin: 200,
+        ratingThreshold: 0.7
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_judgement_window", "modify_input_lag", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 3000, waitMax: 7000 },
+        { distance: 1, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 4000, waitMax: 8000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["focused"]
+    },
+    {
+      id: "dreamy",
+      name: "Dreamy",
+      description: "Lost in the music, dancing to their own rhythm.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 50,
+        comboMin: 40,
+        ratingThreshold: 0.3
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_note_speed"]
+      },
+      eyesBehavior: [
+        { distance: [1, 2], waitMin: 2000, waitMax: 6000 },
+        { distance: 3, waitMin: 100, waitMax: 300 },
+        { distance: [2, 3], waitMin: 3000, waitMax: 8000 },
+        { distance: 1, waitMin: 500, waitMax: 1000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["creative"]
+    },
+    {
+      id: "creative",
+      name: "Creative",
+      description: "Expressive and artistic, finds beauty in every pattern.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 60,
+        comboMin: 100,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_score_gain", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: [2, 3], waitMin: 1000, waitMax: 4000 },
+        { distance: 0, waitMin: 200, waitMax: 500 },
+        { distance: [1, 3], waitMin: 2000, waitMax: 6000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["artistic"]
+    },
+    {
+      id: "artistic",
+      name: "Artistic",
+      description: "A true artist of rhythm, every move is a masterpiece.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 70,
+        comboMin: 200,
+        perfectGames: 3,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1500, waitMax: 4000 },
+        { distance: 1, waitMin: 100, waitMax: 300 },
+        { distance: [2, 3], waitMin: 2000, waitMax: 5000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "spirited",
+      name: "Spirited",
+      description: "Full of life and passion, plays with their heart.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 65,
+        comboMin: 150,
+        ratingThreshold: 0.45
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "modify_max_health"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 500, waitMax: 2000 },
+        { distance: 0, waitMin: 100, waitMax: 300 },
+        { distance: 3, waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["energetic"]
+    },
+    {
+      id: "gentle",
+      name: "Gentle",
+      description: "Soft and precise, every note is handled with care.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 80,
+        comboMin: 100,
+        maxMiss: 3,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_hold_forgiveness", "modify_roll_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 2000, waitMax: 6000 },
+        { distance: 0, waitMin: 500, waitMax: 800 },
+        { distance: 3, waitMin: 3000, waitMax: 8000 },
+        { distance: 1, waitMin: 200, waitMax: 400 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["steady"]
+    },
+    {
+      id: "fierce",
+      name: "Fierce",
+      description: "Intense and powerful, dominates every chart.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 70,
+        comboMin: 300,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_perfect_streak"],
+        effects: ["modify_note_speed", "combo_shield"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 300, waitMax: 500 },
+        { distance: 3, waitMin: 1500, waitMax: 4000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["determined"]
+    },
+    {
+      id: "calm",
+      name: "Calm",
+      description: "Serene and composed, never loses their cool.",
+      reasons: {
+        gamesPlayed: 5,
+        accuracyMin: 75,
+        comboMin: 120,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_low_health", "on_critical_health"],
+        effects: ["health_regen", "modify_health_gain"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 3000, waitMax: 8000 },
+        { distance: 0, waitMin: 800, waitMax: 1200 },
+        { distance: 3, waitMin: 4000, waitMax: 10000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["zen"]
+    },
+    {
+      id: "zen",
+      name: "Zen",
+      description: "At one with the rhythm, perfectly balanced.",
+      reasons: {
+        gamesPlayed: 40,
+        accuracyMin: 85,
+        comboMin: 300,
+        perfectGames: 5,
+        ratingThreshold: 0.8
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["general_boost", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 5000, waitMax: 12000 },
+        { distance: 1, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 5000, waitMax: 15000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "sassy",
+      name: "Sassy",
+      description: "Bold and confident, with a dash of attitude.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 60,
+        comboMin: 80,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_perfect_streak"],
+        effects: ["modify_score_gain"]
+      },
+      eyesBehavior: [
+        { distance: [0, 3], waitMin: 500, waitMax: 2000 },
+        { distance: 2, waitMin: 100, waitMax: 300 },
+        { distance: [1, 3], waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["playful"]
+    },
+    {
+      id: "shy",
+      name: "Shy",
+      description: "Quiet and reserved, but brilliant when they shine.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 70,
+        comboMin: 60,
+        ratingThreshold: 0.35
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_hold_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 1, waitMin: 2000, waitMax: 6000 },
+        { distance: 0, waitMin: 1000, waitMax: 2000 },
+        { distance: 2, waitMin: 3000, waitMax: 8000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["gentle"]
+    },
+    {
+      id: "bold",
+      name: "Bold",
+      description: "Fearless and daring, takes on every challenge.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 65,
+        comboMin: 200,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_mine_hit"],
+        effects: ["combo_shield", "reduce_mine_damage"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 500, waitMax: 1500 },
+        { distance: 0, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["fierce"]
+    },
+    {
+      id: "graceful",
+      name: "Graceful",
+      description: "Elegant and fluid, makes every move look effortless.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 80,
+        comboMin: 150,
+        perfectGames: 2,
+        ratingThreshold: 0.65
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_roll_forgiveness", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 300, waitMax: 500 },
+        { distance: 3, waitMin: 3000, waitMax: 7000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["artistic"]
+    },
+    {
+      id: "witty",
+      name: "Witty",
+      description: "Quick and sharp, always one step ahead.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 70,
+        comboMin: 150,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_mine_hit"],
+        effects: ["reduce_mine_damage", "modify_input_lag"]
+      },
+      eyesBehavior: [
+        { distance: [1, 3], waitMin: 500, waitMax: 2000 },
+        { distance: 0, waitMin: 100, waitMax: 250 },
+        { distance: [2, 3], waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["sassy"]
+    },
+    {
+      id: "mellow",
+      name: "Mellow",
+      description: "Laid-back and smooth, flows with the music.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 65,
+        comboMin: 80,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "modify_hold_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 3000, waitMax: 8000 },
+        { distance: 0, waitMin: 500, waitMax: 1000 },
+        { distance: 3, waitMin: 4000, waitMax: 10000 },
+        { distance: 1, waitMin: 200, waitMax: 400 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["calm"]
+    },
+    {
+      id: "spunky",
+      name: "Spunky",
+      description: "Full of spunk and sass, brings personality to every play.",
+      reasons: {
+        gamesPlayed: 18,
+        accuracyMin: 55,
+        comboMin: 100,
+        ratingThreshold: 0.35
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_score_gain", "modify_note_speed"]
+      },
+      eyesBehavior: [
+        { distance: [0, 3], waitMin: 300, waitMax: 1000 },
+        { distance: 1, waitMin: 100, waitMax: 200 },
+        { distance: [2, 3], waitMin: 500, waitMax: 1500 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["playful"]
+    },
+    {
+      id: "emotive",
+      name: "Emotive",
+      description: "Feels every note deeply, plays with heart and soul.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 70,
+        comboMin: 120,
+        perfectGames: 1,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_low_health", "on_critical_health"],
+        effects: ["modify_health_gain", "burst_health_regen"]
+      },
+      eyesBehavior: [
+        { distance: [1, 2], waitMin: 1000, waitMax: 4000 },
+        { distance: 0, waitMin: 300, waitMax: 600 },
+        { distance: [2, 3], waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 100, waitMax: 200 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["expressive"]
+    },
+    {
+      id: "expressive",
+      name: "Expressive",
+      description: "Every movement tells a story, every note has meaning.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 75,
+        comboMin: 200,
+        perfectGames: 3,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: [1, 3], waitMin: 800, waitMax: 2500 },
+        { distance: 0, waitMin: 200, waitMax: 400 },
+        { distance: [2, 3], waitMin: 1500, waitMax: 4000 },
+        { distance: 1, waitMin: 300, waitMax: 500 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: []
+    }
   ]
 };
+
+const DEFAULT_UNLOCKED_ITEMS = [
+  "top_seifuku_default",
+  "bottom_skirt_blue",
+  "shoes_common",
+  "accessory_hair_ties"
+];
 
 const DEFAULT_CHARACTER = {
   name: "EIRI",
@@ -724,11 +1480,23 @@ const DEFAULT_CHARACTER = {
   selectedSkill: "focus_boost",
   appearance: {
     skinTone: 0,
-    hairColor: 0xa8705a,
     frontHair: 1,
     backHair: 1,
-    clothing: "school_uniform",
-    accessory: null
+    clothing: {
+      accessory: null,
+      top: "top_seifuku_default",
+      bottom: "bottom_skirt_blue",
+      shoes: "shoes_common",
+      special: null 
+    },
+    tints: {
+      hair: 0xa8705a,
+      accessory: null,
+      top: null,
+      bottom: null,
+      shoes: null,
+      special: null
+    }
   },
   stats: {
     gamesPlayed: 0,
@@ -1265,96 +2033,315 @@ const CHARACTER_SKILLS = [
 ];
 
 // Character items
-const CHARACTER_ITEMS = {
-  clothing: [
-    {
-      id: "school_uniform",
-      name: "School Uniform",
-      type: "clothing"
-    },
-    {
-      id: "teacher_clothing",
-      name: "Teacher Clothing",
-      type: "clothing"
-    },
-    {
-      id: "daring_clothing",
-      name: "Daring",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_red",
-      name: "Short Dress (RED)",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_black",
-      name: "Short Dress (BLACK)",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_orange",
-      name: "Short Dress (ORANGE)",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_blue",
-      name: "Short Dress (BLUE)",
-      type: "clothing"
-    },
-    {
-      id: "dubstep_dress_black",
-      name: "Dubstep Dress (BLACK)",
-      type: "clothing"
-    },
-    {
-      id: "dubstep_dress_blue",
-      name: "Dubstep Dress (BLUE)",
-      type: "clothing"
-    },
-    {
-      id: "pinkachu",
-      name: "Pinkachu :D",
-      hideCharacter: true,
-      type: "clothing"
-    },
-    {
-      id: "lencery",
-      name: "Lencery (Remove this! For the love of god!)",
-      type: "clothing"
-    },
-  ],
-  accessories: [
-    {
-      id: "headphones",
-      name: "Headphones",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_red",
-      name: "Hair Ties (RED)",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_black",
-      name: "Hair Ties (BLACK)",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_orange",
-      name: "Hair Ties (ORANGE)",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_blue",
-      name: "Hair Ties (BLUE)",
-      type: "accessory"
-    },
-  ]
-};
+const CHARACTER_ITEMS = [
+  // Top
+  {
+    id: "top_blouse",
+    name: "Blouse",
+    description: "A simple blouse with rolled sleeves.",
+    type: "top",
+    tint: 0x0f1d42,
+    dyable: true
+  },
+  {
+    id: "top_dubstep_dress",
+    name: "Dubstep Dress",
+    description: "A dress that pulses with rhythm. The lights react to the beat!",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x0f1d42
+      },
+      {
+        name: "Lights",
+        dyable: true,
+        alternateTint: 0xffffff,
+        alternateFrequency: 100,
+        tint: 0x00cb4f
+      },
+    ],
+    dyable: true
+  },
+  {
+    id: "top_lencery",
+    name: "Lencery",
+    description: "A mysterious top with an otherworldly shimmer.",
+    type: "top",
+    tint: 0x352a34,
+    dyable: true,
+    lencery: true
+  },
+  {
+    id: "top_office_shirt",
+    name: "Office Shirt",
+    description: "Business casual. Perfect for the office... or the dance floor.",
+    type: "top",
+    dyable: false,
+  },
+  {
+    id: "top_seifuku",
+    name: "Seifuku (Dyable)",
+    description: "A classic school uniform. Customize every detail!",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xffffff
+      },
+      {
+        name: "Detail 1",
+        dyable: true,
+        tint: 0x0f1d42
+      },
+      {
+        name: "Detail 2",
+        dyable: true,
+        tint: 0xff0000
+      }
+    ],
+    dyable: true
+  },
+  {
+    id: "top_seifuku_default",
+    name: "Seifuku",
+    description: "A classic school uniform. Simple and elegant.",
+    type: "top",
+    dyable: false
+  },
+  {
+    id: "top_dress",
+    name: "Dress",
+    description: "A flowing dress with a golden trim.",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xffffff
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0xe8c258
+      },
+    ],
+    dyable: true
+  },
+  {
+    id: "top_tshirt",
+    name: "T-shirt",
+    description: "A casual t-shirt with a bold design.",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xcd4345
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0xfefefe
+      },
+    ],
+    dyable: true
+  },
+  // Bottom
+  {
+    id: "bottom_knee_length_jeans",
+    name: "Knee-length Jeans",
+    description: "Comfortable jeans that end just below the knee.",
+    type: "bottom",
+    tint: 0x0f1d42,
+    dyable: true
+  },
+  {
+    id: "bottom_lencery",
+    name: "Lencery",
+    description: "Mysterious pants with an otherworldly shimmer.",
+    type: "bottom",
+    tint: 0x352a34,
+    dyable: true,
+    lencery: true
+  },
+  {
+    id: "bottom_long_jeans",
+    name: "Long Jeans",
+    description: "Full-length jeans. Classic and reliable.",
+    type: "bottom",
+    tint: 0x0f1d42,
+    dyable: true
+  },
+  {
+    id: "bottom_shorts_type1",
+    name: "Shorts",
+    description: "Simple shorts. Perfect for warm days.",
+    type: "bottom",
+    dyable: false
+  },
+  {
+    id: "bottom_shorts_type2",
+    name: "Shorts",
+    description: "Stylish shorts with a unique pattern.",
+    type: "bottom",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x46767d
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0x9c7141
+      }
+    ],
+    dyable: true
+  },
+  {
+    id: "bottom_skirt_blue",
+    name: "Skirt",
+    description: "A blue skirt that flows with your movements.",
+    type: "bottom",
+    dyable: false
+  },
+  {
+    id: "bottom_skirt",
+    name: "Skirt (Dyable)",
+    description: "A skirt you can dye any color you like.",
+    type: "bottom",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x403660
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0x403660
+      }
+    ],
+    dyable: true 
+  },
+  // Shoes
+  {
+    id: "shoes_common",
+    name: "Common Shoes",
+    description: "Simple shoes that go with everything.",
+    type: "shoes",
+    dyable: false
+  },
+  {
+    id: "shoes_high_boots",
+    name: "High Boots",
+    description: "Boots that reach the knee. Command attention.",
+    type: "shoes",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x403660
+      },
+      {
+        name: "Lights",
+        dyable: true,
+        alternateTint: 0xffffff,
+        alternateFrequency: 100,
+        tint: 0x403660
+      }
+    ],
+    dyable: true 
+  },
+  {
+    id: "shoes_red_sports",
+    name: "Red Sports",
+    description: "Bold red sports shoes. Perfect for active dancers.",
+    type: "shoes",
+    dyable: false
+  },
+  {
+    id: "shoes_sports",
+    name: "Sports (Dyable)",
+    description: "Sports shoes you can color to match your outfit.",
+    type: "shoes",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xffffff
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0xffffff
+      }
+    ],
+    dyable: true 
+  },
+  // Accessories
+  {
+    id: "accessory_hair_ties",
+    name: "Hair Ties",
+    description: "Cute hair ties. Dye them to match your hair!",
+    type: "accessory",
+    tint: 0xffffff,
+    dyable: true 
+  },
+  {
+    id: "accessory_rubber_globes",
+    name: "Rubber Globes",
+    description: "Glowing accessories that pulse with energy.",
+    type: "accessory",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x0f1d42
+      },
+      {
+        name: "Lights",
+        dyable: true,
+        alternateTint: 0xffffff,
+        alternateFrequency: 100,
+        tint: 0x00cb4f
+      },
+    ],
+    dyable: true 
+  },
+  {
+    id: "accessory_shoulder_belt_left",
+    name: "Shoulder Belt (Left)",
+    description: "A belt that rests on the left shoulder. Edgy.",
+    type: "accessory",
+    dyable: false
+  },
+  {
+    id: "accessory_shoulder_belt_right",
+    name: "Shoulder Belt (Right)",
+    description: "A belt that rests on the right shoulder. Edgy.",
+    type: "accessory",
+    dyable: false
+  },
+  // Special
+  {
+    id: "special_pinkachu",
+    name: "Pinkachu :D",
+    description: "A pink creature that consumes your entire character!",
+    type: "special",
+    hideCharacter: true,
+    dyable: false
+  }
+];
 
+
+
+// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
-  version: 1.0,
+  version: 1.1,
   settings: {
     volume: 100,
     sfxVolume: 100,
@@ -1400,7 +2387,7 @@ const DEFAULT_ACCOUNT = {
       front: [1],
       back: [1]
     },
-    unlockedItems: ["school_uniform"],
+    unlockedItems: ["top_seifuku_default", "bottom_skirt_blue", "shoes_common"],
     currentCharacter: DEFAULT_CHARACTER.name,
     list: [JSON.parse(JSON.stringify(DEFAULT_CHARACTER))]
   },
@@ -1485,6 +2472,9 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
+
+
+// ======== js/core/achievements.js ========
 // Achievements system constants
 const ACHIEVEMENTS = {
   EXPERIENCE_VALUES: {
@@ -2931,6 +3921,9 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
+
+
+// ======== js/character/Character.js ========
 class Character {
   constructor(data) {
     this.name = data.name;
@@ -2941,11 +3934,23 @@ class Character {
     this.selectedSkill = data.selectedSkill || null;
     this.appearance = data.appearance || {
       skinTone: 0,
-      hairColor: 0xFFFFFF,
-      frontHair: "1",
-      backHair: "1",
-      clothing: "school_uniform",
-      accessory: "headphones"
+      frontHair: 1,
+      backHair: 1,
+      clothing: {
+        accessory: null,
+        top: "top_seifuku_default",
+        bottom: "bottom_skirt_blue",
+        shoes: "shoes_common",
+        special: null
+      },
+      tints: {
+        hair: 0xa8705a,
+        accessory: null,
+        top: null,
+        bottom: null,
+        shoes: null,
+        special: null
+      }
     };
     this.stats = data.stats || {
       gamesPlayed: 0,
@@ -2958,6 +3963,10 @@ class Character {
     this.lastSkillLevelUp = data.lastSkillLevelUp || 0;
     this.lastHairUnlockLevel = data.lastHairUnlockLevel || 0;
     this.lastItemUnlockLevel = data.lastItemUnlockLevel || 0;
+    this.personality = data.personality || null; // null means no personality yet
+    this.developedPersonalities = data.developedPersonalities || []; // track developed personalities
+    this.personalityStudyHistory = data.personalityStudyHistory || []; // for debugging
+    this.currentPersonalityIndex = data.currentPersonalityIndex || 0;
   }
   
   getLastExperienceStoryEntry() {
@@ -3085,14 +4094,7 @@ class Character {
   }
 
   unlockRandomItem() {
-    const allItems = [
-      ...CHARACTER_ITEMS.clothing,
-      ...CHARACTER_ITEMS.accessories
-    ];
-    
-    const availableItems = allItems.filter(item => 
-      !Account.characters.unlockedItems.includes(item.id)
-    );
+    const availableItems = CHARACTER_ITEMS.filter(item => Account.characters.unlockedItems.includes(item.id));
     
     if (availableItems.length > 0) {
       const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
@@ -3101,12 +4103,170 @@ class Character {
       Account.characters.unlockedItems.push(randomItem.id);
       
       // Save to localStorage
-      localStorage.setItem("Account", JSON.stringify(Account));
+      saveAccount();
       
       return randomItem;
     }
     
     return null;
+  }
+  
+  studyPersonalities(gameResults) {
+    if (!gameResults.complete || gameResults.autoplay) return null;
+    
+    const stats = this.stats;
+    const personalities = CHARACTER_SYSTEM.PERSONALITIES;
+    const developed = this.developedPersonalities || [];
+    
+    // If already developed all possible personalities, stop
+    if (developed.length >= personalities.length) {
+      if (window.LOG_PERSONALITY_STUDY) {
+        console.log(`${this.name} has developed all personalities`);
+      }
+      return null;
+    }
+    
+    // Check which personalities we should study next
+    let candidates = [];
+    
+    if (developed.length === 0) {
+      // No personality yet - check all
+      candidates = personalities;
+    } else {
+      // Check possible next personalities
+      const lastDeveloped = personalities.find(p => p.id === developed[developed.length - 1]);
+      if (lastDeveloped && lastDeveloped.possibleNextPersonalities) {
+        candidates = personalities.filter(p => 
+          lastDeveloped.possibleNextPersonalities.includes(p.id) &&
+          !developed.includes(p.id)
+        );
+      }
+      
+      // If no candidates from next personalities, check all not developed
+      if (candidates.length === 0) {
+        candidates = personalities.filter(p => !developed.includes(p.id));
+      }
+    }
+    
+    if (window.LOG_PERSONALITY_STUDY) {
+      console.log(`Studying personality ${candidates.length} candidates for ${this.name}`);
+    }
+    
+    // Score each candidate based on game results
+    let bestCandidate = null;
+    let bestScore = 0;
+    
+    for (const personality of candidates) {
+      const score = this.calculatePersonalityScore(personality, gameResults);
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidate = personality;
+      }
+      
+      if (window.LOG_PERSONALITY_STUDY) {
+        console.log(`${personality.name}: score ${score.toFixed(2)}`);
+      }
+    }
+    
+    // Threshold to develop personality (need at least 0.7 to unlock)
+    if (bestCandidate && bestScore >= 0.7) {
+      this.developedPersonalities.push(bestCandidate.id);
+      this.personality = bestCandidate.id;
+      this.currentPersonalityIndex = this.developedPersonalities.length - 1;
+      
+      if (window.LOG_PERSONALITY_STUDY) {
+        console.log(`${this.name} developed "${bestCandidate.name}" personality! (score: ${bestScore.toFixed(2)})`);
+      }
+      
+      notification.show(`Seems like ${this.name} has become a ${bestCandidate.name.toLowerCase()} person.`);
+      
+      return bestCandidate;
+    }
+    
+    if (window.LOG_PERSONALITY_STUDY) {
+      console.log(`${this.name} didn't develop a personality this time (best score: ${bestScore.toFixed(2)})`);
+    }
+    
+    return null;
+  }
+  
+  calculatePersonalityScore(personality, gameResults) {
+    const reasons = personality.reasons || {};
+    let score = 0;
+    let totalChecks = 0;
+    const stats = this.stats;
+    const judgements = gameResults.judgements || {};
+    const totalNotes = Object.values(judgements).reduce((a, b) => a + b, 0);
+    
+    // Games played check
+    if (reasons.gamesPlayed !== undefined) {
+      const games = stats.gamesPlayed || 0;
+      const ratio = Math.min(1, games / reasons.gamesPlayed);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Accuracy check
+    if (reasons.accuracyMin !== undefined) {
+      const acc = gameResults.accuracy || 0;
+      const ratio = Math.min(1, acc / reasons.accuracyMin);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Combo check
+    if (reasons.comboMin !== undefined) {
+      const combo = gameResults.maxCombo || 0;
+      const ratio = Math.min(1, combo / reasons.comboMin);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Perfect streak check
+    if (reasons.perfectStreakMin !== undefined) {
+      // Calculate perfect streak from game data
+      const perfectStreak = gameResults.maxPerfectStreak || 0;
+      const ratio = Math.min(1, perfectStreak / reasons.perfectStreakMin);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Perfect games check
+    if (reasons.perfectGames !== undefined) {
+      const perfectGames = stats.perfectGames || 0;
+      const ratio = Math.min(1, perfectGames / reasons.perfectGames);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Max marvelous in game check
+    if (reasons.maxMarvelous !== undefined) {
+      const marvelous = judgements.marvelous || 0;
+      const ratio = Math.min(1, marvelous / reasons.maxMarvelous);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Max miss check
+    if (reasons.maxMiss !== undefined) {
+      const miss = judgements.miss || 0;
+      const ratio = Math.max(0, 1 - (miss / reasons.maxMiss));
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Rating threshold check
+    if (reasons.ratingThreshold !== undefined) {
+      const rating = gameResults.rating || 'F';
+      const ratingValues = { 'F': 0, 'E': 0.1, 'D': 0.2, 'C': 0.3, 'B': 0.4, 'A': 0.5, 'S': 0.6, 'SS': 0.7, 'SSS': 0.8, 'SSS+': 0.9 };
+      const ratingScore = ratingValues[rating] || 0;
+      const ratio = Math.min(1, ratingScore / reasons.ratingThreshold);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Return normalized score (0-1)
+    return totalChecks > 0 ? score / totalChecks : 0;
   }
 
   getAvailableHairStyles() {
@@ -3119,6 +4279,20 @@ class Character {
   getAvailableItems() {
     return Account.characters.unlockedItems;
   }
+  
+  static getItem(itemId) {
+    for (const item of CHARACTER_ITEMS) {
+      if (item.id === itemId) return item;
+    }
+    return null;
+  }
+
+  static getPersonlity(itemId) {
+    for (const item of CHARACTER_SYSTEM.PERSONALITIES) {
+      if (item.id === itemId) return item;
+    }
+    return null;
+  }
 
   changeHairStyle(type, hairId) {
     if (type === 'front' && Account.characters.unlockedHairs.front.includes(hairId)) {
@@ -3130,16 +4304,39 @@ class Character {
     }
     return false;
   }
+  
+  changeHairTint(tint) {
+    this.appearance.tints.hair = tint;
+    return true;
+  }
 
   changeClothing(itemId) {
     if (Account.characters.unlockedItems.includes(itemId)) {
       const item = CHARACTER_ITEMS.clothing.find(i => i.id === itemId) || 
                    CHARACTER_ITEMS.accessories.find(i => i.id === itemId);
       if (item) {
-        if (item.type === 'clothing') {
-          this.appearance.clothing = itemId;
-        } else if (item.type === 'accessory') {
-          this.appearance.accessory = itemId;
+        if (item.type === 'special') {
+          this.appearance.clothing.special = itemId;
+          if (item.layers) {
+            this.appearance.tints.special = [];
+            item.layers.forEach(layer => {
+              this.appearance.tints.special.push(layer.dyable ? layer.tint : null);
+            });
+          } else {
+            this.appearance.tints.special = item.dyable ? item.tint : null;
+          }
+        } else {
+          this.appearance.clothing.special = null;
+          this.appearance.tints.special = null;
+          this.appearance.clothing[item.type] = itemId;
+          if (item.layers) {
+            this.appearance.tints[item.type] = [];
+            item.layers.forEach(layer => {
+              this.appearance.tints[item.type].push(layer.dyable ? layer.tint : null);
+            });
+          } else {
+            this.appearance.tints[item.type] = item.dyable ? item.tint : null;
+          }
         }
         return true;
       }
@@ -3177,131 +4374,381 @@ class Character {
   }
 }
 
+
+
+// ======== js/character/CharacterDisplay.js ========
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
     this.character = characterData;
     this.layers = {};
+    this.alternateTimers = {};
+    this.isSpecial = false;
+    
     if (characterData) {
       this.createLayers();
+      this.loadPersonalityBehavior();
     }
     game.add.existing(this);
   }
 
   createLayers() {
+    const appearance = this.character.appearance;
+    const tints = appearance.tints || {};
+    
+    // Check if special item is equipped
+    const specialItem = this.getSpecialItem();
+    this.isSpecial = specialItem && specialItem.hideCharacter;
+    
     // Back hair layer (bottom)
-    this.layers.backHair = game.add.sprite(0, 0, `character_back_hair_${this.character.appearance.backHair}`);
-    this.layers.backHair.tint = this.character.appearance.hairColor;
+    this.layers.backHair = game.add.sprite(0, 0, `character_back_hair_${appearance.backHair}`);
+    this.layers.backHair.tint = tints.hair || 0xa8705a;
     this.addChild(this.layers.backHair);
-
-    // Base layer (skin)
-    this.layers.base = game.add.sprite(0, 0, 'character_base', this.character.appearance.skinTone);
+    
+    // Base layer (skin) - hide if special
+    this.layers.base = game.add.sprite(0, 0, 'character_base', appearance.skinTone);
+    this.layers.base.visible = !this.isSpecial;
     this.addChild(this.layers.base);
-
+    
     // Front hair layer
-    this.layers.frontHair = game.add.sprite(0, 0, `character_front_hair_${this.character.appearance.frontHair}`);
-    this.layers.frontHair.tint = this.character.appearance.hairColor;
+    this.layers.frontHair = game.add.sprite(0, 0, `character_front_hair_${appearance.frontHair}`);
+    this.layers.frontHair.tint = tints.hair || 0xa8705a;
+    this.layers.frontHair.visible = !this.isSpecial;
     this.addChild(this.layers.frontHair);
-
-    // Eyes layer with blinking animation
+    
+    // Eyes layer with blinking
     this.layers.eyes = game.add.sprite(0, 0, 'character_eyes', 0);
+    this.layers.eyes.visible = !this.isSpecial;
     this.addChild(this.layers.eyes);
     this.setupBlinking();
-
-    // Clothing layer
-    this.layers.clothing = game.add.sprite(0, 0, `character_clothing_${this.character.appearance.clothing}`);
-    this.addChild(this.layers.clothing);
     
-    // Accessory layer (if equipped)
-    if (this.character.appearance.accessory) {
-      this.layers.accessory = game.add.sprite(0, 0, `character_accessory_${this.character.appearance.accessory}`);
-      this.addChild(this.layers.accessory);
+    // Clothing layers
+    this.createClothingLayers(appearance, tints);
+    
+    // Special layer (on top of everything)
+    if (specialItem) {
+      this.createSpecialLayer(specialItem);
     }
     
-    this.setClothingVisibility();
+    this.setupAlternateTints();
   }
-
-  setClothingVisibility() {
-    const clothingItem = CHARACTER_ITEMS.clothing.find(item => item.id === this.character.appearance.clothing);
-    const visible = clothingItem.hideCharacter ? false : true;
+  
+  loadPersonalityBehavior() {
+    if (!this.character || !this.character.personality) {
+      this.personalityBehavior = null;
+      return;
+    }
+    
+    const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.character.personality);
+    if (personality && personality.eyesBehavior) {
+      this.personalityBehavior = personality.eyesBehavior;
+      this.blinkQueue = this.buildBlinkQueue();
+      this.currentBlinkIndex = 0;
+    } else {
+      this.personalityBehavior = null;
+    }
+  }
+  
+  getSpecialItem() {
+    const appearance = this.character.appearance;
+    if (!appearance.clothing || !appearance.clothing.special) return null;
+    
+    const specialId = appearance.clothing.special;
+    if (!specialId) return null;
+    
+    return CHARACTER_ITEMS.find(item => item.id === specialId && item.type === 'special');
+  }
+  
+  createClothingLayers(appearance, tints) {
+    const slots = ['shoes', 'bottom', 'top', 'accessory'];
+    
+    for (const slot of slots) {
+      const itemId = appearance.clothing?.[slot];
+      if (!itemId) continue;
       
-    this.layers.backHair.visible = visible;
-    this.layers.base.visible = visible;
-    this.layers.frontHair.visible = visible;
-    this.layers.eyes.visible = visible;
-    this.layers.frontHair.visible = visible;
-    if (this.layers.accessory) this.layers.accessory.visible = visible;
+      const item = CHARACTER_ITEMS.find(i => i.id === itemId && i.type === slot);
+      if (!item) continue;
+      
+      if (this.isSpecial && slot !== 'special') continue;
+      
+      if (item.layers) {
+        // Multi-layer item
+        this.layers[slot] = [];
+        for (let i = 0; i < item.layers.length; i++) {
+          const layer = item.layers[i];
+          // Use the tint key: slot + '_layer' + index
+          const tintKey = slot + '_layer' + i;
+          const tintValue = tints[tintKey] || layer.tint || null;
+          
+          const key = `character_item_${item.id}_layer${i}`;
+          const sprite = game.add.sprite(0, 0, key);
+          
+          if (tintValue !== null && layer.dyable !== false) {
+            sprite.tint = tintValue;
+          }
+          
+          if (layer.alternateTint) {
+            sprite._alternateTint = layer.alternateTint;
+            sprite._alternateFrequency = layer.alternateFrequency || 100;
+            sprite._currentTint = tintValue || layer.tint || 0xffffff;
+          }
+          
+          this.addChild(sprite);
+          this.layers[slot].push(sprite);
+        }
+      } else {
+        // Single layer item
+        const key = `character_item_${item.id}`;
+        const sprite = game.add.sprite(0, 0, key);
+        
+        // Use slot key directly
+        const tintValue = tints[slot] || item.tint || null;
+        if (tintValue !== null && item.dyable !== false) {
+          sprite.tint = tintValue;
+        }
+        
+        this.addChild(sprite);
+        this.layers[slot] = sprite;
+      }
+    }
   }
-
+  
+  createSpecialLayer(specialItem) {
+    const key = `character_item_${specialItem.id}`;
+    const sprite = game.add.sprite(0, 0, key);
+    this.addChild(sprite);
+    this.layers.special = sprite;
+    
+    // If special hides character, hide base layers
+    if (specialItem.hideCharacter) {
+      if (this.layers.base) this.layers.base.visible = false;
+      if (this.layers.frontHair) this.layers.frontHair.visible = false;
+      if (this.layers.eyes) this.layers.eyes.visible = false;
+      if (this.layers.backHair) this.layers.backHair.visible = false;
+      
+      // Hide clothing layers except special
+      const slots = ['top', 'bottom', 'shoes', 'accessory'];
+      for (const slot of slots) {
+        if (this.layers[slot]) {
+          if (Array.isArray(this.layers[slot])) {
+            for (const layer of this.layers[slot]) {
+              layer.visible = false;
+            }
+          } else {
+            this.layers[slot].visible = false;
+          }
+        }
+      }
+    }
+  }
+  
+  buildBlinkQueue() {
+    if (!this.personalityBehavior) return [];
+    
+    const queue = [];
+    for (const behavior of this.personalityBehavior) {
+      let distance = behavior.distance;
+      if (Array.isArray(distance)) {
+        distance = game.rnd.pick(distance);
+      }
+      
+      let waitMin = behavior.waitMin || 1000;
+      let waitMax = behavior.waitMax || 3000;
+      
+      queue.push({
+        distance: distance,
+        waitMin: waitMin,
+        waitMax: waitMax,
+        frame: this.getBlinkFrame(distance)
+      });
+    }
+    
+    return queue;
+  }
+  
+  getBlinkFrame(distance) {
+    // distance: 0 = fully open, 1 = half open, 2 = almost closed, 3 = closed
+    // Map to sprite frames (0: open, 1: half, 2: almost closed, 3: closed)
+    return Math.min(3, Math.max(0, distance));
+  }
+  
   setupBlinking() {
-    const blinkFrames = [0, 1, 2, 3, 2, 1, 0];
-    this.layers.eyes.animations.add('blink', blinkFrames, 16, false);
-    this.startBlinking();
+    // Check if personality behavior exists
+    if (this.personalityBehavior && this.blinkQueue.length > 0) {
+      this.startPersonalityBlinking();
+    } else {
+      // Original blinking
+      this.startGenericBlinking();
+    }
   }
-
-  startBlinking() {
+  
+  startGenericBlinking() {
+    const blinkFrames = [0, 1, 2, 3, 2, 1, 0];
+    this.layers.eyes?.animations.add('blink', blinkFrames, 16, false);
     const nextBlink = game.rnd.between(500, 5000);
     this.blink(nextBlink, () => {
-      this.startBlinking();
+      this.startGenericBlinking();
+    });
+  }
+  
+  startPersonalityBlinking() {
+    if (this.blinkQueue.length === 0) return;
+    
+    // Check if using random order
+    const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.character.personality);
+    const useRandom = personality?.blinkRandom || false;
+    
+    let nextBehavior;
+    if (useRandom) {
+      // Pick random behavior from queue
+      const randomIndex = game.rnd.between(0, this.blinkQueue.length - 1);
+      nextBehavior = this.blinkQueue[randomIndex];
+    } else {
+      // Sequential
+      nextBehavior = this.blinkQueue[this.currentBlinkIndex % this.blinkQueue.length];
+      this.currentBlinkIndex++;
+    }
+    
+    const waitTime = game.rnd.between(nextBehavior.waitMin, nextBehavior.waitMax);
+    const targetFrame = nextBehavior.frame;
+    
+    // Create animation to target frame
+    const currentFrame = this.layers.eyes.frame || 0;
+    const frames = [];
+    
+    if (currentFrame < targetFrame) {
+      for (let i = currentFrame; i <= targetFrame; i++) {
+        frames.push(i);
+      }
+    } else if (currentFrame > targetFrame) {
+      for (let i = currentFrame; i >= targetFrame; i--) {
+        frames.push(i);
+      }
+    } else {
+      // Already at target, just stay
+      frames.push(targetFrame);
+    }
+    
+    this.layers.eyes.animations.add('personality_blink', frames, 16, false);
+    this.layers.eyes.animations.play('personality_blink');
+    this.layers.eyes.animations.currentAnim.onComplete.addOnce(() => {
+      this.startPersonalityBlinking();
     });
   }
   
   blink(time, callback) {
     game.time.events.add(time, () => {
-      if (this.layers.eyes) {
+      if (this.layers.eyes && this.layers.eyes.visible) {
         this.layers.eyes.animations.play('blink');
         this.layers.eyes.animations.currentAnim.onComplete.addOnce(() => callback?.());
+      } else {
+        callback?.();
       }
     });
   }
-
-  updateAppearance(newAppearance) {
-    this.character.appearance = { ...this.character.appearance, ...newAppearance };
-    
-    if (this.layers.backHair) {
-      this.layers.backHair.tint = this.character.appearance.hairColor;
-      if (newAppearance.backHair) {
-        this.layers.backHair.loadTexture(`character_back_hair_${newAppearance.backHair}`);
+  
+  setupAlternateTints() {
+    // Check all layers for alternate tint animations
+    for (const [key, layer] of Object.entries(this.layers)) {
+      if (Array.isArray(layer)) {
+        for (const sprite of layer) {
+          if (sprite._alternateTint) {
+            this.startAlternateTint(sprite);
+          }
+        }
+      } else if (layer && layer._alternateTint) {
+        this.startAlternateTint(layer);
       }
     }
+  }
+  
+  startAlternateTint(sprite) {
+    const frequency = sprite._alternateFrequency || 100;
+    let toggle = false;
     
-    if (this.layers.frontHair) {
-      this.layers.frontHair.tint = this.character.appearance.hairColor;
-      if (newAppearance.frontHair) {
-        this.layers.frontHair.loadTexture(`character_front_hair_${newAppearance.frontHair}`);
+    this.alternateTimers[sprite.key] = game.time.events.loop(frequency, () => {
+      if (!sprite.visible || !sprite.parent) {
+        // Stop if sprite is destroyed or hidden
+        if (this.alternateTimers[sprite.key]) {
+          game.time.events.remove(this.alternateTimers[sprite.key]);
+          delete this.alternateTimers[sprite.key];
+        }
+        return;
+      }
+      
+      toggle = !toggle;
+      sprite.tint = toggle ? sprite._alternateTint : sprite._currentTint;
+    });
+  }
+  
+  updateAppearance(newAppearance, silently = true) {
+    // Merge with existing appearance
+    this.character.appearance = this.deepMerge(this.character.appearance, newAppearance);
+    
+    // Remove old alternate timers
+    for (const [key, timer] of Object.entries(this.alternateTimers)) {
+      game.time.events.remove(timer);
+    }
+    this.alternateTimers = {};
+    
+    // Rebuild layers
+    for (const [key, layer] of Object.entries(this.layers)) {
+      if (Array.isArray(layer)) {
+        for (const sprite of layer) {
+          sprite.destroy();
+        }
+      } else if (layer) {
+        layer.destroy();
       }
     }
+    this.layers = {};
     
-    if (this.layers.base && newAppearance.skinTone !== undefined) {
-      this.layers.base.frame = this.character.appearance.skinTone;
+    this.createLayers();
+    
+    if (!silently) {
+      // After updating appearance, reload personality behavior
+      this.loadPersonalityBehavior();
+      this.setupBlinking();
     }
-    
-    if (this.layers.clothing && newAppearance.clothing) {
-      this.layers.clothing.loadTexture(`character_clothing_${newAppearance.clothing}`);
-    }
-    
-    if (newAppearance.accessory !== undefined) {
-      if (this.layers.accessory) {
-        this.layers.accessory.destroy();
+  }
+  
+  deepMerge(target, source) {
+    const result = { ...target };
+    for (const [key, value] of Object.entries(source)) {
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        result[key] = this.deepMerge(result[key] || {}, value);
+      } else {
+        result[key] = value;
       }
-      if (newAppearance.accessory) {
-        this.layers.accessory = game.add.sprite(0, 0, `character_accessory_${newAppearance.accessory}`);
-        this.addChild(this.layers.accessory);
-      }
     }
-    
-    this.setClothingVisibility();
+    return result;
   }
 
   destroy() {
-    Object.values(this.layers).forEach(layer => {
-      if (layer && layer.destroy) layer.destroy();
-    });
+    // Remove all alternate timers
+    for (const [key, timer] of Object.entries(this.alternateTimers)) {
+      game.time.events.remove(timer);
+    }
+    this.alternateTimers = {};
+    
+    // Destroy all layers
+    for (const [key, layer] of Object.entries(this.layers)) {
+      if (Array.isArray(layer)) {
+        for (const sprite of layer) {
+          sprite.destroy();
+        }
+      } else if (layer) {
+        layer.destroy();
+      }
+    }
     this.layers = {};
     super.destroy();
   }
 }
 
+
+
+// ======== js/character/CharacterCroppedDisplay.js ========
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
@@ -3312,8 +4759,24 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 
   cropSprite() {
-    Object.values(this.layers).forEach(layer => {
-      if (layer) {
+    // Crop all layers in the layers object
+    for (const [key, layer] of Object.entries(this.layers)) {
+      if (!layer) continue;
+      
+      if (Array.isArray(layer)) {
+        // Handle array of sprites (layered items)
+        for (const sprite of layer) {
+          if (sprite && sprite.crop) {
+            sprite.crop(new Phaser.Rectangle(
+              this.cropArea.x,
+              this.cropArea.y,
+              this.cropArea.w,
+              this.cropArea.h
+            ));
+          }
+        }
+      } else if (layer.crop) {
+        // Handle single sprite
         layer.crop(new Phaser.Rectangle(
           this.cropArea.x,
           this.cropArea.y,
@@ -3321,7 +4784,7 @@ class CharacterCroppedDisplay extends CharacterDisplay {
           this.cropArea.h
         ));
       }
-    });
+    }
   }
 
   updateAppearance(newAppearance) {
@@ -3330,18 +4793,27 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
+
+
+// ======== js/character/CharacterPortrait.js ========
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
+
+
+// ======== js/character/CharacterCloseShot.js ========
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
+
+
+// ======== js/character/CharacterManager.js ========
 class CharacterManager {
   constructor() {
     this.characters = new Map();
@@ -3381,7 +4853,8 @@ class CharacterManager {
         backHair: appearance.backHair || "1",
         clothing: appearance.clothing || "school_uniform",
         accessory: appearance.accessory || null
-      }
+      },
+      tints: appearance.tints || {}
     });
 
     this.characters.set(name, newCharacter);
@@ -3447,6 +4920,8 @@ class CharacterManager {
     if (accountChar) {
       Object.assign(accountChar, char.toJSON());
     }
+    
+    const developedPersonality = char.studyPersonalities(gameResults);
     
     saveAccount();
     
@@ -3563,6 +5038,9 @@ class CharacterManager {
   }
 }
 
+
+
+// ======== js/character/CharacterSkillSystem.js ========
 class CharacterSkillSystem {
   constructor(scene, character) {
     this.scene = scene;
@@ -3946,6 +5424,9 @@ class CharacterSkillSystem {
   }
 }
 
+
+
+// ======== js/achievements/AchievementsManager.js ========
 class AchievementsManager {
   constructor() {
     this.newAchievements = [];
@@ -4470,6 +5951,9 @@ class AchievementsManager {
   }
 }
 
+
+
+// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config = {}, parent) {
     super(game, x, y, null);
@@ -4729,6 +6213,9 @@ class Text extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -5253,6 +6740,9 @@ class Window extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
@@ -5533,6 +7023,9 @@ class WindowManager {
   }
 }
 
+
+
+// ======== js/ui/DialogWindow.js ========
 class DialogWindow extends Phaser.Sprite {
   constructor(text, options = {}) {
     const {
@@ -5984,6 +7477,9 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/CarouselMenu.js ========
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -6708,6 +8204,9 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/CanvasBackground.js ========
 class CanvasBackground extends Phaser.Sprite {
   constructor(canvas) {
     super(game, 0, 0);
@@ -6727,6 +8226,9 @@ class CanvasBackground extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/BackgroundGradient.js ========
 class BackgroundGradient extends Phaser.Sprite {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, "ui_background_gradient");
@@ -6739,6 +8241,9 @@ class BackgroundGradient extends Phaser.Sprite {
   }
 } 
 
+
+
+// ======== js/ui/Background.js ========
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 5000) {
     super(game, 0, 0, key);
@@ -6751,6 +8256,9 @@ class Background extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -6938,6 +8446,9 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -6951,6 +8462,9 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -7000,6 +8514,9 @@ class Logo extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(hints = []) {
     super(game, 0, game.height - 6);
@@ -7396,6 +8913,9 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 2, text, FONTS.default);
@@ -7404,6 +8924,9 @@ class ProgressText extends Text {
   }
 }
 
+
+
+// ======== js/ui/ExperienceBar.js ========
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
@@ -7451,6 +8974,9 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/SkillBar.js ========
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
@@ -7478,6 +9004,9 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/TextInput.js ========
 class TextInput extends Phaser.Sprite {
   constructor(config = {}) {
     config = {
@@ -7724,6 +9253,9 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NumberInput.js ========
 class NumberInput extends TextInput {
   constructor(config = {}) {
     config = {
@@ -7875,6 +9407,9 @@ class NumberInput extends TextInput {
   }
 }
 
+
+
+// ======== js/ui/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -8254,6 +9789,9 @@ class NotificationSystem {
   }
 }
 
+
+
+// ======== js/ui/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -8445,6 +9983,9 @@ class Lyrics {
   }
 }
 
+
+
+// ======== js/ui/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -8737,6 +10278,9 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/MouseCursor.js ========
 class MouseCursor {
   constructor() {
     this.sprite = null;
@@ -8929,6 +10473,9 @@ class MouseCursor {
   }
 }
 
+
+
+// ======== js/ui/BarChart.js ========
 class BarChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -9024,6 +10571,9 @@ class BarChart extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LineChart.js ========
 class LineChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -9137,6 +10687,9 @@ class LineChart extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -9232,6 +10785,9 @@ class FileSystemTools {
   }
 }
 
+
+
+// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -9641,6 +11197,9 @@ class NodeFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -9756,6 +11315,9 @@ class CordovaFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -9799,6 +11361,9 @@ class FallbackFileSystem {
   }
 }
 
+
+
+// ======== js/game/game.js ========
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 let Account = {
@@ -9978,6 +11543,9 @@ window.multiplayerState = {
   }
 };
 
+
+
+// ======== js/utils/ScreenRecorder.js ========
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -10347,6 +11915,9 @@ class ScreenRecorder {
   }
 }
 
+
+
+// ======== js/utils/Metronome.js ========
 class Metronome {
   constructor(scene) {
     this.scene = scene;
@@ -10509,6 +12080,9 @@ class Metronome {
   }
 }
 
+
+
+// ======== js/utils/TimeUtils.js ========
 class TimeUtils {
   static isValidTime(time) {
     return typeof time != undefined && typeof time != null && !isNaN(time) && time != Infinity;
@@ -10528,6 +12102,9 @@ class TimeUtils {
   }
 }
 
+
+
+// ======== js/input/GamepadListener.js ========
 class GamepadListener {
   constructor(game) {
     this.game = game;
@@ -10546,6 +12123,9 @@ class GamepadListener {
   }
 }
 
+
+
+// ======== js/input/KeyboardListener.js ========
 class KeyboardListener {
   constructor(game) {
     this.game = game;
@@ -10564,6 +12144,9 @@ class KeyboardListener {
   }
 }
 
+
+
+// ======== js/input/InputManager.js ========
 let inputManager, gamepad, gamepad1, gamepad2;
 
 class InputManager {
@@ -10591,6 +12174,9 @@ class InputManager {
   }
 }
 
+
+
+// ======== js/input/Gamepad.js ========
 class Gamepad {
   constructor(game, keyboardMap, gamepadMap, playerIndex = 0) {
     this.game = game;
@@ -11236,6 +12822,9 @@ class Gamepad {
   }
 }
 
+
+
+// ======== js/input/AllPads.js ========
 class AllPads extends Gamepad {
   constructor(game, gamepads) {
     super(game, undefined, undefined, 0);
@@ -11350,6 +12939,9 @@ class AllPads extends Gamepad {
   destroy() {}
 }
 
+
+
+// ======== js/input/OnScreenKeyboard.js ========
 class OnScreenKeyboard extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x || 60, y || 75, "ui_keyboard", 0);
@@ -11559,6 +13151,9 @@ class OnScreenKeyboard extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/input/NumericTypeOnScreenKeyboard.js ========
 class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   constructor(x, y) {
     super(80, 70);
@@ -11586,6 +13181,9 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   }
 }
 
+
+
+// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -11821,6 +13419,9 @@ class BackgroundMusic {
   }
 }
 
+
+
+// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -11845,6 +13446,9 @@ class Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -11885,6 +13489,9 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -11951,6 +13558,9 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -12043,6 +13653,9 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -12401,6 +14014,9 @@ class FullScreenAudioVisualizer {
   }
 }
 
+
+
+// ======== js/parsers/SMFile.js ========
 class SMFile {
   static generateSM(songData) {
     let smContent = "";
@@ -12692,6 +14308,9 @@ class SMFile {
   }
 }
 
+
+
+// ======== js/parsers/FileTools.js ========
 class FileTools {
   static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
@@ -12857,6 +14476,9 @@ class FileTools {
   }
 }
 
+
+
+// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   constructor() {
     this.baseUrl = "";
@@ -13128,6 +14750,9 @@ class LocalSMParser {
   }
 }
 
+
+
+// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   async parseSM(files, smContent) {
@@ -13594,6 +15219,9 @@ class ExternalSMParser {
   }
 }
 
+
+
+// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -14005,6 +15633,9 @@ class AddonManager {
   }
 }
 
+
+
+// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -14040,6 +15671,8 @@ class Boot {
     const oldVersion = Account.version;
     const difference = currentVersion - oldVersion;
     
+    if (Math.abs(difference) > 0) console.log('Migrating:', oldVersion, '->', currentVersion);
+    
     // Fix settings from old versions
     if (!oldVersion) {
       // Try to migrate settings and progress
@@ -14066,6 +15699,49 @@ class Boot {
     
     if (!Account.settings.sfxVolume && Account.settings.sfxVolume != 0) Account.settings.sfxVolume = 100;
     
+    const forceMigrateCharacters = false;
+    
+    // Version 1.1 has better character customization
+    if (oldVersion < 1.1 || forceMigrateCharacters) {
+      // Convert old version characters to new character system
+      Account.characters.list = Account.characters.list.map(character => {
+        console.log('Migrating', character.name);
+        
+        if (!forceMigrateCharacters && typeof character.appearance.tints != 'undefined') {
+          console.log(character.name, 'is already compatible with current version');
+          return character;
+        }
+        
+        const newCharacter = structuredClone(character);
+        
+        newCharacter.appearance.clothing = DEFAULT_CHARACTER.appearance.clothing;
+        newCharacter.appearance.tints = DEFAULT_CHARACTER.appearance.tints;
+        newCharacter.appearance.tints.hair = character.appearance.hairColor;
+        
+        return newCharacter;
+      });
+      
+      // Reset clothing unlock state
+      Account.characters.unlockedItems = DEFAULT_ACCOUNT.characters.unlockedItems;
+      
+      console.log('Character list converted!');
+    }
+    
+    // Fix broken unlocked items
+    if (!Account.characters.unlockedItems) {
+      Account.characters.unlockedItems = [];
+    }
+    
+    if (currentVersion >= 1.1) {
+      // Ensure default items are always unlocked
+      const defaultItems = ['top_seifuku_default', 'bottom_skirt_blue', 'shoes_common'];
+      for (const itemId of defaultItems) {
+        if (!Account.characters.unlockedItems.includes(itemId)) {
+          Account.characters.unlockedItems.push(itemId);
+        }
+      }
+    }
+      
     Account.version = currentVersion;
     saveAccount();
   }
@@ -14461,23 +16137,27 @@ class Boot {
       // Clothing and accessories
       ...(() => {
         const resources = [];
-        CHARACTER_ITEMS.clothing.forEach(item => {
-          resources.push({
-            key: `character_clothing_${item.id}`,
-            url: `character/${item.id}.png`,
-            type: "spritesheet",
-            frameWidth: 100,
-            frameHeight: 100
-          });
-        });
-        CHARACTER_ITEMS.accessories.forEach(item => {
-          resources.push({
-            key: `character_accessory_${item.id}`,
-            url: `character/${item.id}.png`,
-            type: "spritesheet",
-            frameWidth: 100,
-            frameHeight: 100
-          });
+        CHARACTER_ITEMS.forEach(item => {
+          if (item.layers) {
+            for (let i = 0; i < item.layers.length; i++) {
+              const layer = item.layers[i];
+              resources.push({
+                key: `character_item_${item.id}_layer${i}`,
+                url: `character/${ layer.sprite ? layer.sprite : `${item.id}_layer${i}.png` }`,
+                type: "spritesheet",
+                frameWidth: 100,
+                frameHeight: 100
+              });
+            };
+          } else {
+            resources.push({
+              key: `character_item_${item.id}`,
+              url: `character/${item.id}.png`,
+              type: "spritesheet",
+              frameWidth: 100,
+              frameHeight: 100
+            });
+          }
         });
         return resources;
       })(),
@@ -14522,6 +16202,9 @@ class Boot {
   }
 }
 
+
+
+// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -14569,6 +16252,9 @@ class Load {
   }
 }
 
+
+
+// ======== js/game/states/LoadCordova.js ========
 class LoadCordova {
   create() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
@@ -14616,6 +16302,9 @@ class LoadCordova {
   }
 }
 
+
+
+// ======== js/game/states/LoadAddons.js ========
 class LoadAddons {
   create() {
     this.progressText = new ProgressText("LOADING ADD-ONS");
@@ -14638,6 +16327,9 @@ class LoadAddons {
   }
 }
 
+
+
+// ======== js/game/states/LoadLocalSongs.js ========
 class LoadLocalSongs {
   create() {
     this.progressText = new ProgressText("LOADING SONGS");
@@ -14710,6 +16402,9 @@ class LoadLocalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadExternalSongs.js ========
 class LoadExternalSongs {
   init(nextState, nextStateParams) {
     this.nextState = nextState || 'SongSelect';
@@ -15051,6 +16746,9 @@ class LoadExternalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadSongFolder.js ========
 class LoadSongFolder {
   create() {
     this.progressText = new ProgressText("SELECT SONG FOLDER");
@@ -15250,6 +16948,9 @@ class LoadSongFolder {
   }
 }
 
+
+
+// ======== js/game/states/LoadExternalSongFile.js ========
 class LoadExternalSongFile {
   init(fileName, filePath, nextState, nextStateParams) {
     this.fileName = fileName;
@@ -15365,6 +17066,9 @@ class LoadExternalSongFile {
   }
 }
 
+
+
+// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -15439,6 +17143,9 @@ class Title {
   }
 }
 
+
+
+// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -15863,6 +17570,9 @@ class MainMenu {
   }
 }
 
+
+
+// ======== js/game/states/Addons.js ========
 class Addons {
   create() {
     game.camera.fadeIn(0x000000);
@@ -16054,6 +17764,9 @@ class Addons {
   }
 }
 
+
+
+// ======== js/game/states/Settings.js ========
 class Settings {
   create() {
     game.camera.fadeIn(0x000000);
@@ -16646,6 +18359,9 @@ class Settings {
   }
 }
 
+
+
+// ======== js/game/states/ChartModifiers.js ========
 class ChartModifiers {
   init(returnState = "Settings", ...returnParams) {
     this.returnState = returnState;
@@ -16736,6 +18452,9 @@ class ChartModifiers {
   }
 }
 
+
+
+// ======== js/game/states/Keybindings.js ========
 class Keybindings {
   create() {
     game.camera.fadeIn(0x000000);
@@ -17286,6 +19005,9 @@ class Keybindings {
   }
 }
 
+
+
+// ======== js/game/states/FileSelect.js ========
 class FileSelect {
   init(extensions = null, onSelect = null, onCancel = null, allowCancel = true) {
     this.extensions = extensions;
@@ -17507,6 +19229,9 @@ class FileSelect {
   }
 }
 
+
+
+// ======== js/game/states/SongSelect.js ========
 class SongSelect {
   init(songs, index, autoSelect, type = "auto") {
     this.type = type;
@@ -18110,6 +19835,9 @@ class SongSelect {
   }
 }
 
+
+
+// ======== js/game/states/CharacterSelect.js ========
 class CharacterSelect {
   create() {
     game.camera.fadeIn(0x000000);
@@ -18128,49 +19856,44 @@ class CharacterSelect {
   }
 
   createUI() {
-    // Create all UI elements that persist throughout the state
     this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
     this.createDetailsText();
-    
-    // Initialize menus as null
+
     this.actionMenu = null;
     this.customizationMenu = null;
     this.skillsCarousel = null;
     this.creationMenu = null;
     this.characterCarousel = null;
+    this.itemListMenu = null;
+    this.layerColorMenu = null;
+    this.colorUI = null;
+    this.colorSlot = null;
+    this.colorValue = 0xffffff;
+    this.colorStep = 32;
+    this.colorHandler = null;
+    this.currentLayerIndex = 0;
 
-    // Show initial state
     this.showHomeUI();
   }
 
   createDetailsText() {
-    // Create text display for character details
     this.nameText = new Text(144, 10, "", FONTS.shaded);
     this.levelText = new Text(175, 10, "", FONTS.default);
-    this.selectedSkillText = new Text(144, 34, "", FONTS.default);
-    this.skillDescriptionText = new Text(146, 42, "", FONTS.default);
-    
-    // Create experience bar and skill bar
+    this.itemNameText = new Text(144, 34, "", FONTS.default);
+    this.itemDescriptionText = new Text(146, 42, "", FONTS.default);
+
     this.expBar = new ExperienceBar(175, 16, 36, 3);
     this.skillBar = new SkillBar(146, 18);
   }
-  
+
   showHomeUI() {
-    // Clear any existing menus
+    gamepad.releaseAll();
     this.clearAllMenus();
-    
-    // Show character details
-    this.showCharacterDetails();
-    
-    // Create character list
     this.showCharacterList();
-    
-    // Update display with current character
     this.updateDisplay();
   }
-  
+
   clearAllMenus() {
-    // Destroy all menus
     if (this.characterCarousel) {
       this.characterCarousel.destroy();
       this.characterCarousel = null;
@@ -18191,24 +19914,29 @@ class CharacterSelect {
       this.creationMenu.destroy();
       this.creationMenu = null;
     }
-    
-    // Remove any input handlers
+    if (this.itemListMenu) {
+      this.itemListMenu.destroy();
+      this.itemListMenu = null;
+    }
+    if (this.layerColorMenu) {
+      this.layerColorMenu.destroy();
+      this.layerColorMenu = null;
+    }
+    if (this.colorUI) {
+      this.cleanupColorUI();
+    }
+
+    this.updateDetails("", "", false);
     gamepad.signals.pressed.any.removeAll();
   }
-  
+
   writeCharacterInformation() {
     const char = this.selectedCharacter;
-    
-    // Name
     this.nameText.write(char ? char.name : "");
     this.nameText.bringToTop();
-    
-    // Level and experience
-    const expText = char ? `${char.experience}/${char.getRequiredExperience()}` : "";
     this.levelText.write(char ? `Lv. ${char.level}` : "");
     this.levelText.bringToTop();
-    
-    // Update experience bar
+
     if (char) {
       this.expBar.setProgress(char.getExperienceProgress());
       this.expBar.bringToTop();
@@ -18216,8 +19944,7 @@ class CharacterSelect {
     } else {
       this.expBar.visible = false;
     }
-    
-    // Skill level
+
     if (char) {
       this.skillBar.value = char.skillLevel;
       this.skillBar.update();
@@ -18227,25 +19954,42 @@ class CharacterSelect {
       this.skillBar.visible = false;
     }
     
-    // Selected skill info
-    if (char && char.selectedSkill) {
-      const skill = CHARACTER_SKILLS.find(s => s.id === char.selectedSkill);
-      if (skill) {
-        this.selectedSkillText.write(skill.name);
-        this.skillDescriptionText.write(skill.description);
-        this.skillDescriptionText.wrap(70);
-        this.selectedSkillText.bringToTop();
-        this.skillDescriptionText.bringToTop();
+    let text = '';
+    
+    if (char) {
+      if (char.personality) {
+        const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === char.personality);
+        text += `${personality.name} person, ${personality.description}\n\n`;
       } else {
-        this.selectedSkillText.write("");
-        this.skillDescriptionText.write("< NO SKILL >");
-        this.skillDescriptionText.bringToTop();
+        text += `Casual person\n\n`;
+      }
+      if (char.selectedSkill) {
+        const skill = CHARACTER_SKILLS.find(s => s.id === char.selectedSkill);
+        text += `Skill: ${skill.name},\n\n${skill.description}\n\n`;
+      } else {
+        text += '< No skill >';
       }
     } else {
-      this.selectedSkillText.write("");
-      this.skillDescriptionText.write(char ? "< NO SKILL >" : "< NO CHARACTER >");
-      this.selectedSkillText.bringToTop();
+      text = '< No character >';
     }
+
+    this.updateDetails("", text, !!char);
+  }
+
+  updateDetails(title, description, showCharacterInfo = false) {
+    this.itemNameText.write(title);
+    this.itemDescriptionText.write(description);
+    this.itemDescriptionText.wrap(70);
+    this.itemNameText.bringToTop();
+    this.itemDescriptionText.bringToTop();
+
+    this.nameText.visible = showCharacterInfo;
+    this.levelText.visible = showCharacterInfo;
+    this.expBar.visible = showCharacterInfo;
+    this.skillBar.visible = showCharacterInfo;
+
+    this.itemNameText.y = showCharacterInfo ? 34 : 10;
+    this.itemDescriptionText.y = showCharacterInfo ? 42 : 18;
   }
 
   selectCharacter(character) {
@@ -18254,7 +19998,6 @@ class CharacterSelect {
   }
 
   updateDisplay() {
-    // Update character display
     if (this.characterDisplay) {
       this.characterDisplay.destroy();
     }
@@ -18264,12 +20007,10 @@ class CharacterSelect {
       this.characterCarousel.bringToTop();
     }
 
-    // Update details text
     this.writeCharacterInformation();
   }
 
   showCharacterList() {
-    // Character list carousel (left)
     this.characterCarousel = new CarouselMenu(0, 8, 100, 130, {
       bgcolor: "#9b59b6",
       fgcolor: "#ffffff",
@@ -18277,7 +20018,6 @@ class CharacterSelect {
       animate: true
     });
 
-    // Add characters to carousel
     let index = 0;
     this.characterManager.getCharacterList().forEach(character => {
       const isCurrent = this.selectedCharacter && character.name === this.selectedCharacter.name;
@@ -18293,36 +20033,32 @@ class CharacterSelect {
       }
       index++;
     });
-    
-    // Add Unselect option
-    this.characterCarousel.addItem("× NO CHARACTER", () => {
+
+    this.characterCarousel.addItem("× No character", () => {
       this.selectedCharacter = null;
       this.characterManager.unsetCharacter();
       this.showHomeUI();
     }, {
       bgcolor: this.selectedCharacter ? "#9b59b6" : "#e74c3c"
     });
-    
-    if (!this.selectedCharacter) this.characterCarousel.selectIndex(index);
-    
-    // Add "Add Character" option
-    this.characterCarousel.addItem("+ ADD CHARACTER", () => this.startCharacterCreation());
 
-    // Set up proper navigation
+    if (!this.selectedCharacter) this.characterCarousel.selectIndex(index);
+
+    this.characterCarousel.addItem("+ Add character", () => this.startCharacterCreation());
+
     this.characterCarousel.onSelect.add((index, item) => {
       this.selectCharacter(item.data.character || null);
     });
-    
-    this.showCharacterDetails();
-    
+
     this.characterCarousel.onCancel.add(() => {
       game.state.start("MainMenu");
     });
   }
 
   showActionMenu() {
+    gamepad.releaseAll();
     this.clearAllMenus();
-    this.hideCharacterDetails();
+    this.updateDetails("", "", false);
 
     this.actionMenu = new CarouselMenu(75, 75, 72, 48, {
       bgcolor: "#34495e",
@@ -18332,13 +20068,15 @@ class CharacterSelect {
       inactiveAlpha: 0.5
     });
 
-    this.actionMenu.addItem("SELECT", () => this.confirmSelection());
-    if (this.selectedCharacter.unlockedSkills.length) this.actionMenu.addItem("SET SKILL", () => this.setSkill());
-    this.actionMenu.addItem("CUSTOMIZE", () => this.customizeCharacter());
-    this.actionMenu.addItem("DELETE", () => this.deleteCharacter());
+    this.actionMenu.addItem("Select", () => this.confirmSelection());
+    if (this.selectedCharacter?.unlockedSkills?.length) {
+      this.actionMenu.addItem("Set skill", () => this.setSkill());
+    }
+    this.actionMenu.addItem("Customize", () => this.customizeCharacter());
+    this.actionMenu.addItem("Delete", () => this.deleteCharacter());
 
-    // Proper cancel handling
     this.actionMenu.onCancel.add(() => {
+      gamepad.releaseAll();
       this.showHomeUI();
     });
   }
@@ -18349,23 +20087,18 @@ class CharacterSelect {
   }
 
   setSkill() {
-    // Hide character details
-    this.hideCharacterDetails();
-    
-    // Create skill preview text
-    this.skillPreviewText = new Text(240 - 70, 8, "", FONTS.default);
-    this.skillPreviewText.wrap(70);
-    
+    this.updateDetails("", "", false);
+
     this.skillsCarousel = new CarouselMenu(0, 8, 100, 130, {
       bgcolor: "#9b59b6",
       fgcolor: "#ffffff",
       align: "left",
       animate: true
     });
-    
+
     let i = 0;
     let selectedIndex = 0;
-    
+
     this.selectedCharacter.unlockedSkills.forEach(skillId => {
       const skill = CHARACTER_SKILLS.find(s => s.id === skillId);
       if (skill) {
@@ -18377,7 +20110,6 @@ class CharacterSelect {
           this.updateSkillPreview(item.data.skillId);
           this.skillsCarousel.destroy();
           this.skillsCarousel = null;
-          this.skillPreviewText.destroy();
           this.setSkill();
         }, {
           skillId: skillId,
@@ -18385,36 +20117,32 @@ class CharacterSelect {
         });
       }
     });
-    
+
     this.skillsCarousel.selectIndex(selectedIndex);
-    
-    // Set up navigation
+
     this.skillsCarousel.onSelect.add((index, item) => {
       this.updateSkillPreview(item.data.skillId);
     });
-    
+
     this.skillsCarousel.onCancel.add(() => {
       this.skillsCarousel.destroy();
       this.skillsCarousel = null;
-      this.skillPreviewText.destroy();
       this.showActionMenu();
     });
-    
-    // Update preview with first skill
+
     if (this.selectedCharacter.unlockedSkills.length > 0) {
       this.updateSkillPreview(this.selectedCharacter.unlockedSkills[0]);
     }
   }
-  
+
   updateSkillPreview(skillId) {
     const skill = CHARACTER_SKILLS.find(s => s.id === skillId);
     if (!skill) return;
-    
-    let previewText = `${skill.name}\n\n`;
+
+    let previewText = "";
     previewText += `${skill.description}\n\n`;
-    
-    // Add effect details
-    previewText += "EFFECT:\n";
+
+    previewText += "Effect:\n";
     switch (skill.effect) {
       case 'convert_judgement':
         previewText += `• Converts ${skill.effectParams.from} to ${skill.effectParams.to}\n`;
@@ -18423,7 +20151,7 @@ class CharacterSelect {
         previewText += `• Judgement window ×${skill.effectParams.multiplier}\n`;
         break;
       case 'health_regen':
-        previewText += `• +${skill.effectParams.amount} HP every ${skill.effectParams.interval/1000}s\n`;
+        previewText += `• +${skill.effectParams.amount} HP every ${skill.effectParams.interval / 1000}s\n`;
         break;
       case 'modify_max_health':
         previewText += `• +${skill.effectParams.amount} Max HP\n`;
@@ -18453,7 +20181,7 @@ class CharacterSelect {
         previewText += `• Modifies Input Lag\n`;
         break;
       case 'burst_health_regen':
-        previewText += `• Gives ${skill.effectParams.amount}% Burts health regeneration\n`;
+        previewText += `• Gives ${skill.effectParams.amount}% Burst health regeneration\n`;
         break;
       case 'stabilize_judgement':
         previewText += `• Judgement Stabilization\n`;
@@ -18462,9 +20190,8 @@ class CharacterSelect {
         previewText += `• General Boost\n`;
         break;
     }
-    
-    // Add activation details
-    previewText += "\nACTIVATION:\n";
+
+    previewText += "\nActivation:\n";
     switch (skill.activationCondition) {
       case 'on_miss':
         previewText += "• When you get a Miss judgement\n";
@@ -18491,293 +20218,612 @@ class CharacterSelect {
         previewText += `• ${skill.activationText || 'Custom'}`;
         break;
     }
-    
-    // Add duration and cooldown
+
     if (skill.duration > 0) {
-      previewText += `\nDURATION: ${skill.duration/1000}s\n`;
+      previewText += `\nDuration: ${skill.duration / 1000}s\n`;
     }
     if (skill.cooldown > 0) {
-      previewText += `COOLDOWN: ${skill.cooldown/1000}s\n`;
+      previewText += `Cooldown: ${skill.cooldown / 1000}s\n`;
     }
-    
-    this.skillPreviewText.write(previewText);
-    this.skillPreviewText.wrap(70);
-    
-    this.skillPreviewText.bringToTop();
+
+    this.updateDetails(skill.name, previewText, false);
   }
 
   customizeCharacter() {
-    this.showCustomizationMenu();
-  }
-
-  showCustomizationMenu() {
+    gamepad.releaseAll();
     this.clearAllMenus();
+    this.updateDetails("", "", false);
 
-    this.customizationMenu = new CarouselMenu(75, 75, 72, 48, {
+    this.updateEquipmentText('front_hair');
+
+    this.customizationMenu = new CarouselMenu(0, 8, 100, 130, {
       bgcolor: "#2c3e50",
       fgcolor: "#ffffff",
-      align: "center",
-      activeAlpha: 1,
-      inactiveAlpha: 0.6
+      align: "left",
+      animate: true
     });
 
-    this.customizationMenu.addItem("SKIN TONE", () => this.customizeSkinTone());
-    this.customizationMenu.addItem("HAIR COLOR", () => this.customizeHairColor());
-    this.customizationMenu.addItem("FRONT HAIR", () => this.customizeHairStyle("frontHair"));
-    this.customizationMenu.addItem("BACK HAIR", () => this.customizeHairStyle("backHair"));
-    this.customizationMenu.addItem("CLOTHING", () => this.customizeClothing());
-    this.customizationMenu.addItem("ACCESSORY", () => this.customizeAccessory());
-    this.customizationMenu.addItem("APPLY", () => this.finishCustomization());
+    const slots = [
+      { id: 'front_hair', label: 'Front hair', y: 38 },
+      { id: 'back_hair', label: 'Back hair', y: 48 },
+      { id: 'skin', label: 'Skin tone', y: 63 },
+      { id: 'top', label: 'Top', y: 52 },
+      { id: 'bottom', label: 'Bottom', y: 70 },
+      { id: 'shoes', label: 'Shoes', y: 108 },
+      { id: 'accessory', label: 'Accessory', y: 85 },
+      { id: 'special', label: 'Special', y: 45 }
+    ];
 
-    // Proper cancel handling
+    slots.forEach((slot) => {
+      this.customizationMenu.addItem(slot.label, () => {
+        this.showSlotItems(slot.id);
+      }, {
+        slot: slot,
+        bgcolor: '#34495e'
+      });
+    });
+
+    this.customizationMenu.onSelect.add((index, item) => {
+      if (item.data && item.data.slot) {
+        this.updateEquipmentText(item.data.slot.id);
+      }
+    });
+
     this.customizationMenu.onCancel.add(() => {
-      this.characterDisplay.updateAppearance(this.originalAppearance);
+      gamepad.releaseAll();
       this.showActionMenu();
     });
+  }
 
-    // Store original appearance for cancellation
-    this.originalAppearance = { ...this.selectedCharacter.appearance };
+  updateEquipmentText(slotId) {
+    const currentItem = this.getCurrentSlotItem(slotId);
+
+    let labelText = '';
+    let desc = '';
+
+    if (currentItem) {
+      labelText = currentItem.name || 'None';
+      desc = currentItem.description || currentItem.name || '';
+    }
+
+    if (!labelText || labelText === 'None') {
+      if (slotId === 'accessory') labelText = 'No accessory';
+      else if (slotId === 'special') labelText = 'No special clothing';
+      else if (slotId === 'shoes') labelText = 'No shoes';
+    }
+
+    this.updateDetails(labelText || '< ??? >', '\n\n\n' + desc || '');
+  }
+
+  getCurrentSlotItem(slotId) {
+    const appearance = this.selectedCharacter?.appearance;
+    if (!appearance) return null;
+
+    if (slotId === 'front_hair') {
+      const id = appearance.frontHair || 1;
+      const styles = CHARACTER_SYSTEM.HAIR_STYLES.front;
+      const style = styles[id - 1];
+      return { name: style?.name || `Front ${id}`, id: id, description: style?.description || 'Front hair style.' };
+    }
+
+    if (slotId === 'back_hair') {
+      const id = appearance.backHair || 1;
+      const styles = CHARACTER_SYSTEM.HAIR_STYLES.back;
+      const style = styles[id - 1];
+      return { name: style?.name || `Back ${id}`, id: id, description: style?.description || 'Back hair style.' };
+    }
+
+    if (slotId === 'skin') {
+      const idx = appearance.skinTone || 0;
+      const skin = CHARACTER_SYSTEM.SKIN_TONES[idx];
+      return { name: skin?.name || 'Default', id: idx, description: skin?.description || 'Skin tone.' };
+    }
+
+    const itemId = appearance.clothing?.[slotId];
+    if (!itemId) return null;
+
+    const item = CHARACTER_ITEMS.find(i => i.id === itemId && i.type === slotId);
+    if (item) {
+      return { name: item.name, id: item.id, description: item.description || item.name };
+    }
+
+    return { name: 'None', id: null, description: '' };
   }
   
-  customizeSkinTone() {
-    const skinOptions = ["PALE", "LIGHT", "TAN", "DARK", "PURPLE"];
+  showSlotItems(slotId) {
+    gamepad.releaseAll();
+    this.clearAllMenus();
+  
+    let items = [];
+    const isDev = VERSION.includes('dev');
+    const unlockAll = window.UNLOCK_ALL_CLOTHES === true && isDev;
+  
+    if (slotId === 'front_hair' || slotId === 'back_hair') {
+      const type = slotId === 'front_hair' ? 'front' : 'back';
+      let unlocked;
+      if (unlockAll) {
+        const total = CHARACTER_SYSTEM.HAIR_STYLES[type].length;
+        unlocked = Array.from({ length: total }, (_, i) => i + 1);
+      } else {
+        unlocked = Account.characters.unlockedHairs[type] || [1];
+      }
+      const styles = CHARACTER_SYSTEM.HAIR_STYLES[type];
+  
+      let index = 0;
+  
+      items = unlocked.map(id => {
+        const s = styles[id - 1];
+        return {
+          id: id,
+          name: s?.name || `Style ${id}`,
+          type: slotId,
+          isHair: true,
+          hairType: type,
+          dyable: false,
+          description: s?.description || (s?.name ? `${s.name} hair style` : `Hair style ${id}`)
+        };
+      });
+    } else if (slotId === 'skin') {
+      const skinOptions = CHARACTER_SYSTEM.SKIN_TONES;
+      items = skinOptions.map((skin, index) => ({
+        id: index,
+        name: skin.name || `Skin ${index + 1}`,
+        type: slotId,
+        isSkin: true,
+        dyable: false,
+        description: skin.description || (skin.name ? `${skin.name} skin tone` : `Skin tone ${index + 1}`)
+      }));
+    } else {
+      const allItems = CHARACTER_ITEMS.filter(item => item.type === slotId);
+      const unlockedIds = Account.characters.unlockedItems || [];
+  
+      items = allItems.filter(item => {
+        if (unlockAll) return true;
+        return unlockedIds.includes(item.id);
+      });
+  
+      const slotTypesWithNone = ['accessory', 'shoes', 'special'];
+      if (slotTypesWithNone.includes(slotId)) {
+        items.unshift({
+          id: null,
+          name: 'None',
+          type: slotId,
+          isNone: true,
+          dyable: false,
+          description: 'No item equipped.'
+        });
+      }
+    }
+  
+    // Get current item ID from character
+    let currentItemId = null;
+    const appearance = this.selectedCharacter?.appearance;
     
-    const background = createGradientBackground(115, 100, 92, 30);
-    background.anchor.set(0.5);
+    if (slotId === 'front_hair' || slotId === 'back_hair') {
+      const slotKey = slotId == 'front_hair' ? 'frontHair' : 'backHair';
+      currentItemId = appearance?.[slotKey] || 1;
+    } else if (slotId === 'skin') {
+      currentItemId = appearance?.skinTone || 0;
+    } else {
+      currentItemId = appearance?.clothing?.[slotId] || null;
+    }
+  
+    // Create the menu
+    this.itemListMenu = new CarouselMenu(0, 8, 100, 130, {
+      bgcolor: "#8e44ad",
+      fgcolor: "#ffffff",
+      align: "left",
+      animate: true
+    });
+  
+    let selectedIndex = 0;
+  
+    // Add all items to the menu and track which one is current
+    items.forEach((item, index) => {
+      let isCurrent = false;
+      
+      if (item.isHair) {
+        isCurrent = item.id === currentItemId;
+      } else if (item.isSkin) {
+        isCurrent = item.id === currentItemId;
+      } else {
+        isCurrent = item.id === currentItemId;
+      }
+      
+      if (isCurrent) {
+        selectedIndex = index;
+      }
+  
+      this.itemListMenu.addItem(
+        isCurrent ? `> ${item.name}` : `  ${item.name}`,
+        null,
+        {
+          item: item,
+          slotId: slotId,
+          bgcolor: isCurrent ? "#e74c3c" : "#8e44ad"
+        }
+      );
+    });
+  
+    // Select the current item
+    this.itemListMenu.selectIndex(selectedIndex);
+  
+    this.itemListMenu.onSelect.add((index, item) => {
+      if (item.data && item.data.item) {
+        this.previewSlotItem(slotId, item.data.item);
+        const desc = item.data.item.description || '';
+        this.updateDetails(item.data.item.name, '\n\n\n' + desc, false);
+      }
+    });
     
-    const skinText = new Text(120, 100, "SKIN TONE", FONTS.shaded);
-    skinText.anchor.set(0.5);
-
-    let currentIndex = this.selectedCharacter.appearance.skinTone;
-    const skinValueText = new Text(120, 110, skinOptions[currentIndex], FONTS.default);
-    skinValueText.anchor.set(0.5);
-
-    const skinHandler = key => {
-      if (key === "left") {
-        currentIndex = (currentIndex - 1 + skinOptions.length) % skinOptions.length;
-        this.selectedCharacter.appearance.skinTone = currentIndex;
-        this.characterDisplay.updateAppearance({ skinTone: currentIndex });
-      } else if (key === "right") {
-        currentIndex = (currentIndex + 1) % skinOptions.length;
-        this.selectedCharacter.appearance.skinTone = currentIndex;
-        this.characterDisplay.updateAppearance({ skinTone: currentIndex });
-      } else if (key === "a" || key === "b" || key === "start") {
-        skinText.destroy();
-        skinValueText.destroy();
-        background.destroy();
-        gamepad.signals.pressed.any.remove(skinHandler);
-        this.showCustomizationMenu();
+    this.itemListMenu.onSelect.dispatch(selectedIndex, this.itemListMenu.items[selectedIndex]);
+    
+    this.itemListMenu.onConfirm.add(() => {
+      const selectedItem = items[this.itemListMenu.selectedIndex];
+      if (!selectedItem) return;
+  
+      this.equipSlotItem(slotId, selectedItem);
+  
+      const menuToDestroy = this.itemListMenu;
+      this.itemListMenu = null;
+      menuToDestroy.destroy();
+  
+      const fullItem = CHARACTER_ITEMS.find(i => i.id === selectedItem.id && i.type === slotId);
+      if (fullItem && fullItem.layers && fullItem.layers.length > 1) {
+        this.showLayerColorMenu(slotId, fullItem);
         return;
       }
+  
+      if (slotId === 'front_hair' || slotId === 'back_hair') {
+        this.customizeHairColor();
+        return;
+      }
+  
+      if (selectedItem.dyable !== false && !selectedItem.isNone && !selectedItem.isSkin) {
+        this.customizeItemColor(slotId, fullItem);
+        return;
+      }
+  
+      this.updateDetails("", "", false);
+      this.customizeCharacter();
+    });
+  
+    this.itemListMenu.onCancel.add(() => {
+      gamepad.releaseAll();
+      this.updateDetails("", "", false);
+      this.customizeCharacter();
+    });
+  }
 
-      skinValueText.write(skinOptions[currentIndex]);
+  previewSlotItem(slotId, item) {
+    if (!this.selectedCharacter) return;
+
+    const appearance = this.selectedCharacter.appearance;
+    const newAppearance = {};
+
+    if (item.isHair) {
+      const type = item.hairType || 'front';
+      const key = type === 'front' ? 'frontHair' : 'backHair';
+      newAppearance[key] = item.id;
+    } else if (item.isSkin) {
+      newAppearance.skinTone = item.id;
+    } else {
+      if (!appearance.clothing) {
+        appearance.clothing = {};
+      }
+      newAppearance.clothing = {
+        ...appearance.clothing,
+        [slotId]: item.id
+      };
+    }
+
+    const tempChar = {
+      ...this.selectedCharacter,
+      appearance: {
+        ...this.selectedCharacter.appearance,
+        ...newAppearance
+      }
     };
+
+    if (this.characterDisplay) {
+      this.characterDisplay.destroy();
+    }
+    this.characterDisplay = new CharacterDisplay(70, 24, tempChar);
+  }
+
+  equipSlotItem(slotId, item) {
+    if (!this.selectedCharacter) return;
+
+    const appearance = this.selectedCharacter.appearance;
+
+    if (item.isHair) {
+      const type = item.hairType || 'front';
+      const key = type === 'front' ? 'frontHair' : 'backHair';
+      appearance[key] = item.id;
+      this.characterManager.saveToAccount();
+      this.updateDisplay();
+      return;
+    }
+
+    if (item.isSkin) {
+      appearance.skinTone = item.id;
+      this.characterManager.saveToAccount();
+      this.updateDisplay();
+      return;
+    }
+
+    if (!appearance.clothing) {
+      appearance.clothing = {};
+    }
+
+    appearance.clothing[slotId] = item.id;
+    this.characterManager.saveToAccount();
+    this.updateDisplay();
+  }
+
+  showLayerColorMenu(slotId, item) {
+    if (!item || !item.layers || item.layers.length < 2) return;
+
+    gamepad.releaseAll();
+    this.clearAllMenus();
+    this.updateDetails("", "", false);
+
+    this.layerColorMenu = new CarouselMenu(0, 8, 100, 130, {
+      bgcolor: "#8e44ad",
+      fgcolor: "#ffffff",
+      align: "left",
+      animate: true
+    });
+
+    const appearance = this.selectedCharacter?.appearance;
+    const tints = appearance?.tints || {};
+
+    let selectedIndex = 0;
+
+    item.layers.forEach((layer, index) => {
+      const layerName = layer.name || `Layer ${index + 1}`;
+      const tintKey = slotId + '_layer' + index;
+      const currentTint = tints[tintKey] || layer.tint || 0xffffff;
+      const colorHex = '#' + currentTint.toString(16).padStart(6, '0');
+
+      this.layerColorMenu.addItem(
+        `${layerName}: ${colorHex}`,
+        null,
+        {
+          layerIndex: index,
+          layerName: layerName,
+          slotId: slotId,
+          item: item,
+          bgcolor: '#8e44ad'
+        }
+      );
+    });
+
+    this.layerColorMenu.selectIndex(selectedIndex);
+
+    this.layerColorMenu.onConfirm.add(() => {
+      const selectedItem = this.layerColorMenu.items[this.layerColorMenu.selectedIndex];
+      if (!selectedItem || !selectedItem.data) return;
+
+      const layerIndex = selectedItem.data.layerIndex;
+      const slot = selectedItem.data.slotId;
+      const layer = selectedItem.data.item.layers[layerIndex];
+      const tintKey = slot + '_layer' + layerIndex;
+      const currentTint = tints[tintKey] || layer.tint || 0xffffff;
+
+      this.customizeLayerColor(slot, selectedItem.data.item, layerIndex, currentTint);
+    });
+
+    this.layerColorMenu.onCancel.add(() => {
+      gamepad.releaseAll();
+      this.updateDetails("", "", false);
+      this.customizeCharacter();
+    });
+  }
+
+  customizeLayerColor(slotId, item, layerIndex, defaultColor) {
+    const layerName = item.layers[layerIndex].name || `Layer ${layerIndex + 1}`;
+    const colorKey = slotId + '_layer' + layerIndex;
     
-    gamepad.signals.pressed.any.add(skinHandler);
+    this.showColorInput(
+      `${layerName} color`,
+      defaultColor,
+      (color) => {
+        // Live preview
+        this.applyLayerColorToCharacter(colorKey, color);
+      },
+      (color) => {
+        // Confirm
+        this.applyLayerColorToCharacter(colorKey, color);
+        this.characterManager.saveToAccount();
+        this.updateDetails("", "", false);
+        this.showLayerColorMenu(slotId, item);
+      },
+      () => {
+        // Cancel
+        this.updateDisplay();
+        this.updateDetails("", "", false);
+        this.showLayerColorMenu(slotId, item);
+      }
+    );
+  }
+
+  applyLayerColorToCharacter(colorKey, color) {
+    if (!this.selectedCharacter) return;
+    const appearance = this.selectedCharacter.appearance;
+    if (!appearance.tints) appearance.tints = {};
+    appearance.tints[colorKey] = color;
+    
+    if (this.characterDisplay) {
+      this.characterDisplay.destroy();
+      this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
+    }
+  }
+
+  customizeItemColor(slotId, item) {
+    const currentColor = this.selectedCharacter?.appearance?.tints?.[slotId] || item?.tint || 0xffffff;
+    
+    this.showColorInput(
+      `${item?.name || 'Item'} color`,
+      currentColor,
+      (color) => {
+        // Live preview
+        this.applyItemColorToCharacter(slotId, color);
+      },
+      (color) => {
+        // Confirm
+        this.applyItemColorToCharacter(slotId, color);
+        this.characterManager.saveToAccount();
+        this.updateDetails("", "", false);
+        this.customizeCharacter();
+      },
+      () => {
+        // Cancel
+        this.updateDisplay();
+        this.updateDetails("", "", false);
+        this.customizeCharacter();
+      }
+    );
+  }
+
+  applyItemColorToCharacter(slotId, color) {
+    if (!this.selectedCharacter) return;
+    const appearance = this.selectedCharacter.appearance;
+    if (!appearance.tints) appearance.tints = {};
+    appearance.tints[slotId] = color;
+    
+    if (this.characterDisplay) {
+      this.characterDisplay.destroy();
+      this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
+    }
   }
 
   customizeHairColor() {
-    let color = this.selectedCharacter.appearance.hairColor;
+    const currentColor = this.selectedCharacter.appearance.tints?.hair || 0xa8705a;
+    
+    this.showColorInput(
+      'Hair color',
+      currentColor,
+      (color) => {
+        // Update live preview
+        if (!this.selectedCharacter.appearance.tints) {
+          this.selectedCharacter.appearance.tints = {};
+        }
+        this.selectedCharacter.appearance.tints.hair = color;
+        if (this.characterDisplay) {
+          this.characterDisplay.destroy();
+          this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
+        }
+      },
+      (color) => {
+        // Confirm
+        if (!this.selectedCharacter.appearance.tints) {
+          this.selectedCharacter.appearance.tints = {};
+        }
+        this.selectedCharacter.appearance.tints.hair = color;
+        this.characterManager.saveToAccount();
+        this.updateDetails("", "", false);
+        this.customizeCharacter();
+      },
+      () => {
+        // Cancel - revert
+        this.updateDisplay();
+        this.updateDetails("", "", false);
+        this.customizeCharacter();
+      }
+    );
+  }
+
+  showColorInput(title, defaultColor, onColorChange, onConfirm, onCancel) {
+    let color = defaultColor || 0xffffff;
     let r = (color >> 16) & 0xff;
     let g = (color >> 8) & 0xff;
     let b = color & 0xff;
-    
+  
     this.navigationHint.updateHints('color_input');
-    
+  
     const background = createGradientBackground(115, 100, 92, 30);
     background.anchor.set(0.5);
-
-    const colorText = new Text(120, 100, "HAIR COLOR", FONTS.shaded);
-    colorText.anchor.set(0.5);
-
+  
+    const titleText = new Text(120, 100, title, FONTS.shaded);
+    titleText.anchor.set(0.5);
+  
     const rgbText = new Text(120, 110, `R:${r} G:${g} B:${b}`, FONTS.default);
     rgbText.anchor.set(0.5);
-
+  
     const updateColor = () => {
       const newColor = (r << 16) | (g << 8) | b;
-      this.selectedCharacter.appearance.hairColor = newColor;
-      this.characterDisplay.updateAppearance({ hairColor: newColor });
+      if (onColorChange) onColorChange(newColor);
+      background.bringToTop();
+      titleText.bringToTop();
+      rgbText.bringToTop();
       rgbText.write(`R:${r} G:${g} B:${b}`);
     };
-
-    const colorHandler = key => {
+  
+    const handler = (key) => {
       switch (key) {
-        case "left":
+        case 'left':
           r = Math.max(0, r - 32);
           break;
-        case "right":
+        case 'right':
           r = Math.min(255, r + 32);
           break;
-        case "up":
+        case 'up':
           g = Math.min(255, g + 32);
           break;
-        case "down":
+        case 'down':
           g = Math.max(0, g - 32);
           break;
-        case "a":
+        case 'a':
           b = Math.min(255, b + 32);
           break;
-        case "b":
+        case 'b':
           b = Math.max(0, b - 32);
           break;
-        case "start":
-          colorText.destroy();
+        case 'start':
+          titleText.destroy();
           rgbText.destroy();
           background.destroy();
-          gamepad.signals.pressed.any.remove(colorHandler);
+          gamepad.signals.pressed.any.remove(handler);
           this.navigationHint.updateHints('general');
-          this.showCustomizationMenu();
+          const finalColor = (r << 16) | (g << 8) | b;
+          if (onConfirm) onConfirm(finalColor);
+          return;
+        case 'select':
+          titleText.destroy();
+          rgbText.destroy();
+          background.destroy();
+          gamepad.signals.pressed.any.remove(handler);
+          this.navigationHint.updateHints('general');
+          if (onCancel) onCancel();
           return;
       }
       updateColor();
     };
-    
-    gamepad.signals.pressed.any.add(colorHandler);
+  
+    this.colorHandler = handler;
+    gamepad.signals.pressed.any.add(handler);
+  
+    this.colorUI = { background, titleText, rgbText };
   }
-
-  customizeHairStyle(type) {
-    const unlocked = Account.characters.unlockedHairs[type === "frontHair" ? "front" : "back"];
-    const options = unlocked.map(id => CHARACTER_SYSTEM.HAIR_STYLES[type === "frontHair" ? "front" : "back"][id-1]);
-    const values = unlocked;
-    
-    const background = createGradientBackground(115, 100, 92, 30);
-    background.anchor.set(0.5);
-    
-    const hairText = new Text(120, 100, `${type.toUpperCase()}`, FONTS.shaded);
-    hairText.anchor.set(0.5);
-    
-    let currentIndex = this.selectedCharacter.appearance[type] - 1;
-    
-    const hairValueText = new Text(120, 110, "", FONTS.default);
-    hairValueText.write(options[currentIndex], 18);
-    hairValueText.anchor.set(0.5);
-
-    const hairHandler = key => {
-      if (key === "left") {
-        currentIndex = (currentIndex - 1 + options.length) % options.length;
-        this.characterDisplay.updateAppearance({ [type]: values[currentIndex] });
-      } else if (key === "right") {
-        currentIndex = (currentIndex + 1) % options.length;
-        this.characterDisplay.updateAppearance({ [type]: values[currentIndex] });
-      } else if (key === "a" || key === "b" || key === "start") {
-        this.selectedCharacter.appearance[type] = values[currentIndex];
-        this.characterDisplay.updateAppearance({ [type]: values[currentIndex] });
-        hairText.destroy();
-        hairValueText.destroy();
-        background.destroy();
-        gamepad.signals.pressed.any.remove(hairHandler);
-        this.showCustomizationMenu();
-        return;
-      }
-
-      hairValueText.write(options[currentIndex], 18);
-    };
-
-    gamepad.signals.pressed.any.add(hairHandler);
-  }
-
-  customizeClothing() {
-    const unlocked = Account.characters.unlockedItems.filter(itemId => CHARACTER_ITEMS.clothing.some(item => item.id === itemId));
-    const options = unlocked.map(id => {
-      const item = CHARACTER_ITEMS.clothing.find(i => i.id === id);
-      return item ? item.name : id;
-    });
-    
-    const background = createGradientBackground(115, 100, 92, 30);
-    background.anchor.set(0.5);
-
-    const clothingText = new Text(120, 100, "CLOTHING", FONTS.shaded);
-    clothingText.anchor.set(0.5);
-
-    let currentIndex = unlocked.indexOf(this.selectedCharacter.appearance.clothing);
-    if (currentIndex === -1) currentIndex = 0;
-    
-    const clothingValueText = new Text(120, 110, "", FONTS.default);
-    clothingValueText.write(options[currentIndex], 18)
-    clothingValueText.anchor.set(0.5);
-
-    const clothingHandler = key => {
-      if (key === "left") {
-        currentIndex = (currentIndex - 1 + options.length) % options.length;
-        this.characterDisplay.updateAppearance({ clothing: unlocked[currentIndex] });
-      } else if (key === "right") {
-        currentIndex = (currentIndex + 1) % options.length;
-        this.characterDisplay.updateAppearance({ clothing: unlocked[currentIndex] });
-      } else if (key === "a" || key === "b" || key === "start") {
-        this.selectedCharacter.appearance.clothing = unlocked[currentIndex];
-        this.characterDisplay.updateAppearance({ clothing: unlocked[currentIndex] });
-        clothingText.destroy();
-        clothingValueText.destroy();
-        background.destroy();
-        gamepad.signals.pressed.any.remove(clothingHandler);
-        this.showCustomizationMenu();
-        return;
-      }
-
-      clothingValueText.write(options[currentIndex], 18);
-    };
-
-    gamepad.signals.pressed.any.add(clothingHandler);
-  }
-
-  customizeAccessory() {
-    const unlocked = Account.characters.unlockedItems.filter(itemId => CHARACTER_ITEMS.accessories.some(item => item.id === itemId));
-    const options = [
-      "NONE",
-      ...unlocked.map(id => {
-        const item = CHARACTER_ITEMS.accessories.find(i => i.id === id);
-        return item ? item.name : id;
-      })
-    ];
-
-    const background = createGradientBackground(115, 100, 92, 30);
-    background.anchor.set(0.5);
-    
-    const accessoryText = new Text(120, 100, "ACCESSORY", FONTS.shaded);
-    accessoryText.anchor.set(0.5);
-
-    const currentIndex = this.selectedCharacter.appearance.accessory ? unlocked.indexOf(this.selectedCharacter.appearance.accessory) + 1 : 0;
-    let selectedIndex = currentIndex;
-    const accessoryValueText = new Text(120, 110, "", FONTS.default);
-    accessoryValueText.write(options[selectedIndex], 18);
-    accessoryValueText.anchor.set(0.5);
-
-    const accessoryHandler = key => {
-      if (key === "left") {
-        selectedIndex = (selectedIndex - 1 + options.length) % options.length;
-        this.characterDisplay.updateAppearance({ accessory: selectedIndex === 0 ? null : unlocked[selectedIndex - 1] });
-      } else if (key === "right") {
-        selectedIndex = (selectedIndex + 1) % options.length;
-        this.characterDisplay.updateAppearance({ accessory: selectedIndex === 0 ? null : unlocked[selectedIndex - 1] });
-      } else if (key === "a" || key === "b" || key === "start") {
-        this.selectedCharacter.appearance.accessory = selectedIndex === 0 ? null : unlocked[selectedIndex - 1];
-        this.characterDisplay.updateAppearance({ accessory: this.selectedCharacter.appearance.accessory });
-        accessoryText.destroy();
-        accessoryValueText.destroy();
-        background.destroy();
-        gamepad.signals.pressed.any.remove(accessoryHandler);
-        this.showCustomizationMenu();
-        return;
-      }
-      accessoryValueText.write(options[selectedIndex], 18);
-    };
-
-    gamepad.signals.pressed.any.add(accessoryHandler);
-  }
-
-  finishCustomization() {
-    this.characterManager.saveToAccount();
-    this.showActionMenu();
+  
+  cleanupColorUI() {
+    if (this.colorUI) {
+      if (this.colorUI.background) this.colorUI.background.destroy();
+      if (this.colorUI.titleText) this.colorUI.titleText.destroy();
+      if (this.colorUI.rgbText) this.colorUI.rgbText.destroy();
+      this.colorUI = null;
+    }
+    this.colorSlot = null;
+    this.navigationHint.updateHints('general');
   }
 
   deleteCharacter() {
     this.confirm(
-      "DELETE CHARACTER?",
+      'Delete character?',
       () => {
-        // Confirm callback
         this.characterManager.deleteCharacter(this.selectedCharacter.name);
-        
-        // Equip another character or leave unequiped
+
         if (this.characterManager.getCharacterList().length <= 1) {
           this.selectedCharacter = null;
           this.characterManager.unsetCharacter();
@@ -18787,22 +20833,20 @@ class CharacterSelect {
         this.showHomeUI();
       },
       () => {
-        // Cancel callback - return to action menu
         this.showActionMenu();
       },
-      "no" // Recommended to choose "No" for destructive actions
+      'no'
     );
   }
-  
-  confirm(message, onConfirm, onCancel, recommended = "none") {
-    // Clear any existing menus
+
+  confirm(message, onConfirm, onCancel, recommended = 'none') {
     this.clearAllMenus();
-    
+
     const dialog = new DialogWindow(message, {
-      buttons: ["Yes", "No"],
+      buttons: ['Yes', 'No'],
       defaultButton: recommended == 'no' ? 1 : 0
     });
-    
+
     dialog.onConfirm.add((buttonIndex, buttonText) => {
       if (buttonIndex === 0) {
         onConfirm?.();
@@ -18811,7 +20855,7 @@ class CharacterSelect {
       }
       dialog.destroy();
     });
-    
+
     dialog.onCancel.add(() => {
       onCancel?.();
       dialog.destroy();
@@ -18823,47 +20867,38 @@ class CharacterSelect {
     this.newCharacterAppearance = {
       skinTone: 0,
       hairColor: 0xFFFFFF,
-      frontHair: "1",
-      backHair: "1",
-      clothing: "school_uniform",
-      accessory: null
+      frontHair: '1',
+      backHair: '1',
+      clothing: {
+        top: 'top_seifuku_default',      // Default top
+        bottom: 'bottom_skirt_blue',     // Default bottom
+        shoes: 'shoes_common',           // Default shoes
+        accessory: null,
+        special: null
+      },
+      tints: {
+        hair: 0xa8705a,
+        top: null,
+        bottom: null,
+        shoes: null,
+        accessory: null,
+        special: null
+      }
     };
-    
-    // Hide existing UI and character details
+
     this.clearAllMenus();
-    this.hideCharacterDetails();
-    
-    // Create temporary character display for creation
+    this.updateDetails("", "", false);
+
     this.tempCharacterDisplay = new CharacterDisplay(70, 24, {
-      name: "NEW CHARACTER",
+      name: 'New character',
       appearance: this.newCharacterAppearance
     });
-    
+
     this.creationWindowManager = new WindowManager();
-    
     this.showCreationStep();
   }
-  
-  hideCharacterDetails() {
-    this.nameText.visible = false;
-    this.levelText.visible = false;
-    this.selectedSkillText.visible = false;
-    this.skillDescriptionText.visible = false;
-    this.expBar.visible = false;
-    this.skillBar.visible = false;
-  }
-  
-  showCharacterDetails() {
-    this.nameText.visible = true;
-    this.levelText.visible = true;
-    this.selectedSkillText.visible = true;
-    this.skillDescriptionText.visible = true;
-    this.expBar.visible = true;
-    this.skillBar.visible = true;
-  }
-  
+
   showCreationStep() {
-    // Remove any existing creation UI and input handlers
     if (this.creationMenu) {
       this.creationMenu.destroy();
       this.creationMenu = null;
@@ -18875,294 +20910,279 @@ class CharacterSelect {
     if (this.creationWindow) {
       this.creationWindowManager.remove(this.creationWindow, true);
     }
-    
-    // Clear any existing input handlers
+
     gamepad.signals.pressed.any.removeAll();
-    
+
     const steps = [
-      { title: "CHOOSE SKIN TONE", action: (callback) => this.creationCustomizeSkinTone(callback) },
-      { title: "CHOOSE HAIR COLOR", action: (callback) => this.creationCustomizeHairColor(callback) },
-      { title: "CHOOSE FRONT HAIR", action: (callback) => this.creationCustomizeHairStyle("frontHair", callback) },
-      { title: "CHOOSE BACK HAIR", action: (callback) => this.creationCustomizeHairStyle("backHair", callback) },
-      { title: "CHOOSE CLOTHING", action: (callback) => this.creationCustomizeClothing(callback) },
-      { title: "CHOOSE ACCESSORY", action: (callback) => this.creationCustomizeAccessory(callback) },
-      { title: "NAME YOUR CHARACTER", action: (callback) => this.creationNameCharacter(callback) }
+      { title: 'Choose skin tone', action: (callback) => this.creationCustomizeSkinTone(callback) },
+      { title: 'Choose hair color', action: (callback) => this.creationCustomizeHairColor(callback) },
+      { title: 'Choose front hair', action: (callback) => this.creationCustomizeHairStyle('frontHair', callback) },
+      { title: 'Choose back hair', action: (callback) => this.creationCustomizeHairStyle('backHair', callback) },
+      { title: 'Choose top', action: (callback) => this.creationCustomizeSlot('top', callback) },
+      { title: 'Choose bottom', action: (callback) => this.creationCustomizeSlot('bottom', callback) },
+      { title: 'Choose shoes', action: (callback) => this.creationCustomizeSlot('shoes', callback) },
+      { title: 'Choose accessory', action: (callback) => this.creationCustomizeSlot('accessory', callback) },
+      { title: 'Choose special', action: (callback) => this.creationCustomizeSlot('special', callback) },
+      { title: 'Name your character', action: (callback) => this.creationNameCharacter(callback) }
     ];
-    
+
     if (this.creationStep < steps.length) {
       const step = steps[this.creationStep];
-      
-      this.creationWindow = this.creationWindowManager.createWindow(15, 10, 10, 5, "1");
+
+      this.creationWindow = this.creationWindowManager.createWindow(15, 10, 10, 5, '1');
       this.creationWindow.x -= (this.creationWindow.size.width / 2) * 8;
-      
-      this.creationWindow.offset = {
-        x: 20,
-        y: 8
-      };
-      
+      this.creationWindow.offset = { x: 20, y: 8 };
       this.creationWindow.forceHighlight(22);
-          
       this.creationWindow.disableScrollBar = true;
-      
+
       this.creationText = new Text(120, 92, step.title, FONTS.default);
       this.creationText.anchor.set(0.5);
-      
-      // Show customization interface first
+
       step.action(() => {
-        // When customization is done, show the navigation menu
         this.showCreationNavigationMenu();
       });
     }
   }
-  
+
   showCreationNavigationMenu() {
     gamepad.releaseAll();
-    
     this.creationWindow.forcedHighlightY = null;
-    
-    this.creationWindow.addItem("NEXT", "", () => {
+
+    this.creationWindow.addItem('Next', '', () => {
       this.creationStep++;
       this.showCreationStep();
     });
-    
+
     if (this.creationStep > 0) {
-      this.creationWindow.addItem("PREVIOUS", "", () => {
+      this.creationWindow.addItem('Previous', '', () => {
         this.creationStep--;
         this.showCreationStep();
       }, true);
     }
-    
-    this.creationWindow.addItem("CANCEL", "", () => {
+
+    this.creationWindow.addItem('Cancel', '', () => {
       this.cancelCharacterCreation();
     }, this.creationStep <= 0);
-    
+
     this.creationWindowManager.focus(this.creationWindow);
   }
-  
+
   creationCustomizeSkinTone(callback) {
-    const skinOptions = ["LIGHTER", "LIGHT", "MEDIUM", "TAN", "ANOTHER"];
+    const skinOptions = ['Lighter', 'Light', 'Medium', 'Tan', 'Another'];
     let currentIndex = this.newCharacterAppearance.skinTone;
-    
+
     const skinText = new Text(120, 107, skinOptions[currentIndex], FONTS.default);
     skinText.anchor.set(0.5);
-    
-    const skinHandler = key => {
-      if (key === "left") {
+
+    const skinHandler = (key) => {
+      if (key === 'left') {
         currentIndex = (currentIndex - 1 + skinOptions.length) % skinOptions.length;
-      } else if (key === "right") {
+      } else if (key === 'right') {
         currentIndex = (currentIndex + 1) % skinOptions.length;
-      } else if (key === "a") {
-        // Confirm selection and proceed
+      } else if (key === 'a') {
         skinText.destroy();
         gamepad.signals.pressed.any.remove(skinHandler);
         callback();
         return;
-      } else if (key === "b") {
-        // Go back to navigation
+      } else if (key === 'b') {
         skinText.destroy();
         gamepad.signals.pressed.any.remove(skinHandler);
         this.showCreationNavigationMenu();
         return;
       }
-      
+
       this.newCharacterAppearance.skinTone = currentIndex;
       this.tempCharacterDisplay.updateAppearance({ skinTone: currentIndex });
       skinText.write(skinOptions[currentIndex]);
     };
-    
+
     gamepad.signals.pressed.any.add(skinHandler);
   }
-  
+
   creationCustomizeHairColor(callback) {
     let color = this.newCharacterAppearance.hairColor;
     let r = Math.max(0x88, (color >> 16) & 0xff);
     let g = Math.max(0x88, (color >> 8) & 0xff);
     let b = Math.max(0x88, color & 0xff);
-    
+  
     const updateColor = () => {
       const newColor = (r << 16) | (g << 8) | b;
       this.newCharacterAppearance.hairColor = newColor;
-      this.tempCharacterDisplay.updateAppearance({ hairColor: newColor });
+      this.newCharacterAppearance.tints.hair = newColor;
+      // Update temp display with tints
+      this.tempCharacterDisplay.updateAppearance({ 
+        hairColor: newColor,
+        tints: { hair: newColor }
+      });
       return `R:${r} G:${g} B:${b}`;
     };
-    
+  
     const rgbText = new Text(120, 107, updateColor(), FONTS.default);
     rgbText.anchor.set(0.5);
-    
-    const colorHandler = key => {
+  
+    const colorHandler = (key) => {
       switch (key) {
-        case "left":
+        case 'left':
           r = Math.max(0, r - 32);
           break;
-        case "right":
+        case 'right':
           r = Math.min(255, r + 32);
           break;
-        case "up":
+        case 'up':
           g = Math.min(255, g + 32);
           break;
-        case "down":
+        case 'down':
           g = Math.max(0, g - 32);
           break;
-        case "a":
+        case 'a':
           b = Math.min(255, b + 32);
           break;
-        case "b":
+        case 'b':
           b = Math.max(0, b - 32);
           break;
-        case "start":
-          // Confirm selection
+        case 'start':
           rgbText.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
           callback();
           this.navigationHint.updateHints('general');
           return;
-        case "select":
-          // Go back to navigation
+        case 'select':
           rgbText.destroy();
           gamepad.signals.pressed.any.remove(colorHandler);
           this.navigationHint.updateHints('general');
           this.showCreationNavigationMenu();
           return;
       }
-      
       rgbText.write(updateColor());
     };
-    
+  
     this.navigationHint.updateHints('color_input');
-    
     gamepad.signals.pressed.any.add(colorHandler);
   }
-  
+
   creationCustomizeHairStyle(type, callback) {
-    const unlocked = Account.characters.unlockedHairs[type === "frontHair" ? "front" : "back"];
-    const options = unlocked.map(id => CHARACTER_SYSTEM.HAIR_STYLES[type === "frontHair" ? "front" : "back"][id-1]);
+    const isDev = VERSION.includes('dev');
+    const unlockAll = window.UNLOCK_ALL_CLOTHES === true && isDev;
+    let unlocked;
+    if (unlockAll) {
+      const total = CHARACTER_SYSTEM.HAIR_STYLES[type === 'frontHair' ? 'front' : 'back'].length;
+      unlocked = Array.from({ length: total }, (_, i) => i + 1);
+    } else {
+      unlocked = Account.characters.unlockedHairs[type === 'frontHair' ? 'front' : 'back'] || [1];
+    }
+    const styles = CHARACTER_SYSTEM.HAIR_STYLES[type === 'frontHair' ? 'front' : 'back'];
+    // Get the name from the style object
+    const options = unlocked.map(id => {
+      const style = styles[id - 1];
+      return style?.name || `Style ${id}`;
+    });
     const values = unlocked;
-
+  
     let currentIndex = this.newCharacterAppearance[type] - 1;
-    
-    const hairText = new Text(120, 107, options[currentIndex], FONTS.default);
+    if (currentIndex < 0 || currentIndex >= options.length) currentIndex = 0;
+  
+    const hairText = new Text(120, 107, options[currentIndex] || 'Style', FONTS.default);
     hairText.anchor.set(0.5);
-
+  
     const updateHair = () => {
       this.newCharacterAppearance[type] = values[currentIndex];
       this.tempCharacterDisplay.updateAppearance({ [type]: values[currentIndex] });
-      hairText.write(options[currentIndex]);
+      hairText.write(options[currentIndex] || 'Style');
     };
-    
-    const hairHandler = key => {
-      if (key === "left") {
+  
+    const hairHandler = (key) => {
+      if (key === 'left') {
         currentIndex = (currentIndex - 1 + options.length) % options.length;
-      } else if (key === "right") {
+      } else if (key === 'right') {
         currentIndex = (currentIndex + 1) % options.length;
-      } else if (key === "a") {
-        // Confirm selection
+      } else if (key === 'a') {
         hairText.destroy();
         gamepad.signals.pressed.any.remove(hairHandler);
         callback();
         return;
-      } else if (key === "b") {
-        // Go back to navigation
+      } else if (key === 'b') {
         hairText.destroy();
         gamepad.signals.pressed.any.remove(hairHandler);
         this.showCreationNavigationMenu();
         return;
       }
-      
       updateHair();
     };
-    
+  
     updateHair();
     gamepad.signals.pressed.any.add(hairHandler);
   }
 
-  creationCustomizeClothing(callback) {
-    const unlocked = Account.characters.unlockedItems.filter(itemId => 
-      CHARACTER_ITEMS.clothing.some(item => item.id === itemId)
-    );
-    const options = unlocked.map(id => {
-      const item = CHARACTER_ITEMS.clothing.find(i => i.id === id);
-      return item ? item.name : id;
-    });
-    
-    let currentIndex = unlocked.indexOf(this.newCharacterAppearance.clothing);
-    if (currentIndex === -1) currentIndex = 0;
-    
-    const clothingText = new Text(120, 107, options[currentIndex], FONTS.default);
-    clothingText.anchor.set(0.5);
-    
-    const clothingHandler = key => {
-      if (key === "left") {
-        currentIndex = (currentIndex - 1 + options.length) % options.length;
-      } else if (key === "right") {
-        currentIndex = (currentIndex + 1) % options.length;
-      } else if (key === "a") {
-        // Confirm selection
-        clothingText.destroy();
-        gamepad.signals.pressed.any.remove(clothingHandler);
+  creationCustomizeSlot(slotId, callback) {
+    const items = CHARACTER_ITEMS.filter(item => item.type === slotId);
+    const slotTypesWithNone = ['shoes', 'accessory', 'special'];
+  
+    let options = [];
+    if (slotTypesWithNone.includes(slotId)) {
+      options.push({ id: null, name: 'None' });
+    }
+  
+    const unlockedIds = Account.characters.unlockedItems || [];
+    const isDev = VERSION.includes('dev');
+    const unlockAll = window.UNLOCK_ALL_CLOTHES === true && isDev;
+  
+    for (const item of items) {
+      if (unlockAll || unlockedIds.includes(item.id)) {
+        options.push(item);
+      }
+    }
+  
+    let currentIndex = 0;
+    const currentItemId = this.newCharacterAppearance.clothing?.[slotId];
+    if (currentItemId) {
+      const found = options.findIndex(opt => opt.id === currentItemId);
+      if (found !== -1) currentIndex = found;
+    }
+  
+    const optionNames = options.map(opt => opt.name || 'None');
+    const optionValues = options.map(opt => opt.id);
+  
+    const itemText = new Text(120, 107, optionNames[currentIndex] || 'None', FONTS.default);
+    itemText.anchor.set(0.5);
+  
+    const itemHandler = (key) => {
+      if (key === 'left') {
+        currentIndex = (currentIndex - 1 + optionNames.length) % optionNames.length;
+      } else if (key === 'right') {
+        currentIndex = (currentIndex + 1) % optionNames.length;
+      } else if (key === 'a') {
+        const selectedId = optionValues[currentIndex];
+        if (!this.newCharacterAppearance.clothing) {
+          this.newCharacterAppearance.clothing = {};
+        }
+        this.newCharacterAppearance.clothing[slotId] = selectedId;
+        this.tempCharacterDisplay.updateAppearance({
+          clothing: { ...this.newCharacterAppearance.clothing }
+        });
+  
+        itemText.destroy();
+        gamepad.signals.pressed.any.remove(itemHandler);
         callback();
         return;
-      } else if (key === "b") {
-        // Go back to navigation
-        clothingText.destroy();
-        gamepad.signals.pressed.any.remove(clothingHandler);
+      } else if (key === 'b') {
+        itemText.destroy();
+        gamepad.signals.pressed.any.remove(itemHandler);
         this.showCreationNavigationMenu();
         return;
       }
-      
-      this.newCharacterAppearance.clothing = unlocked[currentIndex];
-      this.tempCharacterDisplay.updateAppearance({ clothing: unlocked[currentIndex] });
-      clothingText.write(options[currentIndex]);
-    };
-    
-    gamepad.signals.pressed.any.add(clothingHandler);
-  }
   
-  creationCustomizeAccessory(callback) {
-    const unlocked = Account.characters.unlockedItems.filter(itemId => 
-      CHARACTER_ITEMS.accessories.some(item => item.id === itemId)
-    );
-    const options = [
-      "NONE",
-      ...unlocked.map(id => {
-        const item = CHARACTER_ITEMS.accessories.find(i => i.id === id);
-        return item ? item.name : id;
-      })
-    ];
-    
-    let currentIndex = this.newCharacterAppearance.accessory ? 
-      unlocked.indexOf(this.newCharacterAppearance.accessory) + 1 : 0;
-    
-    const accessoryText = new Text(120, 107, options[currentIndex], FONTS.default);
-    accessoryText.anchor.set(0.5);
-    
-    const accessoryHandler = key => {
-      if (key === "left") {
-        currentIndex = (currentIndex - 1 + options.length) % options.length;
-      } else if (key === "right") {
-        currentIndex = (currentIndex + 1) % options.length;
-      } else if (key === "a") {
-        // Confirm selection
-        accessoryText.destroy();
-        gamepad.signals.pressed.any.remove(accessoryHandler);
-        callback();
-        return;
-      } else if (key === "b") {
-        // Go back to navigation
-        accessoryText.destroy();
-        gamepad.signals.pressed.any.remove(accessoryHandler);
-        this.showCreationNavigationMenu();
-        return;
-      }
-      
-      this.newCharacterAppearance.accessory = currentIndex === 0 ? null : unlocked[currentIndex - 1];
-      this.tempCharacterDisplay.updateAppearance({ accessory: this.newCharacterAppearance.accessory });
-      accessoryText.write(options[currentIndex]);
+      const previewId = optionValues[currentIndex];
+      const previewClothing = { ...this.newCharacterAppearance.clothing };
+      previewClothing[slotId] = previewId;
+      this.tempCharacterDisplay.updateAppearance({
+        clothing: previewClothing
+      });
+      itemText.write(optionNames[currentIndex] || 'None');
     };
-    
-    accessoryHandler();
-    gamepad.signals.pressed.any.add(accessoryHandler);
-  }
   
+    gamepad.signals.pressed.any.add(itemHandler);
+  }
+
   creationNameCharacter(callback) {
     if (this.creationMenu) {
       this.creationMenu.destroy();
@@ -19175,46 +21195,40 @@ class CharacterSelect {
     if (this.creationWindow) {
       this.creationWindow.visible = false;
     }
-    
-    const nameText = new Text(120, 20, "Name your character", FONTS.shaded);
+
+    const nameText = new Text(120, 20, 'Name your character', FONTS.shaded);
     nameText.anchor.set(0.5);
-    
+
     this.navigationHint.visible = false;
-    
     gamepad.releaseAll();
-    
+
     const keyboard = new OnScreenKeyboard();
-    
+
     window.focusedElement = new TextInput({
       text: this.generateName(),
       maxLength: CHARACTER_SYSTEM.MAX_NAME_LENGTH,
       useNewline: false,
-      onConfirm: name => {
-        // Finalize character creation
+      onConfirm: (name) => {
         const newChar = this.characterManager.createCharacter(name, this.newCharacterAppearance);
         if (newChar) {
           this.selectedCharacter = newChar;
           nameText.destroy();
           keyboard.destroy();
           this.navigationHint.updateHints('general');
-          
-          // Clean up temporary display
+
           if (this.tempCharacterDisplay) {
             this.tempCharacterDisplay.destroy();
             this.tempCharacterDisplay = null;
           }
-          
-          // Return to home UI
+
           this.showHomeUI();
         } else {
-          notifications.show("Character name already exists");
+          notifications.show('Character name already exists');
           this.navigationHint.updateHints('general');
-          // Retry naming
           this.creationNameCharacter(callback);
         }
       },
       onCancel: () => {
-        // Cancel creation
         nameText.destroy();
         keyboard.destroy();
         this.navigationHint.updateHints('general');
@@ -19222,19 +21236,15 @@ class CharacterSelect {
       }
     });
   }
-  
+
   generateName() {
     const syllables = CHARACTER_SYSTEM.NAME_SYLLABLES;
-    
-    // Join two syllables to make a name
     const firstSyllabe = game.rnd.pick(syllables);
     const secondSyllabe = game.rnd.pick(syllables);
-    
     return firstSyllabe + secondSyllabe;
   }
-  
+
   cancelCharacterCreation() {
-    // Clean up
     if (this.tempCharacterDisplay) {
       this.tempCharacterDisplay.destroy();
       this.tempCharacterDisplay = null;
@@ -19250,16 +21260,29 @@ class CharacterSelect {
     if (this.creationWindow) {
       this.creationWindowManager.remove(this.creationWindow, true);
     }
-    
-    // Return to home UI
+
     this.showHomeUI();
+  }
+
+  cleanupColorUI() {
+    if (this.colorUI) {
+      if (this.colorUI.background) this.colorUI.background.destroy();
+      if (this.colorUI.colorText) this.colorUI.colorText.destroy();
+      if (this.colorUI.rgbText) this.colorUI.rgbText.destroy();
+      if (this.colorUI.preview) this.colorUI.preview.destroy();
+      this.colorUI = null;
+    }
+    this.colorSlot = null;
+    this.navigationHint.updateHints('general');
   }
 
   update() {
     gamepad.update();
-    
-    if (notifications.notificationWindow) notifications.notificationWindow.bringToTop();
-    
+
+    if (notifications.notificationWindow) {
+      notifications.notificationWindow.bringToTop();
+    }
+
     if (this.creationWindowManager) {
       this.creationWindowManager.update();
     }
@@ -19270,6 +21293,9 @@ class CharacterSelect {
   }
 }
 
+
+
+// ======== js/game/states/AchievementsMenu.js ========
 class AchievementsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -19408,6 +21434,9 @@ class AchievementsMenu {
   }
 }
 
+
+
+// ======== js/game/states/StatsMenu.js ========
 class StatsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -19504,6 +21533,9 @@ class StatsMenu {
   }
 }
 
+
+
+// ======== js/game/states/Play.js ========
 class Play {
   init(song, difficultyIndex, playtestMode, autoplay) {
     this.originalSong = song;
@@ -20859,6 +22891,9 @@ class Play {
   }
 }
 
+
+
+// ======== js/game/states/PlayMulti.js ========
 class PlayMulti extends Play {
   constructor() {
     super();
@@ -21148,6 +23183,9 @@ class PlayMulti extends Play {
   }
 }
 
+
+
+// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData;
@@ -21437,6 +23475,9 @@ class Results {
   }
 }
 
+
+
+// ======== js/game/states/ResultsMulti.js ========
 class ResultsMulti extends Results {
   constructor() {
     super();
@@ -21608,6 +23649,9 @@ class ResultsMulti extends Results {
   }
 }
 
+
+
+// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
@@ -22612,6 +24656,9 @@ class Jukebox {
   }
 }
 
+
+
+// ======== js/game/states/Editor.js ========
 class Editor {
   init(song = null) {
     this.song = song || this.createNewSong();
@@ -25197,6 +27244,9 @@ BEAT: ${bg.beat}`);
   }
 }
 
+
+
+// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
@@ -25559,6 +27609,9 @@ class Credits {
   }
 }
 
+
+
+// ======== js/game/states/ErrorScreen.js ========
 class ErrorScreen {
   init(message, recoverStateKey) {
     this.message = message || "The causes of this failure are unknown yet";
@@ -25595,6 +27648,9 @@ Please Report The Developer Immediately!
   }
 }
 
+
+
+// ======== js/game/player/ChartRenderer.js ========
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -26564,6 +28620,9 @@ class ChartRenderer {
   }
 }
 
+
+
+// ======== js/game/player/AudioTemperatureMeter.js ========
 class AudioTemperatureMeter {
   constructor(scene, audioElement) {
     this.scene = scene;
@@ -26918,6 +28977,9 @@ class AudioTemperatureMeter {
   }
 }
 
+
+
+// ======== js/game/player/Player.js ========
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
     this.scene = scene;
@@ -27800,6 +29862,9 @@ class Player {
   }
 }
 
+
+
+// ======== js/game/player/FirstPlayer.js ========
 class FirstPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "left" side
@@ -27817,6 +29882,9 @@ class FirstPlayer extends Player {
   }
 }
 
+
+
+// ======== js/game/player/SecondPlayer.js ========
 class SecondPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "right" side

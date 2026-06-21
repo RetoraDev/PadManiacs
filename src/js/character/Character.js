@@ -8,11 +8,23 @@ class Character {
     this.selectedSkill = data.selectedSkill || null;
     this.appearance = data.appearance || {
       skinTone: 0,
-      hairColor: 0xFFFFFF,
-      frontHair: "1",
-      backHair: "1",
-      clothing: "school_uniform",
-      accessory: "headphones"
+      frontHair: 1,
+      backHair: 1,
+      clothing: {
+        accessory: null,
+        top: "top_seifuku_default",
+        bottom: "bottom_skirt_blue",
+        shoes: "shoes_common",
+        special: null
+      },
+      tints: {
+        hair: 0xa8705a,
+        accessory: null,
+        top: null,
+        bottom: null,
+        shoes: null,
+        special: null
+      }
     };
     this.stats = data.stats || {
       gamesPlayed: 0,
@@ -25,6 +37,10 @@ class Character {
     this.lastSkillLevelUp = data.lastSkillLevelUp || 0;
     this.lastHairUnlockLevel = data.lastHairUnlockLevel || 0;
     this.lastItemUnlockLevel = data.lastItemUnlockLevel || 0;
+    this.personality = data.personality || null; // null means no personality yet
+    this.developedPersonalities = data.developedPersonalities || []; // track developed personalities
+    this.personalityStudyHistory = data.personalityStudyHistory || []; // for debugging
+    this.currentPersonalityIndex = data.currentPersonalityIndex || 0;
   }
   
   getLastExperienceStoryEntry() {
@@ -152,14 +168,7 @@ class Character {
   }
 
   unlockRandomItem() {
-    const allItems = [
-      ...CHARACTER_ITEMS.clothing,
-      ...CHARACTER_ITEMS.accessories
-    ];
-    
-    const availableItems = allItems.filter(item => 
-      !Account.characters.unlockedItems.includes(item.id)
-    );
+    const availableItems = CHARACTER_ITEMS.filter(item => Account.characters.unlockedItems.includes(item.id));
     
     if (availableItems.length > 0) {
       const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
@@ -168,12 +177,170 @@ class Character {
       Account.characters.unlockedItems.push(randomItem.id);
       
       // Save to localStorage
-      localStorage.setItem("Account", JSON.stringify(Account));
+      saveAccount();
       
       return randomItem;
     }
     
     return null;
+  }
+  
+  studyPersonalities(gameResults) {
+    if (!gameResults.complete || gameResults.autoplay) return null;
+    
+    const stats = this.stats;
+    const personalities = CHARACTER_SYSTEM.PERSONALITIES;
+    const developed = this.developedPersonalities || [];
+    
+    // If already developed all possible personalities, stop
+    if (developed.length >= personalities.length) {
+      if (window.LOG_PERSONALITY_STUDY) {
+        console.log(`${this.name} has developed all personalities`);
+      }
+      return null;
+    }
+    
+    // Check which personalities we should study next
+    let candidates = [];
+    
+    if (developed.length === 0) {
+      // No personality yet - check all
+      candidates = personalities;
+    } else {
+      // Check possible next personalities
+      const lastDeveloped = personalities.find(p => p.id === developed[developed.length - 1]);
+      if (lastDeveloped && lastDeveloped.possibleNextPersonalities) {
+        candidates = personalities.filter(p => 
+          lastDeveloped.possibleNextPersonalities.includes(p.id) &&
+          !developed.includes(p.id)
+        );
+      }
+      
+      // If no candidates from next personalities, check all not developed
+      if (candidates.length === 0) {
+        candidates = personalities.filter(p => !developed.includes(p.id));
+      }
+    }
+    
+    if (window.LOG_PERSONALITY_STUDY) {
+      console.log(`Studying personality ${candidates.length} candidates for ${this.name}`);
+    }
+    
+    // Score each candidate based on game results
+    let bestCandidate = null;
+    let bestScore = 0;
+    
+    for (const personality of candidates) {
+      const score = this.calculatePersonalityScore(personality, gameResults);
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidate = personality;
+      }
+      
+      if (window.LOG_PERSONALITY_STUDY) {
+        console.log(`${personality.name}: score ${score.toFixed(2)}`);
+      }
+    }
+    
+    // Threshold to develop personality (need at least 0.7 to unlock)
+    if (bestCandidate && bestScore >= 0.7) {
+      this.developedPersonalities.push(bestCandidate.id);
+      this.personality = bestCandidate.id;
+      this.currentPersonalityIndex = this.developedPersonalities.length - 1;
+      
+      if (window.LOG_PERSONALITY_STUDY) {
+        console.log(`${this.name} developed "${bestCandidate.name}" personality! (score: ${bestScore.toFixed(2)})`);
+      }
+      
+      notification.show(`Seems like ${this.name} has become a ${bestCandidate.name.toLowerCase()} person.`);
+      
+      return bestCandidate;
+    }
+    
+    if (window.LOG_PERSONALITY_STUDY) {
+      console.log(`${this.name} didn't develop a personality this time (best score: ${bestScore.toFixed(2)})`);
+    }
+    
+    return null;
+  }
+  
+  calculatePersonalityScore(personality, gameResults) {
+    const reasons = personality.reasons || {};
+    let score = 0;
+    let totalChecks = 0;
+    const stats = this.stats;
+    const judgements = gameResults.judgements || {};
+    const totalNotes = Object.values(judgements).reduce((a, b) => a + b, 0);
+    
+    // Games played check
+    if (reasons.gamesPlayed !== undefined) {
+      const games = stats.gamesPlayed || 0;
+      const ratio = Math.min(1, games / reasons.gamesPlayed);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Accuracy check
+    if (reasons.accuracyMin !== undefined) {
+      const acc = gameResults.accuracy || 0;
+      const ratio = Math.min(1, acc / reasons.accuracyMin);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Combo check
+    if (reasons.comboMin !== undefined) {
+      const combo = gameResults.maxCombo || 0;
+      const ratio = Math.min(1, combo / reasons.comboMin);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Perfect streak check
+    if (reasons.perfectStreakMin !== undefined) {
+      // Calculate perfect streak from game data
+      const perfectStreak = gameResults.maxPerfectStreak || 0;
+      const ratio = Math.min(1, perfectStreak / reasons.perfectStreakMin);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Perfect games check
+    if (reasons.perfectGames !== undefined) {
+      const perfectGames = stats.perfectGames || 0;
+      const ratio = Math.min(1, perfectGames / reasons.perfectGames);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Max marvelous in game check
+    if (reasons.maxMarvelous !== undefined) {
+      const marvelous = judgements.marvelous || 0;
+      const ratio = Math.min(1, marvelous / reasons.maxMarvelous);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Max miss check
+    if (reasons.maxMiss !== undefined) {
+      const miss = judgements.miss || 0;
+      const ratio = Math.max(0, 1 - (miss / reasons.maxMiss));
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Rating threshold check
+    if (reasons.ratingThreshold !== undefined) {
+      const rating = gameResults.rating || 'F';
+      const ratingValues = { 'F': 0, 'E': 0.1, 'D': 0.2, 'C': 0.3, 'B': 0.4, 'A': 0.5, 'S': 0.6, 'SS': 0.7, 'SSS': 0.8, 'SSS+': 0.9 };
+      const ratingScore = ratingValues[rating] || 0;
+      const ratio = Math.min(1, ratingScore / reasons.ratingThreshold);
+      score += ratio;
+      totalChecks++;
+    }
+    
+    // Return normalized score (0-1)
+    return totalChecks > 0 ? score / totalChecks : 0;
   }
 
   getAvailableHairStyles() {
@@ -186,6 +353,20 @@ class Character {
   getAvailableItems() {
     return Account.characters.unlockedItems;
   }
+  
+  static getItem(itemId) {
+    for (const item of CHARACTER_ITEMS) {
+      if (item.id === itemId) return item;
+    }
+    return null;
+  }
+
+  static getPersonlity(itemId) {
+    for (const item of CHARACTER_SYSTEM.PERSONALITIES) {
+      if (item.id === itemId) return item;
+    }
+    return null;
+  }
 
   changeHairStyle(type, hairId) {
     if (type === 'front' && Account.characters.unlockedHairs.front.includes(hairId)) {
@@ -197,16 +378,39 @@ class Character {
     }
     return false;
   }
+  
+  changeHairTint(tint) {
+    this.appearance.tints.hair = tint;
+    return true;
+  }
 
   changeClothing(itemId) {
     if (Account.characters.unlockedItems.includes(itemId)) {
       const item = CHARACTER_ITEMS.clothing.find(i => i.id === itemId) || 
                    CHARACTER_ITEMS.accessories.find(i => i.id === itemId);
       if (item) {
-        if (item.type === 'clothing') {
-          this.appearance.clothing = itemId;
-        } else if (item.type === 'accessory') {
-          this.appearance.accessory = itemId;
+        if (item.type === 'special') {
+          this.appearance.clothing.special = itemId;
+          if (item.layers) {
+            this.appearance.tints.special = [];
+            item.layers.forEach(layer => {
+              this.appearance.tints.special.push(layer.dyable ? layer.tint : null);
+            });
+          } else {
+            this.appearance.tints.special = item.dyable ? item.tint : null;
+          }
+        } else {
+          this.appearance.clothing.special = null;
+          this.appearance.tints.special = null;
+          this.appearance.clothing[item.type] = itemId;
+          if (item.layers) {
+            this.appearance.tints[item.type] = [];
+            item.layers.forEach(layer => {
+              this.appearance.tints[item.type].push(layer.dyable ? layer.tint : null);
+            });
+          } else {
+            this.appearance.tints[item.type] = item.dyable ? item.tint : null;
+          }
         }
         return true;
       }

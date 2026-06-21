@@ -17,9 +17,34 @@ const CHARACTER_SYSTEM = {
   PORTRAIT_CROP: { x: 43, y: 11, w: 15, h: 15 },
   CLOSE_SHOT_CROP: { x: 36, y: 15, w: 46, h: 7 },
   HAIR_STYLES: {
-    front: ["Casual", "Smart", "Daring", "Simple", "Bulky", "Afro", "Emotional", "Clean"],
-    back: ["Casual", "Smart", "Curly", "Ponytails", "Short", "Afro", "Diva", "Clean"],
+    front: [
+      { name: "Casual", description: "Relaxed and effortless style that frames the face naturally." },
+      { name: "Smart", description: "Clean and polished look with a sophisticated edge." },
+      { name: "Daring", description: "Bold and eye-catching with an adventurous spirit." },
+      { name: "Simple", description: "Minimalist and understated elegance at its finest." },
+      { name: "Bulky", description: "Voluminous and full of personality for a commanding presence." },
+      { name: "Afro", description: "Celebrating natural texture with a bold, iconic silhouette." },
+      { name: "Emotional", description: "Expressive and artistic with a touch of drama." },
+      { name: "Clean", description: "Crisp and precise with sharp, defined lines." }
+    ],
+    back: [
+      { name: "Casual", description: "Laid-back and natural flowing style." },
+      { name: "Smart", description: "Sleek and well-groomed from every angle." },
+      { name: "Curly", description: "Bouncy and playful with beautiful defined curls." },
+      { name: "Ponytails", description: "Playful and energetic with twin tails full of character." },
+      { name: "Short", description: "Chic and modern with a bold, cropped silhouette." },
+      { name: "Afro", description: "Natural and iconic with full, rounded volume." },
+      { name: "Diva", description: "Glamorous and show-stopping with undeniable presence." },
+      { name: "Clean", description: "Neat and refined with perfect symmetry." }
+    ]
   },
+  SKIN_TONES: [
+    { name: "Lighter", description: "Fair porcelain tone with a delicate, ethereal quality." },
+    { name: "Light", description: "Soft warm complexion with a natural glow." },
+    { name: "Medium", description: "Balanced earthy tone with healthy warmth." },
+    { name: "Tan", description: "Rich sun-kissed warmth with golden undertones." },
+    { name: "Another", description: "Unique and distinct tone for those who stand out." }
+  ],
   NAME_SYLLABLES: [
     // Two of these syllables are joined together to make anime style character name
     
@@ -66,8 +91,728 @@ const CHARACTER_SYSTEM = {
     "WA",   "JA",  "JEI", "JO",  "LEI",
     "LOU",  "TI",  "NU",  "ES",  "SE",
     "HAT",  "NE",  "TO",  "ME",  "TA",
+  ],
+  PERSONALITIES: [
+    {
+      id: "chill",
+      name: "Chill",
+      description: "Relaxed and easygoing, takes things at their own pace.",
+      reasons: {
+        gamesPlayed: 5,
+        ratingThreshold: 0.3,
+        accuracyMin: 60,
+        comboMin: 50,
+        perfectStreakMin: 5
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "combo_shield"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 100, waitMax: 300 },
+        { distance: 2, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 50, waitMax: 150 },
+        { distance: 3, waitMin: 2000, waitMax: 4000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["focused", "steady"]
+    },
+    {
+      id: "focused",
+      name: "Focused",
+      description: "Intense concentration and unwavering determination.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 85,
+        comboMin: 200,
+        perfectStreakMin: 20,
+        ratingThreshold: 0.8
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_judgement_window", "modify_score_gain"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 3000, waitMax: 8000 },
+        { distance: 1, waitMin: 100, waitMax: 200 },
+        { distance: 3, waitMin: 2000, waitMax: 6000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["perfectionist", "rhythm_savant"]
+    },
+    {
+      id: "perfectionist",
+      name: "Perfectionist",
+      description: "Nothing less than perfect is acceptable.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 95,
+        perfectGames: 3,
+        ratingThreshold: 0.95,
+        maxMarvelous: 500
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_judgement_window", "modify_score_gain", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 4000, waitMax: 10000 },
+        { distance: 2, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 3000, waitMax: 8000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["rhythm_savant"]
+    },
+    {
+      id: "steady",
+      name: "Steady",
+      description: "Consistent and reliable, never misses a beat.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 70,
+        comboMin: 100,
+        maxMiss: 5,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "modify_hold_forgiveness", "modify_roll_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 200, waitMax: 500 },
+        { distance: 3, waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 100, waitMax: 200 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["unbreakable"]
+    },
+    {
+      id: "unbreakable",
+      name: "Unbreakable",
+      description: "No matter what happens, they never give up.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 60,
+        maxCombo: 500,
+        maxMiss: 20,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_low_health", "on_critical_health"],
+        effects: ["combo_shield", "burst_health_regen", "convert_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 500, waitMax: 1000 },
+        { distance: 2, waitMin: 1000, waitMax: 3000 },
+        { distance: 1, waitMin: 300, waitMax: 500 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["determined"]
+    },
+    {
+      id: "rhythm_savant",
+      name: "Rhythm Savant",
+      description: "Born with an innate sense of rhythm and timing.",
+      reasons: {
+        gamesPlayed: 40,
+        accuracyMin: 90,
+        perfectGames: 5,
+        maxMarvelous: 1000,
+        ratingThreshold: 0.9
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_note_speed", "modify_judgement_window", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 2000, waitMax: 5000 },
+        { distance: 1, waitMin: 100, waitMax: 300 },
+        { distance: 3, waitMin: 3000, waitMax: 7000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "determined",
+      name: "Determined",
+      description: "Nothing stands in their way. They will succeed.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 75,
+        comboMin: 300,
+        maxMiss: 10,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_low_health"],
+        effects: ["combo_shield", "modify_max_health", "modify_health_gain"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1500, waitMax: 4000 },
+        { distance: 0, waitMin: 300, waitMax: 600 },
+        { distance: 3, waitMin: 2000, waitMax: 5000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["unbreakable"]
+    },
+    {
+      id: "carefree",
+      name: "Carefree",
+      description: "Living in the moment, enjoying every note.",
+      reasons: {
+        gamesPlayed: 5,
+        accuracyMin: 50,
+        comboMin: 30,
+        ratingThreshold: 0.2
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["health_regen"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1000, waitMax: 4000 },
+        { distance: 2, waitMin: 100, waitMax: 300 },
+        { distance: 3, waitMin: 3000, waitMax: 6000 },
+        { distance: 1, waitMin: 500, waitMax: 800 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["chill", "playful"]
+    },
+    {
+      id: "playful",
+      name: "Playful",
+      description: "Full of energy and joy, turning every game into fun.",
+      reasons: {
+        gamesPlayed: 10,
+        accuracyMin: 55,
+        comboMin: 80,
+        ratingThreshold: 0.35
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_perfect_streak"],
+        effects: ["modify_score_gain", "modify_note_speed"]
+      },
+      eyesBehavior: [
+        { distance: [1, 3], waitMin: 500, waitMax: 2000 },
+        { distance: 0, waitMin: 50, waitMax: 150 },
+        { distance: [2, 3], waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 100, waitMax: 200 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["cheerful"]
+    },
+    {
+      id: "cheerful",
+      name: "Cheerful",
+      description: "Always smiling, spreading positivity through rhythm.",
+      reasons: {
+        gamesPlayed: 5,
+        accuracyMin: 60,
+        comboMin: 150,
+        perfectGames: 1,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_perfect_streak"],
+        effects: ["modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: [2, 3], waitMin: 500, waitMax: 1500 },
+        { distance: 0, waitMin: 100, waitMax: 250 },
+        { distance: 3, waitMin: 2000, waitMax: 4000 },
+        { distance: [1, 2], waitMin: 800, waitMax: 1200 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["energetic"]
+    },
+    {
+      id: "energetic",
+      name: "Energetic",
+      description: "Boundless energy that fuels every move.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 65,
+        comboMin: 200,
+        perfectGames: 2,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_perfect_streak"],
+        effects: ["modify_note_speed", "modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 300, waitMax: 800 },
+        { distance: 1, waitMin: 100, waitMax: 200 },
+        { distance: 3, waitMin: 500, waitMax: 1500 },
+        { distance: 0, waitMin: 50, waitMax: 100 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "mysterious",
+      name: "Mysterious",
+      description: "Enigmatic and unpredictable, keeps everyone guessing.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 70,
+        comboMin: 120,
+        ratingThreshold: 0.55
+      },
+      skillTendencies: {
+        activation: ["on_mine_hit", "on_miss"],
+        effects: ["reduce_mine_damage", "convert_judgement"]
+      },
+      eyesBehavior: [
+        { distance: [0, 3], waitMin: 2000, waitMax: 6000 },
+        { distance: 2, waitMin: 100, waitMax: 400 },
+        { distance: [0, 1], waitMin: 3000, waitMax: 8000 },
+        { distance: 3, waitMin: 1500, waitMax: 3000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["enigmatic"]
+    },
+    {
+      id: "enigmatic",
+      name: "Enigmatic",
+      description: "Deep and complex, with layers of personality.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 75,
+        comboMin: 250,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_mine_hit", "on_low_health"],
+        effects: ["reduce_mine_damage", "combo_shield", "convert_judgement"]
+      },
+      eyesBehavior: [
+        { distance: [0, 1], waitMin: 3000, waitMax: 8000 },
+        { distance: 2, waitMin: 200, waitMax: 500 },
+        { distance: [0, 3], waitMin: 4000, waitMax: 10000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "serious",
+      name: "Serious",
+      description: "Focused and disciplined, treats every game with gravity.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 80,
+        comboMin: 200,
+        ratingThreshold: 0.7
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_judgement_window", "modify_input_lag", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 3000, waitMax: 7000 },
+        { distance: 1, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 4000, waitMax: 8000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["focused"]
+    },
+    {
+      id: "dreamy",
+      name: "Dreamy",
+      description: "Lost in the music, dancing to their own rhythm.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 50,
+        comboMin: 40,
+        ratingThreshold: 0.3
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_note_speed"]
+      },
+      eyesBehavior: [
+        { distance: [1, 2], waitMin: 2000, waitMax: 6000 },
+        { distance: 3, waitMin: 100, waitMax: 300 },
+        { distance: [2, 3], waitMin: 3000, waitMax: 8000 },
+        { distance: 1, waitMin: 500, waitMax: 1000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["creative"]
+    },
+    {
+      id: "creative",
+      name: "Creative",
+      description: "Expressive and artistic, finds beauty in every pattern.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 60,
+        comboMin: 100,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_score_gain", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: [2, 3], waitMin: 1000, waitMax: 4000 },
+        { distance: 0, waitMin: 200, waitMax: 500 },
+        { distance: [1, 3], waitMin: 2000, waitMax: 6000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["artistic"]
+    },
+    {
+      id: "artistic",
+      name: "Artistic",
+      description: "A true artist of rhythm, every move is a masterpiece.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 70,
+        comboMin: 200,
+        perfectGames: 3,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1500, waitMax: 4000 },
+        { distance: 1, waitMin: 100, waitMax: 300 },
+        { distance: [2, 3], waitMin: 2000, waitMax: 5000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "spirited",
+      name: "Spirited",
+      description: "Full of life and passion, plays with their heart.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 65,
+        comboMin: 150,
+        ratingThreshold: 0.45
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "modify_max_health"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 500, waitMax: 2000 },
+        { distance: 0, waitMin: 100, waitMax: 300 },
+        { distance: 3, waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["energetic"]
+    },
+    {
+      id: "gentle",
+      name: "Gentle",
+      description: "Soft and precise, every note is handled with care.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 80,
+        comboMin: 100,
+        maxMiss: 3,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_hold_forgiveness", "modify_roll_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 2000, waitMax: 6000 },
+        { distance: 0, waitMin: 500, waitMax: 800 },
+        { distance: 3, waitMin: 3000, waitMax: 8000 },
+        { distance: 1, waitMin: 200, waitMax: 400 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["steady"]
+    },
+    {
+      id: "fierce",
+      name: "Fierce",
+      description: "Intense and powerful, dominates every chart.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 70,
+        comboMin: 300,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_perfect_streak"],
+        effects: ["modify_note_speed", "combo_shield"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 300, waitMax: 500 },
+        { distance: 3, waitMin: 1500, waitMax: 4000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["determined"]
+    },
+    {
+      id: "calm",
+      name: "Calm",
+      description: "Serene and composed, never loses their cool.",
+      reasons: {
+        gamesPlayed: 5,
+        accuracyMin: 75,
+        comboMin: 120,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_low_health", "on_critical_health"],
+        effects: ["health_regen", "modify_health_gain"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 3000, waitMax: 8000 },
+        { distance: 0, waitMin: 800, waitMax: 1200 },
+        { distance: 3, waitMin: 4000, waitMax: 10000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["zen"]
+    },
+    {
+      id: "zen",
+      name: "Zen",
+      description: "At one with the rhythm, perfectly balanced.",
+      reasons: {
+        gamesPlayed: 40,
+        accuracyMin: 85,
+        comboMin: 300,
+        perfectGames: 5,
+        ratingThreshold: 0.8
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["general_boost", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 5000, waitMax: 12000 },
+        { distance: 1, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 5000, waitMax: 15000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "sassy",
+      name: "Sassy",
+      description: "Bold and confident, with a dash of attitude.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 60,
+        comboMin: 80,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_perfect_streak"],
+        effects: ["modify_score_gain"]
+      },
+      eyesBehavior: [
+        { distance: [0, 3], waitMin: 500, waitMax: 2000 },
+        { distance: 2, waitMin: 100, waitMax: 300 },
+        { distance: [1, 3], waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["playful"]
+    },
+    {
+      id: "shy",
+      name: "Shy",
+      description: "Quiet and reserved, but brilliant when they shine.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 70,
+        comboMin: 60,
+        ratingThreshold: 0.35
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_hold_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 1, waitMin: 2000, waitMax: 6000 },
+        { distance: 0, waitMin: 1000, waitMax: 2000 },
+        { distance: 2, waitMin: 3000, waitMax: 8000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["gentle"]
+    },
+    {
+      id: "bold",
+      name: "Bold",
+      description: "Fearless and daring, takes on every challenge.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 65,
+        comboMin: 200,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_mine_hit"],
+        effects: ["combo_shield", "reduce_mine_damage"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 500, waitMax: 1500 },
+        { distance: 0, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["fierce"]
+    },
+    {
+      id: "graceful",
+      name: "Graceful",
+      description: "Elegant and fluid, makes every move look effortless.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 80,
+        comboMin: 150,
+        perfectGames: 2,
+        ratingThreshold: 0.65
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_roll_forgiveness", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 300, waitMax: 500 },
+        { distance: 3, waitMin: 3000, waitMax: 7000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["artistic"]
+    },
+    {
+      id: "witty",
+      name: "Witty",
+      description: "Quick and sharp, always one step ahead.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 70,
+        comboMin: 150,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_mine_hit"],
+        effects: ["reduce_mine_damage", "modify_input_lag"]
+      },
+      eyesBehavior: [
+        { distance: [1, 3], waitMin: 500, waitMax: 2000 },
+        { distance: 0, waitMin: 100, waitMax: 250 },
+        { distance: [2, 3], waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["sassy"]
+    },
+    {
+      id: "mellow",
+      name: "Mellow",
+      description: "Laid-back and smooth, flows with the music.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 65,
+        comboMin: 80,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "modify_hold_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 3000, waitMax: 8000 },
+        { distance: 0, waitMin: 500, waitMax: 1000 },
+        { distance: 3, waitMin: 4000, waitMax: 10000 },
+        { distance: 1, waitMin: 200, waitMax: 400 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["calm"]
+    },
+    {
+      id: "spunky",
+      name: "Spunky",
+      description: "Full of spunk and sass, brings personality to every play.",
+      reasons: {
+        gamesPlayed: 18,
+        accuracyMin: 55,
+        comboMin: 100,
+        ratingThreshold: 0.35
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_score_gain", "modify_note_speed"]
+      },
+      eyesBehavior: [
+        { distance: [0, 3], waitMin: 300, waitMax: 1000 },
+        { distance: 1, waitMin: 100, waitMax: 200 },
+        { distance: [2, 3], waitMin: 500, waitMax: 1500 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["playful"]
+    },
+    {
+      id: "emotive",
+      name: "Emotive",
+      description: "Feels every note deeply, plays with heart and soul.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 70,
+        comboMin: 120,
+        perfectGames: 1,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_low_health", "on_critical_health"],
+        effects: ["modify_health_gain", "burst_health_regen"]
+      },
+      eyesBehavior: [
+        { distance: [1, 2], waitMin: 1000, waitMax: 4000 },
+        { distance: 0, waitMin: 300, waitMax: 600 },
+        { distance: [2, 3], waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 100, waitMax: 200 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["expressive"]
+    },
+    {
+      id: "expressive",
+      name: "Expressive",
+      description: "Every movement tells a story, every note has meaning.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 75,
+        comboMin: 200,
+        perfectGames: 3,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: [1, 3], waitMin: 800, waitMax: 2500 },
+        { distance: 0, waitMin: 200, waitMax: 400 },
+        { distance: [2, 3], waitMin: 1500, waitMax: 4000 },
+        { distance: 1, waitMin: 300, waitMax: 500 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: []
+    }
   ]
 };
+
+const DEFAULT_UNLOCKED_ITEMS = [
+  "top_seifuku_default",
+  "bottom_skirt_blue",
+  "shoes_common",
+  "accessory_hair_ties"
+];
 
 const DEFAULT_CHARACTER = {
   name: "EIRI",
@@ -78,11 +823,23 @@ const DEFAULT_CHARACTER = {
   selectedSkill: "focus_boost",
   appearance: {
     skinTone: 0,
-    hairColor: 0xa8705a,
     frontHair: 1,
     backHair: 1,
-    clothing: "school_uniform",
-    accessory: null
+    clothing: {
+      accessory: null,
+      top: "top_seifuku_default",
+      bottom: "bottom_skirt_blue",
+      shoes: "shoes_common",
+      special: null 
+    },
+    tints: {
+      hair: 0xa8705a,
+      accessory: null,
+      top: null,
+      bottom: null,
+      shoes: null,
+      special: null
+    }
   },
   stats: {
     gamesPlayed: 0,
@@ -619,90 +1376,306 @@ const CHARACTER_SKILLS = [
 ];
 
 // Character items
-const CHARACTER_ITEMS = {
-  clothing: [
-    {
-      id: "school_uniform",
-      name: "School Uniform",
-      type: "clothing"
-    },
-    {
-      id: "teacher_clothing",
-      name: "Teacher Clothing",
-      type: "clothing"
-    },
-    {
-      id: "daring_clothing",
-      name: "Daring",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_red",
-      name: "Short Dress (RED)",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_black",
-      name: "Short Dress (BLACK)",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_orange",
-      name: "Short Dress (ORANGE)",
-      type: "clothing"
-    },
-    {
-      id: "short_dress_blue",
-      name: "Short Dress (BLUE)",
-      type: "clothing"
-    },
-    {
-      id: "dubstep_dress_black",
-      name: "Dubstep Dress (BLACK)",
-      type: "clothing"
-    },
-    {
-      id: "dubstep_dress_blue",
-      name: "Dubstep Dress (BLUE)",
-      type: "clothing"
-    },
-    {
-      id: "pinkachu",
-      name: "Pinkachu :D",
-      hideCharacter: true,
-      type: "clothing"
-    },
-    {
-      id: "lencery",
-      name: "Lencery (Remove this! For the love of god!)",
-      type: "clothing"
-    },
-  ],
-  accessories: [
-    {
-      id: "headphones",
-      name: "Headphones",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_red",
-      name: "Hair Ties (RED)",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_black",
-      name: "Hair Ties (BLACK)",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_orange",
-      name: "Hair Ties (ORANGE)",
-      type: "accessory"
-    },
-    {
-      id: "hair_ties_blue",
-      name: "Hair Ties (BLUE)",
-      type: "accessory"
-    },
-  ]
-};
+const CHARACTER_ITEMS = [
+  // Top
+  {
+    id: "top_blouse",
+    name: "Blouse",
+    description: "A simple blouse with rolled sleeves.",
+    type: "top",
+    tint: 0x0f1d42,
+    dyable: true
+  },
+  {
+    id: "top_dubstep_dress",
+    name: "Dubstep Dress",
+    description: "A dress that pulses with rhythm. The lights react to the beat!",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x0f1d42
+      },
+      {
+        name: "Lights",
+        dyable: true,
+        alternateTint: 0xffffff,
+        alternateFrequency: 100,
+        tint: 0x00cb4f
+      },
+    ],
+    dyable: true
+  },
+  {
+    id: "top_lencery",
+    name: "Lencery",
+    description: "A mysterious top with an otherworldly shimmer.",
+    type: "top",
+    tint: 0x352a34,
+    dyable: true,
+    lencery: true
+  },
+  {
+    id: "top_office_shirt",
+    name: "Office Shirt",
+    description: "Business casual. Perfect for the office... or the dance floor.",
+    type: "top",
+    dyable: false,
+  },
+  {
+    id: "top_seifuku",
+    name: "Seifuku (Dyable)",
+    description: "A classic school uniform. Customize every detail!",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xffffff
+      },
+      {
+        name: "Detail 1",
+        dyable: true,
+        tint: 0x0f1d42
+      },
+      {
+        name: "Detail 2",
+        dyable: true,
+        tint: 0xff0000
+      }
+    ],
+    dyable: true
+  },
+  {
+    id: "top_seifuku_default",
+    name: "Seifuku",
+    description: "A classic school uniform. Simple and elegant.",
+    type: "top",
+    dyable: false
+  },
+  {
+    id: "top_dress",
+    name: "Dress",
+    description: "A flowing dress with a golden trim.",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xffffff
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0xe8c258
+      },
+    ],
+    dyable: true
+  },
+  {
+    id: "top_tshirt",
+    name: "T-shirt",
+    description: "A casual t-shirt with a bold design.",
+    type: "top",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xcd4345
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0xfefefe
+      },
+    ],
+    dyable: true
+  },
+  // Bottom
+  {
+    id: "bottom_knee_length_jeans",
+    name: "Knee-length Jeans",
+    description: "Comfortable jeans that end just below the knee.",
+    type: "bottom",
+    tint: 0x0f1d42,
+    dyable: true
+  },
+  {
+    id: "bottom_lencery",
+    name: "Lencery",
+    description: "Mysterious pants with an otherworldly shimmer.",
+    type: "bottom",
+    tint: 0x352a34,
+    dyable: true,
+    lencery: true
+  },
+  {
+    id: "bottom_long_jeans",
+    name: "Long Jeans",
+    description: "Full-length jeans. Classic and reliable.",
+    type: "bottom",
+    tint: 0x0f1d42,
+    dyable: true
+  },
+  {
+    id: "bottom_shorts_type1",
+    name: "Shorts",
+    description: "Simple shorts. Perfect for warm days.",
+    type: "bottom",
+    dyable: false
+  },
+  {
+    id: "bottom_shorts_type2",
+    name: "Shorts",
+    description: "Stylish shorts with a unique pattern.",
+    type: "bottom",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x46767d
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0x9c7141
+      }
+    ],
+    dyable: true
+  },
+  {
+    id: "bottom_skirt_blue",
+    name: "Skirt",
+    description: "A blue skirt that flows with your movements.",
+    type: "bottom",
+    dyable: false
+  },
+  {
+    id: "bottom_skirt",
+    name: "Skirt (Dyable)",
+    description: "A skirt you can dye any color you like.",
+    type: "bottom",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x403660
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0x403660
+      }
+    ],
+    dyable: true 
+  },
+  // Shoes
+  {
+    id: "shoes_common",
+    name: "Common Shoes",
+    description: "Simple shoes that go with everything.",
+    type: "shoes",
+    dyable: false
+  },
+  {
+    id: "shoes_high_boots",
+    name: "High Boots",
+    description: "Boots that reach the knee. Command attention.",
+    type: "shoes",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x403660
+      },
+      {
+        name: "Lights",
+        dyable: true,
+        alternateTint: 0xffffff,
+        alternateFrequency: 100,
+        tint: 0x403660
+      }
+    ],
+    dyable: true 
+  },
+  {
+    id: "shoes_red_sports",
+    name: "Red Sports",
+    description: "Bold red sports shoes. Perfect for active dancers.",
+    type: "shoes",
+    dyable: false
+  },
+  {
+    id: "shoes_sports",
+    name: "Sports (Dyable)",
+    description: "Sports shoes you can color to match your outfit.",
+    type: "shoes",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0xffffff
+      },
+      {
+        name: "Detail",
+        dyable: true,
+        tint: 0xffffff
+      }
+    ],
+    dyable: true 
+  },
+  // Accessories
+  {
+    id: "accessory_hair_ties",
+    name: "Hair Ties",
+    description: "Cute hair ties. Dye them to match your hair!",
+    type: "accessory",
+    tint: 0xffffff,
+    dyable: true 
+  },
+  {
+    id: "accessory_rubber_globes",
+    name: "Rubber Globes",
+    description: "Glowing accessories that pulse with energy.",
+    type: "accessory",
+    layers: [
+      {
+        name: "Main",
+        dyable: true,
+        tint: 0x0f1d42
+      },
+      {
+        name: "Lights",
+        dyable: true,
+        alternateTint: 0xffffff,
+        alternateFrequency: 100,
+        tint: 0x00cb4f
+      },
+    ],
+    dyable: true 
+  },
+  {
+    id: "accessory_shoulder_belt_left",
+    name: "Shoulder Belt (Left)",
+    description: "A belt that rests on the left shoulder. Edgy.",
+    type: "accessory",
+    dyable: false
+  },
+  {
+    id: "accessory_shoulder_belt_right",
+    name: "Shoulder Belt (Right)",
+    description: "A belt that rests on the right shoulder. Edgy.",
+    type: "accessory",
+    dyable: false
+  },
+  // Special
+  {
+    id: "special_pinkachu",
+    name: "Pinkachu :D",
+    description: "A pink creature that consumes your entire character!",
+    type: "special",
+    hideCharacter: true,
+    dyable: false
+  }
+];

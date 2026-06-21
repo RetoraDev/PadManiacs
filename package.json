@@ -14,6 +14,7 @@
     "build:dev": "node index.js --none --debug",
     "build:release": "node index.js --all --minify --zipalign",
     "build:headless": "node index.js --all --minify --headless",
+    "build:termux": "node build.js --corova --debug && termux-open ./dist/*.apk && node build.js --none",
     "serve": "node index.js --serve",
     "serve:dist": "node index.js --serve",
     "serve:src": "node index.js --serve-src",

@@ -4,6 +4,8 @@ const VERSION = "%";
 
 window.DEBUG = %;
 
+window.LOG_PERSONALITY_STUDY = window.DEBUG;
+
 const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★";
 const TINY_FONT_MAP = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\" •<>=%∥▶";
 

@@ -577,6 +577,11 @@ class BuildSystem {
           addFpsText();
         }
       }, "Displays performance information");
+
+      snippets.add("Toggle UNLOCK_ALL_CLOTHES", () => {
+        window.UNLOCK_ALL_CLOTHES = !window.UNLOCK_ALL_CLOTHES;
+        notifications.show(window.UNLOCK_ALL_CLOTHES ? "All clothes unlocked!" : "Unlock status back to normal", 1000);
+      }, "Toggles the state of temporary clothes unlock");
       
       snippets.add("Reload Game", () => {
         location.reload();
