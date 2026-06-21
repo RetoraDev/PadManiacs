@@ -37,7 +37,8 @@ class CharacterManager {
         backHair: appearance.backHair || "1",
         clothing: appearance.clothing || "school_uniform",
         accessory: appearance.accessory || null
-      }
+      },
+      tints: appearance.tints || {}
     });
 
     this.characters.set(name, newCharacter);
@@ -103,6 +104,8 @@ class CharacterManager {
     if (accountChar) {
       Object.assign(accountChar, char.toJSON());
     }
+    
+    const developedPersonality = char.studyPersonalities(gameResults);
     
     saveAccount();
     

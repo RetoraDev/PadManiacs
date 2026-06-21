@@ -8,6 +8,7 @@ class CharacterDisplay extends Phaser.Sprite {
     
     if (characterData) {
       this.createLayers();
+      this.loadPersonalityBehavior();
     }
     game.add.existing(this);
   }
@@ -51,6 +52,22 @@ class CharacterDisplay extends Phaser.Sprite {
     }
     
     this.setupAlternateTints();
+  }
+  
+  loadPersonalityBehavior() {
+    if (!this.character || !this.character.personality) {
+      this.personalityBehavior = null;
+      return;
+    }
+    
+    const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.character.personality);
+    if (personality && personality.eyesBehavior) {
+      this.personalityBehavior = personality.eyesBehavior;
+      this.blinkQueue = this.buildBlinkQueue();
+      this.currentBlinkIndex = 0;
+    } else {
+      this.personalityBehavior = null;
+    }
   }
   
   getSpecialItem() {
@@ -146,16 +163,97 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
   
-  setupBlinking() {
-    const blinkFrames = [0, 1, 2, 3, 2, 1, 0];
-    this.layers.eyes.animations.add('blink', blinkFrames, 16, false);
-    this.startBlinking();
+  buildBlinkQueue() {
+    if (!this.personalityBehavior) return [];
+    
+    const queue = [];
+    for (const behavior of this.personalityBehavior) {
+      let distance = behavior.distance;
+      if (Array.isArray(distance)) {
+        distance = game.rnd.pick(distance);
+      }
+      
+      let waitMin = behavior.waitMin || 1000;
+      let waitMax = behavior.waitMax || 3000;
+      
+      queue.push({
+        distance: distance,
+        waitMin: waitMin,
+        waitMax: waitMax,
+        frame: this.getBlinkFrame(distance)
+      });
+    }
+    
+    return queue;
   }
-
-  startBlinking() {
+  
+  getBlinkFrame(distance) {
+    // distance: 0 = fully open, 1 = half open, 2 = almost closed, 3 = closed
+    // Map to sprite frames (0: open, 1: half, 2: almost closed, 3: closed)
+    return Math.min(3, Math.max(0, distance));
+  }
+  
+  setupBlinking() {
+    // Check if personality behavior exists
+    if (this.personalityBehavior && this.blinkQueue.length > 0) {
+      this.startPersonalityBlinking();
+    } else {
+      // Original blinking
+      this.startGenericBlinking();
+    }
+  }
+  
+  startGenericBlinking() {
+    const blinkFrames = [0, 1, 2, 3, 2, 1, 0];
+    this.layers.eyes?.animations.add('blink', blinkFrames, 16, false);
     const nextBlink = game.rnd.between(500, 5000);
     this.blink(nextBlink, () => {
-      this.startBlinking();
+      this.startGenericBlinking();
+    });
+  }
+  
+  startPersonalityBlinking() {
+    if (this.blinkQueue.length === 0) return;
+    
+    // Check if using random order
+    const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.character.personality);
+    const useRandom = personality?.blinkRandom || false;
+    
+    let nextBehavior;
+    if (useRandom) {
+      // Pick random behavior from queue
+      const randomIndex = game.rnd.between(0, this.blinkQueue.length - 1);
+      nextBehavior = this.blinkQueue[randomIndex];
+    } else {
+      // Sequential
+      nextBehavior = this.blinkQueue[this.currentBlinkIndex % this.blinkQueue.length];
+      this.currentBlinkIndex++;
+    }
+    
+    const waitTime = game.rnd.between(nextBehavior.waitMin, nextBehavior.waitMax);
+    const targetFrame = nextBehavior.frame;
+    
+    // Create animation to target frame
+    const currentFrame = this.layers.eyes.frame || 0;
+    const frames = [];
+    
+    if (currentFrame < targetFrame) {
+      for (let i = currentFrame; i <= targetFrame; i++) {
+        frames.push(i);
+      }
+    } else if (currentFrame > targetFrame) {
+      for (let i = currentFrame; i >= targetFrame; i--) {
+        frames.push(i);
+      }
+    } else {
+      // Already at target, just stay
+      frames.push(targetFrame);
+    }
+    
+    this.layers.eyes.animations.add('personality_blink', frames, 16, false);
+    this.layers.eyes.animations.play('personality_blink');
+    this.layers.eyes.animations.currentAnim.onComplete.addOnce(() => {
+      this.startPersonalityBlinking();
     });
   }
   
@@ -204,7 +302,7 @@ class CharacterDisplay extends Phaser.Sprite {
     });
   }
   
-  updateAppearance(newAppearance) {
+  updateAppearance(newAppearance, silently = true) {
     // Merge with existing appearance
     this.character.appearance = this.deepMerge(this.character.appearance, newAppearance);
     
@@ -227,6 +325,12 @@ class CharacterDisplay extends Phaser.Sprite {
     this.layers = {};
     
     this.createLayers();
+    
+    if (!silently) {
+      // After updating appearance, reload personality behavior
+      this.loadPersonalityBehavior();
+      this.setupBlinking();
+    }
   }
   
   deepMerge(target, source) {

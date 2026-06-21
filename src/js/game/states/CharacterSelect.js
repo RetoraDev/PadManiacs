@@ -113,17 +113,27 @@ class CharacterSelect {
     } else {
       this.skillBar.visible = false;
     }
-
-    if (char && char.selectedSkill) {
-      const skill = CHARACTER_SKILLS.find(s => s.id === char.selectedSkill);
-      if (skill) {
-        this.updateDetails(skill.name, skill.description, true);
+    
+    let text = '';
+    
+    if (char) {
+      if (char.personality) {
+        const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === char.personality);
+        text += `${personality.name} person, ${personality.description}\n\n`;
       } else {
-        this.updateDetails("", "< No skill >", true);
+        text += `Casual person\n\n`;
+      }
+      if (char.selectedSkill) {
+        const skill = CHARACTER_SKILLS.find(s => s.id === char.selectedSkill);
+        text += `Skill: ${skill.name},\n\n${skill.description}\n\n`;
+      } else {
+        text += '< No skill >';
       }
     } else {
-      this.updateDetails("", char ? "< No skill >" : "< No character >", !!char);
+      text = '< No character >';
     }
+
+    this.updateDetails("", text, !!char);
   }
 
   updateDetails(title, description, showCharacterInfo = false) {

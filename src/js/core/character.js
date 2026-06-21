@@ -91,6 +91,719 @@ const CHARACTER_SYSTEM = {
     "WA",   "JA",  "JEI", "JO",  "LEI",
     "LOU",  "TI",  "NU",  "ES",  "SE",
     "HAT",  "NE",  "TO",  "ME",  "TA",
+  ],
+  PERSONALITIES: [
+    {
+      id: "chill",
+      name: "Chill",
+      description: "Relaxed and easygoing, takes things at their own pace.",
+      reasons: {
+        gamesPlayed: 5,
+        ratingThreshold: 0.3,
+        accuracyMin: 60,
+        comboMin: 50,
+        perfectStreakMin: 5
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "combo_shield"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 100, waitMax: 300 },
+        { distance: 2, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 50, waitMax: 150 },
+        { distance: 3, waitMin: 2000, waitMax: 4000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["focused", "steady"]
+    },
+    {
+      id: "focused",
+      name: "Focused",
+      description: "Intense concentration and unwavering determination.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 85,
+        comboMin: 200,
+        perfectStreakMin: 20,
+        ratingThreshold: 0.8
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_judgement_window", "modify_score_gain"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 3000, waitMax: 8000 },
+        { distance: 1, waitMin: 100, waitMax: 200 },
+        { distance: 3, waitMin: 2000, waitMax: 6000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["perfectionist", "rhythm_savant"]
+    },
+    {
+      id: "perfectionist",
+      name: "Perfectionist",
+      description: "Nothing less than perfect is acceptable.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 95,
+        perfectGames: 3,
+        ratingThreshold: 0.95,
+        maxMarvelous: 500
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_judgement_window", "modify_score_gain", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 4000, waitMax: 10000 },
+        { distance: 2, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 3000, waitMax: 8000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["rhythm_savant"]
+    },
+    {
+      id: "steady",
+      name: "Steady",
+      description: "Consistent and reliable, never misses a beat.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 70,
+        comboMin: 100,
+        maxMiss: 5,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "modify_hold_forgiveness", "modify_roll_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 200, waitMax: 500 },
+        { distance: 3, waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 100, waitMax: 200 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["unbreakable"]
+    },
+    {
+      id: "unbreakable",
+      name: "Unbreakable",
+      description: "No matter what happens, they never give up.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 60,
+        maxCombo: 500,
+        maxMiss: 20,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_low_health", "on_critical_health"],
+        effects: ["combo_shield", "burst_health_regen", "convert_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 500, waitMax: 1000 },
+        { distance: 2, waitMin: 1000, waitMax: 3000 },
+        { distance: 1, waitMin: 300, waitMax: 500 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["determined"]
+    },
+    {
+      id: "rhythm_savant",
+      name: "Rhythm Savant",
+      description: "Born with an innate sense of rhythm and timing.",
+      reasons: {
+        gamesPlayed: 40,
+        accuracyMin: 90,
+        perfectGames: 5,
+        maxMarvelous: 1000,
+        ratingThreshold: 0.9
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_note_speed", "modify_judgement_window", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 2000, waitMax: 5000 },
+        { distance: 1, waitMin: 100, waitMax: 300 },
+        { distance: 3, waitMin: 3000, waitMax: 7000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "determined",
+      name: "Determined",
+      description: "Nothing stands in their way. They will succeed.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 75,
+        comboMin: 300,
+        maxMiss: 10,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_low_health"],
+        effects: ["combo_shield", "modify_max_health", "modify_health_gain"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1500, waitMax: 4000 },
+        { distance: 0, waitMin: 300, waitMax: 600 },
+        { distance: 3, waitMin: 2000, waitMax: 5000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["unbreakable"]
+    },
+    {
+      id: "carefree",
+      name: "Carefree",
+      description: "Living in the moment, enjoying every note.",
+      reasons: {
+        gamesPlayed: 5,
+        accuracyMin: 50,
+        comboMin: 30,
+        ratingThreshold: 0.2
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["health_regen"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1000, waitMax: 4000 },
+        { distance: 2, waitMin: 100, waitMax: 300 },
+        { distance: 3, waitMin: 3000, waitMax: 6000 },
+        { distance: 1, waitMin: 500, waitMax: 800 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["chill", "playful"]
+    },
+    {
+      id: "playful",
+      name: "Playful",
+      description: "Full of energy and joy, turning every game into fun.",
+      reasons: {
+        gamesPlayed: 10,
+        accuracyMin: 55,
+        comboMin: 80,
+        ratingThreshold: 0.35
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_perfect_streak"],
+        effects: ["modify_score_gain", "modify_note_speed"]
+      },
+      eyesBehavior: [
+        { distance: [1, 3], waitMin: 500, waitMax: 2000 },
+        { distance: 0, waitMin: 50, waitMax: 150 },
+        { distance: [2, 3], waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 100, waitMax: 200 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["cheerful"]
+    },
+    {
+      id: "cheerful",
+      name: "Cheerful",
+      description: "Always smiling, spreading positivity through rhythm.",
+      reasons: {
+        gamesPlayed: 5,
+        accuracyMin: 60,
+        comboMin: 150,
+        perfectGames: 1,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_perfect_streak"],
+        effects: ["modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: [2, 3], waitMin: 500, waitMax: 1500 },
+        { distance: 0, waitMin: 100, waitMax: 250 },
+        { distance: 3, waitMin: 2000, waitMax: 4000 },
+        { distance: [1, 2], waitMin: 800, waitMax: 1200 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["energetic"]
+    },
+    {
+      id: "energetic",
+      name: "Energetic",
+      description: "Boundless energy that fuels every move.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 65,
+        comboMin: 200,
+        perfectGames: 2,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_perfect_streak"],
+        effects: ["modify_note_speed", "modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 300, waitMax: 800 },
+        { distance: 1, waitMin: 100, waitMax: 200 },
+        { distance: 3, waitMin: 500, waitMax: 1500 },
+        { distance: 0, waitMin: 50, waitMax: 100 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "mysterious",
+      name: "Mysterious",
+      description: "Enigmatic and unpredictable, keeps everyone guessing.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 70,
+        comboMin: 120,
+        ratingThreshold: 0.55
+      },
+      skillTendencies: {
+        activation: ["on_mine_hit", "on_miss"],
+        effects: ["reduce_mine_damage", "convert_judgement"]
+      },
+      eyesBehavior: [
+        { distance: [0, 3], waitMin: 2000, waitMax: 6000 },
+        { distance: 2, waitMin: 100, waitMax: 400 },
+        { distance: [0, 1], waitMin: 3000, waitMax: 8000 },
+        { distance: 3, waitMin: 1500, waitMax: 3000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["enigmatic"]
+    },
+    {
+      id: "enigmatic",
+      name: "Enigmatic",
+      description: "Deep and complex, with layers of personality.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 75,
+        comboMin: 250,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_mine_hit", "on_low_health"],
+        effects: ["reduce_mine_damage", "combo_shield", "convert_judgement"]
+      },
+      eyesBehavior: [
+        { distance: [0, 1], waitMin: 3000, waitMax: 8000 },
+        { distance: 2, waitMin: 200, waitMax: 500 },
+        { distance: [0, 3], waitMin: 4000, waitMax: 10000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "serious",
+      name: "Serious",
+      description: "Focused and disciplined, treats every game with gravity.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 80,
+        comboMin: 200,
+        ratingThreshold: 0.7
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_judgement_window", "modify_input_lag", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 3000, waitMax: 7000 },
+        { distance: 1, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 4000, waitMax: 8000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["focused"]
+    },
+    {
+      id: "dreamy",
+      name: "Dreamy",
+      description: "Lost in the music, dancing to their own rhythm.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 50,
+        comboMin: 40,
+        ratingThreshold: 0.3
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_note_speed"]
+      },
+      eyesBehavior: [
+        { distance: [1, 2], waitMin: 2000, waitMax: 6000 },
+        { distance: 3, waitMin: 100, waitMax: 300 },
+        { distance: [2, 3], waitMin: 3000, waitMax: 8000 },
+        { distance: 1, waitMin: 500, waitMax: 1000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["creative"]
+    },
+    {
+      id: "creative",
+      name: "Creative",
+      description: "Expressive and artistic, finds beauty in every pattern.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 60,
+        comboMin: 100,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_score_gain", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: [2, 3], waitMin: 1000, waitMax: 4000 },
+        { distance: 0, waitMin: 200, waitMax: 500 },
+        { distance: [1, 3], waitMin: 2000, waitMax: 6000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["artistic"]
+    },
+    {
+      id: "artistic",
+      name: "Artistic",
+      description: "A true artist of rhythm, every move is a masterpiece.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 70,
+        comboMin: 200,
+        perfectGames: 3,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1500, waitMax: 4000 },
+        { distance: 1, waitMin: 100, waitMax: 300 },
+        { distance: [2, 3], waitMin: 2000, waitMax: 5000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "spirited",
+      name: "Spirited",
+      description: "Full of life and passion, plays with their heart.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 65,
+        comboMin: 150,
+        ratingThreshold: 0.45
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "modify_max_health"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 500, waitMax: 2000 },
+        { distance: 0, waitMin: 100, waitMax: 300 },
+        { distance: 3, waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["energetic"]
+    },
+    {
+      id: "gentle",
+      name: "Gentle",
+      description: "Soft and precise, every note is handled with care.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 80,
+        comboMin: 100,
+        maxMiss: 3,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_hold_forgiveness", "modify_roll_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 2000, waitMax: 6000 },
+        { distance: 0, waitMin: 500, waitMax: 800 },
+        { distance: 3, waitMin: 3000, waitMax: 8000 },
+        { distance: 1, waitMin: 200, waitMax: 400 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["steady"]
+    },
+    {
+      id: "fierce",
+      name: "Fierce",
+      description: "Intense and powerful, dominates every chart.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 70,
+        comboMin: 300,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_perfect_streak"],
+        effects: ["modify_note_speed", "combo_shield"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 1000, waitMax: 3000 },
+        { distance: 0, waitMin: 300, waitMax: 500 },
+        { distance: 3, waitMin: 1500, waitMax: 4000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["determined"]
+    },
+    {
+      id: "calm",
+      name: "Calm",
+      description: "Serene and composed, never loses their cool.",
+      reasons: {
+        gamesPlayed: 5,
+        accuracyMin: 75,
+        comboMin: 120,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_low_health", "on_critical_health"],
+        effects: ["health_regen", "modify_health_gain"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 3000, waitMax: 8000 },
+        { distance: 0, waitMin: 800, waitMax: 1200 },
+        { distance: 3, waitMin: 4000, waitMax: 10000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["zen"]
+    },
+    {
+      id: "zen",
+      name: "Zen",
+      description: "At one with the rhythm, perfectly balanced.",
+      reasons: {
+        gamesPlayed: 40,
+        accuracyMin: 85,
+        comboMin: 300,
+        perfectGames: 5,
+        ratingThreshold: 0.8
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["general_boost", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 5000, waitMax: 12000 },
+        { distance: 1, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 5000, waitMax: 15000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: []
+    },
+    {
+      id: "sassy",
+      name: "Sassy",
+      description: "Bold and confident, with a dash of attitude.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 60,
+        comboMin: 80,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_perfect_streak"],
+        effects: ["modify_score_gain"]
+      },
+      eyesBehavior: [
+        { distance: [0, 3], waitMin: 500, waitMax: 2000 },
+        { distance: 2, waitMin: 100, waitMax: 300 },
+        { distance: [1, 3], waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["playful"]
+    },
+    {
+      id: "shy",
+      name: "Shy",
+      description: "Quiet and reserved, but brilliant when they shine.",
+      reasons: {
+        gamesPlayed: 15,
+        accuracyMin: 70,
+        comboMin: 60,
+        ratingThreshold: 0.35
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_hold_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 1, waitMin: 2000, waitMax: 6000 },
+        { distance: 0, waitMin: 1000, waitMax: 2000 },
+        { distance: 2, waitMin: 3000, waitMax: 8000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["gentle"]
+    },
+    {
+      id: "bold",
+      name: "Bold",
+      description: "Fearless and daring, takes on every challenge.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 65,
+        comboMin: 200,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_high_combo", "on_mine_hit"],
+        effects: ["combo_shield", "reduce_mine_damage"]
+      },
+      eyesBehavior: [
+        { distance: 3, waitMin: 500, waitMax: 1500 },
+        { distance: 0, waitMin: 200, waitMax: 400 },
+        { distance: 3, waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["fierce"]
+    },
+    {
+      id: "graceful",
+      name: "Graceful",
+      description: "Elegant and fluid, makes every move look effortless.",
+      reasons: {
+        gamesPlayed: 30,
+        accuracyMin: 80,
+        comboMin: 150,
+        perfectGames: 2,
+        ratingThreshold: 0.65
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak"],
+        effects: ["modify_roll_forgiveness", "stabilize_judgement"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 300, waitMax: 500 },
+        { distance: 3, waitMin: 3000, waitMax: 7000 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["artistic"]
+    },
+    {
+      id: "witty",
+      name: "Witty",
+      description: "Quick and sharp, always one step ahead.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 70,
+        comboMin: 150,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_mine_hit"],
+        effects: ["reduce_mine_damage", "modify_input_lag"]
+      },
+      eyesBehavior: [
+        { distance: [1, 3], waitMin: 500, waitMax: 2000 },
+        { distance: 0, waitMin: 100, waitMax: 250 },
+        { distance: [2, 3], waitMin: 1000, waitMax: 3000 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["sassy"]
+    },
+    {
+      id: "mellow",
+      name: "Mellow",
+      description: "Laid-back and smooth, flows with the music.",
+      reasons: {
+        gamesPlayed: 20,
+        accuracyMin: 65,
+        comboMin: 80,
+        ratingThreshold: 0.4
+      },
+      skillTendencies: {
+        activation: ["on_combo", "on_low_health"],
+        effects: ["health_regen", "modify_hold_forgiveness"]
+      },
+      eyesBehavior: [
+        { distance: 2, waitMin: 3000, waitMax: 8000 },
+        { distance: 0, waitMin: 500, waitMax: 1000 },
+        { distance: 3, waitMin: 4000, waitMax: 10000 },
+        { distance: 1, waitMin: 200, waitMax: 400 }
+      ],
+      blinkRandom: false,
+      possibleNextPersonalities: ["calm"]
+    },
+    {
+      id: "spunky",
+      name: "Spunky",
+      description: "Full of spunk and sass, brings personality to every play.",
+      reasons: {
+        gamesPlayed: 18,
+        accuracyMin: 55,
+        comboMin: 100,
+        ratingThreshold: 0.35
+      },
+      skillTendencies: {
+        activation: ["on_combo"],
+        effects: ["modify_score_gain", "modify_note_speed"]
+      },
+      eyesBehavior: [
+        { distance: [0, 3], waitMin: 300, waitMax: 1000 },
+        { distance: 1, waitMin: 100, waitMax: 200 },
+        { distance: [2, 3], waitMin: 500, waitMax: 1500 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["playful"]
+    },
+    {
+      id: "emotive",
+      name: "Emotive",
+      description: "Feels every note deeply, plays with heart and soul.",
+      reasons: {
+        gamesPlayed: 25,
+        accuracyMin: 70,
+        comboMin: 120,
+        perfectGames: 1,
+        ratingThreshold: 0.5
+      },
+      skillTendencies: {
+        activation: ["on_low_health", "on_critical_health"],
+        effects: ["modify_health_gain", "burst_health_regen"]
+      },
+      eyesBehavior: [
+        { distance: [1, 2], waitMin: 1000, waitMax: 4000 },
+        { distance: 0, waitMin: 300, waitMax: 600 },
+        { distance: [2, 3], waitMin: 2000, waitMax: 5000 },
+        { distance: 0, waitMin: 100, waitMax: 200 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: ["expressive"]
+    },
+    {
+      id: "expressive",
+      name: "Expressive",
+      description: "Every movement tells a story, every note has meaning.",
+      reasons: {
+        gamesPlayed: 35,
+        accuracyMin: 75,
+        comboMin: 200,
+        perfectGames: 3,
+        ratingThreshold: 0.6
+      },
+      skillTendencies: {
+        activation: ["on_perfect_streak", "on_high_combo"],
+        effects: ["modify_score_gain", "general_boost"]
+      },
+      eyesBehavior: [
+        { distance: [1, 3], waitMin: 800, waitMax: 2500 },
+        { distance: 0, waitMin: 200, waitMax: 400 },
+        { distance: [2, 3], waitMin: 1500, waitMax: 4000 },
+        { distance: 1, waitMin: 300, waitMax: 500 }
+      ],
+      blinkRandom: true,
+      possibleNextPersonalities: []
+    }
   ]
 };
 
