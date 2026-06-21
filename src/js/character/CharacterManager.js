@@ -92,12 +92,12 @@ class CharacterManager {
     const expGain = this.calculateExperienceGain(gameResults);
     char.addExperience(expGain);
 
+    const developedPersonality = char.studyPersonalities(gameResults);
+    
     const accountChar = Account.characters.list.find(c => c.name === char.name);
     if (accountChar) {
       Object.assign(accountChar, char.toJSON());
     }
-    
-    const developedPersonality = char.studyPersonalities(gameResults);
     
     saveAccount();
     

@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.1.0
- * Build: 6/21/2026, 7:25:22 AM
+ * Build: 6/21/2026, 7:33:05 AM
  * Platform: Android (Cordova)
  * Debug: true
  * Minified: false
@@ -4366,6 +4366,7 @@ class Character {
       unlockedSkills: this.unlockedSkills,
       selectedSkill: this.selectedSkill,
       appearance: this.appearance,
+      personality: this.personality || null,
       stats: this.stats,
       lastSkillLevelUp: this.lastSkillLevelUp,
       lastHairUnlockLevel: this.lastHairUnlockLevel,
@@ -4908,12 +4909,12 @@ class CharacterManager {
     const expGain = this.calculateExperienceGain(gameResults);
     char.addExperience(expGain);
 
+    const developedPersonality = char.studyPersonalities(gameResults);
+    
     const accountChar = Account.characters.list.find(c => c.name === char.name);
     if (accountChar) {
       Object.assign(accountChar, char.toJSON());
     }
-    
-    const developedPersonality = char.studyPersonalities(gameResults);
     
     saveAccount();
     

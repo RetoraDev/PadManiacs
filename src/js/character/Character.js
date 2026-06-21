@@ -440,6 +440,7 @@ class Character {
       unlockedSkills: this.unlockedSkills,
       selectedSkill: this.selectedSkill,
       appearance: this.appearance,
+      personality: this.personality || null,
       stats: this.stats,
       lastSkillLevelUp: this.lastSkillLevelUp,
       lastHairUnlockLevel: this.lastHairUnlockLevel,
