@@ -1,5 +1,7 @@
 class Addons {
   create() {
+    this.leaving = false;
+    
     game.camera.fadeIn(0x000000);
     gamepad.releaseAll();
 
@@ -38,7 +40,7 @@ class Addons {
         game.time.events.add(100, () => this.showNoAddonsDialog());
       },
       () => {
-        this.showMainMenu();
+        setTimeout(() => this.backToMainMenu());
       },
       "VISIT COMMUNITY",
       "RETURN"
@@ -150,19 +152,20 @@ class Addons {
       this.confirmDialog("Reload required. Restart now?", () => {
         window.location.reload();
       }, () => {
-        this.showMainMenu();
+        this.backToMainMenu();
       });
     } else {
-      this.showMainMenu();
+      this.backToMainMenu();
     }
   };
   
-  showMainMenu() {
-    gamepad.releaseAll();
+  backToMainMenu() {
+    this.leaving = true;
     game.state.start("MainMenu");
   }
   
   update() {
+    if (this.leaving) return;
     gamepad.update();
     this.windowManager.update();
   }

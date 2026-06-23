@@ -60,7 +60,7 @@ class AudioTemperatureMeter {
       source.connect(this.analyser);
       this.analyser.connect(this.audioContext.destination);
     } catch (error) {
-      console.warn("Volume detection not available");
+      // console.warn("Volume detection not available");
     }
   }
   

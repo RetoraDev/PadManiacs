@@ -218,7 +218,7 @@ class BuildSystem {
   
   setInfo() {
     this.packageInfo = this.getPackageInfo();
-    this.versionName = `v${this.packageInfo.version + (this.config.flags.platform === 'none' ? " dev" : "")}`;
+    this.versionName = `v${this.packageInfo.version + (this.config.flags.platform === 'none' || this.config.flags.debug ? " dev" : "")}`;
     this.copyright = `(C) RETORA ${new Date().getFullYear()}`;
   }
 

@@ -90,10 +90,7 @@ class Editor {
     this.lyricsText.anchor.set(0.5);
     this.lyricsText.visible = false;
     
-    this.bannerCanvas = document.createElement("canvas");
-    this.bannerCtx = this.bannerCanvas.getContext("2d");
-    
-    this.bannerSprite = new CanvasBackground(this.bannerCanvas, 8, 58);
+    this.bannerSprite = new CanvasBackground(8, 58);
     
     this.icons = game.add.sprite(8, 130);
     
@@ -226,11 +223,13 @@ class Editor {
   }
   
   updateBanner(url = null) {
+    this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
+    this.bannerSprite.dirty();
+      
     if (url && url !== "no-media") {
       const img = new Image();
       img.onload = () => {
-        this.bannerCtx.clearRect(0, 0, 96, 32);
-        this.bannerCtx.drawImage(img, 0, 0, 86, 32);
+        this.bannerSprite.ctx.drawImage(img, 0, 0, 86, 32);
         this.bannerSprite.dirty();
       };
       img.src = url;
@@ -238,17 +237,16 @@ class Editor {
   }
   
   updateBackground(url = null) {
+    this.backgroundSprite.ctx.clearRect(0, 0, game.width, game.height);
+    this.backgroundSprite.dirty();
+    
     if (url && url !== "no-media") {
       const img = new Image();
       img.onload = () => {
-        this.backgroundSprite.ctx.clearRect(0, 0, game.width, game.height);
         this.backgroundSprite.ctx.drawImage(img, 0, 0, game.width, game.height);
-        
         this.backgroundSprite.dirty();
       };
       img.src = url;
-    } else {
-      this.backgroundSprite.loadTexture(null);
     }
   }
   

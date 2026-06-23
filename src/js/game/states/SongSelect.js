@@ -22,8 +22,6 @@ class SongSelect {
     
     this.autoSelect = autoSelect || false;
     
-    this.currentBannerTexture = null;
-  
     window.multiplayerState.player1.ready = false;
     window.multiplayerState.player2.ready = false;
     window.multiplayerState.player2.joined = false;
@@ -153,12 +151,6 @@ class SongSelect {
   }
 
   previewSong(song) {
-    // Destroy previous banner texture
-    if (this.currentBannerTexture) {
-      this.currentBannerTexture.destroy(true);
-      this.currentBannerTexture = null;
-    }
-    
     let index = this.songCarousel.selectedIndex;
     
     if (song.audioUrl) {
@@ -170,21 +162,40 @@ class SongSelect {
     
     if (song.bannerUrl) {
       if (!this.autoSelect) this.loadingDots.visible = true;
-      this.bannerImg.src = song.bannerUrl;
-      this.bannerImg.onload = () => {
-        if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
-        
-        this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
-        this.bannerSprite.ctx.drawImage(this.bannerImg, 0, 0, 96, 32);
-        
-        this.bannerSprite.dirty();
-      };
-      this.bannerImg.onerror = () => {
-        this.loadingDots.visible = false;
-        this.bannerSprite.loadTexture('ui_banner_no_image');
-      };
+      this.songCarousel.config.disableNavigation = true;
+      
+      if (Account.settings.imageRenderingCompatibility) {
+        this.bannerSprite.loadTexture('__default');
+        game.cache.addImageAsync('__song_banner', song.bannerUrl, () => {
+          if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
+          this.bannerSprite.loadTexture('__song_banner');
+          this.bannerSprite.width = 96;
+          this.bannerSprite.height = 32;
+          this.songCarousel.config.disableNavigation = false;
+        });
+      } else {
+        this.bannerImg.src = song.bannerUrl;
+        this.bannerImg.onload = () => {
+          if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
+          
+          this.bannerSprite.restoreCanvas();
+          
+          this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
+          this.bannerSprite.ctx.drawImage(this.bannerImg, 0, 0, 96, 32);
+          
+          this.bannerSprite.dirty();
+          
+          this.songCarousel.config.disableNavigation = false;
+        };
+        this.bannerImg.onerror = () => {
+          this.loadingDots.visible = false;
+          this.bannerSprite.loadTexture('ui_banner_no_image');
+          this.songCarousel.config.disableNavigation = false;
+        };
+      }
     } else {
       this.bannerSprite.loadTexture('ui_banner_no_image');
+      this.songCarousel.config.disableNavigation = false;
     }
     
     this.metadataText.write(this.getMetadataText(song));
@@ -576,10 +587,6 @@ class SongSelect {
   }
   
   shutdown() {
-    if (this.currentBannerTexture) {
-      this.currentBannerTexture.destroy(true);
-      this.currentBannerTexture = null;
-    }
     if (this.previewAudio && typeof this.previewAudio.pause == 'function') {
       this.previewAudio.pause();
       this.previewAudio.src = "";

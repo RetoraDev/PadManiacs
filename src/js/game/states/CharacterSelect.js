@@ -1452,14 +1452,13 @@ class CharacterSelect {
   }
 
   creationCustomizeHairColor(callback) {
-    let color = this.newCharacterAppearance.hairColor;
+    let color = this.newCharacterAppearance.tints.hair;
     let r = Math.max(0x88, (color >> 16) & 0xff);
     let g = Math.max(0x88, (color >> 8) & 0xff);
     let b = Math.max(0x88, color & 0xff);
   
     const updateColor = () => {
       const newColor = (r << 16) | (g << 8) | b;
-      this.newCharacterAppearance.hairColor = newColor;
       this.newCharacterAppearance.tints.hair = newColor;
       // Update temp display with tints
       this.tempCharacterDisplay.updateAppearance({ 

@@ -521,7 +521,7 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 
   updateAppearance(newAppearance = {}) {
-    const specialItemChanged = this.character.appearance.clothing.special != newAppearance.clothing.special;
+    const specialItemChanged = (this.character?.appearance?.clothing?.special ?? null) !== (newAppearance?.clothing?.special ?? null);
     
     this.character.appearance = this.deepMerge(this.character.appearance, newAppearance);
     

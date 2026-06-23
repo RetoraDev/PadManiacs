@@ -80,14 +80,14 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 
   pauseBackgroundMusic() {
-    if (backgroundMusic && backgroundMusic.isPlaying) {
+    if (backgroundMusic) {
       this.originalMusicTime = backgroundMusic.audio.currentTime;
-      backgroundMusic.stop();
+      backgroundMusic.audio.pause();
     }
   }
 
   resumeBackgroundMusic() {
-    if (backgroundMusic && this.wasMusicPlaying) {
+    if (backgroundMusic) {
       // Try to resume from where we left off
       backgroundMusic.audio.currentTime = this.originalMusicTime;
       backgroundMusic.audio.play();

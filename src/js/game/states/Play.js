@@ -353,7 +353,7 @@ class Play {
     this.playerName = new Text(5, 9, "", FONTS.tiny_shaded, this.hudTop);
     this.playerName.write(this.currentCharacter ? this.currentCharacter.name : "NONE", 8);
     
-    this.playerName.tint = this.currentCharacter ? Math.max(0x787878, this.currentCharacter.appearance.tints.hair) : 0xffffff;
+    this.playerName.tint = this.currentCharacter ? Math.max(0x787878, this.currentCharacter.appearance.tints?.hair || 0x787878) : 0xffffff;
     
     this.skillBar = new SkillBar(6, 16);
     this.hudTop.addChild(this.skillBar);
@@ -836,7 +836,7 @@ class Play {
       const element = this.preloadedBackgroundElements[filename];
       
       // Check if element is errored
-      if (element.__errored) {
+      if (!element || element.__errored) {
         console.warn(`Preloaded background is errored: ${filename}`);
         this.drawFallbackBackground();
         return;
@@ -883,7 +883,7 @@ class Play {
       const element = this.preloadedBackgroundElements[filename];
       
       // Check if element is errored
-      if (element.__errored) {
+      if (!element || element.__errored) {
         console.warn(`Preloaded video is errored: ${filename}`);
         this.drawFallbackBackground();
         return;
@@ -983,10 +983,12 @@ class Play {
   
   songEnd() {
     // Forget preloaded backgrounds
-    Object.entries(this.preloadedBackgroundElements).map(entry => entry[1] || null).forEach(element => {
-      if (element) {
-        element.src = "";
-      }
+    setTimeout(() => {
+      Object.entries(this.preloadedBackgroundElements).map(entry => entry[1] || null).forEach(element => {
+        if (element) {
+          element.src = "";
+        }
+      });
     });
     
     // Return to editor if on playtest mode
@@ -1337,7 +1339,6 @@ class Play {
     // Stop recording and show video
     if (window.recordNextGame) {
       game.recorder.stop();
-      game.recorder = null;
       window.recordNextGame = false;
     }
     

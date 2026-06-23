@@ -57,6 +57,11 @@ class Boot {
       };
     }
     
+    // Reset keyboard mapping for older versions that didn't have two players
+    if (!Account.mapping || !Account.mapping.keyboard.player1 || !Account.mapping.gamepad.player1) {
+      Account.mapping = DEFAULT_ACCOUNT.mapping;
+    }
+    
     // Add background opacity field 
     if (isNaN(Account.settings.backgroundOpacity) || typeof Account.settings.backgroundOpacity == undefined) Account.settings.backgroundOpacity = 0.3; 
     
@@ -118,11 +123,11 @@ class Boot {
     saveAccount();
   }
   create() {
-    this.fixSettings();
-    
-    window.inputManager = new InputManager(game);
-
     notifications = new NotificationSystem();
+    
+    this.fixSettings();
+
+    window.inputManager = new InputManager(game);
     
     achievementsManager = new AchievementsManager();
     achievementsManager.initialize();
@@ -559,35 +564,7 @@ class Boot {
         frameHeight: 7
       }
     ];
-/*
-    window.addEventListener("keydown", event => {
-      // Only process if we're in the game and not in an input field
-      if (document.activeElement.tagName === "INPUT" || window.focusedElement) return;
-      
-      switch (event.code) {
-        case "F8": // Screenshot
-          event.preventDefault();
-          if (game.recorder) {
-            game.recorder.screenshot();
-          }
-          break;
-
-        case "F9": // Start/Stop recording
-          event.preventDefault();
-          if (game.recorder.isRecording) {
-            game.recorder.stop();
-          } else {
-            game.recorder.start();
-          }
-          break;
-
-        case "F10": // Record next game
-          event.preventDefault();
-          window.recordNextGame = true;
-          break;
-      }
-    });
-*/
+    
     game.state.start("Load", true, false, window.gameResources, "LoadCordova");
   }
 }

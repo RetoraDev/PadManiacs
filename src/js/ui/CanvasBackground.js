@@ -6,6 +6,11 @@ class CanvasBackground extends Phaser.Sprite {
     
     game.add.existing(this);
   }
+  restoreCanvas() {
+    if (this.canvas && this.canvas instanceof HTMLCanvasElement && this.canvas != this.baseTexture.canvas) {
+      this.setCanvas(this.canvas);
+    }
+  }
   setCanvas(canvas) {
     this.canvas = canvas ? canvas : document.createElement("canvas");
     this.ctx = this.canvas.getContext("2d");

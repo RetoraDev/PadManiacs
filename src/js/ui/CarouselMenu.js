@@ -7,6 +7,7 @@ class CarouselMenu extends Phaser.Sprite {
       align: 'left',
       bgcolor: '#3498db',
       fgcolor: 0xffffff,
+      disableNavigation: false,
       disableScrollBar: false,
       disableConfirm: false,
       disableCancel: false,
@@ -138,6 +139,7 @@ class CarouselMenu extends Phaser.Sprite {
     
     item.parent.inputEnabled = !this.config.disableMouse;
     item.parent.events.onInputDown.add(() => {
+      if (this.config.disableNavigation) return;
       if (this.doubleClickConfirm) {
         if (!this.selectedIndex != item.index) {
           this.selectIndex(item.index);
@@ -198,6 +200,8 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   handleInput() {
+    if (this.config.disableNavigation) return;
+    
     const timeSinceLastPress = game.time.now - this.lastPress;
     const timeSinceFirstPress = game.time.now - (this.firstPressTime || 0);
     
@@ -388,6 +392,8 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   hoverItem(item) {
+    if (this.config.disableNavigation) return;
+    
     // Hout previously hovered item
     const previouslyHovered = this.items.find(i => i.isHovered && i !== item);
     if (previouslyHovered) {
@@ -420,6 +426,7 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   houtItem(item) {
+    if (this.config.disableNavigation) return;
     if (item.isSelected || !item.isHovered) return;
 
     item.isHovered = false;

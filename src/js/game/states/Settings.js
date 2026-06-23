@@ -390,6 +390,17 @@ class Settings {
       }
     );
     
+    // Image Rendering Mode
+    settingsWindow.addSettingItem(
+      "Image Rendering Mode",
+      ["COMPATIBILITY", "NORMAL"],
+      Account.settings.imageRenderingCompatibility ? 0 : 1,
+      index => {
+        Account.settings.imageRenderingCompatibility = index === 0;
+        saveAccount();
+      }
+    );
+    
     // Safe Mode
     settingsWindow.addSettingItem(
       "Safe Mode",

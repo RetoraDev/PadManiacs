@@ -118,7 +118,7 @@ class Jukebox {
     this.uiBackground.endFill();
     
     // Song banner
-    this.bannerSprite = game.add.sprite(4, 4);
+    this.bannerSprite = new CanvasBackground(4, 4);
     
     // Song metadata
     this.songTitle = new Text(102, 4, "", FONTS.shaded);
@@ -422,6 +422,7 @@ class Jukebox {
     
     // Load banner
     this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
+    this.bannerSprite.dirty();
     
     if (song.bannerUrl && song.bannerUrl !== "no-media") {
       const bannerImg = new Image();
@@ -438,6 +439,7 @@ class Jukebox {
     
     // Clear current background
     this.backgroundSprite.ctx.clearRect(0, 0, 240, 140);
+    this.backgroundSprite.dirty();
     this.videoElement.src = "";
     
     // Load song background
