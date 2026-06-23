@@ -158,6 +158,7 @@ class Addons {
   };
   
   showMainMenu() {
+    gamepad.releaseAll();
     game.state.start("MainMenu");
   }
   

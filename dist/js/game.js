@@ -5,22 +5,21 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.1.0
- * Build: 6/21/2026, 7:33:05 AM
+ * Build: 6/22/2026, 8:36:14 PM
  * Platform: Android (Cordova)
- * Debug: true
+ * Debug: false
  * Minified: false
  */
 
-
-
-// ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2026";
 
 const VERSION = "v1.1.0";
 
-window.DEBUG = true;
+window.DEBUG = false;
 
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
+
+window.UNLOCK_ALL_CLOTHES = false;
 
 const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★";
 const TINY_FONT_MAP = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\" •<>=%∥▶";
@@ -615,9 +614,6 @@ const DEFAULT_GAMEPAD_MAPPING = {
 
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg"];
 
-
-
-// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -652,9 +648,6 @@ const REGULAR_VIBRATION_INTENSITY = 75;
 const WEAK_VIBRATION_INTENSITY = 50;
 const STRONG_VIBRATION_INTENSITY = 50;
 
-
-
-// ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 12,
@@ -2149,6 +2142,22 @@ const CHARACTER_ITEMS = [
     ],
     dyable: true
   },
+  {
+    id: "top_racing",
+    name: "Racing Suit",
+    type: "top",
+    dyable: true,
+    tint: 0x0066ff,
+    description: "A sleek blue latex suit with black accents. Built for speed and rhythm."
+  },
+  {
+    id: "top_swimsuit",
+    name: "Swimsuit",
+    type: "top",
+    dyable: true,
+    tint: 0xf85998,
+    description: "A standard polyester swimsuit"
+  },
   // Bottom
   {
     id: "bottom_knee_length_jeans",
@@ -2184,8 +2193,8 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "bottom_shorts_type2",
-    name: "Shorts",
-    description: "Stylish shorts with a unique pattern.",
+    name: "Shorts (Dyable)",
+    description: "Simple shorts you can dye any color you want.",
     type: "bottom",
     layers: [
       {
@@ -2326,20 +2335,702 @@ const CHARACTER_ITEMS = [
     type: "accessory",
     dyable: false
   },
-  // Special
+  {
+    id: "accessory_fedora",
+    name: "Fedora",
+    type: "accessory",
+    dyable: false,
+    description: "A classic fedora hat for those who appreciate style and mystery."
+  },
+  {
+    id: "accessory_paper_hat",
+    name: "Paper Hat",
+    type: "accessory",
+    dyable: true,
+    tint: 0xffffff,
+    description: "A hat made of paper."
+  },
+  {
+    id: "accessory_cat_ears",
+    name: "Cat Ears",
+    type: "accessory",
+    dyable: true,
+    tint: 0xfcdcc1,
+    description: "Neko girl! Nya~!"
+  },
+  {
+    id: "accessory_cap",
+    name: "Casual Cap",
+    type: "accessory",
+    dyable: true,
+    tint: 0xf8a4c0,
+    description: "Casual Dyable Cap"
+  },
+  // Special costumes
+  {
+    id: "special_pajamas",
+    name: "Pajamas",
+    description: "Are you sleepy?",
+    type: "special",
+    hideCharacter: false,
+    dyable: true,
+    layers: [
+      {
+        name: "Main",
+        tint: 0xf8c8d8,
+        dyable: true
+      },
+      {
+        name: "Detail 1",
+        tint: 0xffffff,
+        dyable: true
+      },
+      {
+        name: "Detail 2",
+        tint: 0xffffff,
+        dyable: true
+      }
+    ]
+  },
   {
     id: "special_pinkachu",
     name: "Pinkachu :D",
-    description: "A pink creature that consumes your entire character!",
+    description: "Our totally original mascot that definitely doesn't resemble any popular yellow electric mouse from a famous franchise. I swear. :3",
     type: "special",
     hideCharacter: true,
     dyable: false
+  },
+  // Auras
+  {
+    id: "aura_dots",
+    name: "Dots",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffffff,
+    description: "Simple dots that dance around you like digital fireflies.",
+    particle: {
+      keys: ["particle_dot"],
+      frames: [0],
+      frequency: 15,        // Reduced from 30
+      duration: 2500,       // Slightly longer
+      velocity: { min: 15, max: 40 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -15, max: 15 }
+    }
+  },
+  {
+    id: "aura_circles",
+    name: "Circles",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffffff,
+    description: "Elegant circles that orbit around you with grace.",
+    particle: {
+      keys: ["particle_circle"],
+      frames: [0],
+      frequency: 12,        // Reduced from 25
+      duration: 3000,
+      velocity: { min: 10, max: 30 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -10, max: 10 }
+    }
+  },
+  {
+    id: "aura_squares",
+    name: "Squares",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffffff,
+    description: "Sharp geometric squares that pulse with rhythm.",
+    particle: {
+      keys: ["particle_square"],
+      frames: [0],
+      frequency: 10,
+      duration: 3500,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.3, max: 0.6 },
+      gravity: { min: -8, max: 8 }
+    }
+  },
+  {
+    id: "aura_paws",
+    name: "Paws",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffffff,
+    description: "Adorable paw prints that follow your every move. Nya~!",
+    particle: {
+      keys: ["particle_paw"],
+      frames: [0],
+      frequency: 10,
+      duration: 3000,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.5, max: 1.0 },
+      gravity: { min: -8, max: 8 }
+    }
+  },
+  {
+    id: "aura_hearts",
+    name: "Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Cute hearts that flutter around you with love.",
+    particle: {
+      keys: ["particle_heart"],
+      frames: [0],
+      frequency: 12,
+      duration: 3500,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_hearts_filled",
+    name: "Filled Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Solid hearts filled with pure love and affection.",
+    particle: {
+      keys: ["particle_heart_filled"],
+      frames: [0],
+      frequency: 12,
+      duration: 3500,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_stars",
+    name: "Stars",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffd700,
+    description: "Sparkling stars that shine bright like your rhythm.",
+    particle: {
+      keys: ["particle_star"],
+      frames: [0],
+      frequency: 14,
+      duration: 3000,
+      velocity: { min: 12, max: 32 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_stars_filled",
+    name: "Filled Stars",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffd700,
+    description: "Solid stars that shine even brighter.",
+    particle: {
+      keys: ["particle_star_filled"],
+      frames: [0],
+      frequency: 14,
+      duration: 3000,
+      velocity: { min: 12, max: 32 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_arrows_random",
+    name: "Random Arrows",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ff88,
+    description: "Arrows pointing in all directions, full of energy!",
+    particle: {
+      keys: ["particle_arrow", "particle_arrow_filled"],
+      frames: [0, 0, 0, 0],
+      frequency: 14,
+      duration: 2800,
+      velocity: { min: 12, max: 30 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -15, max: 15 },
+      rotate: true
+    }
+  },
+  {
+    id: "aura_arrows_up",
+    name: "Up Arrows",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ff88,
+    description: "Rising arrows that lift your spirit higher!",
+    particle: {
+      keys: ["particle_arrow_filled"],
+      frames: [0],
+      frequency: 14,
+      duration: 2800,
+      velocity: { min: 20, max: 45 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -25, max: -10 }, // Always going up
+      rotate: false,
+      lockDirection: "up"
+    }
+  },
+  {
+    id: "aura_arrows_down",
+    name: "Down Arrows",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b35,
+    description: "Grounding arrows that keep you steady.",
+    particle: {
+      keys: ["particle_arrow_filled"],
+      frames: [0],
+      frequency: 14,
+      duration: 2800,
+      velocity: { min: 20, max: 45 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: 10, max: 25 }, // Always going down
+      rotate: false,
+      lockDirection: "down"
+    }
+  },
+  {
+    id: "aura_bubbles",
+    name: "Bubbles",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x88ccff,
+    description: "Colorful bubbles floating all around.",
+    particle: {
+      keys: ["particle_bubble"],
+      frames: [0, 1, 2],
+      frequency: 8,
+      duration: 4500,
+      velocity: { min: 4, max: 12 },
+      alpha: { min: 0.3, max: 0.5 },
+      gravity: { min: -8, max: 8 }
+    }
+  },
+  {
+    id: "aura_hearts_ii",
+    name: "Double Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Double the love, double the sparkle!",
+    particle: {
+      keys: ["particle_heart"],
+      frames: [0],
+      layers: 2,
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 8, max: 28 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -15, max: 15 }
+    }
+  },
+  {
+    id: "aura_hearts_iii",
+    name: "Triple Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Triple the love, triple the sparkle!",
+    particle: {
+      keys: ["particle_heart"],
+      frames: [0],
+      layers: 3,
+      frequency: 16,
+      duration: 3500,
+      velocity: { min: 8, max: 30 },
+      alpha: { min: 0.2, max: 0.6 },
+      gravity: { min: -18, max: 18 }
+    }
+  },
+  {
+    id: "aura_hearts_iv",
+    name: "Quad Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "So much love it fills the screen!",
+    particle: {
+      keys: ["particle_heart"],
+      frames: [0],
+      layers: 4,
+      frequency: 18,
+      duration: 3500,
+      velocity: { min: 8, max: 32 },
+      alpha: { min: 0.2, max: 0.5 },
+      gravity: { min: -20, max: 20 }
+    }
+  },
+  {
+    id: "aura_stars_ii",
+    name: "Double Stars",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffd700,
+    description: "Twice the sparkle, twice the shine!",
+    particle: {
+      keys: ["particle_star"],
+      frames: [0],
+      layers: 2,
+      frequency: 14,
+      duration: 3000,
+      velocity: { min: 12, max: 32 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -15, max: 15 }
+    }
+  },
+  {
+    id: "aura_stars_iii",
+    name: "Triple Stars",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffd700,
+    description: "A constellation of brilliance!",
+    particle: {
+      keys: ["particle_star"],
+      frames: [0],
+      layers: 3,
+      frequency: 16,
+      duration: 3000,
+      velocity: { min: 10, max: 35 },
+      alpha: { min: 0.2, max: 0.6 },
+      gravity: { min: -18, max: 18 }
+    }
+  },
+  {
+    id: "aura_heart_star",
+    name: "Love & Shine",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Hearts and stars dancing together in harmony.",
+    particle: {
+      keys: ["particle_heart", "particle_star"],
+      frames: [0, 0],
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 8, max: 28 },
+      alpha: { min: 0.3, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_star_heart",
+    name: "Shine & Love",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffd700,
+    description: "Stars and hearts in a beautiful dance.",
+    particle: {
+      keys: ["particle_star", "particle_heart"],
+      frames: [0, 0],
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 8, max: 28 },
+      alpha: { min: 0.3, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_paw_heart",
+    name: "Paw Love",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Cute paws and hearts for maximum kawaii!",
+    particle: {
+      keys: ["particle_paw", "particle_heart"],
+      frames: [0, 0],
+      frequency: 10,
+      duration: 3500,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -10, max: 10 }
+    }
+  },
+  {
+    id: "aura_circle_star",
+    name: "Stellar Orbs",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ccff,
+    description: "Orbs of starlight that orbit around you.",
+    particle: {
+      keys: ["particle_circle", "particle_star"],
+      frames: [0, 0],
+      frequency: 12,
+      duration: 3200,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.4, max: 0.7 },
+      gravity: { min: -8, max: 8 }
+    }
+  },
+  {
+    id: "aura_square_star",
+    name: "Cosmic Cubes",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ff88,
+    description: "Square stars from another dimension!",
+    particle: {
+      keys: ["particle_square", "particle_star"],
+      frames: [0, 0],
+      frequency: 12,
+      duration: 3200,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.4, max: 0.7 },
+      gravity: { min: -8, max: 8 }
+    }
+  },
+  {
+    id: "aura_neon_lights",
+    name: "Neon Lights",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ff88,
+    description: "Neon lights that pulse and glow with energy.",
+    particle: {
+      keys: ["particle_circle", "particle_dot"],
+      frames: [0, 0],
+      frequency: 10,
+      duration: 2500,
+      velocity: { min: 15, max: 35 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -15, max: 15 },
+      alternateTint: 0xff0088,
+      alternateFrequency: 500
+    }
+  },
+  {
+    id: "aura_pulse_hearts",
+    name: "Pulse Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff0066,
+    description: "Hearts that pulse with a rhythm of their own.",
+    particle: {
+      keys: ["particle_heart_filled"],
+      frames: [0],
+      frequency: 10,
+      duration: 3500,
+      velocity: { min: 8, max: 20 },
+      alpha: { min: 0.5, max: 0.9 },
+      gravity: { min: -8, max: 8 },
+      alternateTint: 0xff66cc,
+      alternateFrequency: 400
+    }
+  },
+  {
+    id: "aura_chroma_stars",
+    name: "Chroma Stars",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ffcc,
+    description: "Stars shifting through a spectrum of color.",
+    particle: {
+      keys: ["particle_star_filled"],
+      frames: [0],
+      frequency: 12,
+      duration: 3500,
+      velocity: { min: 12, max: 32 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 },
+      alternateTint: 0xff44aa,
+      alternateFrequency: 600
+    }
+  },
+  {
+    id: "aura_dual_arrows",
+    name: "Dual Arrows",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ff88,
+    description: "Arrows pointing both up and down in harmony.",
+    particle: {
+      keys: ["particle_arrow_filled", "particle_arrow_filled"],
+      frames: [0, 0],
+      frequency: 12,
+      duration: 3500,
+      velocity: { min: 12, max: 30 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -15, max: 15 },
+      alternateTint: 0xff6b35,
+      alternateFrequency: 800,
+      rotate: false,
+      lockDirection: "random"
+    }
+  },
+  {
+    id: "aura_sparkle_rain",
+    name: "Sparkle Rain",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffffff,
+    description: "A gentle rain of sparkles that never stops.",
+    particle: {
+      keys: ["particle_star", "particle_dot"],
+      frames: [0, 0],
+      frequency: 14,
+      duration: 4000,
+      velocity: { min: 4, max: 15 },
+      alpha: { min: 0.3, max: 0.6 },
+      gravity: { min: 8, max: 25 },
+      alternateTint: 0x88ddff,
+      alternateFrequency: 700
+    }
+  },
+  {
+    id: "aura_galaxy",
+    name: "Galaxy",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x8800ff,
+    description: "A swirling galaxy of cosmic particles.",
+    particle: {
+      keys: ["particle_dot", "particle_circle"],
+      frames: [0, 0],
+      frequency: 10,
+      duration: 4500,
+      velocity: { min: 8, max: 20 },
+      alpha: { min: 0.3, max: 0.6 },
+      gravity: { min: -4, max: 4 },
+      alternateTint: 0xff00aa,
+      alternateFrequency: 900
+    }
+  },
+  {
+    id: "aura_fireflies",
+    name: "Fireflies",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffdd44,
+    description: "Gentle fireflies lighting up the night around you.",
+    particle: {
+      keys: ["particle_dot"],
+      frames: [0],
+      frequency: 8,
+      duration: 4500,
+      velocity: { min: 4, max: 15 },
+      alpha: { min: 0.3, max: 0.6 },
+      gravity: { min: -4, max: 4 },
+      alternateTint: 0x88ddff,
+      alternateFrequency: 500
+    }
+  },
+  {
+    id: "aura_music_notes",
+    name: "Music Notes",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ccff,
+    description: "Music notes that dance to your rhythm.",
+    particle: {
+      keys: ["particle_music_note"],
+      frames: [0, 1, 2, 3],
+      frequency: 12,
+      duration: 3500,
+      velocity: { min: 10, max: 25 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 },
+      alternateTint: 0xff66aa,
+      alternateFrequency: 600
+    }
+  },
+  {
+    id: "aura_rainbow_hearts",
+    name: "Rainbow Hearts",
+    type: "special",
+    isAura: true,
+    dyable: false,
+    tint: 0xffffff,
+    description: "Hearts in every color of the rainbow.",
+    particle: {
+      keys: ["particle_heart"],
+      frames: [0],
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 8, max: 28 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -15, max: 15 },
+      rainbow: true,
+      rainbowColors: [0xff0000, 0xff8800, 0xffdd00, 0x00cc00, 0x0066ff, 0x4400cc, 0x8800aa]
+    }
+  },
+  {
+    id: "aura_rainbow_stars",
+    name: "Rainbow Stars",
+    type: "special",
+    isAura: true,
+    dyable: false,
+    tint: 0xffffff,
+    description: "Stars in every color of the rainbow.",
+    particle: {
+      keys: ["particle_star_filled"],
+      frames: [0],
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 12, max: 32 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -15, max: 15 },
+      rainbow: true,
+      rainbowColors: [0xff0000, 0xff8800, 0xffdd00, 0x00cc00, 0x0066ff, 0x4400cc, 0x8800aa]
+    }
+  },
+  {
+    id: "aura_rainbow_hybrid",
+    name: "Rainbow Hybrid",
+    type: "special",
+    isAura: true,
+    dyable: false,
+    tint: 0xffffff,
+    description: "A mix of hearts and stars in rainbow colors.",
+    particle: {
+      keys: ["particle_heart", "particle_star_filled"],
+      frames: [0, 0],
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 8, max: 28 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -15, max: 15 },
+      rainbow: true,
+      rainbowColors: [0xff0000, 0xff8800, 0xffdd00, 0x00cc00, 0x0066ff, 0x4400cc, 0x8800aa]
+    }
   }
 ];
 
-
-
-// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
   version: 1.1,
   settings: {
@@ -2472,9 +3163,6 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
-
-
-// ======== js/core/achievements.js ========
 // Achievements system constants
 const ACHIEVEMENTS = {
   EXPERIENCE_VALUES: {
@@ -2678,7 +3366,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You got only Marvelous judgements in a song!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (_, song) => song.judgements.marvelous >= song.totalNotes,
+    condition: (_, song) => song.complete && song.judgements.marvelous >= song.totalNotes,
     hidden: false
   },
   {
@@ -3921,9 +4609,6 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
-
-
-// ======== js/character/Character.js ========
 class Character {
   constructor(data) {
     this.name = data.name;
@@ -4014,7 +4699,7 @@ class Character {
       if (unlockedHair) {
         this.lastHairUnlockLevel = this.level;
         
-        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1]}`, 2000, "unlock");
+        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1].name}`, 2000, "unlock");
       }
     }
     
@@ -4040,17 +4725,65 @@ class Character {
   }
 
   unlockRandomSkill() {
-    const availableSkills = CHARACTER_SKILLS.filter(skill => 
+    const personality = this.personality ? CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.personality) : null;
+    
+    // Get all available skills not yet unlocked
+    let availableSkills = CHARACTER_SKILLS.filter(skill => 
       !this.unlockedSkills.includes(skill.id)
     );
     
-    if (availableSkills.length > 0) {
-      const randomSkill = availableSkills[Math.floor(Math.random() * availableSkills.length)];
-      this.unlockedSkills.push(randomSkill.id);
-      return randomSkill;
+    if (availableSkills.length === 0) return null;
+    
+    // If character has a personality with skill tendencies, bias the selection
+    if (personality && personality.skillTendencies) {
+      const tendencies = personality.skillTendencies;
+      const preferredSkills = [];
+      const otherSkills = [];
+      
+      for (const skill of availableSkills) {
+        let matches = false;
+        
+        // Check activation condition preference
+        if (tendencies.activation && tendencies.activation.length > 0) {
+          if (tendencies.activation.includes(skill.activationCondition)) {
+            matches = true;
+          }
+        }
+        
+        // Check effect preference
+        if (tendencies.effects && tendencies.effects.length > 0) {
+          if (tendencies.effects.includes(skill.effect)) {
+            matches = true;
+          }
+        }
+        
+        if (matches) {
+          preferredSkills.push(skill);
+        } else {
+          otherSkills.push(skill);
+        }
+      }
+      
+      // 70% chance to pick from preferred skills if any exist
+      if (preferredSkills.length > 0 && Math.random() < 0.7) {
+        const randomSkill = preferredSkills[Math.floor(Math.random() * preferredSkills.length)];
+        this.unlockedSkills.push(randomSkill.id);
+        return randomSkill;
+      }
+      
+      // Otherwise pick from other skills (or preferred if no others)
+      const pool = otherSkills.length > 0 ? otherSkills : preferredSkills;
+      if (pool.length > 0) {
+        const randomSkill = pool[Math.floor(Math.random() * pool.length)];
+        this.unlockedSkills.push(randomSkill.id);
+        return randomSkill;
+      }
     }
     
-    return null;
+    // No personality or no tendencies, pick random
+    const randomSkill = availableSkills[Math.floor(Math.random() * availableSkills.length)];
+    this.unlockedSkills.push(randomSkill.id);
+    return randomSkill;
   }
 
   unlockRandomHairStyle() {
@@ -4094,7 +4827,14 @@ class Character {
   }
 
   unlockRandomItem() {
-    const availableItems = CHARACTER_ITEMS.filter(item => Account.characters.unlockedItems.includes(item.id));
+    // Default items that are already equipped or unlocked by default
+    const defaultItems = ["top_seifuku_default", "bottom_skirt_blue", "shoes_common"];
+    
+    // Get all items that are NOT in unlockedItems and NOT default items
+    const availableItems = CHARACTER_ITEMS.filter(item => 
+      !Account.characters.unlockedItems.includes(item.id) &&
+      !defaultItems.includes(item.id)
+    );
     
     if (availableItems.length > 0) {
       const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
@@ -4177,8 +4917,6 @@ class Character {
       if (window.LOG_PERSONALITY_STUDY) {
         console.log(`${this.name} developed "${bestCandidate.name}" personality! (score: ${bestScore.toFixed(2)})`);
       }
-      
-      notifications.show(`Seems like ${this.name} has become a ${bestCandidate.name.toLowerCase()} person.`);
       
       return bestCandidate;
     }
@@ -4375,9 +5113,6 @@ class Character {
   }
 }
 
-
-
-// ======== js/character/CharacterDisplay.js ========
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
@@ -4385,61 +5120,38 @@ class CharacterDisplay extends Phaser.Sprite {
     this.layers = {};
     this.alternateTimers = {};
     this.isSpecial = false;
+    this.isAura = false;
+    this.auraParticleGroup = null;
+    this.particles = [];
+    this.particlePool = [];
+    this.auraRect = { x: 25, y: 0, w: 50, h: 80 };
+    this.particleTimer = null;
+    this.auraConfig = null;
+    this.personalityBehavior = null;
+    this.blinkQueue = [];
+    this.currentBlinkIndex = 0;
+    this.isBlinking = false;
     
     if (characterData) {
-      this.createLayers();
+      this.createLayers(true);
       this.loadPersonalityBehavior();
     }
     game.add.existing(this);
   }
 
-  createLayers() {
-    const appearance = this.character.appearance;
-    const tints = appearance.tints || {};
-    
-    // Check if special item is equipped
-    const specialItem = this.getSpecialItem();
-    this.isSpecial = specialItem && specialItem.hideCharacter;
-    
-    // Back hair layer (bottom)
-    this.layers.backHair = game.add.sprite(0, 0, `character_back_hair_${appearance.backHair}`);
-    this.layers.backHair.tint = tints.hair || 0xa8705a;
-    this.addChild(this.layers.backHair);
-    
-    // Base layer (skin) - hide if special
-    this.layers.base = game.add.sprite(0, 0, 'character_base', appearance.skinTone);
-    this.layers.base.visible = !this.isSpecial;
-    this.addChild(this.layers.base);
-    
-    // Front hair layer
-    this.layers.frontHair = game.add.sprite(0, 0, `character_front_hair_${appearance.frontHair}`);
-    this.layers.frontHair.tint = tints.hair || 0xa8705a;
-    this.layers.frontHair.visible = !this.isSpecial;
-    this.addChild(this.layers.frontHair);
-    
-    // Eyes layer with blinking
-    this.layers.eyes = game.add.sprite(0, 0, 'character_eyes', 0);
-    this.layers.eyes.visible = !this.isSpecial;
-    this.addChild(this.layers.eyes);
-    this.setupBlinking();
-    
-    // Clothing layers
-    this.createClothingLayers(appearance, tints);
-    
-    // Special layer (on top of everything)
-    if (specialItem) {
-      this.createSpecialLayer(specialItem);
-    }
-    
-    this.setupAlternateTints();
+  getSpecialItem(appearanceObj) {
+    const appearance = appearanceObj || this.character.appearance;
+    if (!appearance.clothing || !appearance.clothing.special) return null;
+    const specialId = appearance.clothing.special;
+    if (!specialId) return null;
+    return CHARACTER_ITEMS.find(item => item.id === specialId && item.type === 'special');
   }
-  
+
   loadPersonalityBehavior() {
     if (!this.character || !this.character.personality) {
       this.personalityBehavior = null;
       return;
     }
-    
     const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.character.personality);
     if (personality && personality.eyesBehavior) {
       this.personalityBehavior = personality.eyesBehavior;
@@ -4449,113 +5161,17 @@ class CharacterDisplay extends Phaser.Sprite {
       this.personalityBehavior = null;
     }
   }
-  
-  getSpecialItem() {
-    const appearance = this.character.appearance;
-    if (!appearance.clothing || !appearance.clothing.special) return null;
-    
-    const specialId = appearance.clothing.special;
-    if (!specialId) return null;
-    
-    return CHARACTER_ITEMS.find(item => item.id === specialId && item.type === 'special');
-  }
-  
-  createClothingLayers(appearance, tints) {
-    const slots = ['shoes', 'bottom', 'top', 'accessory'];
-    
-    for (const slot of slots) {
-      const itemId = appearance.clothing?.[slot];
-      if (!itemId) continue;
-      
-      const item = CHARACTER_ITEMS.find(i => i.id === itemId && i.type === slot);
-      if (!item) continue;
-      
-      if (this.isSpecial && slot !== 'special') continue;
-      
-      if (item.layers) {
-        // Multi-layer item
-        this.layers[slot] = [];
-        for (let i = 0; i < item.layers.length; i++) {
-          const layer = item.layers[i];
-          // Use the tint key: slot + '_layer' + index
-          const tintKey = slot + '_layer' + i;
-          const tintValue = tints[tintKey] || layer.tint || null;
-          
-          const key = `character_item_${item.id}_layer${i}`;
-          const sprite = game.add.sprite(0, 0, key);
-          
-          if (tintValue !== null && layer.dyable !== false) {
-            sprite.tint = tintValue;
-          }
-          
-          if (layer.alternateTint) {
-            sprite._alternateTint = layer.alternateTint;
-            sprite._alternateFrequency = layer.alternateFrequency || 100;
-            sprite._currentTint = tintValue || layer.tint || 0xffffff;
-          }
-          
-          this.addChild(sprite);
-          this.layers[slot].push(sprite);
-        }
-      } else {
-        // Single layer item
-        const key = `character_item_${item.id}`;
-        const sprite = game.add.sprite(0, 0, key);
-        
-        // Use slot key directly
-        const tintValue = tints[slot] || item.tint || null;
-        if (tintValue !== null && item.dyable !== false) {
-          sprite.tint = tintValue;
-        }
-        
-        this.addChild(sprite);
-        this.layers[slot] = sprite;
-      }
-    }
-  }
-  
-  createSpecialLayer(specialItem) {
-    const key = `character_item_${specialItem.id}`;
-    const sprite = game.add.sprite(0, 0, key);
-    this.addChild(sprite);
-    this.layers.special = sprite;
-    
-    // If special hides character, hide base layers
-    if (specialItem.hideCharacter) {
-      if (this.layers.base) this.layers.base.visible = false;
-      if (this.layers.frontHair) this.layers.frontHair.visible = false;
-      if (this.layers.eyes) this.layers.eyes.visible = false;
-      if (this.layers.backHair) this.layers.backHair.visible = false;
-      
-      // Hide clothing layers except special
-      const slots = ['top', 'bottom', 'shoes', 'accessory'];
-      for (const slot of slots) {
-        if (this.layers[slot]) {
-          if (Array.isArray(this.layers[slot])) {
-            for (const layer of this.layers[slot]) {
-              layer.visible = false;
-            }
-          } else {
-            this.layers[slot].visible = false;
-          }
-        }
-      }
-    }
-  }
-  
+
   buildBlinkQueue() {
     if (!this.personalityBehavior) return [];
-    
     const queue = [];
     for (const behavior of this.personalityBehavior) {
       let distance = behavior.distance;
       if (Array.isArray(distance)) {
         distance = game.rnd.pick(distance);
       }
-      
       let waitMin = behavior.waitMin || 1000;
       let waitMax = behavior.waitMax || 3000;
-      
       queue.push({
         distance: distance,
         waitMin: waitMin,
@@ -4563,26 +5179,21 @@ class CharacterDisplay extends Phaser.Sprite {
         frame: this.getBlinkFrame(distance)
       });
     }
-    
     return queue;
   }
-  
+
   getBlinkFrame(distance) {
-    // distance: 0 = fully open, 1 = half open, 2 = almost closed, 3 = closed
-    // Map to sprite frames (0: open, 1: half, 2: almost closed, 3: closed)
     return Math.min(3, Math.max(0, distance));
   }
-  
+
   setupBlinking() {
-    // Check if personality behavior exists
     if (this.personalityBehavior && this.blinkQueue.length > 0) {
       this.startPersonalityBlinking();
     } else {
-      // Original blinking
       this.startGenericBlinking();
     }
   }
-  
+
   startGenericBlinking() {
     const blinkFrames = [0, 1, 2, 3, 2, 1, 0];
     this.layers.eyes?.animations.add('blink', blinkFrames, 16, false);
@@ -4591,52 +5202,37 @@ class CharacterDisplay extends Phaser.Sprite {
       this.startGenericBlinking();
     });
   }
-  
+
   startPersonalityBlinking() {
     if (this.blinkQueue.length === 0) return;
-    
-    // Check if using random order
     const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.character.personality);
     const useRandom = personality?.blinkRandom || false;
-    
     let nextBehavior;
     if (useRandom) {
-      // Pick random behavior from queue
       const randomIndex = game.rnd.between(0, this.blinkQueue.length - 1);
       nextBehavior = this.blinkQueue[randomIndex];
     } else {
-      // Sequential
       nextBehavior = this.blinkQueue[this.currentBlinkIndex % this.blinkQueue.length];
       this.currentBlinkIndex++;
     }
-    
     const waitTime = game.rnd.between(nextBehavior.waitMin, nextBehavior.waitMax);
     const targetFrame = nextBehavior.frame;
-    
-    // Create animation to target frame
     const currentFrame = this.layers.eyes.frame || 0;
     const frames = [];
-    
     if (currentFrame < targetFrame) {
-      for (let i = currentFrame; i <= targetFrame; i++) {
-        frames.push(i);
-      }
+      for (let i = currentFrame; i <= targetFrame; i++) frames.push(i);
     } else if (currentFrame > targetFrame) {
-      for (let i = currentFrame; i >= targetFrame; i--) {
-        frames.push(i);
-      }
+      for (let i = currentFrame; i >= targetFrame; i--) frames.push(i);
     } else {
-      // Already at target, just stay
       frames.push(targetFrame);
     }
-    
     this.layers.eyes.animations.add('personality_blink', frames, 16, false);
     this.layers.eyes.animations.play('personality_blink');
     this.layers.eyes.animations.currentAnim.onComplete.addOnce(() => {
       this.startPersonalityBlinking();
     });
   }
-  
+
   blink(time, callback) {
     game.time.events.add(time, () => {
       if (this.layers.eyes && this.layers.eyes.visible) {
@@ -4647,9 +5243,104 @@ class CharacterDisplay extends Phaser.Sprite {
       }
     });
   }
-  
+
+  createLayers(specialItemChanged) {
+    const appearance = this.character.appearance;
+    const tints = appearance.tints || {};
+    const specialItem = this.getSpecialItem();
+    this.isSpecial = specialItem && specialItem.hideCharacter;
+    this.isAura = specialItem && specialItem.isAura;
+    
+    if (this.isAura && specialItem && specialItemChanged) {
+      this.createAura(specialItem, tints);
+    }
+    
+    this.layers.backHair = game.add.sprite(0, 0, `character_back_hair_${appearance.backHair}`);
+    this.layers.backHair.tint = tints.hair || 0xa8705a;
+    this.addChild(this.layers.backHair);
+    
+    this.layers.base = game.add.sprite(0, 0, 'character_base', appearance.skinTone);
+    this.layers.base.visible = !this.isSpecial || this.isAura;
+    this.addChild(this.layers.base);
+    
+    this.layers.frontHair = game.add.sprite(0, 0, `character_front_hair_${appearance.frontHair}`);
+    this.layers.frontHair.tint = tints.hair || 0xa8705a;
+    this.layers.frontHair.visible = !this.isSpecial || this.isAura;
+    this.addChild(this.layers.frontHair);
+    
+    this.layers.eyes = game.add.sprite(0, 0, 'character_eyes', 0);
+    this.layers.eyes.visible = !this.isSpecial || this.isAura;
+    this.addChild(this.layers.eyes);
+    this.setupBlinking();
+    
+    this.createClothingLayers(appearance, tints);
+    
+    this.setupAlternateTints();
+  }
+
+  createClothingLayers(appearance, tints) {
+    const slots = ['shoes', 'bottom', 'top', 'accessory', 'special'];
+    for (const slot of slots) {
+      const itemId = appearance.clothing?.[slot];
+      if (!itemId) continue;
+      const item = CHARACTER_ITEMS.find(i => i.id === itemId && i.type === slot);
+      if (!item) continue;
+      if (slot == 'special' && item.isAura) continue;
+      
+      if (item.layers) {
+        this.layers[slot] = [];
+        for (let i = 0; i < item.layers.length; i++) {
+          const layer = item.layers[i];
+          const tintKey = slot + '_layer' + i;
+          const tintValue = tints[tintKey] || layer.tint || null;
+          const key = `character_item_${item.id}_layer${i}`;
+          const sprite = game.add.sprite(0, 0, key);
+          if (tintValue !== null && layer.dyable !== false) {
+            sprite.tint = tintValue;
+          }
+          if (layer.alternateTint) {
+            sprite._alternateTint = layer.alternateTint;
+            sprite._alternateFrequency = layer.alternateFrequency || 100;
+            sprite._currentTint = tintValue || layer.tint || 0xffffff;
+          }
+          this.addChild(sprite);
+          this.layers[slot].push(sprite);
+        }
+      } else {
+        const key = `character_item_${item.id}`;
+        const sprite = game.add.sprite(0, 0, key);
+        const tintValue = tints[slot] || item.tint || null;
+        if (tintValue !== null && item.dyable !== false) {
+          sprite.tint = tintValue;
+        }
+        this.addChild(sprite);
+        this.layers[slot] = sprite;
+      }
+      
+      if (slot == 'special') {
+        if (item.hideCharacter) {
+          if (this.layers.base) this.layers.base.visible = false;
+          if (this.layers.frontHair) this.layers.frontHair.visible = false;
+          if (this.layers.eyes) this.layers.eyes.visible = false;
+          if (this.layers.backHair) this.layers.backHair.visible = false;
+          if (this.layers.accessory) this.layers.accessory.visible = false;
+        }
+        for (const slot of slots) {
+          if (this.layers[slot] && slot != 'special' && slot != 'accessory') {
+            if (Array.isArray(this.layers[slot])) {
+              for (const layer of this.layers[slot]) {
+                layer.visible = false;
+              }
+            } else {
+              this.layers[slot].visible = false;
+            }
+          }
+        }
+      }
+    }
+  }
+
   setupAlternateTints() {
-    // Check all layers for alternate tint animations
     for (const [key, layer] of Object.entries(this.layers)) {
       if (Array.isArray(layer)) {
         for (const sprite of layer) {
@@ -4662,57 +5353,276 @@ class CharacterDisplay extends Phaser.Sprite {
       }
     }
   }
-  
+
   startAlternateTint(sprite) {
     const frequency = sprite._alternateFrequency || 100;
     let toggle = false;
-    
     this.alternateTimers[sprite.key] = game.time.events.loop(frequency, () => {
       if (!sprite.visible || !sprite.parent) {
-        // Stop if sprite is destroyed or hidden
         if (this.alternateTimers[sprite.key]) {
           game.time.events.remove(this.alternateTimers[sprite.key]);
           delete this.alternateTimers[sprite.key];
         }
         return;
       }
-      
       toggle = !toggle;
       sprite.tint = toggle ? sprite._alternateTint : sprite._currentTint;
     });
   }
-  
-  updateAppearance(newAppearance, silently = true) {
-    // Merge with existing appearance
-    this.character.appearance = this.deepMerge(this.character.appearance, newAppearance);
+
+  createAura(item, tints) {
+    if (!item.particle) return;
+    this.auraParticleGroup = game.add.group();
+    this.addChild(this.auraParticleGroup);
     
-    // Remove old alternate timers
-    for (const [key, timer] of Object.entries(this.alternateTimers)) {
-      game.time.events.remove(timer);
-    }
-    this.alternateTimers = {};
+    const config = item.particle;
+    this.auraConfig = {
+      keys: config.keys || [config.key || 'particle_dot'],
+      frames: config.frames || [0],
+      layers: config.layers || 1,
+      frequency: config.frequency || 15,
+      duration: config.duration || 3000,
+      velocityMin: config.velocity?.min || 8,
+      velocityMax: config.velocity?.max || 25,
+      alphaMin: config.alpha?.min || 0.3,
+      alphaMax: config.alpha?.max || 0.7,
+      gravityMin: config.gravity?.min || -10,
+      gravityMax: config.gravity?.max || 10,
+      dyable: item.dyable !== false,
+      tintBase: tints.special || item.tint || 0xffffff,
+      alternateTint: config.alternateTint || null,
+      alternateFrequency: config.alternateFrequency || 500,
+      rainbow: config.rainbow || false,
+      rainbowColors: config.rainbowColors || [],
+      rotate: config.rotate !== false,
+      lockDirection: config.lockDirection || null,
+      currentTintIndex: 0,
+      lastTintSwitch: 0,
+      _usingAlternate: false,
+      emitCount: 0
+    };
     
-    // Rebuild layers
-    for (const [key, layer] of Object.entries(this.layers)) {
-      if (Array.isArray(layer)) {
-        for (const sprite of layer) {
-          sprite.destroy();
-        }
-      } else if (layer) {
-        layer.destroy();
+    this.particleTimer = game.time.events.loop(1000 / this.auraConfig.frequency, () => {
+      this.emitParticle();
+    });
+  }
+
+  getParticleFromPool(key, frame) {
+    for (let i = 0; i < this.particlePool.length; i++) {
+      const p = this.particlePool[i];
+      if (!p.active && p.key === key) {
+        p.active = true;
+        p.visible = true;
+        p.loadTexture(key, frame);
+        p.alpha = 1;
+        p.scale.set(1);
+        p.rotation = 0;
+        return p;
       }
     }
-    this.layers = {};
+    const sprite = game.add.sprite(0, 0, key, frame);
+    sprite.anchor.set(0.5);
+    sprite.active = true;
+    this.auraParticleGroup.add(sprite);
+    this.particlePool.push(sprite);
+    return sprite;
+  }
+
+  recycleParticle(sprite) {
+    sprite.active = false;
+    sprite.visible = false;
+    sprite.alpha = 0;
+  }
+
+  emitParticle() {
+    if (!this.auraParticleGroup || !this.auraConfig) return;
+    const config = this.auraConfig;
+    const numParticles = config.layers || 1;
+    const now = game.time.now;
     
-    this.createLayers();
+    if (config.alternateTint || config.rainbow) {
+      if (now - config.lastTintSwitch > config.alternateFrequency) {
+        config.lastTintSwitch = now;
+        if (config.rainbow && config.rainbowColors.length > 0) {
+          config.currentTintIndex = (config.currentTintIndex + 1) % config.rainbowColors.length;
+        } else if (config.alternateTint) {
+          config._usingAlternate = !config._usingAlternate;
+        }
+      }
+    }
     
-    if (!silently) {
-      // After updating appearance, reload personality behavior
-      this.loadPersonalityBehavior();
-      this.setupBlinking();
+    let currentTint = config.tintBase;
+    if (config.rainbow && config.rainbowColors.length > 0) {
+      currentTint = config.rainbowColors[config.currentTintIndex];
+    } else if (config.alternateTint && config._usingAlternate) {
+      currentTint = config.alternateTint;
+    }
+    
+    const lockDir = config.lockDirection || null;
+    const shouldRotate = config.rotate !== false;
+    const rect = this.auraRect;
+    
+    for (let layer = 0; layer < numParticles; layer++) {
+      const keyIndex = game.rnd.between(0, config.keys.length - 1);
+      const spriteKey = config.keys[keyIndex];
+      const frame = game.rnd.pick(config.frames);
+      
+      const sprite = this.getParticleFromPool(spriteKey, frame);
+      const x = game.rnd.between(rect.x, rect.x + rect.w);
+      const y = game.rnd.between(rect.y, rect.y + rect.h);
+      sprite.x = x;
+      sprite.y = y;
+      
+      if (config.dyable) {
+        const tintVariation = (layer / Math.max(1, numParticles)) * 0.3;
+        const r = ((currentTint >> 16) & 0xFF) * (1 - tintVariation * 0.3);
+        const g = ((currentTint >> 8) & 0xFF) * (1 - tintVariation * 0.2);
+        const b = (currentTint & 0xFF) * (1 - tintVariation * 0.1);
+        sprite.tint = (Math.floor(r) << 16) | (Math.floor(g) << 8) | Math.floor(b);
+      } else {
+        sprite.tint = 0xffffff;
+      }
+      
+      let angle, speed;
+      if (lockDir === "up") {
+        angle = game.rnd.between(-30, 30) * Math.PI / 180;
+        speed = game.rnd.between(config.velocityMin, config.velocityMax);
+        sprite.vx = Math.sin(angle) * speed * 0.5;
+        sprite.vy = -Math.abs(Math.cos(angle)) * speed;
+        sprite.rotation = -Math.PI / 2;
+      } else if (lockDir === "down") {
+        angle = game.rnd.between(-30, 30) * Math.PI / 180;
+        speed = game.rnd.between(config.velocityMin, config.velocityMax);
+        sprite.vx = Math.sin(angle) * speed * 0.5;
+        sprite.vy = Math.abs(Math.cos(angle)) * speed;
+        sprite.rotation = Math.PI / 2;
+      } else if (lockDir === "random") {
+        angle = game.rnd.angle() * Math.PI / 180;
+        speed = game.rnd.between(config.velocityMin, config.velocityMax);
+        sprite.vx = Math.cos(angle) * speed;
+        sprite.vy = Math.sin(angle) * speed;
+      } else {
+        angle = game.rnd.angle() * Math.PI / 180;
+        speed = game.rnd.between(config.velocityMin, config.velocityMax);
+        sprite.vx = Math.cos(angle) * speed;
+        sprite.vy = Math.sin(angle) * speed;
+        if (shouldRotate) {
+          sprite.rotation = game.rnd.angle() * Math.PI / 180;
+        }
+      }
+      
+      let gravityMin = config.gravityMin;
+      let gravityMax = config.gravityMax;
+      if (lockDir === "up") {
+        gravityMin = Math.min(-15, config.gravityMin);
+        gravityMax = Math.min(-5, config.gravityMax);
+      } else if (lockDir === "down") {
+        gravityMin = Math.max(5, config.gravityMin);
+        gravityMax = Math.max(15, config.gravityMax);
+      }
+      sprite.gravity = game.rnd.between(gravityMin, gravityMax);
+      sprite.alpha = game.rnd.realInRange(config.alphaMin, config.alphaMax);
+      sprite.lifespan = config.duration + game.rnd.between(-500, 500);
+      sprite.born = game.time.now;
+      sprite._layer = layer;
+      sprite._numLayers = numParticles;
+      sprite._lockDir = lockDir;
+      sprite._baseTint = currentTint;
+      sprite._hasAlternate = config.alternateTint !== null;
+      sprite._alternateTint = config.alternateTint;
+      sprite._rainbow = config.rainbow;
+      sprite._rainbowColors = config.rainbowColors;
+      sprite._tintSwitchTime = config.alternateFrequency;
+      sprite._lastTintSwitch = game.time.now;
+      sprite._usingAlternate = false;
+      sprite._tintIndex = 0;
+      sprite.active = true;
+      sprite.visible = true;
+      
+      this.particles.push(sprite);
+    }
+    config.emitCount++;
+    if (config.emitCount % 5 === 0) {
+      this.cleanParticles();
     }
   }
-  
+
+  cleanParticles() {
+    const now = game.time.now;
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      if (now - p.born > p.lifespan || p.alpha <= 0) {
+        this.recycleParticle(p);
+        this.particles.splice(i, 1);
+      }
+    }
+  }
+
+  updateParticles() {
+    const dt = game.time.elapsed / 1000;
+    const rect = this.auraRect;
+    const now = game.time.now;
+    
+    for (const p of this.particles) {
+      if (!p.active || !p.visible) continue;
+      
+      p.vy += p.gravity * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      
+      const age = (now - p.born) / p.lifespan;
+      if (age > 0.7) {
+        p.alpha = p.alpha * (1 - (age - 0.7) / 0.3);
+      }
+      
+      const margin = 10;
+      if (p.x < rect.x - margin || p.x > rect.x + rect.w + margin) {
+        p.vx *= -0.5;
+        p.x = Math.max(rect.x - margin, Math.min(rect.x + rect.w + margin, p.x));
+      }
+      if (p.y < rect.y - margin || p.y > rect.y + rect.h + margin) {
+        p.vy *= -0.5;
+        p.y = Math.max(rect.y - margin, Math.min(rect.y + rect.h + margin, p.y));
+      }
+      
+      if (!p._lockDir) {
+        p.rotation += dt * 0.5;
+      }
+      
+      if ((p._hasAlternate || p._rainbow) && p.alpha > 0.1) {
+        if (now - p._lastTintSwitch > p._tintSwitchTime) {
+          p._lastTintSwitch = now;
+          if (p._rainbow && p._rainbowColors && p._rainbowColors.length > 0) {
+            p._tintIndex = (p._tintIndex + 1) % p._rainbowColors.length;
+            const baseTint = p._rainbowColors[p._tintIndex];
+            const tintVariation = (p._layer / Math.max(1, p._numLayers)) * 0.3;
+            const r = ((baseTint >> 16) & 0xFF) * (1 - tintVariation * 0.3);
+            const g = ((baseTint >> 8) & 0xFF) * (1 - tintVariation * 0.2);
+            const b = (baseTint & 0xFF) * (1 - tintVariation * 0.1);
+            p.tint = (Math.floor(r) << 16) | (Math.floor(g) << 8) | Math.floor(b);
+          } else if (p._hasAlternate) {
+            p._usingAlternate = !p._usingAlternate;
+            const currentTint = p._usingAlternate ? p._alternateTint : p._baseTint;
+            const tintVariation = (p._layer / Math.max(1, p._numLayers)) * 0.3;
+            const r = ((currentTint >> 16) & 0xFF) * (1 - tintVariation * 0.3);
+            const g = ((currentTint >> 8) & 0xFF) * (1 - tintVariation * 0.2);
+            const b = (currentTint & 0xFF) * (1 - tintVariation * 0.1);
+            p.tint = (Math.floor(r) << 16) | (Math.floor(g) << 8) | Math.floor(b);
+          }
+        }
+      }
+    }
+    if (this.particles.length > 0) {
+      this.cleanParticles();
+    }
+  }
+
+  update() {
+    if (this.auraParticleGroup && this.particles.length > 0) {
+      this.updateParticles();
+    }
+  }
+
   deepMerge(target, source) {
     const result = { ...target };
     for (const [key, value] of Object.entries(source)) {
@@ -4725,14 +5635,27 @@ class CharacterDisplay extends Phaser.Sprite {
     return result;
   }
 
-  destroy() {
-    // Remove all alternate timers
+  updateAppearance(newAppearance = {}) {
+    const specialItemChanged = this.character.appearance.clothing.special != newAppearance.clothing.special;
+    
+    this.character.appearance = this.deepMerge(this.character.appearance, newAppearance);
+    
     for (const [key, timer] of Object.entries(this.alternateTimers)) {
       game.time.events.remove(timer);
     }
     this.alternateTimers = {};
     
-    // Destroy all layers
+    if (this.auraParticleGroup && specialItemChanged) {
+      this.auraParticleGroup.destroy();
+      this.auraParticleGroup = null;
+      this.particles = [];
+      this.particlePool = [];
+      if (this.particleTimer) {
+        game.time.events.remove(this.particleTimer);
+        this.particleTimer = null;
+      }
+    }
+    
     for (const [key, layer] of Object.entries(this.layers)) {
       if (Array.isArray(layer)) {
         for (const sprite of layer) {
@@ -4743,17 +5666,52 @@ class CharacterDisplay extends Phaser.Sprite {
       }
     }
     this.layers = {};
+    
+    this.createLayers(specialItemChanged);
+  }
+
+  destroy() {
+    if (this.particleTimer) {
+      game.time.events.remove(this.particleTimer);
+      this.particleTimer = null;
+    }
+    for (const [key, timer] of Object.entries(this.alternateTimers)) {
+      game.time.events.remove(timer);
+    }
+    this.alternateTimers = {};
+    
+    for (const [key, layer] of Object.entries(this.layers)) {
+      if (Array.isArray(layer)) {
+        for (const sprite of layer) {
+          sprite.destroy();
+        }
+      } else if (layer) {
+        layer.destroy();
+      }
+    }
+    this.layers = {};
+    
+    if (this.auraParticleGroup) {
+      this.auraParticleGroup.destroy();
+      this.auraParticleGroup = null;
+    }
+    this.particles = [];
+    this.particlePool = [];
+    
     super.destroy();
   }
 }
 
-
-
-// ======== js/character/CharacterCroppedDisplay.js ========
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
     this.cropArea = cropArea;
+    this.auraRect = {
+      x: cropArea.x,
+      y: cropArea.y,
+      w: cropArea.w,
+      h: cropArea.h
+    };
     this.cropSprite();
     this.x = x;
     this.y = y;
@@ -4786,6 +5744,14 @@ class CharacterCroppedDisplay extends CharacterDisplay {
         ));
       }
     }
+  
+    // Update aura rect for cropped display
+    this.auraRect = {
+      x: this.cropArea.x,
+      y: this.cropArea.y,
+      w: this.cropArea.w,
+      h: this.cropArea.h
+    };
   }
 
   updateAppearance(newAppearance) {
@@ -4794,27 +5760,18 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterPortrait.js ========
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterCloseShot.js ========
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterManager.js ========
 class CharacterManager {
   constructor() {
     this.characters = new Map();
@@ -4996,7 +5953,7 @@ class CharacterManager {
     }
     
     return exp;
-}
+  }
 
   unlockHair(type, id) {
     if (!Account.characters.unlockedHairs[type].includes(id)) {
@@ -5031,9 +5988,6 @@ class CharacterManager {
   }
 }
 
-
-
-// ======== js/character/CharacterSkillSystem.js ========
 class CharacterSkillSystem {
   constructor(scene, character) {
     this.scene = scene;
@@ -5417,9 +6371,6 @@ class CharacterSkillSystem {
   }
 }
 
-
-
-// ======== js/achievements/AchievementsManager.js ========
 class AchievementsManager {
   constructor() {
     this.newAchievements = [];
@@ -5944,9 +6895,6 @@ class AchievementsManager {
   }
 }
 
-
-
-// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config = {}, parent) {
     super(game, x, y, null);
@@ -6206,9 +7154,6 @@ class Text extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -6733,9 +7678,6 @@ class Window extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
@@ -7016,9 +7958,6 @@ class WindowManager {
   }
 }
 
-
-
-// ======== js/ui/DialogWindow.js ========
 class DialogWindow extends Phaser.Sprite {
   constructor(text, options = {}) {
     const {
@@ -7402,10 +8341,11 @@ class DialogWindow extends Phaser.Sprite {
     
     this.isActive = false;
     // Find cancel button (usually "No" or "Cancel")
-    const cancelIndex = this.buttons.findIndex(btn => 
+    const cancelIndex = this.cancelIndex || this.buttons.findIndex(btn => 
       btn.toUpperCase().includes('NO') || 
       btn.toUpperCase().includes('CANCEL') ||
-      btn.toUpperCase().includes('BACK')
+      btn.toUpperCase().includes('BACK') ||
+      btn.toUpperCase().includes('LATER')
     );
     
     if (cancelIndex !== -1) {
@@ -7470,9 +8410,6 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/CarouselMenu.js ========
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -8076,6 +9013,8 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   animateSelection(item, callback) {
+    this.isAnimating = true;
+    
     // Stop all alpha tweens before starting selection animation
     this.items.forEach(otherItem => {
       if (otherItem.alphaTween) {
@@ -8118,6 +9057,7 @@ class CarouselMenu extends Phaser.Sprite {
       item.text.visible = false;
       const fadeOutTween = game.add.tween(item.parent).to({ alpha: 0 }, 100, "Linear", true);
       fadeOutTween.onComplete.addOnce(() => {
+        this.isAnimating = false;
         callback?.();
       });
     });
@@ -8126,6 +9066,8 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   animateCancel(callback) {
+    this.isAnimating = true;
+    
     // Stop all alpha tweens before starting selection animation
     this.items.forEach(item => {
       if (item.alphaTween) {
@@ -8145,7 +9087,10 @@ class CarouselMenu extends Phaser.Sprite {
       }
     });
     
-    game.time.events.add(500, () => callback?.());
+    game.time.events.add(500, () => {
+      callback?.();
+      this.isAnimating = false;
+    });
   }
   
   cancel() {
@@ -8197,61 +9142,62 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/CanvasBackground.js ========
-class CanvasBackground extends Phaser.Sprite {
-  constructor(canvas) {
-    super(game, 0, 0);
+class Background extends Phaser.Sprite {
+  constructor(key, tween, min = 0.1, max = 0.5, time = 1000) {
+    super(game, 0, 0, key);
     
-    this.baseTexture = new PIXI.BaseTexture(canvas);
+    this.alpha = min;
+    
+    this.minAlpha = min;
+    this.maxAlpha = max;
+    this.tweenTime = time;
+    
+    if (tween) game.add.tween(this).to({ alpha: max }, time, Phaser.Easing.Quadratic.InOut, true).yoyo(true).repeat(-1);
+    
+    game.add.existing(this);
+  }
+  fadeIn() {
+    game.add.tween(this).to({ alpha: this.maxAlpha }, this.tweenTime, "Linear", true);
+  }
+  fadeOut() {
+    game.add.tween(this).to({ alpha: this.minAlpha }, this.tweenTime, "Linear", true);
+  }
+}
+
+class BackgroundGradient extends Background {
+  constructor(min = 0.1, max = 0.5, time = 5000) {
+    super("ui_background_gradient", true, min, max, time);
+  }
+} 
+
+class CanvasBackground extends Phaser.Sprite {
+  constructor(x = 0, y = 0, canvas) {
+    super(game, x, y);
+
+    this.setCanvas(canvas);
+    
+    game.add.existing(this);
+  }
+  setCanvas(canvas) {
+    this.canvas = canvas ? canvas : document.createElement("canvas");
+    this.ctx = this.canvas.getContext("2d");
+    
+    this.baseTexture = new PIXI.BaseTexture(this.canvas);
     
     this.texture = new PIXI.Texture(
       this.baseTexture,
       new PIXI.Rectangle(0, 0, game.width, game.height),
       new PIXI.Rectangle(0, 0, game.width, game.height)
     );
-    
-    game.add.existing(this);
+  }
+  dirty() {
+    this.render();
   }
   render() {
     this.baseTexture.dirty();
   }
 }
 
-
-
-// ======== js/ui/BackgroundGradient.js ========
-class BackgroundGradient extends Phaser.Sprite {
-  constructor(min = 0.1, max = 0.5, time = 5000) {
-    super(game, 0, 0, "ui_background_gradient");
-    
-    this.alpha = min;
-    
-    game.add.tween(this).to({ alpha: max }, 5000, Phaser.Easing.Quadratic.InOut, true).yoyo(true).repeat(-1);
-    
-    game.add.existing(this);
-  }
-} 
-
-
-
-// ======== js/ui/Background.js ========
-class Background extends Phaser.Sprite {
-  constructor(key, tween, min = 0.1, max = 0.5, time = 5000) {
-    super(game, 0, 0, key);
-    
-    this.alpha = min;
-    
-    if (tween) game.add.tween(this).to({ alpha: max }, 5000, Phaser.Easing.Quadratic.InOut, true).yoyo(true).repeat(-1);
-    
-    game.add.existing(this);
-  }
-}
-
-
-
-// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -8439,9 +9385,6 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -8455,9 +9398,6 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -8507,9 +9447,6 @@ class Logo extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(hints = []) {
     super(game, 0, game.height - 6);
@@ -8906,9 +9843,6 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 2, text, FONTS.default);
@@ -8917,9 +9851,6 @@ class ProgressText extends Text {
   }
 }
 
-
-
-// ======== js/ui/ExperienceBar.js ========
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
@@ -8967,9 +9898,6 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/SkillBar.js ========
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
@@ -8997,9 +9925,6 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/TextInput.js ========
 class TextInput extends Phaser.Sprite {
   constructor(config = {}) {
     config = {
@@ -9246,9 +10171,6 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NumberInput.js ========
 class NumberInput extends TextInput {
   constructor(config = {}) {
     config = {
@@ -9400,9 +10322,6 @@ class NumberInput extends TextInput {
   }
 }
 
-
-
-// ======== js/ui/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -9782,9 +10701,6 @@ class NotificationSystem {
   }
 }
 
-
-
-// ======== js/ui/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -9976,9 +10892,6 @@ class Lyrics {
   }
 }
 
-
-
-// ======== js/ui/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -10271,9 +11184,6 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/MouseCursor.js ========
 class MouseCursor {
   constructor() {
     this.sprite = null;
@@ -10466,9 +11376,6 @@ class MouseCursor {
   }
 }
 
-
-
-// ======== js/ui/BarChart.js ========
 class BarChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -10564,9 +11471,6 @@ class BarChart extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LineChart.js ========
 class LineChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -10680,9 +11584,6 @@ class LineChart extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -10778,9 +11679,6 @@ class FileSystemTools {
   }
 }
 
-
-
-// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -11190,9 +12088,6 @@ class NodeFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -11308,9 +12203,6 @@ class CordovaFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -11354,9 +12246,6 @@ class FallbackFileSystem {
   }
 }
 
-
-
-// ======== js/game/game.js ========
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 let Account = {
@@ -11536,9 +12425,6 @@ window.multiplayerState = {
   }
 };
 
-
-
-// ======== js/utils/ScreenRecorder.js ========
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -11908,9 +12794,6 @@ class ScreenRecorder {
   }
 }
 
-
-
-// ======== js/utils/Metronome.js ========
 class Metronome {
   constructor(scene) {
     this.scene = scene;
@@ -12073,9 +12956,6 @@ class Metronome {
   }
 }
 
-
-
-// ======== js/utils/TimeUtils.js ========
 class TimeUtils {
   static isValidTime(time) {
     return typeof time != undefined && typeof time != null && !isNaN(time) && time != Infinity;
@@ -12088,16 +12968,13 @@ class TimeUtils {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }
   static formatSeconds(time) {
-    if (!TimeUtils.isValidTime(time)) return "0s";
+    if (!TimeUtils.isValidTime(time)) return "0.00s";
     
     const seconds = time / 1000 % 60;
     return `${seconds.toFixed(2)}s`;
   }
 }
 
-
-
-// ======== js/input/GamepadListener.js ========
 class GamepadListener {
   constructor(game) {
     this.game = game;
@@ -12116,9 +12993,6 @@ class GamepadListener {
   }
 }
 
-
-
-// ======== js/input/KeyboardListener.js ========
 class KeyboardListener {
   constructor(game) {
     this.game = game;
@@ -12137,9 +13011,6 @@ class KeyboardListener {
   }
 }
 
-
-
-// ======== js/input/InputManager.js ========
 let inputManager, gamepad, gamepad1, gamepad2;
 
 class InputManager {
@@ -12167,9 +13038,6 @@ class InputManager {
   }
 }
 
-
-
-// ======== js/input/Gamepad.js ========
 class Gamepad {
   constructor(game, keyboardMap, gamepadMap, playerIndex = 0) {
     this.game = game;
@@ -12815,9 +13683,6 @@ class Gamepad {
   }
 }
 
-
-
-// ======== js/input/AllPads.js ========
 class AllPads extends Gamepad {
   constructor(game, gamepads) {
     super(game, undefined, undefined, 0);
@@ -12932,9 +13797,6 @@ class AllPads extends Gamepad {
   destroy() {}
 }
 
-
-
-// ======== js/input/OnScreenKeyboard.js ========
 class OnScreenKeyboard extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x || 60, y || 75, "ui_keyboard", 0);
@@ -13144,9 +14006,6 @@ class OnScreenKeyboard extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/input/NumericTypeOnScreenKeyboard.js ========
 class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   constructor(x, y) {
     super(80, 70);
@@ -13174,9 +14033,6 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   }
 }
 
-
-
-// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -13412,9 +14268,6 @@ class BackgroundMusic {
   }
 }
 
-
-
-// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -13439,9 +14292,6 @@ class Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -13482,9 +14332,6 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -13551,9 +14398,6 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -13646,9 +14490,6 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -14007,9 +14848,6 @@ class FullScreenAudioVisualizer {
   }
 }
 
-
-
-// ======== js/parsers/SMFile.js ========
 class SMFile {
   static generateSM(songData) {
     let smContent = "";
@@ -14301,9 +15139,6 @@ class SMFile {
   }
 }
 
-
-
-// ======== js/parsers/FileTools.js ========
 class FileTools {
   static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
@@ -14469,9 +15304,6 @@ class FileTools {
   }
 }
 
-
-
-// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   constructor() {
     this.baseUrl = "";
@@ -14743,9 +15575,6 @@ class LocalSMParser {
   }
 }
 
-
-
-// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   async parseSM(files, smContent) {
@@ -15212,9 +16041,6 @@ class ExternalSMParser {
   }
 }
 
-
-
-// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -15626,9 +16452,6 @@ class AddonManager {
   }
 }
 
-
-
-// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -15688,8 +16511,10 @@ class Boot {
       };
     }
     
+    // Add background opacity field 
     if (isNaN(Account.settings.backgroundOpacity) || typeof Account.settings.backgroundOpacity == undefined) Account.settings.backgroundOpacity = 0.3; 
     
+    // Add SFX volume field
     if (!Account.settings.sfxVolume && Account.settings.sfxVolume != 0) Account.settings.sfxVolume = 100;
     
     const forceMigrateCharacters = false;
@@ -15733,6 +16558,14 @@ class Boot {
           Account.characters.unlockedItems.push(itemId);
         }
       }
+    }
+    
+    // Add lyrics settings
+    if (typeof Account.settings.enableLyrics == 'undefined') {
+      Account.settings.enableLyrics = true;
+    }
+    if (typeof Account.settings.lyricsPosition == 'undefined') {
+      Account.settings.lyricsPosition = 0;
     }
       
     Account.version = currentVersion;
@@ -16131,6 +16964,7 @@ class Boot {
       ...(() => {
         const resources = [];
         CHARACTER_ITEMS.forEach(item => {
+          if (item.isAura) return;
           if (item.layers) {
             for (let i = 0; i < item.layers.length; i++) {
               const layer = item.layers[i];
@@ -16153,6 +16987,23 @@ class Boot {
           }
         });
         return resources;
+      })(),
+      // Auras
+      ...(() => {
+        const auras = CHARACTER_ITEMS.filter(item => item.isAura);
+        let particles = [];
+        
+        auras.forEach(aura => {
+          particles = [...particles, ...aura.particle.keys];
+        });
+        
+        return particles.map(key => ({
+          key: key,
+          url: `character/${key}.png`,
+          type: 'spritesheet',
+          frameWidth: 16,
+          frameHeight: 16
+        }));
       })(),
       {
         key: "character_noise",
@@ -16195,9 +17046,6 @@ class Boot {
   }
 }
 
-
-
-// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -16245,9 +17093,6 @@ class Load {
   }
 }
 
-
-
-// ======== js/game/states/LoadCordova.js ========
 class LoadCordova {
   create() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
@@ -16295,9 +17140,6 @@ class LoadCordova {
   }
 }
 
-
-
-// ======== js/game/states/LoadAddons.js ========
 class LoadAddons {
   create() {
     this.progressText = new ProgressText("LOADING ADD-ONS");
@@ -16320,9 +17162,6 @@ class LoadAddons {
   }
 }
 
-
-
-// ======== js/game/states/LoadLocalSongs.js ========
 class LoadLocalSongs {
   create() {
     this.progressText = new ProgressText("LOADING SONGS");
@@ -16395,9 +17234,6 @@ class LoadLocalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadExternalSongs.js ========
 class LoadExternalSongs {
   init(nextState, nextStateParams) {
     this.nextState = nextState || 'SongSelect';
@@ -16739,9 +17575,6 @@ class LoadExternalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadSongFolder.js ========
 class LoadSongFolder {
   create() {
     this.progressText = new ProgressText("SELECT SONG FOLDER");
@@ -16941,9 +17774,6 @@ class LoadSongFolder {
   }
 }
 
-
-
-// ======== js/game/states/LoadExternalSongFile.js ========
 class LoadExternalSongFile {
   init(fileName, filePath, nextState, nextStateParams) {
     this.fileName = fileName;
@@ -17059,9 +17889,6 @@ class LoadExternalSongFile {
   }
 }
 
-
-
-// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -17136,9 +17963,6 @@ class Title {
   }
 }
 
-
-
-// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -17563,9 +18387,6 @@ class MainMenu {
   }
 }
 
-
-
-// ======== js/game/states/Addons.js ========
 class Addons {
   create() {
     game.camera.fadeIn(0x000000);
@@ -17726,6 +18547,7 @@ class Addons {
   };
   
   showMainMenu() {
+    gamepad.releaseAll();
     game.state.start("MainMenu");
   }
   
@@ -17757,13 +18579,8 @@ class Addons {
   }
 }
 
-
-
-// ======== js/game/states/Settings.js ========
 class Settings {
   create() {
-    game.camera.fadeIn(0x000000);
-
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
     this.navigationHint = new NavigationHint('general');
@@ -17788,6 +18605,16 @@ class Settings {
   }
   
   showSettings() {
+    const loading = new Text(game.width / 2, game.height / 2, "Please Wait...");
+    loading.anchor.set(0.5);
+    
+    game.time.events.add(100, () => {
+      this.createSettingsWindow();
+      loading.destroy();
+    });
+  }
+  
+  createSettingsWindow() {
     const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
     
@@ -17797,7 +18624,7 @@ class Settings {
     
     this.windowManager.focus(settingsWindow);
     
-    // Music Voluem
+    // Music Volume
     settingsWindow.addRangeItem(
       "Music Playback Volume",
       0,
@@ -17972,12 +18799,35 @@ class Settings {
       }
     );
     
+    // Enable Temperature
     settingsWindow.addSettingItem(
       "Enable Temperature (Experimental)",
       ["YES", "NO"], 
       Account.settings.enableTemperature ? 0 : 1,
       index => {
         Account.settings.enableTemperature = index === 0;
+        saveAccount();
+      }
+    );
+    
+    // Enable Lyrics
+    settingsWindow.addSettingItem(
+      "Enable Lyrics",
+      ["YES", "NO"], 
+      Account.settings.enableLyrics ? 0 : 1,
+      index => {
+        Account.settings.enableLyrics = index === 0;
+        saveAccount();
+      }
+    );
+    
+    // Lyrics Position
+    settingsWindow.addSettingItem(
+      "Lyrics Position",
+      ["BOTTOM", "TOP"], 
+      Account.settings.lyricsPosition,
+      index => {
+        Account.settings.lyricsPosition = index;
         saveAccount();
       }
     );
@@ -18100,7 +18950,7 @@ class Settings {
     // Renderer
     settingsWindow.addSettingItem(
       "Renderer",
-      ["AUTO", "CANVAS", "WEBGL"],
+      ["AUTO", "CANVAS (Experimental)", "WEBGL"],
       Account.settings.renderer,
       index => {
         Account.settings.renderer = index;
@@ -18352,9 +19202,6 @@ class Settings {
   }
 }
 
-
-
-// ======== js/game/states/ChartModifiers.js ========
 class ChartModifiers {
   init(returnState = "Settings", ...returnParams) {
     this.returnState = returnState;
@@ -18387,6 +19234,48 @@ class ChartModifiers {
   showMenu() {
     const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
+    
+    if (this.returnState != 'Settings') {
+      // Note colors
+      const noteOptions = [
+        { value: 'NOTE', display: 'NOTE' },
+        { value: 'VIVID', display: 'VIVID' },
+        { value: 'FLAT', display: 'FLAT' },
+        { value: 'RAINBOW', display: 'RAINBOW' }
+      ];
+      const currentNoteIndex = noteOptions.findIndex(opt => opt.value === Account.settings.noteColorOption);
+      settingsWindow.addSettingItem(
+        "Note Colors",
+        noteOptions.map(opt => opt.display),
+        currentNoteIndex,
+        index => {
+          Account.settings.noteColorOption = noteOptions[index].value;
+          saveAccount();
+        }
+      );
+  
+      // Note speed
+      settingsWindow.addSettingItem(
+        "Note Speed",
+        ["Normal", "Double", "Triple", "Insane", "Sound Barrier", "Light Speed", "Faster than light"],
+        Account.settings.noteSpeedMult - 1,
+        index => {
+          Account.settings.noteSpeedMult = index + 1;
+          saveAccount();
+        }
+      );
+      
+      // Speed mod
+      settingsWindow.addSettingItem(
+        "Speed Mod",
+        ["X-MOD", "C-MOD"],
+        Account.settings.speedMod === 'C-MOD' ? 1 : 0,
+        index => {
+          Account.settings.speedMod = index === 1 ? 'C-MOD' : 'X-MOD';
+          saveAccount();
+        }
+      );
+    }
     
     // Asegurar que modifiers existe
     if (!this.modifiers) {
@@ -18445,9 +19334,6 @@ class ChartModifiers {
   }
 }
 
-
-
-// ======== js/game/states/Keybindings.js ========
 class Keybindings {
   create() {
     game.camera.fadeIn(0x000000);
@@ -18998,9 +19884,6 @@ class Keybindings {
   }
 }
 
-
-
-// ======== js/game/states/FileSelect.js ========
 class FileSelect {
   init(extensions = null, onSelect = null, onCancel = null, allowCancel = true) {
     this.extensions = extensions;
@@ -19011,6 +19894,11 @@ class FileSelect {
     this.currentDir = null;
     this.history = []; // Stack for navigation history
     this.fileSystem = new FileSystemTools();
+    
+    // Restore state from window if exists
+    if (window.fileSelectState) {
+      this.restoreState(window.fileSelectState);
+    }
   }
 
   create() {
@@ -19034,47 +19922,90 @@ class FileSelect {
     this.loadDirectory();
   }
 
+  // Save current state to window
+  saveState() {
+    window.fileSelectState = {
+      currentPath: this.currentDir ? this.currentDir.fullPath : '/',
+      selectedIndex: this.carousel ? this.carousel.selectedIndex : 0,
+      scrollOffset: this.carousel ? this.carousel.scrollOffset : 0,
+      extensions: this.extensions,
+      history: this.history.map(dir => dir ? dir.fullPath : null)
+    };
+  }
+
+  // Restore state from window
+  restoreState(state) {
+    if (state.extensions) {
+      this.extensions = state.extensions;
+    }
+    // History will be restored after loading directory
+    if (state.history) {
+      this._restoreHistory = state.history;
+    }
+    if (state.selectedIndex !== undefined) {
+      this._restoreSelectedIndex = state.selectedIndex;
+    }
+    if (state.scrollOffset !== undefined) {
+      this._restoreScrollOffset = state.scrollOffset;
+    }
+    if (state.currentPath) {
+      this._restorePath = state.currentPath;
+    }
+  }
+
   async loadDirectory(dirEntry = null) {
     this.emptyFolderText.visible = false;
     
-    // Show loading indicator
     if (this.loadingDots) this.loadingDots.destroy();
     this.loadingDots = new LoadingDots();
     this.loadingDots.y -= 8;
     
-    // Clear existing carousel
     if (this.carousel) {
       this.carousel.destroy();
     }
     
-    // Get directory contents
     let entries = [];
     
-    if (dirEntry === null) {
-      // Load root directory
-      try {
-        this.currentDir = await this.fileSystem.getDirectory('');
-        entries = await this.fileSystem.listDirectories(this.currentDir);
-        // Add files from root too
+    try {
+      if (dirEntry === null) {
+        // Check if we have a restored path
+        if (this._restorePath && this._restorePath !== '/') {
+          try {
+            this.currentDir = await this.fileSystem.getDirectory(this._restorePath);
+            entries = await this.fileSystem.listDirectories(this.currentDir);
+            const files = await this.fileSystem.listFiles(this.currentDir);
+            entries = [...entries, ...files];
+            this._restorePath = null;
+          } catch (e) {
+            // If path doesn't exist, fallback to root
+            this.currentDir = await this.fileSystem.getDirectory('');
+            entries = await this.fileSystem.listDirectories(this.currentDir);
+            const files = await this.fileSystem.listFiles(this.currentDir);
+            entries = [...entries, ...files];
+          }
+        } else {
+          this.currentDir = await this.fileSystem.getDirectory('');
+          entries = await this.fileSystem.listDirectories(this.currentDir);
+          const files = await this.fileSystem.listFiles(this.currentDir);
+          entries = [...entries, ...files];
+        }
+      } else {
+        this.currentDir = dirEntry;
+        const dirs = await this.fileSystem.listDirectories(this.currentDir);
         const files = await this.fileSystem.listFiles(this.currentDir);
-        entries = [...entries, ...files];
-      } catch (error) {
-        console.error("Failed to load root directory:", error);
-        this.showError("Cannot access file system");
-        return;
+        entries = [...dirs, ...files];
       }
-    } else {
-      this.currentDir = dirEntry;
-      const dirs = await this.fileSystem.listDirectories(this.currentDir);
-      const files = await this.fileSystem.listFiles(this.currentDir);
-      entries = [...dirs, ...files];
+    } catch (error) {
+      console.error("Failed to load directory:", error);
+      this.loadingDots.destroy();
+      this.loadingDots = null;
+      this.showError("Cannot access file system");
+      return;
     }
   
-    // Destroy loading indicator
     this.loadingDots.destroy();
     this.loadingDots = null;
   
-    // Filter by extensions if specified
     if (this.extensions !== null) {
       entries = entries.filter(entry => {
         if (entry.isDirectory) return true;
@@ -19083,18 +20014,14 @@ class FileSelect {
       });
     }
     
-    // Separate directories and files
     const directories = entries.filter(e => e.isDirectory);
     const files = entries.filter(e => e.isFile);
     
-    // Sort alphabetically
     directories.sort((a, b) => a.name.localeCompare(b.name));
     files.sort((a, b) => a.name.localeCompare(b.name));
     
-    // Combine (directories first, then files)
     const sortedEntries = [...directories, ...files];
     
-    // Create carousel
     this.carousel = new CarouselMenu(0, 16, game.width, game.height - 24, {
       bgcolor: '#2c3e50',
       fgcolor: '#ffffff',
@@ -19103,7 +20030,6 @@ class FileSelect {
       disableCancel: !this.allowCancel
     });
     
-    // Handle cancel
     this.carousel.onCancel.add(() => {
       if (this.history.length > 0) {
         this.goBack();
@@ -19115,7 +20041,22 @@ class FileSelect {
       }
     });
     
-    // Add parent directory entry (..) if not in root
+    // Restore history
+    if (this._restoreHistory) {
+      for (const path of this._restoreHistory) {
+        if (path) {
+          try {
+            const dir = await this.fileSystem.getDirectory(path);
+            this.history.push(dir);
+          } catch (e) {
+            // Skip invalid paths
+          }
+        }
+      }
+      this._restoreHistory = null;
+    }
+    
+    let parentAdded = false;
     if (this.history.length > 0 || (this.currentDir && this.currentDir.fullPath !== '/')) {
       this.carousel.addItem("..", () => this.goToParent(), {
         entry: null,
@@ -19123,44 +20064,57 @@ class FileSelect {
         isParent: true,
         bgcolor: '#34495e'
       });
+      parentAdded = true;
     }
     
-    // Add all entries
+    let itemIndex = parentAdded ? 1 : 0;
+    const fileIcons = {
+      wav: 3,
+      mp3: 3,
+      ogg: 3,
+      wma: 3,
+      sm: 5,
+      scc: 5,
+      zip: 5
+    };
+    
     sortedEntries.forEach(entry => {
       const ext = FileTools.getExtension(entry.name);
-      const fileIcons = {
-        wav: 3,
-        mp3: 3,
-        ogg: 3,
-        wma: 3,
-        sm: 5,
-        scc: 5,
-        zip: 5
-      };
-      
       this.carousel.addItem(entry.name, () => this.onEntrySelected(entry), {
         entry: entry,
         icon: entry.isDirectory ? 2 : fileIcons[ext] || 1,
         isDirectory: entry.isDirectory,
-        bgcolor: entry.isDirectory ? '#2980b9' : '#8e44ad'
+        bgcolor: entry.isDirectory ? '#2980b9' : '#8e44ad',
+        index: itemIndex
       });
+      itemIndex++;
     });
     
     if (sortedEntries.length === 0 && (!this.history.length && this.currentDir && this.currentDir.fullPath === '/')) {
       this.emptyFolderText.visible = true;
     }
     
-    // Update path display
+    // Restore selection
+    if (this._restoreSelectedIndex !== undefined && this.carousel.items.length > this._restoreSelectedIndex) {
+      this.carousel.selectIndex(this._restoreSelectedIndex);
+      this._restoreSelectedIndex = undefined;
+    }
+    if (this._restoreScrollOffset !== undefined) {
+      this.carousel.scrollOffset = this._restoreScrollOffset;
+      this._restoreScrollOffset = undefined;
+    }
+    
     this.updatePathDisplay();
+    this.saveState();
   }
   
   onEntrySelected(entry) {
     if (entry.isDirectory) {
-      // Push current path to history and navigate into directory
       this.history.push(this.currentDir);
       this.loadDirectory(entry);
     } else {
-      // File selected
+      // Save state before leaving
+      this.saveState();
       if (this.onSelect) {
         this.onSelect(entry);
       } else {
@@ -19174,7 +20128,6 @@ class FileSelect {
       const parent = this.history.pop();
       this.loadDirectory(parent);
     } else if (this.currentDir && this.currentDir.fullPath !== '/') {
-      // Navigate to parent directory
       const parentPath = this.currentDir.fullPath.split('/').slice(0, -1).join('/') || '/';
       try {
         const parentDir = await this.fileSystem.getDirectory(parentPath);
@@ -19217,14 +20170,14 @@ class FileSelect {
   }
   
   shutdown() {
+    // Save state when leaving
+    this.saveState();
+    
     if (this.loadingDots) this.loadingDots.destroy();
     if (this.carousel) this.carousel.destroy();
   }
 }
 
-
-
-// ======== js/game/states/SongSelect.js ========
 class SongSelect {
   init(songs, index, autoSelect, type = "auto") {
     this.type = type;
@@ -19252,8 +20205,8 @@ class SongSelect {
     this.currentBannerTexture = null;
   
     window.multiplayerState.player1.ready = false;
-    window.multiplayerState.player2.ready = true;
-    window.multiplayerState.player2.joined = true;
+    window.multiplayerState.player2.ready = false;
+    window.multiplayerState.player2.joined = false;
     this.multiplayerState = window.multiplayerState;
     
     if (this.startingIndex + 1 > this.songs.length) {
@@ -19281,14 +20234,11 @@ class SongSelect {
     
     this.bannerImg = this.bannerImg || document.createElement("img");
     
-    this.bannerCanvas = this.bannerCanvas || document.createElement("canvas");
-    this.bannerCtx = this.bannerCtx || this.bannerCanvas.getContext("2d");
-    
     this.navigationHint = new NavigationHint('song_select');
     
     this.autoplayText = new Text(4, 132, "");
     
-    this.bannerSprite = game.add.sprite(4, 4, null);
+    this.bannerSprite = new CanvasBackground(4, 4);
 
     this.metadataText = new Text(102, 4, "");
     
@@ -19404,13 +20354,10 @@ class SongSelect {
       this.bannerImg.onload = () => {
         if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
         
-        this.bannerCtx.clearRect(0, 0, 96, 32);
-        this.bannerCtx.drawImage(this.bannerImg, 0, 0, 96, 32);
+        this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
+        this.bannerSprite.ctx.drawImage(this.bannerImg, 0, 0, 96, 32);
         
-        const texture = PIXI.Texture.fromCanvas(this.bannerCanvas);
-        this.currentBannerTexture = texture;
-        
-        this.bannerSprite.loadTexture(texture);
+        this.bannerSprite.dirty();
       };
       this.bannerImg.onerror = () => {
         this.loadingDots.visible = false;
@@ -19813,7 +20760,7 @@ class SongSelect {
       this.currentBannerTexture.destroy(true);
       this.currentBannerTexture = null;
     }
-    if (this.previewAudio) {
+    if (this.previewAudio && typeof this.previewAudio.pause == 'function') {
       this.previewAudio.pause();
       this.previewAudio.src = "";
     }
@@ -19828,9 +20775,6 @@ class SongSelect {
   }
 }
 
-
-
-// ======== js/game/states/CharacterSelect.js ========
 class CharacterSelect {
   create() {
     game.camera.fadeIn(0x000000);
@@ -20226,6 +21170,8 @@ class CharacterSelect {
     gamepad.releaseAll();
     this.clearAllMenus();
     this.updateDetails("", "", false);
+    
+    this.refreshCharacter({});
 
     this.updateEquipmentText('front_hair');
 
@@ -20237,14 +21183,15 @@ class CharacterSelect {
     });
 
     const slots = [
-      { id: 'front_hair', label: 'Front hair', y: 38 },
-      { id: 'back_hair', label: 'Back hair', y: 48 },
-      { id: 'skin', label: 'Skin tone', y: 63 },
-      { id: 'top', label: 'Top', y: 52 },
-      { id: 'bottom', label: 'Bottom', y: 70 },
-      { id: 'shoes', label: 'Shoes', y: 108 },
-      { id: 'accessory', label: 'Accessory', y: 85 },
-      { id: 'special', label: 'Special', y: 45 }
+      { id: 'front_hair', label: 'Front hair' },
+      { id: 'back_hair', label: 'Back hair' },
+      { id: 'hair_color', label: 'Hair Color' },
+      { id: 'skin', label: 'Skin tone' },
+      { id: 'top', label: 'Top' },
+      { id: 'bottom', label: 'Bottom' },
+      { id: 'shoes', label: 'Shoes' },
+      { id: 'accessory', label: 'Accessory' },
+      { id: 'special', label: 'Special' }
     ];
 
     slots.forEach((slot) => {
@@ -20269,8 +21216,28 @@ class CharacterSelect {
   }
 
   updateEquipmentText(slotId) {
-    const currentItem = this.getCurrentSlotItem(slotId);
+    const slots = {
+      'front_hair': 'Front hair',
+      'back_hair': 'Back hair',
+      'hair_color': 'Hair Color' ,
+      'skin': 'Skin tone',
+      'top': 'Top',
+      'bottom': 'Bottom',
+      'shoes': 'Shoes',
+      'accessory': 'Accessory',
+      'special': 'Special'
+    };
+    
+    // Special handling for hair color
+    if (slotId == 'hair_color') {
+      const currentColor = this.selectedCharacter.appearance.tints?.hair || 0xa8705a;
+      this.updateDetails(slots['hair_color'], '\n\n\n' + this.colorToName(currentColor) + ' hair color.');
+      return;
+    }
 
+    const currentItem = this.getCurrentSlotItem(slotId);
+    
+    let titleText = slots[slotId];
     let labelText = '';
     let desc = '';
 
@@ -20285,7 +21252,212 @@ class CharacterSelect {
       else if (slotId === 'shoes') labelText = 'No shoes';
     }
 
-    this.updateDetails(labelText || '< ??? >', '\n\n\n' + desc || '');
+    this.updateDetails(titleText, '\n\n\n' + (labelText || '< ??? >') + '\n\n' + (desc || ''));
+  }
+  
+  colorToName(color, step = 32) {
+    const r = (color >> 16) & 0xFF;
+    const g = (color >> 8) & 0xFF;
+    const b = color & 0xFF;
+    
+    const roundToStep = (val) => Math.round(val / step) * step;
+    const rr = roundToStep(r);
+    const gg = roundToStep(g);
+    const bb = roundToStep(b);
+    
+    const colorNames = [
+      // Neutrals
+      { r: 0, g: 0, b: 0, name: "Black" },
+      { r: 32, g: 32, b: 32, name: "Dark Gray" },
+      { r: 96, g: 96, b: 96, name: "Gray" },
+      { r: 160, g: 160, b: 160, name: "Light Gray" },
+      { r: 224, g: 224, b: 224, name: "Silver" },
+      { r: 255, g: 255, b: 255, name: "White" },
+      
+      // Reds
+      { r: 255, g: 0, b: 0, name: "Red" },
+      { r: 255, g: 32, b: 32, name: "Bright Red" },
+      { r: 224, g: 0, b: 0, name: "Dark Red" },
+      { r: 192, g: 0, b: 0, name: "Crimson" },
+      { r: 160, g: 0, b: 0, name: "Blood Red" },
+      { r: 255, g: 64, b: 64, name: "Coral Red" },
+      { r: 255, g: 128, b: 128, name: "Light Red" },
+      
+      // Oranges
+      { r: 255, g: 128, b: 0, name: "Orange" },
+      { r: 255, g: 160, b: 0, name: "Light Orange" },
+      { r: 224, g: 96, b: 0, name: "Dark Orange" },
+      { r: 255, g: 64, b: 0, name: "Vermilion" },
+      { r: 255, g: 192, b: 64, name: "Apricot" },
+      { r: 255, g: 140, b: 0, name: "Tangerine" },
+      { r: 255, g: 165, b: 0, name: "Carrot" },
+      
+      // Yellows
+      { r: 255, g: 224, b: 0, name: "Yellow" },
+      { r: 255, g: 255, b: 0, name: "Bright Yellow" },
+      { r: 224, g: 192, b: 0, name: "Dark Yellow" },
+      { r: 255, g: 215, b: 0, name: "Gold" },
+      { r: 224, g: 184, b: 0, name: "Dark Gold" },
+      { r: 255, g: 255, b: 128, name: "Pale Yellow" },
+      { r: 255, g: 240, b: 128, name: "Cream" },
+      { r: 255, g: 200, b: 0, name: "Amber" },
+      
+      // Greens
+      { r: 0, g: 255, b: 0, name: "Green" },
+      { r: 32, g: 224, b: 32, name: "Bright Green" },
+      { r: 0, g: 160, b: 0, name: "Dark Green" },
+      { r: 0, g: 128, b: 64, name: "Forest Green" },
+      { r: 64, g: 224, b: 64, name: "Lime Green" },
+      { r: 128, g: 255, b: 128, name: "Mint" },
+      { r: 0, g: 200, b: 100, name: "Emerald" },
+      { r: 0, g: 100, b: 50, name: "Deep Forest" },
+      { r: 50, g: 205, b: 50, name: "Spring Green" },
+      
+      // Cyans
+      { r: 0, g: 255, b: 255, name: "Cyan" },
+      { r: 0, g: 224, b: 224, name: "Bright Cyan" },
+      { r: 0, g: 160, b: 160, name: "Dark Cyan" },
+      { r: 0, g: 206, b: 209, name: "Teal" },
+      { r: 175, g: 238, b: 238, name: "Pale Turquoise" },
+      { r: 64, g: 224, b: 208, name: "Turquoise" },
+      { r: 128, g: 255, b: 224, name: "Aquamarine" },
+      { r: 0, g: 180, b: 180, name: "Deep Teal" },
+      
+      // Blues
+      { r: 0, g: 0, b: 255, name: "Blue" },
+      { r: 32, g: 32, b: 255, name: "Bright Blue" },
+      { r: 0, g: 0, b: 224, name: "Dark Blue" },
+      { r: 0, g: 128, b: 255, name: "Azure" },
+      { r: 65, g: 105, b: 225, name: "Royal Blue" },
+      { r: 70, g: 130, b: 180, name: "Steel Blue" },
+      { r: 128, g: 224, b: 255, name: "Sky Blue" },
+      { r: 100, g: 149, b: 237, name: "Cornflower Blue" },
+      { r: 0, g: 0, b: 128, name: "Navy" },
+      { r: 25, g: 25, b: 112, name: "Midnight Blue" },
+      { r: 0, g: 100, b: 200, name: "Ocean Blue" },
+      
+      // Purples
+      { r: 160, g: 0, b: 255, name: "Violet" },
+      { r: 224, g: 0, b: 255, name: "Purple" },
+      { r: 123, g: 104, b: 238, name: "Medium Purple" },
+      { r: 218, g: 112, b: 214, name: "Orchid" },
+      { r: 224, g: 128, b: 255, name: "Lavender" },
+      { r: 128, g: 0, b: 128, name: "Dark Purple" },
+      { r: 75, g: 0, b: 130, name: "Indigo" },
+      { r: 148, g: 0, b: 211, name: "Deep Violet" },
+      { r: 230, g: 230, b: 250, name: "Lavender Mist" },
+      
+      // Pinks
+      { r: 255, g: 0, b: 255, name: "Magenta" },
+      { r: 255, g: 32, b: 224, name: "Bright Pink" },
+      { r: 255, g: 96, b: 192, name: "Pink" },
+      { r: 255, g: 160, b: 192, name: "Light Pink" },
+      { r: 224, g: 64, b: 160, name: "Dark Pink" },
+      { r: 255, g: 105, b: 180, name: "Hot Pink" },
+      { r: 255, g: 20, b: 147, name: "Deep Pink" },
+      { r: 255, g: 192, b: 203, name: "Pastel Pink" },
+      { r: 255, g: 240, b: 245, name: "Lavender Blush" },
+      
+      // Browns
+      { r: 192, g: 128, b: 64, name: "Brown" },
+      { r: 160, g: 96, b: 32, name: "Dark Brown" },
+      { r: 224, g: 160, b: 96, name: "Light Brown" },
+      { r: 128, g: 64, b: 32, name: "Saddle Brown" },
+      { r: 160, g: 82, b: 45, name: "Sienna" },
+      { r: 210, g: 105, b: 30, name: "Chocolate" },
+      { r: 205, g: 133, b: 63, name: "Peru" },
+      { r: 139, g: 69, b: 19, name: "Burnt Sienna" },
+      { r: 244, g: 164, b: 96, name: "Peach" },
+      { r: 245, g: 222, b: 179, name: "Wheat" },
+      { r: 255, g: 228, b: 196, name: "Bisque" },
+      { r: 255, g: 248, b: 220, name: "Cornsilk" },
+      { r: 255, g: 245, b: 238, name: "Seashell" },
+      { r: 245, g: 245, b: 220, name: "Beige" },
+      { r: 253, g: 245, b: 230, name: "Old Lace" },
+      { r: 255, g: 250, b: 240, name: "Floral White" },
+      { r: 240, g: 255, b: 240, name: "Honeydew" },
+      { r: 240, g: 248, b: 255, name: "Alice Blue" },
+      
+      // Special Anime/Vibrant Colors
+      { r: 68, g: 196, b: 252, name: "Miku Turquoise" },
+      { r: 255, g: 56, b: 132, name: "Miku Pink" },
+      { r: 255, g: 128, b: 0, name: "Naruto Orange" },
+      { r: 255, g: 220, b: 0, name: "Pikachu Yellow" },
+      { r: 255, g: 0, b: 0, name: "Sonic Red" },
+      { r: 0, g: 200, b: 255, name: "Sonic Blue" },
+      { r: 255, g: 200, b: 255, name: "Sakura Pink" },
+      { r: 0, g: 150, b: 200, name: "Aoi Blue" },
+      { r: 255, g: 100, b: 0, name: "Yuzu Orange" },
+      { r: 200, g: 0, b: 200, name: "Lilac Purple" },
+      { r: 0, g: 200, b: 100, name: "Midori Green" },
+      { r: 255, g: 150, b: 255, name: "Pastel Pink" },
+      { r: 200, g: 200, b: 255, name: "Periwinkle" },
+      { r: 0, g: 255, b: 200, name: "Mint Green" },
+      { r: 255, g: 200, b: 200, name: "Cherry Blossom" },
+      { r: 100, g: 200, b: 255, name: "Natsu Blue" },
+      { r: 255, g: 100, b: 100, name: "Akai Red" },
+      { r: 255, g: 150, b: 100, name: "Kitsune Orange" },
+      { r: 255, g: 255, b: 100, name: "Himawari Yellow" },
+      { r: 100, g: 255, b: 100, name: "Kusa Green" },
+      { r: 100, g: 100, b: 255, name: "Sora Blue" },
+      { r: 255, g: 100, b: 200, name: "Momo Pink" },
+      { r: 200, g: 100, b: 255, name: "Fuji Purple" },
+      { r: 100, g: 255, b: 200, name: "Aoba Green" },
+      { r: 255, g: 200, b: 100, name: "Kogane Yellow" },
+      { r: 100, g: 100, b: 200, name: "Aoki Blue" },
+      { r: 200, g: 255, b: 200, name: "Shiro Mint" },
+      { r: 255, g: 200, b: 150, name: "Momiji Orange" },
+      { r: 150, g: 200, b: 255, name: "Suzu Blue" },
+      { r: 255, g: 150, b: 200, name: "Sakura Pink" },
+      { r: 200, g: 150, b: 255, name: "Sumire Violet" },
+      { r: 150, g: 255, b: 200, name: "Hajime Green" },
+      { r: 200, g: 255, b: 150, name: "Yuzu Green" },
+      { r: 255, g: 150, b: 150, name: "Beni Red" },
+      { r: 150, g: 150, b: 255, name: "Ruri Blue" },
+      { r: 255, g: 255, b: 150, name: "Kira Yellow" },
+      { r: 150, g: 255, b: 255, name: "Aoi Cyan" },
+      { r: 255, g: 255, b: 200, name: "Shiro Yellow" },
+      { r: 200, g: 200, b: 200, name: "Gin Silver" },
+      { r: 100, g: 100, b: 100, name: "Kuro Gray" },
+    ];
+    
+    // Find exact match with step-aligned values
+    for (const cn of colorNames) {
+      if (cn.r === rr && cn.g === gg && cn.b === bb) {
+        return cn.name;
+      }
+    }
+    
+    // If no exact match, find closest by Euclidean distance
+    let closest = colorNames[0];
+    let minDist = Infinity;
+    
+    for (const cn of colorNames) {
+      const dr = cn.r - rr;
+      const dg = cn.g - gg;
+      const db = cn.b - bb;
+      const dist = dr * dr + dg * dg + db * db;
+      if (dist < minDist) {
+        minDist = dist;
+        closest = cn;
+      }
+    }
+    
+    // If distance is too far, use a descriptive fallback
+    const threshold = step * step * 3;
+    if (minDist > threshold) {
+      const brightness = Math.round((r * 0.299 + g * 0.587 + b * 0.114) / step) * step;
+      const hueNames = ["Red", "Orange", "Yellow", "Green", "Cyan", "Blue", "Purple", "Pink"];
+      const hue = Math.atan2(g - 128, r - 128) * 180 / Math.PI + 180;
+      const hueIndex = Math.floor(hue / 45) % 8;
+      const baseName = hueNames[hueIndex] || "Color";
+      
+      if (brightness < 32) return "Dark " + baseName;
+      if (brightness > 224) return "Light " + baseName;
+      return baseName;
+    }
+    
+    return closest.name;
   }
 
   getCurrentSlotItem(slotId) {
@@ -20330,6 +21502,11 @@ class CharacterSelect {
     let items = [];
     const isDev = VERSION.includes('dev');
     const unlockAll = window.UNLOCK_ALL_CLOTHES === true && isDev;
+  
+    if (slotId === 'hair_color') {
+      this.customizeHairColor();
+      return;
+    }
   
     if (slotId === 'front_hair' || slotId === 'back_hair') {
       const type = slotId === 'front_hair' ? 'front' : 'back';
@@ -20454,29 +21631,37 @@ class CharacterSelect {
     this.itemListMenu.onConfirm.add(() => {
       const selectedItem = items[this.itemListMenu.selectedIndex];
       if (!selectedItem) return;
-  
+    
       this.equipSlotItem(slotId, selectedItem);
-  
+    
       const menuToDestroy = this.itemListMenu;
       this.itemListMenu = null;
       menuToDestroy.destroy();
-  
+    
       const fullItem = CHARACTER_ITEMS.find(i => i.id === selectedItem.id && i.type === slotId);
+      
+      // Check if item has multiple layers
       if (fullItem && fullItem.layers && fullItem.layers.length > 1) {
         this.showLayerColorMenu(slotId, fullItem);
         return;
       }
-  
-      if (slotId === 'front_hair' || slotId === 'back_hair') {
-        this.customizeHairColor();
+      
+      // Check if item is an aura with dyable particles
+      if (fullItem && fullItem.isAura && fullItem.dyable !== false) {
+        this.customizeAuraColor(slotId, fullItem);
         return;
       }
-  
+    
+      if (slotId === 'front_hair' || slotId === 'back_hair') {
+        this.customizeCharacter();
+        return;
+      }
+    
       if (selectedItem.dyable !== false && !selectedItem.isNone && !selectedItem.isSkin) {
         this.customizeItemColor(slotId, fullItem);
         return;
       }
-  
+    
       this.updateDetails("", "", false);
       this.customizeCharacter();
     });
@@ -20510,18 +21695,29 @@ class CharacterSelect {
       };
     }
 
+    this.refreshCharacter(newAppearance);
+  }
+  
+  refreshCharacter(appearance = {}, hardReset = false) {
     const tempChar = {
       ...this.selectedCharacter,
       appearance: {
         ...this.selectedCharacter.appearance,
-        ...newAppearance
+        ...appearance
       }
     };
-
-    if (this.characterDisplay) {
-      this.characterDisplay.destroy();
+    if (hardReset) {
+      if (this.characterDisplay) {
+        this.characterDisplay.destroy();
+      }
+      this.characterDisplay = new CharacterDisplay(70, 24, tempChar);
+    } else {
+      if (!this.characterDisplay) {
+        this.characterDisplay = new CharacterDisplay(70, 24, tempChar);
+      } else {
+        this.characterDisplay.updateAppearance(tempChar.appearance);
+      }
     }
-    this.characterDisplay = new CharacterDisplay(70, 24, tempChar);
   }
 
   equipSlotItem(slotId, item) {
@@ -20690,9 +21886,48 @@ class CharacterSelect {
       this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
     }
   }
+  
+  customizeAuraColor(slotId, item) {
+    const currentColor = this.selectedCharacter?.appearance?.tints?.special || item?.tint || 0xffffff;
+    
+    this.showColorInput(
+      `${item?.name || 'Aura'} color`,
+      currentColor,
+      (color) => {
+        // Live preview
+        if (!this.selectedCharacter) return;
+        const appearance = this.selectedCharacter.appearance;
+        if (!appearance.tints) appearance.tints = {};
+        appearance.tints.special = color;
+        
+        if (this.characterDisplay) {
+          this.characterDisplay.destroy();
+          this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
+        }
+      },
+      (color) => {
+        // Confirm
+        if (!this.selectedCharacter) return;
+        const appearance = this.selectedCharacter.appearance;
+        if (!appearance.tints) appearance.tints = {};
+        appearance.tints.special = color;
+        this.characterManager.saveToAccount();
+        this.updateDetails("", "", false);
+        this.customizeCharacter();
+      },
+      () => {
+        // Cancel
+        this.updateDisplay();
+        this.updateDetails("", "", false);
+        this.customizeCharacter();
+      }
+    );
+  }
 
   customizeHairColor() {
     const currentColor = this.selectedCharacter.appearance.tints?.hair || 0xa8705a;
+    
+    this.updateEquipmentText('hair_color');
     
     this.showColorInput(
       'Hair color',
@@ -20707,6 +21942,7 @@ class CharacterSelect {
           this.characterDisplay.destroy();
           this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
         }
+        this.updateEquipmentText('hair_color');
       },
       (color) => {
         // Confirm
@@ -20732,7 +21968,7 @@ class CharacterSelect {
     let r = (color >> 16) & 0xff;
     let g = (color >> 8) & 0xff;
     let b = color & 0xff;
-  
+    
     this.navigationHint.updateHints('color_input');
   
     const background = createGradientBackground(115, 100, 92, 30);
@@ -21286,9 +22522,6 @@ class CharacterSelect {
   }
 }
 
-
-
-// ======== js/game/states/AchievementsMenu.js ========
 class AchievementsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -21427,9 +22660,6 @@ class AchievementsMenu {
   }
 }
 
-
-
-// ======== js/game/states/StatsMenu.js ========
 class StatsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -21526,9 +22756,6 @@ class StatsMenu {
   }
 }
 
-
-
-// ======== js/game/states/Play.js ========
 class Play {
   init(song, difficultyIndex, playtestMode, autoplay) {
     this.originalSong = song;
@@ -21608,15 +22835,9 @@ class Play {
     
     game.camera.fadeIn(0x000000);
     
-    // Canvas for background rendering   
-    this.backgroundCanvas = document.createElement("canvas");
-    this.backgroundCanvas.width = 240;
-    this.backgroundCanvas.height = 140;
-    this.backgroundCtx = this.backgroundCanvas.getContext("2d");
-    
     // Create background
     this.backgroundLayer = game.add.group();
-    this.backgroundSprite = new CanvasBackground(this.backgroundCanvas);
+    this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 1;
     
     this.visibilityChangeListener = () => {
@@ -21890,7 +23111,7 @@ class Play {
     this.playerName = new Text(5, 9, "", FONTS.tiny_shaded, this.hudTop);
     this.playerName.write(this.currentCharacter ? this.currentCharacter.name : "NONE", 8);
     
-    this.playerName.tint = this.currentCharacter ? this.currentCharacter.appearance.hairColor : 0xffffff;
+    this.playerName.tint = this.currentCharacter ? Math.max(0x787878, this.currentCharacter.appearance.tints.hair) : 0xffffff;
     
     this.skillBar = new SkillBar(6, 16);
     this.hudTop.addChild(this.skillBar);
@@ -21973,15 +23194,17 @@ class Play {
     if (this.hasLyricsFile) {
       const lrcContent = this.song.chart.lyricsContent; 
       
+      const lyricsPosition = Account.settings.lyricsPosition ? 40 : 90;
+      
       // Create lyrics text element
-      this.lyricsText = new Text(game.width / 2, 90, "", FONTS.default_stroke);
+      this.lyricsText = new Text(game.width / 2, lyricsPosition, "", FONTS.default_stroke);
       this.lyricsText.anchor.set(0.5);
       
       // Initialize lyrics system
       this.lyrics = new Lyrics({
         textElement: this.lyricsText,
         maxLineLength: 25,
-        lrc: lrcContent
+        lrc: Account.settings.enableLyrics ? lrcContent : "",
       });
     }
   }
@@ -22328,8 +23551,8 @@ class Play {
     }
     
     try {
-      this.backgroundCtx.drawImage(element, 0, 0, 240, 140);
-      this.updateBackgroundTexture();
+      this.backgroundSprite.ctx.drawImage(element, 0, 0, 240, 140);
+      this.backgroundSprite.dirty();
     } catch (error) {
       console.error("Error drawing background:", error);
       element.__errored = true;
@@ -22351,15 +23574,11 @@ class Play {
   }
   
   clearBackground() {
-    this.backgroundCtx.fillStyle = "#000000";
-    this.backgroundCtx.fillRect(0, 0, game.width, game.height);
-    this.updateBackgroundTexture();
+    this.backgroundSprite.ctx.fillStyle = "#000000";
+    this.backgroundSprite.ctx.fillRect(0, 0, game.width, game.height);
+    this.backgroundSprite.dirty();
     this.backgroundGradient.visible = true;
   }  
-  
-  updateBackgroundTexture() {
-    this.backgroundSprite.render();
-  }
   
   loadBackgroundImage(filename, url) {
     if (filename == 'undefined' || !filename || !url) return;
@@ -22884,9 +24103,6 @@ class Play {
   }
 }
 
-
-
-// ======== js/game/states/PlayMulti.js ========
 class PlayMulti extends Play {
   constructor() {
     super();
@@ -23176,9 +24392,6 @@ class PlayMulti extends Play {
   }
 }
 
-
-
-// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData;
@@ -23468,9 +24681,6 @@ class Results {
   }
 }
 
-
-
-// ======== js/game/states/ResultsMulti.js ========
 class ResultsMulti extends Results {
   constructor() {
     super();
@@ -23642,9 +24852,6 @@ class ResultsMulti extends Results {
   }
 }
 
-
-
-// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
@@ -23723,7 +24930,7 @@ class Jukebox {
   }
 
   setupBackground() {
-    this.backgroundSprite = game.add.sprite(0, 0);
+    this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 0.4;
     
     // Create video element for background videos
@@ -24068,20 +25275,15 @@ class Jukebox {
     this.songCredit.write(song.credit || "", 33);
     
     // Load banner
+    this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
+    
     if (song.bannerUrl && song.bannerUrl !== "no-media") {
       const bannerImg = new Image();
       bannerImg.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 96;
-        canvas.height = 32;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(bannerImg, 0, 0, 96, 32);
-        const texture = PIXI.Texture.fromCanvas(canvas);
-        this.bannerSprite.loadTexture(texture);
+        this.bannerSprite.ctx.drawImage(bannerImg, 0, 0, 96, 32);
+        this.bannerSprite.dirty();
       };
       bannerImg.src = song.bannerUrl;
-    } else {
-      this.bannerSprite.loadTexture(null);
     }
   }
 
@@ -24089,28 +25291,23 @@ class Jukebox {
     // TODO: Implement background videos correctly 
     
     // Clear current background
-    this.backgroundSprite.loadTexture(null);
+    this.backgroundSprite.ctx.clearRect(0, 0, 240, 140);
     this.videoElement.src = "";
     
     // Load song background
     if (this.currentSong.backgroundUrl && this.currentSong.backgroundUrl !== "no-media") {
       const bgImg = new Image();
       bgImg.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 240;
-        canvas.height = 140;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(bgImg, 0, 0, 240, 140);
-        const texture = PIXI.Texture.fromCanvas(canvas);
-        this.backgroundSprite.loadTexture(texture);
+        this.backgroundSprite.ctx.drawImage(bgImg, 0, 0, 240, 140);
+        this.backgroundSprite.dirty();
       };
       bgImg.src = this.currentSong.backgroundUrl;
     }
     
     // Handle background videos
     if (this.currentSong.videoUrl) {
-      this.videoElement.src = this.currentSong.videoUrl;
-      this.videoElement.play();
+      //this.videoElement.src = this.currentSong.videoUrl;
+      //this.videoElement.play();
       
       // Update video frame periodically
       this.lastVideoUpdate = game.time.now;
@@ -24503,13 +25700,8 @@ class Jukebox {
       const currentTime = game.time.now;
       if (currentTime - this.lastVideoUpdate >= 33) { // ~30fps
         this.lastVideoUpdate = currentTime;
-        const canvas = document.createElement('canvas');
-        canvas.width = 240;
-        canvas.height = 140;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(this.videoElement, 0, 0, 240, 140);
-        const texture = PIXI.Texture.fromCanvas(canvas);
-        this.backgroundSprite.loadTexture(texture);
+        this.backgroundSprite.ctx.drawImage(this.videoElement, 0, 0, 240, 140);
+        this.backgroundSprite.dirty();
       }
     }
     
@@ -24649,9 +25841,6 @@ class Jukebox {
   }
 }
 
-
-
-// ======== js/game/states/Editor.js ========
 class Editor {
   init(song = null) {
     this.song = song || this.createNewSong();
@@ -24703,12 +25892,13 @@ class Editor {
   create() {
     game.camera.fadeIn(0x000000);
 
-    new BackgroundGradient();
+    this.backgroundGradient = new BackgroundGradient();
 
     // Background elements
     this.backgroundLayer = game.add.group();
-    this.backgroundSprite = game.add.sprite(0, 0, null, 0, this.backgroundLayer);
+    this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 0.3;
+    this.backgroundLayer.addChild(this.backgroundSprite);
     
     this.chartRenderer = new ChartRenderer(this, this.song, this.currentDifficultyIndex, {
       enableGameplayLogic: false,
@@ -24743,7 +25933,10 @@ class Editor {
     this.lyricsText.anchor.set(0.5);
     this.lyricsText.visible = false;
     
-    this.bannerSprite = game.add.sprite(8, 58, null);
+    this.bannerCanvas = document.createElement("canvas");
+    this.bannerCtx = this.bannerCanvas.getContext("2d");
+    
+    this.bannerSprite = new CanvasBackground(this.bannerCanvas, 8, 58);
     
     this.icons = game.add.sprite(8, 130);
     
@@ -24879,14 +26072,9 @@ class Editor {
     if (url && url !== "no-media") {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = 86;
-        canvas.height = 32;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, 86, 32);
-        const texture = PIXI.Texture.fromCanvas(canvas);
-        this.bannerSprite.loadTexture(texture);
-        this.bannerSprite.bringToTop();
+        this.bannerCtx.clearRect(0, 0, 96, 32);
+        this.bannerCtx.drawImage(img, 0, 0, 86, 32);
+        this.bannerSprite.dirty();
       };
       img.src = url;
     }
@@ -24896,13 +26084,10 @@ class Editor {
     if (url && url !== "no-media") {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = game.width;
-        canvas.height = game.height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, game.width, game.height);
-        const texture = PIXI.Texture.fromCanvas(canvas);
-        this.backgroundSprite.loadTexture(texture);
+        this.backgroundSprite.ctx.clearRect(0, 0, game.width, game.height);
+        this.backgroundSprite.ctx.drawImage(img, 0, 0, game.width, game.height);
+        
+        this.backgroundSprite.dirty();
       };
       img.src = url;
     } else {
@@ -27237,9 +28422,6 @@ BEAT: ${bg.beat}`);
   }
 }
 
-
-
-// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
@@ -27602,9 +28784,6 @@ class Credits {
   }
 }
 
-
-
-// ======== js/game/states/ErrorScreen.js ========
 class ErrorScreen {
   init(message, recoverStateKey) {
     this.message = message || "The causes of this failure are unknown yet";
@@ -27641,9 +28820,6 @@ Please Report The Developer Immediately!
   }
 }
 
-
-
-// ======== js/game/player/ChartRenderer.js ========
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -28613,9 +29789,6 @@ class ChartRenderer {
   }
 }
 
-
-
-// ======== js/game/player/AudioTemperatureMeter.js ========
 class AudioTemperatureMeter {
   constructor(scene, audioElement) {
     this.scene = scene;
@@ -28970,9 +30143,6 @@ class AudioTemperatureMeter {
   }
 }
 
-
-
-// ======== js/game/player/Player.js ========
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
     this.scene = scene;
@@ -29855,9 +31025,6 @@ class Player {
   }
 }
 
-
-
-// ======== js/game/player/FirstPlayer.js ========
 class FirstPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "left" side
@@ -29875,9 +31042,6 @@ class FirstPlayer extends Player {
   }
 }
 
-
-
-// ======== js/game/player/SecondPlayer.js ========
 class SecondPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "right" side

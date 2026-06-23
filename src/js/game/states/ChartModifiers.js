@@ -31,6 +31,48 @@ class ChartModifiers {
     const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
     
+    if (this.returnState != 'Settings') {
+      // Note colors
+      const noteOptions = [
+        { value: 'NOTE', display: 'NOTE' },
+        { value: 'VIVID', display: 'VIVID' },
+        { value: 'FLAT', display: 'FLAT' },
+        { value: 'RAINBOW', display: 'RAINBOW' }
+      ];
+      const currentNoteIndex = noteOptions.findIndex(opt => opt.value === Account.settings.noteColorOption);
+      settingsWindow.addSettingItem(
+        "Note Colors",
+        noteOptions.map(opt => opt.display),
+        currentNoteIndex,
+        index => {
+          Account.settings.noteColorOption = noteOptions[index].value;
+          saveAccount();
+        }
+      );
+  
+      // Note speed
+      settingsWindow.addSettingItem(
+        "Note Speed",
+        ["Normal", "Double", "Triple", "Insane", "Sound Barrier", "Light Speed", "Faster than light"],
+        Account.settings.noteSpeedMult - 1,
+        index => {
+          Account.settings.noteSpeedMult = index + 1;
+          saveAccount();
+        }
+      );
+      
+      // Speed mod
+      settingsWindow.addSettingItem(
+        "Speed Mod",
+        ["X-MOD", "C-MOD"],
+        Account.settings.speedMod === 'C-MOD' ? 1 : 0,
+        index => {
+          Account.settings.speedMod = index === 1 ? 'C-MOD' : 'X-MOD';
+          saveAccount();
+        }
+      );
+    }
+    
     // Asegurar que modifiers existe
     if (!this.modifiers) {
       this.modifiers = {

@@ -1,7 +1,5 @@
 class Settings {
   create() {
-    game.camera.fadeIn(0x000000);
-
     this.futuristicLines = new FuturisticLines();
     this.backgroundGradient = new BackgroundGradient();
     this.navigationHint = new NavigationHint('general');
@@ -26,6 +24,16 @@ class Settings {
   }
   
   showSettings() {
+    const loading = new Text(game.width / 2, game.height / 2, "Please Wait...");
+    loading.anchor.set(0.5);
+    
+    game.time.events.add(100, () => {
+      this.createSettingsWindow();
+      loading.destroy();
+    });
+  }
+  
+  createSettingsWindow() {
     const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
     
@@ -35,7 +43,7 @@ class Settings {
     
     this.windowManager.focus(settingsWindow);
     
-    // Music Voluem
+    // Music Volume
     settingsWindow.addRangeItem(
       "Music Playback Volume",
       0,
@@ -210,12 +218,35 @@ class Settings {
       }
     );
     
+    // Enable Temperature
     settingsWindow.addSettingItem(
       "Enable Temperature (Experimental)",
       ["YES", "NO"], 
       Account.settings.enableTemperature ? 0 : 1,
       index => {
         Account.settings.enableTemperature = index === 0;
+        saveAccount();
+      }
+    );
+    
+    // Enable Lyrics
+    settingsWindow.addSettingItem(
+      "Enable Lyrics",
+      ["YES", "NO"], 
+      Account.settings.enableLyrics ? 0 : 1,
+      index => {
+        Account.settings.enableLyrics = index === 0;
+        saveAccount();
+      }
+    );
+    
+    // Lyrics Position
+    settingsWindow.addSettingItem(
+      "Lyrics Position",
+      ["BOTTOM", "TOP"], 
+      Account.settings.lyricsPosition,
+      index => {
+        Account.settings.lyricsPosition = index;
         saveAccount();
       }
     );
@@ -338,7 +369,7 @@ class Settings {
     // Renderer
     settingsWindow.addSettingItem(
       "Renderer",
-      ["AUTO", "CANVAS", "WEBGL"],
+      ["AUTO", "CANVAS (Experimental)", "WEBGL"],
       Account.settings.renderer,
       index => {
         Account.settings.renderer = index;

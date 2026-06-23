@@ -393,6 +393,8 @@ class CharacterSelect {
     gamepad.releaseAll();
     this.clearAllMenus();
     this.updateDetails("", "", false);
+    
+    this.refreshCharacter({});
 
     this.updateEquipmentText('front_hair');
 
@@ -404,14 +406,15 @@ class CharacterSelect {
     });
 
     const slots = [
-      { id: 'front_hair', label: 'Front hair', y: 38 },
-      { id: 'back_hair', label: 'Back hair', y: 48 },
-      { id: 'skin', label: 'Skin tone', y: 63 },
-      { id: 'top', label: 'Top', y: 52 },
-      { id: 'bottom', label: 'Bottom', y: 70 },
-      { id: 'shoes', label: 'Shoes', y: 108 },
-      { id: 'accessory', label: 'Accessory', y: 85 },
-      { id: 'special', label: 'Special', y: 45 }
+      { id: 'front_hair', label: 'Front hair' },
+      { id: 'back_hair', label: 'Back hair' },
+      { id: 'hair_color', label: 'Hair Color' },
+      { id: 'skin', label: 'Skin tone' },
+      { id: 'top', label: 'Top' },
+      { id: 'bottom', label: 'Bottom' },
+      { id: 'shoes', label: 'Shoes' },
+      { id: 'accessory', label: 'Accessory' },
+      { id: 'special', label: 'Special' }
     ];
 
     slots.forEach((slot) => {
@@ -436,8 +439,28 @@ class CharacterSelect {
   }
 
   updateEquipmentText(slotId) {
-    const currentItem = this.getCurrentSlotItem(slotId);
+    const slots = {
+      'front_hair': 'Front hair',
+      'back_hair': 'Back hair',
+      'hair_color': 'Hair Color' ,
+      'skin': 'Skin tone',
+      'top': 'Top',
+      'bottom': 'Bottom',
+      'shoes': 'Shoes',
+      'accessory': 'Accessory',
+      'special': 'Special'
+    };
+    
+    // Special handling for hair color
+    if (slotId == 'hair_color') {
+      const currentColor = this.selectedCharacter.appearance.tints?.hair || 0xa8705a;
+      this.updateDetails(slots['hair_color'], '\n\n\n' + this.colorToName(currentColor) + ' hair color.');
+      return;
+    }
 
+    const currentItem = this.getCurrentSlotItem(slotId);
+    
+    let titleText = slots[slotId];
     let labelText = '';
     let desc = '';
 
@@ -452,7 +475,212 @@ class CharacterSelect {
       else if (slotId === 'shoes') labelText = 'No shoes';
     }
 
-    this.updateDetails(labelText || '< ??? >', '\n\n\n' + desc || '');
+    this.updateDetails(titleText, '\n\n\n' + (labelText || '< ??? >') + '\n\n' + (desc || ''));
+  }
+  
+  colorToName(color, step = 32) {
+    const r = (color >> 16) & 0xFF;
+    const g = (color >> 8) & 0xFF;
+    const b = color & 0xFF;
+    
+    const roundToStep = (val) => Math.round(val / step) * step;
+    const rr = roundToStep(r);
+    const gg = roundToStep(g);
+    const bb = roundToStep(b);
+    
+    const colorNames = [
+      // Neutrals
+      { r: 0, g: 0, b: 0, name: "Black" },
+      { r: 32, g: 32, b: 32, name: "Dark Gray" },
+      { r: 96, g: 96, b: 96, name: "Gray" },
+      { r: 160, g: 160, b: 160, name: "Light Gray" },
+      { r: 224, g: 224, b: 224, name: "Silver" },
+      { r: 255, g: 255, b: 255, name: "White" },
+      
+      // Reds
+      { r: 255, g: 0, b: 0, name: "Red" },
+      { r: 255, g: 32, b: 32, name: "Bright Red" },
+      { r: 224, g: 0, b: 0, name: "Dark Red" },
+      { r: 192, g: 0, b: 0, name: "Crimson" },
+      { r: 160, g: 0, b: 0, name: "Blood Red" },
+      { r: 255, g: 64, b: 64, name: "Coral Red" },
+      { r: 255, g: 128, b: 128, name: "Light Red" },
+      
+      // Oranges
+      { r: 255, g: 128, b: 0, name: "Orange" },
+      { r: 255, g: 160, b: 0, name: "Light Orange" },
+      { r: 224, g: 96, b: 0, name: "Dark Orange" },
+      { r: 255, g: 64, b: 0, name: "Vermilion" },
+      { r: 255, g: 192, b: 64, name: "Apricot" },
+      { r: 255, g: 140, b: 0, name: "Tangerine" },
+      { r: 255, g: 165, b: 0, name: "Carrot" },
+      
+      // Yellows
+      { r: 255, g: 224, b: 0, name: "Yellow" },
+      { r: 255, g: 255, b: 0, name: "Bright Yellow" },
+      { r: 224, g: 192, b: 0, name: "Dark Yellow" },
+      { r: 255, g: 215, b: 0, name: "Gold" },
+      { r: 224, g: 184, b: 0, name: "Dark Gold" },
+      { r: 255, g: 255, b: 128, name: "Pale Yellow" },
+      { r: 255, g: 240, b: 128, name: "Cream" },
+      { r: 255, g: 200, b: 0, name: "Amber" },
+      
+      // Greens
+      { r: 0, g: 255, b: 0, name: "Green" },
+      { r: 32, g: 224, b: 32, name: "Bright Green" },
+      { r: 0, g: 160, b: 0, name: "Dark Green" },
+      { r: 0, g: 128, b: 64, name: "Forest Green" },
+      { r: 64, g: 224, b: 64, name: "Lime Green" },
+      { r: 128, g: 255, b: 128, name: "Mint" },
+      { r: 0, g: 200, b: 100, name: "Emerald" },
+      { r: 0, g: 100, b: 50, name: "Deep Forest" },
+      { r: 50, g: 205, b: 50, name: "Spring Green" },
+      
+      // Cyans
+      { r: 0, g: 255, b: 255, name: "Cyan" },
+      { r: 0, g: 224, b: 224, name: "Bright Cyan" },
+      { r: 0, g: 160, b: 160, name: "Dark Cyan" },
+      { r: 0, g: 206, b: 209, name: "Teal" },
+      { r: 175, g: 238, b: 238, name: "Pale Turquoise" },
+      { r: 64, g: 224, b: 208, name: "Turquoise" },
+      { r: 128, g: 255, b: 224, name: "Aquamarine" },
+      { r: 0, g: 180, b: 180, name: "Deep Teal" },
+      
+      // Blues
+      { r: 0, g: 0, b: 255, name: "Blue" },
+      { r: 32, g: 32, b: 255, name: "Bright Blue" },
+      { r: 0, g: 0, b: 224, name: "Dark Blue" },
+      { r: 0, g: 128, b: 255, name: "Azure" },
+      { r: 65, g: 105, b: 225, name: "Royal Blue" },
+      { r: 70, g: 130, b: 180, name: "Steel Blue" },
+      { r: 128, g: 224, b: 255, name: "Sky Blue" },
+      { r: 100, g: 149, b: 237, name: "Cornflower Blue" },
+      { r: 0, g: 0, b: 128, name: "Navy" },
+      { r: 25, g: 25, b: 112, name: "Midnight Blue" },
+      { r: 0, g: 100, b: 200, name: "Ocean Blue" },
+      
+      // Purples
+      { r: 160, g: 0, b: 255, name: "Violet" },
+      { r: 224, g: 0, b: 255, name: "Purple" },
+      { r: 123, g: 104, b: 238, name: "Medium Purple" },
+      { r: 218, g: 112, b: 214, name: "Orchid" },
+      { r: 224, g: 128, b: 255, name: "Lavender" },
+      { r: 128, g: 0, b: 128, name: "Dark Purple" },
+      { r: 75, g: 0, b: 130, name: "Indigo" },
+      { r: 148, g: 0, b: 211, name: "Deep Violet" },
+      { r: 230, g: 230, b: 250, name: "Lavender Mist" },
+      
+      // Pinks
+      { r: 255, g: 0, b: 255, name: "Magenta" },
+      { r: 255, g: 32, b: 224, name: "Bright Pink" },
+      { r: 255, g: 96, b: 192, name: "Pink" },
+      { r: 255, g: 160, b: 192, name: "Light Pink" },
+      { r: 224, g: 64, b: 160, name: "Dark Pink" },
+      { r: 255, g: 105, b: 180, name: "Hot Pink" },
+      { r: 255, g: 20, b: 147, name: "Deep Pink" },
+      { r: 255, g: 192, b: 203, name: "Pastel Pink" },
+      { r: 255, g: 240, b: 245, name: "Lavender Blush" },
+      
+      // Browns
+      { r: 192, g: 128, b: 64, name: "Brown" },
+      { r: 160, g: 96, b: 32, name: "Dark Brown" },
+      { r: 224, g: 160, b: 96, name: "Light Brown" },
+      { r: 128, g: 64, b: 32, name: "Saddle Brown" },
+      { r: 160, g: 82, b: 45, name: "Sienna" },
+      { r: 210, g: 105, b: 30, name: "Chocolate" },
+      { r: 205, g: 133, b: 63, name: "Peru" },
+      { r: 139, g: 69, b: 19, name: "Burnt Sienna" },
+      { r: 244, g: 164, b: 96, name: "Peach" },
+      { r: 245, g: 222, b: 179, name: "Wheat" },
+      { r: 255, g: 228, b: 196, name: "Bisque" },
+      { r: 255, g: 248, b: 220, name: "Cornsilk" },
+      { r: 255, g: 245, b: 238, name: "Seashell" },
+      { r: 245, g: 245, b: 220, name: "Beige" },
+      { r: 253, g: 245, b: 230, name: "Old Lace" },
+      { r: 255, g: 250, b: 240, name: "Floral White" },
+      { r: 240, g: 255, b: 240, name: "Honeydew" },
+      { r: 240, g: 248, b: 255, name: "Alice Blue" },
+      
+      // Special Anime/Vibrant Colors
+      { r: 68, g: 196, b: 252, name: "Miku Turquoise" },
+      { r: 255, g: 56, b: 132, name: "Miku Pink" },
+      { r: 255, g: 128, b: 0, name: "Naruto Orange" },
+      { r: 255, g: 220, b: 0, name: "Pikachu Yellow" },
+      { r: 255, g: 0, b: 0, name: "Sonic Red" },
+      { r: 0, g: 200, b: 255, name: "Sonic Blue" },
+      { r: 255, g: 200, b: 255, name: "Sakura Pink" },
+      { r: 0, g: 150, b: 200, name: "Aoi Blue" },
+      { r: 255, g: 100, b: 0, name: "Yuzu Orange" },
+      { r: 200, g: 0, b: 200, name: "Lilac Purple" },
+      { r: 0, g: 200, b: 100, name: "Midori Green" },
+      { r: 255, g: 150, b: 255, name: "Pastel Pink" },
+      { r: 200, g: 200, b: 255, name: "Periwinkle" },
+      { r: 0, g: 255, b: 200, name: "Mint Green" },
+      { r: 255, g: 200, b: 200, name: "Cherry Blossom" },
+      { r: 100, g: 200, b: 255, name: "Natsu Blue" },
+      { r: 255, g: 100, b: 100, name: "Akai Red" },
+      { r: 255, g: 150, b: 100, name: "Kitsune Orange" },
+      { r: 255, g: 255, b: 100, name: "Himawari Yellow" },
+      { r: 100, g: 255, b: 100, name: "Kusa Green" },
+      { r: 100, g: 100, b: 255, name: "Sora Blue" },
+      { r: 255, g: 100, b: 200, name: "Momo Pink" },
+      { r: 200, g: 100, b: 255, name: "Fuji Purple" },
+      { r: 100, g: 255, b: 200, name: "Aoba Green" },
+      { r: 255, g: 200, b: 100, name: "Kogane Yellow" },
+      { r: 100, g: 100, b: 200, name: "Aoki Blue" },
+      { r: 200, g: 255, b: 200, name: "Shiro Mint" },
+      { r: 255, g: 200, b: 150, name: "Momiji Orange" },
+      { r: 150, g: 200, b: 255, name: "Suzu Blue" },
+      { r: 255, g: 150, b: 200, name: "Sakura Pink" },
+      { r: 200, g: 150, b: 255, name: "Sumire Violet" },
+      { r: 150, g: 255, b: 200, name: "Hajime Green" },
+      { r: 200, g: 255, b: 150, name: "Yuzu Green" },
+      { r: 255, g: 150, b: 150, name: "Beni Red" },
+      { r: 150, g: 150, b: 255, name: "Ruri Blue" },
+      { r: 255, g: 255, b: 150, name: "Kira Yellow" },
+      { r: 150, g: 255, b: 255, name: "Aoi Cyan" },
+      { r: 255, g: 255, b: 200, name: "Shiro Yellow" },
+      { r: 200, g: 200, b: 200, name: "Gin Silver" },
+      { r: 100, g: 100, b: 100, name: "Kuro Gray" },
+    ];
+    
+    // Find exact match with step-aligned values
+    for (const cn of colorNames) {
+      if (cn.r === rr && cn.g === gg && cn.b === bb) {
+        return cn.name;
+      }
+    }
+    
+    // If no exact match, find closest by Euclidean distance
+    let closest = colorNames[0];
+    let minDist = Infinity;
+    
+    for (const cn of colorNames) {
+      const dr = cn.r - rr;
+      const dg = cn.g - gg;
+      const db = cn.b - bb;
+      const dist = dr * dr + dg * dg + db * db;
+      if (dist < minDist) {
+        minDist = dist;
+        closest = cn;
+      }
+    }
+    
+    // If distance is too far, use a descriptive fallback
+    const threshold = step * step * 3;
+    if (minDist > threshold) {
+      const brightness = Math.round((r * 0.299 + g * 0.587 + b * 0.114) / step) * step;
+      const hueNames = ["Red", "Orange", "Yellow", "Green", "Cyan", "Blue", "Purple", "Pink"];
+      const hue = Math.atan2(g - 128, r - 128) * 180 / Math.PI + 180;
+      const hueIndex = Math.floor(hue / 45) % 8;
+      const baseName = hueNames[hueIndex] || "Color";
+      
+      if (brightness < 32) return "Dark " + baseName;
+      if (brightness > 224) return "Light " + baseName;
+      return baseName;
+    }
+    
+    return closest.name;
   }
 
   getCurrentSlotItem(slotId) {
@@ -497,6 +725,11 @@ class CharacterSelect {
     let items = [];
     const isDev = VERSION.includes('dev');
     const unlockAll = window.UNLOCK_ALL_CLOTHES === true && isDev;
+  
+    if (slotId === 'hair_color') {
+      this.customizeHairColor();
+      return;
+    }
   
     if (slotId === 'front_hair' || slotId === 'back_hair') {
       const type = slotId === 'front_hair' ? 'front' : 'back';
@@ -621,29 +854,37 @@ class CharacterSelect {
     this.itemListMenu.onConfirm.add(() => {
       const selectedItem = items[this.itemListMenu.selectedIndex];
       if (!selectedItem) return;
-  
+    
       this.equipSlotItem(slotId, selectedItem);
-  
+    
       const menuToDestroy = this.itemListMenu;
       this.itemListMenu = null;
       menuToDestroy.destroy();
-  
+    
       const fullItem = CHARACTER_ITEMS.find(i => i.id === selectedItem.id && i.type === slotId);
+      
+      // Check if item has multiple layers
       if (fullItem && fullItem.layers && fullItem.layers.length > 1) {
         this.showLayerColorMenu(slotId, fullItem);
         return;
       }
-  
-      if (slotId === 'front_hair' || slotId === 'back_hair') {
-        this.customizeHairColor();
+      
+      // Check if item is an aura with dyable particles
+      if (fullItem && fullItem.isAura && fullItem.dyable !== false) {
+        this.customizeAuraColor(slotId, fullItem);
         return;
       }
-  
+    
+      if (slotId === 'front_hair' || slotId === 'back_hair') {
+        this.customizeCharacter();
+        return;
+      }
+    
       if (selectedItem.dyable !== false && !selectedItem.isNone && !selectedItem.isSkin) {
         this.customizeItemColor(slotId, fullItem);
         return;
       }
-  
+    
       this.updateDetails("", "", false);
       this.customizeCharacter();
     });
@@ -677,18 +918,29 @@ class CharacterSelect {
       };
     }
 
+    this.refreshCharacter(newAppearance);
+  }
+  
+  refreshCharacter(appearance = {}, hardReset = false) {
     const tempChar = {
       ...this.selectedCharacter,
       appearance: {
         ...this.selectedCharacter.appearance,
-        ...newAppearance
+        ...appearance
       }
     };
-
-    if (this.characterDisplay) {
-      this.characterDisplay.destroy();
+    if (hardReset) {
+      if (this.characterDisplay) {
+        this.characterDisplay.destroy();
+      }
+      this.characterDisplay = new CharacterDisplay(70, 24, tempChar);
+    } else {
+      if (!this.characterDisplay) {
+        this.characterDisplay = new CharacterDisplay(70, 24, tempChar);
+      } else {
+        this.characterDisplay.updateAppearance(tempChar.appearance);
+      }
     }
-    this.characterDisplay = new CharacterDisplay(70, 24, tempChar);
   }
 
   equipSlotItem(slotId, item) {
@@ -857,9 +1109,48 @@ class CharacterSelect {
       this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
     }
   }
+  
+  customizeAuraColor(slotId, item) {
+    const currentColor = this.selectedCharacter?.appearance?.tints?.special || item?.tint || 0xffffff;
+    
+    this.showColorInput(
+      `${item?.name || 'Aura'} color`,
+      currentColor,
+      (color) => {
+        // Live preview
+        if (!this.selectedCharacter) return;
+        const appearance = this.selectedCharacter.appearance;
+        if (!appearance.tints) appearance.tints = {};
+        appearance.tints.special = color;
+        
+        if (this.characterDisplay) {
+          this.characterDisplay.destroy();
+          this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
+        }
+      },
+      (color) => {
+        // Confirm
+        if (!this.selectedCharacter) return;
+        const appearance = this.selectedCharacter.appearance;
+        if (!appearance.tints) appearance.tints = {};
+        appearance.tints.special = color;
+        this.characterManager.saveToAccount();
+        this.updateDetails("", "", false);
+        this.customizeCharacter();
+      },
+      () => {
+        // Cancel
+        this.updateDisplay();
+        this.updateDetails("", "", false);
+        this.customizeCharacter();
+      }
+    );
+  }
 
   customizeHairColor() {
     const currentColor = this.selectedCharacter.appearance.tints?.hair || 0xa8705a;
+    
+    this.updateEquipmentText('hair_color');
     
     this.showColorInput(
       'Hair color',
@@ -874,6 +1165,7 @@ class CharacterSelect {
           this.characterDisplay.destroy();
           this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
         }
+        this.updateEquipmentText('hair_color');
       },
       (color) => {
         // Confirm
@@ -899,7 +1191,7 @@ class CharacterSelect {
     let r = (color >> 16) & 0xff;
     let g = (color >> 8) & 0xff;
     let b = color & 0xff;
-  
+    
     this.navigationHint.updateHints('color_input');
   
     const background = createGradientBackground(115, 100, 92, 30);

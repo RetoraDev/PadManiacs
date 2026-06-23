@@ -1492,6 +1492,22 @@ const CHARACTER_ITEMS = [
     ],
     dyable: true
   },
+  {
+    id: "top_racing",
+    name: "Racing Suit",
+    type: "top",
+    dyable: true,
+    tint: 0x0066ff,
+    description: "A sleek blue latex suit with black accents. Built for speed and rhythm."
+  },
+  {
+    id: "top_swimsuit",
+    name: "Swimsuit",
+    type: "top",
+    dyable: true,
+    tint: 0xf85998,
+    description: "A standard polyester swimsuit"
+  },
   // Bottom
   {
     id: "bottom_knee_length_jeans",
@@ -1527,8 +1543,8 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "bottom_shorts_type2",
-    name: "Shorts",
-    description: "Stylish shorts with a unique pattern.",
+    name: "Shorts (Dyable)",
+    description: "Simple shorts you can dye any color you want.",
     type: "bottom",
     layers: [
       {
@@ -1669,13 +1685,698 @@ const CHARACTER_ITEMS = [
     type: "accessory",
     dyable: false
   },
-  // Special
+  {
+    id: "accessory_fedora",
+    name: "Fedora",
+    type: "accessory",
+    dyable: false,
+    description: "A classic fedora hat for those who appreciate style and mystery."
+  },
+  {
+    id: "accessory_paper_hat",
+    name: "Paper Hat",
+    type: "accessory",
+    dyable: true,
+    tint: 0xffffff,
+    description: "A hat made of paper."
+  },
+  {
+    id: "accessory_cat_ears",
+    name: "Cat Ears",
+    type: "accessory",
+    dyable: true,
+    tint: 0xfcdcc1,
+    description: "Neko girl! Nya~!"
+  },
+  {
+    id: "accessory_cap",
+    name: "Casual Cap",
+    type: "accessory",
+    dyable: true,
+    tint: 0xf8a4c0,
+    description: "Casual Dyable Cap"
+  },
+  // Special costumes
+  {
+    id: "special_pajamas",
+    name: "Pajamas",
+    description: "Are you sleepy?",
+    type: "special",
+    hideCharacter: false,
+    dyable: true,
+    layers: [
+      {
+        name: "Main",
+        tint: 0xf8c8d8,
+        dyable: true
+      },
+      {
+        name: "Detail 1",
+        tint: 0xffffff,
+        dyable: true
+      },
+      {
+        name: "Detail 2",
+        tint: 0xffffff,
+        dyable: true
+      }
+    ]
+  },
   {
     id: "special_pinkachu",
     name: "Pinkachu :D",
-    description: "A pink creature that consumes your entire character!",
+    description: "Our totally original mascot that definitely doesn't resemble any popular yellow electric mouse from a famous franchise. I swear. :3",
     type: "special",
     hideCharacter: true,
     dyable: false
+  },
+  // Auras
+  {
+    id: "aura_dots",
+    name: "Dots",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffffff,
+    description: "Simple dots that dance around you like digital fireflies.",
+    particle: {
+      keys: ["particle_dot"],
+      frames: [0],
+      frequency: 15,        // Reduced from 30
+      duration: 2500,       // Slightly longer
+      velocity: { min: 15, max: 40 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -15, max: 15 }
+    }
+  },
+  {
+    id: "aura_circles",
+    name: "Circles",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffffff,
+    description: "Elegant circles that orbit around you with grace.",
+    particle: {
+      keys: ["particle_circle"],
+      frames: [0],
+      frequency: 12,        // Reduced from 25
+      duration: 3000,
+      velocity: { min: 10, max: 30 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -10, max: 10 }
+    }
+  },
+  {
+    id: "aura_squares",
+    name: "Squares",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffffff,
+    description: "Sharp geometric squares that pulse with rhythm.",
+    particle: {
+      keys: ["particle_square"],
+      frames: [0],
+      frequency: 10,
+      duration: 3500,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.3, max: 0.6 },
+      gravity: { min: -8, max: 8 }
+    }
+  },
+  {
+    id: "aura_paws",
+    name: "Paws",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffffff,
+    description: "Adorable paw prints that follow your every move. Nya~!",
+    particle: {
+      keys: ["particle_paw"],
+      frames: [0],
+      frequency: 10,
+      duration: 3000,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.5, max: 1.0 },
+      gravity: { min: -8, max: 8 }
+    }
+  },
+  {
+    id: "aura_hearts",
+    name: "Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Cute hearts that flutter around you with love.",
+    particle: {
+      keys: ["particle_heart"],
+      frames: [0],
+      frequency: 12,
+      duration: 3500,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_hearts_filled",
+    name: "Filled Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Solid hearts filled with pure love and affection.",
+    particle: {
+      keys: ["particle_heart_filled"],
+      frames: [0],
+      frequency: 12,
+      duration: 3500,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_stars",
+    name: "Stars",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffd700,
+    description: "Sparkling stars that shine bright like your rhythm.",
+    particle: {
+      keys: ["particle_star"],
+      frames: [0],
+      frequency: 14,
+      duration: 3000,
+      velocity: { min: 12, max: 32 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_stars_filled",
+    name: "Filled Stars",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffd700,
+    description: "Solid stars that shine even brighter.",
+    particle: {
+      keys: ["particle_star_filled"],
+      frames: [0],
+      frequency: 14,
+      duration: 3000,
+      velocity: { min: 12, max: 32 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_arrows_random",
+    name: "Random Arrows",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ff88,
+    description: "Arrows pointing in all directions, full of energy!",
+    particle: {
+      keys: ["particle_arrow", "particle_arrow_filled"],
+      frames: [0, 0, 0, 0],
+      frequency: 14,
+      duration: 2800,
+      velocity: { min: 12, max: 30 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -15, max: 15 },
+      rotate: true
+    }
+  },
+  {
+    id: "aura_arrows_up",
+    name: "Up Arrows",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ff88,
+    description: "Rising arrows that lift your spirit higher!",
+    particle: {
+      keys: ["particle_arrow_filled"],
+      frames: [0],
+      frequency: 14,
+      duration: 2800,
+      velocity: { min: 20, max: 45 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -25, max: -10 }, // Always going up
+      rotate: false,
+      lockDirection: "up"
+    }
+  },
+  {
+    id: "aura_arrows_down",
+    name: "Down Arrows",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b35,
+    description: "Grounding arrows that keep you steady.",
+    particle: {
+      keys: ["particle_arrow_filled"],
+      frames: [0],
+      frequency: 14,
+      duration: 2800,
+      velocity: { min: 20, max: 45 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: 10, max: 25 }, // Always going down
+      rotate: false,
+      lockDirection: "down"
+    }
+  },
+  {
+    id: "aura_bubbles",
+    name: "Bubbles",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x88ccff,
+    description: "Colorful bubbles floating all around.",
+    particle: {
+      keys: ["particle_bubble"],
+      frames: [0, 1, 2],
+      frequency: 8,
+      duration: 4500,
+      velocity: { min: 4, max: 12 },
+      alpha: { min: 0.3, max: 0.5 },
+      gravity: { min: -8, max: 8 }
+    }
+  },
+  {
+    id: "aura_hearts_ii",
+    name: "Double Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Double the love, double the sparkle!",
+    particle: {
+      keys: ["particle_heart"],
+      frames: [0],
+      layers: 2,
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 8, max: 28 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -15, max: 15 }
+    }
+  },
+  {
+    id: "aura_hearts_iii",
+    name: "Triple Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Triple the love, triple the sparkle!",
+    particle: {
+      keys: ["particle_heart"],
+      frames: [0],
+      layers: 3,
+      frequency: 16,
+      duration: 3500,
+      velocity: { min: 8, max: 30 },
+      alpha: { min: 0.2, max: 0.6 },
+      gravity: { min: -18, max: 18 }
+    }
+  },
+  {
+    id: "aura_hearts_iv",
+    name: "Quad Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "So much love it fills the screen!",
+    particle: {
+      keys: ["particle_heart"],
+      frames: [0],
+      layers: 4,
+      frequency: 18,
+      duration: 3500,
+      velocity: { min: 8, max: 32 },
+      alpha: { min: 0.2, max: 0.5 },
+      gravity: { min: -20, max: 20 }
+    }
+  },
+  {
+    id: "aura_stars_ii",
+    name: "Double Stars",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffd700,
+    description: "Twice the sparkle, twice the shine!",
+    particle: {
+      keys: ["particle_star"],
+      frames: [0],
+      layers: 2,
+      frequency: 14,
+      duration: 3000,
+      velocity: { min: 12, max: 32 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -15, max: 15 }
+    }
+  },
+  {
+    id: "aura_stars_iii",
+    name: "Triple Stars",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffd700,
+    description: "A constellation of brilliance!",
+    particle: {
+      keys: ["particle_star"],
+      frames: [0],
+      layers: 3,
+      frequency: 16,
+      duration: 3000,
+      velocity: { min: 10, max: 35 },
+      alpha: { min: 0.2, max: 0.6 },
+      gravity: { min: -18, max: 18 }
+    }
+  },
+  {
+    id: "aura_heart_star",
+    name: "Love & Shine",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Hearts and stars dancing together in harmony.",
+    particle: {
+      keys: ["particle_heart", "particle_star"],
+      frames: [0, 0],
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 8, max: 28 },
+      alpha: { min: 0.3, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_star_heart",
+    name: "Shine & Love",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffd700,
+    description: "Stars and hearts in a beautiful dance.",
+    particle: {
+      keys: ["particle_star", "particle_heart"],
+      frames: [0, 0],
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 8, max: 28 },
+      alpha: { min: 0.3, max: 0.8 },
+      gravity: { min: -12, max: 12 }
+    }
+  },
+  {
+    id: "aura_paw_heart",
+    name: "Paw Love",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff6b9d,
+    description: "Cute paws and hearts for maximum kawaii!",
+    particle: {
+      keys: ["particle_paw", "particle_heart"],
+      frames: [0, 0],
+      frequency: 10,
+      duration: 3500,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -10, max: 10 }
+    }
+  },
+  {
+    id: "aura_circle_star",
+    name: "Stellar Orbs",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ccff,
+    description: "Orbs of starlight that orbit around you.",
+    particle: {
+      keys: ["particle_circle", "particle_star"],
+      frames: [0, 0],
+      frequency: 12,
+      duration: 3200,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.4, max: 0.7 },
+      gravity: { min: -8, max: 8 }
+    }
+  },
+  {
+    id: "aura_square_star",
+    name: "Cosmic Cubes",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ff88,
+    description: "Square stars from another dimension!",
+    particle: {
+      keys: ["particle_square", "particle_star"],
+      frames: [0, 0],
+      frequency: 12,
+      duration: 3200,
+      velocity: { min: 8, max: 25 },
+      alpha: { min: 0.4, max: 0.7 },
+      gravity: { min: -8, max: 8 }
+    }
+  },
+  {
+    id: "aura_neon_lights",
+    name: "Neon Lights",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ff88,
+    description: "Neon lights that pulse and glow with energy.",
+    particle: {
+      keys: ["particle_circle", "particle_dot"],
+      frames: [0, 0],
+      frequency: 10,
+      duration: 2500,
+      velocity: { min: 15, max: 35 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -15, max: 15 },
+      alternateTint: 0xff0088,
+      alternateFrequency: 500
+    }
+  },
+  {
+    id: "aura_pulse_hearts",
+    name: "Pulse Hearts",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xff0066,
+    description: "Hearts that pulse with a rhythm of their own.",
+    particle: {
+      keys: ["particle_heart_filled"],
+      frames: [0],
+      frequency: 10,
+      duration: 3500,
+      velocity: { min: 8, max: 20 },
+      alpha: { min: 0.5, max: 0.9 },
+      gravity: { min: -8, max: 8 },
+      alternateTint: 0xff66cc,
+      alternateFrequency: 400
+    }
+  },
+  {
+    id: "aura_chroma_stars",
+    name: "Chroma Stars",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ffcc,
+    description: "Stars shifting through a spectrum of color.",
+    particle: {
+      keys: ["particle_star_filled"],
+      frames: [0],
+      frequency: 12,
+      duration: 3500,
+      velocity: { min: 12, max: 32 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 },
+      alternateTint: 0xff44aa,
+      alternateFrequency: 600
+    }
+  },
+  {
+    id: "aura_dual_arrows",
+    name: "Dual Arrows",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ff88,
+    description: "Arrows pointing both up and down in harmony.",
+    particle: {
+      keys: ["particle_arrow_filled", "particle_arrow_filled"],
+      frames: [0, 0],
+      frequency: 12,
+      duration: 3500,
+      velocity: { min: 12, max: 30 },
+      alpha: { min: 0.3, max: 0.7 },
+      gravity: { min: -15, max: 15 },
+      alternateTint: 0xff6b35,
+      alternateFrequency: 800,
+      rotate: false,
+      lockDirection: "random"
+    }
+  },
+  {
+    id: "aura_sparkle_rain",
+    name: "Sparkle Rain",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffffff,
+    description: "A gentle rain of sparkles that never stops.",
+    particle: {
+      keys: ["particle_star", "particle_dot"],
+      frames: [0, 0],
+      frequency: 14,
+      duration: 4000,
+      velocity: { min: 4, max: 15 },
+      alpha: { min: 0.3, max: 0.6 },
+      gravity: { min: 8, max: 25 },
+      alternateTint: 0x88ddff,
+      alternateFrequency: 700
+    }
+  },
+  {
+    id: "aura_galaxy",
+    name: "Galaxy",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x8800ff,
+    description: "A swirling galaxy of cosmic particles.",
+    particle: {
+      keys: ["particle_dot", "particle_circle"],
+      frames: [0, 0],
+      frequency: 10,
+      duration: 4500,
+      velocity: { min: 8, max: 20 },
+      alpha: { min: 0.3, max: 0.6 },
+      gravity: { min: -4, max: 4 },
+      alternateTint: 0xff00aa,
+      alternateFrequency: 900
+    }
+  },
+  {
+    id: "aura_fireflies",
+    name: "Fireflies",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0xffdd44,
+    description: "Gentle fireflies lighting up the night around you.",
+    particle: {
+      keys: ["particle_dot"],
+      frames: [0],
+      frequency: 8,
+      duration: 4500,
+      velocity: { min: 4, max: 15 },
+      alpha: { min: 0.3, max: 0.6 },
+      gravity: { min: -4, max: 4 },
+      alternateTint: 0x88ddff,
+      alternateFrequency: 500
+    }
+  },
+  {
+    id: "aura_music_notes",
+    name: "Music Notes",
+    type: "special",
+    isAura: true,
+    dyable: true,
+    tint: 0x00ccff,
+    description: "Music notes that dance to your rhythm.",
+    particle: {
+      keys: ["particle_music_note"],
+      frames: [0, 1, 2, 3],
+      frequency: 12,
+      duration: 3500,
+      velocity: { min: 10, max: 25 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -12, max: 12 },
+      alternateTint: 0xff66aa,
+      alternateFrequency: 600
+    }
+  },
+  {
+    id: "aura_rainbow_hearts",
+    name: "Rainbow Hearts",
+    type: "special",
+    isAura: true,
+    dyable: false,
+    tint: 0xffffff,
+    description: "Hearts in every color of the rainbow.",
+    particle: {
+      keys: ["particle_heart"],
+      frames: [0],
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 8, max: 28 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -15, max: 15 },
+      rainbow: true,
+      rainbowColors: [0xff0000, 0xff8800, 0xffdd00, 0x00cc00, 0x0066ff, 0x4400cc, 0x8800aa]
+    }
+  },
+  {
+    id: "aura_rainbow_stars",
+    name: "Rainbow Stars",
+    type: "special",
+    isAura: true,
+    dyable: false,
+    tint: 0xffffff,
+    description: "Stars in every color of the rainbow.",
+    particle: {
+      keys: ["particle_star_filled"],
+      frames: [0],
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 12, max: 32 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -15, max: 15 },
+      rainbow: true,
+      rainbowColors: [0xff0000, 0xff8800, 0xffdd00, 0x00cc00, 0x0066ff, 0x4400cc, 0x8800aa]
+    }
+  },
+  {
+    id: "aura_rainbow_hybrid",
+    name: "Rainbow Hybrid",
+    type: "special",
+    isAura: true,
+    dyable: false,
+    tint: 0xffffff,
+    description: "A mix of hearts and stars in rainbow colors.",
+    particle: {
+      keys: ["particle_heart", "particle_star_filled"],
+      frames: [0, 0],
+      frequency: 14,
+      duration: 3500,
+      velocity: { min: 8, max: 28 },
+      alpha: { min: 0.4, max: 0.8 },
+      gravity: { min: -15, max: 15 },
+      rainbow: true,
+      rainbowColors: [0xff0000, 0xff8800, 0xffdd00, 0x00cc00, 0x0066ff, 0x4400cc, 0x8800aa]
+    }
   }
 ];

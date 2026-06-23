@@ -77,15 +77,9 @@ class Play {
     
     game.camera.fadeIn(0x000000);
     
-    // Canvas for background rendering   
-    this.backgroundCanvas = document.createElement("canvas");
-    this.backgroundCanvas.width = 240;
-    this.backgroundCanvas.height = 140;
-    this.backgroundCtx = this.backgroundCanvas.getContext("2d");
-    
     // Create background
     this.backgroundLayer = game.add.group();
-    this.backgroundSprite = new CanvasBackground(this.backgroundCanvas);
+    this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 1;
     
     this.visibilityChangeListener = () => {
@@ -359,7 +353,7 @@ class Play {
     this.playerName = new Text(5, 9, "", FONTS.tiny_shaded, this.hudTop);
     this.playerName.write(this.currentCharacter ? this.currentCharacter.name : "NONE", 8);
     
-    this.playerName.tint = this.currentCharacter ? this.currentCharacter.appearance.hairColor : 0xffffff;
+    this.playerName.tint = this.currentCharacter ? Math.max(0x787878, this.currentCharacter.appearance.tints.hair) : 0xffffff;
     
     this.skillBar = new SkillBar(6, 16);
     this.hudTop.addChild(this.skillBar);
@@ -442,15 +436,17 @@ class Play {
     if (this.hasLyricsFile) {
       const lrcContent = this.song.chart.lyricsContent; 
       
+      const lyricsPosition = Account.settings.lyricsPosition ? 40 : 90;
+      
       // Create lyrics text element
-      this.lyricsText = new Text(game.width / 2, 90, "", FONTS.default_stroke);
+      this.lyricsText = new Text(game.width / 2, lyricsPosition, "", FONTS.default_stroke);
       this.lyricsText.anchor.set(0.5);
       
       // Initialize lyrics system
       this.lyrics = new Lyrics({
         textElement: this.lyricsText,
         maxLineLength: 25,
-        lrc: lrcContent
+        lrc: Account.settings.enableLyrics ? lrcContent : "",
       });
     }
   }
@@ -797,8 +793,8 @@ class Play {
     }
     
     try {
-      this.backgroundCtx.drawImage(element, 0, 0, 240, 140);
-      this.updateBackgroundTexture();
+      this.backgroundSprite.ctx.drawImage(element, 0, 0, 240, 140);
+      this.backgroundSprite.dirty();
     } catch (error) {
       console.error("Error drawing background:", error);
       element.__errored = true;
@@ -820,15 +816,11 @@ class Play {
   }
   
   clearBackground() {
-    this.backgroundCtx.fillStyle = "#000000";
-    this.backgroundCtx.fillRect(0, 0, game.width, game.height);
-    this.updateBackgroundTexture();
+    this.backgroundSprite.ctx.fillStyle = "#000000";
+    this.backgroundSprite.ctx.fillRect(0, 0, game.width, game.height);
+    this.backgroundSprite.dirty();
     this.backgroundGradient.visible = true;
   }  
-  
-  updateBackgroundTexture() {
-    this.backgroundSprite.render();
-  }
   
   loadBackgroundImage(filename, url) {
     if (filename == 'undefined' || !filename || !url) return;

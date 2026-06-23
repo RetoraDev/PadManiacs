@@ -601,6 +601,8 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   animateSelection(item, callback) {
+    this.isAnimating = true;
+    
     // Stop all alpha tweens before starting selection animation
     this.items.forEach(otherItem => {
       if (otherItem.alphaTween) {
@@ -643,6 +645,7 @@ class CarouselMenu extends Phaser.Sprite {
       item.text.visible = false;
       const fadeOutTween = game.add.tween(item.parent).to({ alpha: 0 }, 100, "Linear", true);
       fadeOutTween.onComplete.addOnce(() => {
+        this.isAnimating = false;
         callback?.();
       });
     });
@@ -651,6 +654,8 @@ class CarouselMenu extends Phaser.Sprite {
   }
   
   animateCancel(callback) {
+    this.isAnimating = true;
+    
     // Stop all alpha tweens before starting selection animation
     this.items.forEach(item => {
       if (item.alphaTween) {
@@ -670,7 +675,10 @@ class CarouselMenu extends Phaser.Sprite {
       }
     });
     
-    game.time.events.add(500, () => callback?.());
+    game.time.events.add(500, () => {
+      callback?.();
+      this.isAnimating = false;
+    });
   }
   
   cancel() {

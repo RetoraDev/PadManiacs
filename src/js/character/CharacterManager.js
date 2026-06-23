@@ -179,7 +179,7 @@ class CharacterManager {
     }
     
     return exp;
-}
+  }
 
   unlockHair(type, id) {
     if (!Account.characters.unlockedHairs[type].includes(id)) {

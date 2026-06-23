@@ -1,16 +1,25 @@
 class CanvasBackground extends Phaser.Sprite {
-  constructor(canvas) {
-    super(game, 0, 0);
+  constructor(x = 0, y = 0, canvas) {
+    super(game, x, y);
+
+    this.setCanvas(canvas);
     
-    this.baseTexture = new PIXI.BaseTexture(canvas);
+    game.add.existing(this);
+  }
+  setCanvas(canvas) {
+    this.canvas = canvas ? canvas : document.createElement("canvas");
+    this.ctx = this.canvas.getContext("2d");
+    
+    this.baseTexture = new PIXI.BaseTexture(this.canvas);
     
     this.texture = new PIXI.Texture(
       this.baseTexture,
       new PIXI.Rectangle(0, 0, game.width, game.height),
       new PIXI.Rectangle(0, 0, game.width, game.height)
     );
-    
-    game.add.existing(this);
+  }
+  dirty() {
+    this.render();
   }
   render() {
     this.baseTexture.dirty();

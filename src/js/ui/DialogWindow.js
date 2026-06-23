@@ -381,10 +381,11 @@ class DialogWindow extends Phaser.Sprite {
     
     this.isActive = false;
     // Find cancel button (usually "No" or "Cancel")
-    const cancelIndex = this.buttons.findIndex(btn => 
+    const cancelIndex = this.cancelIndex || this.buttons.findIndex(btn => 
       btn.toUpperCase().includes('NO') || 
       btn.toUpperCase().includes('CANCEL') ||
-      btn.toUpperCase().includes('BACK')
+      btn.toUpperCase().includes('BACK') ||
+      btn.toUpperCase().includes('LATER')
     );
     
     if (cancelIndex !== -1) {

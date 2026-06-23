@@ -76,7 +76,7 @@ class Jukebox {
   }
 
   setupBackground() {
-    this.backgroundSprite = game.add.sprite(0, 0);
+    this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 0.4;
     
     // Create video element for background videos
@@ -421,20 +421,15 @@ class Jukebox {
     this.songCredit.write(song.credit || "", 33);
     
     // Load banner
+    this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
+    
     if (song.bannerUrl && song.bannerUrl !== "no-media") {
       const bannerImg = new Image();
       bannerImg.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 96;
-        canvas.height = 32;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(bannerImg, 0, 0, 96, 32);
-        const texture = PIXI.Texture.fromCanvas(canvas);
-        this.bannerSprite.loadTexture(texture);
+        this.bannerSprite.ctx.drawImage(bannerImg, 0, 0, 96, 32);
+        this.bannerSprite.dirty();
       };
       bannerImg.src = song.bannerUrl;
-    } else {
-      this.bannerSprite.loadTexture(null);
     }
   }
 
@@ -442,28 +437,23 @@ class Jukebox {
     // TODO: Implement background videos correctly 
     
     // Clear current background
-    this.backgroundSprite.loadTexture(null);
+    this.backgroundSprite.ctx.clearRect(0, 0, 240, 140);
     this.videoElement.src = "";
     
     // Load song background
     if (this.currentSong.backgroundUrl && this.currentSong.backgroundUrl !== "no-media") {
       const bgImg = new Image();
       bgImg.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 240;
-        canvas.height = 140;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(bgImg, 0, 0, 240, 140);
-        const texture = PIXI.Texture.fromCanvas(canvas);
-        this.backgroundSprite.loadTexture(texture);
+        this.backgroundSprite.ctx.drawImage(bgImg, 0, 0, 240, 140);
+        this.backgroundSprite.dirty();
       };
       bgImg.src = this.currentSong.backgroundUrl;
     }
     
     // Handle background videos
     if (this.currentSong.videoUrl) {
-      this.videoElement.src = this.currentSong.videoUrl;
-      this.videoElement.play();
+      //this.videoElement.src = this.currentSong.videoUrl;
+      //this.videoElement.play();
       
       // Update video frame periodically
       this.lastVideoUpdate = game.time.now;
@@ -856,13 +846,8 @@ class Jukebox {
       const currentTime = game.time.now;
       if (currentTime - this.lastVideoUpdate >= 33) { // ~30fps
         this.lastVideoUpdate = currentTime;
-        const canvas = document.createElement('canvas');
-        canvas.width = 240;
-        canvas.height = 140;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(this.videoElement, 0, 0, 240, 140);
-        const texture = PIXI.Texture.fromCanvas(canvas);
-        this.backgroundSprite.loadTexture(texture);
+        this.backgroundSprite.ctx.drawImage(this.videoElement, 0, 0, 240, 140);
+        this.backgroundSprite.dirty();
       }
     }
     

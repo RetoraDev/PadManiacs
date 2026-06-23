@@ -25,8 +25,8 @@ class SongSelect {
     this.currentBannerTexture = null;
   
     window.multiplayerState.player1.ready = false;
-    window.multiplayerState.player2.ready = true;
-    window.multiplayerState.player2.joined = true;
+    window.multiplayerState.player2.ready = false;
+    window.multiplayerState.player2.joined = false;
     this.multiplayerState = window.multiplayerState;
     
     if (this.startingIndex + 1 > this.songs.length) {
@@ -54,14 +54,11 @@ class SongSelect {
     
     this.bannerImg = this.bannerImg || document.createElement("img");
     
-    this.bannerCanvas = this.bannerCanvas || document.createElement("canvas");
-    this.bannerCtx = this.bannerCtx || this.bannerCanvas.getContext("2d");
-    
     this.navigationHint = new NavigationHint('song_select');
     
     this.autoplayText = new Text(4, 132, "");
     
-    this.bannerSprite = game.add.sprite(4, 4, null);
+    this.bannerSprite = new CanvasBackground(4, 4);
 
     this.metadataText = new Text(102, 4, "");
     
@@ -177,13 +174,10 @@ class SongSelect {
       this.bannerImg.onload = () => {
         if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
         
-        this.bannerCtx.clearRect(0, 0, 96, 32);
-        this.bannerCtx.drawImage(this.bannerImg, 0, 0, 96, 32);
+        this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
+        this.bannerSprite.ctx.drawImage(this.bannerImg, 0, 0, 96, 32);
         
-        const texture = PIXI.Texture.fromCanvas(this.bannerCanvas);
-        this.currentBannerTexture = texture;
-        
-        this.bannerSprite.loadTexture(texture);
+        this.bannerSprite.dirty();
       };
       this.bannerImg.onerror = () => {
         this.loadingDots.visible = false;
@@ -586,7 +580,7 @@ class SongSelect {
       this.currentBannerTexture.destroy(true);
       this.currentBannerTexture = null;
     }
-    if (this.previewAudio) {
+    if (this.previewAudio && typeof this.previewAudio.pause == 'function') {
       this.previewAudio.pause();
       this.previewAudio.src = "";
     }

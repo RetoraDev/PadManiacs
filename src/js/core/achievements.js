@@ -201,7 +201,7 @@ const ACHIEVEMENT_DEFINITIONS = [
       achieved: "You got only Marvelous judgements in a song!"
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
-    condition: (_, song) => song.judgements.marvelous >= song.totalNotes,
+    condition: (_, song) => song.complete && song.judgements.marvelous >= song.totalNotes,
     hidden: false
   },
   {

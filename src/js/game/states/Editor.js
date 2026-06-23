@@ -49,12 +49,13 @@ class Editor {
   create() {
     game.camera.fadeIn(0x000000);
 
-    new BackgroundGradient();
+    this.backgroundGradient = new BackgroundGradient();
 
     // Background elements
     this.backgroundLayer = game.add.group();
-    this.backgroundSprite = game.add.sprite(0, 0, null, 0, this.backgroundLayer);
+    this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 0.3;
+    this.backgroundLayer.addChild(this.backgroundSprite);
     
     this.chartRenderer = new ChartRenderer(this, this.song, this.currentDifficultyIndex, {
       enableGameplayLogic: false,
@@ -89,7 +90,10 @@ class Editor {
     this.lyricsText.anchor.set(0.5);
     this.lyricsText.visible = false;
     
-    this.bannerSprite = game.add.sprite(8, 58, null);
+    this.bannerCanvas = document.createElement("canvas");
+    this.bannerCtx = this.bannerCanvas.getContext("2d");
+    
+    this.bannerSprite = new CanvasBackground(this.bannerCanvas, 8, 58);
     
     this.icons = game.add.sprite(8, 130);
     
@@ -225,14 +229,9 @@ class Editor {
     if (url && url !== "no-media") {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = 86;
-        canvas.height = 32;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, 86, 32);
-        const texture = PIXI.Texture.fromCanvas(canvas);
-        this.bannerSprite.loadTexture(texture);
-        this.bannerSprite.bringToTop();
+        this.bannerCtx.clearRect(0, 0, 96, 32);
+        this.bannerCtx.drawImage(img, 0, 0, 86, 32);
+        this.bannerSprite.dirty();
       };
       img.src = url;
     }
@@ -242,13 +241,10 @@ class Editor {
     if (url && url !== "no-media") {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = game.width;
-        canvas.height = game.height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, game.width, game.height);
-        const texture = PIXI.Texture.fromCanvas(canvas);
-        this.backgroundSprite.loadTexture(texture);
+        this.backgroundSprite.ctx.clearRect(0, 0, game.width, game.height);
+        this.backgroundSprite.ctx.drawImage(img, 0, 0, game.width, game.height);
+        
+        this.backgroundSprite.dirty();
       };
       img.src = url;
     } else {

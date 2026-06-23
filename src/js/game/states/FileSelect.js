@@ -8,6 +8,11 @@ class FileSelect {
     this.currentDir = null;
     this.history = []; // Stack for navigation history
     this.fileSystem = new FileSystemTools();
+    
+    // Restore state from window if exists
+    if (window.fileSelectState) {
+      this.restoreState(window.fileSelectState);
+    }
   }
 
   create() {
@@ -31,47 +36,90 @@ class FileSelect {
     this.loadDirectory();
   }
 
+  // Save current state to window
+  saveState() {
+    window.fileSelectState = {
+      currentPath: this.currentDir ? this.currentDir.fullPath : '/',
+      selectedIndex: this.carousel ? this.carousel.selectedIndex : 0,
+      scrollOffset: this.carousel ? this.carousel.scrollOffset : 0,
+      extensions: this.extensions,
+      history: this.history.map(dir => dir ? dir.fullPath : null)
+    };
+  }
+
+  // Restore state from window
+  restoreState(state) {
+    if (state.extensions) {
+      this.extensions = state.extensions;
+    }
+    // History will be restored after loading directory
+    if (state.history) {
+      this._restoreHistory = state.history;
+    }
+    if (state.selectedIndex !== undefined) {
+      this._restoreSelectedIndex = state.selectedIndex;
+    }
+    if (state.scrollOffset !== undefined) {
+      this._restoreScrollOffset = state.scrollOffset;
+    }
+    if (state.currentPath) {
+      this._restorePath = state.currentPath;
+    }
+  }
+
   async loadDirectory(dirEntry = null) {
     this.emptyFolderText.visible = false;
     
-    // Show loading indicator
     if (this.loadingDots) this.loadingDots.destroy();
     this.loadingDots = new LoadingDots();
     this.loadingDots.y -= 8;
     
-    // Clear existing carousel
     if (this.carousel) {
       this.carousel.destroy();
     }
     
-    // Get directory contents
     let entries = [];
     
-    if (dirEntry === null) {
-      // Load root directory
-      try {
-        this.currentDir = await this.fileSystem.getDirectory('');
-        entries = await this.fileSystem.listDirectories(this.currentDir);
-        // Add files from root too
+    try {
+      if (dirEntry === null) {
+        // Check if we have a restored path
+        if (this._restorePath && this._restorePath !== '/') {
+          try {
+            this.currentDir = await this.fileSystem.getDirectory(this._restorePath);
+            entries = await this.fileSystem.listDirectories(this.currentDir);
+            const files = await this.fileSystem.listFiles(this.currentDir);
+            entries = [...entries, ...files];
+            this._restorePath = null;
+          } catch (e) {
+            // If path doesn't exist, fallback to root
+            this.currentDir = await this.fileSystem.getDirectory('');
+            entries = await this.fileSystem.listDirectories(this.currentDir);
+            const files = await this.fileSystem.listFiles(this.currentDir);
+            entries = [...entries, ...files];
+          }
+        } else {
+          this.currentDir = await this.fileSystem.getDirectory('');
+          entries = await this.fileSystem.listDirectories(this.currentDir);
+          const files = await this.fileSystem.listFiles(this.currentDir);
+          entries = [...entries, ...files];
+        }
+      } else {
+        this.currentDir = dirEntry;
+        const dirs = await this.fileSystem.listDirectories(this.currentDir);
         const files = await this.fileSystem.listFiles(this.currentDir);
-        entries = [...entries, ...files];
-      } catch (error) {
-        console.error("Failed to load root directory:", error);
-        this.showError("Cannot access file system");
-        return;
+        entries = [...dirs, ...files];
       }
-    } else {
-      this.currentDir = dirEntry;
-      const dirs = await this.fileSystem.listDirectories(this.currentDir);
-      const files = await this.fileSystem.listFiles(this.currentDir);
-      entries = [...dirs, ...files];
+    } catch (error) {
+      console.error("Failed to load directory:", error);
+      this.loadingDots.destroy();
+      this.loadingDots = null;
+      this.showError("Cannot access file system");
+      return;
     }
   
-    // Destroy loading indicator
     this.loadingDots.destroy();
     this.loadingDots = null;
   
-    // Filter by extensions if specified
     if (this.extensions !== null) {
       entries = entries.filter(entry => {
         if (entry.isDirectory) return true;
@@ -80,18 +128,14 @@ class FileSelect {
       });
     }
     
-    // Separate directories and files
     const directories = entries.filter(e => e.isDirectory);
     const files = entries.filter(e => e.isFile);
     
-    // Sort alphabetically
     directories.sort((a, b) => a.name.localeCompare(b.name));
     files.sort((a, b) => a.name.localeCompare(b.name));
     
-    // Combine (directories first, then files)
     const sortedEntries = [...directories, ...files];
     
-    // Create carousel
     this.carousel = new CarouselMenu(0, 16, game.width, game.height - 24, {
       bgcolor: '#2c3e50',
       fgcolor: '#ffffff',
@@ -100,7 +144,6 @@ class FileSelect {
       disableCancel: !this.allowCancel
     });
     
-    // Handle cancel
     this.carousel.onCancel.add(() => {
       if (this.history.length > 0) {
         this.goBack();
@@ -112,7 +155,22 @@ class FileSelect {
       }
     });
     
-    // Add parent directory entry (..) if not in root
+    // Restore history
+    if (this._restoreHistory) {
+      for (const path of this._restoreHistory) {
+        if (path) {
+          try {
+            const dir = await this.fileSystem.getDirectory(path);
+            this.history.push(dir);
+          } catch (e) {
+            // Skip invalid paths
+          }
+        }
+      }
+      this._restoreHistory = null;
+    }
+    
+    let parentAdded = false;
     if (this.history.length > 0 || (this.currentDir && this.currentDir.fullPath !== '/')) {
       this.carousel.addItem("..", () => this.goToParent(), {
         entry: null,
@@ -120,44 +178,57 @@ class FileSelect {
         isParent: true,
         bgcolor: '#34495e'
       });
+      parentAdded = true;
     }
     
-    // Add all entries
+    let itemIndex = parentAdded ? 1 : 0;
+    const fileIcons = {
+      wav: 3,
+      mp3: 3,
+      ogg: 3,
+      wma: 3,
+      sm: 5,
+      scc: 5,
+      zip: 5
+    };
+    
     sortedEntries.forEach(entry => {
       const ext = FileTools.getExtension(entry.name);
-      const fileIcons = {
-        wav: 3,
-        mp3: 3,
-        ogg: 3,
-        wma: 3,
-        sm: 5,
-        scc: 5,
-        zip: 5
-      };
-      
       this.carousel.addItem(entry.name, () => this.onEntrySelected(entry), {
         entry: entry,
         icon: entry.isDirectory ? 2 : fileIcons[ext] || 1,
         isDirectory: entry.isDirectory,
-        bgcolor: entry.isDirectory ? '#2980b9' : '#8e44ad'
+        bgcolor: entry.isDirectory ? '#2980b9' : '#8e44ad',
+        index: itemIndex
       });
+      itemIndex++;
     });
     
     if (sortedEntries.length === 0 && (!this.history.length && this.currentDir && this.currentDir.fullPath === '/')) {
       this.emptyFolderText.visible = true;
     }
     
-    // Update path display
+    // Restore selection
+    if (this._restoreSelectedIndex !== undefined && this.carousel.items.length > this._restoreSelectedIndex) {
+      this.carousel.selectIndex(this._restoreSelectedIndex);
+      this._restoreSelectedIndex = undefined;
+    }
+    if (this._restoreScrollOffset !== undefined) {
+      this.carousel.scrollOffset = this._restoreScrollOffset;
+      this._restoreScrollOffset = undefined;
+    }
+    
     this.updatePathDisplay();
+    this.saveState();
   }
   
   onEntrySelected(entry) {
     if (entry.isDirectory) {
-      // Push current path to history and navigate into directory
       this.history.push(this.currentDir);
       this.loadDirectory(entry);
     } else {
-      // File selected
+      // Save state before leaving
+      this.saveState();
       if (this.onSelect) {
         this.onSelect(entry);
       } else {
@@ -171,7 +242,6 @@ class FileSelect {
       const parent = this.history.pop();
       this.loadDirectory(parent);
     } else if (this.currentDir && this.currentDir.fullPath !== '/') {
-      // Navigate to parent directory
       const parentPath = this.currentDir.fullPath.split('/').slice(0, -1).join('/') || '/';
       try {
         const parentDir = await this.fileSystem.getDirectory(parentPath);
@@ -214,6 +284,9 @@ class FileSelect {
   }
   
   shutdown() {
+    // Save state when leaving
+    this.saveState();
+    
     if (this.loadingDots) this.loadingDots.destroy();
     if (this.carousel) this.carousel.destroy();
   }

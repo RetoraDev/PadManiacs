@@ -88,7 +88,7 @@ class Character {
       if (unlockedHair) {
         this.lastHairUnlockLevel = this.level;
         
-        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1]}`, 2000, "unlock");
+        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1].name}`, 2000, "unlock");
       }
     }
     
@@ -114,17 +114,65 @@ class Character {
   }
 
   unlockRandomSkill() {
-    const availableSkills = CHARACTER_SKILLS.filter(skill => 
+    const personality = this.personality ? CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.personality) : null;
+    
+    // Get all available skills not yet unlocked
+    let availableSkills = CHARACTER_SKILLS.filter(skill => 
       !this.unlockedSkills.includes(skill.id)
     );
     
-    if (availableSkills.length > 0) {
-      const randomSkill = availableSkills[Math.floor(Math.random() * availableSkills.length)];
-      this.unlockedSkills.push(randomSkill.id);
-      return randomSkill;
+    if (availableSkills.length === 0) return null;
+    
+    // If character has a personality with skill tendencies, bias the selection
+    if (personality && personality.skillTendencies) {
+      const tendencies = personality.skillTendencies;
+      const preferredSkills = [];
+      const otherSkills = [];
+      
+      for (const skill of availableSkills) {
+        let matches = false;
+        
+        // Check activation condition preference
+        if (tendencies.activation && tendencies.activation.length > 0) {
+          if (tendencies.activation.includes(skill.activationCondition)) {
+            matches = true;
+          }
+        }
+        
+        // Check effect preference
+        if (tendencies.effects && tendencies.effects.length > 0) {
+          if (tendencies.effects.includes(skill.effect)) {
+            matches = true;
+          }
+        }
+        
+        if (matches) {
+          preferredSkills.push(skill);
+        } else {
+          otherSkills.push(skill);
+        }
+      }
+      
+      // 70% chance to pick from preferred skills if any exist
+      if (preferredSkills.length > 0 && Math.random() < 0.7) {
+        const randomSkill = preferredSkills[Math.floor(Math.random() * preferredSkills.length)];
+        this.unlockedSkills.push(randomSkill.id);
+        return randomSkill;
+      }
+      
+      // Otherwise pick from other skills (or preferred if no others)
+      const pool = otherSkills.length > 0 ? otherSkills : preferredSkills;
+      if (pool.length > 0) {
+        const randomSkill = pool[Math.floor(Math.random() * pool.length)];
+        this.unlockedSkills.push(randomSkill.id);
+        return randomSkill;
+      }
     }
     
-    return null;
+    // No personality or no tendencies, pick random
+    const randomSkill = availableSkills[Math.floor(Math.random() * availableSkills.length)];
+    this.unlockedSkills.push(randomSkill.id);
+    return randomSkill;
   }
 
   unlockRandomHairStyle() {
@@ -168,7 +216,14 @@ class Character {
   }
 
   unlockRandomItem() {
-    const availableItems = CHARACTER_ITEMS.filter(item => Account.characters.unlockedItems.includes(item.id));
+    // Default items that are already equipped or unlocked by default
+    const defaultItems = ["top_seifuku_default", "bottom_skirt_blue", "shoes_common"];
+    
+    // Get all items that are NOT in unlockedItems and NOT default items
+    const availableItems = CHARACTER_ITEMS.filter(item => 
+      !Account.characters.unlockedItems.includes(item.id) &&
+      !defaultItems.includes(item.id)
+    );
     
     if (availableItems.length > 0) {
       const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
@@ -251,8 +306,6 @@ class Character {
       if (window.LOG_PERSONALITY_STUDY) {
         console.log(`${this.name} developed "${bestCandidate.name}" personality! (score: ${bestScore.toFixed(2)})`);
       }
-      
-      notifications.show(`Seems like ${this.name} has become a ${bestCandidate.name.toLowerCase()} person.`);
       
       return bestCandidate;
     }

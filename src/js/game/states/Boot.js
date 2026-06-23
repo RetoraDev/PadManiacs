@@ -57,8 +57,10 @@ class Boot {
       };
     }
     
+    // Add background opacity field 
     if (isNaN(Account.settings.backgroundOpacity) || typeof Account.settings.backgroundOpacity == undefined) Account.settings.backgroundOpacity = 0.3; 
     
+    // Add SFX volume field
     if (!Account.settings.sfxVolume && Account.settings.sfxVolume != 0) Account.settings.sfxVolume = 100;
     
     const forceMigrateCharacters = false;
@@ -102,6 +104,14 @@ class Boot {
           Account.characters.unlockedItems.push(itemId);
         }
       }
+    }
+    
+    // Add lyrics settings
+    if (typeof Account.settings.enableLyrics == 'undefined') {
+      Account.settings.enableLyrics = true;
+    }
+    if (typeof Account.settings.lyricsPosition == 'undefined') {
+      Account.settings.lyricsPosition = 0;
     }
       
     Account.version = currentVersion;
@@ -500,6 +510,7 @@ class Boot {
       ...(() => {
         const resources = [];
         CHARACTER_ITEMS.forEach(item => {
+          if (item.isAura) return;
           if (item.layers) {
             for (let i = 0; i < item.layers.length; i++) {
               const layer = item.layers[i];
@@ -522,6 +533,23 @@ class Boot {
           }
         });
         return resources;
+      })(),
+      // Auras
+      ...(() => {
+        const auras = CHARACTER_ITEMS.filter(item => item.isAura);
+        let particles = [];
+        
+        auras.forEach(aura => {
+          particles = [...particles, ...aura.particle.keys];
+        });
+        
+        return particles.map(key => ({
+          key: key,
+          url: `character/${key}.png`,
+          type: 'spritesheet',
+          frameWidth: 16,
+          frameHeight: 16
+        }));
       })(),
       {
         key: "character_noise",
