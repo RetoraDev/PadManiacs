@@ -64,6 +64,7 @@ class Boot {
     
     // Add background opacity field 
     if (isNaN(Account.settings.backgroundOpacity) || typeof Account.settings.backgroundOpacity == undefined) Account.settings.backgroundOpacity = 0.3; 
+    if (isNaN(Account.settings.videoBackgroundOpacity) || typeof Account.settings.videoBackgroundOpacity == undefined) Account.settings.videoBackgroundOpacity = 0.9; 
     
     // Add SFX volume field
     if (!Account.settings.sfxVolume && Account.settings.sfxVolume != 0) Account.settings.sfxVolume = 100;

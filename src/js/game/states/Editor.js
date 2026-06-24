@@ -386,6 +386,8 @@ class Editor {
 
     carousel.addItem("Export StepMania Song", () => this.exportSong());
 
+    // TODO: Options to export lonely SM file, audio, banner, background or bg changes in a zip
+
     game.onMenuIn.dispatch("editorProject", carousel);
 
     carousel.addItem("< Back", () => this.showHomeScreen());
@@ -610,16 +612,16 @@ class Editor {
   }
 
   getCurrentTime() {
-    const offset = (this.song.chart.offset || 0) + (Account.settings.userOffset || 0);
     if (this.isPlaying) {
-      const currentTime = (game.time.now - this.playStartTime) / 1000 + this.playOffset + offset;
+      const chartOffset = this.song.chart.offset || 0;
+      const currentTime = ((game.time.now - this.playStartTime + (chartOffset*1000)) / 1000) + this.playOffset;
       const currentBeat = this.chartRenderer.secToBeat(currentTime);
       return {
         now: currentTime,
         beat: currentBeat
       };
     } else {
-      const currentTime = this.chartRenderer.beatToSec(this.cursorBeat) + offset;
+      const currentTime = this.chartRenderer.beatToSec(this.cursorBeat);
       return {
         now: currentTime,
         beat: this.cursorBeat
@@ -650,7 +652,7 @@ class Editor {
       }
     }
 
-    // Handle B button - placement
+    // Handle B button  placement
     if (gamepad.pressed.b) {
       this.holdBStartTime = beat;
     }
@@ -740,7 +742,7 @@ class Editor {
 
     if (this.audio && this.audio.src) {
       if (this.previewEndTimeoutId) clearTimeout(this.previewEndTimeoutId);
-      this.audio.currentTime = this.playOffset;
+      this.audio.currentTime = this.playOffset + this.getAudioOffset();
       this.audio.play();
     }
   }
@@ -1163,7 +1165,7 @@ class Editor {
   }
   
   getAudioOffset() {
-    return Account.settings.userOffset + this.song.chart.offset;
+    return (Account.settings.userOffset || 0) / 1000;
   }
 
   showContextMenu() {
@@ -1327,7 +1329,56 @@ class Editor {
   }
   
   rearrangeNotes() {
-    // TODO: Reassign correct beat and sec notes after one or more BPM changes have been added or modified
+    const bpmChanges = this.song.chart.bpmChanges;
+    const stops = this.song.chart.stops;
+    
+    // Sort BPM changes and stops by beat
+    bpmChanges.sort((a, b) => a.beat - b.beat);
+    stops.sort((a, b) => a.beat - b.beat);
+    
+    // Ensure first BPM change starts at beat 0
+    if (bpmChanges.length === 0 || bpmChanges[0].beat !== 0) {
+      bpmChanges.unshift({ beat: 0, bpm: 120, sec: 0 });
+    }
+    
+    // Recalculate sec for each BPM change using chartRenderer
+    bpmChanges[0].sec = 0;
+    for (let i = 1; i < bpmChanges.length; i++) {
+      bpmChanges[i].sec = this.chartRenderer.beatToSec(bpmChanges[i].beat);
+    }
+    
+    // Recalculate sec for stops
+    for (const stop of stops) {
+      stop.sec = this.chartRenderer.beatToSec(stop.beat);
+    }
+    
+    // Update all notes in all difficulties
+    for (const difficulty of this.song.chart.difficulties) {
+      const key = difficulty.type + difficulty.rating;
+      const notes = this.song.chart.notes[key];
+      if (!notes) continue;
+      
+      for (const note of notes) {
+        note.sec = this.chartRenderer.beatToSec(note.beat);
+        
+        if (note.type === "2" || note.type === "4") {
+          if (note.beatEnd !== undefined) {
+            note.secEnd = this.chartRenderer.beatToSec(note.beatEnd);
+            note.secLength = note.secEnd - note.sec;
+          } else if (note.beatLength !== undefined) {
+            note.beatEnd = note.beat + note.beatLength;
+            note.secEnd = this.chartRenderer.beatToSec(note.beatEnd);
+            note.secLength = note.secEnd - note.sec;
+          }
+        }
+      }
+    }
+    
+    // Update chart renderer's bpmChanges and stops
+    this.chartRenderer.bpmChanges = bpmChanges;
+    this.chartRenderer.stops = stops;
+    
+    this.updateInfoText();
   }
 
   convertNoteType(newType) {
@@ -2319,7 +2370,6 @@ BEAT: ${bg.beat}`);
         onConfirm: (bpm) => {
           const index = this.song.chart.bpmChanges.indexOf(bpmChange);
           if (index != -1) this.song.chart.bpmChanges[index].bpm = bpm;
-          this.chartRenderer.load(this.song, this.currentDifficultyIndex);
           this.rearrangeNotes();
           this.updateInfoText();
           this.menuVisible = false;
@@ -2341,6 +2391,7 @@ BEAT: ${bg.beat}`);
       const index = this.song.chart.bpmChanges.indexOf(bpmChange);
       this.chartRenderer.removeTag(bpmChange.beat, 'bpm');
       this.song.chart.bpmChanges.splice(index, 1);
+      this.rearrangeNotes();
     }
     this.updateInfoText();
   }
@@ -2366,6 +2417,7 @@ BEAT: ${bg.beat}`);
           sec: this.chartRenderer.beatToSec(this.cursorBeat)
         });
         this.song.chart.stops.sort((a, b) => a.beat - b.beat);
+        this.rearrangeNotes();
         this.updateInfoText();
         this.menuVisible = false;
         keyboard.destroy();
@@ -2402,6 +2454,7 @@ BEAT: ${bg.beat}`);
         onConfirm: (length) => {
           const index = this.song.chart.stops.indexOf(stop);
           if (index != -1) this.song.chart.stops[index].len = length;
+          this.rearrangeNotes();
           this.updateInfoText();
           this.menuVisible = false;
           keyboard.destroy();
@@ -2422,6 +2475,7 @@ BEAT: ${bg.beat}`);
       const index = this.song.chart.stops.indexOf(stop);
       this.song.chart.stops.splice(index, 1);
       this.chartRenderer.removeTag(stop.beat, 'stop');
+      this.rearrangeNotes();
     }
     this.updateInfoText();
   }

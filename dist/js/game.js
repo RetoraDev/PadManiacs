@@ -4,21 +4,18 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.1.0 dev
- * Build: 6/23/2026, 12:03:16 PM
- * Platform: Android (Cordova)
- * Debug: true
+ * Version: v1.1.0
+ * Build: 6/23/2026, 11:27:23 PM
+ * Platform: Web
+ * Debug: false
  * Minified: false
  */
 
-
-
-// ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.1.0 dev";
+const VERSION = "v1.1.0";
 
-window.DEBUG = true;
+window.DEBUG = false;
 
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
 
@@ -617,9 +614,6 @@ const DEFAULT_GAMEPAD_MAPPING = {
 
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg"];
 
-
-
-// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -629,7 +623,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -654,9 +648,6 @@ const REGULAR_VIBRATION_INTENSITY = 75;
 const WEAK_VIBRATION_INTENSITY = 50;
 const STRONG_VIBRATION_INTENSITY = 50;
 
-
-
-// ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 12,
@@ -3040,9 +3031,6 @@ const CHARACTER_ITEMS = [
   }
 ];
 
-
-
-// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
   version: 1.1,
   settings: {
@@ -3175,9 +3163,6 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
-
-
-// ======== js/core/achievements.js ========
 // Achievements system constants
 const ACHIEVEMENTS = {
   EXPERIENCE_VALUES: {
@@ -4624,9 +4609,6 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
-
-
-// ======== js/character/Character.js ========
 class Character {
   constructor(data) {
     this.name = data.name;
@@ -5131,9 +5113,6 @@ class Character {
   }
 }
 
-
-
-// ======== js/character/CharacterDisplay.js ========
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
@@ -5723,9 +5702,6 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/character/CharacterCroppedDisplay.js ========
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
@@ -5784,27 +5760,18 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterPortrait.js ========
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterCloseShot.js ========
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterManager.js ========
 class CharacterManager {
   constructor() {
     this.characters = new Map();
@@ -6021,9 +5988,6 @@ class CharacterManager {
   }
 }
 
-
-
-// ======== js/character/CharacterSkillSystem.js ========
 class CharacterSkillSystem {
   constructor(scene, character) {
     this.scene = scene;
@@ -6407,9 +6371,6 @@ class CharacterSkillSystem {
   }
 }
 
-
-
-// ======== js/achievements/AchievementsManager.js ========
 class AchievementsManager {
   constructor() {
     this.newAchievements = [];
@@ -6934,9 +6895,6 @@ class AchievementsManager {
   }
 }
 
-
-
-// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config = {}, parent) {
     super(game, x, y, null);
@@ -7196,9 +7154,6 @@ class Text extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -7723,9 +7678,6 @@ class Window extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
@@ -8006,9 +7958,6 @@ class WindowManager {
   }
 }
 
-
-
-// ======== js/ui/DialogWindow.js ========
 class DialogWindow extends Phaser.Sprite {
   constructor(text, options = {}) {
     const {
@@ -8461,9 +8410,6 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/CarouselMenu.js ========
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -9203,9 +9149,6 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Background.js ========
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 1000) {
     super(game, 0, 0, key);
@@ -9228,18 +9171,12 @@ class Background extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/BackgroundGradient.js ========
 class BackgroundGradient extends Background {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super("ui_background_gradient", true, min, max, time);
   }
 } 
 
-
-
-// ======== js/ui/CanvasBackground.js ========
 class CanvasBackground extends Phaser.Sprite {
   constructor(x = 0, y = 0, canvas) {
     super(game, x, y);
@@ -9249,7 +9186,7 @@ class CanvasBackground extends Phaser.Sprite {
     game.add.existing(this);
   }
   restoreCanvas() {
-    if (this.canvas && this.canvas instanceof HTMLCanvasElement && this.canvas != this.baseTexture.canvas) {
+    if (this.canvas && this.canvas instanceof HTMLCanvasElement) {
       this.setCanvas(this.canvas);
     }
   }
@@ -9273,9 +9210,6 @@ class CanvasBackground extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -9463,9 +9397,6 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -9479,9 +9410,6 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -9531,9 +9459,6 @@ class Logo extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(hints = []) {
     super(game, 0, game.height - 6);
@@ -9930,9 +9855,6 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 2, text, FONTS.default);
@@ -9941,9 +9863,6 @@ class ProgressText extends Text {
   }
 }
 
-
-
-// ======== js/ui/ExperienceBar.js ========
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
@@ -9991,9 +9910,6 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/SkillBar.js ========
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
@@ -10021,9 +9937,6 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/TextInput.js ========
 class TextInput extends Phaser.Sprite {
   constructor(config = {}) {
     config = {
@@ -10270,9 +10183,6 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NumberInput.js ========
 class NumberInput extends TextInput {
   constructor(config = {}) {
     config = {
@@ -10424,9 +10334,6 @@ class NumberInput extends TextInput {
   }
 }
 
-
-
-// ======== js/ui/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -10806,9 +10713,6 @@ class NotificationSystem {
   }
 }
 
-
-
-// ======== js/ui/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -11000,9 +10904,6 @@ class Lyrics {
   }
 }
 
-
-
-// ======== js/ui/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -11295,9 +11196,6 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/MouseCursor.js ========
 class MouseCursor {
   constructor() {
     this.sprite = null;
@@ -11490,9 +11388,6 @@ class MouseCursor {
   }
 }
 
-
-
-// ======== js/ui/BarChart.js ========
 class BarChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -11588,9 +11483,6 @@ class BarChart extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LineChart.js ========
 class LineChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -11704,9 +11596,6 @@ class LineChart extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -11802,9 +11691,6 @@ class FileSystemTools {
   }
 }
 
-
-
-// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -12214,9 +12100,6 @@ class NodeFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -12332,9 +12215,6 @@ class CordovaFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -12378,9 +12258,6 @@ class FallbackFileSystem {
   }
 }
 
-
-
-// ======== js/game/game.js ========
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 let Account = {
@@ -12560,9 +12437,6 @@ window.multiplayerState = {
   }
 };
 
-
-
-// ======== js/utils/ScreenRecorder.js ========
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -12932,9 +12806,6 @@ class ScreenRecorder {
   }
 }
 
-
-
-// ======== js/utils/Metronome.js ========
 class Metronome {
   constructor(scene) {
     this.scene = scene;
@@ -13097,9 +12968,6 @@ class Metronome {
   }
 }
 
-
-
-// ======== js/utils/TimeUtils.js ========
 class TimeUtils {
   static isValidTime(time) {
     return typeof time != undefined && typeof time != null && !isNaN(time) && time != Infinity;
@@ -13119,9 +12987,6 @@ class TimeUtils {
   }
 }
 
-
-
-// ======== js/input/GamepadListener.js ========
 class GamepadListener {
   constructor(game) {
     this.game = game;
@@ -13140,9 +13005,6 @@ class GamepadListener {
   }
 }
 
-
-
-// ======== js/input/KeyboardListener.js ========
 class KeyboardListener {
   constructor(game) {
     this.game = game;
@@ -13161,9 +13023,6 @@ class KeyboardListener {
   }
 }
 
-
-
-// ======== js/input/InputManager.js ========
 let inputManager, gamepad, gamepad1, gamepad2;
 
 class InputManager {
@@ -13191,9 +13050,6 @@ class InputManager {
   }
 }
 
-
-
-// ======== js/input/Gamepad.js ========
 class Gamepad {
   constructor(game, keyboardMap, gamepadMap, playerIndex = 0) {
     this.game = game;
@@ -13839,9 +13695,6 @@ class Gamepad {
   }
 }
 
-
-
-// ======== js/input/AllPads.js ========
 class AllPads extends Gamepad {
   constructor(game, gamepads) {
     super(game, undefined, undefined, 0);
@@ -13956,9 +13809,6 @@ class AllPads extends Gamepad {
   destroy() {}
 }
 
-
-
-// ======== js/input/OnScreenKeyboard.js ========
 class OnScreenKeyboard extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x || 60, y || 75, "ui_keyboard", 0);
@@ -14168,9 +14018,6 @@ class OnScreenKeyboard extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/input/NumericTypeOnScreenKeyboard.js ========
 class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   constructor(x, y) {
     super(80, 70);
@@ -14198,9 +14045,6 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   }
 }
 
-
-
-// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -14436,9 +14280,6 @@ class BackgroundMusic {
   }
 }
 
-
-
-// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -14463,9 +14304,6 @@ class Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -14506,9 +14344,6 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -14575,9 +14410,6 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -14670,9 +14502,6 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -15031,9 +14860,6 @@ class FullScreenAudioVisualizer {
   }
 }
 
-
-
-// ======== js/parsers/SMFile.js ========
 class SMFile {
   static generateSM(songData) {
     let smContent = "";
@@ -15325,9 +15151,6 @@ class SMFile {
   }
 }
 
-
-
-// ======== js/parsers/FileTools.js ========
 class FileTools {
   static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
@@ -15493,9 +15316,6 @@ class FileTools {
   }
 }
 
-
-
-// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   constructor() {
     this.baseUrl = "";
@@ -15767,9 +15587,6 @@ class LocalSMParser {
   }
 }
 
-
-
-// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   async parseSM(files, smContent) {
@@ -16236,9 +16053,6 @@ class ExternalSMParser {
   }
 }
 
-
-
-// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -16650,9 +16464,6 @@ class AddonManager {
   }
 }
 
-
-
-// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -16719,6 +16530,7 @@ class Boot {
     
     // Add background opacity field 
     if (isNaN(Account.settings.backgroundOpacity) || typeof Account.settings.backgroundOpacity == undefined) Account.settings.backgroundOpacity = 0.3; 
+    if (isNaN(Account.settings.videoBackgroundOpacity) || typeof Account.settings.videoBackgroundOpacity == undefined) Account.settings.videoBackgroundOpacity = 0.9; 
     
     // Add SFX volume field
     if (!Account.settings.sfxVolume && Account.settings.sfxVolume != 0) Account.settings.sfxVolume = 100;
@@ -17224,9 +17036,6 @@ class Boot {
   }
 }
 
-
-
-// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -17274,9 +17083,6 @@ class Load {
   }
 }
 
-
-
-// ======== js/game/states/LoadCordova.js ========
 class LoadCordova {
   create() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
@@ -17324,9 +17130,6 @@ class LoadCordova {
   }
 }
 
-
-
-// ======== js/game/states/LoadAddons.js ========
 class LoadAddons {
   create() {
     this.progressText = new ProgressText("LOADING ADD-ONS");
@@ -17349,9 +17152,6 @@ class LoadAddons {
   }
 }
 
-
-
-// ======== js/game/states/LoadLocalSongs.js ========
 class LoadLocalSongs {
   create() {
     this.progressText = new ProgressText("LOADING SONGS");
@@ -17424,9 +17224,6 @@ class LoadLocalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadExternalSongs.js ========
 class LoadExternalSongs {
   init(nextState, nextStateParams) {
     this.nextState = nextState || 'SongSelect';
@@ -17768,9 +17565,6 @@ class LoadExternalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadSongFolder.js ========
 class LoadSongFolder {
   create() {
     this.progressText = new ProgressText("SELECT SONG FOLDER");
@@ -17970,9 +17764,6 @@ class LoadSongFolder {
   }
 }
 
-
-
-// ======== js/game/states/LoadExternalSongFile.js ========
 class LoadExternalSongFile {
   init(fileName, filePath, nextState, nextStateParams) {
     this.fileName = fileName;
@@ -18088,9 +17879,6 @@ class LoadExternalSongFile {
   }
 }
 
-
-
-// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -18165,9 +17953,6 @@ class Title {
   }
 }
 
-
-
-// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -18592,9 +18377,6 @@ class MainMenu {
   }
 }
 
-
-
-// ======== js/game/states/Addons.js ========
 class Addons {
   create() {
     this.leaving = false;
@@ -18790,9 +18572,6 @@ class Addons {
   }
 }
 
-
-
-// ======== js/game/states/Settings.js ========
 class Settings {
   create() {
     this.futuristicLines = new FuturisticLines();
@@ -19048,7 +18827,7 @@ class Settings {
     
     // Background opacity
     settingsWindow.addRangeItem(
-      "Song Background Opacity",
+      "Background Image Opacity",
       0,
       100,
       1,
@@ -19056,6 +18835,20 @@ class Settings {
       "%",
       value => {
         Account.settings.backgroundOpacity = value / 100;
+        saveAccount();
+      }
+    );
+    
+    // Video Background opacity
+    settingsWindow.addRangeItem(
+      "Background Video Opacity",
+      0,
+      100,
+      1,
+      Account.settings.videoBackgroundOpacity * 100,
+      "%",
+      value => {
+        Account.settings.videoBackgroundOpacity = value / 100;
         saveAccount();
       }
     );
@@ -19427,9 +19220,6 @@ class Settings {
   }
 }
 
-
-
-// ======== js/game/states/ChartModifiers.js ========
 class ChartModifiers {
   init(returnState = "Settings", ...returnParams) {
     this.returnState = returnState;
@@ -19562,9 +19352,6 @@ class ChartModifiers {
   }
 }
 
-
-
-// ======== js/game/states/Keybindings.js ========
 class Keybindings {
   create() {
     game.camera.fadeIn(0x000000);
@@ -20115,9 +19902,6 @@ class Keybindings {
   }
 }
 
-
-
-// ======== js/game/states/FileSelect.js ========
 class FileSelect {
   init(extensions = null, onSelect = null, onCancel = null, allowCancel = true) {
     this.extensions = extensions;
@@ -20383,7 +20167,7 @@ class FileSelect {
     let path = this.currentDir ? this.currentDir.fullPath : '/';
     if (path === '') path = '/';
     this.pathText.write("PATH: " + path);
-    this.pathText.wrapPreserveNewlines(240 - 10);
+    this.pathText.wrap(240 - 10);
   }
   
   showError(message) {
@@ -20412,9 +20196,6 @@ class FileSelect {
   }
 }
 
-
-
-// ======== js/game/states/SongSelect.js ========
 class SongSelect {
   init(songs, index, autoSelect, type = "auto") {
     this.type = type;
@@ -20438,6 +20219,11 @@ class SongSelect {
     window.selectedSongs = this.songs;
     
     this.autoSelect = autoSelect || false;
+    
+    if (!window.multiplayerState) window.multiplayerState = {
+      player1: {},
+      player2: {}
+    };
     
     window.multiplayerState.player1.ready = false;
     window.multiplayerState.player2.ready = false;
@@ -20591,11 +20377,11 @@ class SongSelect {
           this.songCarousel.config.disableNavigation = false;
         });
       } else {
+        this.bannerSprite.restoreCanvas();
+          
         this.bannerImg.src = song.bannerUrl;
         this.bannerImg.onload = () => {
           if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
-          
-          this.bannerSprite.restoreCanvas();
           
           this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
           this.bannerSprite.ctx.drawImage(this.bannerImg, 0, 0, 96, 32);
@@ -21019,9 +20805,6 @@ class SongSelect {
   }
 }
 
-
-
-// ======== js/game/states/CharacterSelect.js ========
 class CharacterSelect {
   create() {
     game.camera.fadeIn(0x000000);
@@ -22768,9 +22551,6 @@ class CharacterSelect {
   }
 }
 
-
-
-// ======== js/game/states/AchievementsMenu.js ========
 class AchievementsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -22909,9 +22689,6 @@ class AchievementsMenu {
   }
 }
 
-
-
-// ======== js/game/states/StatsMenu.js ========
 class StatsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -23008,9 +22785,6 @@ class StatsMenu {
   }
 }
 
-
-
-// ======== js/game/states/Play.js ========
 class Play {
   init(song, difficultyIndex, playtestMode, autoplay) {
     this.originalSong = song;
@@ -23028,7 +22802,7 @@ class Play {
     this.started = false;
     this.startTime = 0;
     this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
-    this.userOffset = Account.settings.userOffset;
+    this.userOffset = Account.settings.userOffset || 0;
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
     this.hasLyricsFile = this.song.chart.lyricsContent ? true : false;
@@ -23882,7 +23656,7 @@ class Play {
     this.backgroundGradient.visible = true;
   }
   
-  loadBackgroundVideo(filename, url) {
+  loadBackgroundVideo(filename, url, onloadCallback, onerrorCallback) {
     if (filename == 'undefined' || !filename || !url) return;
         
     // Pause any existing video
@@ -23935,11 +23709,16 @@ class Play {
     if (this.video && !this.video.__errored) {
       this.playVideo(this.video);
       this.backgroundGradient.visible = false;
+      this.video.onload = () => {
+        onloadCallback?.();
+        this.video.onload = false;
+      };
       this.video.onerror = () => {
         console.warn(`Video playback error: ${filename}`);
         this.video.__errored = true;
         this.backgroundGradient.visible = true;
         this.drawFallbackBackground();
+        onerrorCallback?.();
         this.video.onerror = null;
       };
     }
@@ -23956,23 +23735,29 @@ class Play {
     if (bg.file == '-nosongbg-') {
       this.clearBackground();
     } else if (bg.type == 'video') {
-      this.loadBackgroundVideo(bg.file, bg.url);
+      this.loadBackgroundVideo(bg.file, bg.url, () => {
+        this.applyBgEffects(bg);
+      }, () => {
+        this.backgroundSprite.alpha = Account.settings.backgroundOpacity;
+      });
     } else {
       this.loadBackgroundImage(bg.file, bg.url);
+      this.applyBgEffects(bg);
     }
     this.currentBackground = bg;
-    this.applyBgEffects(bg);
   }
   
   applyBgEffects(bg) {
+    const alpha = bg.type == 'video' ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
+    
     if (bg.fadeIn) {
       this.backgroundSprite.alpha = 0;
-      game.add.tween(this.backgroundSprite).to({ alpha: parseFloat(bg.opacity) * 0.6 }, 500, "Linear",true);
+      game.add.tween(this.backgroundSprite).to({ alpha: parseFloat(bg.opacity) * alpha }, 500, "Linear",true);
     } else {
-      this.backgroundSprite.alpha = bg.opacity * 0.7;
+      this.backgroundSprite.alpha = bg.opacity * alpha;
     }
     
-    // TODO: When applying bg effects take in account bg.fadeOut and bg.effect
+    // TODO: When applying bg effects take in account bg.fadeOut and bg.effect. May be tricky to implement them, specially bg.effect
   }
   
   getGameResults(player = this.player) {
@@ -24359,9 +24144,6 @@ class Play {
   }
 }
 
-
-
-// ======== js/game/states/PlayMulti.js ========
 class PlayMulti extends Play {
   constructor() {
     super();
@@ -24651,9 +24433,6 @@ class PlayMulti extends Play {
   }
 }
 
-
-
-// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData;
@@ -24943,9 +24722,6 @@ class Results {
   }
 }
 
-
-
-// ======== js/game/states/ResultsMulti.js ========
 class ResultsMulti extends Results {
   constructor() {
     super();
@@ -25117,9 +24893,6 @@ class ResultsMulti extends Results {
   }
 }
 
-
-
-// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
@@ -26111,9 +25884,6 @@ class Jukebox {
   }
 }
 
-
-
-// ======== js/game/states/Editor.js ========
 class Editor {
   init(song = null) {
     this.song = song || this.createNewSong();
@@ -26502,6 +26272,8 @@ class Editor {
 
     carousel.addItem("Export StepMania Song", () => this.exportSong());
 
+    // TODO: Options to export lonely SM file, audio, banner, background or bg changes in a zip
+
     game.onMenuIn.dispatch("editorProject", carousel);
 
     carousel.addItem("< Back", () => this.showHomeScreen());
@@ -26726,16 +26498,16 @@ class Editor {
   }
 
   getCurrentTime() {
-    const offset = (this.song.chart.offset || 0) + (Account.settings.userOffset || 0);
     if (this.isPlaying) {
-      const currentTime = (game.time.now - this.playStartTime) / 1000 + this.playOffset + offset;
+      const chartOffset = this.song.chart.offset || 0;
+      const currentTime = ((game.time.now - this.playStartTime + (chartOffset*1000)) / 1000) + this.playOffset;
       const currentBeat = this.chartRenderer.secToBeat(currentTime);
       return {
         now: currentTime,
         beat: currentBeat
       };
     } else {
-      const currentTime = this.chartRenderer.beatToSec(this.cursorBeat) + offset;
+      const currentTime = this.chartRenderer.beatToSec(this.cursorBeat);
       return {
         now: currentTime,
         beat: this.cursorBeat
@@ -26766,7 +26538,7 @@ class Editor {
       }
     }
 
-    // Handle B button - placement
+    // Handle B button  placement
     if (gamepad.pressed.b) {
       this.holdBStartTime = beat;
     }
@@ -26856,7 +26628,7 @@ class Editor {
 
     if (this.audio && this.audio.src) {
       if (this.previewEndTimeoutId) clearTimeout(this.previewEndTimeoutId);
-      this.audio.currentTime = this.playOffset;
+      this.audio.currentTime = this.playOffset + this.getAudioOffset();
       this.audio.play();
     }
   }
@@ -27279,7 +27051,7 @@ class Editor {
   }
   
   getAudioOffset() {
-    return Account.settings.userOffset + this.song.chart.offset;
+    return (Account.settings.userOffset || 0) / 1000;
   }
 
   showContextMenu() {
@@ -27443,7 +27215,56 @@ class Editor {
   }
   
   rearrangeNotes() {
-    // TODO: Reassign correct beat and sec notes after one or more BPM changes have been added or modified
+    const bpmChanges = this.song.chart.bpmChanges;
+    const stops = this.song.chart.stops;
+    
+    // Sort BPM changes and stops by beat
+    bpmChanges.sort((a, b) => a.beat - b.beat);
+    stops.sort((a, b) => a.beat - b.beat);
+    
+    // Ensure first BPM change starts at beat 0
+    if (bpmChanges.length === 0 || bpmChanges[0].beat !== 0) {
+      bpmChanges.unshift({ beat: 0, bpm: 120, sec: 0 });
+    }
+    
+    // Recalculate sec for each BPM change using chartRenderer
+    bpmChanges[0].sec = 0;
+    for (let i = 1; i < bpmChanges.length; i++) {
+      bpmChanges[i].sec = this.chartRenderer.beatToSec(bpmChanges[i].beat);
+    }
+    
+    // Recalculate sec for stops
+    for (const stop of stops) {
+      stop.sec = this.chartRenderer.beatToSec(stop.beat);
+    }
+    
+    // Update all notes in all difficulties
+    for (const difficulty of this.song.chart.difficulties) {
+      const key = difficulty.type + difficulty.rating;
+      const notes = this.song.chart.notes[key];
+      if (!notes) continue;
+      
+      for (const note of notes) {
+        note.sec = this.chartRenderer.beatToSec(note.beat);
+        
+        if (note.type === "2" || note.type === "4") {
+          if (note.beatEnd !== undefined) {
+            note.secEnd = this.chartRenderer.beatToSec(note.beatEnd);
+            note.secLength = note.secEnd - note.sec;
+          } else if (note.beatLength !== undefined) {
+            note.beatEnd = note.beat + note.beatLength;
+            note.secEnd = this.chartRenderer.beatToSec(note.beatEnd);
+            note.secLength = note.secEnd - note.sec;
+          }
+        }
+      }
+    }
+    
+    // Update chart renderer's bpmChanges and stops
+    this.chartRenderer.bpmChanges = bpmChanges;
+    this.chartRenderer.stops = stops;
+    
+    this.updateInfoText();
   }
 
   convertNoteType(newType) {
@@ -28435,7 +28256,6 @@ BEAT: ${bg.beat}`);
         onConfirm: (bpm) => {
           const index = this.song.chart.bpmChanges.indexOf(bpmChange);
           if (index != -1) this.song.chart.bpmChanges[index].bpm = bpm;
-          this.chartRenderer.load(this.song, this.currentDifficultyIndex);
           this.rearrangeNotes();
           this.updateInfoText();
           this.menuVisible = false;
@@ -28457,6 +28277,7 @@ BEAT: ${bg.beat}`);
       const index = this.song.chart.bpmChanges.indexOf(bpmChange);
       this.chartRenderer.removeTag(bpmChange.beat, 'bpm');
       this.song.chart.bpmChanges.splice(index, 1);
+      this.rearrangeNotes();
     }
     this.updateInfoText();
   }
@@ -28482,6 +28303,7 @@ BEAT: ${bg.beat}`);
           sec: this.chartRenderer.beatToSec(this.cursorBeat)
         });
         this.song.chart.stops.sort((a, b) => a.beat - b.beat);
+        this.rearrangeNotes();
         this.updateInfoText();
         this.menuVisible = false;
         keyboard.destroy();
@@ -28518,6 +28340,7 @@ BEAT: ${bg.beat}`);
         onConfirm: (length) => {
           const index = this.song.chart.stops.indexOf(stop);
           if (index != -1) this.song.chart.stops[index].len = length;
+          this.rearrangeNotes();
           this.updateInfoText();
           this.menuVisible = false;
           keyboard.destroy();
@@ -28538,6 +28361,7 @@ BEAT: ${bg.beat}`);
       const index = this.song.chart.stops.indexOf(stop);
       this.song.chart.stops.splice(index, 1);
       this.chartRenderer.removeTag(stop.beat, 'stop');
+      this.rearrangeNotes();
     }
     this.updateInfoText();
   }
@@ -28693,9 +28517,6 @@ BEAT: ${bg.beat}`);
   }
 }
 
-
-
-// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
@@ -29058,9 +28879,6 @@ class Credits {
   }
 }
 
-
-
-// ======== js/game/states/ErrorScreen.js ========
 class ErrorScreen {
   init(message, recoverStateKey) {
     this.message = message || "The causes of this failure are unknown yet";
@@ -29097,9 +28915,6 @@ Please Report The Developer Immediately!
   }
 }
 
-
-
-// ======== js/game/player/ChartRenderer.js ========
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -29127,6 +28942,8 @@ class ChartRenderer {
       displayPosition: "center",
       parent: null,
       player: null,
+      now: null,
+      beat: null,
       ...options
     };
     
@@ -29281,6 +29098,12 @@ class ChartRenderer {
     this.stops = this.chart.stops;
     this.backgrounds = this.chart.backgrounds || [];
   }
+  
+  recreate(song, difficultyIndex, options) {
+    this.destroy();
+    
+    return new ChartRenderer(this.scene, song || this.song, difficultyIndex || 0, options || this.options);
+  }
 
   initialize() {
     const leftOffset = this.calculateLeftOffset();
@@ -29323,6 +29146,11 @@ class ChartRenderer {
       this.backgroundGraphics.beginFill(0x000000, this.options.chartBackgroundOpacity);
       this.backgroundGraphics.drawRect(this.calculateLeftOffset() - 4, 0, this.calculateFullWidth() + 8, game.height);
       this.backgroundGraphics.endFill();
+    }
+    
+    // Move to current time
+    if (this.options.now && this.options.beat) {
+      this.render(this.options.now, this.options.beat);
     }
   }
 
@@ -30069,9 +29897,6 @@ class ChartRenderer {
   }
 }
 
-
-
-// ======== js/game/player/AudioTemperatureMeter.js ========
 class AudioTemperatureMeter {
   constructor(scene, audioElement) {
     this.scene = scene;
@@ -30426,9 +30251,6 @@ class AudioTemperatureMeter {
   }
 }
 
-
-
-// ======== js/game/player/Player.js ========
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
     this.scene = scene;
@@ -31311,9 +31133,6 @@ class Player {
   }
 }
 
-
-
-// ======== js/game/player/FirstPlayer.js ========
 class FirstPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "left" side
@@ -31331,9 +31150,6 @@ class FirstPlayer extends Player {
   }
 }
 
-
-
-// ======== js/game/player/SecondPlayer.js ========
 class SecondPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "right" side

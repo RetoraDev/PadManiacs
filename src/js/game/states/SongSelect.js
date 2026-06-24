@@ -22,6 +22,11 @@ class SongSelect {
     
     this.autoSelect = autoSelect || false;
     
+    if (!window.multiplayerState) window.multiplayerState = {
+      player1: {},
+      player2: {}
+    };
+    
     window.multiplayerState.player1.ready = false;
     window.multiplayerState.player2.ready = false;
     window.multiplayerState.player2.joined = false;
@@ -174,11 +179,11 @@ class SongSelect {
           this.songCarousel.config.disableNavigation = false;
         });
       } else {
+        this.bannerSprite.restoreCanvas();
+          
         this.bannerImg.src = song.bannerUrl;
         this.bannerImg.onload = () => {
           if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
-          
-          this.bannerSprite.restoreCanvas();
           
           this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
           this.bannerSprite.ctx.drawImage(this.bannerImg, 0, 0, 96, 32);

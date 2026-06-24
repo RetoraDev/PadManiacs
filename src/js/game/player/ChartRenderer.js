@@ -25,6 +25,8 @@ class ChartRenderer {
       displayPosition: "center",
       parent: null,
       player: null,
+      now: null,
+      beat: null,
       ...options
     };
     
@@ -179,6 +181,12 @@ class ChartRenderer {
     this.stops = this.chart.stops;
     this.backgrounds = this.chart.backgrounds || [];
   }
+  
+  recreate(song, difficultyIndex, options) {
+    this.destroy();
+    
+    return new ChartRenderer(this.scene, song || this.song, difficultyIndex || 0, options || this.options);
+  }
 
   initialize() {
     const leftOffset = this.calculateLeftOffset();
@@ -221,6 +229,11 @@ class ChartRenderer {
       this.backgroundGraphics.beginFill(0x000000, this.options.chartBackgroundOpacity);
       this.backgroundGraphics.drawRect(this.calculateLeftOffset() - 4, 0, this.calculateFullWidth() + 8, game.height);
       this.backgroundGraphics.endFill();
+    }
+    
+    // Move to current time
+    if (this.options.now && this.options.beat) {
+      this.render(this.options.now, this.options.beat);
     }
   }
 

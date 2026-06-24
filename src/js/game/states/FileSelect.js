@@ -263,7 +263,7 @@ class FileSelect {
     let path = this.currentDir ? this.currentDir.fullPath : '/';
     if (path === '') path = '/';
     this.pathText.write("PATH: " + path);
-    this.pathText.wrapPreserveNewlines(240 - 10);
+    this.pathText.wrap(240 - 10);
   }
   
   showError(message) {

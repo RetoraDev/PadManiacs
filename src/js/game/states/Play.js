@@ -15,7 +15,7 @@ class Play {
     this.started = false;
     this.startTime = 0;
     this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
-    this.userOffset = Account.settings.userOffset;
+    this.userOffset = Account.settings.userOffset || 0;
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
     this.hasLyricsFile = this.song.chart.lyricsContent ? true : false;
@@ -869,7 +869,7 @@ class Play {
     this.backgroundGradient.visible = true;
   }
   
-  loadBackgroundVideo(filename, url) {
+  loadBackgroundVideo(filename, url, onloadCallback, onerrorCallback) {
     if (filename == 'undefined' || !filename || !url) return;
         
     // Pause any existing video
@@ -922,11 +922,16 @@ class Play {
     if (this.video && !this.video.__errored) {
       this.playVideo(this.video);
       this.backgroundGradient.visible = false;
+      this.video.onload = () => {
+        onloadCallback?.();
+        this.video.onload = false;
+      };
       this.video.onerror = () => {
         console.warn(`Video playback error: ${filename}`);
         this.video.__errored = true;
         this.backgroundGradient.visible = true;
         this.drawFallbackBackground();
+        onerrorCallback?.();
         this.video.onerror = null;
       };
     }
@@ -943,23 +948,29 @@ class Play {
     if (bg.file == '-nosongbg-') {
       this.clearBackground();
     } else if (bg.type == 'video') {
-      this.loadBackgroundVideo(bg.file, bg.url);
+      this.loadBackgroundVideo(bg.file, bg.url, () => {
+        this.applyBgEffects(bg);
+      }, () => {
+        this.backgroundSprite.alpha = Account.settings.backgroundOpacity;
+      });
     } else {
       this.loadBackgroundImage(bg.file, bg.url);
+      this.applyBgEffects(bg);
     }
     this.currentBackground = bg;
-    this.applyBgEffects(bg);
   }
   
   applyBgEffects(bg) {
+    const alpha = bg.type == 'video' ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
+    
     if (bg.fadeIn) {
       this.backgroundSprite.alpha = 0;
-      game.add.tween(this.backgroundSprite).to({ alpha: parseFloat(bg.opacity) * 0.6 }, 500, "Linear",true);
+      game.add.tween(this.backgroundSprite).to({ alpha: parseFloat(bg.opacity) * alpha }, 500, "Linear",true);
     } else {
-      this.backgroundSprite.alpha = bg.opacity * 0.7;
+      this.backgroundSprite.alpha = bg.opacity * alpha;
     }
     
-    // TODO: When applying bg effects take in account bg.fadeOut and bg.effect
+    // TODO: When applying bg effects take in account bg.fadeOut and bg.effect. May be tricky to implement them, specially bg.effect
   }
   
   getGameResults(player = this.player) {

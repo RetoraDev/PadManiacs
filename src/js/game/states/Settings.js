@@ -253,7 +253,7 @@ class Settings {
     
     // Background opacity
     settingsWindow.addRangeItem(
-      "Song Background Opacity",
+      "Background Image Opacity",
       0,
       100,
       1,
@@ -261,6 +261,20 @@ class Settings {
       "%",
       value => {
         Account.settings.backgroundOpacity = value / 100;
+        saveAccount();
+      }
+    );
+    
+    // Video Background opacity
+    settingsWindow.addRangeItem(
+      "Background Video Opacity",
+      0,
+      100,
+      1,
+      Account.settings.videoBackgroundOpacity * 100,
+      "%",
+      value => {
+        Account.settings.videoBackgroundOpacity = value / 100;
         saveAccount();
       }
     );
