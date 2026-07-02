@@ -4,8 +4,8 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.1.0
- * Build: 6/23/2026, 11:27:23 PM
+ * Version: v1.1.1
+ * Build: 6/23/2026, 11:55:03 PM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -13,7 +13,7 @@
 
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.1.0";
+const VERSION = "v1.1.1";
 
 window.DEBUG = false;
 
