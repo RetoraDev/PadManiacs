@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.1.1
- * Build: 6/23/2026, 11:55:03 PM
+ * Build: 7/17/2026, 10:40:52 PM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -3032,7 +3032,7 @@ const CHARACTER_ITEMS = [
 ];
 
 const DEFAULT_ACCOUNT = {
-  version: 1.1,
+  version: 1.11, // 1.1.1
   settings: {
     volume: 100,
     sfxVolume: 100,
@@ -3057,6 +3057,7 @@ const DEFAULT_ACCOUNT = {
     buttonStyle: 'xbox',
     enableChartBackground: false,
     backgroundOpacity: 0.3,
+    videoBackgroundOpacity: 0.9,
     videoFps: 1, // 60 FPS
     enableSongInfo: true,
     enableTemperature: false,
@@ -9824,7 +9825,7 @@ class NavigationHint extends Phaser.Sprite {
       85:'U',86:'V',87:'W',88:'X',89:'Y',90:'Z',
       48:'0',49:'1',50:'2',51:'3',52:'4',53:'5',54:'6',55:'7',56:'8',57:'9',
       16:'SHIFT',17:'CTRL',18:'ALT',13:'ENTER',32:'SPACE',
-      37:'◄',38:'▲',39:'►',40:'▼'
+      37:'LEFT',38:'UP',39:'RIGHT',40:'DOWN'
     };
     return keyNames[keyCode] || String.fromCharCode(keyCode);
   }
@@ -12809,7 +12810,6 @@ class ScreenRecorder {
 class Metronome {
   constructor(scene) {
     this.scene = scene;
-    this.player = scene.player;
     this.mode = Account.settings.metronome;
     this.enabled = false;
     this.beatDivisions = {
@@ -12950,8 +12950,8 @@ class Metronome {
       this.enabled = mode !== 'OFF';
       
       // Update account settings
-      Account.settings.metronome = mode;
-      saveAccount();
+      //Account.settings.metronome = mode;
+      //saveAccount();
     }
   }
 
@@ -18853,6 +18853,17 @@ class Settings {
       }
     );
     
+    // Video FPS
+    settingsWindow.addSettingItem(
+      "Background Video FPS",
+      ["60 FPS", "30 FPS", "15 FPS"],
+      (Account.settings.videoFPS || 1) - 1,
+      index => {
+        Account.settings.videoFPS = index + 1;
+        saveAccount();
+      }
+    );
+    
     // Song Info Intro
     settingsWindow.addSettingItem(
       "Display Song Info Intro",
@@ -18877,7 +18888,7 @@ class Settings {
     
     // Chart background
     settingsWindow.addSettingItem(
-      "Enable Chart Background",
+      "Enable Chart Overlay",
       ["YES", "NO"],
       Account.settings.enableChartBackground ? 0 : 1,
       index => {
@@ -18888,7 +18899,7 @@ class Settings {
     
     // Chart Background opacity
     settingsWindow.addRangeItem(
-      "Chart Background Opacity",
+      "Chart Overlay Opacity",
       0,
       100,
       1,
@@ -18896,17 +18907,6 @@ class Settings {
       "%",
       value => {
         Account.settings.chartBackgroundOpacity = value / 100;
-        saveAccount();
-      }
-    );
-    
-    // Video FPS
-    settingsWindow.addSettingItem(
-      "Video FPS",
-      ["60 FPS", "30 FPS", "15 FPS"],
-      (Account.settings.videoFPS || 1) - 1,
-      index => {
-        Account.settings.videoFPS = index + 1;
         saveAccount();
       }
     );
@@ -24049,10 +24049,9 @@ class Play {
     }
     
     // Handle assist tick toggle with Select button
-    if (gamepad.pressed.select && !this.lastSelect) {
+    if (gamepad.pressed.select) {
       this.metronome.toggle();
     }
-    this.lastSelect = gamepad.pressed.select;
     
     // Update assist tick metronome
     if (this.metronome) {
@@ -25959,6 +25958,8 @@ class Editor {
       chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
     });
     
+    this.metronome = new Metronome(this);
+        
     this.homeOverlay = game.add.graphics(0, 0);
     this.homeOverlay.beginFill(0x000000, 0.5);
     this.homeOverlay.drawRect(0, 0, game.width, game.height);
@@ -26067,7 +26068,8 @@ class Editor {
         stops: [],
         backgrounds: [],
         videoUrl: null
-      }
+      },
+      difficultyIndex: 0
     };
   }
 
@@ -26323,6 +26325,7 @@ class Editor {
   editChart(difficultyIndex) {
     this.currentScreen = "chartEdit";
     this.currentDifficultyIndex = difficultyIndex;
+    this.song.difficultyIndex = difficultyIndex;
     this.selectedNotes = [];
     this.clearUI();
     this.stopPlayback();
@@ -26598,6 +26601,11 @@ class Editor {
     if (gamepad.pressed.select && !gamepad.held.start) {
       this.togglePlayback();
     }
+    
+    // Toggle metronome with start
+    if (gamepad.pressed.start) {
+      this.metronome.toggle();
+    }
 
     // Handle context menu with START
     if (gamepad.pressed.start && !gamepad.held.select) {
@@ -26628,9 +26636,11 @@ class Editor {
 
     if (this.audio && this.audio.src) {
       if (this.previewEndTimeoutId) clearTimeout(this.previewEndTimeoutId);
-      this.audio.currentTime = this.playOffset + this.getAudioOffset();
+      this.audio.currentTime = this.playOffset;
       this.audio.play();
     }
+    
+    this.metronome.resetNoteMode();
   }
 
   stopPlayback() {
@@ -26802,11 +26812,14 @@ class Editor {
     
     Account.stats.totalPlacedArrows ++;
     
-    this.sortNotes();
-    this.updateInfoText();
+    if (!quick) {
+      this.sortNotes();
+      this.refreshMetronome();
+      this.updateInfoText();
+    }
   }
 
-  placeFreeze(column, startBeat, duration, type = "2", quick) {
+  placeFreeze(column, startBeat, duration, type = "2", quick = false) {
     if (this.isPlaying) return;
 
     const notes = this.getCurrentChartNotes();
@@ -26839,8 +26852,11 @@ class Editor {
     
     Account.stats.totalPlacedFreezes ++;
 
-    this.sortNotes();
-    this.updateInfoText();
+    if (!quick) {
+      this.sortNotes();
+      this.refreshMetronome();
+      this.updateInfoText();
+    }
   }
 
   sortNotes() {
@@ -26849,6 +26865,10 @@ class Editor {
     if (notes) {
       notes.sort((a, b) => a.beat - b.beat);
     }
+  }
+  
+  refreshMetronome() {
+    this.metronome.initializeNotes();
   }
 
   placeMine(column, beat, replace, quick) {
@@ -26861,21 +26881,6 @@ class Editor {
 
   placeQuickHold() {
     this.placeFreeze(this.cursorColumn, this.cursorBeat, 1, "2");
-  }
-
-  playExplosionEffect(column) {
-    const receptor = this.chartRenderer.receptors[column];
-    if (receptor && receptor.explosion) {
-      receptor.explosion.visible = true;
-      receptor.explosion.alpha = 1;
-
-      game.add
-        .tween(receptor.explosion)
-        .to({ alpha: 0 }, 200, "Linear", true)
-        .onComplete.add(() => {
-          receptor.explosion.visible = false;
-        });
-    }
   }
   
   onMouseDown(button, x, y) {
@@ -27000,6 +27005,7 @@ class Editor {
       notes.splice(index, 1);
       this.updateInfoText();
     }
+    this.refreshMetronome();
   }
   
   getColumnAtPosition(x) {
@@ -27192,6 +27198,7 @@ class Editor {
       });
       
       this.sortNotes();
+      this.refreshMetronome();
       this.updateInfoText();
     }
   }
@@ -27303,6 +27310,7 @@ class Editor {
       note.beat = this.getSnappedBeat(note.beat);
       note.sec = this.chartRenderer.beatToSec(note.beat);
       this.refreshSelectedNotes();
+      this.refreshMetronome();
       this.sortNotes();
     }
   }
@@ -27313,6 +27321,7 @@ class Editor {
       note.sec = this.chartRenderer.beatToSec(note.beat);
     });
     this.refreshSelectedNotes();
+    this.refreshMetronome();
     this.sortNotes();
   }
   
@@ -27333,6 +27342,8 @@ class Editor {
     });
 
     this.selectedNotes = [];
+    
+    this.refreshMetronome();
     this.updateInfoText();
   }
 
@@ -27434,7 +27445,7 @@ Sample Length: ${chart.sampleLength}
       this.updateBackground(chart.backgroundUrl);
       this.refreshLyrics();
 
-      this.song = { chart };
+      this.song = { chart, difficultyIndex: 0 };
       this.showHomeScreen();
     } catch (error) {
       console.error("Error loading song:", error);
@@ -27574,7 +27585,7 @@ Sample Length: ${chart.sampleLength}
     const basePath = smFilename.split("/").slice(0, -1).join("/");
     const chart = await new LocalSMParser().parseSM(smContent, basePath);
 
-    this.song = { chart };
+    this.song = { chart, difficultyIndex: 0 };
     this.files = {
       audio: null,
       background: null,
@@ -27668,7 +27679,7 @@ Sample Length: ${chart.sampleLength}
     const content = await this.readTextFileContent(file);
     const chart = await new LocalSMParser().parseSM(content);
 
-    this.song = { chart };
+    this.song = { chart, difficulties: 0 };
 
     this.files = {
       audio: null,
@@ -28466,6 +28477,8 @@ BEAT: ${bg.beat}`);
         
         // Show hit effects when notes reach judge line
         this.showHitEffects(now, beat);
+        
+        this.metronome.update();
       }
 
       // Highlight selected notes
@@ -28484,6 +28497,23 @@ BEAT: ${bg.beat}`);
           note.holdParts.end.alpha = alpha;
         }
       });
+    }
+  }
+  
+  playExplosionEffect(column) {
+    const receptor = this.chartRenderer.receptors[column];
+    if (receptor && receptor.explosion) {
+      game.tweens.removeFrom(receptor.explosion);
+      
+      receptor.explosion.visible = true;
+      receptor.explosion.alpha = 1;
+
+      game.add
+        .tween(receptor.explosion)
+        .to({ alpha: 0 }, 200, "Linear", true)
+        .onComplete.add(() => {
+          receptor.explosion.visible = false;
+        });
     }
   }
 

@@ -73,6 +73,8 @@ class Editor {
       chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
     });
     
+    this.metronome = new Metronome(this);
+        
     this.homeOverlay = game.add.graphics(0, 0);
     this.homeOverlay.beginFill(0x000000, 0.5);
     this.homeOverlay.drawRect(0, 0, game.width, game.height);
@@ -181,7 +183,8 @@ class Editor {
         stops: [],
         backgrounds: [],
         videoUrl: null
-      }
+      },
+      difficultyIndex: 0
     };
   }
 
@@ -437,6 +440,7 @@ class Editor {
   editChart(difficultyIndex) {
     this.currentScreen = "chartEdit";
     this.currentDifficultyIndex = difficultyIndex;
+    this.song.difficultyIndex = difficultyIndex;
     this.selectedNotes = [];
     this.clearUI();
     this.stopPlayback();
@@ -712,6 +716,11 @@ class Editor {
     if (gamepad.pressed.select && !gamepad.held.start) {
       this.togglePlayback();
     }
+    
+    // Toggle metronome with start
+    if (gamepad.pressed.start) {
+      this.metronome.toggle();
+    }
 
     // Handle context menu with START
     if (gamepad.pressed.start && !gamepad.held.select) {
@@ -742,9 +751,11 @@ class Editor {
 
     if (this.audio && this.audio.src) {
       if (this.previewEndTimeoutId) clearTimeout(this.previewEndTimeoutId);
-      this.audio.currentTime = this.playOffset + this.getAudioOffset();
+      this.audio.currentTime = this.playOffset;
       this.audio.play();
     }
+    
+    this.metronome.resetNoteMode();
   }
 
   stopPlayback() {
@@ -916,11 +927,14 @@ class Editor {
     
     Account.stats.totalPlacedArrows ++;
     
-    this.sortNotes();
-    this.updateInfoText();
+    if (!quick) {
+      this.sortNotes();
+      this.refreshMetronome();
+      this.updateInfoText();
+    }
   }
 
-  placeFreeze(column, startBeat, duration, type = "2", quick) {
+  placeFreeze(column, startBeat, duration, type = "2", quick = false) {
     if (this.isPlaying) return;
 
     const notes = this.getCurrentChartNotes();
@@ -953,8 +967,11 @@ class Editor {
     
     Account.stats.totalPlacedFreezes ++;
 
-    this.sortNotes();
-    this.updateInfoText();
+    if (!quick) {
+      this.sortNotes();
+      this.refreshMetronome();
+      this.updateInfoText();
+    }
   }
 
   sortNotes() {
@@ -963,6 +980,10 @@ class Editor {
     if (notes) {
       notes.sort((a, b) => a.beat - b.beat);
     }
+  }
+  
+  refreshMetronome() {
+    this.metronome.initializeNotes();
   }
 
   placeMine(column, beat, replace, quick) {
@@ -975,21 +996,6 @@ class Editor {
 
   placeQuickHold() {
     this.placeFreeze(this.cursorColumn, this.cursorBeat, 1, "2");
-  }
-
-  playExplosionEffect(column) {
-    const receptor = this.chartRenderer.receptors[column];
-    if (receptor && receptor.explosion) {
-      receptor.explosion.visible = true;
-      receptor.explosion.alpha = 1;
-
-      game.add
-        .tween(receptor.explosion)
-        .to({ alpha: 0 }, 200, "Linear", true)
-        .onComplete.add(() => {
-          receptor.explosion.visible = false;
-        });
-    }
   }
   
   onMouseDown(button, x, y) {
@@ -1114,6 +1120,7 @@ class Editor {
       notes.splice(index, 1);
       this.updateInfoText();
     }
+    this.refreshMetronome();
   }
   
   getColumnAtPosition(x) {
@@ -1306,6 +1313,7 @@ class Editor {
       });
       
       this.sortNotes();
+      this.refreshMetronome();
       this.updateInfoText();
     }
   }
@@ -1417,6 +1425,7 @@ class Editor {
       note.beat = this.getSnappedBeat(note.beat);
       note.sec = this.chartRenderer.beatToSec(note.beat);
       this.refreshSelectedNotes();
+      this.refreshMetronome();
       this.sortNotes();
     }
   }
@@ -1427,6 +1436,7 @@ class Editor {
       note.sec = this.chartRenderer.beatToSec(note.beat);
     });
     this.refreshSelectedNotes();
+    this.refreshMetronome();
     this.sortNotes();
   }
   
@@ -1447,6 +1457,8 @@ class Editor {
     });
 
     this.selectedNotes = [];
+    
+    this.refreshMetronome();
     this.updateInfoText();
   }
 
@@ -1548,7 +1560,7 @@ Sample Length: ${chart.sampleLength}
       this.updateBackground(chart.backgroundUrl);
       this.refreshLyrics();
 
-      this.song = { chart };
+      this.song = { chart, difficultyIndex: 0 };
       this.showHomeScreen();
     } catch (error) {
       console.error("Error loading song:", error);
@@ -1688,7 +1700,7 @@ Sample Length: ${chart.sampleLength}
     const basePath = smFilename.split("/").slice(0, -1).join("/");
     const chart = await new LocalSMParser().parseSM(smContent, basePath);
 
-    this.song = { chart };
+    this.song = { chart, difficultyIndex: 0 };
     this.files = {
       audio: null,
       background: null,
@@ -1782,7 +1794,7 @@ Sample Length: ${chart.sampleLength}
     const content = await this.readTextFileContent(file);
     const chart = await new LocalSMParser().parseSM(content);
 
-    this.song = { chart };
+    this.song = { chart, difficulties: 0 };
 
     this.files = {
       audio: null,
@@ -2580,6 +2592,8 @@ BEAT: ${bg.beat}`);
         
         // Show hit effects when notes reach judge line
         this.showHitEffects(now, beat);
+        
+        this.metronome.update();
       }
 
       // Highlight selected notes
@@ -2598,6 +2612,23 @@ BEAT: ${bg.beat}`);
           note.holdParts.end.alpha = alpha;
         }
       });
+    }
+  }
+  
+  playExplosionEffect(column) {
+    const receptor = this.chartRenderer.receptors[column];
+    if (receptor && receptor.explosion) {
+      game.tweens.removeFrom(receptor.explosion);
+      
+      receptor.explosion.visible = true;
+      receptor.explosion.alpha = 1;
+
+      game.add
+        .tween(receptor.explosion)
+        .to({ alpha: 0 }, 200, "Linear", true)
+        .onComplete.add(() => {
+          receptor.explosion.visible = false;
+        });
     }
   }
 

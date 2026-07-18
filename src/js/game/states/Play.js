@@ -1262,10 +1262,9 @@ class Play {
     }
     
     // Handle assist tick toggle with Select button
-    if (gamepad.pressed.select && !this.lastSelect) {
+    if (gamepad.pressed.select) {
       this.metronome.toggle();
     }
-    this.lastSelect = gamepad.pressed.select;
     
     // Update assist tick metronome
     if (this.metronome) {

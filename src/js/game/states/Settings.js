@@ -279,6 +279,17 @@ class Settings {
       }
     );
     
+    // Video FPS
+    settingsWindow.addSettingItem(
+      "Background Video FPS",
+      ["60 FPS", "30 FPS", "15 FPS"],
+      (Account.settings.videoFPS || 1) - 1,
+      index => {
+        Account.settings.videoFPS = index + 1;
+        saveAccount();
+      }
+    );
+    
     // Song Info Intro
     settingsWindow.addSettingItem(
       "Display Song Info Intro",
@@ -303,7 +314,7 @@ class Settings {
     
     // Chart background
     settingsWindow.addSettingItem(
-      "Enable Chart Background",
+      "Enable Chart Overlay",
       ["YES", "NO"],
       Account.settings.enableChartBackground ? 0 : 1,
       index => {
@@ -314,7 +325,7 @@ class Settings {
     
     // Chart Background opacity
     settingsWindow.addRangeItem(
-      "Chart Background Opacity",
+      "Chart Overlay Opacity",
       0,
       100,
       1,
@@ -322,17 +333,6 @@ class Settings {
       "%",
       value => {
         Account.settings.chartBackgroundOpacity = value / 100;
-        saveAccount();
-      }
-    );
-    
-    // Video FPS
-    settingsWindow.addSettingItem(
-      "Video FPS",
-      ["60 FPS", "30 FPS", "15 FPS"],
-      (Account.settings.videoFPS || 1) - 1,
-      index => {
-        Account.settings.videoFPS = index + 1;
         saveAccount();
       }
     );

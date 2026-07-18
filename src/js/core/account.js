@@ -1,5 +1,5 @@
 const DEFAULT_ACCOUNT = {
-  version: 1.1,
+  version: 1.11, // 1.1.1
   settings: {
     volume: 100,
     sfxVolume: 100,
@@ -24,6 +24,7 @@ const DEFAULT_ACCOUNT = {
     buttonStyle: 'xbox',
     enableChartBackground: false,
     backgroundOpacity: 0.3,
+    videoBackgroundOpacity: 0.9,
     videoFps: 1, // 60 FPS
     enableSongInfo: true,
     enableTemperature: false,

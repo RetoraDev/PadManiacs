@@ -363,7 +363,7 @@ class NavigationHint extends Phaser.Sprite {
       85:'U',86:'V',87:'W',88:'X',89:'Y',90:'Z',
       48:'0',49:'1',50:'2',51:'3',52:'4',53:'5',54:'6',55:'7',56:'8',57:'9',
       16:'SHIFT',17:'CTRL',18:'ALT',13:'ENTER',32:'SPACE',
-      37:'◄',38:'▲',39:'►',40:'▼'
+      37:'LEFT',38:'UP',39:'RIGHT',40:'DOWN'
     };
     return keyNames[keyCode] || String.fromCharCode(keyCode);
   }

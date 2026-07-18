@@ -1,7 +1,6 @@
 class Metronome {
   constructor(scene) {
     this.scene = scene;
-    this.player = scene.player;
     this.mode = Account.settings.metronome;
     this.enabled = false;
     this.beatDivisions = {
@@ -142,8 +141,8 @@ class Metronome {
       this.enabled = mode !== 'OFF';
       
       // Update account settings
-      Account.settings.metronome = mode;
-      saveAccount();
+      //Account.settings.metronome = mode;
+      //saveAccount();
     }
   }
 
