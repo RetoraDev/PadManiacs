@@ -291,7 +291,7 @@ class InteractiveInterface {
   }
 
   executeCLIServe(mode) {
-    const port = 8080;
+    const port = 3000;
     
     if (this.cliArgs.headless) {
       console.log(this.color(`Starting ${mode} server on port ${port}...`, 'yellow'));
@@ -701,7 +701,7 @@ class InteractiveInterface {
     this.drawLogo();
     
     const serveDir = mode === 'src' ? './' : 'dist';
-    const port = 8080;
+    const port = 3000;
     
     console.log(this.color(`Starting ${mode} development server...\n`, 'yellow'));
     console.log(this.color('Server will be available at:', 'cyan'), this.color(`http://localhost:${port}`, 'bright'));
@@ -719,7 +719,7 @@ class InteractiveInterface {
     this.startNodeServer(serveDir, port, mode);
   }
   
-  async findAvailablePort(startPort = 8080, maxAttempts = 10) {
+  async findAvailablePort(startPort = 3000, maxAttempts = 10) {
     const net = require('net');
     
     for (let port = startPort; port <= startPort + maxAttempts; port++) {

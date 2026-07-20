@@ -870,7 +870,10 @@ class Play {
   }
   
   loadBackgroundVideo(filename, url, onloadCallback, onerrorCallback) {
-    if (filename == 'undefined' || !filename || !url) return;
+    if (filename == 'undefined' || !filename || !url) {
+      onerrorCallback?.();
+      return;
+    }
         
     // Pause any existing video
     if (this.video && this.video != this.preloadedBackgroundElements[filename]) {
@@ -886,11 +889,14 @@ class Play {
       if (!element || element.__errored) {
         console.warn(`Preloaded video is errored: ${filename}`);
         this.drawFallbackBackground();
+        onerrorCallback?.();
         return;
       }
       
       // Use the preloaded background
       this.video = element;
+      
+      onloadCallback?.();
     } else {
       // Load the background in real time with error handling
       const video = document.createElement("video");
@@ -907,6 +913,7 @@ class Play {
       video.addEventListener("canplaythrough", () => {
         this.preloadedBackgroundElements[filename] = video;
         this.playVideo(video);
+        onloadCallback?.();
       }, { once: true });
       
       video.onerror = () => {
@@ -914,9 +921,8 @@ class Play {
         video.__errored = true;
         this.preloadedBackgroundElements[filename] = video;
         this.drawFallbackBackground();
+        onerrorCallback?.();
       };
-      
-      console.warn("Couldn't find video:", filename, "Loading video in real time. This may affect performance");
     }
     
     if (this.video && !this.video.__errored) {
@@ -1343,8 +1349,10 @@ class Play {
       this.metronome = null;
     }
     
-    this.temperature.destroy();
-    this.temperature = null;
+    if (this.temperature) {
+      this.temperature.destroy();
+      this.temperature = null;
+    }
     
     // Stop recording and show video
     if (window.recordNextGame) {

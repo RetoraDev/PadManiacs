@@ -266,9 +266,38 @@ class NavigationHint extends Phaser.Sprite {
     if (inputSource === 'keyboard') {
       const keyboardFrames = {
         'd-pad': 16,
-        'cursor': 16
+        'cursor': 16,
+        32: 17, // spacebar
+        13: 18, // enter
+        108: 18, // numpad enter
+        37: 19, // left
+        39: 20, // right 
+        38: 21, // up 
+        40: 22, // down
       };
+      
+      // Get mapped key for action buttons
+      const player = activePlayer === 1 ? 'player1' : 'player2';
+      const mapping = Account.mapping.keyboard[player];
+      let keyCode = null;
+      
+      switch (icon) {
+        case 'up': keyCode = mapping.up?.[0]; break;
+        case 'down': keyCode = mapping.down?.[0]; break;
+        case 'left': keyCode = mapping.left?.[0]; break;
+        case 'right': keyCode = mapping.right?.[0]; break;
+        case 'a': keyCode = mapping.a?.[0]; break;
+        case 'b': keyCode = mapping.b?.[0]; break;
+        case 'select': keyCode = mapping.select?.[0]; break;
+        case 'start': keyCode = mapping.start?.[0]; break;
+        case 'x': keyCode = mapping.a?.[0]; break;
+        case 'y': keyCode = mapping.b?.[0]; break;
+      };
+      
+      if (keyboardFrames[keyCode] !== undefined) return keyboardFrames[keyCode];
+      
       if (keyboardFrames[icon] !== undefined) return keyboardFrames[icon];
+      
       return -1; // Signal to use custom key sprite
     }
     
@@ -341,6 +370,10 @@ class NavigationHint extends Phaser.Sprite {
     let keyCode = null;
     
     switch (hint.icon) {
+      case 'up': keyCode = mapping.up?.[0]; break;
+      case 'down': keyCode = mapping.down?.[0]; break;
+      case 'left': keyCode = mapping.left?.[0]; break;
+      case 'right': keyCode = mapping.right?.[0]; break;
       case 'a': keyCode = mapping.a?.[0]; break;
       case 'b': keyCode = mapping.b?.[0]; break;
       case 'select': keyCode = mapping.select?.[0]; break;
@@ -357,15 +390,13 @@ class NavigationHint extends Phaser.Sprite {
   }  
 
   keyCodeToString(keyCode) {
-    const keyNames = {
-      65:'A',66:'B',67:'C',68:'D',69:'E',70:'F',71:'G',72:'H',73:'I',74:'J',
-      75:'K',76:'L',77:'M',78:'N',79:'O',80:'P',81:'Q',82:'R',83:'S',84:'T',
-      85:'U',86:'V',87:'W',88:'X',89:'Y',90:'Z',
-      48:'0',49:'1',50:'2',51:'3',52:'4',53:'5',54:'6',55:'7',56:'8',57:'9',
-      16:'SHIFT',17:'CTRL',18:'ALT',13:'ENTER',32:'SPACE',
-      37:'LEFT',38:'UP',39:'RIGHT',40:'DOWN'
-    };
-    return keyNames[keyCode] || String.fromCharCode(keyCode);
+    for (const key of Object.keys(KEYBOARD_KEY_CODES)) {
+      const keyName = key.replace('_', ' ');
+      
+      if (KEYBOARD_KEY_CODES[key] == keyCode) return keyName;
+    }
+    
+    return '???';
   }
   
   setButtonStyle(style) {

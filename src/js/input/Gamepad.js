@@ -63,7 +63,6 @@ class Gamepad {
     // Set up all input methods
     this.setupGamepad();
     this.setupTouch();
-    this.setupInputDetection();
   }
   
   updateMapping(keyboardMap, gamepadMap) {
@@ -78,7 +77,7 @@ class Gamepad {
   setupKeyboard() {
     // Clear any existing keyboard state
     this.releaseAll();
-  
+    
     // Create reverse mapping for quick lookup
     this.keyCodeToAction = {};
     for (const [action, keyCodes] of Object.entries(this.keyboardMap)) {
@@ -103,10 +102,10 @@ class Gamepad {
       if (action) {
         event.preventDefault();
         this.held[action] = true;
+        this.detectInputSource('keyboard');
       } else if (window.focusedElement) {
         event.preventDefault();
       }
-      this.detectInputSource('keyboard');
     });
   
     inputManager.keyboardListener.onUp.add((keyCode) => {
@@ -207,22 +206,6 @@ class Gamepad {
     this.updateTouchControlsVisibility();
   }
 
-  setupInputDetection() {
-    // Listen for screen taps to show touch controls
-    document.addEventListener('touchstart', (e) => {
-      if (!e.target.closest('#controller')) {
-        this.detectInputSource('touch');
-      }
-    }, { passive: true });
-
-    // Also detect clicks outside controller
-    document.addEventListener('mousedown', (e) => {
-      if (this.game.device.touch && !e.target.closest('#controller')) {
-        this.detectInputSource('touch');
-      }
-    }, { passive: true });
-  }
-
   detectInputSource(source) {
     if (this.lastInputSource === source) return;
     
@@ -286,7 +269,6 @@ class Gamepad {
       if (this.activeTouches.size >= this.maxTouches) continue;
 
       const buttonKey = this.getButtonFromTouch(touch);
-      
       
       if (buttonKey) {
         this.activeTouches.set(touch.identifier, buttonKey);

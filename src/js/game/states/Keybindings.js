@@ -24,14 +24,15 @@ class Keybindings {
     
     this.windowManager = new WindowManager();
     
-    // Estado para la espera de teclas
-    this.waitingState = null; // { type, mappingKey, index, description, selectedIndex, menuWindow }
     this.waitOverlayActive = false;
-    this.originalCallbacks = {
-      keyboardDown: null,
-      keyboardUp: null,
-      gamepadDown: null
+    this.pendingChanges = {
+      keyboard: JSON.parse(JSON.stringify(Account.mapping.keyboard)),
+      gamepad: JSON.parse(JSON.stringify(Account.mapping.gamepad))
     };
+    
+    // Notification system
+    this.notifications = [];
+    this.notificationContainer = game.add.group();
     
     gamepad.releaseAll();
     
@@ -43,11 +44,69 @@ class Keybindings {
   update() {
     gamepad.update();
     this.windowManager.update();
+    this.updateNotifications();
   }
   
   shutdown() {
-    // Limpiar cualquier overlay activo al salir
     this.cleanupWaitOverlay();
+    // Apply pending changes
+    Account.mapping.keyboard = this.pendingChanges.keyboard;
+    Account.mapping.gamepad = this.pendingChanges.gamepad;
+    saveAccount();
+    gamepad1.updateMapping(Account.mapping.keyboard.player1, Account.mapping.gamepad.player1);
+    gamepad2.updateMapping(Account.mapping.keyboard.player2, Account.mapping.gamepad.player2);
+    // Clean up notifications
+    for (const entry of this.notifications) {
+      if (entry.text) entry.text.destroy();
+    }
+    this.notifications = [];
+    if (this.notificationContainer) this.notificationContainer.destroy();
+  }
+  
+  showNotification(text, duration = 2500) {
+    const entry = {
+      text: new Text(4, 140, text, FONTS.default_stroke),
+      born: game.time.now,
+      duration: duration,
+      alpha: 1,
+      targetY: 140
+    };
+    entry.text.anchor.y = 1;
+    entry.text.tint = 0x76fcde;
+    this.notificationContainer.add(entry.text);
+    this.notifications.push(entry);
+    
+    // Move existing notifications up
+    for (let i = 0; i < this.notifications.length - 1; i++) {
+      const oldEntry = this.notifications[i];
+      oldEntry.targetY -= 8;
+      game.add.tween(oldEntry.text).to({ y: oldEntry.targetY }, 150, Phaser.Easing.Quadratic.Out, true);
+    }
+    
+    // Limit notifications
+    if (this.notifications.length > 8) {
+      const old = this.notifications.shift();
+      old.text.destroy();
+    }
+  }
+  
+  updateNotifications() {
+    const now = game.time.now;
+    for (let i = this.notifications.length - 1; i >= 0; i--) {
+      const entry = this.notifications[i];
+      const age = now - entry.born;
+      
+      if (age > entry.duration) {
+        if (entry.alpha > 0) {
+          entry.alpha -= 0.02;
+          entry.text.alpha = entry.alpha;
+          if (entry.alpha <= 0) {
+            entry.text.destroy();
+            this.notifications.splice(i, 1);
+          }
+        }
+      }
+    }
   }
   
   showKeybindingsMenu() {
@@ -56,7 +115,6 @@ class Keybindings {
     
     this.windowManager.focus(settingsWindow);
     
-    // NEW: Player-specific categories
     settingsWindow.addItem("PLAYER 1 KEYBOARD", ">", () => {
       this.windowManager.remove(settingsWindow, true);
       this.showKeyboardCustomization(1);
@@ -78,18 +136,13 @@ class Keybindings {
     });
     
     settingsWindow.addItem("RESET TO DEFAULTS", "", () => {
-      // RESET both players
       this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(
         "Reset all keybindings to default settings?",
         () => {
-          Account.mapping.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
-          Account.mapping.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
-          saveAccount();
-          gamepad1.updateMapping(Account.mapping.keyboard.player1, Account.mapping.gamepad.player1);
-          gamepad2.updateMapping(Account.mapping.keyboard.player2, Account.mapping.gamepad.player2);
-          game.state.restart();
-          notifications.show("Keybindings reset!");
+          this.pendingChanges.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
+          this.pendingChanges.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
+          this.showNotification("Keybindings reset!");
         },
         () => {
           this.showKeybindingsMenu();
@@ -121,22 +174,23 @@ class Keybindings {
       { key: "SELECT", description: "SELECT", mappingKey: "select", index: 0 }
     ];
     
-    const playerPrefix = playerNum === 1 ? "player1." : "player2.";
+    const playerKey = playerNum === 1 ? "player1" : "player2";
     
     keyboardControls.forEach(control => {
-      const currentKey = this.getKeyboardKeyDisplay(playerPrefix + control.mappingKey, control.index);
+      const currentKey = this.getKeyboardKeyDisplay(playerKey, control.mappingKey, control.index);
       keysWindow.addItem(`${playerNum === 1 ? "P1" : "P2"} ${control.key}`, currentKey, () => {
-        this.waitingState = {
-          type: "keyboard",
-          playerNum: playerNum,
-          mappingKey: control.mappingKey,
-          index: control.index,
-          description: `${playerNum === 1 ? "Player 1" : "Player 2"} ${control.description}`,
-          selectedIndex: keysWindow.selectedIndex,
-          menuWindow: keysWindow
-        };
         this.windowManager.remove(keysWindow, true);
-        this.showKeyWaitOverlay(playerNum, `PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
+        this.showKeyWaitOverlay(
+          `PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`,
+          (keyCode) => {
+            this.mapKeyboardKey(playerNum, control.mappingKey, control.index, keyCode);
+            this.showKeyboardCustomization(playerNum, keysWindow.selectedIndex, returnIndex);
+          },
+          () => {
+            this.unmapKeyboardKey(playerNum, control.mappingKey, control.index);
+            this.showKeyboardCustomization(playerNum, keysWindow.selectedIndex, returnIndex);
+          }
+        );
       });
     });
     
@@ -162,21 +216,23 @@ class Keybindings {
       { key: "SELECT", description: "SELECT", mappingKey: "select" }
     ];
     
-    const playerPrefix = playerNum === 1 ? "player1." : "player2.";
+    const playerKey = playerNum === 1 ? "player1" : "player2";
     
     gamepadControls.forEach(control => {
-      const currentButton = this.getGamepadButtonDisplay(playerPrefix + control.mappingKey);
+      const currentButton = this.getGamepadButtonDisplay(playerKey, control.mappingKey);
       gamepadWindow.addItem(`${playerNum === 1 ? "P1" : "P2"} ${control.key}`, currentButton, () => {
-        this.waitingState = {
-          type: "gamepad",
-          playerNum: playerNum,
-          mappingKey: control.mappingKey,
-          description: `${playerNum === 1 ? "Player 1" : "Player 2"} ${control.description}`,
-          selectedIndex: gamepadWindow.selectedIndex,
-          menuWindow: gamepadWindow
-        };
         this.windowManager.remove(gamepadWindow, true);
-        this.showKeyWaitOverlay(playerNum, `PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`);
+        this.showKeyWaitOverlay(
+          `PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`,
+          (buttonCode) => {
+            this.mapGamepadKey(playerNum, control.mappingKey, buttonCode);
+            this.showGamepadCustomization(playerNum, gamepadWindow.selectedIndex, returnIndex);
+          },
+          () => {
+            this.unmapGamepadKey(playerNum, control.mappingKey);
+            this.showGamepadCustomization(playerNum, gamepadWindow.selectedIndex, returnIndex);
+          }
+        );
       });
     });
     
@@ -187,15 +243,12 @@ class Keybindings {
     }, true);
   }
   
-  showKeyWaitOverlay(playerNum = 1, message = "PRESS ANY KEY") {
-    // Limpiar cualquier overlay existente
+  showKeyWaitOverlay(message, onSubmit, onCancel) {
     this.cleanupWaitOverlay();
     
     this.waitOverlayActive = true;
-    
     this.navigationHint.visible = false;
     
-    // Crear elementos visuales
     const overlay = game.add.graphics(0, 0);
     overlay.beginFill(0x000000, 0.7);
     overlay.drawRect(0, 0, 240, 140);
@@ -208,6 +261,13 @@ class Keybindings {
     const helpText = new Text(120, 100, "Hold ESC or MENU to unmap");
     helpText.anchor.set(0.5, 0.5);
     
+    let escHoldStartTime = 0;
+    let escIsHeld = false;
+    let progressInterval = null;
+    let keyPressed = false;
+    
+    const holdDuration = 1000;
+    
     const progressBarBg = game.add.graphics(0, 0);
     progressBarBg.beginFill(0x333333, 0.8);
     progressBarBg.drawRect(0, 146, 240, 4);
@@ -215,13 +275,6 @@ class Keybindings {
     progressBarBg.visible = false;
     
     const progressBar = game.add.graphics(0, 0);
-    
-    // Estado del hold
-    let escHoldStartTime = 0;
-    let escIsHeld = false;
-    let progressInterval = null;
-    
-    const holdDuration = 1000;
     
     const updateProgress = () => {
       if (!escIsHeld || !this.waitOverlayActive) return;
@@ -233,7 +286,7 @@ class Keybindings {
       
       progressBar.clear();
       progressBar.beginFill(0xffffff, 1);
-      progressBarBg.drawRect(0, 146, 240 * progress, 4);
+      progressBar.drawRect(0, 146, 240 * progress, 4);
       progressBar.endFill();
       
       const overlayAlpha = 0.7 * (1 - progress * 0.7);
@@ -247,7 +300,9 @@ class Keybindings {
           clearInterval(progressInterval);
           progressInterval = null;
         }
-        this.unmapCurrentKey();
+        this.cleanupWaitOverlay();
+        this.showNotification("Key unmapped!");
+        onCancel?.();
       }
     };
     
@@ -257,64 +312,112 @@ class Keybindings {
         progressInterval = null;
       }
       progressBar.clear();
+      progressBarBg.visible = false;
       overlay.clear();
       overlay.beginFill(0x000000, 0.7);
       overlay.drawRect(0, 0, 240, 140);
       overlay.endFill();
     };
     
-    // Listeners
-    const keyDownListener = (event) => {
-      if (!this.waitOverlayActive || !this.waitingState) return;
+    const cleanup = () => {
+      this.waitOverlayActive = false;
+      this.navigationHint.visible = true;
+      if (progressInterval) clearInterval(progressInterval);
+      window.keyboardListener.onDown.remove(keyDownListener);
+      window.keyboardListener.onUp.remove(keyUpListener);
+      window.gamepadListener.onDown.remove(gamepadListener);
+      overlay.destroy();
+      instructionText.destroy();
+      helpText.destroy();
+      progressBarBg.destroy();
+      progressBar.destroy();
+    };
+    
+    const keyDownListener = (keyCode) => {
+      if (!this.waitOverlayActive) return;
       
-      if (event.keyCode === Phaser.KeyCode.ESC) {
+      if (keyCode === Phaser.KeyCode.ESC) {
         if (!escIsHeld) {
           escIsHeld = true;
           escHoldStartTime = Date.now();
           if (progressInterval) clearInterval(progressInterval);
           progressInterval = setInterval(updateProgress, 16);
         }
-      } else if (this.waitingState.type === "keyboard") {
-        if (escIsHeld) {
-          escIsHeld = false;
-          resetProgress();
+      } else if (!keyPressed) {
+        keyPressed = true;
+        // Check if key is Unidentified
+        const keyName = this.getKeyName(keyCode);
+        if (keyName === 'Unidentified' || keyName === '???') {
+          cleanup();
+          this.showNotification(`Cannot map: ${keyName}`);
+          this.showKeyWaitOverlay(message, onSubmit, onCancel);
+          return;
         }
+        cleanup();
+        // Check for conflicts BEFORE calling onSubmit
+        const conflict = this.findKeyboardKeyConflict(
+          this._pendingPlayerKey || 'player1',
+          this._pendingMappingKey || 'up',
+          this._pendingIndex || 0,
+          keyCode
+        );
+        if (conflict) {
+          this.showNotification(`Changed with ${conflict.label}`);
+        }
+        onSubmit?.(keyCode);
       }
     };
     
-    const keyUpListener = (event) => {
+    const keyUpListener = (keyCode) => {
       if (!this.waitOverlayActive) return;
       
-      if (event.keyCode === Phaser.KeyCode.ESC && escIsHeld) {
-        const holdTime = Date.now() - escHoldStartTime;
+      if (keyCode === Phaser.KeyCode.ESC && escIsHeld) {
         escIsHeld = false;
         resetProgress();
       }
-      
-      this.handleKeyboardKeyPress(event.keyCode);
     };
     
-    const gamepadListener = (buttonCode, _, index) => {
-      if (!this.waitOverlayActive || !this.waitingState || index + 1 != playerNum) return;
+    const gamepadListener = (buttonCode) => {
+      if (!this.waitOverlayActive) return;
       
-      if (this.waitingState.type === "gamepad") {
-        this.handleGamepadButtonPress(buttonCode);
+      cleanup();
+      // Check for conflicts
+      const conflict = this.findGamepadKeyConflict(
+        this._pendingPlayerKey || 'player1',
+        this._pendingMappingKey || 'up',
+        buttonCode
+      );
+      if (conflict) {
+        setTimeout(() => this.showNotification(`Swapped with ${conflict.label}`));
       }
+      onSubmit?.(buttonCode);
     };
     
-    // Guardar callbacks originales
-    this.originalCallbacks = {
-      keyboardDown: game.input.keyboard.onDownCallback,
-      keyboardUp: game.input.keyboard.onUpCallback,
-      gamepadDown: game.input.gamepad.onDownCallback
-    };
+    // Store pending info for conflict resolution
+    const match = message.match(/P([12])/);
+    if (match) {
+      this._pendingPlayerKey = match[1] === '1' ? 'player1' : 'player2';
+    }
+    const keyMatch = message.match(/(UP|DOWN|LEFT|RIGHT|CONFIRM|CANCEL|START|SELECT)/);
+    if (keyMatch) {
+      const keyMap = {
+        'UP': 'up',
+        'DOWN': 'down',
+        'LEFT': 'left',
+        'RIGHT': 'right',
+        'CONFIRM': 'a',
+        'CANCEL': 'b',
+        'START': 'start',
+        'SELECT': 'select'
+      };
+      this._pendingMappingKey = keyMap[keyMatch[1]] || 'up';
+    }
+    this._pendingIndex = 0;
     
-    // Instalar nuevos callbacks
-    game.input.keyboard.onDownCallback = keyDownListener;
-    game.input.keyboard.onUpCallback = keyUpListener;
-    game.input.gamepad.onDownCallback = gamepadListener;
+    window.keyboardListener.onDown.add(keyDownListener, this);
+    window.keyboardListener.onUp.add(keyUpListener, this);
+    window.gamepadListener.onDown.add(gamepadListener, this);
     
-    // Guardar referencia para cleanup
     this.waitOverlayElements = {
       overlay,
       instructionText,
@@ -324,170 +427,140 @@ class Keybindings {
       keyDownListener,
       keyUpListener,
       gamepadListener,
-      progressInterval,
-      resetProgress
+      cleanup
     };
   }
   
   cleanupWaitOverlay() {
-    if (!this.waitOverlayActive) return;
-    
+    if (this.waitOverlayElements) {
+      this.waitOverlayElements.cleanup?.();
+      this.waitOverlayElements = null;
+    }
     this.waitOverlayActive = false;
-    
-    // Limpiar intervalo
-    if (this.waitOverlayElements?.progressInterval) {
-      clearInterval(this.waitOverlayElements.pro.gressInterval);
-    }
-    
-    // Destruir elementos gráficos
-    const elements = ['overlay', 'instructionText', 'helpText', 'progressBarBg', 'progressBar'];
-    for (const el of elements) {
-      if (this.waitOverlayElements?.[el] && typeof this.waitOverlayElements[el].destroy === 'function') {
-        this.waitOverlayElements[el].destroy();
-      }
-    }
-    
-    // Mostrar lo que fue oculto
     this.navigationHint.visible = true;
-    
-    // Restaurar callbacks originales
-    if (this.originalCallbacks.keyboardDown !== undefined) {
-      game.input.keyboard.onDownCallback = this.originalCallbacks.keyboardDown;
-    } else {
-      game.input.keyboard.onDownCallback = null;
-    }
-    
-    if (this.originalCallbacks.keyboardUp !== undefined) {
-      game.input.keyboard.onUpCallback = this.originalCallbacks.keyboardUp;
-    } else {
-      game.input.keyboard.onUpCallback = null;
-    }
-    
-    if (this.originalCallbacks.gamepadDown !== undefined) {
-      game.input.gamepad.onDownCallback = this.originalCallbacks.gamepadDown;
-    } else {
-      game.input.gamepad.onDownCallback = null;
-    }
-    
-    this.waitOverlayElements = null;
   }
   
-  cancelKeyWait() {
-    if (!this.waitOverlayActive) return;
-    
-    const waitingState = this.waitingState;
-    this.cleanupWaitOverlay();
-    
-    if (waitingState && waitingState.menuWindow) {
-      // Devolver al menú anterior
-      if (waitingState.type === "keyboard") {
-        this.showKeyboardCustomization(waitingState.selectedIndex, waitingState.selectedIndex);
-      } else if (waitingState.type === "gamepad") {
-        this.showGamepadCustomization(waitingState.selectedIndex, waitingState.selectedIndex);
-      }
-    }
-    
-    this.waitingState = null;
-  }
-  
-  handleKeyboardKeyPress(keyCode) {
-    if (!this.waitingState || this.waitingState.type !== "keyboard") return;
-    
-    const mapping = Account.mapping.keyboard;
-    const { playerNum, mappingKey, index } = this.waitingState;
+  mapKeyboardKey(playerNum, mappingKey, index, keyCode) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
+    const mapping = this.pendingChanges.keyboard;
     
+    // Check if this key is already used elsewhere (conflict)
+    const conflict = this.findKeyboardKeyConflict(playerKey, mappingKey, index, keyCode);
+    
+    if (conflict) {
+      // Swap: move the conflicting key to the old position
+      const oldKey = mapping[playerKey][mappingKey][index];
+      mapping[conflict.playerKey][conflict.mappingKey][conflict.index] = oldKey;
+    }
+    
+    // Set the new key
     if (!mapping[playerKey][mappingKey]) {
       mapping[playerKey][mappingKey] = [];
     }
-    
     while (mapping[playerKey][mappingKey].length <= index) {
       mapping[playerKey][mappingKey].push(null);
     }
-    
     mapping[playerKey][mappingKey][index] = keyCode;
     
-    saveAccount();
-    // Update appropriate gamepad
-    if (playerNum === 1) {
-      gamepad1.updateMapping(Account.mapping.keyboard.player1, Account.mapping.gamepad.player1);
-    } else {
-      gamepad2.updateMapping(Account.mapping.keyboard.player2, Account.mapping.gamepad.player2);
-    }
-    
-    notifications.show(`MAPPED: ${this.getKeyName(keyCode)}`);
-    
-    const selectedIndex = this.waitingState.selectedIndex;
-    this.cleanupWaitOverlay();
-    this.showKeyboardCustomization(playerNum, selectedIndex, selectedIndex);
-    this.waitingState = null;
+    this.showNotification(`Mapped: ${this.getKeyName(keyCode)}`);
   }
   
-  handleGamepadButtonPress(buttonCode) {
-    if (!this.waitingState || this.waitingState.type !== "gamepad") return;
-    
-    const { playerNum, mappingKey } = this.waitingState;
+  mapGamepadKey(playerNum, mappingKey, buttonCode) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
+    const mapping = this.pendingChanges.gamepad;
     
-    Account.mapping.gamepad[playerKey][mappingKey] = buttonCode;
+    // Check if this button is already used elsewhere
+    const conflict = this.findGamepadKeyConflict(playerKey, mappingKey, buttonCode);
     
-    saveAccount();
-    if (playerNum === 1) {
-      gamepad1.updateMapping(Account.mapping.keyboard.player1, Account.mapping.gamepad.player1);
-    } else {
-      gamepad2.updateMapping(Account.mapping.keyboard.player2, Account.mapping.gamepad.player2);
+    if (conflict) {
+      const oldButton = mapping[playerKey][mappingKey];
+      mapping[conflict.playerKey][conflict.mappingKey] = oldButton;
     }
     
-    notifications.show(`MAPPED: ${GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`}`);
+    mapping[playerKey][mappingKey] = buttonCode;
     
-    const selectedIndex = this.waitingState.selectedIndex;
-    this.cleanupWaitOverlay();
-    this.showGamepadCustomization(playerNum, selectedIndex, selectedIndex);
-    this.waitingState = null;
+    this.showNotification(`Mapped: ${GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`}`);
   }
   
-  unmapCurrentKey() {
-    if (!this.waitingState) return;
+  findKeyboardKeyConflict(playerKey, mappingKey, index, keyCode) {
+    const mapping = this.pendingChanges.keyboard;
+    const controlLabels = {
+      'up': 'UP',
+      'down': 'DOWN',
+      'left': 'LEFT',
+      'right': 'RIGHT',
+      'a': 'CONFIRM',
+      'b': 'CANCEL',
+      'start': 'START',
+      'select': 'SELECT'
+    };
     
-    if (this.waitingState.type === "keyboard") {
-      const mapping = Account.mapping.keyboard;
-      const { mappingKey, index } = this.waitingState;
-      
-      if (mapping[mappingKey] && Array.isArray(mapping[mappingKey]) && mapping[mappingKey].length > index) {
-        mapping[mappingKey][index] = null;
-        
-        while (mapping[mappingKey].length > 0 && mapping[mappingKey][mapping[mappingKey].length - 1] === null) {
-          mapping[mappingKey].pop();
+    for (const [pKey, player] of Object.entries(mapping)) {
+      for (const [mKey, keys] of Object.entries(player)) {
+        if (pKey === playerKey && mKey === mappingKey) continue;
+        if (!Array.isArray(keys)) continue;
+        for (let i = 0; i < keys.length; i++) {
+          if (keys[i] === keyCode) {
+            const label = `${pKey === 'player1' ? 'P1' : 'P2'} ${controlLabels[mKey] || mKey.toUpperCase()}`;
+            return { playerKey: pKey, mappingKey: mKey, index: i, label: label };
+          }
         }
-        
-        saveAccount();
-        gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
-        notifications.show("KEY UNMAPPED!");
       }
-    } else if (this.waitingState.type === "gamepad") {
-      Account.mapping.gamepad[this.waitingState.mappingKey] = null;
-      saveAccount();
-      gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
-      notifications.show("BUTTON UNMAPPED!");
     }
-    
-    const selectedIndex = this.waitingState.selectedIndex;
-    const wasKeyboard = this.waitingState.type === "keyboard";
-    
-    this.cleanupWaitOverlay();
-    
-    if (wasKeyboard) {
-      this.showKeyboardCustomization(selectedIndex, selectedIndex);
-    } else {
-      this.showGamepadCustomization(selectedIndex, selectedIndex);
-    }
-    
-    this.waitingState = null;
+    return null;
   }
   
-  getKeyboardKeyDisplay(mappingPath, index) {
-    const [player, mappingKey] = mappingPath.split('.');
-    const mapping = Account.mapping.keyboard[player][mappingKey];
+  findGamepadKeyConflict(playerKey, mappingKey, buttonCode) {
+    const mapping = this.pendingChanges.gamepad;
+    const controlLabels = {
+      'up': 'UP',
+      'down': 'DOWN',
+      'left': 'LEFT',
+      'right': 'RIGHT',
+      'a': 'CONFIRM',
+      'b': 'CANCEL',
+      'start': 'START',
+      'select': 'SELECT'
+    };
+    
+    for (const [pKey, player] of Object.entries(mapping)) {
+      for (const [mKey, code] of Object.entries(player)) {
+        if (pKey === playerKey && mKey === mappingKey) continue;
+        if (code === buttonCode) {
+          const label = `${pKey === 'player1' ? 'P1' : 'P2'} ${controlLabels[mKey] || mKey.toUpperCase()}`;
+          return { playerKey: pKey, mappingKey: mKey, label: label };
+        }
+      }
+    }
+    return null;
+  }
+  
+  unmapKeyboardKey(playerNum, mappingKey, index) {
+    const playerKey = playerNum === 1 ? "player1" : "player2";
+    const mapping = this.pendingChanges.keyboard;
+    
+    if (mapping[playerKey][mappingKey] && Array.isArray(mapping[playerKey][mappingKey]) && mapping[playerKey][mappingKey].length > index) {
+      mapping[playerKey][mappingKey][index] = null;
+      
+      while (mapping[playerKey][mappingKey].length > 0 && mapping[playerKey][mappingKey][mapping[playerKey][mappingKey].length - 1] === null) {
+        mapping[playerKey][mappingKey].pop();
+      }
+      
+      this.showNotification("KEY UNMAPPED!");
+    }
+  }
+  
+  unmapGamepadKey(playerNum, mappingKey) {
+    const playerKey = playerNum === 1 ? "player1" : "player2";
+    const mapping = this.pendingChanges.gamepad;
+    
+    mapping[playerKey][mappingKey] = null;
+    
+    this.showNotification("BUTTON UNMAPPED!");
+  }
+  
+  getKeyboardKeyDisplay(playerKey, mappingKey, index) {
+    const mapping = this.pendingChanges.keyboard[playerKey][mappingKey];
     
     if (!mapping || !Array.isArray(mapping) || index >= mapping.length || !mapping[index]) {
       return "???";
@@ -496,9 +569,8 @@ class Keybindings {
     return this.getKeyName(mapping[index]);
   }
   
-  getGamepadButtonDisplay(mappingPath) {
-    const [player, mappingKey] = mappingPath.split('.');
-    const buttonCode = Account.mapping.gamepad[player][mappingKey];
+  getGamepadButtonDisplay(playerKey, mappingKey) {
+    const buttonCode = this.pendingChanges.gamepad[playerKey][mappingKey];
     
     if (buttonCode === undefined || buttonCode === null) {
       return "???";
@@ -508,7 +580,7 @@ class Keybindings {
   }
   
   getKeyName(keyCode) {
-    for (const [name, code] of Object.entries(Phaser.KeyCode)) {
+    for (const [name, code] of Object.entries(KEYBOARD_KEY_CODES)) {
       if (code === keyCode) {
         return this.formatKeyName(name);
       }
@@ -518,10 +590,8 @@ class Keybindings {
   
   formatKeyName(name) {
     const nameMap = KEYBOARD_KEY_NAMES;
-    
     if (nameMap[name]) return nameMap[name];
     if (name.length === 1 && /^[A-Z0-9]$/.test(name)) return name;
-    
     return name.replace(/_/g, ' ');
   }
   

@@ -88,7 +88,7 @@ class LoadSongFolder {
     const zipContent = await zip.loadAsync(file);
 
     // Import the project
-    await this.processZipContent(zipContent, callback => {
+    await this.processZipContent(zipContent, chart => {
       // Start gameplay directly with this single song
       game.state.start("SongSelect", true, false, [ chart ], 0, true);
     });
