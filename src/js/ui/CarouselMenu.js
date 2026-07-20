@@ -729,10 +729,13 @@ class CarouselMenu extends Phaser.Sprite {
     this.onCancel.dispose();
   }
   
+  replace() {
+    this.destroy();
+    return new CarouselMenu(this.x, this.y, this.viewport.width, this.viewport.height, this.config);
+  }
+  
   destroy(createNew = false) {
     this.clear();
     super.destroy();
-    
-    return createNew ? new CarouselMenu(this.x, this.y, this.viewport.width, this.viewport.height, this.config) : null;
   }
 }

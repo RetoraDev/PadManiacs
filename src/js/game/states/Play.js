@@ -1,5 +1,5 @@
 class Play {
-  init(song, difficultyIndex, playtestMode, autoplay) {
+  init(song, difficultyIndex, playtestMode, autoplay, playlistKey) {
     this.originalSong = song;
     this.song = structuredClone(song);
     this.difficultyIndex = difficultyIndex || song.difficultyIndex;
@@ -15,6 +15,7 @@ class Play {
     this.started = false;
     this.startTime = 0;
     this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
+    this.playlistKey = playlistKey;
     this.userOffset = Account.settings.userOffset || 0;
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
@@ -995,7 +996,7 @@ class Play {
   }
   
   restartSong() {
-    game.state.start("Play", true, false, this.originalSong, this.difficultyIndex, this.playtestMode, this.autoplay);
+    game.state.start("Play", true, false, this.originalSong, this.difficultyIndex, this.playtestMode, this.autoplay, this.playlistKey);
   }
   
   songEnd() {
@@ -1037,7 +1038,8 @@ class Play {
       playtestMode: this.playtestMode,
       player: this.player,
       expGain: expGain,
-      gameResults: gameResults
+      gameResults: gameResults,
+      playlistKey: this.playlistKey
     };
     
     // Hide HUD
@@ -1145,14 +1147,14 @@ class Play {
     if (this.autoplay && !this.playtestMode) {
       this.pauseCarousel.addItem("Disable Autoplay", () => {
         Account.settings.autoplay = false;
-        game.state.start("SongSelect", true, false, null, null, true);
+        game.state.start("SongSelect", true, false, null, null, true, this.playlistKey);
       });
     }
     if (this.playtestMode) {
       if (this.autoplay) {
-        this.pauseCarousel.addItem("Disable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false));
+        this.pauseCarousel.addItem("Disable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false, this.playlistKey));
       } else {
-        this.pauseCarousel.addItem("Enable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
+        this.pauseCarousel.addItem("Enable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true, this.playlistKey));
       }
     }
     this.pauseCarousel.addItem("Restart", () => this.restartSong());

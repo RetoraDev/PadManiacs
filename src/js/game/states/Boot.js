@@ -151,10 +151,12 @@ class Boot {
     game.state.add("Title", Title);
     game.state.add("MainMenu", MainMenu);
     game.state.add("Addons", Addons);
+    game.state.add("Playlists", Playlists);
     game.state.add("Settings", Settings);
     game.state.add("ChartModifiers", ChartModifiers);
     game.state.add("Keybindings", Keybindings);
     game.state.add("SongSelect", SongSelect);
+    game.state.add("SongStats", SongStats);
     game.state.add("FileSelect", FileSelect);
     game.state.add("CharacterSelect", CharacterSelect);
     game.state.add("AchievementsMenu", AchievementsMenu);

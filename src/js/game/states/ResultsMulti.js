@@ -159,10 +159,10 @@ class ResultsMulti extends Results {
     });
     
     menu.addItem("Next", () => {
-      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto");
+      game.state.start("SongSelect", window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
     });
-    menu.addItem("Continue", () => game.state.start("SongSelect"));
-    menu.addItem("Retry", () => game.state.start("PlayMulti", true, false, this.config));
+    menu.addItem("Continue", () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
+    menu.addItem("Retry", () => game.state.start("PlayMulti", true, false, this.config, undefined, undefined, undefined, this.gameData.playlistKey));
     menu.addItem("Quit", () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results_multi', menu);

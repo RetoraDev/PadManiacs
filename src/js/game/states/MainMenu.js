@@ -203,6 +203,10 @@ class MainMenu {
     
     carousel.addItem("Free Play", () => this.freePlay());
     carousel.addItem("Extra Songs", () => this.showExtraSongs());
+    carousel.addItem("Playlists", () => {
+      this.keepBackgroundMusic = true;
+      game.state.start("Playlists");
+    });
     game.onMenuIn.dispatch('startGame', carousel);
     carousel.addItem("< Back", () => this.showHomeMenu());
     carousel.onCancel.add(() => this.showHomeMenu());

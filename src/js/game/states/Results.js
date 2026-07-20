@@ -229,16 +229,16 @@ class Results {
     });
     
     menu.addItem("Next", () => {
-      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto");
+      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
     });
-    menu.addItem("Continue", () => game.state.start("SongSelect"));
+    menu.addItem("Continue", () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
     if (Account.settings.autoplay) {
       menu.addItem("Disable Autoplay", () => {
         Account.settings.autoplay = false;
-        game.state.start("SongSelect");
+        game.state.start("SongSelect", window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
       });
     }
-    menu.addItem("Retry", () => game.state.start("Play", true, false, this.gameData.song));
+    menu.addItem("Retry", () => game.state.start("Play", true, false, this.gameData.song, this.gameData.playlistKey));
     menu.addItem("Quit", () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results', menu);

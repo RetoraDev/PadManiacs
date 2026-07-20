@@ -40,6 +40,9 @@ class BuildSystem {
       // Achievements System
       'js/achievements/AchievementsManager.js',
       
+      // Playlist Manager
+      'js/playlist/PlaylistManager.js',
+      
       // UI Components
       'js/ui/Text.js',
       'js/ui/Window.js',
@@ -124,6 +127,7 @@ class BuildSystem {
       'js/game/states/Keybindings.js',
       'js/game/states/FileSelect.js',
       'js/game/states/SongSelect.js',
+      'js/game/states/SongStats.js',
       'js/game/states/CharacterSelect.js',
       'js/game/states/AchievementsMenu.js',
       'js/game/states/StatsMenu.js',
@@ -131,6 +135,7 @@ class BuildSystem {
       'js/game/states/PlayMulti.js',
       'js/game/states/Results.js',
       'js/game/states/ResultsMulti.js',
+      'js/game/states/Playlists.js',
       'js/game/states/Jukebox.js',
       'js/game/states/Editor.js',
       'js/game/states/Credits.js',

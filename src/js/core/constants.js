@@ -164,6 +164,11 @@ const NAVIGATION_HINT_PRESETS = {
     },
     {
       position: "right",
+      icon: "start",
+      text: "OPTION"
+    },
+    {
+      position: "right",
       icon: "select",
       text: "AUTO"
     }

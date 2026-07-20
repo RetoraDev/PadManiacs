@@ -1,6 +1,10 @@
 class SongSelect {
-  init(songs, index, autoSelect, type = "auto") {
+  init(songs, index, autoSelect, type = "auto", playlistKey = null) {
     this.type = type;
+    this.playlistKey = playlistKey;
+    
+    this.isActionMenuOpen = false;
+    this.actionsMenuBlocked = false;
     
     switch (type) {
       case "local":
@@ -292,7 +296,9 @@ class SongSelect {
     const y = 37;
     const width = game.width / 2;
     const height = game.height;
-
+    
+    this.actionsMenuBlocked = true;
+    
     this.difficultyCarousel = new CarouselMenu(x, y, width, height, {
       bgcolor: "#e67e22",
       fgcolor: "#ffffff",
@@ -327,6 +333,7 @@ class SongSelect {
 
     this.difficultyCarousel.onCancel.add(() => {
       this.createSongSelectionMenu();
+      this.actionsMenuBlocked = false;
     });
   }
   
@@ -492,7 +499,203 @@ class SongSelect {
     game.state.start(singlePlayer ? "Play" : "PlayMulti", true, false, {
       chart: song,
       difficultyIndex
+    }, undefined, undefined, this.playlistKey);
+  }
+
+  showActionsMenu(playlistKey) {
+    this.isActionMenuOpen = true;
+    this.songCarousel.visible = false;
+    this.songCarousel.inputEnabled = false;
+    
+    this.actionsMenu = new CarouselMenu(0, 35, game.width / 2, 100, {
+      bgcolor: '#2c3e50',
+      fgcolor: '#ffffff',
+      align: 'left',
+      animate: true
     });
+    
+    const hasPlaylistKey = !!playlistKey;
+    const currentSong = this.songs[this.songCarousel.selectedIndex];
+    
+    // Add to playlist
+    if (!hasPlaylistKey) {
+      this.actionsMenu.addItem("Add to playlist", () => this.showAddToPlaylistMenu(currentSong));
+    } else {
+      this.actionsMenu.addItem("Add to another playlist", () => this.showAddToPlaylistMenu(currentSong, playlistKey));
+    }
+    
+    // Remove from playlist
+    if (hasPlaylistKey) {
+      this.actionsMenu.addItem("Remove from playlist", () => {
+        const playlistManager = PlaylistManager.getInstance();
+        const playlist = playlistManager.getPlaylist(playlistKey);
+        if (playlist) {
+          const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
+          if (index !== -1) {
+            playlistManager.removeSong(playlistKey, index);
+            notifications.show("Removed from playlist!");
+            this.closeActionsMenu();
+            
+            // Reinitialize with updated songs at the same index (or previous if last)
+            const updatedPlaylist = playlistManager.getPlaylist(playlistKey);
+            const newIndex = Math.min(index, updatedPlaylist.songs.length - 1);
+            game.state.start("SongSelect", true, false, 
+              updatedPlaylist.songs, 
+              newIndex, 
+              false, 
+              this.type, 
+              this.playlistKey
+            );
+          } else {
+            notifications.show("Song not in playlist!");
+          }
+        }
+      });
+    }
+    
+    // Move up/down
+    if (hasPlaylistKey) {
+      const playlistManager = PlaylistManager.getInstance();
+      const playlist = playlistManager.getPlaylist(playlistKey);
+      if (playlist) {
+        const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
+        if (index !== -1) {
+          this.actionsMenu.addItem("Move up", () => {
+            if (index > 0) {
+              const playlistManager = PlaylistManager.getInstance();
+              playlistManager.moveSong(playlistKey, index, index - 1);
+              notifications.show("Moved up!");
+              this.closeActionsMenu();
+              
+              // Reinitialize with swapped songs at the new index
+              const updatedPlaylist = playlistManager.getPlaylist(playlistKey);
+              const newIndex = index - 1; // The song moved up one position
+              game.state.start("SongSelect", true, false, 
+                updatedPlaylist.songs, 
+                newIndex, 
+                false, 
+                this.type, 
+                this.playlistKey
+              );
+            }
+          });
+          this.actionsMenu.addItem("Move down", () => {
+            if (index < playlist.songs.length - 1) {
+              const playlistManager = PlaylistManager.getInstance();
+              playlistManager.moveSong(playlistKey, index, index + 1);
+              notifications.show("Moved down!");
+              this.closeActionsMenu();
+              
+              // Reinitialize with swapped songs at the new index
+              const updatedPlaylist = playlistManager.getPlaylist(playlistKey);
+              const newIndex = index + 1; // The song moved down one position
+              game.state.start("SongSelect", true, false, 
+                updatedPlaylist.songs, 
+                newIndex, 
+                false, 
+                this.type, 
+                this.playlistKey
+              );
+            }
+          });
+        }
+      }
+    }
+    
+    // Statistics
+    this.actionsMenu.addItem("See statistics", () => {
+      game.state.start("SongStats", true, false, { chart: this.songs[this.songCarousel.selectedIndex] }, "SongSelect", [this.songs, this.songCarousel.selectedIndex, this.autoSelect, this.type, this.playlistKey]);
+    });
+    
+    // Open in Jukebox
+    this.actionsMenu.addItem("Open in Jukebox", () => {
+      game.state.start("Jukebox", true, false, this.songs, this.songCarousel.selectedIndex);
+    });
+    
+    // Open in Editor
+    this.actionsMenu.addItem("Open in Editor", () => {
+      game.state.start("Editor", true, false, { chart: this.songs[this.songCarousel.selectedIndex] });
+    });
+    
+    this.actionsMenu.addItem("< Back", () => this.closeActionsMenu());
+    this.actionsMenu.onCancel.add(() => this.closeActionsMenu());
+  }
+  
+  showAddToPlaylistMenu(song, omitKey) {
+    if (this.actionsMenu) this.actionsMenu.destroy();
+    
+    this.actionsMenu = new CarouselMenu(0, 35, game.width / 2, 100, {
+      bgcolor: '#8e44ad',
+      fgcolor: '#ffffff',
+      align: 'left',
+      animate: true
+    });
+    
+    const playlistManager = PlaylistManager.getInstance();
+    
+    this.actionsMenu.addItem("Create new playlist", () => {
+      this.createPlaylistForSong(song);
+    });
+    
+    const keys = playlistManager.getPlaylistNames();
+    for (const key of keys) {
+      if (key === omitKey) continue;
+      const playlist = playlistManager.getPlaylist(key);
+      this.actionsMenu.addItem(`Add to "${playlist.name}"`, () => {
+        this.closeActionsMenu();
+        if (playlistManager.addSong(key, song)) {
+          notifications.show(`Added to "${playlist.name}"!`);
+        } else {
+          notifications.show("Song already in playlist!");
+        }
+      });
+    }
+    
+    this.actionsMenu.addItem("< Back", () => {
+      this.showActionsMenu(omitKey);
+    });
+    this.actionsMenu.onCancel.add(() => this.showActionsMenu(omitKey));
+  }
+  
+  createPlaylistForSong(song) {
+    const keyboard = new OnScreenKeyboard();
+    
+    window.focusedElement = new TextInput({
+      text: song.titleTranslit || song.title || "New Playlist",
+      maxLength: 20,
+      useNewline: false,
+      y: 35,
+      onConfirm: (name) => {
+        if (name.trim()) {
+          const playlistManager = PlaylistManager.getInstance();
+          const key = playlistManager.createPlaylist(name.trim());
+          if (key) {
+            playlistManager.addSong(key, song);
+            notifications.show(`Playlist "${name}" created with song!`);
+            keyboard.destroy();
+            this.closeActionsMenu();
+          } else {
+            notifications.show("Playlist already exists!");
+          }
+        } else {
+          notifications.show("Name cannot be empty!");
+        }
+      },
+      onCancel: () => {
+        keyboard.destroy();
+        this.closeActionsMenu();
+      }
+    });
+  }
+  
+  closeActionsMenu() {
+    this.isActionMenuOpen = false;
+    this.songCarousel.inputEnabled = true;
+    this.songCarousel.visible = true;
+    if (this.actionsMenu) {
+      this.actionsMenu.destroy();
+      this.actionsMenu = null;
+    }
   }
 
   update() {
@@ -588,6 +791,8 @@ class SongSelect {
         gamepad.pressed.start = false;
         ENABLE_UI_SFX && Audio.play('ui_select');
       }
+    } else if (gamepad.pressed.start && !this.isActionMenuOpen && !this.actionsMenuBlocked) {
+      this.showActionsMenu(this.playlistKey);
     }
   }
   

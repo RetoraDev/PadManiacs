@@ -3,10 +3,10 @@ class PlayMulti extends Play {
     super();
   }
   
-  init(config) {
+  init(config, _, __, ___, playlistKey) {
     const { song, difficultyIndex } = config;
     
-    super.init({ chart: song, difficultyIndex }, difficultyIndex, false, false);
+    super.init({ chart: song, difficultyIndex }, difficultyIndex, undefined, undefined, playlistKey);
     
     this.config = config;
     
@@ -156,6 +156,7 @@ class PlayMulti extends Play {
   getGameResults() {
     return {
       song: this.song,
+      playlistKey: this.playlistKey,
       difficultyIndex: this.difficultyIndex,
       results: {
         player1: super.getGameResults(this.player1),

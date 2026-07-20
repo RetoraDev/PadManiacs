@@ -48,7 +48,7 @@ class Addons {
   }
   
   loadAddons() {
-    this.carousel = this.carousel.destroy(true);
+    this.carousel = this.carousel.replace();
 
     const addons = addonManager.getAddonList();
     
@@ -108,7 +108,7 @@ class Addons {
   }
   
   showAddonDetails(addon) {
-    this.carousel = this.carousel.destroy(true);
+    this.carousel = this.carousel.replace();
     
     if (addon.isHibernating) {
       this.carousel.addItem("Wake Addon", () => {
