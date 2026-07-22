@@ -9,8 +9,8 @@ class LoadExternalSongFile {
   create() {
     this.loadingDots = new LoadingDots();
     
-    this.progressText = new ProgressText("LOADING SONG DATA");
-    
+    this.progressText = new ProgressText(__("Loading Song...||Cargando canción..."));
+
     this.fileSystem = new FileSystemTools();
     this.parser = new ExternalSMParser();
     
@@ -47,13 +47,13 @@ class LoadExternalSongFile {
         return;
       }
     } catch (parseError) {
-      // Failed to parse, continue loading next chart
-      this.showError(`Failed to parse ${this.fileName}:`);
+      // Failed to parse, abort
+      this.showError(__(`(Failed to parse|Error al analizar): ${this.fileName}`));
       console.warn(`Failed to parse ${this.fileName}:`, parseError);
       return;
     }
     
-    this.showError(`Failed to parse ${this.fileName}`);
+    this.showError(__(`(Failed to parse|Error al analizar): ${this.fileName}`));
   }
   
   async loadZipFileData() {
@@ -76,12 +76,12 @@ class LoadExternalSongFile {
     
     const JSZip = window.JSZip;
     if (!JSZip) {
-      this.showError("Couldn't load ZIP file");
+      this.showError(__("Couldn't load ZIP file||No se pudo cargar el ZIP"));
       throw new Error("JSZip library not loaded");
     }
     
     if (!file) {
-      this.showError("Couldn't load ZIP file");
+      this.showError(__("Couldn't load ZIP file||No se pudo cargar el ZIP"));
       throw new Error("Undefined .zip file");
     }
     
@@ -101,7 +101,7 @@ class LoadExternalSongFile {
   
   finish(chart = null) {
     if (!chart) {
-      this.showError("Couldn't load song");
+      this.showError(__("Couldn't load song||No se pudo cargar la canción"));
       return;
     }
     

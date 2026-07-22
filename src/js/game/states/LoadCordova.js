@@ -9,8 +9,8 @@ class LoadCordova {
   loadScript() {
     this.loadingDots = new LoadingDots();
     
-    this.progressText = new ProgressText("INITIALIZING FILESYSTEM");
-    
+    this.progressText = new ProgressText(__("Initializing filesystem...||Inicializando Sistema de Archivos..."));
+
     const script = document.createElement("script");
     script.src = "./cordova/cordova.js";
     document.head.appendChild(script);

@@ -161,4 +161,36 @@ class FileTools {
       reader.readAsBinaryString(file);
     });
   }
+  
+  static async fetchFileAsBlob(url) {
+    // Si es una URL de objeto (blob:) o data URL, fetch directamente
+    if (url.startsWith('blob:') || url.startsWith('data:')) {
+      const response = await fetch(url);
+      return await response.blob();
+    }
+    
+    // Si es una URL relativa o absoluta (http/https)
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.status}`);
+      }
+      return await response.blob();
+    }
+    
+    // Si es un path de archivo local (Cordova/NWJS)
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+      try {
+        const fileSystem = new FileSystemTools();
+        const fileEntry = await fileSystem.getFile(url);
+        return new Promise((resolve, reject) => {
+          fileEntry.file(resolve, reject);
+        });
+      } catch (e) {
+        throw new Error(`Failed to load local file: ${url}`);
+      }
+    }
+    
+    throw new Error(`Unsupported URL type: ${url}`);
+  }
 }

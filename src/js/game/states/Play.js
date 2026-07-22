@@ -522,7 +522,7 @@ class Play {
       },
       {
         value: this.song.chart.credit,
-        prefix: 'Chart by ',
+        prefix: __('Chart (by|por) '),
         font: 'default_shadow',
         delay: 150,
         height:  8,
@@ -1111,13 +1111,13 @@ class Play {
     const gameResults = this.getGameResults(this.player);
     
     // Track full combo and flawless combo stats
+    const judgements = this.player.judgementCounts;
+    const totalNotes = this.player.totalNotes;
+    const isFullCombo = judgements.miss === 0;
+    const isFlawless = isFullCombo && (judgements.marvelous + judgements.perfect) === totalNotes;
+    const isAbsoluteFlawless = isFullCombo && judgements.marvelous === totalNotes;
+    
     if (!this.autoplay) {
-      const judgements = this.player.judgementCounts;
-      const totalNotes = this.player.totalNotes;
-      const isFullCombo = judgements.miss === 0;
-      const isFlawless = isFullCombo && (judgements.marvelous + judgements.perfect) === totalNotes;
-      const isAbsoluteFlawless = isFullCombo && judgements.marvelous === totalNotes;
-      
       // Update stats
       if (isFullCombo) {
         Account.stats.fullCombos = (Account.stats.fullCombos || 0) + 1;
@@ -1277,27 +1277,27 @@ class Play {
       animate: true
     });
     
-    this.pauseCarousel.addItem("Continue", () => this.resume());
+    this.pauseCarousel.addItem(__("Continue||Continuar"), () => this.resume());
     if (this.autoplay && !this.playtestMode) {
-      this.pauseCarousel.addItem("Disable Autoplay", () => {
+      this.pauseCarousel.addItem(__("(Disable|Desactivar) Autoplay"), () => {
         Account.settings.autoplay = false;
         game.state.start("SongSelect", true, false, null, null, true, this.playlistKey);
       });
     }
     if (this.playtestMode) {
       if (this.autoplay) {
-        this.pauseCarousel.addItem("Disable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false, this.playlistKey));
+        this.pauseCarousel.addItem(__("(Disable|Desactivar) Autoplay"), () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false, this.playlistKey));
       } else {
-        this.pauseCarousel.addItem("Enable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true, this.playlistKey));
+        this.pauseCarousel.addItem(__("(Enable|Activar) Autoplay"), () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true, this.playlistKey));
       }
     }
-    this.pauseCarousel.addItem("Restart", () => this.restartSong());
-    this.pauseCarousel.addItem(this.playtestMode ? "< Back To Editor" : "Give Up", () => this.songEnd());
+    this.pauseCarousel.addItem("Restart||Reiniciar", () => this.restartSong());
+    this.pauseCarousel.addItem(this.playtestMode ? __("< (Back To Editor|Volver Al Editor)") : __("Give Up||Rendirse"), () => this.songEnd());
     
     game.onMenuIn.dispatch('pause', this.pauseCarousel);
     
     if (!this.playtestMode) {
-      this.pauseCarousel.addItem("QUIT", () => game.state.start("MainMenu"));
+      this.pauseCarousel.addItem(__("QUIT||SALIR"), () => game.state.start("MainMenu"));
     }
     
     this.pauseCarousel.onCancel.add(() => this.resume());

@@ -10,11 +10,9 @@ class Settings {
     
     this.showSettings();
     
-    // File input element for loading backup files
     this.fileInput = document.createElement("input");
     this.fileInput.type = "file";
     
-    // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
@@ -24,7 +22,7 @@ class Settings {
   }
   
   showSettings() {
-    const loading = new Text(game.width / 2, game.height / 2, "Please Wait...");
+    const loading = new Text(game.width / 2, game.height / 2, __("Please Wait...||Espera..."));
     loading.anchor.set(0.5);
     
     game.time.events.add(100, () => {
@@ -45,7 +43,7 @@ class Settings {
     
     // Music Volume
     settingsWindow.addRangeItem(
-      "Music Playback Volume",
+      __("(Music Playback Volume|Volumen de la Música)"),
       0,
       100,
       1,
@@ -62,7 +60,7 @@ class Settings {
     
     // Sfx Volume
     settingsWindow.addRangeItem(
-      "Sound Effects Volume",
+      __("(Sound Effects Volume|Volumen de los Efectos)"),
       0,
       100,
       1,
@@ -80,7 +78,7 @@ class Settings {
     // Auto-play setting
     settingsWindow.addSettingItem(
       "Auto-play",
-      ["OFF", "ON"], 
+      [__("(Off|Apagado)"), __("(On|Activado)")], 
       Account.settings.autoplay ? 1 : 0,
       index => {
         Account.settings.autoplay = index === 1;
@@ -89,25 +87,37 @@ class Settings {
     );
     
     // Metronome setting
-    const metronomeOptions = ['OFF', 'Note', 'Quarters', 'Eighths', 'Sixteenths', 'Thirty-seconds'];
-    const currentMetronomeIndex = metronomeOptions.indexOf(Account.settings.metronome || 'OFF');
+    const metronomeOptions = [
+      { key: 'Off', label: __("(Off|Apagado)") },
+      { key: 'Note', label: __("(Note|Nota)") },
+      { key: 'Quarters', label: __("(Quarters|Negras)") },
+      { key: 'Eighths', label: __("(Eighths|Corcheas)") },
+      { key: 'Sixteenths', label: __("(Sixteenths|Semicorcheas)") },
+      { key: 'Thirty-seconds', label: __("(Thirty-seconds|Fusas)") }
+    ];
+    const currentMetronomeIndex = metronomeOptions.findIndex(opt => opt.key === (Account.settings.metronome || 'Off'));
     settingsWindow.addSettingItem(
-      "Metronome",
-      metronomeOptions,
+      __("(Metronome|Metrónomo)"),
+      metronomeOptions.map(opt => opt.label),
       currentMetronomeIndex,
       index => {
-        Account.settings.metronome = metronomeOptions[index];
+        Account.settings.metronome = metronomeOptions[index].key;
         saveAccount();
       }
     );
-    
+        
     // Visualizer 
-    const visualizerOptions = ['NONE', 'BPM', 'ACCURACY', 'AUDIO'];
-    const currentVisualizer = Account.settings.visualizer || 'NONE';
+    const visualizerOptions = [
+      __("(None|Ninguno)"), 
+      "BPM", 
+      __("(Accuracy|Precisión)"), 
+      "Audio"
+    ];
+    const currentVisualizer = Account.settings.visualizer || 'None';
     const currentVisualizerIndex = visualizerOptions.indexOf(currentVisualizer);
     
     settingsWindow.addSettingItem(
-      "Visualizer",
+      __("(Visualizer|Visualizador)"),
       visualizerOptions,
       currentVisualizerIndex,
       index => {
@@ -119,8 +129,8 @@ class Settings {
     
     // Mouse 
     settingsWindow.addSettingItem(
-      "Enable Mouse",
-      ["YES", "NO"],
+      __("(Enable Mouse|Activar Mouse)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.enableMouse ? 0 : 1,
       index => {
         Account.settings.enableMouse = index === 0;
@@ -131,8 +141,8 @@ class Settings {
     
     // Touch 
     settingsWindow.addSettingItem(
-      "Enable Touch",
-      ["YES", "NO"],
+      __("(Enable Touch|Activar Táctil)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.enableTouch ? 0 : 1,
       index => {
         Account.settings.enableTouch = index === 0;
@@ -143,8 +153,8 @@ class Settings {
     
     // Scroll direction
     settingsWindow.addSettingItem(
-      "Scroll Direction",
-      ["FALLING", "RISING"],
+      __("(Scroll Direction|Dirección de Desplazamiento)"),
+      [__("(Falling|Cayendo)"), __("(Rising|Ascendente)")],
       Account.settings.scrollDirection === 'falling' ? 0 : 1,
       index => {
         Account.settings.scrollDirection = index === 0 ? 'falling' : 'rising';
@@ -152,10 +162,23 @@ class Settings {
       }
     );
     
+    // Idioma
+    settingsWindow.addSettingItem(
+      __("(Language|Idioma)"),
+      [__("(English|Inglés)"), __("(Spanish|Español)")],
+      Account.settings.language || 0,
+      index => {
+        Account.settings.language = index;
+        saveAccount();
+        restartNeeded = true;
+        notifications.show(__("Language changed. Restart required.||Idioma cambiado. Requiere reiniciar."), 2000, "info");
+      }
+    );
+    
     // Button Style
     settingsWindow.addSettingItem(
-      "Button Style",
-      ["X-BOX", "PLAYSTATION"],
+      __("(Button Style|Estilo de Botones)"),
+      ["X-Box", "Playstation"],
       (Account.settings.buttonStyle || 'xbox') === 'xbox' ? 0 : 1,
       index => {
         Account.settings.buttonStyle = index === 0 ? 'xbox' : 'ps';
@@ -169,14 +192,14 @@ class Settings {
     
     // Note colors
     const noteOptions = [
-      { value: 'NOTE', display: 'NOTE' },
-      { value: 'VIVID', display: 'VIVID' },
-      { value: 'FLAT', display: 'FLAT' },
-      { value: 'RAINBOW', display: 'RAINBOW' }
+      { value: 'NOTE', display: "Note" },
+      { value: 'VIVID', display: "Vivid" },
+      { value: 'FLAT', display: "Flat" },
+      { value: 'RAINBOW', display: "Rainbow" }
     ];
     const currentNoteIndex = noteOptions.findIndex(opt => opt.value === Account.settings.noteColorOption);
     settingsWindow.addSettingItem(
-      "Note Colors",
+      __("(Note Colors|Colores de Notas)"),
       noteOptions.map(opt => opt.display),
       currentNoteIndex,
       index => {
@@ -187,8 +210,16 @@ class Settings {
 
     // Note speed
     settingsWindow.addSettingItem(
-      "Note Speed",
-      ["Normal", "Double", "Triple", "Insane", "Sound Barrier", "Light Speed", "Faster than light"],
+      __("(Note Speed|Velocidad de Notas)"),
+      [
+        __("(Normal|Normal)"),
+        __("(Double|Doble)"),
+        __("(Triple|Triple)"),
+        __("(Insane|Alucinante)"),
+        __("(Sound Barrier|Barrera de Sonido)"),
+        __("(Light Speed|Velocidad de la Luz)"),
+        __("(Faster than light|Más Rápido que la Luz)")
+      ],
       Account.settings.noteSpeedMult - 1,
       index => {
         Account.settings.noteSpeedMult = index + 1;
@@ -198,8 +229,8 @@ class Settings {
     
     // Speed mod
     settingsWindow.addSettingItem(
-      "Speed Mod",
-      ["X-MOD", "C-MOD"],
+      __("(Speed Mod|Modo de Velocidad)"),
+      ["X-Mod", "C-Mod"],
       Account.settings.speedMod === 'C-MOD' ? 1 : 0,
       index => {
         Account.settings.speedMod = index === 1 ? 'C-MOD' : 'X-MOD';
@@ -209,8 +240,8 @@ class Settings {
     
     // Haptic feedback
     settingsWindow.addSettingItem(
-      "Haptic Feedback",
-      ["OFF", "ON"], 
+      __("(Haptic Feedback|Retroalimentación Háptica)"),
+      [__("(Off|Apagado)"), __("(On|Activado)")], 
       Account.settings.hapticFeedback ? 1 : 0,
       index => {
         Account.settings.hapticFeedback = index === 1;
@@ -220,8 +251,8 @@ class Settings {
     
     // Enable Temperature
     settingsWindow.addSettingItem(
-      "Enable Temperature (Experimental)",
-      ["YES", "NO"], 
+      __("(Enable Audio Temperature|Activar Temperatura del Audio) (Experimental)"),
+      [__("(Yes|Sí)"), __("(No|No)")], 
       Account.settings.enableTemperature ? 0 : 1,
       index => {
         Account.settings.enableTemperature = index === 0;
@@ -231,8 +262,8 @@ class Settings {
     
     // Enable Lyrics
     settingsWindow.addSettingItem(
-      "Enable Lyrics",
-      ["YES", "NO"], 
+      __("(Enable Lyrics|Activar Letras)"),
+      [__("(Yes|Sí)"), __("(No|No)")], 
       Account.settings.enableLyrics ? 0 : 1,
       index => {
         Account.settings.enableLyrics = index === 0;
@@ -242,8 +273,8 @@ class Settings {
     
     // Lyrics Position
     settingsWindow.addSettingItem(
-      "Lyrics Position",
-      ["BOTTOM", "TOP"], 
+      __("(Lyrics Position|Posición de Letras)"),
+      [__("(Bottom|Abajo)"), __("(Top|Arriba)")], 
       Account.settings.lyricsPosition,
       index => {
         Account.settings.lyricsPosition = index;
@@ -253,7 +284,7 @@ class Settings {
     
     // Background opacity
     settingsWindow.addRangeItem(
-      "Background Image Opacity",
+      __("(Background Image Opacity|Opacidad de Imagen de Fondo)"),
       0,
       100,
       1,
@@ -267,7 +298,7 @@ class Settings {
     
     // Video Background opacity
     settingsWindow.addRangeItem(
-      "Background Video Opacity",
+      __("(Background Video Opacity|Opacidad de Video de Fondo)"),
       0,
       100,
       1,
@@ -281,8 +312,8 @@ class Settings {
     
     // Video FPS
     settingsWindow.addSettingItem(
-      "Background Video FPS",
-      ["60 FPS", "30 FPS", "15 FPS"],
+      __("(Background Video FPS|FPS de Videos)"),
+      ["60 Fps", "30 Fps", "15 Fps"],
       (Account.settings.videoFPS || 1) - 1,
       index => {
         Account.settings.videoFPS = index + 1;
@@ -292,8 +323,8 @@ class Settings {
     
     // Song Info Intro
     settingsWindow.addSettingItem(
-      "Display Song Info Intro",
-      ["YES", "NO"],
+      __("(Display Song Info Intro|Mostrar Información de Canción)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.enableSongInfo ? 0 : 1,
       index => {
         Account.settings.enableSongInfo = index === 0;
@@ -303,8 +334,8 @@ class Settings {
     
     // Beat lines
     settingsWindow.addSettingItem(
-      "Enable Beat Lines",
-      ["YES", "NO"],
+      __("(Enable Beat Lines|Activar Líneas de Beat)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.beatLines ? 0 : 1,
       index => {
         Account.settings.beatLines = index === 0;
@@ -314,8 +345,8 @@ class Settings {
     
     // Chart background
     settingsWindow.addSettingItem(
-      "Enable Chart Overlay",
-      ["YES", "NO"],
+      __("(Enable Chart Overlay|Activar Superposición de Chart)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.enableChartBackground ? 0 : 1,
       index => {
         Account.settings.enableChartBackground = index === 0;
@@ -325,7 +356,7 @@ class Settings {
     
     // Chart Background opacity
     settingsWindow.addRangeItem(
-      "Chart Overlay Opacity",
+      __("(Chart Overlay Opacity|Opacidad de Superposición de Chart)"),
       0,
       100,
       1,
@@ -339,7 +370,7 @@ class Settings {
     
     // Global offset
     settingsWindow.addRangeItem(
-      "Global Offset",
+      __("(Global Offset|Offset Global)"),
       -2000,
       2000,
       1,
@@ -359,8 +390,12 @@ class Settings {
       menuMusicIndex = 2;
     }
     settingsWindow.addSettingItem(
-      "Menu Music",
-      ["LAST SONG", "RANDOM SONG", "OFF"],
+      __("(Menu Music|Música del Menú)"),
+      [
+        __("(Last Song|Última Canción)"), 
+        __("(Random Song|Canción Aleatoria)"), 
+        __("(Off|Apagado)")
+      ],
       menuMusicIndex,
       index => {
         switch (index) {
@@ -382,8 +417,8 @@ class Settings {
 
     // Renderer
     settingsWindow.addSettingItem(
-      "Renderer",
-      ["AUTO", "CANVAS (Experimental)", "WEBGL"],
+      __("(Renderer|Renderizador)"),
+      ["Auto", __("(Canvas (Experimental)|Canvas (Experimental))"), "Webgl"],
       Account.settings.renderer,
       index => {
         Account.settings.renderer = index;
@@ -394,8 +429,8 @@ class Settings {
     
     // Pixelated
     settingsWindow.addSettingItem(
-      "Pixelated",
-      ["YES", "NO"],
+      __("(Pixelated|Pixelado)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.pixelated ? 0 : 1,
       index => {
         Account.settings.pixelated = index == 0;
@@ -406,8 +441,8 @@ class Settings {
     
     // Image Rendering Mode
     settingsWindow.addSettingItem(
-      "Image Rendering Mode",
-      ["COMPATIBILITY", "NORMAL"],
+      __("(Image Rendering Mode|Modo de Renderizado de Imágenes)"),
+      [__("(Compatibility|Compatibilidad)"), __("(Normal|Normal)")],
       Account.settings.imageRenderingCompatibility ? 0 : 1,
       index => {
         Account.settings.imageRenderingCompatibility = index === 0;
@@ -417,8 +452,8 @@ class Settings {
     
     // Safe Mode
     settingsWindow.addSettingItem(
-      "Safe Mode",
-      ["ENABLED", "DISABLED"],
+      __("(Safe Mode|Modo Seguro)"),
+      [__("(Enabled|Activado)"), __("(Disabled|Desactivado)")],
       Account.settings.safeMode ? 0 : 1,
       index => {
         restartNeeded = true;
@@ -429,22 +464,22 @@ class Settings {
     );
     
     // Configure keybindings
-    settingsWindow.addItem("Configure keybindings", ">", () => {
+    settingsWindow.addItem(__("(Configure keybindings|Configurar teclas)"), ">", () => {
       this.showKeybindingsMenu()
     });
     
     // Chart Modifiers
-    settingsWindow.addItem("Chart Modifiers", ">", () => this.showChartModifiersMenu());
+    settingsWindow.addItem(__("(Chart Modifiers|Modificadores de Chart)"), ">", () => this.showChartModifiersMenu());
     
     // Danger zone
-    settingsWindow.addItem("Erase Highscores", "", () => this.confirmEraseHighscores());
-    settingsWindow.addItem("Import Backup Data", "", () => this.importBackupData());
-    settingsWindow.addItem("Export Backup Data", "", () => this.exportBackupData());
-    settingsWindow.addItem("Restore Default Settings", "", () => this.confirmRestoreDefaults());
+    settingsWindow.addItem(__("(Erase Highscores|Borrar Highscores)"), "", () => this.confirmEraseHighscores());
+    settingsWindow.addItem(__("(Import Backup Data|Importar Datos de Respaldo)"), "", () => this.importBackupData());
+    settingsWindow.addItem(__("(Export Backup Data|Exportar Datos de Respaldo)"), "", () => this.exportBackupData());
+    settingsWindow.addItem(__("(Restore Default Settings|Restaurar Configuración Predeterminada)"), "", () => this.confirmRestoreDefaults());
     
     game.onMenuIn.dispatch('settings', settingsWindow);
     
-    settingsWindow.addItem("APPLY", "", () => {
+    settingsWindow.addItem(__("Apply||Aplicar"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       if (restartNeeded) {
         this.confirmRestart();
@@ -469,13 +504,17 @@ class Settings {
           this.windowManager.remove(this.settingsWindow, true);
       
           this.confirmDialog(
-            `Backup version: ${backupData.version || '???'}\n` +
+            __(`Backup version: ${backupData.version || '???'}\n` +
             `Backup date: ${backupData.exportDate ? new Date(backupData.exportDate).toDateString() : '???'}\n\n` +
             "Importing will overwrite your current account data including:\n" +
             "- High scores\n- Settings\n- Characters\n- Achievements\n- Statistics\n\n" +
-            "This action cannot be undone!\n\nAre you sure you want to import this backup?",
+            "This action cannot be undone!\n\nAre you sure you want to import this backup?||" +
+            `Versión del respaldo: ${backupData.version || '???'}\n` +
+            `Fecha del respaldo: ${backupData.exportDate ? new Date(backupData.exportDate).toDateString() : '???'}\n\n` +
+            "Importar sobrescribirá tus datos actuales de cuenta incluyendo:\n" +
+            "- Highscores\n- Configuración\n- Personajes\n- Logros\n- Estadísticas\n\n" +
+            "¡Esta acción no se puede deshacer!\n\n¿Estás seguro de que quieres importar este respaldo?"),
             () => {
-              // Merge backup with default structure to ensure all fields exist
               const mergedAccount = {
                 ...DEFAULT_ACCOUNT,
                 ...backupData,
@@ -486,32 +525,30 @@ class Settings {
                 mapping: { ...DEFAULT_ACCOUNT.mapping, ...backupData.mapping }
               };
               
-              // Update global Account object
               Object.assign(Account, mergedAccount);
               saveAccount();
               
-              notifications.show("Backup imported successfully!", 2000, "success");
+              notifications.show(__("Backup imported successfully!||¡Respaldo importado exitosamente!"), 2000, "success");
               
-              // Reload to apply all changes
               setTimeout(() => {
                 this.confirmDialog(
-                  "Import complete. Restart the game to ensure all data is properly loaded?",
+                  __("Import complete. Restart the game to ensure all data is properly loaded?||Importación completa. ¿Reiniciar el juego para asegurar que todos los datos se carguen correctamente?"),
                   () => location.reload(),
                   () => this.showSettings(),
-                  "Restart Now",
-                  "Later"
+                  __("Restart Now||Reiniciar Ahora"),
+                  __("Later||Después")
                 );
               }, 500);
             },
             () => {
               this.showSettings();
             },
-            "IMPORT",
-            "CANCEL"
+            __("Import||Importar"),
+            __("Cancel||Cancelar")
           );
         } catch (error) {
           console.error("Failed to parse backup file:", error);
-          notifications.show("Invalid backup file!", 2000, "error");
+          notifications.show(__("Invalid backup file!||¡Archivo de respaldo inválido!"), 2000, "error");
           this.showSettings();
         }
       };
@@ -524,7 +561,6 @@ class Settings {
   }
   
   async exportBackupData() {
-    // Create a backup object with all account data
     const backupData = {
       version: VERSION,
       exportDate: new Date().toISOString(),
@@ -543,7 +579,6 @@ class Settings {
     const filename = `PadManiacs_Backup_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
     
     if (CURRENT_ENVIRONMENT === ENVIRONMENT.WEB) {
-      // Download in browser
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -552,19 +587,18 @@ class Settings {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      notifications.show("Backup exported successfully!", 2000, "success");
+      notifications.show(__("Backup exported successfully!||¡Respaldo exportado exitosamente!"), 2000, "success");
       this.showSettings();
     } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
-      // Save to filesystem
       try {
         const fileSystem = new FileSystemTools();
         const outputDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + BACKUPS_DIRECTORY);
         await fileSystem.saveFile(outputDir, blob, filename);
-        notifications.show(`Backup saved to ${filename}`, 2000, "success");
+        notifications.show(__(`Backup saved to ${filename}||Respaldo guardado como ${filename}`), 2000, "success");
         this.showSettings();
       } catch (error) {
         console.error("Failed to save backup:", error);
-        notifications.show("Failed to save backup!", 2000, "error");
+        notifications.show(__("Failed to save backup!||¡Error al guardar el respaldo!"), 2000, "error");
         this.showSettings();
       }
     }
@@ -582,7 +616,7 @@ class Settings {
     game.state.start("ChartModifiers", true, false, "MainMenu");
   }
 
-  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+  confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
     });
@@ -606,16 +640,16 @@ class Settings {
 
   confirmEraseHighscores() {
     this.confirmDialog(
-      "This will permanently erase all your high scores.\nThis action cannot be undone!\n\nAre you sure?",
+      __("This will permanently erase all your high scores.\nThis action cannot be undone!\n\nAre you sure?||Esto borrará permanentemente todas tus puntuaciones altas.\n¡Esta acción no se puede deshacer!\n\n¿Estás seguro?"),
       () => {
         Account.highScores = {};
         saveAccount();
-        notifications.show("High scores erased!");
+        notifications.show(__("High scores erased!||¡Puntuaciones altas borradas!"));
         this.showSettings();
       },
       () => this.showSettings(),
-      "Erase",
-      "Cancel"
+      __("Erase||Borrar"),
+      __("Cancel||Cancelar")
     );
   }
 
@@ -623,25 +657,25 @@ class Settings {
     this.windowManager.remove(this.settingsWindow, true);
     
     this.confirmDialog(
-      "All settings will be restored to their default values.\nThe game will need to restart.\n\nContinue?",
+      __("All settings will be restored to their default values.\nThe game will need to restart.\n\nContinue?||Toda la configuración será restaurada a sus valores predeterminados.\nEl juego necesitará reiniciarse.\n\n¿Continuar?"),
       () => {
         Account.settings = DEFAULT_ACCOUNT.settings;
         saveAccount();
         window.location.reload();
       },
       () => this.showSettings(),
-      "Restore",
-      "Cancel"
+      __("Restore||Restaurar"),
+      __("Cancel||Cancelar")
     );
   }
 
   confirmRestart() {
     this.confirmDialog(
-      "Settings changed require a restart to take effect.\nRestart now?",
+      __("Settings changed require a restart to take effect.\nRestart now?||Los cambios en la configuración requieren un reinicio para aplicar.\n¿Reiniciar ahora?"),
       () => location.reload(),
       () => this.showMainMenu(),
-      "Restart",
-      "Later"
+      __("Restart||Reiniciar"),
+      __("Later||Después")
     );
   }
 }

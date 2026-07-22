@@ -133,25 +133,25 @@ class Results {
     const autoplay = this.gameData.autoplay;
     
     // Score
-    this.scoreText = new Text(10, 30, `Score: ${autoplay ? "---" : this.finalScore.toLocaleString()}`, FONTS.default);
+    this.scoreText = new Text(10, 30, __(`(Score|Puntaje): ${autoplay ? "---" : this.finalScore.toLocaleString()}`), FONTS.default);
     
     // Accuracy
-    this.accuracyText = new Text(10, 40, `Accuracy: ${autoplay ? "---" : `${this.finalAccuracy.toFixed(2)}%`}`, FONTS.default);
+    this.accuracyText = new Text(10, 40, __(`(Accuracy|Precisión): ${autoplay ? "---" : `${this.finalAccuracy.toFixed(2)}%`}`), FONTS.default);
     
     // Rating
-    this.ratingText = new Text(10, 50, `Rating: ${autoplay ? "AUTO" : this.scoreRating}`, FONTS.default);
+    this.ratingText = new Text(10, 50, __(`(Rating|Calificación): ${autoplay ? "AUTO" : this.scoreRating}`), FONTS.default);
     this.ratingText.tint = this.getRatingColor(this.scoreRating);
     
     // Combo
-    this.comboText = new Text(10, 60, `Max Combo: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
+    this.comboText = new Text(10, 60, __(`(Max Combo|Combo Máx): ${autoplay ? "---" : player.maxCombo}`), FONTS.default);
     
     // Judgements
-    this.judgementsText = new Text(15, 70, autoplay ? "\nAUTOPLAY ENABLED" : this.getJudgementsText(player.judgementCounts));
+    this.judgementsText = new Text(15, 70, autoplay ? __("AUTOPLAY ENABLED||AUTOPLAY ACTIVADO") : this.getJudgementsText(player.judgementCounts));
     this.judgementsText.tint = autoplay ? 0xff0000 : 0xffffff;
 
     // New record indicator
     if (!autoplay && this.isNewRecord) {
-      this.recordText = new Text(this.scoreText.right + 16, this.scoreText.y, "NEW RECORD!", FONTS.bold_shadow);
+      this.recordText = new Text(game.width / 2, 110, __("NEW RECORD!||¡NUEVO RÉCORD!"), FONTS.bold_shadow);
       this.recordText.anchor.x = 0.5;
       this.recordText.x += this.scoreText.width / 2;
       this.recordText.tint = 0xFFD700; // Gold color
@@ -217,18 +217,18 @@ class Results {
       fgcolor: '#ffffff'
     });
     
-    menu.addItem("Next", () => {
+    menu.addItem(__("Next||Siguiente"), () => {
       game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
     });
-    menu.addItem("Continue", () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
+    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
     if (Account.settings.autoplay) {
-      menu.addItem("Disable Autoplay", () => {
+      menu.addItem(__("Disable Autoplay||Desactivar Autoplay"), () => {
         Account.settings.autoplay = false;
         game.state.start("SongSelect", window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
       });
     }
-    menu.addItem("Retry", () => game.state.start("Play", true, false, this.gameData.song, this.gameData.playlistKey));
-    menu.addItem("Quit", () => game.state.start("MainMenu"));
+    menu.addItem(__("Retry||Reintentar"), () => game.state.start("Play", true, false, this.gameData.song, this.gameData.playlistKey));
+    menu.addItem(__("Quit||Salir"), () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results', menu);
   }

@@ -38,8 +38,8 @@ class AchievementsManager {
           name: dateName,
           category: ACHIEVEMENT_CATEGORIES.HOLIDAYS,
           description: {
-            unachieved: `Play on ${dateName} (${dateId}/${monthId})`,
-            achieved: `You played on ${dateName}!`
+            unachieved: __(`Play on ${dateName} (${dateId}/${monthId})||Jugar en ${dateName} (${dateId}/${monthId})`),
+            achieved: __(`You played on ${dateName}!||¡Jugaste en ${dateName}!`)
           },
           expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
           condition: () => {
@@ -185,58 +185,47 @@ class AchievementsManager {
   }
 
   getHolidays() {
-    // Comprehensive holiday calendary (US holidays)
-    // TODO: Region specific holidays
+    // Comprehensive holiday calendar
     return {
       0: {
-        // January
-        1: "New Year's Day"
+        1: __("New Year's Day||Año Nuevo")
       },
       1: {
-        // February
-        14: "Valentine's Day"
+        14: __("Valentine's Day||Día de San Valentín")
       },
       2: {
-        // March
-        17: "St. Patrick's Day"
+        17: __("St. Patrick's Day||Día de San Patricio")
       },
       3: {
         // April
       },
       4: {
-        // May
-        5: "Cinco de Mayo"
+        5: __("Cinco de Mayo||Cinco de Mayo")
       },
       5: {
-        // June
-        14: "Flag Day"
+        14: __("Flag Day||Día de la Bandera")
       },
       6: {
-        // July
-        4: "Independence Day"
+        4: __("Independence Day||Día de la Independencia")
       },
       7: {
         // August
       },
       8: {
-        // September
-        11: "9/11 Memorial"
+        11: __("9/11 Memorial||Memorial del 11-S")
       },
       9: {
-        // October
-        26: "PadManiacs Day", // First release of the game
-        31: "Halloween"
+        26: __("PadManiacs Day||Día de PadManiacs"),
+        31: __("Halloween||Halloween")
       },
       10: {
-        // November
-        11: "Veterans Day",
-        25: "39 Giving" // Thanksgiving, Renamed to "39 Giving" by DECO*27's song: 39
+        11: __("Veterans Day||Día de los Veteranos"),
+        25: __("39 Giving||39 Giving")
       },
       11: {
-        // December
-        24: "Christmas Eve",
-        25: "Christmas",
-        31: "New Year's Eve"
+        24: __("Christmas Eve||Nochebuena"),
+        25: __("Christmas||Navidad"),
+        31: __("New Year's Eve||Nochevieja")
       } 
     }
   }
@@ -396,7 +385,7 @@ class AchievementsManager {
             title: "",
             artist: "",
             sampleStart: 0,
-            isExternal: false, // Flag for external songs
+            isExternal: false,
             score: 0,
             accuracy: 0,
             maxCombo: 0,

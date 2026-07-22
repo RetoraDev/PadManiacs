@@ -22,6 +22,7 @@ class BuildSystem {
     // File order for concatenation
     this.fileOrder = [
       // Core modules
+      'js/core/lang.js',
       'js/core/constants.js',
       'js/core/environment.js', 
       'js/core/character.js',

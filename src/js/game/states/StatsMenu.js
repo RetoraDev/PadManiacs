@@ -5,24 +5,22 @@ class StatsMenu {
     new FuturisticLines();
     new BackgroundGradient();
     
-    this.titleText = new Text(120, 10, "PLAYER STATISTICS");
+    this.titleText = new Text(120, 10, __("PLAYER STATISTICS||ESTADÍSTICAS DE JUGADOR"));
     this.titleText.anchor.x = 0.5;
     
-    this.leftColumn = new Text(20, 70, "");
+    this.leftColumn = new Text(4, 70, "");
     this.leftColumn.anchor.y = 0.5;
     
-    this.rightColumn = new Text(130, 70, "");
+    this.rightColumn = new Text(120, 70, "");
     this.rightColumn.anchor.y = 0.5;
     
-    this.instructionText = new Text(120, 120, "PRESS ANY KEY TO LEAVE");
+    this.instructionText = new Text(120, 120, __("PRESS ANY KEY TO LEAVE||PRESIONA CUALQUIER TECLA PARA SALIR"));
     this.instructionText.anchor.x = 0.5;
     
     this.updateStatsText();
     
-    // Update stats for real-time updates
     this.updateTimer = game.time.events.loop(100, this.updateStatsText, this);
     
-    // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
@@ -56,24 +54,28 @@ class StatsMenu {
     let leftColumnText = "";
     let rightColumnText = "";
     
-    // Left column - General Stats
-    leftColumnText += `Games Played: ${stats.totalGamesPlayed}\n`;
-    leftColumnText += `Score: ${stats.totalScore}\n`;
-    leftColumnText += `Max Combo: ${stats.maxCombo}\n`;
-    leftColumnText += `Perfect Games: ${stats.perfectGames}\n`;
-    leftColumnText += `Characters: ${stats.charactersCreated}\n`;
-    leftColumnText += `Max Level: ${stats.maxCharacterLevel}\n`;
-    leftColumnText += `Skills Unlocked: ${stats.skillsUnlocked}\n`;
+    leftColumnText += __("(Games Played|Partidas Jugadas): ") + stats.totalGamesPlayed + "\n";
+    leftColumnText += __("(Total Score|Puntaje Total): ") + stats.totalScore.toLocaleString() + "\n";
+    leftColumnText += __("(Max Combo|Combo Máx): ") + stats.maxCombo + "\n";
+    leftColumnText += __("(Perfect Games|Partidas Perfectas): ") + stats.perfectGames + "\n";
+    leftColumnText += __("(Full Combos|Combos Completos): ") + (stats.fullCombos || 0) + "\n";
+    leftColumnText += __("(Flawless Full Combos|Combos Completos Impecables): ") + (stats.flawlessFullCombos || 0) + "\n";
+    leftColumnText += __("(Max FC Streak|Máx Racha de FC): ") + (stats.maxFullComboStreak || 0) + "\n";
+    leftColumnText += __("(Total Notes Hit|Notas Acertadas): ") + (stats.totalNotesHit || 0) + "\n";
+    leftColumnText += __("(Max Marvelous In Game|Máx Marvelous en Partida): ") + (stats.maxMarvelousInGame || 0) + "\n";
+    leftColumnText += __("(Multiplayer Games|Partidas Multijugador): ") + (stats.multiplayerGamesPlayed || 0) + "\n";
     
-    // Right column - Time & Progression Stats
-    rightColumnText += `Total Time: ${this.formatTime(stats.totalTimePlayed)}\n`;
-    rightColumnText += `Play Sessions: ${stats.totalPlaySessions}\n`;
-    rightColumnText += `Avg Session: ${this.formatSessionTime(stats.averageSessionTime)}\n`;
-    rightColumnText += `Longest Session: ${this.formatSessionTime(stats.longestSession)}\n`;
-    rightColumnText += `Current Streak: ${stats.currentStreak} days\n`;
-    rightColumnText += `Longest Streak: ${stats.longestStreak} days\n`;
-    rightColumnText += `High Scores: ${stats.highScoresSet}\n`;
-
+    rightColumnText += __("(Total Time|Tiempo Total): ") + this.formatTime(stats.totalTimePlayed) + "\n";
+    rightColumnText += __("(Play Sessions|Sesiones de Juego): ") + stats.totalPlaySessions + "\n";
+    rightColumnText += __("(Avg Session|Sesión Promedio): ") + this.formatSessionTime(stats.averageSessionTime) + "\n";
+    rightColumnText += __("(Longest Session|Sesión Más Larga): ") + this.formatSessionTime(stats.longestSession) + "\n";
+    rightColumnText += __("(Current Streak|Racha Actual): ") + stats.currentStreak + " " + __("(days|días)") + "\n";
+    rightColumnText += __("(Longest Streak|Racha Más Larga): ") + stats.longestStreak + " " + __("(days|días)") + "\n";
+    rightColumnText += __("High Scores: ") + stats.highScoresSet + "\n";
+    rightColumnText += __("(Characters Created|Personajes Creados): ") + (stats.charactersCreated || 0) + "\n";
+    rightColumnText += __("(Max Character Level|Nivel Máx de Personaje): ") + (stats.maxCharacterLevel || 0) + "\n";
+    rightColumnText += __("(Skills Unlocked|Habilidades Desbloqueadas): ") + (stats.skillsUnlocked || 0) + "\n";
+    
     this.leftColumn.write(leftColumnText);
     this.rightColumn.write(rightColumnText);
   }
@@ -81,7 +83,6 @@ class StatsMenu {
   update() {
     gamepad.update();
     
-    // Press any key to go back
     if (gamepad.pressed.any || mouse.pressed.any) {
       game.state.start("MainMenu");
     }

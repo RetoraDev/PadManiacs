@@ -34,7 +34,7 @@ class Addons {
   
   showNoAddonsDialog() {
     this.confirmDialog(
-      "NO ADDONS INSTALLED\n\nAddons extend the game with new features,\nvisual effects, and gameplay modifications.\n\nVisit the community page to download addons,\nor place addons in the 'Addons' folder.",
+      __("NO ADDONS INSTALLED\n\nAddons extend the game with new features,\nvisual effects, and gameplay modifications.\n\nVisit the community page to download addons,\nor place addons in the 'Addons' folder.||NO HAY ADDONS INSTALADOS\n\nLos addons expanden el juego con nuevas funciones,\nefectos visuales y modificaciones de gameplay.\n\nVisita la página de la comunidad para descargar addons,\no coloca addons en la carpeta 'Addons'."),
       () => {
         openExternalUrl(COMMUNITY_HOMEPAGE_URL);
         game.time.events.add(100, () => this.showNoAddonsDialog());
@@ -42,8 +42,8 @@ class Addons {
       () => {
         setTimeout(() => this.backToMainMenu());
       },
-      "VISIT COMMUNITY",
-      "RETURN"
+      __("VISIT COMMUNITY||VISITAR COMUNIDAD"),
+      __("RETURN||VOLVER")
     );
   }
   
@@ -74,23 +74,23 @@ class Addons {
     
     this.previewAddon(addons[0]);
     
-    this.carousel.addItem("< Back", () => this.applyChanges());
+    this.carousel.addItem(__("< Back||< Volver"), () => this.applyChanges());
     this.carousel.onCancel.add(() => this.applyChanges());
   }
   
   previewAddon(addon) {
    this.descriptionText.write(
       `${addon.name}\n\n` +
-      'State: ' + 
+      __(`(State|Estado): `) + 
       (addon.isHibernating ?
-        'Hybernating'
+        __(`(Hybernating|Hibernando)`)
         :
       (addon.isEnabled ?
-        'Enabled' : 'Disabled')) + '\n' +
-      `Version: v${addon.version}\n` +
-      `Author: ${addon.author}\n` +
-      `Behaviors: ${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
-      `Assets: ${addon.assets ? addon.assets.length : 0}\n\n` +
+        __(`(Enabled|Activado)`) : __(`(Disabled|Desactivado)`))) + '\n' +
+      __(`(Version|Versión): v${addon.version}\n`) +
+      __(`(Author|Autor): ${addon.author}\n`) +
+      __(`(Behaviors|Comportamientos): ${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n`) +
+      __(`(Assets|Recursos): ${addon.assets ? addon.assets.length : 0}\n\n`) +
       `${addon.description}\n`
     ).wrap(130 - 4);
     
@@ -111,49 +111,56 @@ class Addons {
     this.carousel = this.carousel.replace();
     
     if (addon.isHibernating) {
-      this.carousel.addItem("Wake Addon", () => {
+      this.carousel.addItem(__("Wake Addon||Despertar Addon"), () => {
         addonManager.wakeAddon(addon.id);
         this.needsReload = true;
         this.loadAddons();
       });
     } else if (addon.isEnabled) {
-      this.carousel.addItem("Disable Addon", () => {
+      this.carousel.addItem(__("Disable Addon||Desactivar Addon"), () => {
         addonManager.disableAddon(addon.id);
         this.needsReload = false;
         this.loadAddons();
       });
-      this.carousel.addItem("Hibernate Addon", () => {
+      this.carousel.addItem(__("Hibernate Addon||Hibernar Addon"), () => {
         addonManager.hibernateAddon(addon.id);
         this.needsReload = true;
         this.loadAddons();
       });
     } else {
-      this.carousel.addItem("Enable Addon", () => {
+      this.carousel.addItem(__("Enable Addon||Activar Addon"), () => {
         addonManager.enableAddon(addon.id);
         this.needsReload = true;
         this.loadAddons();
       });
     }
     
-    this.carousel.addItem("Uninstall Addon", () => this.confirmDialog("The addon will be removed from storage. Continue?", () => {
-      addonManager.uninstallAddon(addon.id);
-      this.needsReload = true;
-      this.loadAddons();
-    }));
+    this.carousel.addItem(__("Uninstall Addon||Desinstalar Addon"), () => this.confirmDialog(
+      __("The addon will be removed from storage. Continue?||El addon será eliminado del almacenamiento. ¿Continuar?"),
+      () => {
+        addonManager.uninstallAddon(addon.id);
+        this.needsReload = true;
+        this.loadAddons();
+      }
+    ));
     
     game.onMenuIn.dispatch('addonDetails', this.carousel);
     
-    this.carousel.addItem("< Back", () => this.loadAddons());
+    this.carousel.addItem(__("< Back||< Volver"), () => this.loadAddons());
     this.carousel.onCancel.add(() => this.loadAddons());
   }
   
   applyChanges() {
     if (this.needsReload || addonManager.needsReload()) {
-      this.confirmDialog("Reload required. Restart now?", () => {
-        window.location.reload();
-      }, () => {
-        this.backToMainMenu();
-      });
+      this.confirmDialog(
+        __("Reload required. Restart now?||Se necesita recargar. ¿Reiniciar ahora?"),
+        () => {
+          window.location.reload();
+        },
+        () => {
+          this.backToMainMenu();
+        }
+      );
     } else {
       this.backToMainMenu();
     }
@@ -170,7 +177,7 @@ class Addons {
     this.windowManager.update();
   }
   
-  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+  confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
     });

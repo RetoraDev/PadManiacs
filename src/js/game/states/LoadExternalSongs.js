@@ -7,7 +7,7 @@ class LoadExternalSongs {
   create() {
     this.loadingDots = new LoadingDots();
     
-    this.progressText = new ProgressText("LOADING EXTERNAL SONGS");
+    this.progressText = new ProgressText(__("Loading External Songs...||Cargando canciones externas..."));
     
     this.fileSystem = new FileSystemTools();
     
@@ -322,7 +322,7 @@ class LoadExternalSongs {
   
   finish(resetIndex = 0) {
     if (this.songs.length === 0) {
-      this.showError("No external songs found");
+      this.showError(__("No external songs found||No se encontraron canciones"));
       return;
     }
     

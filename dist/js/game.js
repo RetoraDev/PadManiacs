@@ -4,32 +4,94 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.1.1 dev
- * Build: 7/22/2026, 1:57:29 AM
- * Platform: Development
- * Debug: true
+ * Version: v1.1.1
+ * Build: 7/22/2026, 8:12:54 AM
+ * Platform: Web
+ * Debug: false
  * Minified: false
  */
 
+// Cache for localized strings
+const __cache = new Map();
+let __currentLanguage = -1;
 
+// Pre-compile regex for performance
+const __splitRegex = /\|\|/;
+const __parenRegex = /\(([^()]+)\)/g;
 
-// ======== js/core/constants.js ========
+function __getLanguage() {
+  let lang = 0;
+  try {
+    lang = Account?.settings?.language ?? 0;
+  } catch (_) {
+    lang = JSON.parse(localStorage.getItem("Account") || "{}").settings?.language || 0;
+  }
+  if (lang !== __currentLanguage) {
+    __currentLanguage = lang;
+    __cache.clear(); // clear cache on language change
+  }
+  return lang;
+}
+
+function __processParens(text, lang) {
+  // Fast path: if no parentheses, return as-is
+  if (text.indexOf('(') === -1) return text;
+  
+  return text.replace(__parenRegex, (match, inner) => {
+    const parts = inner.split('|');
+    if (parts.length < 2) return match;
+    return parts[lang] || parts[0];
+  });
+}
+
+window.__ = function(text) {
+  if (typeof text !== 'string') return text;
+  
+  const lang = __getLanguage();
+  const cacheKey = text + '\x00' + lang;
+  
+  // Check cache
+  const cached = __cache.get(cacheKey);
+  if (cached !== undefined) return cached;
+  
+  // Fast path: if no special characters, return as-is and cache
+  if (text.indexOf('||') === -1 && text.indexOf('(') === -1) {
+    __cache.set(cacheKey, text);
+    return text;
+  }
+  
+  // Process
+  const mainParts = text.split(__splitRegex);
+  let result;
+  if (mainParts.length === 1) {
+    result = __processParens(text, lang);
+  } else {
+    const selected = mainParts[lang] || mainParts[0];
+    result = __processParens(selected, lang);
+  }
+  
+  __cache.set(cacheKey, result);
+  return result;
+};
+
+const __ = window.__;
+
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.1.1 dev";
+const VERSION = "v1.1.1";
 
-window.DEBUG = true;
+window.DEBUG = false;
 
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
 
 window.UNLOCK_ALL_CLOTHES = false;
 
-const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★";
+const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★áéíóúüñÁÉÍÓÚÜÑ";
 const TINY_FONT_MAP = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\" •<>=%∥▶";
 
 const FONTS = {
   default: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_default",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 4,
@@ -37,7 +99,7 @@ const FONTS = {
     autoUpperCase: false
   },
   default_shadow: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_defaul_shadow",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 4,
@@ -45,7 +107,7 @@ const FONTS = {
     autoUpperCase: false
   },
   default_stroke: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_defaul_stroke",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 5,
@@ -53,7 +115,7 @@ const FONTS = {
     autoUpperCase: false
   },
   bold: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_bold",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 6,
@@ -61,7 +123,7 @@ const FONTS = {
     autoUpperCase: false
   },
   bold_shadow: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_bold_shadow",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 6,
@@ -69,7 +131,7 @@ const FONTS = {
     autoUpperCase: false
   },
   bold_stroke: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_bold_stroke",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 7,
@@ -109,7 +171,7 @@ const FONTS = {
     autoUpperCase: false
   },
   biscuitlocker_combo: {
-    credit: "From 'Pixel GB Block Numbers' by Biscuit Locker 2025 (games@biscuitlocker.com)",
+    credit: __("From 'Pixel GB Block Numbers' by Biscuit Locker 2025 (games@biscuitlocker.com)||De 'Pixel GB Block Numbers' por Biscuit Locker 2025 (games@biscuitlocker.com)"),
     font: "font_combo",
     fontMap: "0123456789 ",
     fontWidth: 8,
@@ -125,183 +187,183 @@ const NAVIGATION_HINT_PRESETS = {
     {
       position: "right",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "right",
       icon: "a",
-      text: "OK"
+      text: __("OK||OK")
     },
     {
       position: "right",
       icon: "b",
-      text: "BACK"
+      text: __("BACK||VOLVER")
     }
   ],
   general_no_a: [
     {
       position: "right",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "right",
       icon: "b",
-      text: "BACK"
+      text: __("BACK||VOLVER")
     }
   ],
   general_no_b: [
     {
       position: "right",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "right",
       icon: "b",
-      text: "BACK"
+      text: __("BACK||VOLVER")
     }
   ],
   song_select: [
     {
       position: "right",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "right",
       icon: "a",
-      text: "OK"
+      text: __("OK||OK")
     },
     {
       position: "right",
       icon: "b",
-      text: "BACK"
+      text: __("BACK||VOLVER")
     },
     {
       position: "right",
       icon: "start",
-      text: "OPTION"
+      text: __("OPTION||OPCIÓN")
     },
     {
       position: "right",
       icon: "select",
-      text: "AUTO"
+      text: __("AUTO||AUTO")
     }
   ],
   jukebox: [
     {
       position: "left",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "center",
       icon: "a",
-      text: "∥/▶" 
+      text: __("∥/▶||∥/▶") 
     },
     {
       position: "right",
       icon: "b",
-      text: "FULL"
+      text: __("FULL||COMPLETO")
     }
   ],
   color_input: [
     {
       position: "left",
       icon: "d-pad",
-      text: " /"
+      text: __(" /|| /")
     },
     {
       position: "left",
       icon: "a",
-      text: " /"
+      text: __(" /|| /")
     },
     {
       position: "left",
       icon: "b",
-      text: " COLOR"
+      text: __(" COLOR||COLOR")
     },
     {
       position: "right",
       icon: "start",
-      text: "OK"
+      text: __("OK||OK")
     }
   ],
   text_input: [
     {
       position: "left",
       icon: "d-pad",
-      text: " /"
+      text: __(" /|| /")
     },
     {
       position: "left",
       icon: "a",
-      text: " /"
+      text: __(" /|| /")
     },
     {
       position: "left",
       icon: "b",
-      text: " TEXT"
+      text: __(" TEXT||TEXTO")
     },
     {
       position: "right",
       icon: "start",
-      text: "OK"
+      text: __("OK||OK")
     }
   ],
   achievements: [
     {
       position: "left",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "right",
       icon: "select",
-      text: "DISPLAY"
+      text: __("DISPLAY||MOSTRAR")
     },
     {
       position: "right",
       icon: "b",
-      text: "BACK"
+      text: __("BACK||VOLVER")
     }
   ],
   editor: [
     {
       position: "left",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "left",
       icon: "start",
-      text: "MENU"
+      text: __("MENU||MENÚ")
     },
     {
       position: "left",
       icon: "select",
-      text: "∥/▶"
+      text: __("∥/▶||∥/▶")
     },
     {
       position: "right",
       icon: "a",
-      text: "SELECT"
+      text: __("SELECT||SELECCIONAR")
     },
     {
       position: "right",
       icon: "b",
-      text: "NOTE"
+      text: __("NOTE||NOTA")
     }
   ],
   song_stats: [
-    { position: "left", icon: "d-pad", text: "NAVIGATE" },
-    { position: "right", icon: "b", text: "BACK" }
+    { position: "left", icon: "d-pad", text: __("NAVIGATE||NAVEGAR") },
+    { position: "right", icon: "b", text: __("BACK||VOLVER") }
   ],
   song_stats_song_preview: [
-    { position: "left", icon: "left", text: "NAVIGATE" },
-    { position: "right", icon: "select", text: "DIFFICULTY" },
-    { position: "right", icon: "b", text: "BACK" }
+    { position: "left", icon: "left", text: __("NAVIGATE||NAVEGAR") },
+    { position: "right", icon: "select", text: __("DIFFICULTY||DIFICULTAD") },
+    { position: "right", icon: "b", text: __("BACK||VOLVER") }
   ]
 };
 
@@ -325,11 +387,11 @@ const DEFAULT_SONG_FOLDERS = [
 ];
 
 const JUDGE_WINDOWS = {
-  marvelous: 55,      // ~22.5ms (extended 55ms)
-  perfect: 75,        // 45ms (extended to 75ms)  
-  great: 99,          // 90ms (extended to 99ms)
-  good: 140,          // 135ms (extended to 140ms)
-  boo: 180            // 180ms
+  marvelous: 55,
+  perfect: 75,
+  great: 99,
+  good: 140,
+  boo: 180
 };
 
 const SCORE_VALUES = {
@@ -346,17 +408,13 @@ const FEEDBACK_REVIEW_URL = "https://retora.itch.io/padmaniacs/rate";
 const FEEDBACK_FEATURE_REQUEST_URL = "https://itch.io/t/5585472/feature-requests";
 const FEEDBACK_BUG_REPORT_URL = "https://itch.io/t/5585499/bug-reports";
 
-const COMMUNITY_PROMPT_MIN_PLAYTIME = 60 * 60; // 1 hour
-const RATING_PROMPT_MIN_PLAYTIME = 15 * 60; // 15 minutes
-const FEATURE_REQUEST_MIN_PLAYTIME = 30 * 60; // 30 minutes
+const COMMUNITY_PROMPT_MIN_PLAYTIME = 60 * 60;
+const RATING_PROMPT_MIN_PLAYTIME = 15 * 60;
+const FEATURE_REQUEST_MIN_PLAYTIME = 30 * 60;
 
 // Keyboard key names
-// https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
 const KEYBOARD_KEY_NAMES = {
-  // Unidentified keys
   "Unidentified": "???",
-  
-  // Modifier keys
   "Alt": "ALT",
   "AltGraph": "ALT GR",
   "CapsLock": "CAPS LOCK",
@@ -372,13 +430,9 @@ const KEYBOARD_KEY_NAMES = {
   "Super": "SUPER",
   "Symbol": "SYMBOL",
   "SymbolLock": "SYMBOL LOCK",
-
-  // Whitespace keys
   "Enter": "ENTER",
   "Tab": "TAB",
   " ": "SPACE",
-  
-  // Navigation keys
   "ArrowUp": "UP",
   "ArrowDown": "DOWN", 
   "ArrowLeft": "LEFT",
@@ -387,8 +441,6 @@ const KEYBOARD_KEY_NAMES = {
   "End": "END",
   "PageUp": "PAGE UP",
   "PageDown": "PAGE DOWN",
-  
-  // Edition keys
   "Backspace": "BACKSPACE",
   "Clear": "CLEAR",
   "Copy": "COPY",
@@ -401,8 +453,6 @@ const KEYBOARD_KEY_NAMES = {
   "Paste": "PASTE",
   "Redo": "REDO",
   "Undo": "UNDO",
-  
-  // UI keys
   "Accept": "ACCEPT",
   "Again": "AGAIN",
   "Attn": "ATTN",
@@ -421,8 +471,6 @@ const KEYBOARD_KEY_NAMES = {
   "Select": "SELECT",
   "ZoomIn": "ZOOM +",
   "ZoomOut": "ZOOM -",
-  
-  // Device keys
   "BrightnessDown": "BRIGHTNESS -",
   "BrightnessUp": "BRIGHTNESS +",
   "Eject": "EJECT",
@@ -433,8 +481,6 @@ const KEYBOARD_KEY_NAMES = {
   "Hibernate": "HIBERNATE",
   "Standby": "Suspend",
   "WakeUp": "WAKE UP",
-  
-  // IME and composition keys
   "AllCandidates": "ALL CANDIDATES",
   "Alphanumeric": "ALPHANUMERIC",
   "CodeInput": "CODE INPUT",
@@ -454,10 +500,6 @@ const KEYBOARD_KEY_NAMES = {
   "PreviousCandidate": "PREVIOUS CANDIDATE",
   "Process": "PROCESS",
   "SingleCandidate": "SINGLE CANDIDATE",
-  
-  // TODO: Add Korean and Japanese keyboard key codes, and Dead keycodes for Linux
-  
-  // Function keys
   "F1": "F1",
   "F2": "F2",
   "F3": "F3", 
@@ -486,8 +528,6 @@ const KEYBOARD_KEY_NAMES = {
   "Soft2": "SOFT 1",
   "Soft3": "SOFT 3",
   "Soft4": "SOFT 4",
-  
-  // Smartphone keys
   "AppSwitch": "APP SWITCH",
   "Call": "CALL",
   "Camera": "CAMERA",
@@ -500,8 +540,6 @@ const KEYBOARD_KEY_NAMES = {
   "Notification": "NOTIFICATION",
   "MannerMode": "MODE",
   "VoiceDial": "VOICE DIAL",
-  
-  // Multimedia keys
   "ChannelDown": "CH DOWN",
   "ChannelUp": "CH UP",
   "MediaFastForward": "FAST FORWARD",
@@ -514,11 +552,6 @@ const KEYBOARD_KEY_NAMES = {
   "MediaNextTrack": "NEXT",
   "MediaTrackPrevious": "PREVIOUS",
   "MediaPreviousTrack": "PREVIOUS",
-  
-  // TODO: Add TV, Apps, Mail and Documents keys
-
-  // Numeric keypad keys
-  // Number Pad
   "Numpad0": "NUM 0",
   "Numpad1": "NUM 1",
   "Numpad2": "NUM 2",
@@ -537,8 +570,6 @@ const KEYBOARD_KEY_NAMES = {
   "NumpadEnter": "NUM ENTER",
   "NumpadComma": "NUM ,",
   "NumpadEqual": "NUM =",
-  
-  // Numpad keys
   "Decimal": "DECIMAL",
   "Key11": "11",
   "Key12": "12",
@@ -552,21 +583,16 @@ const KEYBOARD_KEY_NAMES = {
   "Subtract": "SUBTRACT",
   "-": "-",
   "Separator": "SEPARATOR",
-  
-   // Numbers 0-9
   "0": "0", "1": "1", "2": "2", "3": "3", "4": "4",
   "5": "5", "6": "6", "7": "7", "8": "8", "9": "9",
-  
-  // Letters A-Z
   "A": "A", "B": "B", "C": "C", "D": "D", "E": "E", "F": "F", "G": "G",
   "H": "H", "I": "I", "J": "J", "K": "K", "L": "L", "M": "M", "N": "N",
   "O": "O", "P": "P", "Q": "Q", "R": "R", "S": "S", "T": "T", "U": "U",
   "V": "V", "W": "W", "X": "X", "Y": "Y", "Z": "Z"
 };
 
-// Keyboard key codes 
+// Keyboard key codes
 const KEYBOARD_KEY_CODES = {
-  // Letters A-Z
   A: 'A'.charCodeAt(0),
   B: 'B'.charCodeAt(0),
   C: 'C'.charCodeAt(0),
@@ -593,8 +619,6 @@ const KEYBOARD_KEY_CODES = {
   X: 'X'.charCodeAt(0),
   Y: 'Y'.charCodeAt(0),
   Z: 'Z'.charCodeAt(0),
-  
-  // Numbers 0-9
   '0': '0'.charCodeAt(0),
   '1': '1'.charCodeAt(0),
   '2': '2'.charCodeAt(0),
@@ -605,8 +629,6 @@ const KEYBOARD_KEY_CODES = {
   '7': '7'.charCodeAt(0),
   '8': '8'.charCodeAt(0),
   '9': '9'.charCodeAt(0),
-  
-  // Numpad
   'NUM 0': 96,
   'NUM 1': 97,
   'NUM 2': 98,
@@ -623,8 +645,6 @@ const KEYBOARD_KEY_CODES = {
   'NUM -': 109,
   'NUM .': 110,
   'NUM /': 111,
-  
-  // Function keys
   F1: 112,
   F2: 113,
   F3: 114,
@@ -640,8 +660,6 @@ const KEYBOARD_KEY_CODES = {
   F13: 124,
   F14: 125,
   F15: 126,
-  
-  // Modifiers and special keys
   BACK: 8,
   TAB: 9,
   CLEAR: 12,
@@ -664,8 +682,6 @@ const KEYBOARD_KEY_CODES = {
   DEL: 46,
   HELP: 47,
   NUM: 144,
-  
-  // Symbols (matching KEYBOARD_KEY_NAMES short names)
   ';': 186,
   '=': 187,
   ',': 188,
@@ -677,8 +693,6 @@ const KEYBOARD_KEY_CODES = {
   '\\': 220,
   ']': 221,
   "'": 222,
-  
-  // Multimedia keys
   PLAY: 179,
   PAUSE: 179,
   NEXT: 176,
@@ -756,9 +770,6 @@ const DEFAULT_GAMEPAD_MAPPING = {
 
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg"];
 
-
-
-// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -768,7 +779,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -793,9 +804,6 @@ const REGULAR_VIBRATION_INTENSITY = 75;
 const WEAK_VIBRATION_INTENSITY = 50;
 const STRONG_VIBRATION_INTENSITY = 50;
 
-
-
-// ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 12,
@@ -816,74 +824,120 @@ const CHARACTER_SYSTEM = {
   CLOSE_SHOT_CROP: { x: 36, y: 15, w: 46, h: 7 },
   HAIR_STYLES: {
     front: [
-      { name: "Casual", description: "Relaxed and effortless style that frames the face naturally." },
-      { name: "Smart", description: "Clean and polished look with a sophisticated edge." },
-      { name: "Daring", description: "Bold and eye-catching with an adventurous spirit." },
-      { name: "Simple", description: "Minimalist and understated elegance at its finest." },
-      { name: "Bulky", description: "Voluminous and full of personality for a commanding presence." },
-      { name: "Afro", description: "Celebrating natural texture with a bold, iconic silhouette." },
-      { name: "Emotional", description: "Expressive and artistic with a touch of drama." },
-      { name: "Clean", description: "Crisp and precise with sharp, defined lines." }
+      { 
+        name: __("Casual||Casual"), 
+        description: __("Relaxed and effortless style that frames the face naturally.||Estilo relajado y sin esfuerzo, enmarca la cara natural.") 
+      },
+      { 
+        name: __("Smart||Elegante"), 
+        description: __("Clean and polished look with a sophisticated edge.||Look limpio y pulido con un toque sofisticado.") 
+      },
+      { 
+        name: __("Daring||Atrevido"), 
+        description: __("Bold and eye-catching with an adventurous spirit.||Atrevido y llamativo con espíritu aventurero.") 
+      },
+      { 
+        name: __("Simple||Simple"), 
+        description: __("Minimalist and understated elegance at its finest.||Elegancia minimalista y discreta en su máxima expresión.") 
+      },
+      { 
+        name: __("Bulky||Voluminoso"), 
+        description: __("Voluminous and full of personality for a commanding presence.||Voluminoso y lleno de personalidad, presencia que impone.") 
+      },
+      { 
+        name: __("Afro||Afro"), 
+        description: __("Celebrating natural texture with a bold, iconic silhouette.||Celebrando la textura natural con una silueta icónica.") 
+      },
+      { 
+        name: __("Emotional||Emocional"), 
+        description: __("Expressive and artistic with a touch of drama.||Expresivo y artístico con un toque de drama.") 
+      },
+      { 
+        name: __("Clean||Limpio"), 
+        description: __("Crisp and precise with sharp, defined lines.||Crisp y preciso con líneas definidas y afiladas.") 
+      }
     ],
     back: [
-      { name: "Casual", description: "Laid-back and natural flowing style." },
-      { name: "Smart", description: "Sleek and well-groomed from every angle." },
-      { name: "Curly", description: "Bouncy and playful with beautiful defined curls." },
-      { name: "Ponytails", description: "Playful and energetic with twin tails full of character." },
-      { name: "Short", description: "Chic and modern with a bold, cropped silhouette." },
-      { name: "Afro", description: "Natural and iconic with full, rounded volume." },
-      { name: "Diva", description: "Glamorous and show-stopping with undeniable presence." },
-      { name: "Clean", description: "Neat and refined with perfect symmetry." }
+      { 
+        name: __("Casual||Casual"), 
+        description: __("Laid-back and natural flowing style.||Estilo despreocupado que fluye natural.") 
+      },
+      { 
+        name: __("Smart||Elegante"), 
+        description: __("Sleek and well-groomed from every angle.||Elegante y bien arreglado desde cualquier ángulo.") 
+      },
+      { 
+        name: __("Curly||Rizado"), 
+        description: __("Bouncy and playful with beautiful defined curls.||Rebotante y juguetón con hermosos rizos definidos.") 
+      },
+      { 
+        name: __("Ponytails||Colitas"), 
+        description: __("Playful and energetic with twin tails full of character.||Divertido y enérgico con coletas llenas de carácter.") 
+      },
+      { 
+        name: __("Short||Corto"), 
+        description: __("Chic and modern with a bold, cropped silhouette.||Chic y moderno con una silueta atrevida y corta.") 
+      },
+      { 
+        name: __("Afro||Afro"), 
+        description: __("Natural and iconic with full, rounded volume.||Natural e icónico con volumen completo y redondeado.") 
+      },
+      { 
+        name: __("Diva||Diva"), 
+        description: __("Glamorous and show-stopping with undeniable presence.||Glamuroso y arrollador con presencia innegable.") 
+      },
+      { 
+        name: __("Clean||Limpio"), 
+        description: __("Neat and refined with perfect symmetry.||Ordenado y refinado con simetría perfecta.") 
+      }
     ]
   },
   SKIN_TONES: [
-    { name: "Lighter", description: "Fair porcelain tone with a delicate, ethereal quality." },
-    { name: "Light", description: "Soft warm complexion with a natural glow." },
-    { name: "Medium", description: "Balanced earthy tone with healthy warmth." },
-    { name: "Tan", description: "Rich sun-kissed warmth with golden undertones." },
-    { name: "Another", description: "Unique and distinct tone for those who stand out." }
+    { 
+      name: __("Lighter||Clarito"), 
+      description: __("Fair porcelain tone with a delicate, ethereal quality.||Tono porcelana claro con una cualidad delicada y etérea.") 
+    },
+    { 
+      name: __("Light||Claro"), 
+      description: __("Soft warm complexion with a natural glow.||Tez cálida y suave con un brillo natural.") 
+    },
+    { 
+      name: __("Medium||Medio"), 
+      description: __("Balanced earthy tone with healthy warmth.||Tono terroso equilibrado con calidez saludable.") 
+    },
+    { 
+      name: __("Tan||Bronceado"), 
+      description: __("Rich sun-kissed warmth with golden undertones.||Cálido bronceado por el sol con tonos dorados.") 
+    },
+    { 
+      name: __("Another||Otro"), 
+      description: __("Unique and distinct tone for those who stand out.||Tono único y distintivo para quienes destacan.") 
+    }
   ],
   NAME_SYLLABLES: [
-    // Two of these syllables are joined together to make anime style character name
-    
-    // Basic vowels and common starters
     "A",   "E",   "I",   "O",   "U",
     "AI",  "AO",  "EI",  "IO",  "OU",
     "KA",  "KI",  "KU",  "KE",  "KO",
     "SA",  "SI",  "SU",  "SE",  "SO",
-    
-    // Standard consonants + vowel combos
     "TA",  "TI",  "TU",  "TE",  "TO",
     "NA",  "NI",  "NU",  "NE",  "NO",
     "HA",  "HI",  "HU",  "HE",  "HO",
     "MA",  "MI",  "MU",  "ME",  "MO",
-    
-    // Common anime name endings
     "KA",  "KI",  "KU",  "KO",  "RI",
     "RA",  "RU",  "RE",  "RO",  "YA",
     "YU",  "YO",  "WA",  "WO",  "N",
-    
-    // Multi-syllable combinations
     "KAN", "KEN", "RIN", "REN", "HAN",
     "SHI", "SHO", "SHU", "CHA", "CHI",
     "TSU", "TSUI", "TOU", "KYO", "RYO",
-    
-    // Soft/gentle sounds
     "MI",  "MU",  "ME",  "MO",  "FU",
     "YU",  "YUI", "YUA", "REI", "RAI",
     "HIK", "HAR", "SOR", "KIR", "MIR",
-    
-    // Strong/action sounds  
     "TAI", "KEN", "RYU", "JIN", "GEN",
     "REI", "SEI", "MAI", "KAI", "GAI",
     "DAN", "RAN", "BAN", "ZAN", "MAN",
-    
-    // Special/unique syllables
     "LU",  "LE",  "LO",  "LA",  "LI",
     "FI",  "FA",  "FE",  "FO",  "ZE",
     "VI",  "VE",  "VO",  "XA",  "XE",
-    
-    // Easter eggs and fun additions
     "RIEL", "SEN", "TON", "ZA",  "ZU",
     "M",    "C.",  "K.",  "Y",   "YE",
     "WA",   "JA",  "JEI", "JO",  "LEI",
@@ -893,8 +947,8 @@ const CHARACTER_SYSTEM = {
   PERSONALITIES: [
     {
       id: "chill",
-      name: "Chill",
-      description: "Relaxed and easygoing, takes things at their own pace.",
+      name: __("Chill||Tranqui"),
+      description: __("Relaxed and easygoing, takes things at their own pace.||Relajado y sin prisas, va a su propio ritmo."),
       reasons: {
         gamesPlayed: 5,
         ratingThreshold: 0.3,
@@ -918,8 +972,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "focused",
-      name: "Focused",
-      description: "Intense concentration and unwavering determination.",
+      name: __("Focused||Enfocado"),
+      description: __("Intense concentration and unwavering determination.||Concentración intensa y determinación inquebrantable."),
       reasons: {
         gamesPlayed: 15,
         accuracyMin: 85,
@@ -941,8 +995,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "perfectionist",
-      name: "Perfectionist",
-      description: "Nothing less than perfect is acceptable.",
+      name: __("Perfectionist||Perfeccionista"),
+      description: __("Nothing less than perfect is acceptable.||Nada menos que perfecto es aceptable."),
       reasons: {
         gamesPlayed: 25,
         accuracyMin: 95,
@@ -964,8 +1018,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "steady",
-      name: "Steady",
-      description: "Consistent and reliable, never misses a beat.",
+      name: __("Steady||Constante"),
+      description: __("Consistent and reliable, never misses a beat.||Consistente y confiable, nunca falla un beat."),
       reasons: {
         gamesPlayed: 20,
         accuracyMin: 70,
@@ -988,8 +1042,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "unbreakable",
-      name: "Unbreakable",
-      description: "No matter what happens, they never give up.",
+      name: __("Unbreakable||Inquebrantable"),
+      description: __("No matter what happens, they never give up.||Pase lo que pase, nunca se rinde."),
       reasons: {
         gamesPlayed: 30,
         accuracyMin: 60,
@@ -1012,8 +1066,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "rhythm_savant",
-      name: "Rhythm Savant",
-      description: "Born with an innate sense of rhythm and timing.",
+      name: __("Rhythm Savant||Sabio del Ritmo"),
+      description: __("Born with an innate sense of rhythm and timing.||Nacido con un sentido innato del ritmo y el timing."),
       reasons: {
         gamesPlayed: 40,
         accuracyMin: 90,
@@ -1035,8 +1089,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "determined",
-      name: "Determined",
-      description: "Nothing stands in their way. They will succeed.",
+      name: __("Determined||Decidido"),
+      description: __("Nothing stands in their way. They will succeed.||Nada se interpone en su camino. Va a triunfar."),
       reasons: {
         gamesPlayed: 35,
         accuracyMin: 75,
@@ -1058,8 +1112,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "carefree",
-      name: "Carefree",
-      description: "Living in the moment, enjoying every note.",
+      name: __("Carefree||Despreocupado"),
+      description: __("Living in the moment, enjoying every note.||Viviendo el momento, disfrutando cada nota."),
       reasons: {
         gamesPlayed: 5,
         accuracyMin: 50,
@@ -1081,8 +1135,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "playful",
-      name: "Playful",
-      description: "Full of energy and joy, turning every game into fun.",
+      name: __("Playful||Juguetón"),
+      description: __("Full of energy and joy, turning every game into fun.||Lleno de energía y alegría, convierte cada juego en diversión."),
       reasons: {
         gamesPlayed: 10,
         accuracyMin: 55,
@@ -1104,8 +1158,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "cheerful",
-      name: "Cheerful",
-      description: "Always smiling, spreading positivity through rhythm.",
+      name: __("Cheerful||Alegre"),
+      description: __("Always smiling, spreading positivity through rhythm.||Siempre sonriendo, contagiando buena vibra con el ritmo."),
       reasons: {
         gamesPlayed: 5,
         accuracyMin: 60,
@@ -1128,8 +1182,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "energetic",
-      name: "Energetic",
-      description: "Boundless energy that fuels every move.",
+      name: __("Energetic||Enérgico"),
+      description: __("Boundless energy that fuels every move.||Energía sin límites que impulsa cada movimiento."),
       reasons: {
         gamesPlayed: 30,
         accuracyMin: 65,
@@ -1152,8 +1206,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "mysterious",
-      name: "Mysterious",
-      description: "Enigmatic and unpredictable, keeps everyone guessing.",
+      name: __("Mysterious||Misterioso"),
+      description: __("Enigmatic and unpredictable, keeps everyone guessing.||Enigmático e impredecible, mantiene a todos con la duda."),
       reasons: {
         gamesPlayed: 25,
         accuracyMin: 70,
@@ -1175,8 +1229,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "enigmatic",
-      name: "Enigmatic",
-      description: "Deep and complex, with layers of personality.",
+      name: __("Enigmatic||Enigmático"),
+      description: __("Deep and complex, with layers of personality.||Profundo y complejo, con capas de personalidad."),
       reasons: {
         gamesPlayed: 35,
         accuracyMin: 75,
@@ -1197,8 +1251,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "serious",
-      name: "Serious",
-      description: "Focused and disciplined, treats every game with gravity.",
+      name: __("Serious||Serio"),
+      description: __("Focused and disciplined, treats every game with gravity.||Enfocado y disciplinado, trata cada juego con seriedad."),
       reasons: {
         gamesPlayed: 20,
         accuracyMin: 80,
@@ -1219,8 +1273,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "dreamy",
-      name: "Dreamy",
-      description: "Lost in the music, dancing to their own rhythm.",
+      name: __("Dreamy||Soñador"),
+      description: __("Lost in the music, dancing to their own rhythm.||Perdido en la música, bailando su propio ritmo."),
       reasons: {
         gamesPlayed: 15,
         accuracyMin: 50,
@@ -1242,8 +1296,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "creative",
-      name: "Creative",
-      description: "Expressive and artistic, finds beauty in every pattern.",
+      name: __("Creative||Creativo"),
+      description: __("Expressive and artistic, finds beauty in every pattern.||Expresivo y artístico, encuentra belleza en cada patrón."),
       reasons: {
         gamesPlayed: 25,
         accuracyMin: 60,
@@ -1264,8 +1318,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "artistic",
-      name: "Artistic",
-      description: "A true artist of rhythm, every move is a masterpiece.",
+      name: __("Artistic||Artístico"),
+      description: __("A true artist of rhythm, every move is a masterpiece.||Un verdadero artista del ritmo, cada movimiento es una obra maestra."),
       reasons: {
         gamesPlayed: 35,
         accuracyMin: 70,
@@ -1287,8 +1341,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "spirited",
-      name: "Spirited",
-      description: "Full of life and passion, plays with their heart.",
+      name: __("Spirited||Apasionado"),
+      description: __("Full of life and passion, plays with their heart.||Lleno de vida y pasión, juega con el corazón."),
       reasons: {
         gamesPlayed: 20,
         accuracyMin: 65,
@@ -1309,8 +1363,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "gentle",
-      name: "Gentle",
-      description: "Soft and precise, every note is handled with care.",
+      name: __("Gentle||Gentil"),
+      description: __("Soft and precise, every note is handled with care.||Suave y preciso, cada nota es tratada con cuidado."),
       reasons: {
         gamesPlayed: 25,
         accuracyMin: 80,
@@ -1333,8 +1387,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "fierce",
-      name: "Fierce",
-      description: "Intense and powerful, dominates every chart.",
+      name: __("Fierce||Feroz"),
+      description: __("Intense and powerful, dominates every chart.||Intenso y poderoso, domina cada chart."),
       reasons: {
         gamesPlayed: 30,
         accuracyMin: 70,
@@ -1355,8 +1409,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "calm",
-      name: "Calm",
-      description: "Serene and composed, never loses their cool.",
+      name: __("Calm||Calmado"),
+      description: __("Serene and composed, never loses their cool.||Sereno y compuesto, nunca pierde la calma."),
       reasons: {
         gamesPlayed: 5,
         accuracyMin: 75,
@@ -1377,8 +1431,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "zen",
-      name: "Zen",
-      description: "At one with the rhythm, perfectly balanced.",
+      name: __("Zen||Zen"),
+      description: __("At one with the rhythm, perfectly balanced.||En sintonía con el ritmo, perfectamente equilibrado."),
       reasons: {
         gamesPlayed: 40,
         accuracyMin: 85,
@@ -1400,8 +1454,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "sassy",
-      name: "Sassy",
-      description: "Bold and confident, with a dash of attitude.",
+      name: __("Sassy||Atrevido"),
+      description: __("Bold and confident, with a dash of attitude.||Audaz y seguro, con un toque de actitud."),
       reasons: {
         gamesPlayed: 15,
         accuracyMin: 60,
@@ -1422,8 +1476,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "shy",
-      name: "Shy",
-      description: "Quiet and reserved, but brilliant when they shine.",
+      name: __("Shy||Tímido"),
+      description: __("Quiet and reserved, but brilliant when they shine.||Callado y reservado, pero brillante cuando se luce."),
       reasons: {
         gamesPlayed: 15,
         accuracyMin: 70,
@@ -1444,8 +1498,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "bold",
-      name: "Bold",
-      description: "Fearless and daring, takes on every challenge.",
+      name: __("Bold||Osado"),
+      description: __("Fearless and daring, takes on every challenge.||Sin miedo y atrevido, acepta cada desafío."),
       reasons: {
         gamesPlayed: 25,
         accuracyMin: 65,
@@ -1466,8 +1520,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "graceful",
-      name: "Graceful",
-      description: "Elegant and fluid, makes every move look effortless.",
+      name: __("Graceful||Elegante"),
+      description: __("Elegant and fluid, makes every move look effortless.||Elegante y fluido, hace que cada movimiento parezca sin esfuerzo."),
       reasons: {
         gamesPlayed: 30,
         accuracyMin: 80,
@@ -1489,8 +1543,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "witty",
-      name: "Witty",
-      description: "Quick and sharp, always one step ahead.",
+      name: __("Witty||Ingenioso"),
+      description: __("Quick and sharp, always one step ahead.||Rápido y astuto, siempre un paso adelante."),
       reasons: {
         gamesPlayed: 20,
         accuracyMin: 70,
@@ -1511,8 +1565,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "mellow",
-      name: "Mellow",
-      description: "Laid-back and smooth, flows with the music.",
+      name: __("Mellow||Suave"),
+      description: __("Laid-back and smooth, flows with the music.||Relajado y suave, fluye con la música."),
       reasons: {
         gamesPlayed: 20,
         accuracyMin: 65,
@@ -1534,8 +1588,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "spunky",
-      name: "Spunky",
-      description: "Full of spunk and sass, brings personality to every play.",
+      name: __("Spunky||Vivaz"),
+      description: __("Full of spunk and sass, brings personality to every play.||Lleno de chispa y actitud, le da personalidad a cada juego."),
       reasons: {
         gamesPlayed: 18,
         accuracyMin: 55,
@@ -1556,8 +1610,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "emotive",
-      name: "Emotive",
-      description: "Feels every note deeply, plays with heart and soul.",
+      name: __("Emotive||Emotivo"),
+      description: __("Feels every note deeply, plays with heart and soul.||Siente cada nota profundamente, juega con el alma."),
       reasons: {
         gamesPlayed: 25,
         accuracyMin: 70,
@@ -1580,8 +1634,8 @@ const CHARACTER_SYSTEM = {
     },
     {
       id: "expressive",
-      name: "Expressive",
-      description: "Every movement tells a story, every note has meaning.",
+      name: __("Expressive||Expresivo"),
+      description: __("Every movement tells a story, every note has meaning.||Cada movimiento cuenta una historia, cada nota tiene significado."),
       reasons: {
         gamesPlayed: 35,
         accuracyMin: 75,
@@ -1653,8 +1707,8 @@ const DEFAULT_CHARACTER = {
 const CHARACTER_SKILLS = [
   {
     id: "safety_net",
-    name: "Safety Net",
-    description: "Converts Miss judgments to Boo when activated",
+    name: __("Safety Net||Red de Seguridad"),
+    description: __("Converts Miss judgments to Boo when activated||Convierte juicios Miss a Boo al activarse"),
     activationCondition: "on_miss",
     effect: "convert_judgement",
     effectParams: { from: "miss", to: "boo" },
@@ -1663,8 +1717,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "focus_boost",
-    name: "Focus Boost",
-    description: "Temporarily increases accuracy window by 20%",
+    name: __("Focus Boost||Boost de Enfoque"),
+    description: __("Temporarily increases accuracy window by 20%||Aumenta temporalmente la ventana de precisión en 20%"),
     activationCondition: "on_combo",
     effect: "modify_judgement_window",
     effectParams: { multiplier: 1.2, threshold: 50 },
@@ -1673,8 +1727,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "health_regen",
-    name: "Health Regeneration",
-    description: "Regenerates 1 health per second for 10 seconds",
+    name: __("Health Regeneration||Regeneración de Vida"),
+    description: __("Regenerates 1 health per second for 10 seconds||Regenera 1 de vida por segundo durante 10 segundos"),
     activationCondition: "on_low_health",
     effect: "health_regen",
     effectParams: { amount: 1, interval: 1000, threshold: 30 },
@@ -1683,8 +1737,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "max_health_boost",
-    name: "Max Health Boost",
-    description: "Increases maximum health by 25 for 15 seconds",
+    name: __("Max Health Boost||Boost de Vida Máxima"),
+    description: __("Increases maximum health by 25 for 15 seconds||Aumenta la vida máxima en 25 durante 15 segundos"),
     activationCondition: "on_high_combo",
     effect: "modify_max_health",
     effectParams: { amount: 25, threshold: 100 },
@@ -1693,8 +1747,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "time_dilation",
-    name: "Time Dilation",
-    description: "Slows down note speed by 15% for 8 seconds",
+    name: __("Time Dilation||Dilatación Temporal"),
+    description: __("Slows down note speed by 15% for 8 seconds||Ralentiza la velocidad de notas en 15% por 8 segundos"),
     activationCondition: "on_perfect_streak",
     effect: "modify_note_speed",
     effectParams: { multiplier: 0.85, threshold: 10 },
@@ -1703,8 +1757,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "rhythm_echo",
-    name: "Rhythm Echo",
-    description: "Slightly extends hold forgiveness for 12 seconds",
+    name: __("Rhythm Echo||Eco Rítmico"),
+    description: __("Slightly extends hold forgiveness for 12 seconds||Extiende ligeramente el perdón de holds por 12 segundos"),
     activationCondition: "on_combo",
     effect: "modify_hold_forgiveness",
     effectParams: { multiplier: 1.3, threshold: 30 },
@@ -1713,8 +1767,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "combo_shield",
-    name: "Combo Shield",
-    description: "Next miss won't break combo",
+    name: __("Combo Shield||Escudo de Combo"),
+    description: __("Next miss won't break combo||El próximo Miss no rompe el combo"),
     activationCondition: "on_high_combo",
     effect: "combo_shield",
     effectParams: { threshold: 75 },
@@ -1723,8 +1777,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "precision_focus",
-    name: "Precision Focus",
-    description: "Reduces judgement window variation for 10 seconds",
+    name: __("Precision Focus||Enfoque de Precisión"),
+    description: __("Reduces judgement window variation for 10 seconds||Reduce la variación de la ventana de juicio por 10 segundos"),
     activationCondition: "on_perfect_streak",
     effect: "stabilize_judgement",
     effectParams: { threshold: 8 },
@@ -1733,8 +1787,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "recovery_boost",
-    name: "Recovery Boost",
-    description: "Increases health gain from hits by 50% for 15 seconds",
+    name: __("Recovery Boost||Boost de Recuperación"),
+    description: __("Increases health gain from hits by 50% for 15 seconds||Aumenta la ganancia de vida en 50% durante 15 segundos"),
     activationCondition: "on_low_health",
     effect: "modify_health_gain",
     effectParams: { multiplier: 1.5, threshold: 40 },
@@ -1743,8 +1797,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "mine_evasion",
-    name: "Mine Evasion",
-    description: "Reduces mine damage by 50% for 20 seconds",
+    name: __("Mine Evasion||Evasión de Minas"),
+    description: __("Reduces mine damage by 50% for 20 seconds||Reduce el daño de minas en 50% por 20 segundos"),
     activationCondition: "on_mine_hit",
     effect: "reduce_mine_damage",
     effectParams: { multiplier: 0.5 },
@@ -1753,8 +1807,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "momentum_builder",
-    name: "Momentum Builder",
-    description: "Slightly increases score from perfects for 12 seconds",
+    name: __("Momentum Builder||Constructor de Momento"),
+    description: __("Slightly increases score from perfects for 12 seconds||Aumenta ligeramente el puntaje de Perfect por 12 segundos"),
     activationCondition: "on_combo",
     effect: "modify_score_gain",
     effectParams: { multiplier: 1.1, judgement: "perfect", threshold: 40 },
@@ -1763,8 +1817,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "grace_period",
-    name: "Grace Period",
-    description: "Extends roll note tapping window for 10 seconds",
+    name: __("Grace Period||Periodo de Gracia"),
+    description: __("Extends roll note tapping window for 10 seconds||Extiende la ventana de notas roll por 10 segundos"),
     activationCondition: "on_low_health",
     effect: "modify_roll_forgiveness",
     effectParams: { multiplier: 1.4, threshold: 25 },
@@ -1773,8 +1827,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "steady_hands",
-    name: "Steady Hands",
-    description: "Reduces input lag slightly for 8 seconds",
+    name: __("Steady Hands||Manos Firmes"),
+    description: __("Reduces input lag slightly for 8 seconds||Reduce ligeramente el input lag por 8 segundos"),
     activationCondition: "on_perfect_streak",
     effect: "modify_input_lag",
     effectParams: { reduction: 0.02, threshold: 12 },
@@ -1783,8 +1837,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "second_wind",
-    name: "Second Wind",
-    description: "Brief health regeneration when very low health",
+    name: __("Second Wind||Segundo Aire"),
+    description: __("Brief health regeneration when very low health||Regeneración breve de vida cuando la vida está muy baja"),
     activationCondition: "on_critical_health",
     effect: "burst_health_regen",
     effectParams: { amount: 15, threshold: 15 },
@@ -1793,8 +1847,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "flow_state",
-    name: "Flow State",
-    description: "Slightly improves all judgements for a short time",
+    name: __("Flow State||Estado de Flujo"),
+    description: __("Slightly improves all judgements for a short time||Mejora ligeramente todos los juicios por un momento"),
     activationCondition: "on_high_combo",
     effect: "general_boost",
     effectParams: { windowMultiplier: 1.1, healthMultiplier: 1.2, threshold: 150 },
@@ -1803,8 +1857,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "rapid_recovery",
-    name: "Rapid Recovery",
-    description: "Quick health burst when combo reaches 25",
+    name: __("Rapid Recovery||Recuperación Rápida"),
+    description: __("Quick health burst when combo reaches 25||Burst de vida al alcanzar 25 combo"),
     activationCondition: "on_combo",
     effect: "burst_health_regen",
     effectParams: { amount: 10, threshold: 25 },
@@ -1813,8 +1867,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "precision_flow",
-    name: "Precision Flow",
-    description: "Slightly widens judgement windows at 40 combo",
+    name: __("Precision Flow||Flujo de Precisión"),
+    description: __("Slightly widens judgement windows at 40 combo||Amplía ligeramente las ventanas de juicio en 40 combo"),
     activationCondition: "on_combo",
     effect: "modify_judgement_window",
     effectParams: { multiplier: 1.15, threshold: 40 },
@@ -1823,8 +1877,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "endurance_training",
-    name: "Endurance Training",
-    description: "Increases max health by 15 at 80 combo",
+    name: __("Endurance Training||Entrenamiento de Resistencia"),
+    description: __("Increases max health by 15 at 80 combo||Aumenta la vida máxima en 15 al llegar a 80 combo"),
     activationCondition: "on_high_combo",
     effect: "modify_max_health",
     effectParams: { amount: 15, threshold: 80 },
@@ -1833,8 +1887,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "slow_motion",
-    name: "Slow Motion",
-    description: "Reduces note speed by 10% after 15 perfects",
+    name: __("Slow Motion||Cámara Lenta"),
+    description: __("Reduces note speed by 10% after 15 perfects||Reduce la velocidad de notas en 10% tras 15 Perfect"),
     activationCondition: "on_perfect_streak",
     effect: "modify_note_speed",
     effectParams: { multiplier: 0.9, threshold: 15 },
@@ -1843,8 +1897,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "safety_cushion",
-    name: "Safety Cushion",
-    description: "Converts two misses to boos when health is low",
+    name: __("Safety Cushion||Colchón de Seguridad"),
+    description: __("Converts two misses to boos when health is low||Convierte dos Miss a Boo cuando la vida está baja"),
     activationCondition: "on_low_health",
     effect: "convert_judgement",
     effectParams: { from: "miss", to: "boo", threshold: 25 },
@@ -1853,8 +1907,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "rhythm_mastery",
-    name: "Rhythm Mastery",
-    description: "Extends hold forgiveness by 25% at 60 combo",
+    name: __("Rhythm Mastery||Maestría Rítmica"),
+    description: __("Extends hold forgiveness by 25% at 60 combo||Extiende el perdón de holds en 25% al llegar a 60 combo"),
     activationCondition: "on_combo",
     effect: "modify_hold_forgiveness",
     effectParams: { multiplier: 1.25, threshold: 60 },
@@ -1863,8 +1917,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "roll_expert",
-    name: "Roll Expert",
-    description: "Increases roll forgiveness by 35% when health drops",
+    name: __("Roll Expert||Experto en Rolls"),
+    description: __("Increases roll forgiveness by 35% when health drops||Aumenta el perdón de rolls en 35% cuando baja la vida"),
     activationCondition: "on_low_health",
     effect: "modify_roll_forgiveness",
     effectParams: { multiplier: 1.35, threshold: 35 },
@@ -1873,8 +1927,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "mine_deflector",
-    name: "Mine Deflector",
-    description: "Reduces mine damage by 75% after hitting a mine",
+    name: __("Mine Deflector||Desviador de Minas"),
+    description: __("Reduces mine damage by 75% after hitting a mine||Reduce el daño de minas en 75% tras golpear una mina"),
     activationCondition: "on_mine_hit",
     effect: "reduce_mine_damage",
     effectParams: { multiplier: 0.25 },
@@ -1883,8 +1937,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "score_amplifier",
-    name: "Score Amplifier",
-    description: "Increases marvelous score by 15% at 100 combo",
+    name: __("Score Amplifier||Amplificador de Puntaje"),
+    description: __("Increases marvelous score by 15% at 100 combo||Aumenta el puntaje Marvelous en 15% al llegar a 100 combo"),
     activationCondition: "on_high_combo",
     effect: "modify_score_gain",
     effectParams: { multiplier: 1.15, judgement: "marvelous", threshold: 100 },
@@ -1893,8 +1947,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "vitality_surge",
-    name: "Vitality Surge",
-    description: "Boosts health gain by 75% when critically low",
+    name: __("Vitality Surge||Auge de Vitalidad"),
+    description: __("Boosts health gain by 75% when critically low||Aumenta la ganancia de vida en 75% cuando está crítico"),
     activationCondition: "on_critical_health",
     effect: "modify_health_gain",
     effectParams: { multiplier: 1.75, threshold: 20 },
@@ -1903,8 +1957,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "combo_anchor",
-    name: "Combo Anchor",
-    description: "Prevents combo break at 50 combo (one-time)",
+    name: __("Combo Anchor||Ancla de Combo"),
+    description: __("Prevents combo break at 50 combo (one-time)||Evita que se rompa el combo al llegar a 50 (una vez)"),
     activationCondition: "on_high_combo",
     effect: "combo_shield",
     effectParams: { threshold: 50 },
@@ -1913,8 +1967,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "reflex_enhancer",
-    name: "Reflex Enhancer",
-    description: "Reduces input lag after 8 perfects in a row",
+    name: __("Reflex Enhancer||Potenciador de Reflejos"),
+    description: __("Reduces input lag after 8 perfects in a row||Reduce el input lag tras 8 Perfect consecutivos"),
     activationCondition: "on_perfect_streak",
     effect: "modify_input_lag",
     effectParams: { reduction: 0.015, threshold: 8 },
@@ -1923,8 +1977,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "graceful_recovery",
-    name: "Graceful Recovery",
-    description: "Converts good to great when missing",
+    name: __("Graceful Recovery||Recuperación Elegante"),
+    description: __("Converts good to great when missing||Convierte Good a Great cuando fallas"),
     activationCondition: "on_miss",
     effect: "convert_judgement",
     effectParams: { from: "good", to: "great" },
@@ -1933,8 +1987,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "momentum_keeper",
-    name: "Momentum Keeper",
-    description: "Regenerates 2 health/sec for 8s at 30 combo",
+    name: __("Momentum Keeper||Guardián del Momento"),
+    description: __("Regenerates 2 health/sec for 8s at 30 combo||Regenera 2 vida/seg por 8s al llegar a 30 combo"),
     activationCondition: "on_combo",
     effect: "health_regen",
     effectParams: { amount: 2, interval: 1000, threshold: 30 },
@@ -1943,8 +1997,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "precision_boost",
-    name: "Precision Boost",
-    description: "Widens perfect window by 18% after 12 perfects",
+    name: __("Precision Boost||Boost de Precisión"),
+    description: __("Widens perfect window by 18% after 12 perfects||Amplía la ventana Perfect en 18% tras 12 Perfect"),
     activationCondition: "on_perfect_streak",
     effect: "modify_judgement_window",
     effectParams: { multiplier: 1.18, threshold: 12 },
@@ -1953,8 +2007,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "health_reserve",
-    name: "Health Reserve",
-    description: "Adds 20 max health when health drops to 40%",
+    name: __("Health Reserve||Reserva de Vida"),
+    description: __("Adds 20 max health when health drops to 40%||Añade 20 de vida máxima cuando la vida baja al 40%"),
     activationCondition: "on_low_health",
     effect: "modify_max_health",
     effectParams: { amount: 20, threshold: 40 },
@@ -1963,8 +2017,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "tempo_control",
-    name: "Tempo Control",
-    description: "Slows notes by 12% at 120 combo",
+    name: __("Tempo Control||Control de Tempo"),
+    description: __("Slows notes by 12% at 120 combo||Ralentiza las notas en 12% al llegar a 120 combo"),
     activationCondition: "on_high_combo",
     effect: "modify_note_speed",
     effectParams: { multiplier: 0.88, threshold: 120 },
@@ -1973,8 +2027,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "hold_stability",
-    name: "Hold Stability",
-    description: "40% longer hold forgiveness when struggling",
+    name: __("Hold Stability||Estabilidad de Holds"),
+    description: __("40% longer hold forgiveness when struggling||40% más de perdón en holds cuando estás en aprietos"),
     activationCondition: "on_low_health",
     effect: "modify_hold_forgiveness",
     effectParams: { multiplier: 1.4, threshold: 30 },
@@ -1983,8 +2037,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "rapid_rolls",
-    name: "Rapid Rolls",
-    description: "50% more roll forgiveness at 70 combo",
+    name: __("Rapid Rolls||Rolls Rápidos"),
+    description: __("50% more roll forgiveness at 70 combo||50% más de perdón en rolls al llegar a 70 combo"),
     activationCondition: "on_combo",
     effect: "modify_roll_forgiveness",
     effectParams: { multiplier: 1.5, threshold: 70 },
@@ -1993,8 +2047,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "mine_immunity",
-    name: "Mine Immunity",
-    description: "90% mine damage reduction after mine hit",
+    name: __("Mine Immunity||Inmunidad a Minas"),
+    description: __("90% mine damage reduction after mine hit||90% de reducción de daño de minas tras golpear una"),
     activationCondition: "on_mine_hit",
     effect: "reduce_mine_damage",
     effectParams: { multiplier: 0.1 },
@@ -2003,8 +2057,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "perfect_bonus",
-    name: "Perfect Bonus",
-    description: "20% more score from perfects at 90 combo",
+    name: __("Perfect Bonus||Bonus Perfect"),
+    description: __("20% more score from perfects at 90 combo||20% más de puntaje de Perfect al llegar a 90 combo"),
     activationCondition: "on_high_combo",
     effect: "modify_score_gain",
     effectParams: { multiplier: 1.2, judgement: "perfect", threshold: 90 },
@@ -2013,8 +2067,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "recovery_expert",
-    name: "Recovery Expert",
-    description: "Double health gain when below 25% health",
+    name: __("Recovery Expert||Experto en Recuperación"),
+    description: __("Double health gain when below 25% health||Doble ganancia de vida cuando estás bajo 25% de vida"),
     activationCondition: "on_critical_health",
     effect: "modify_health_gain",
     effectParams: { multiplier: 2.0, threshold: 25 },
@@ -2023,8 +2077,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "unbreakable_chain",
-    name: "Unbreakable Chain",
-    description: "Combo shield activates at 200 combo",
+    name: __("Unbreakable Chain||Cadena Irrompible"),
+    description: __("Combo shield activates at 200 combo||Escudo de combo se activa al llegar a 200 combo"),
     activationCondition: "on_high_combo",
     effect: "combo_shield",
     effectParams: { threshold: 200 },
@@ -2033,8 +2087,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "lightning_reflexes",
-    name: "Lightning Reflexes",
-    description: "Maximum input lag reduction after 20 perfects",
+    name: __("Lightning Reflexes||Reflejos Relámpago"),
+    description: __("Maximum input lag reduction after 20 perfects||Máxima reducción de input lag tras 20 Perfect"),
     activationCondition: "on_perfect_streak",
     effect: "modify_input_lag",
     effectParams: { reduction: 0.025, threshold: 20 },
@@ -2043,8 +2097,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "judgement_boost",
-    name: "Judgement Boost",
-    description: "Multiple improvements at high combo",
+    name: __("Judgement Boost||Boost de Juicio"),
+    description: __("Multiple improvements at high combo||Múltiples mejoras al alcanzar alto combo"),
     activationCondition: "on_high_combo",
     effect: "general_boost",
     effectParams: { windowMultiplier: 1.12, healthMultiplier: 1.3, threshold: 150 },
@@ -2053,8 +2107,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "emergency_convert",
-    name: "Emergency Convert",
-    description: "Converts boo to good when health critical",
+    name: __("Emergency Convert||Conversión de Emergencia"),
+    description: __("Converts boo to good when health critical||Convierte Boo a Good cuando la vida es crítica"),
     activationCondition: "on_critical_health",
     effect: "convert_judgement",
     effectParams: { from: "boo", to: "good", threshold: 10 },
@@ -2063,8 +2117,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "sustained_rhythm",
-    name: "Sustained Rhythm",
-    description: "Long health regeneration at medium combo",
+    name: __("Sustained Rhythm||Ritmo Sostenido"),
+    description: __("Long health regeneration at medium combo||Regeneración larga de vida en combo medio"),
     activationCondition: "on_combo",
     effect: "health_regen",
     effectParams: { amount: 1, interval: 800, threshold: 45 },
@@ -2073,8 +2127,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "accuracy_focus",
-    name: "Accuracy Focus",
-    description: "Major window increase after perfect streak",
+    name: __("Accuracy Focus||Enfoque de Precisión"),
+    description: __("Major window increase after perfect streak||Gran aumento de ventana tras racha de Perfect"),
     activationCondition: "on_perfect_streak",
     effect: "modify_judgement_window",
     effectParams: { multiplier: 1.25, threshold: 18 },
@@ -2083,8 +2137,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "overdrive_health",
-    name: "Overdrive Health",
-    description: "Large max health boost at very high combo",
+    name: __("Overdrive Health||Vida Overdrive"),
+    description: __("Large max health boost at very high combo||Gran boost de vida máxima en combo muy alto"),
     activationCondition: "on_high_combo",
     effect: "modify_max_health",
     effectParams: { amount: 35, threshold: 180 },
@@ -2093,8 +2147,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "time_master",
-    name: "Time Master",
-    description: "Significant note slowdown for skilled play",
+    name: __("Time Master||Maestro del Tiempo"),
+    description: __("Significant note slowdown for skilled play||Ralentización significativa de notas para juego experto"),
     activationCondition: "on_perfect_streak",
     effect: "modify_note_speed",
     effectParams: { multiplier: 0.8, threshold: 25 },
@@ -2103,8 +2157,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "expert_holds",
-    name: "Expert Holds",
-    description: "Maximum hold forgiveness extension",
+    name: __("Expert Holds||Holds de Experto"),
+    description: __("Maximum hold forgiveness extension||Extensión máxima de perdón de holds"),
     activationCondition: "on_high_combo",
     effect: "modify_hold_forgiveness",
     effectParams: { multiplier: 1.6, threshold: 130 },
@@ -2113,8 +2167,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "master_roller",
-    name: "Master Roller",
-    description: "Extreme roll forgiveness for high combo",
+    name: __("Master Roller||Maestro Roller"),
+    description: __("Extreme roll forgiveness for high combo||Perdón extremo de rolls en combo alto"),
     activationCondition: "on_high_combo",
     effect: "modify_roll_forgiveness",
     effectParams: { multiplier: 1.8, threshold: 110 },
@@ -2123,8 +2177,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "score_perfection",
-    name: "Score Perfection",
-    description: "Massive score boost for marvelous hits",
+    name: __("Score Perfection||Perfección de Puntaje"),
+    description: __("Massive score boost for marvelous hits||Boost masivo de puntaje para hits Marvelous"),
     activationCondition: "on_perfect_streak",
     effect: "modify_score_gain",
     effectParams: { multiplier: 1.3, judgement: "marvelous", threshold: 15 },
@@ -2133,8 +2187,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "ultimate_recovery",
-    name: "Ultimate Recovery",
-    description: "Maximum health gain boost in critical state",
+    name: __("Ultimate Recovery||Recuperación Definitiva"),
+    description: __("Maximum health gain boost in critical state||Máximo boost de ganancia de vida en estado crítico"),
     activationCondition: "on_critical_health",
     effect: "modify_health_gain",
     effectParams: { multiplier: 2.5, threshold: 15 },
@@ -2143,8 +2197,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "perfect_flow",
-    name: "Perfect Flow",
-    description: "Ultimate general boost for expert players",
+    name: __("Perfect Flow||Flujo Perfecto"),
+    description: __("Ultimate general boost for expert players||Boost general definitivo para jugadores expertos"),
     activationCondition: "on_perfect_streak",
     effect: "general_boost",
     effectParams: { windowMultiplier: 1.2, healthMultiplier: 1.5, threshold: 30 },
@@ -2153,8 +2207,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "final_stand",
-    name: "Final Stand",
-    description: "Emergency health burst when near failure",
+    name: __("Final Stand||Última Resistencia"),
+    description: __("Emergency health burst when near failure||Burst de vida de emergencia cuando estás al borde del fracaso"),
     activationCondition: "on_critical_health",
     effect: "burst_health_regen",
     effectParams: { amount: 25, threshold: 5 },
@@ -2163,8 +2217,8 @@ const CHARACTER_SKILLS = [
   },
   {
     id: "rhythm_savant",
-    name: "Rhythm Savant",
-    description: "Perfect input timing at extreme combo",
+    name: __("Rhythm Savant||Sabio del Ritmo"),
+    description: __("Perfect input timing at extreme combo||Timing de input perfecto en combo extremo"),
     activationCondition: "on_high_combo",
     effect: "modify_input_lag",
     effectParams: { reduction: 0.03, threshold: 250 },
@@ -2178,25 +2232,25 @@ const CHARACTER_ITEMS = [
   // Top
   {
     id: "top_blouse",
-    name: "Blouse",
-    description: "A simple blouse with rolled sleeves.",
+    name: __("Blouse||Blusa"),
+    description: __("A simple blouse with rolled sleeves.||Una blusa simple con mangas arremangadas."),
     type: "top",
     tint: 0x0f1d42,
     dyable: true
   },
   {
     id: "top_dubstep_dress",
-    name: "Dubstep Dress",
-    description: "A dress that pulses with rhythm. The lights react to the beat!",
+    name: __("Dubstep Dress||Vestido Dubstep"),
+    description: __("A dress that pulses with rhythm. The lights react to the beat!||Un vestido que late con ritmo. ¡Las luces reaccionan al beat!"),
     type: "top",
     layers: [
       {
-        name: "Main",
+        name: __("Main||Principal"),
         dyable: true,
         tint: 0x0f1d42
       },
       {
-        name: "Lights",
+        name: __("Lights||Luces"),
         dyable: true,
         alternateTint: 0xffffff,
         alternateFrequency: 100,
@@ -2207,8 +2261,8 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "top_lencery",
-    name: "Lencery",
-    description: "A mysterious top with an otherworldly shimmer.",
+    name: __("Lencery||Lencería"),
+    description: __("A mysterious top with an otherworldly shimmer.||Un top misterioso con un brillo de otro mundo."),
     type: "top",
     tint: 0x352a34,
     dyable: true,
@@ -2216,29 +2270,29 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "top_office_shirt",
-    name: "Office Shirt",
-    description: "Business casual. Perfect for the office... or the dance floor.",
+    name: __("Office Shirt||Camisa de Oficina"),
+    description: __("Business casual. Perfect for the office... or the dance floor.||Casual de oficina. Perfecto para la chamba... o la pista de baile."),
     type: "top",
     dyable: false,
   },
   {
     id: "top_seifuku",
-    name: "Seifuku (Dyable)",
-    description: "A classic school uniform. Customize every detail!",
+    name: __("Seifuku (Dyable)||Seifuku (Personalizable)"),
+    description: __("A classic school uniform. Customize every detail!||Un uniforme escolar clásico. ¡Personaliza cada detalle!"),
     type: "top",
     layers: [
       {
-        name: "Main",
+        name: __("Main||Principal"),
         dyable: true,
         tint: 0xffffff
       },
       {
-        name: "Detail 1",
+        name: __("Detail 1||Detalle 1"),
         dyable: true,
         tint: 0x0f1d42
       },
       {
-        name: "Detail 2",
+        name: __("Detail 2||Detalle 2"),
         dyable: true,
         tint: 0xff0000
       }
@@ -2247,24 +2301,24 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "top_seifuku_default",
-    name: "Seifuku",
-    description: "A classic school uniform. Simple and elegant.",
+    name: __("Seifuku||Seifuku"),
+    description: __("A classic school uniform. Simple and elegant.||Un uniforme escolar clásico. Simple y elegante."),
     type: "top",
     dyable: false
   },
   {
     id: "top_dress",
-    name: "Dress",
-    description: "A flowing dress with a golden trim.",
+    name: __("Dress||Vestido"),
+    description: __("A flowing dress with a golden trim.||Un vestido fluido con ribete dorado."),
     type: "top",
     layers: [
       {
-        name: "Main",
+        name: __("Main||Principal"),
         dyable: true,
         tint: 0xffffff
       },
       {
-        name: "Detail",
+        name: __("Detail||Detalle"),
         dyable: true,
         tint: 0xe8c258
       },
@@ -2273,17 +2327,17 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "top_tshirt",
-    name: "T-shirt",
-    description: "A casual t-shirt with a bold design.",
+    name: __("T-shirt||Playera"),
+    description: __("A casual t-shirt with a bold design.||Una playera casual con un diseño atrevido."),
     type: "top",
     layers: [
       {
-        name: "Main",
+        name: __("Main||Principal"),
         dyable: true,
         tint: 0xcd4345
       },
       {
-        name: "Detail",
+        name: __("Detail||Detalle"),
         dyable: true,
         tint: 0xfefefe
       },
@@ -2292,33 +2346,33 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "top_racing",
-    name: "Racing Suit",
+    name: __("Racing Suit||Traje de Carreras"),
     type: "top",
     dyable: true,
     tint: 0x0066ff,
-    description: "A sleek blue latex suit with black accents. Built for speed and rhythm."
+    description: __("A sleek blue latex suit with black accents. Built for speed and rhythm.||Un traje de látex azul elegante con acentos negros. Hecho para la velocidad y el ritmo.")
   },
   {
     id: "top_swimsuit",
-    name: "Swimsuit",
+    name: __("Swimsuit||Traje de Baño"),
     type: "top",
     dyable: true,
     tint: 0xf85998,
-    description: "A standard polyester swimsuit"
+    description: __("A standard polyester swimsuit||Un traje de baño de poliéster estándar")
   },
   // Bottom
   {
     id: "bottom_knee_length_jeans",
-    name: "Knee-length Jeans",
-    description: "Comfortable jeans that end just below the knee.",
+    name: __("Knee-length Jeans||Jeans a la Rodilla"),
+    description: __("Comfortable jeans that end just below the knee.||Jeans cómodos que terminan justo debajo de la rodilla."),
     type: "bottom",
     tint: 0x0f1d42,
     dyable: true
   },
   {
     id: "bottom_lencery",
-    name: "Lencery",
-    description: "Mysterious pants with an otherworldly shimmer.",
+    name: __("Lencery||Lencería"),
+    description: __("Mysterious pants with an otherworldly shimmer.||Pantalones misteriosos con un brillo de otro mundo."),
     type: "bottom",
     tint: 0x352a34,
     dyable: true,
@@ -2326,32 +2380,32 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "bottom_long_jeans",
-    name: "Long Jeans",
-    description: "Full-length jeans. Classic and reliable.",
+    name: __("Long Jeans||Jeans Largos"),
+    description: __("Full-length jeans. Classic and reliable.||Jeans de largo completo. Clásicos y confiables."),
     type: "bottom",
     tint: 0x0f1d42,
     dyable: true
   },
   {
     id: "bottom_shorts_type1",
-    name: "Shorts",
-    description: "Simple shorts. Perfect for warm days.",
+    name: __("Shorts||Shorts"),
+    description: __("Simple shorts. Perfect for warm days.||Shorts simples. Perfectos para días calurosos."),
     type: "bottom",
     dyable: false
   },
   {
     id: "bottom_shorts_type2",
-    name: "Shorts (Dyable)",
-    description: "Simple shorts you can dye any color you want.",
+    name: __("Shorts (Dyable)||Shorts (Personalizable)"),
+    description: __("Simple shorts you can dye any color you want.||Shorts simples que puedes teñir del color que quieras."),
     type: "bottom",
     layers: [
       {
-        name: "Main",
+        name: __("Main||Principal"),
         dyable: true,
         tint: 0x46767d
       },
       {
-        name: "Detail",
+        name: __("Detail||Detalle"),
         dyable: true,
         tint: 0x9c7141
       }
@@ -2360,24 +2414,24 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "bottom_skirt_blue",
-    name: "Skirt",
-    description: "A blue skirt that flows with your movements.",
+    name: __("Skirt||Falda"),
+    description: __("A blue skirt that flows with your movements.||Una falda azul que fluye con tus movimientos."),
     type: "bottom",
     dyable: false
   },
   {
     id: "bottom_skirt",
-    name: "Skirt (Dyable)",
-    description: "A skirt you can dye any color you like.",
+    name: __("Skirt (Dyable)||Falda (Personalizable)"),
+    description: __("A skirt you can dye any color you like.||Una falda que puedes teñir del color que quieras."),
     type: "bottom",
     layers: [
       {
-        name: "Main",
+        name: __("Main||Principal"),
         dyable: true,
         tint: 0x403660
       },
       {
-        name: "Detail",
+        name: __("Detail||Detalle"),
         dyable: true,
         tint: 0x403660
       }
@@ -2387,24 +2441,24 @@ const CHARACTER_ITEMS = [
   // Shoes
   {
     id: "shoes_common",
-    name: "Common Shoes",
-    description: "Simple shoes that go with everything.",
+    name: __("Common Shoes||Zapatos Comunes"),
+    description: __("Simple shoes that go with everything.||Zapatos simples que combinan con todo."),
     type: "shoes",
     dyable: false
   },
   {
     id: "shoes_high_boots",
-    name: "High Boots",
-    description: "Boots that reach the knee. Command attention.",
+    name: __("High Boots||Botas Altas"),
+    description: __("Boots that reach the knee. Command attention.||Botas que llegan a la rodilla. Imponen presencia."),
     type: "shoes",
     layers: [
       {
-        name: "Main",
+        name: __("Main||Principal"),
         dyable: true,
         tint: 0x403660
       },
       {
-        name: "Lights",
+        name: __("Lights||Luces"),
         dyable: true,
         alternateTint: 0xffffff,
         alternateFrequency: 100,
@@ -2415,24 +2469,24 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "shoes_red_sports",
-    name: "Red Sports",
-    description: "Bold red sports shoes. Perfect for active dancers.",
+    name: __("Red Sports||Deportivas Rojas"),
+    description: __("Bold red sports shoes. Perfect for active dancers.||Zapatillas deportivas rojas atrevidas. Perfectas para bailarines activos."),
     type: "shoes",
     dyable: false
   },
   {
     id: "shoes_sports",
-    name: "Sports (Dyable)",
-    description: "Sports shoes you can color to match your outfit.",
+    name: __("Sports (Dyable)||Deportivas (Personalizable)"),
+    description: __("Sports shoes you can color to match your outfit.||Zapatillas deportivas que puedes colorear para que combinen con tu outfit."),
     type: "shoes",
     layers: [
       {
-        name: "Main",
+        name: __("Main||Principal"),
         dyable: true,
         tint: 0xffffff
       },
       {
-        name: "Detail",
+        name: __("Detail||Detalle"),
         dyable: true,
         tint: 0xffffff
       }
@@ -2442,25 +2496,25 @@ const CHARACTER_ITEMS = [
   // Accessories
   {
     id: "accessory_hair_ties",
-    name: "Hair Ties",
-    description: "Cute hair ties. Dye them to match your hair!",
+    name: __("Hair Ties||Ligas para el Pelo"),
+    description: __("Cute hair ties. Dye them to match your hair!||Ligas lindas para el pelo. ¡Tiñelas para que combinen con tu cabello!"),
     type: "accessory",
     tint: 0xffffff,
     dyable: true 
   },
   {
     id: "accessory_rubber_globes",
-    name: "Rubber Globes",
-    description: "Glowing accessories that pulse with energy.",
+    name: __("Rubber Globes||Globos de Goma"),
+    description: __("Glowing accessories that pulse with energy.||Accesorios brillantes que laten con energía."),
     type: "accessory",
     layers: [
       {
-        name: "Main",
+        name: __("Main||Principal"),
         dyable: true,
         tint: 0x0f1d42
       },
       {
-        name: "Lights",
+        name: __("Lights||Luces"),
         dyable: true,
         alternateTint: 0xffffff,
         alternateFrequency: 100,
@@ -2471,70 +2525,70 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "accessory_shoulder_belt_left",
-    name: "Shoulder Belt (Left)",
-    description: "A belt that rests on the left shoulder. Edgy.",
+    name: __("Shoulder Belt (Left)||Cinturón de Hombro (Izquierdo)"),
+    description: __("A belt that rests on the left shoulder. Edgy.||Un cinturón que descansa sobre el hombro izquierdo. Con estilo."),
     type: "accessory",
     dyable: false
   },
   {
     id: "accessory_shoulder_belt_right",
-    name: "Shoulder Belt (Right)",
-    description: "A belt that rests on the right shoulder. Edgy.",
+    name: __("Shoulder Belt (Right)||Cinturón de Hombro (Derecho)"),
+    description: __("A belt that rests on the right shoulder. Edgy.||Un cinturón que descansa sobre el hombro derecho. Con estilo."),
     type: "accessory",
     dyable: false
   },
   {
     id: "accessory_fedora",
-    name: "Fedora",
+    name: __("Fedora||Fedora"),
     type: "accessory",
     dyable: false,
-    description: "A classic fedora hat for those who appreciate style and mystery."
+    description: __("A classic fedora hat for those who appreciate style and mystery.||Un sombrero fedora clásico para quienes aprecian el estilo y el misterio.")
   },
   {
     id: "accessory_paper_hat",
-    name: "Paper Hat",
+    name: __("Paper Hat||Sombrero de Papel"),
     type: "accessory",
     dyable: true,
     tint: 0xffffff,
-    description: "A hat made of paper."
+    description: __("A hat made of paper.||Un sombrero hecho de papel.")
   },
   {
     id: "accessory_cat_ears",
-    name: "Cat Ears",
+    name: __("Cat Ears||Orejas de Gato"),
     type: "accessory",
     dyable: true,
     tint: 0xfcdcc1,
-    description: "Neko girl! Nya~!"
+    description: __("Neko girl! Nya~!||¡Chica neko! ¡Nya~!")
   },
   {
     id: "accessory_cap",
-    name: "Casual Cap",
+    name: __("Casual Cap||Gorra Casual"),
     type: "accessory",
     dyable: true,
     tint: 0xf8a4c0,
-    description: "Casual Dyable Cap"
+    description: __("Casual Dyable Cap||Gorra casual personalizable")
   },
   // Special costumes
   {
     id: "special_pajamas",
-    name: "Pajamas",
-    description: "Are you sleepy?",
+    name: __("Pajamas||Pijama"),
+    description: __("Are you sleepy?||¿Tienes sueño?"),
     type: "special",
     hideCharacter: false,
     dyable: true,
     layers: [
       {
-        name: "Main",
+        name: __("Main||Principal"),
         tint: 0xf8c8d8,
         dyable: true
       },
       {
-        name: "Detail 1",
+        name: __("Detail 1||Detalle 1"),
         tint: 0xffffff,
         dyable: true
       },
       {
-        name: "Detail 2",
+        name: __("Detail 2||Detalle 2"),
         tint: 0xffffff,
         dyable: true
       }
@@ -2542,8 +2596,8 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "special_pinkachu",
-    name: "Pinkachu :D",
-    description: "Our totally original mascot that definitely doesn't resemble any popular yellow electric mouse from a famous franchise. I swear. :3",
+    name: __("Pinkachu :D||Pinkachu :D"),
+    description: __("Our totally original mascot that definitely doesn't resemble any popular yellow electric mouse from a famous franchise. I swear. :3||Nuestra mascota totalmente original que definitivamente no se parece a ningún ratón eléctrico amarillo de una franquicia famosa. Lo juro. :3"),
     type: "special",
     hideCharacter: true,
     dyable: false
@@ -2551,17 +2605,17 @@ const CHARACTER_ITEMS = [
   // Auras
   {
     id: "aura_dots",
-    name: "Dots",
+    name: __("Dots||Puntitos"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xffffff,
-    description: "Simple dots that dance around you like digital fireflies.",
+    description: __("Simple dots that dance around you like digital fireflies.||Puntitos simples que bailan a tu alrededor como luciérnagas digitales."),
     particle: {
       keys: ["particle_dot"],
       frames: [0],
-      frequency: 15,        // Reduced from 30
-      duration: 2500,       // Slightly longer
+      frequency: 15,
+      duration: 2500,
       velocity: { min: 15, max: 40 },
       alpha: { min: 0.3, max: 0.7 },
       gravity: { min: -15, max: 15 }
@@ -2569,16 +2623,16 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_circles",
-    name: "Circles",
+    name: __("Circles||Círculos"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xffffff,
-    description: "Elegant circles that orbit around you with grace.",
+    description: __("Elegant circles that orbit around you with grace.||Círculos elegantes que orbitan a tu alrededor con gracia."),
     particle: {
       keys: ["particle_circle"],
       frames: [0],
-      frequency: 12,        // Reduced from 25
+      frequency: 12,
       duration: 3000,
       velocity: { min: 10, max: 30 },
       alpha: { min: 0.4, max: 0.8 },
@@ -2587,12 +2641,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_squares",
-    name: "Squares",
+    name: __("Squares||Cuadrados"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xffffff,
-    description: "Sharp geometric squares that pulse with rhythm.",
+    description: __("Sharp geometric squares that pulse with rhythm.||Cuadrados geométricos afilados que laten con el ritmo."),
     particle: {
       keys: ["particle_square"],
       frames: [0],
@@ -2605,12 +2659,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_paws",
-    name: "Paws",
+    name: __("Paws||Huellitas"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xffffff,
-    description: "Adorable paw prints that follow your every move. Nya~!",
+    description: __("Adorable paw prints that follow your every move. Nya~!||Adorables huellitas que siguen cada uno de tus movimientos. ¡Nya~!"),
     particle: {
       keys: ["particle_paw"],
       frames: [0],
@@ -2623,12 +2677,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_hearts",
-    name: "Hearts",
+    name: __("Hearts||Corazones"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xff6b9d,
-    description: "Cute hearts that flutter around you with love.",
+    description: __("Cute hearts that flutter around you with love.||Corazones lindos que revolotean a tu alrededor con amor."),
     particle: {
       keys: ["particle_heart"],
       frames: [0],
@@ -2641,12 +2695,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_hearts_filled",
-    name: "Filled Hearts",
+    name: __("Filled Hearts||Corazones Rellenos"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xff6b9d,
-    description: "Solid hearts filled with pure love and affection.",
+    description: __("Solid hearts filled with pure love and affection.||Corazones sólidos llenos de amor y cariño puro."),
     particle: {
       keys: ["particle_heart_filled"],
       frames: [0],
@@ -2659,12 +2713,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_stars",
-    name: "Stars",
+    name: __("Stars||Estrellitas"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xffd700,
-    description: "Sparkling stars that shine bright like your rhythm.",
+    description: __("Sparkling stars that shine bright like your rhythm.||Estrellas brillantes que relucen como tu ritmo."),
     particle: {
       keys: ["particle_star"],
       frames: [0],
@@ -2677,12 +2731,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_stars_filled",
-    name: "Filled Stars",
+    name: __("Filled Stars||Estrellas Rellenas"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xffd700,
-    description: "Solid stars that shine even brighter.",
+    description: __("Solid stars that shine even brighter.||Estrellas sólidas que brillan aún más."),
     particle: {
       keys: ["particle_star_filled"],
       frames: [0],
@@ -2695,12 +2749,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_arrows_random",
-    name: "Random Arrows",
+    name: __("Random Arrows||Flechas Random"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0x00ff88,
-    description: "Arrows pointing in all directions, full of energy!",
+    description: __("Arrows pointing in all directions, full of energy!||¡Flechas apuntando a todos lados, llenas de energía!"),
     particle: {
       keys: ["particle_arrow", "particle_arrow_filled"],
       frames: [0, 0, 0, 0],
@@ -2714,12 +2768,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_arrows_up",
-    name: "Up Arrows",
+    name: __("Up Arrows||Flechas Arriba"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0x00ff88,
-    description: "Rising arrows that lift your spirit higher!",
+    description: __("Rising arrows that lift your spirit higher!||¡Flechas ascendentes que elevan tu espíritu!"),
     particle: {
       keys: ["particle_arrow_filled"],
       frames: [0],
@@ -2727,19 +2781,19 @@ const CHARACTER_ITEMS = [
       duration: 2800,
       velocity: { min: 20, max: 45 },
       alpha: { min: 0.3, max: 0.7 },
-      gravity: { min: -25, max: -10 }, // Always going up
+      gravity: { min: -25, max: -10 },
       rotate: false,
       lockDirection: "up"
     }
   },
   {
     id: "aura_arrows_down",
-    name: "Down Arrows",
+    name: __("Down Arrows||Flechas Abajo"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xff6b35,
-    description: "Grounding arrows that keep you steady.",
+    description: __("Grounding arrows that keep you steady.||Flechas que te mantienen firme y centrado."),
     particle: {
       keys: ["particle_arrow_filled"],
       frames: [0],
@@ -2747,19 +2801,19 @@ const CHARACTER_ITEMS = [
       duration: 2800,
       velocity: { min: 20, max: 45 },
       alpha: { min: 0.3, max: 0.7 },
-      gravity: { min: 10, max: 25 }, // Always going down
+      gravity: { min: 10, max: 25 },
       rotate: false,
       lockDirection: "down"
     }
   },
   {
     id: "aura_bubbles",
-    name: "Bubbles",
+    name: __("Bubbles||Burbujas"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0x88ccff,
-    description: "Colorful bubbles floating all around.",
+    description: __("Colorful bubbles floating all around.||Burbujas coloridas flotando por todos lados."),
     particle: {
       keys: ["particle_bubble"],
       frames: [0, 1, 2],
@@ -2772,12 +2826,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_hearts_ii",
-    name: "Double Hearts",
+    name: __("Double Hearts||Corazones Dobles"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xff6b9d,
-    description: "Double the love, double the sparkle!",
+    description: __("Double the love, double the sparkle!||¡Doble amor, doble brillo!"),
     particle: {
       keys: ["particle_heart"],
       frames: [0],
@@ -2791,12 +2845,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_hearts_iii",
-    name: "Triple Hearts",
+    name: __("Triple Hearts||Corazones Triples"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xff6b9d,
-    description: "Triple the love, triple the sparkle!",
+    description: __("Triple the love, triple the sparkle!||¡Triple amor, triple brillo!"),
     particle: {
       keys: ["particle_heart"],
       frames: [0],
@@ -2810,12 +2864,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_hearts_iv",
-    name: "Quad Hearts",
+    name: __("Quad Hearts||Corazones Cuádruples"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xff6b9d,
-    description: "So much love it fills the screen!",
+    description: __("So much love it fills the screen!||¡Tanto amor que llena la pantalla!"),
     particle: {
       keys: ["particle_heart"],
       frames: [0],
@@ -2829,12 +2883,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_stars_ii",
-    name: "Double Stars",
+    name: __("Double Stars||Estrellas Dobles"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xffd700,
-    description: "Twice the sparkle, twice the shine!",
+    description: __("Twice the sparkle, twice the shine!||¡Doble brillo, doble resplandor!"),
     particle: {
       keys: ["particle_star"],
       frames: [0],
@@ -2848,12 +2902,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_stars_iii",
-    name: "Triple Stars",
+    name: __("Triple Stars||Estrellas Triples"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xffd700,
-    description: "A constellation of brilliance!",
+    description: __("A constellation of brilliance!||¡Una constelación de brillo!"),
     particle: {
       keys: ["particle_star"],
       frames: [0],
@@ -2867,12 +2921,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_heart_star",
-    name: "Love & Shine",
+    name: __("Love & Shine||Amor & Brillo"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xff6b9d,
-    description: "Hearts and stars dancing together in harmony.",
+    description: __("Hearts and stars dancing together in harmony.||Corazones y estrellas bailando juntos en armonía."),
     particle: {
       keys: ["particle_heart", "particle_star"],
       frames: [0, 0],
@@ -2885,12 +2939,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_star_heart",
-    name: "Shine & Love",
+    name: __("Shine & Love||Brillo & Amor"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xffd700,
-    description: "Stars and hearts in a beautiful dance.",
+    description: __("Stars and hearts in a beautiful dance.||Estrellas y corazones en un baile hermoso."),
     particle: {
       keys: ["particle_star", "particle_heart"],
       frames: [0, 0],
@@ -2903,12 +2957,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_paw_heart",
-    name: "Paw Love",
+    name: __("Paw Love||Amor de Patitas"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xff6b9d,
-    description: "Cute paws and hearts for maximum kawaii!",
+    description: __("Cute paws and hearts for maximum kawaii!||¡Patitas lindas y corazones para máximo kawaii!"),
     particle: {
       keys: ["particle_paw", "particle_heart"],
       frames: [0, 0],
@@ -2921,12 +2975,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_circle_star",
-    name: "Stellar Orbs",
+    name: __("Stellar Orbs||Orbes Estelares"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0x00ccff,
-    description: "Orbs of starlight that orbit around you.",
+    description: __("Orbs of starlight that orbit around you.||Orbes de luz estelar que orbitan a tu alrededor."),
     particle: {
       keys: ["particle_circle", "particle_star"],
       frames: [0, 0],
@@ -2939,12 +2993,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_square_star",
-    name: "Cosmic Cubes",
+    name: __("Cosmic Cubes||Cubos Cósmicos"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0x00ff88,
-    description: "Square stars from another dimension!",
+    description: __("Square stars from another dimension!||¡Estrellas cuadradas de otra dimensión!"),
     particle: {
       keys: ["particle_square", "particle_star"],
       frames: [0, 0],
@@ -2957,12 +3011,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_neon_lights",
-    name: "Neon Lights",
+    name: __("Neon Lights||Luces de Neón"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0x00ff88,
-    description: "Neon lights that pulse and glow with energy.",
+    description: __("Neon lights that pulse and glow with energy.||Luces de neón que laten y brillan con energía."),
     particle: {
       keys: ["particle_circle", "particle_dot"],
       frames: [0, 0],
@@ -2977,12 +3031,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_pulse_hearts",
-    name: "Pulse Hearts",
+    name: __("Pulse Hearts||Corazones Late"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xff0066,
-    description: "Hearts that pulse with a rhythm of their own.",
+    description: __("Hearts that pulse with a rhythm of their own.||Corazones que laten con su propio ritmo."),
     particle: {
       keys: ["particle_heart_filled"],
       frames: [0],
@@ -2997,12 +3051,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_chroma_stars",
-    name: "Chroma Stars",
+    name: __("Chroma Stars||Estrellas Croma"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0x00ffcc,
-    description: "Stars shifting through a spectrum of color.",
+    description: __("Stars shifting through a spectrum of color.||Estrellas que cambian a través del espectro de colores."),
     particle: {
       keys: ["particle_star_filled"],
       frames: [0],
@@ -3017,12 +3071,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_dual_arrows",
-    name: "Dual Arrows",
+    name: __("Dual Arrows||Flechas Duales"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0x00ff88,
-    description: "Arrows pointing both up and down in harmony.",
+    description: __("Arrows pointing both up and down in harmony.||Flechas apuntando arriba y abajo en armonía."),
     particle: {
       keys: ["particle_arrow_filled", "particle_arrow_filled"],
       frames: [0, 0],
@@ -3039,12 +3093,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_sparkle_rain",
-    name: "Sparkle Rain",
+    name: __("Sparkle Rain||Lluvia de Brillo"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xffffff,
-    description: "A gentle rain of sparkles that never stops.",
+    description: __("A gentle rain of sparkles that never stops.||Una lluvia suave de brillo que nunca se detiene."),
     particle: {
       keys: ["particle_star", "particle_dot"],
       frames: [0, 0],
@@ -3059,12 +3113,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_galaxy",
-    name: "Galaxy",
+    name: __("Galaxy||Galaxia"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0x8800ff,
-    description: "A swirling galaxy of cosmic particles.",
+    description: __("A swirling galaxy of cosmic particles.||Una galaxia en espiral de partículas cósmicas."),
     particle: {
       keys: ["particle_dot", "particle_circle"],
       frames: [0, 0],
@@ -3079,12 +3133,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_fireflies",
-    name: "Fireflies",
+    name: __("Fireflies||Luciérnagas"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0xffdd44,
-    description: "Gentle fireflies lighting up the night around you.",
+    description: __("Gentle fireflies lighting up the night around you.||Luciérnagas suaves iluminando la noche a tu alrededor."),
     particle: {
       keys: ["particle_dot"],
       frames: [0],
@@ -3099,12 +3153,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_music_notes",
-    name: "Music Notes",
+    name: __("Music Notes||Notas Musicales"),
     type: "special",
     isAura: true,
     dyable: true,
     tint: 0x00ccff,
-    description: "Music notes that dance to your rhythm.",
+    description: __("Music notes that dance to your rhythm.||Notas musicales que bailan a tu ritmo."),
     particle: {
       keys: ["particle_music_note"],
       frames: [0, 1, 2, 3],
@@ -3119,12 +3173,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_rainbow_hearts",
-    name: "Rainbow Hearts",
+    name: __("Rainbow Hearts||Corazones Arcoíris"),
     type: "special",
     isAura: true,
     dyable: false,
     tint: 0xffffff,
-    description: "Hearts in every color of the rainbow.",
+    description: __("Hearts in every color of the rainbow.||Corazones de todos los colores del arcoíris."),
     particle: {
       keys: ["particle_heart"],
       frames: [0],
@@ -3139,12 +3193,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_rainbow_stars",
-    name: "Rainbow Stars",
+    name: __("Rainbow Stars||Estrellas Arcoíris"),
     type: "special",
     isAura: true,
     dyable: false,
     tint: 0xffffff,
-    description: "Stars in every color of the rainbow.",
+    description: __("Stars in every color of the rainbow.||Estrellas de todos los colores del arcoíris."),
     particle: {
       keys: ["particle_star_filled"],
       frames: [0],
@@ -3159,12 +3213,12 @@ const CHARACTER_ITEMS = [
   },
   {
     id: "aura_rainbow_hybrid",
-    name: "Rainbow Hybrid",
+    name: __("Rainbow Hybrid||Híbrido Arcoíris"),
     type: "special",
     isAura: true,
     dyable: false,
     tint: 0xffffff,
-    description: "A mix of hearts and stars in rainbow colors.",
+    description: __("A mix of hearts and stars in rainbow colors.||Una mezcla de corazones y estrellas en colores arcoíris."),
     particle: {
       keys: ["particle_heart", "particle_star_filled"],
       frames: [0, 0],
@@ -3179,15 +3233,13 @@ const CHARACTER_ITEMS = [
   }
 ];
 
-
-
-// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
   version: 1.11, // 1.1.1
   settings: {
     volume: 100,
     sfxVolume: 100,
     autoplay: false,
+    language: 0,
     enableMenuMusic: true,
     randomSong: false,
     renderer: 0,
@@ -3327,9 +3379,6 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
-
-
-// ======== js/core/achievements.js ========
 // Achievements system constants
 const ACHIEVEMENTS = {
   EXPERIENCE_VALUES: {
@@ -3343,14 +3392,14 @@ const ACHIEVEMENTS = {
 
 // Achievement categories
 const ACHIEVEMENT_CATEGORIES = {
-  GAMEPLAY: "Gameplay",
-  CHARACTER: "Character",
-  PROGRESSION: "Progression",
-  MASTERY: "Mastery",
-  TIME: "Time",
-  HOLIDAYS: "Holidays",
-  EDITOR: "Editor",
-  MISC: "Miscellaneous"
+  GAMEPLAY: __("Gameplay||Juego"),
+  CHARACTER: __("Character||Personaje"),
+  PROGRESSION: __("Progression||Progresión"),
+  MASTERY: __("Mastery||Maestría"),
+  TIME: __("Time||Tiempo"),
+  HOLIDAYS: __("Holidays||Festivos"),
+  EDITOR: __("Editor||Editor"),
+  MISC: __("Miscellaneous||Varios")
 };
 
 // Achievement definitions
@@ -3358,11 +3407,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Gameplay Achievements
   {
     id: "first_game",
-    name: "First Steps",
+    name: __("First Steps||Primeros Pasos"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete your first game",
-      achieved: "You completed your first game!"
+      unachieved: __("Complete your first game||Completa tu primera partida"),
+      achieved: __("You completed your first game!||¡Completaste tu primera partida!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalGamesPlayed >= 1,
@@ -3370,11 +3419,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_extra_songs_game",
-    name: "Love My Charts",
+    name: __("Love My Charts||Amo Mis Charts"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete your first external song",
-      achieved: "You completed your first external song!"
+      unachieved: __("Complete your first external song||Completa tu primera canción externa"),
+      achieved: __("You completed your first external song!||¡Completaste tu primera canción externa!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: (_, song) => song.complete && song.isExternal,
@@ -3382,11 +3431,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_100",
-    name: "Getting the Rhythm",
+    name: __("Getting the Rhythm||Tomando el Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 100 combo",
-      achieved: "You reached 100 combo!"
+      unachieved: __("Reach 100 combo||Alcanza 100 combo"),
+      achieved: __("You reached 100 combo!||¡Alcanzaste 100 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.maxCombo >= 100,
@@ -3394,11 +3443,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_500",
-    name: "Combo Builder",
+    name: __("Combo Builder||Constructor de Combo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 500 combo",
-      achieved: "You reached 500 combo!"
+      unachieved: __("Reach 500 combo||Alcanza 500 combo"),
+      achieved: __("You reached 500 combo!||¡Alcanzaste 500 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.maxCombo >= 500,
@@ -3406,11 +3455,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_1000",
-    name: "Chain Master",
+    name: __("Chain Master||Maestro de la Cadena"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 1000 combo",
-      achieved: "You reached 1000 combo!"
+      unachieved: __("Reach 1000 combo||Alcanza 1000 combo"),
+      achieved: __("You reached 1000 combo!||¡Alcanzaste 1000 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.maxCombo >= 1000,
@@ -3418,11 +3467,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_1500",
-    name: "Rhythm Savant",
+    name: __("Rhythm Savant||Sabio del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 1500 combo",
-      achieved: "You reached 1500 combo!"
+      unachieved: __("Reach 1500 combo||Alcanza 1500 combo"),
+      achieved: __("You reached 1500 combo!||¡Alcanzaste 1500 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.maxCombo >= 1500,
@@ -3430,11 +3479,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_2000",
-    name: "Unbreakable Chain",
+    name: __("Unbreakable Chain||Cadena Irrompible"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 2000 combo",
-      achieved: "You reached 2000 combo!"
+      unachieved: __("Reach 2000 combo||Alcanza 2000 combo"),
+      achieved: __("You reached 2000 combo!||¡Alcanzaste 2000 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.maxCombo >= 2000,
@@ -3442,11 +3491,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_3000",
-    name: "Perfect Flow",
+    name: __("Perfect Flow||Flujo Perfecto"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 3000 combo",
-      achieved: "You reached 3000 combo!"
+      unachieved: __("Reach 3000 combo||Alcanza 3000 combo"),
+      achieved: __("You reached 3000 combo!||¡Alcanzaste 3000 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.maxCombo >= 3000,
@@ -3454,11 +3503,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "perfect_game",
-    name: "Flawless Performance",
+    name: __("Flawless Performance||Actuación Impecable"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete a song with 100% accuracy",
-      achieved: "You completed a song with 100% accuracy!"
+      unachieved: __("Complete a song with 100% accuracy||Completa una canción con 100% de precisión"),
+      achieved: __("You completed a song with 100% accuracy!||¡Completaste una canción con 100% de precisión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.perfectGames >= 1,
@@ -3466,11 +3515,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "perfect_games_5",
-    name: "Consistent Perfection",
+    name: __("Consistent Perfection||Perfección Constante"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete 5 songs with 100% accuracy",
-      achieved: "You completed 5 songs with 100% accuracy!"
+      unachieved: __("Complete 5 songs with 100% accuracy||Completa 5 canciones con 100% de precisión"),
+      achieved: __("You completed 5 songs with 100% accuracy!||¡Completaste 5 canciones con 100% de precisión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.perfectGames >= 5,
@@ -3478,11 +3527,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "perfect_games_25",
-    name: "Perfection Master",
+    name: __("Perfection Master||Maestro de la Perfección"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete 25 songs with 100% accuracy",
-      achieved: "You completed 25 songs with 100% accuracy!"
+      unachieved: __("Complete 25 songs with 100% accuracy||Completa 25 canciones con 100% de precisión"),
+      achieved: __("You completed 25 songs with 100% accuracy!||¡Completaste 25 canciones con 100% de precisión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.perfectGames >= 25,
@@ -3490,11 +3539,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "marvelous_500",
-    name: "Marvelous Master",
+    name: __("Marvelous Master||Maestro Maravilloso"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 500 Marvelous judgements in one game",
-      achieved: "You got 500 Marvelous judgements!"
+      unachieved: __("Get 500 Marvelous judgements in one game||Obtén 500 juicios Marvelous en una partida"),
+      achieved: __("You got 500 Marvelous judgements!||¡Obtuviste 500 juicios Marvelous!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.maxMarvelousInGame >= 500,
@@ -3502,11 +3551,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "marvelous_1000",
-    name: "Precision Expert",
+    name: __("Precision Expert||Experto en Precisión"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 1000 Marvelous judgements in one game",
-      achieved: "You got 1000 Marvelous judgements!"
+      unachieved: __("Get 1000 Marvelous judgements in one game||Obtén 1000 juicios Marvelous en una partida"),
+      achieved: __("You got 1000 Marvelous judgements!||¡Obtuviste 1000 juicios Marvelous!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.maxMarvelousInGame >= 1000,
@@ -3514,11 +3563,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "marvelous_1500",
-    name: "Timing Virtuoso",
+    name: __("Timing Virtuoso||Virtuoso del Timing"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 1500 Marvelous judgements in one game",
-      achieved: "You got 1500 Marvelous judgements!"
+      unachieved: __("Get 1500 Marvelous judgements in one game||Obtén 1500 juicios Marvelous en una partida"),
+      achieved: __("You got 1500 Marvelous judgements!||¡Obtuviste 1500 juicios Marvelous!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.maxMarvelousInGame >= 1500,
@@ -3526,11 +3575,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "all_marvelous",
-    name: "Absolute Precision",
+    name: __("Absolute Precision||Precisión Absoluta"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get only Marvelous judgements in a song",
-      achieved: "You got only Marvelous judgements in a song!"
+      unachieved: __("Get only Marvelous judgements in a song||Obtén solo juicios Marvelous en una canción"),
+      achieved: __("You got only Marvelous judgements in a song!||¡Obtuviste solo juicios Marvelous en una canción!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: (_, song) => song.complete && song.judgements.marvelous >= song.totalNotes,
@@ -3538,11 +3587,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_million",
-    name: "Millionaire",
+    name: __("Millionaire||Millonario"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Score 1,000,000 points in one game",
-      achieved: "You scored 1,000,000 points in one game!"
+      unachieved: __("Score 1,000,000 points in one game||Consigue 1,000,000 puntos en una partida"),
+      achieved: __("You scored 1,000,000 points in one game!||¡Consiguiste 1,000,000 puntos en una partida!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: (_, song) => song.score >= 1000000,
@@ -3550,11 +3599,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "accuracy_90",
-    name: "A Grade",
+    name: __("A Grade||Nota A"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Achieve 90% accuracy in a song",
-      achieved: "You achieved 90% accuracy in a song!"
+      unachieved: __("Achieve 90% accuracy in a song||Alcanza 90% de precisión en una canción"),
+      achieved: __("You achieved 90% accuracy in a song!||¡Alcanzaste 90% de precisión en una canción!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: (_, song) => song.accuracy >= 90,
@@ -3562,11 +3611,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "accuracy_95",
-    name: "S Grade",
+    name: __("S Grade||Nota S"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Achieve 95% accuracy in a song",
-      achieved: "You achieved 95% accuracy in a song!"
+      unachieved: __("Achieve 95% accuracy in a song||Alcanza 95% de precisión en una canción"),
+      achieved: __("You achieved 95% accuracy in a song!||¡Alcanzaste 95% de precisión en una canción!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: (_, song) => song.accuracy >= 95,
@@ -3574,11 +3623,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "accuracy_99",
-    name: "SS Grade",
+    name: __("SS Grade||Nota SS"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Achieve 99% accuracy in a song",
-      achieved: "You achieved 99% accuracy in a song!"
+      unachieved: __("Achieve 99% accuracy in a song||Alcanza 99% de precisión en una canción"),
+      achieved: __("You achieved 99% accuracy in a song!||¡Alcanzaste 99% de precisión en una canción!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: (_, song) => song.accuracy >= 99,
@@ -3586,11 +3635,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "no_boo_game",
-    name: "Clean Play",
+    name: __("Clean Play||Juego Limpio"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete a song without any Boo judgements",
-      achieved: "You completed a song without any Boo judgements!"
+      unachieved: __("Complete a song without any Boo judgements||Completa una canción sin juicios Boo"),
+      achieved: __("You completed a song without any Boo judgements!||¡Completaste una canción sin juicios Boo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: (_, song) => song.complete && song.judgements.boo <= 0,
@@ -3598,11 +3647,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "only_perfect_plus",
-    name: "Perfect+ Only",
+    name: __("Perfect+ Only||Solo Perfect+"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get only Marvelous and Perfect judgements",
-      achieved: "You got only Marvelous and Perfect judgements!"
+      unachieved: __("Get only Marvelous and Perfect judgements||Obtén solo juicios Marvelous y Perfect"),
+      achieved: __("You got only Marvelous and Perfect judgements!||¡Obtuviste solo juicios Marvelous y Perfect!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: (_, song) => song.complete && song.judgements.marvelous + song.judgements.perfect >= song.totalNotes,
@@ -3610,11 +3659,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "speed_challenge",
-    name: "Speed Demon",
+    name: __("Speed Demon||Demonio de Velocidad"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete a song on maximum note speed",
-      achieved: "You completed a song on maximum note speed!"
+      unachieved: __("Complete a song on maximum note speed||Completa una canción a velocidad máxima"),
+      achieved: __("You completed a song on maximum note speed!||¡Completaste una canción a velocidad máxima!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: (_, song) => song.complete && Account.settings.noteSpeedMult >= 6,
@@ -3622,11 +3671,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_full_combo",
-    name: "First Full Combo",
+    name: __("First Full Combo||Primer Combo Completo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete your first full combo",
-      achieved: "You completed your first full combo!"
+      unachieved: __("Complete your first full combo||Completa tu primer combo completo"),
+      achieved: __("You completed your first full combo!||¡Completaste tu primer combo completo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.fullCombos >= 1,
@@ -3634,11 +3683,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_5",
-    name: "Consistent Combo",
+    name: __("Consistent Combo||Combo Consistente"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 5 full combos",
-      achieved: "You got 5 full combos!"
+      unachieved: __("Get 5 full combos||Obtén 5 combos completos"),
+      achieved: __("You got 5 full combos!||¡Obtuviste 5 combos completos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.fullCombos >= 5,
@@ -3646,11 +3695,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_25",
-    name: "Combo Master",
+    name: __("Combo Master||Maestro del Combo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 25 full combos",
-      achieved: "You got 25 full combos!"
+      unachieved: __("Get 25 full combos||Obtén 25 combos completos"),
+      achieved: __("You got 25 full combos!||¡Obtuviste 25 combos completos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.fullCombos >= 25,
@@ -3658,11 +3707,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_100",
-    name: "Unstoppable",
+    name: __("Unstoppable||Imparable"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 100 full combos",
-      achieved: "You got 100 full combos!"
+      unachieved: __("Get 100 full combos||Obtén 100 combos completos"),
+      achieved: __("You got 100 full combos!||¡Obtuviste 100 combos completos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.fullCombos >= 100,
@@ -3670,11 +3719,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_streak_3",
-    name: "On Fire",
+    name: __("On Fire||En Racha"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 3 full combos in a row",
-      achieved: "You got 3 full combos in a row!"
+      unachieved: __("Get 3 full combos in a row||Obtén 3 combos completos seguidos"),
+      achieved: __("You got 3 full combos in a row!||¡Obtuviste 3 combos completos seguidos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.maxFullComboStreak >= 3,
@@ -3682,11 +3731,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_streak_5",
-    name: "Burning Rhythm",
+    name: __("Burning Rhythm||Ritmo Ardiente"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 5 full combos in a row",
-      achieved: "You got 5 full combos in a row!"
+      unachieved: __("Get 5 full combos in a row||Obtén 5 combos completos seguidos"),
+      achieved: __("You got 5 full combos in a row!||¡Obtuviste 5 combos completos seguidos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.maxFullComboStreak >= 5,
@@ -3694,11 +3743,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_streak_10",
-    name: "Unstoppable Rhythm",
+    name: __("Unstoppable Rhythm||Ritmo Imparable"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 10 full combos in a row",
-      achieved: "You got 10 full combos in a row!"
+      unachieved: __("Get 10 full combos in a row||Obtén 10 combos completos seguidos"),
+      achieved: __("You got 10 full combos in a row!||¡Obtuviste 10 combos completos seguidos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.maxFullComboStreak >= 10,
@@ -3706,11 +3755,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_streak_20",
-    name: "Rhythm God",
+    name: __("Rhythm God||Dios del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 20 full combos in a row",
-      achieved: "You got 20 full combos in a row!"
+      unachieved: __("Get 20 full combos in a row||Obtén 20 combos completos seguidos"),
+      achieved: __("You got 20 full combos in a row!||¡Obtuviste 20 combos completos seguidos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.maxFullComboStreak >= 20,
@@ -3718,11 +3767,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_flawless",
-    name: "Flawless",
+    name: __("Flawless||Impecable"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete a flawless full combo",
-      achieved: "You completed a flawless full combo!"
+      unachieved: __("Complete a flawless full combo||Completa un combo completo impecable"),
+      achieved: __("You completed a flawless full combo!||¡Completaste un combo completo impecable!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.flawlessFullCombos >= 1,
@@ -3730,11 +3779,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "flawless_5",
-    name: "Flawless Master",
+    name: __("Flawless Master||Maestro Impecable"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 5 flawless full combos",
-      achieved: "You got 5 flawless full combos!"
+      unachieved: __("Get 5 flawless full combos||Obtén 5 combos completos impecables"),
+      achieved: __("You got 5 flawless full combos!||¡Obtuviste 5 combos completos impecables!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.flawlessFullCombos >= 5,
@@ -3742,11 +3791,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "flawless_10",
-    name: "Perfectionist",
+    name: __("Perfectionist||Perfeccionista"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 10 flawless full combos",
-      achieved: "You got 10 flawless full combos!"
+      unachieved: __("Get 10 flawless full combos||Obtén 10 combos completos impecables"),
+      achieved: __("You got 10 flawless full combos!||¡Obtuviste 10 combos completos impecables!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.flawlessFullCombos >= 10,
@@ -3754,11 +3803,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "flawless_streak_3",
-    name: "Perfect Run",
+    name: __("Perfect Run||Racha Perfecta"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 3 flawless full combos in a row",
-      achieved: "You got 3 flawless full combos in a row!"
+      unachieved: __("Get 3 flawless full combos in a row||Obtén 3 combos completos impecables seguidos"),
+      achieved: __("You got 3 flawless full combos in a row!||¡Obtuviste 3 combos completos impecables seguidos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.flawlessStreak >= 3,
@@ -3766,11 +3815,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "absolute_flawless",
-    name: "Absolute Perfection",
+    name: __("Absolute Perfection||Perfección Absoluta"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete a song with only Marvelous judgements",
-      achieved: "You completed a song with only Marvelous judgements!"
+      unachieved: __("Complete a song with only Marvelous judgements||Completa una canción solo con juicios Marvelous"),
+      achieved: __("You completed a song with only Marvelous judgements!||¡Completaste una canción solo con juicios Marvelous!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.absoluteFlawless >= 1,
@@ -3778,11 +3827,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_multiplayer_game",
-    name: "Together We Play",
+    name: __("Together We Play||Jugamos Juntos"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete your first multiplayer game",
-      achieved: "You completed your first multiplayer game!"
+      unachieved: __("Complete your first multiplayer game||Completa tu primera partida multijugador"),
+      achieved: __("You completed your first multiplayer game!||¡Completaste tu primera partida multijugador!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.multiplayerGamesPlayed >= 1,
@@ -3790,11 +3839,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "multiplayer_games_10",
-    name: "Co-op Player",
+    name: __("Co-op Player||Jugador Cooperativo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Play 10 multiplayer games",
-      achieved: "You played 10 multiplayer games!"
+      unachieved: __("Play 10 multiplayer games||Juega 10 partidas multijugador"),
+      achieved: __("You played 10 multiplayer games!||¡Jugaste 10 partidas multijugador!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.multiplayerGamesPlayed >= 10,
@@ -3802,11 +3851,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "multiplayer_games_50",
-    name: "Multiplayer Veteran",
+    name: __("Multiplayer Veteran||Veterano Multijugador"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Play 50 multiplayer games",
-      achieved: "You played 50 multiplayer games!"
+      unachieved: __("Play 50 multiplayer games||Juega 50 partidas multijugador"),
+      achieved: __("You played 50 multiplayer games!||¡Jugaste 50 partidas multijugador!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.multiplayerGamesPlayed >= 50,
@@ -3814,11 +3863,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "multiplayer_games_100",
-    name: "Versus Master",
+    name: __("Versus Master||Maestro del Versus"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Play 100 multiplayer games",
-      achieved: "You played 100 multiplayer games!"
+      unachieved: __("Play 100 multiplayer games||Juega 100 partidas multijugador"),
+      achieved: __("You played 100 multiplayer games!||¡Jugaste 100 partidas multijugador!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.multiplayerGamesPlayed >= 100,
@@ -3826,11 +3875,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "multiplayer_games_500",
-    name: "Rivalry Legend",
+    name: __("Rivalry Legend||Leyenda de Rivalidad"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Play 500 multiplayer games",
-      achieved: "You played 500 multiplayer games!"
+      unachieved: __("Play 500 multiplayer games||Juega 500 partidas multijugador"),
+      achieved: __("You played 500 multiplayer games!||¡Jugaste 500 partidas multijugador!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.multiplayerGamesPlayed >= 500,
@@ -3840,11 +3889,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Character Achievements
   {
     id: "first_character",
-    name: "New Identity",
+    name: __("New Identity||Nueva Identidad"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Create your first character",
-      achieved: "You created your first character!"
+      unachieved: __("Create your first character||Crea tu primer personaje"),
+      achieved: __("You created your first character!||¡Creaste tu primer personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.charactersCreated >= 1,
@@ -3852,11 +3901,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_collector",
-    name: "Character Collector",
+    name: __("Character Collector||Coleccionista de Personajes"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Create 5 different characters",
-      achieved: "You created 5 different characters!"
+      unachieved: __("Create 5 different characters||Crea 5 personajes diferentes"),
+      achieved: __("You created 5 different characters!||¡Creaste 5 personajes diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.charactersCreated >= 5,
@@ -3864,11 +3913,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_archivist",
-    name: "Character Archivist",
+    name: __("Character Archivist||Archivista de Personajes"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Create 10 different characters",
-      achieved: "You created 10 different characters!"
+      unachieved: __("Create 10 different characters||Crea 10 personajes diferentes"),
+      achieved: __("You created 10 different characters!||¡Creaste 10 personajes diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.charactersCreated >= 10,
@@ -3876,11 +3925,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_level_5",
-    name: "Apprentice Dancer",
+    name: __("Apprentice Dancer||Bailarín Aprendiz"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach character level 5",
-      achieved: "You reached character level 5!"
+      unachieved: __("Reach character level 5||Alcanza el nivel 5 de personaje"),
+      achieved: __("You reached character level 5!||¡Alcanzaste el nivel 5 de personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.maxCharacterLevel >= 5,
@@ -3888,11 +3937,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_level_10",
-    name: "Seasoned Performer",
+    name: __("Seasoned Performer||Artista Experimentado"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach character level 10",
-      achieved: "You reached character level 10!"
+      unachieved: __("Reach character level 10||Alcanza el nivel 10 de personaje"),
+      achieved: __("You reached character level 10!||¡Alcanzaste el nivel 10 de personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.maxCharacterLevel >= 10,
@@ -3900,11 +3949,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_level_20",
-    name: "Experienced Artist",
+    name: __("Experienced Artist||Artista Experimentado"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach character level 20",
-      achieved: "You reached character level 20!"
+      unachieved: __("Reach character level 20||Alcanza el nivel 20 de personaje"),
+      achieved: __("You reached character level 20!||¡Alcanzaste el nivel 20 de personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.maxCharacterLevel >= 20,
@@ -3912,11 +3961,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_level_30",
-    name: "Veteran Dancer",
+    name: __("Veteran Dancer||Bailarín Veterano"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach character level 30",
-      achieved: "You reached character level 30!"
+      unachieved: __("Reach character level 30||Alcanza el nivel 30 de personaje"),
+      achieved: __("You reached character level 30!||¡Alcanzaste el nivel 30 de personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.maxCharacterLevel >= 30,
@@ -3924,11 +3973,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_level_50",
-    name: "Rhythm Legend",
+    name: __("Rhythm Legend||Leyenda del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach character level 50",
-      achieved: "You reached character level 50!"
+      unachieved: __("Reach character level 50||Alcanza el nivel 50 de personaje"),
+      achieved: __("You reached character level 50!||¡Alcanzaste el nivel 50 de personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.maxCharacterLevel >= 50,
@@ -3936,11 +3985,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_skill",
-    name: "First Skill",
+    name: __("First Skill||Primera Habilidad"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock your first skill",
-      achieved: "You unlocked your first skill!"
+      unachieved: __("Unlock your first skill||Desbloquea tu primera habilidad"),
+      achieved: __("You unlocked your first skill!||¡Desbloqueaste tu primera habilidad!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.skillsUnlocked >= 1,
@@ -3948,11 +3997,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_collector",
-    name: "Skill Collector",
+    name: __("Skill Collector||Coleccionista de Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 5 different skills",
-      achieved: "You unlocked 5 different skills!"
+      unachieved: __("Unlock 5 different skills||Desbloquea 5 habilidades diferentes"),
+      achieved: __("You unlocked 5 different skills!||¡Desbloqueaste 5 habilidades diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.skillsUnlocked >= 5,
@@ -3960,11 +4009,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_master",
-    name: "Skill Master",
+    name: __("Skill Master||Maestro de Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 10 different skills",
-      achieved: "You unlocked 10 different skills!"
+      unachieved: __("Unlock 10 different skills||Desbloquea 10 habilidades diferentes"),
+      achieved: __("You unlocked 10 different skills!||¡Desbloqueaste 10 habilidades diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.skillsUnlocked >= 10,
@@ -3972,11 +4021,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_grandmaster",
-    name: "Skill Grandmaster",
+    name: __("Skill Grandmaster||Gran Maestro de Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 20 different skills",
-      achieved: "You unlocked 20 different skills!"
+      unachieved: __("Unlock 20 different skills||Desbloquea 20 habilidades diferentes"),
+      achieved: __("You unlocked 20 different skills!||¡Desbloqueaste 20 habilidades diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.skillsUnlocked >= 20,
@@ -3984,11 +4033,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_legend",
-    name: "Skill Legend",
+    name: __("Skill Legend||Leyenda de Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 30 different skills",
-      achieved: "You unlocked 30 different skills!"
+      unachieved: __("Unlock 30 different skills||Desbloquea 30 habilidades diferentes"),
+      achieved: __("You unlocked 30 different skills!||¡Desbloqueaste 30 habilidades diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.skillsUnlocked >= 30,
@@ -3996,11 +4045,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_hair_style",
-    name: "New Look",
+    name: __("New Look||Nuevo Look"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock a new hair style",
-      achieved: "You unlocked a new hair style!"
+      unachieved: __("Unlock a new hair style||Desbloquea un nuevo peinado"),
+      achieved: __("You unlocked a new hair style!||¡Desbloqueaste un nuevo peinado!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.charactersCreated >= 1,
@@ -4008,11 +4057,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "fashion_collector",
-    name: "Fashion Collector",
+    name: __("Fashion Collector||Coleccionista de Moda"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 5 different clothing items",
-      achieved: "You unlocked 5 different clothing items!"
+      unachieved: __("Unlock 5 different clothing items||Desbloquea 5 prendas diferentes"),
+      achieved: __("You unlocked 5 different clothing items!||¡Desbloqueaste 5 prendas diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.charactersCreated >= 2,
@@ -4020,11 +4069,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "fashion_icon",
-    name: "Fashion Icon",
+    name: __("Fashion Icon||Icono de Moda"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 10 different clothing items",
-      achieved: "You unlocked 10 different clothing items!"
+      unachieved: __("Unlock 10 different clothing items||Desbloquea 10 prendas diferentes"),
+      achieved: __("You unlocked 10 different clothing items!||¡Desbloqueaste 10 prendas diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.charactersCreated >= 3,
@@ -4032,11 +4081,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "accessory_hunter",
-    name: "Accessory Hunter",
+    name: __("Accessory Hunter||Cazador de Accesorios"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 5 different accessories",
-      achieved: "You unlocked 5 different accessories!"
+      unachieved: __("Unlock 5 different accessories||Desbloquea 5 accesorios diferentes"),
+      achieved: __("You unlocked 5 different accessories!||¡Desbloqueaste 5 accesorios diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.charactersCreated >= 2,
@@ -4044,11 +4093,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "max_skill_level",
-    name: "Maxed Out",
+    name: __("Maxed Out||Al Máximo"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach maximum skill level with a character",
-      achieved: "You reached maximum skill level with a character!"
+      unachieved: __("Reach maximum skill level with a character||Alcanza el nivel máximo de habilidad con un personaje"),
+      achieved: __("You reached maximum skill level with a character!||¡Alcanzaste el nivel máximo de habilidad con un personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.maxCharacterLevel >= CHARACTER_SYSTEM.MAX_SKILL_LEVEL,
@@ -4056,11 +4105,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_perfection",
-    name: "Character Perfection",
+    name: __("Character Perfection||Perfección de Personaje"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Max out all character stats",
-      achieved: "You maxed out all character stats!"
+      unachieved: __("Max out all character stats||Maximiza todas las estadísticas del personaje"),
+      achieved: __("You maxed out all character stats!||¡Maximizaste todas las estadísticas del personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.maxCharacterLevel >= 50 && stats.skillsUnlocked >= 30,
@@ -4068,11 +4117,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "name_master",
-    name: "Name Master",
+    name: __("Name Master||Maestro de Nombres"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Create a character with maximum name length",
-      achieved: "You created a character with maximum name length!"
+      unachieved: __("Create a character with maximum name length||Crea un personaje con el nombre más largo posible"),
+      achieved: __("You created a character with maximum name length!||¡Creaste un personaje con el nombre más largo posible!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.charactersCreated >= 1,
@@ -4082,11 +4131,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Progression Achievements
   {
     id: "games_10",
-    name: "Dedicated Player",
+    name: __("Dedicated Player||Jugador Dedicado"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Play 10 games",
-      achieved: "You played 10 games!"
+      unachieved: __("Play 10 games||Juega 10 partidas"),
+      achieved: __("You played 10 games!||¡Jugaste 10 partidas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalGamesPlayed >= 25,
@@ -4094,11 +4143,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "games_25",
-    name: "Regular Player",
+    name: __("Regular Player||Jugador Regular"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Play 25 games",
-      achieved: "You played 25 games!"
+      unachieved: __("Play 25 games||Juega 25 partidas"),
+      achieved: __("You played 25 games!||¡Jugaste 25 partidas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalGamesPlayed >= 25,
@@ -4106,11 +4155,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "games_50",
-    name: "Rhythm Enthusiast",
+    name: __("Rhythm Enthusiast||Entusiasta del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Play 50 games",
-      achieved: "You played 50 games!"
+      unachieved: __("Play 50 games||Juega 50 partidas"),
+      achieved: __("You played 50 games!||¡Jugaste 50 partidas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalGamesPlayed >= 50,
@@ -4118,11 +4167,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "games_100",
-    name: "Addicted to Rhythm",
+    name: __("Addicted to Rhythm||Adicto al Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Play 100 games",
-      achieved: "You played 100 games!"
+      unachieved: __("Play 100 games||Juega 100 partidas"),
+      achieved: __("You played 100 games!||¡Jugaste 100 partidas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.totalGamesPlayed >= 250,
@@ -4130,11 +4179,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "streak_3",
-    name: "Consistent Player",
+    name: __("Consistent Player||Jugador Constante"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Maintain a 3-day play streak",
-      achieved: "You maintained a 3-day play streak!"
+      unachieved: __("Maintain a 3-day play streak||Mantén una racha de 3 días jugando"),
+      achieved: __("You maintained a 3-day play streak!||¡Mantuviste una racha de 3 días jugando!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.currentStreak >= 3,
@@ -4142,11 +4191,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "streak_7",
-    name: "Weekly Warrior",
+    name: __("Weekly Warrior||Guerrero Semanal"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Maintain a 7-day play streak",
-      achieved: "You maintained a 7-day play streak!"
+      unachieved: __("Maintain a 7-day play streak||Mantén una racha de 7 días jugando"),
+      achieved: __("You maintained a 7-day play streak!||¡Mantuviste una racha de 7 días jugando!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.currentStreak >= 7,
@@ -4154,11 +4203,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "streak_14",
-    name: "Fortnight Fanatic",
+    name: __("Fortnight Fanatic||Fanático de Quince Días"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Maintain a 14-day play streak",
-      achieved: "You maintained a 14-day play streak!"
+      unachieved: __("Maintain a 14-day play streak||Mantén una racha de 14 días jugando"),
+      achieved: __("You maintained a 14-day play streak!||¡Mantuviste una racha de 14 días jugando!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.currentStreak >= 14,
@@ -4166,11 +4215,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "streak_30",
-    name: "Monthly Master",
+    name: __("Monthly Master||Maestro Mensual"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Maintain a 30-day play streak",
-      achieved: "You maintained a 30-day play streak!"
+      unachieved: __("Maintain a 30-day play streak||Mantén una racha de 30 días jugando"),
+      achieved: __("You maintained a 30-day play streak!||¡Mantuviste una racha de 30 días jugando!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.currentStreak >= 30,
@@ -4178,11 +4227,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "streak_90",
-    name: "Seasoned Veteran",
+    name: __("Seasoned Veteran||Veterano Experimentado"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Maintain a 90-day play streak",
-      achieved: "You maintained a 90-day play streak!"
+      unachieved: __("Maintain a 90-day play streak||Mantén una racha de 90 días jugando"),
+      achieved: __("You maintained a 90-day play streak!||¡Mantuviste una racha de 90 días jugando!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.currentStreak >= 90,
@@ -4190,11 +4239,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_high_score",
-    name: "High Scorer",
+    name: __("High Scorer||Puntuación Alta"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Set your first high score",
-      achieved: "You set your first high score!"
+      unachieved: __("Set your first high score||Establece tu primera puntuación alta"),
+      achieved: __("You set your first high score!||¡Estableciste tu primera puntuación alta!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.highScoresSet >= 1,
@@ -4202,11 +4251,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "high_score_master",
-    name: "High Score Hunter",
+    name: __("High Score Hunter||Cazador de Puntuaciones Altas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Set 10 high scores",
-      achieved: "You set 10 high scores!"
+      unachieved: __("Set 10 high scores||Establece 10 puntuaciones altas"),
+      achieved: __("You set 10 high scores!||¡Estableciste 10 puntuaciones altas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.highScoresSet >= 10,
@@ -4214,11 +4263,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "high_score_expert",
-    name: "High Score Expert",
+    name: __("High Score Expert||Experto en Puntuaciones Altas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Set 25 high scores",
-      achieved: "You set 25 high scores!"
+      unachieved: __("Set 25 high scores||Establece 25 puntuaciones altas"),
+      achieved: __("You set 25 high scores!||¡Estableciste 25 puntuaciones altas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.highScoresSet >= 25,
@@ -4226,11 +4275,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "high_score_legend",
-    name: "High Score Legend",
+    name: __("High Score Legend||Leyenda de Puntuaciones Altas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Set 50 high scores",
-      achieved: "You set 50 high scores!"
+      unachieved: __("Set 50 high scores||Establece 50 puntuaciones altas"),
+      achieved: __("You set 50 high scores!||¡Estableciste 50 puntuaciones altas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.highScoresSet >= 50,
@@ -4238,11 +4287,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "total_score_1m",
-    name: "Million Points",
+    name: __("Million Points||Millón de Puntos"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Reach 1 million total score",
-      achieved: "You reached 1 million total score!"
+      unachieved: __("Reach 1 million total score||Alcanza 1 millón de puntos totales"),
+      achieved: __("You reached 1 million total score!||¡Alcanzaste 1 millón de puntos totales!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalScore >= 1000000,
@@ -4250,11 +4299,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "total_score_10m",
-    name: "Ten Million Points",
+    name: __("Ten Million Points||Diez Millones de Puntos"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Reach 10 million total score",
-      achieved: "You reached 10 million total score!"
+      unachieved: __("Reach 10 million total score||Alcanza 10 millones de puntos totales"),
+      achieved: __("You reached 10 million total score!||¡Alcanzaste 10 millones de puntos totales!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalScore >= 10000000,
@@ -4262,11 +4311,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "total_score_100m",
-    name: "Hundred Million Points",
+    name: __("Hundred Million Points||Cien Millones de Puntos"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Reach 100 million total score",
-      achieved: "You reached 100 million total score!"
+      unachieved: __("Reach 100 million total score||Alcanza 100 millones de puntos totales"),
+      achieved: __("You reached 100 million total score!||¡Alcanzaste 100 millones de puntos totales!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.totalScore >= 100000000,
@@ -4274,11 +4323,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "notes_1000",
-    name: "Thousand Notes",
+    name: __("Thousand Notes||Mil Notas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Hit 1000 notes total",
-      achieved: "You hit 1000 notes total!"
+      unachieved: __("Hit 1000 notes total||Acierta 1000 notas en total"),
+      achieved: __("You hit 1000 notes total!||¡Acertaste 1000 notas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalNotesHit >= 1000,
@@ -4286,11 +4335,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "notes_10000",
-    name: "Ten Thousand Notes",
+    name: __("Ten Thousand Notes||Diez Mil Notas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Hit 10,000 notes total",
-      achieved: "You hit 10,000 notes total!"
+      unachieved: __("Hit 10,000 notes total||Acierta 10,000 notas en total"),
+      achieved: __("You hit 10,000 notes total!||¡Acertaste 10,000 notas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalNotesHit >= 10000,
@@ -4298,11 +4347,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "notes_100000",
-    name: "Hundred Thousand Notes",
+    name: __("Hundred Thousand Notes||Cien Mil Notas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Hit 100,000 notes total",
-      achieved: "You hit 100,000 notes total!"
+      unachieved: __("Hit 100,000 notes total||Acierta 100,000 notas en total"),
+      achieved: __("You hit 100,000 notes total!||¡Acertaste 100,000 notas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalNotesHit >= 100000,
@@ -4312,11 +4361,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Time Achievements
   {
     id: "time_1_hour",
-    name: "Hour of Rhythm",
+    name: __("Hour of Rhythm||Hora de Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play for 1 hour total",
-      achieved: "You played for 1 hour total!"
+      unachieved: __("Play for 1 hour total||Juega durante 1 hora en total"),
+      achieved: __("You played for 1 hour total!||¡Jugaste durante 1 hora en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalTimePlayed >= 3600,
@@ -4324,11 +4373,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "time_5_hours",
-    name: "Rhythm Enthusiast",
+    name: __("Rhythm Enthusiast||Entusiasta del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play for 5 hours total",
-      achieved: "You played for 5 hours total!"
+      unachieved: __("Play for 5 hours total||Juega durante 5 horas en total"),
+      achieved: __("You played for 5 hours total!||¡Jugaste durante 5 horas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalTimePlayed >= 18000,
@@ -4336,11 +4385,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "time_10_hours",
-    name: "Dedicated Dancer",
+    name: __("Dedicated Dancer||Bailarín Dedicado"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play for 10 hours total",
-      achieved: "You played for 10 hours total!"
+      unachieved: __("Play for 10 hours total||Juega durante 10 horas en total"),
+      achieved: __("You played for 10 hours total!||¡Jugaste durante 10 horas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalTimePlayed >= 36000,
@@ -4348,11 +4397,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "time_24_hours",
-    name: "Rhythm Marathon",
+    name: __("Rhythm Marathon||Maratón de Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play for 24 hours total",
-      achieved: "You played for 24 hours total!"
+      unachieved: __("Play for 24 hours total||Juega durante 24 horas en total"),
+      achieved: __("You played for 24 hours total!||¡Jugaste durante 24 horas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.totalTimePlayed >= 86400,
@@ -4360,11 +4409,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "time_100_hours",
-    name: "Rhythm Master",
+    name: __("Rhythm Master||Maestro del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play for 100 hours total",
-      achieved: "You played for 100 hours total!"
+      unachieved: __("Play for 100 hours total||Juega durante 100 horas en total"),
+      achieved: __("You played for 100 hours total!||¡Jugaste durante 100 horas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.totalTimePlayed >= 360000,
@@ -4372,11 +4421,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "session_30_min",
-    name: "Focused Session",
+    name: __("Focused Session||Sesión Enfocada"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play a single session for 30 minutes",
-      achieved: "You played a single session for 30 minutes!"
+      unachieved: __("Play a single session for 30 minutes||Juega una sesión de 30 minutos"),
+      achieved: __("You played a single session for 30 minutes!||¡Jugaste una sesión de 30 minutos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.longestSession >= 1800,
@@ -4384,11 +4433,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "session_1_hour",
-    name: "Extended Session",
+    name: __("Extended Session||Sesión Extendida"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play a single session for 1 hour",
-      achieved: "You played a single session for 1 hour!"
+      unachieved: __("Play a single session for 1 hour||Juega una sesión de 1 hora"),
+      achieved: __("You played a single session for 1 hour!||¡Jugaste una sesión de 1 hora!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.longestSession >= 3600,
@@ -4396,11 +4445,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "session_2_hours",
-    name: "Marathon Session",
+    name: __("Marathon Session||Sesión Maratón"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play a single session for 2 hours",
-      achieved: "You played a single session for 2 hours!"
+      unachieved: __("Play a single session for 2 hours||Juega una sesión de 2 horas"),
+      achieved: __("You played a single session for 2 hours!||¡Jugaste una sesión de 2 horas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.longestSession >= 7200,
@@ -4408,11 +4457,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "session_4_hours",
-    name: "Ultra Marathon",
+    name: __("Ultra Marathon||Ultra Maratón"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play a single session for 4 hours",
-      achieved: "You played a single session for 4 hours!"
+      unachieved: __("Play a single session for 4 hours||Juega una sesión de 4 horas"),
+      achieved: __("You played a single session for 4 hours!||¡Jugaste una sesión de 4 horas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.longestSession >= 14400,
@@ -4420,11 +4469,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "early_bird",
-    name: "Early Bird",
+    name: __("Early Bird||Madrugador"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play between 5 AM and 9 AM",
-      achieved: "You played between 5 AM and 9 AM!"
+      unachieved: __("Play between 5 AM and 9 AM||Juega entre las 5 AM y 9 AM"),
+      achieved: __("You played between 5 AM and 9 AM!||¡Jugaste entre las 5 AM y 9 AM!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.playedEarlyMorning,
@@ -4432,11 +4481,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "night_owl",
-    name: "Night Owl",
+    name: __("Night Owl||Búho Nocturno"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play between midnight and 4 AM",
-      achieved: "You played between midnight and 4 AM!"
+      unachieved: __("Play between midnight and 4 AM||Juega entre la medianoche y las 4 AM"),
+      achieved: __("You played between midnight and 4 AM!||¡Jugaste entre la medianoche y las 4 AM!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.playedAtNight,
@@ -4444,11 +4493,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "weekend_warrior",
-    name: "Weekend Warrior",
+    name: __("Weekend Warrior||Guerrero de Fin de Semana"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play on a weekend",
-      achieved: "You played on a weekend!"
+      unachieved: __("Play on a weekend||Juega durante el fin de semana"),
+      achieved: __("You played on a weekend!||¡Jugaste durante el fin de semana!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.playedWeekend,
@@ -4456,11 +4505,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "holiday_player",
-    name: "Holiday Player",
+    name: __("Holiday Player||Jugador Festivo"),
     category: ACHIEVEMENT_CATEGORIES.HOLIDAYS,
     description: {
-      unachieved: "Play on a holiday",
-      achieved: "You played on a holiday!"
+      unachieved: __("Play on a holiday||Juega en un día festivo"),
+      achieved: __("You played on a holiday!||¡Jugaste en un día festivo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.playedHoliday,
@@ -4470,11 +4519,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Editor Achievements
   {
     id: "first_arrow_placed",
-    name: "First Step",
+    name: __("First Step||Primer Paso"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place your first arrow in the editor",
-      achieved: "You placed your first arrow!"
+      unachieved: __("Place your first arrow in the editor||Coloca tu primera flecha en el editor"),
+      achieved: __("You placed your first arrow!||¡Colocaste tu primera flecha!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalPlacedArrows >= 1,
@@ -4482,11 +4531,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "arrow_master",
-    name: "Arrow Architect",
+    name: __("Arrow Architect||Arquitecto de Flechas"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 100 arrows in the editor",
-      achieved: "You placed 100 arrows!"
+      unachieved: __("Place 100 arrows in the editor||Coloca 100 flechas en el editor"),
+      achieved: __("You placed 100 arrows!||¡Colocaste 100 flechas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalPlacedArrows >= 100,
@@ -4494,11 +4543,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "arrow_expert",
-    name: "Pattern Weaver",
+    name: __("Pattern Weaver||Tejedor de Patrones"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 500 arrows in the editor",
-      achieved: "You placed 500 arrows!"
+      unachieved: __("Place 500 arrows in the editor||Coloca 500 flechas en el editor"),
+      achieved: __("You placed 500 arrows!||¡Colocaste 500 flechas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalPlacedArrows >= 500,
@@ -4506,11 +4555,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "arrow_legend",
-    name: "Stepchart Legend",
+    name: __("Stepchart Legend||Leyenda del Stepchart"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 1000 arrows in the editor",
-      achieved: "You placed 1000 arrows!"
+      unachieved: __("Place 1000 arrows in the editor||Coloca 1000 flechas en el editor"),
+      achieved: __("You placed 1000 arrows!||¡Colocaste 1000 flechas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalPlacedArrows >= 1000,
@@ -4518,11 +4567,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_freeze_placed",
-    name: "Hold On",
+    name: __("Hold On||Espera"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place your first freeze arrow",
-      achieved: "You placed your first freeze arrow!"
+      unachieved: __("Place your first freeze arrow||Coloca tu primera flecha de presión"),
+      achieved: __("You placed your first freeze arrow!||¡Colocaste tu primera flecha de presión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalPlacedFreezes >= 1,
@@ -4530,11 +4579,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "freeze_master",
-    name: "Hold Master",
+    name: __("Hold Master||Maestro de Presión"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 50 freeze arrows",
-      achieved: "You placed 50 freeze arrows!"
+      unachieved: __("Place 50 freeze arrows||Coloca 50 flechas de presión"),
+      achieved: __("You placed 50 freeze arrows!||¡Colocaste 50 flechas de presión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalPlacedFreezes >= 50,
@@ -4542,11 +4591,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "freeze_artist",
-    name: "Sustain Artist",
+    name: __("Sustain Artist||Artista de Sostenido"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 200 freeze arrows",
-      achieved: "You placed 200 freeze arrows!"
+      unachieved: __("Place 200 freeze arrows||Coloca 200 flechas de presión"),
+      achieved: __("You placed 200 freeze arrows!||¡Colocaste 200 flechas de presión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalPlacedFreezes >= 200,
@@ -4554,11 +4603,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_mine_placed",
-    name: "Danger Zone",
+    name: __("Danger Zone||Zona de Peligro"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place your first mine",
-      achieved: "You placed your first mine!"
+      unachieved: __("Place your first mine||Coloca tu primera mina"),
+      achieved: __("You placed your first mine!||¡Colocaste tu primera mina!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalPlacedMines >= 1,
@@ -4566,11 +4615,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "mine_layer",
-    name: "Mine Layer",
+    name: __("Mine Layer||Colocador de Minas"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 25 mines",
-      achieved: "You placed 25 mines!"
+      unachieved: __("Place 25 mines||Coloca 25 minas"),
+      achieved: __("You placed 25 mines!||¡Colocaste 25 minas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalPlacedMines >= 25,
@@ -4578,11 +4627,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "mine_expert",
-    name: "Trap Master",
+    name: __("Trap Master||Maestro de Trampas"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 100 mines",
-      achieved: "You placed 100 mines!"
+      unachieved: __("Place 100 mines||Coloca 100 minas"),
+      achieved: __("You placed 100 mines!||¡Colocaste 100 minas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalPlacedMines >= 100,
@@ -4590,11 +4639,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_chart_created",
-    name: "Chart Creator",
+    name: __("Chart Creator||Creador de Charts"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Create your first complete chart",
-      achieved: "You created your first complete chart!"
+      unachieved: __("Create your first complete chart||Crea tu primer chart completo"),
+      achieved: __("You created your first complete chart!||¡Creaste tu primer chart completo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.chartsCreated >= 1,
@@ -4602,11 +4651,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "chart_creator",
-    name: "Prolific Creator",
+    name: __("Prolific Creator||Creador Prolífico"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Create 5 complete charts",
-      achieved: "You created 5 complete charts!"
+      unachieved: __("Create 5 complete charts||Crea 5 charts completos"),
+      achieved: __("You created 5 complete charts!||¡Creaste 5 charts completos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.chartsCreated >= 5,
@@ -4614,11 +4663,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "chart_master",
-    name: "Chart Master",
+    name: __("Chart Master||Maestro de Charts"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Create 10 complete charts",
-      achieved: "You created 10 complete charts!"
+      unachieved: __("Create 10 complete charts||Crea 10 charts completos"),
+      achieved: __("You created 10 complete charts!||¡Creaste 10 charts completos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.chartsCreated >= 10,
@@ -4626,11 +4675,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_song_imported",
-    name: "Music Importer",
+    name: __("Music Importer||Importador de Música"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Import your first song",
-      achieved: "You imported your first song!"
+      unachieved: __("Import your first song||Importa tu primera canción"),
+      achieved: __("You imported your first song!||¡Importaste tu primera canción!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalImportedSongs >= 1,
@@ -4638,11 +4687,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "song_collector",
-    name: "Music Collector",
+    name: __("Music Collector||Coleccionista de Música"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Import 5 songs",
-      achieved: "You imported 5 songs!"
+      unachieved: __("Import 5 songs||Importa 5 canciones"),
+      achieved: __("You imported 5 songs!||¡Importaste 5 canciones!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalImportedSongs >= 5,
@@ -4650,11 +4699,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "music_archivist",
-    name: "Music Archivist",
+    name: __("Music Archivist||Archivista Musical"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Import 10 songs",
-      achieved: "You imported 10 songs!"
+      unachieved: __("Import 10 songs||Importa 10 canciones"),
+      achieved: __("You imported 10 songs!||¡Importaste 10 canciones!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalImportedSongs >= 10,
@@ -4662,11 +4711,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_song_exported",
-    name: "Chart Exporter",
+    name: __("Chart Exporter||Exportador de Charts"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Export your first chart",
-      achieved: "You exported your first chart!"
+      unachieved: __("Export your first chart||Exporta tu primer chart"),
+      achieved: __("You exported your first chart!||¡Exportaste tu primer chart!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalExportedSongs >= 1,
@@ -4674,11 +4723,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "song_exporter",
-    name: "Content Creator",
+    name: __("Content Creator||Creador de Contenido"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Export 5 charts",
-      achieved: "You exported 5 charts!"
+      unachieved: __("Export 5 charts||Exporta 5 charts"),
+      achieved: __("You exported 5 charts!||¡Exportaste 5 charts!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalExportedSongs >= 5,
@@ -4686,11 +4735,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "chart_publisher",
-    name: "Chart Publisher",
+    name: __("Chart Publisher||Publicador de Charts"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Export 10 charts",
-      achieved: "You exported 10 charts!"
+      unachieved: __("Export 10 charts||Exporta 10 charts"),
+      achieved: __("You exported 10 charts!||¡Exportaste 10 charts!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.totalExportedSongs >= 10,
@@ -4698,11 +4747,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "editor_time_1_hour",
-    name: "Editor Apprentice",
+    name: __("Editor Apprentice||Aprendiz de Editor"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Spend 1 hour in the editor",
-      achieved: "You spent 1 hour in the editor!"
+      unachieved: __("Spend 1 hour in the editor||Pasa 1 hora en el editor"),
+      achieved: __("You spent 1 hour in the editor!||¡Pasaste 1 hora en el editor!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.editorTimeSpent >= 3600,
@@ -4710,11 +4759,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "editor_time_5_hours",
-    name: "Editor Enthusiast",
+    name: __("Editor Enthusiast||Entusiasta del Editor"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Spend 5 hours in the editor",
-      achieved: "You spent 5 hours in the editor!"
+      unachieved: __("Spend 5 hours in the editor||Pasa 5 horas en el editor"),
+      achieved: __("You spent 5 hours in the editor!||¡Pasaste 5 horas en el editor!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.editorTimeSpent >= 18000,
@@ -4722,11 +4771,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "editor_time_10_hours",
-    name: "Editor Veteran",
+    name: __("Editor Veteran||Veterano del Editor"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Spend 10 hours in the editor",
-      achieved: "You spent 10 hours in the editor!"
+      unachieved: __("Spend 10 hours in the editor||Pasa 10 horas en el editor"),
+      achieved: __("You spent 10 hours in the editor!||¡Pasaste 10 horas en el editor!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.editorTimeSpent >= 36000,
@@ -4734,11 +4783,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "editor_time_24_hours",
-    name: "Editor Master",
+    name: __("Editor Master||Maestro del Editor"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Spend 24 hours in the editor",
-      achieved: "You spent 24 hours in the editor!"
+      unachieved: __("Spend 24 hours in the editor||Pasa 24 horas en el editor"),
+      achieved: __("You spent 24 hours in the editor!||¡Pasaste 24 horas en el editor!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.editorTimeSpent >= 86400,
@@ -4746,11 +4795,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "difficulty_setter",
-    name: "Difficulty Designer",
+    name: __("Difficulty Designer||Diseñador de Dificultades"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Set difficulty ratings for 5 charts",
-      achieved: "You set difficulty ratings for 5 charts!"
+      unachieved: __("Set difficulty ratings for 5 charts||Establece niveles de dificultad para 5 charts"),
+      achieved: __("You set difficulty ratings for 5 charts!||¡Estableciste niveles de dificultad para 5 charts!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.chartsWithDifficultySet >= 5,
@@ -4758,11 +4807,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "all_note_types",
-    name: "Note Variety Expert",
+    name: __("Note Variety Expert||Experto en Variedad de Notas"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Use all note types in a single chart",
-      achieved: "You used all note types in a single chart!"
+      unachieved: __("Use all note types in a single chart||Usa todos los tipos de notas en un solo chart"),
+      achieved: __("You used all note types in a single chart!||¡Usaste todos los tipos de notas en un solo chart!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.usedAllNoteTypesInChart,
@@ -4770,11 +4819,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "chart_test_play",
-    name: "Quality Tester",
+    name: __("Quality Tester||Probador de Calidad"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Test play your own chart",
-      achieved: "You test played your own chart!"
+      unachieved: __("Test play your own chart||Prueba tu propio chart"),
+      achieved: __("You test played your own chart!||¡Probaste tu propio chart!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.chartsTestPlayed >= 1,
@@ -4784,11 +4833,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Mastery Achievements
   {
     id: "all_difficulties",
-    name: "Versatile Player",
+    name: __("Versatile Player||Jugador Versátil"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete songs on all difficulty types",
-      achieved: "You completed songs on all difficulty types!"
+      unachieved: __("Complete songs on all difficulty types||Completa canciones en todos los tipos de dificultad"),
+      achieved: __("You completed songs on all difficulty types!||¡Completaste canciones en todos los tipos de dificultad!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalBeginnerGamesPlayed && stats.totalEasyGamesPlayed && stats.totalMediumGamesPlayed && stats.totalHardGamesPlayed && stats.totalChallengeGamesPlayed && stats.totalEditGamesPlayed,
@@ -4796,11 +4845,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "beginner_master",
-    name: "Beginner Master",
+    name: __("Beginner Master||Maestro Principiante"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 25 Beginner difficulty charts",
-      achieved: "You completed 25 Beginner difficulty charts!"
+      unachieved: __("Complete 25 Beginner difficulty charts||Completa 25 charts de dificultad Principiante"),
+      achieved: __("You completed 25 Beginner difficulty charts!||¡Completaste 25 charts de dificultad Principiante!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalBeginnerGamesPlayed >= 25,
@@ -4808,11 +4857,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "easy_master",
-    name: "Easy Master",
+    name: __("Easy Master||Maestro Fácil"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 25 Easy difficulty charts",
-      achieved: "You completed 25 Easy difficulty charts!"
+      unachieved: __("Complete 25 Easy difficulty charts||Completa 25 charts de dificultad Fácil"),
+      achieved: __("You completed 25 Easy difficulty charts!||¡Completaste 25 charts de dificultad Fácil!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalEasyGamesPlayed >= 25,
@@ -4820,11 +4869,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "medium_master",
-    name: "Medium Master",
+    name: __("Medium Master||Maestro Medio"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 25 Medium difficulty charts",
-      achieved: "You completed 25 Medium difficulty charts!"
+      unachieved: __("Complete 25 Medium difficulty charts||Completa 25 charts de dificultad Media"),
+      achieved: __("You completed 25 Medium difficulty charts!||¡Completaste 25 charts de dificultad Media!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalMediumGamesPlayed >= 25,
@@ -4832,11 +4881,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "hard_master",
-    name: "Hard Master",
+    name: __("Hard Master||Maestro Difícil"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 25 Hard difficulty charts",
-      achieved: "You completed 25 Hard difficulty charts!"
+      unachieved: __("Complete 25 Hard difficulty charts||Completa 25 charts de dificultad Difícil"),
+      achieved: __("You completed 25 Hard difficulty charts!||¡Completaste 25 charts de dificultad Difícil!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalHardGamesPlayed >= 25,
@@ -4844,11 +4893,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "challenge_master",
-    name: "Challenge Master",
+    name: __("Challenge Master||Maestro del Desafío"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 25 Challenge difficulty charts",
-      achieved: "You completed 25 Challenge difficulty charts!"
+      unachieved: __("Complete 25 Challenge difficulty charts||Completa 25 charts de dificultad Desafío"),
+      achieved: __("You completed 25 Challenge difficulty charts!||¡Completaste 25 charts de dificultad Desafío!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.totalChallengeGamesPlayed >= 25,
@@ -4856,11 +4905,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "difficulty_11",
-    name: "Expert Player",
+    name: __("Expert Player||Jugador Experto"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete a difficulty 11 chart",
-      achieved: "You completed a difficulty 11 chart!"
+      unachieved: __("Complete a difficulty 11 chart||Completa un chart de dificultad 11"),
+      achieved: __("You completed a difficulty 11 chart!||¡Completaste un chart de dificultad 11!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: (_, song) => song.complete && song.difficultyRating >= 11,
@@ -4868,11 +4917,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "difficulty_15",
-    name: "Master Player",
+    name: __("Master Player||Jugador Maestro"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete a difficulty 15 song",
-      achieved: "You completed a difficulty 15 song!"
+      unachieved: __("Complete a difficulty 15 song||Completa una canción de dificultad 15"),
+      achieved: __("You completed a difficulty 15 song!||¡Completaste una canción de dificultad 15!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: (_, song) => song.complete && song.difficultyRating >= 15,
@@ -4880,11 +4929,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "difficulty_25",
-    name: "Just... Don't know what to say",
+    name: __("Just... Don't know what to say||Solo... No sé qué decir"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete a difficulty 25 song",
-      achieved: "You completed a difficulty 25 song!"
+      unachieved: __("Complete a difficulty 25 song||Completa una canción de dificultad 25"),
+      achieved: __("You completed a difficulty 25 song!||¡Completaste una canción de dificultad 25!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: (_, song) => song.complete && song.difficultyRating >= 15,
@@ -4892,11 +4941,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_spammer",
-    name: "Skill Spammer",
+    name: __("Skill Spammer||Spam de Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Use 5 skills in a single game",
-      achieved: "You used 5 skills in a single game!"
+      unachieved: __("Use 5 skills in a single game||Usa 5 habilidades en una sola partida"),
+      achieved: __("You used 5 skills in a single game!||¡Usaste 5 habilidades en una sola partida!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.maxSkillsInGame >= 5,
@@ -4904,11 +4953,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_expert",
-    name: "Skill Expert",
+    name: __("Skill Expert||Experto en Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Use 10 skills in a single game",
-      achieved: "You used 10 skills in a single game!"
+      unachieved: __("Use 10 skills in a single game||Usa 10 habilidades en una sola partida"),
+      achieved: __("You used 10 skills in a single game!||¡Usaste 10 habilidades en una sola partida!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.maxSkillsInGame >= 10,
@@ -4920,11 +4969,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Miscellaneous
   {
     id: "submit_bug_report",
-    name: "Crash Tester",
+    name: __("Crash Tester||Probador de Fallos"),
     category: ACHIEVEMENT_CATEGORIES.MISC,
     description: {
-      unachieved: "Submit a bug report",
-      achieved: "You submitted a bug report!"
+      unachieved: __("Submit a bug report||Envía un reporte de error"),
+      achieved: __("You submitted a bug report!||¡Enviaste un reporte de error!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.submittedBugReport,
@@ -4932,11 +4981,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "submit_rating",
-    name: "Review it!",
+    name: __("Review it!||¡Reséñalo!"),
     category: ACHIEVEMENT_CATEGORIES.MISC,
     description: {
-      unachieved: "Submit a review about this game",
-      achieved: "You submitted a review! Thank you!"
+      unachieved: __("Submit a review about this game||Envía una reseña sobre este juego"),
+      achieved: __("You submitted a review! Thank you!||¡Enviaste una reseña! ¡Gracias!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.gameRated,
@@ -4944,11 +4993,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "submit_feature_request",
-    name: "Hmm... Maybe add this",
+    name: __("Hmm... Maybe add this||Mmm... Quizás añadir esto"),
     category: ACHIEVEMENT_CATEGORIES.MISC,
     description: {
-      unachieved: "Request a feature",
-      achieved: "You requested a feature!"
+      unachieved: __("Request a feature||Solicita una funcionalidad"),
+      achieved: __("You requested a feature!||¡Solicitaste una funcionalidad!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.featureRequestPrompted,
@@ -4956,11 +5005,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "community_explorer",
-    name: "Community Explorer",
+    name: __("Community Explorer||Explorador de la Comunidad"),
     category: ACHIEVEMENT_CATEGORIES.MISC,
     description: {
-      unachieved: "Visit the community homepage",
-      achieved: "You visited the community!"
+      unachieved: __("Visit the community homepage||Visita la página de la comunidad"),
+      achieved: __("You visited the community!||¡Visitaste la comunidad!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: (stats) => stats.wentToCommunity,
@@ -4968,9 +5017,6 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
-
-
-// ======== js/character/Character.js ========
 class Character {
   constructor(data) {
     this.name = data.name;
@@ -5010,9 +5056,9 @@ class Character {
     this.lastSkillLevelUp = data.lastSkillLevelUp || 0;
     this.lastHairUnlockLevel = data.lastHairUnlockLevel || 0;
     this.lastItemUnlockLevel = data.lastItemUnlockLevel || 0;
-    this.personality = data.personality || null; // null means no personality yet
-    this.developedPersonalities = data.developedPersonalities || []; // track developed personalities
-    this.personalityStudyHistory = data.personalityStudyHistory || []; // for debugging
+    this.personality = data.personality || null;
+    this.developedPersonalities = data.developedPersonalities || [];
+    this.personalityStudyHistory = data.personalityStudyHistory || [];
     this.currentPersonalityIndex = data.currentPersonalityIndex || 0;
   }
   
@@ -5049,7 +5095,7 @@ class Character {
         this.level >= CHARACTER_SYSTEM.MIN_LEVEL_FOR_SKILL) {
       const unlockedSkill = this.unlockRandomSkill();
       if (unlockedSkill) {
-        notifications.show(`New skill unlocked: ${unlockedSkill.name}`, 2000, "unlock");
+        notifications.show(__("New skill unlocked: ||Nueva habilidad desbloqueada: ") + unlockedSkill.name, 2000, "unlock");
       }
     }
     
@@ -5061,7 +5107,7 @@ class Character {
       if (unlockedHair) {
         this.lastHairUnlockLevel = this.level;
         
-        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1].name}`, 2000, "unlock");
+        notifications.show(__("New hair style unlocked: ||Nuevo corte de pelo desbloqueado: ") + CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1].name, 2000, "unlock");
       }
     }
     
@@ -5072,7 +5118,7 @@ class Character {
       const unlockedItem = this.unlockRandomItem();
       if (unlockedItem) {
         this.lastItemUnlockLevel = this.level;
-        notifications.show(`New item unlocked: ${unlockedItem.name}`, 2000, "unlock");
+        notifications.show(__("New item unlocked: ||Nuevo item desbloqueado: ") + unlockedItem.name, 2000, "unlock");
       }
     }
     
@@ -5082,21 +5128,19 @@ class Character {
         this.skillLevel < CHARACTER_SYSTEM.MAX_SKILL_LEVEL) {
       this.skillLevel++;
       this.lastSkillLevelUp = this.level;
-      notifications.show(`Skill level increased to ${this.skillLevel}`, 2000, "unlock");
+      notifications.show(__("Skill level increased to ||Nivel de habilidad ha aumentado a ") + this.skillLevel, 2000, "unlock");
     }
   }
 
   unlockRandomSkill() {
     const personality = this.personality ? CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.personality) : null;
     
-    // Get all available skills not yet unlocked
     let availableSkills = CHARACTER_SKILLS.filter(skill => 
       !this.unlockedSkills.includes(skill.id)
     );
     
     if (availableSkills.length === 0) return null;
     
-    // If character has a personality with skill tendencies, bias the selection
     if (personality && personality.skillTendencies) {
       const tendencies = personality.skillTendencies;
       const preferredSkills = [];
@@ -5105,14 +5149,12 @@ class Character {
       for (const skill of availableSkills) {
         let matches = false;
         
-        // Check activation condition preference
         if (tendencies.activation && tendencies.activation.length > 0) {
           if (tendencies.activation.includes(skill.activationCondition)) {
             matches = true;
           }
         }
         
-        // Check effect preference
         if (tendencies.effects && tendencies.effects.length > 0) {
           if (tendencies.effects.includes(skill.effect)) {
             matches = true;
@@ -5126,14 +5168,12 @@ class Character {
         }
       }
       
-      // 70% chance to pick from preferred skills if any exist
       if (preferredSkills.length > 0 && Math.random() < 0.7) {
         const randomSkill = preferredSkills[Math.floor(Math.random() * preferredSkills.length)];
         this.unlockedSkills.push(randomSkill.id);
         return randomSkill;
       }
       
-      // Otherwise pick from other skills (or preferred if no others)
       const pool = otherSkills.length > 0 ? otherSkills : preferredSkills;
       if (pool.length > 0) {
         const randomSkill = pool[Math.floor(Math.random() * pool.length)];
@@ -5142,7 +5182,6 @@ class Character {
       }
     }
     
-    // No personality or no tendencies, pick random
     const randomSkill = availableSkills[Math.floor(Math.random() * availableSkills.length)];
     this.unlockedSkills.push(randomSkill.id);
     return randomSkill;
@@ -5152,31 +5191,26 @@ class Character {
     const availableFrontHairs = [];
     const availableBackHairs = [];
     
-    // Find all front hair styles not yet unlocked
     for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.front.length; i++) {
       if (!Account.characters.unlockedHairs.front.includes(i)) {
         availableFrontHairs.push(i);
       }
     }
     
-    // Find all back hair styles not yet unlocked
     for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.back.length; i++) {
       if (!Account.characters.unlockedHairs.back.includes(i)) {
         availableBackHairs.push(i);
       }
     }
     
-    // Randomly choose between front or back hair unlock
     const unlockType = Math.random() < 0.5 ? 'front' : 'back';
     const availableHairs = unlockType === 'front' ? availableFrontHairs : availableBackHairs;
     
     if (availableHairs.length > 0) {
       const randomHairId = availableHairs[Math.floor(Math.random() * availableHairs.length)];
       
-      // Add to Account's unlocked hairs
       Account.characters.unlockedHairs[unlockType].push(randomHairId);
       
-      // Save to localStorage
       localStorage.setItem("Account", JSON.stringify(Account));
       
       return {
@@ -5189,10 +5223,8 @@ class Character {
   }
 
   unlockRandomItem() {
-    // Default items that are already equipped or unlocked by default
     const defaultItems = ["top_seifuku_default", "bottom_skirt_blue", "shoes_common"];
     
-    // Get all items that are NOT in unlockedItems and NOT default items
     const availableItems = CHARACTER_ITEMS.filter(item => 
       !Account.characters.unlockedItems.includes(item.id) &&
       !defaultItems.includes(item.id)
@@ -5201,10 +5233,8 @@ class Character {
     if (availableItems.length > 0) {
       const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
       
-      // Add to Account's unlocked items
       Account.characters.unlockedItems.push(randomItem.id);
       
-      // Save to localStorage
       saveAccount();
       
       return randomItem;
@@ -5220,22 +5250,18 @@ class Character {
     const personalities = CHARACTER_SYSTEM.PERSONALITIES;
     const developed = this.developedPersonalities || [];
     
-    // If already developed all possible personalities, stop
     if (developed.length >= personalities.length) {
       if (window.LOG_PERSONALITY_STUDY) {
-        console.log(`${this.name} has developed all personalities`);
+        console.log(this.name + " has developed all personalities");
       }
       return null;
     }
     
-    // Check which personalities we should study next
     let candidates = [];
     
     if (developed.length === 0) {
-      // No personality yet - check all
       candidates = personalities;
     } else {
-      // Check possible next personalities
       const lastDeveloped = personalities.find(p => p.id === developed[developed.length - 1]);
       if (lastDeveloped && lastDeveloped.possibleNextPersonalities) {
         candidates = personalities.filter(p => 
@@ -5244,17 +5270,15 @@ class Character {
         );
       }
       
-      // If no candidates from next personalities, check all not developed
       if (candidates.length === 0) {
         candidates = personalities.filter(p => !developed.includes(p.id));
       }
     }
     
     if (window.LOG_PERSONALITY_STUDY) {
-      console.log(`Studying personality ${candidates.length} candidates for ${this.name}`);
+      console.log("Studying personality " + candidates.length + " candidates for " + this.name);
     }
     
-    // Score each candidate based on game results
     let bestCandidate = null;
     let bestScore = 0;
     
@@ -5266,25 +5290,24 @@ class Character {
       }
       
       if (window.LOG_PERSONALITY_STUDY) {
-        console.log(`${personality.name}: score ${score.toFixed(2)}`);
+        console.log(personality.name + ": score " + score.toFixed(2));
       }
     }
     
-    // Threshold to develop personality (need at least 0.7 to unlock)
     if (bestCandidate && bestScore >= 0.7) {
       this.developedPersonalities.push(bestCandidate.id);
       this.personality = bestCandidate.id;
       this.currentPersonalityIndex = this.developedPersonalities.length - 1;
       
       if (window.LOG_PERSONALITY_STUDY) {
-        console.log(`${this.name} developed "${bestCandidate.name}" personality! (score: ${bestScore.toFixed(2)})`);
+        console.log(this.name + " developed " + bestCandidate.name + " personality! (score: " + bestScore.toFixed(2) + ")");
       }
       
       return bestCandidate;
     }
     
     if (window.LOG_PERSONALITY_STUDY) {
-      console.log(`${this.name} didn't develop a personality this time (best score: ${bestScore.toFixed(2)})`);
+      console.log(this.name + " didn't develop a personality this time (best score: " + bestScore.toFixed(2) + ")");
     }
     
     return null;
@@ -5298,7 +5321,6 @@ class Character {
     const judgements = gameResults.judgements || {};
     const totalNotes = Object.values(judgements).reduce((a, b) => a + b, 0);
     
-    // Games played check
     if (reasons.gamesPlayed !== undefined) {
       const games = stats.gamesPlayed || 0;
       const ratio = Math.min(1, games / reasons.gamesPlayed);
@@ -5306,7 +5328,6 @@ class Character {
       totalChecks++;
     }
     
-    // Accuracy check
     if (reasons.accuracyMin !== undefined) {
       const acc = gameResults.accuracy || 0;
       const ratio = Math.min(1, acc / reasons.accuracyMin);
@@ -5314,7 +5335,6 @@ class Character {
       totalChecks++;
     }
     
-    // Combo check
     if (reasons.comboMin !== undefined) {
       const combo = gameResults.maxCombo || 0;
       const ratio = Math.min(1, combo / reasons.comboMin);
@@ -5322,16 +5342,13 @@ class Character {
       totalChecks++;
     }
     
-    // Perfect streak check
     if (reasons.perfectStreakMin !== undefined) {
-      // Calculate perfect streak from game data
       const perfectStreak = gameResults.maxPerfectStreak || 0;
       const ratio = Math.min(1, perfectStreak / reasons.perfectStreakMin);
       score += ratio;
       totalChecks++;
     }
     
-    // Perfect games check
     if (reasons.perfectGames !== undefined) {
       const perfectGames = stats.perfectGames || 0;
       const ratio = Math.min(1, perfectGames / reasons.perfectGames);
@@ -5339,7 +5356,6 @@ class Character {
       totalChecks++;
     }
     
-    // Max marvelous in game check
     if (reasons.maxMarvelous !== undefined) {
       const marvelous = judgements.marvelous || 0;
       const ratio = Math.min(1, marvelous / reasons.maxMarvelous);
@@ -5347,7 +5363,6 @@ class Character {
       totalChecks++;
     }
     
-    // Max miss check
     if (reasons.maxMiss !== undefined) {
       const miss = judgements.miss || 0;
       const ratio = Math.max(0, 1 - (miss / reasons.maxMiss));
@@ -5355,7 +5370,6 @@ class Character {
       totalChecks++;
     }
     
-    // Rating threshold check
     if (reasons.ratingThreshold !== undefined) {
       const rating = gameResults.rating || 'F';
       const ratingValues = { 'F': 0, 'E': 0.1, 'D': 0.2, 'C': 0.3, 'B': 0.4, 'A': 0.5, 'S': 0.6, 'SS': 0.7, 'SSS': 0.8, 'SSS+': 0.9 };
@@ -5365,7 +5379,6 @@ class Character {
       totalChecks++;
     }
     
-    // Return normalized score (0-1)
     return totalChecks > 0 ? score / totalChecks : 0;
   }
 
@@ -5475,9 +5488,6 @@ class Character {
   }
 }
 
-
-
-// ======== js/character/CharacterDisplay.js ========
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
@@ -6067,9 +6077,6 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/character/CharacterCroppedDisplay.js ========
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
@@ -6128,27 +6135,18 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterPortrait.js ========
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterCloseShot.js ========
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
-
-
-// ======== js/character/CharacterManager.js ========
 class CharacterManager {
   constructor() {
     this.characters = new Map();
@@ -6365,9 +6363,6 @@ class CharacterManager {
   }
 }
 
-
-
-// ======== js/character/CharacterSkillSystem.js ========
 class CharacterSkillSystem {
   constructor(scene, character) {
     this.scene = scene;
@@ -6751,9 +6746,6 @@ class CharacterSkillSystem {
   }
 }
 
-
-
-// ======== js/achievements/AchievementsManager.js ========
 class AchievementsManager {
   constructor() {
     this.newAchievements = [];
@@ -6794,8 +6786,8 @@ class AchievementsManager {
           name: dateName,
           category: ACHIEVEMENT_CATEGORIES.HOLIDAYS,
           description: {
-            unachieved: `Play on ${dateName} (${dateId}/${monthId})`,
-            achieved: `You played on ${dateName}!`
+            unachieved: __(`Play on ${dateName} (${dateId}/${monthId})||Jugar en ${dateName} (${dateId}/${monthId})`),
+            achieved: __(`You played on ${dateName}!||¡Jugaste en ${dateName}!`)
           },
           expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
           condition: () => {
@@ -6941,58 +6933,47 @@ class AchievementsManager {
   }
 
   getHolidays() {
-    // Comprehensive holiday calendary (US holidays)
-    // TODO: Region specific holidays
+    // Comprehensive holiday calendar
     return {
       0: {
-        // January
-        1: "New Year's Day"
+        1: __("New Year's Day||Año Nuevo")
       },
       1: {
-        // February
-        14: "Valentine's Day"
+        14: __("Valentine's Day||Día de San Valentín")
       },
       2: {
-        // March
-        17: "St. Patrick's Day"
+        17: __("St. Patrick's Day||Día de San Patricio")
       },
       3: {
         // April
       },
       4: {
-        // May
-        5: "Cinco de Mayo"
+        5: __("Cinco de Mayo||Cinco de Mayo")
       },
       5: {
-        // June
-        14: "Flag Day"
+        14: __("Flag Day||Día de la Bandera")
       },
       6: {
-        // July
-        4: "Independence Day"
+        4: __("Independence Day||Día de la Independencia")
       },
       7: {
         // August
       },
       8: {
-        // September
-        11: "9/11 Memorial"
+        11: __("9/11 Memorial||Memorial del 11-S")
       },
       9: {
-        // October
-        26: "PadManiacs Day", // First release of the game
-        31: "Halloween"
+        26: __("PadManiacs Day||Día de PadManiacs"),
+        31: __("Halloween||Halloween")
       },
       10: {
-        // November
-        11: "Veterans Day",
-        25: "39 Giving" // Thanksgiving, Renamed to "39 Giving" by DECO*27's song: 39
+        11: __("Veterans Day||Día de los Veteranos"),
+        25: __("39 Giving||39 Giving")
       },
       11: {
-        // December
-        24: "Christmas Eve",
-        25: "Christmas",
-        31: "New Year's Eve"
+        24: __("Christmas Eve||Nochebuena"),
+        25: __("Christmas||Navidad"),
+        31: __("New Year's Eve||Nochevieja")
       } 
     }
   }
@@ -7152,7 +7133,7 @@ class AchievementsManager {
             title: "",
             artist: "",
             sampleStart: 0,
-            isExternal: false, // Flag for external songs
+            isExternal: false,
             score: 0,
             accuracy: 0,
             maxCombo: 0,
@@ -7278,9 +7259,6 @@ class AchievementsManager {
   }
 }
 
-
-
-// ======== js/playlist/PlaylistManager.js ========
 class PlaylistManager {
   constructor() {
     this.playlists = Account.playlists || {};
@@ -7363,9 +7341,6 @@ class PlaylistManager {
   }
 }
 
-
-
-// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config = {}, parent) {
     super(game, x, y, null);
@@ -7625,9 +7600,6 @@ class Text extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -7727,6 +7699,8 @@ class Window extends Phaser.Sprite {
   }
 
   addItem(text, valueText, callback = null, backButton = false) {
+    text = text._localized ? text : __(text);
+    
     const itemText = new Text(8 + this.offset.x, 0, text, {
       ...FONTS[this.font],
       tint: this.fontTint
@@ -7762,16 +7736,15 @@ class Window extends Phaser.Sprite {
   }
 
   addSettingItem(text, options, currentIndex, callback = null) {
+    text = text._localized ? text : __(text);
+    
     const itemText = new Text(8 + this.offset.x, 0, text, {
       ...FONTS[this.font],
       tint: this.fontTint
     });
     this.addChild(itemText);
     
-    // Translate text
-    options = options.map(option => Window.processMultilingual(option));
-
-    const valueText = new Text(this.size.width * 8 -8- 4, 0, options[currentIndex].toString(), {
+    const valueText = new Text(this.size.width * 8 -8- 4, 0, options[currentIndex]?.toString() || "", {
       ...FONTS[this.font],
       tint: this.fontTint
     });
@@ -7795,6 +7768,8 @@ class Window extends Phaser.Sprite {
   }
   
   addRangeItem(text, min = 0, max = 100, step = 1, value = 0, suffix = "", callback = null) {
+    text = text._localized ? text : __(text);
+    
     const itemText = new Text(8 + this.offset.x, 0, text, {
       ...FONTS[this.font],
       tint: this.fontTint
@@ -7821,28 +7796,6 @@ class Window extends Phaser.Sprite {
     this.items.push(item);
     this.update();
     return item;
-  }
-  
-  static processMultilingual(text) {
-    // Translate text only
-    if (typeof text !== 'string') {
-      return text;
-    }
-
-    // Handle simple split case (text||text)
-    const simpleSplitRegex = /([^|(]+\|\|[^|)]+)/g;
-    text = text.replace(simpleSplitRegex, match => {
-      const parts = match.split('||');
-      return parts[SETTINGS.language] || parts[0]; // Default to first part if language index is invalid
-    });
-
-    // Handle parenthetical cases (ES|EN)
-    const parenRegex = /\(([^)|]+)\|([^)]+)\)/g;
-    text = text.replace(parenRegex, (match, esText, enText) => {
-      return SETTINGS.language === 0 ? esText : enText;
-    });
-
-    return text;
   }
   
   getVisibleHeight(excluding = 0) {
@@ -8152,9 +8105,6 @@ class Window extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
@@ -8435,9 +8385,6 @@ class WindowManager {
   }
 }
 
-
-
-// ======== js/ui/DialogWindow.js ========
 class DialogWindow extends Phaser.Sprite {
   constructor(text, options = {}) {
     const {
@@ -8890,9 +8837,6 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/CarouselMenu.js ========
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -8973,7 +8917,7 @@ class CarouselMenu extends Phaser.Sprite {
       parent: null,
       background: null,
       text: null,
-      textContent: text,
+      textContent: text._localized ? text : __(text),
       callback: callback,
       data: data,
       index: index,
@@ -9635,9 +9579,6 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Background.js ========
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 1000) {
     super(game, 0, 0, key);
@@ -9660,18 +9601,12 @@ class Background extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/BackgroundGradient.js ========
 class BackgroundGradient extends Background {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super("ui_background_gradient", true, min, max, time);
   }
 } 
 
-
-
-// ======== js/ui/CanvasBackground.js ========
 class CanvasBackground extends Phaser.Sprite {
   constructor(x = 0, y = 0, canvas) {
     super(game, x, y);
@@ -9705,9 +9640,6 @@ class CanvasBackground extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -9895,9 +9827,6 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -9911,9 +9840,6 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -9963,9 +9889,6 @@ class Logo extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(hints = []) {
     super(game, 0, game.height - 6);
@@ -10393,9 +10316,6 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 2, text, FONTS.default);
@@ -10404,9 +10324,6 @@ class ProgressText extends Text {
   }
 }
 
-
-
-// ======== js/ui/ExperienceBar.js ========
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
@@ -10454,9 +10371,6 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/SkillBar.js ========
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
@@ -10484,9 +10398,6 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/TextInput.js ========
 class TextInput extends Phaser.Sprite {
   constructor(config = {}) {
     config = {
@@ -10733,9 +10644,6 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NumberInput.js ========
 class NumberInput extends TextInput {
   constructor(config = {}) {
     config = {
@@ -10887,9 +10795,6 @@ class NumberInput extends TextInput {
   }
 }
 
-
-
-// ======== js/ui/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -10902,7 +10807,7 @@ class NotificationSystem {
     this.charWidth = 4;
     
     this.notificationWindow = null;
-    this.notificationTint = null;
+    this.notificationTint = [0xffffff];
     this.notificationTexts = null;
     
     this.restrictedStates = new Set(['Title', 'Play', 'Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
@@ -11022,6 +10927,11 @@ class NotificationSystem {
     let tintAnimationIndex = 0;
     this.tintAnimationLoop = game.time.events.loop(100, () => {
       if (!this.notificationWindow) return;
+      
+      if (!this.notificationTint) {
+        this.notification.tint = 0x76fcde;
+        return;
+      }
       
       const tint = this.notificationTint[tintAnimationIndex];
       
@@ -11269,9 +11179,6 @@ class NotificationSystem {
   }
 }
 
-
-
-// ======== js/ui/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -11463,9 +11370,6 @@ class Lyrics {
   }
 }
 
-
-
-// ======== js/ui/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -11758,9 +11662,6 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/MouseCursor.js ========
 class MouseCursor {
   constructor() {
     this.sprite = null;
@@ -11953,9 +11854,6 @@ class MouseCursor {
   }
 }
 
-
-
-// ======== js/ui/BarChart.js ========
 class BarChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -12051,9 +11949,6 @@ class BarChart extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LineChart.js ========
 class LineChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -12167,9 +12062,6 @@ class LineChart extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -12265,9 +12157,6 @@ class FileSystemTools {
   }
 }
 
-
-
-// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -12677,9 +12566,6 @@ class NodeFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -12795,9 +12681,6 @@ class CordovaFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -12841,9 +12724,6 @@ class FallbackFileSystem {
   }
 }
 
-
-
-// ======== js/game/game.js ========
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 let Account = {
@@ -12965,6 +12845,7 @@ window.getDifficultyColor = (value, returnIntFormat = false) => {
   }
 };
 
+// Audio pooling system
 const Audio = {
   pool: {},
   add: function (key) {
@@ -13066,9 +12947,6 @@ window.multiplayerState = {
   }
 };
 
-
-
-// ======== js/utils/ScreenRecorder.js ========
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -13438,9 +13316,6 @@ class ScreenRecorder {
   }
 }
 
-
-
-// ======== js/utils/Metronome.js ========
 class Metronome {
   constructor(scene) {
     this.scene = scene;
@@ -13602,9 +13477,6 @@ class Metronome {
   }
 }
 
-
-
-// ======== js/utils/TimeUtils.js ========
 class TimeUtils {
   static isValidTime(time) {
     return typeof time != undefined && typeof time != null && !isNaN(time) && time != Infinity;
@@ -13624,9 +13496,6 @@ class TimeUtils {
   }
 }
 
-
-
-// ======== js/input/GamepadListener.js ========
 class GamepadListener {
   constructor(game) {
     this.game = game;
@@ -13645,9 +13514,6 @@ class GamepadListener {
   }
 }
 
-
-
-// ======== js/input/KeyboardListener.js ========
 class KeyboardListener {
   constructor(game) {
     this.game = game;
@@ -13666,9 +13532,6 @@ class KeyboardListener {
   }
 }
 
-
-
-// ======== js/input/InputManager.js ========
 let inputManager, gamepad, gamepad1, gamepad2;
 
 class InputManager {
@@ -13696,9 +13559,6 @@ class InputManager {
   }
 }
 
-
-
-// ======== js/input/Gamepad.js ========
 class Gamepad {
   constructor(game, keyboardMap, gamepadMap, playerIndex = 0) {
     this.game = game;
@@ -14326,9 +14186,6 @@ class Gamepad {
   }
 }
 
-
-
-// ======== js/input/AllPads.js ========
 class AllPads extends Gamepad {
   constructor(game, gamepads) {
     super(game, undefined, undefined, 0);
@@ -14443,9 +14300,6 @@ class AllPads extends Gamepad {
   destroy() {}
 }
 
-
-
-// ======== js/input/OnScreenKeyboard.js ========
 class OnScreenKeyboard extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x || 60, y || 75, "ui_keyboard", 0);
@@ -14655,9 +14509,6 @@ class OnScreenKeyboard extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/input/NumericTypeOnScreenKeyboard.js ========
 class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   constructor(x, y) {
     super(80, 70);
@@ -14685,9 +14536,6 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   }
 }
 
-
-
-// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -14923,9 +14771,6 @@ class BackgroundMusic {
   }
 }
 
-
-
-// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -14950,9 +14795,6 @@ class Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -14993,9 +14835,6 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -15062,9 +14901,6 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -15157,9 +14993,6 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -15518,9 +15351,6 @@ class FullScreenAudioVisualizer {
   }
 }
 
-
-
-// ======== js/parsers/SMFile.js ========
 class SMFile {
   static generateSM(songData) {
     let smContent = "";
@@ -15812,9 +15642,6 @@ class SMFile {
   }
 }
 
-
-
-// ======== js/parsers/FileTools.js ========
 class FileTools {
   static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
@@ -15978,11 +15805,40 @@ class FileTools {
       reader.readAsBinaryString(file);
     });
   }
+  
+  static async fetchFileAsBlob(url) {
+    // Si es una URL de objeto (blob:) o data URL, fetch directamente
+    if (url.startsWith('blob:') || url.startsWith('data:')) {
+      const response = await fetch(url);
+      return await response.blob();
+    }
+    
+    // Si es una URL relativa o absoluta (http/https)
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.status}`);
+      }
+      return await response.blob();
+    }
+    
+    // Si es un path de archivo local (Cordova/NWJS)
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+      try {
+        const fileSystem = new FileSystemTools();
+        const fileEntry = await fileSystem.getFile(url);
+        return new Promise((resolve, reject) => {
+          fileEntry.file(resolve, reject);
+        });
+      } catch (e) {
+        throw new Error(`Failed to load local file: ${url}`);
+      }
+    }
+    
+    throw new Error(`Unsupported URL type: ${url}`);
+  }
 }
 
-
-
-// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   constructor() {
     this.baseUrl = "";
@@ -16254,9 +16110,6 @@ class LocalSMParser {
   }
 }
 
-
-
-// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   async parseSM(files, smContent) {
@@ -16723,9 +16576,6 @@ class ExternalSMParser {
   }
 }
 
-
-
-// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -16744,7 +16594,7 @@ class AddonManager {
     this.hibernatingAddons = new Set(Account.settings?.hibernatingAddons || []);
     
     if (this.safeMode) {
-      console.log("🔒 Addon Safe Mode enabled - skipping addon loading");
+      console.log("Addon Safe Mode enabled: skipping addon loading");
       this.isInitialized = true;
       return;
     }
@@ -16755,7 +16605,7 @@ class AddonManager {
 
   async loadAddons() {
     try {
-      console.log("📦 Loading addons...");
+      console.log("Loading addons...");
       
       await this.loadAddonsFromStorage();
       
@@ -16838,7 +16688,7 @@ class AddonManager {
     this.processAddonAssets(addon);
     
     this.addons.set(addon.id, addon);
-    console.log(`📦 Loaded addon: ${addon.name} v${addon.version} (${addon.isEnabled ? 'enabled' : 'disabled'})`);
+    console.log(`Loaded addon: ${addon.name} v${addon.version} (${addon.isEnabled ? 'enabled' : 'disabled'})`);
   }
 
   async processAddons() {
@@ -17137,9 +16987,6 @@ class AddonManager {
   }
 }
 
-
-
-// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -17714,9 +17561,6 @@ class Boot {
   }
 }
 
-
-
-// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -17754,8 +17598,7 @@ class Load {
       this.loadedCount++;
     });
 
-    // Create simple progress display
-    this.progressText = new ProgressText("LOADING ASSETS");
+    this.progressText = new ProgressText(__("Loading assets...||Cargando recursos..."));
   }
 
   create() {
@@ -17764,9 +17607,6 @@ class Load {
   }
 }
 
-
-
-// ======== js/game/states/LoadCordova.js ========
 class LoadCordova {
   create() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
@@ -17778,8 +17618,8 @@ class LoadCordova {
   loadScript() {
     this.loadingDots = new LoadingDots();
     
-    this.progressText = new ProgressText("INITIALIZING FILESYSTEM");
-    
+    this.progressText = new ProgressText(__("Initializing filesystem...||Inicializando Sistema de Archivos..."));
+
     const script = document.createElement("script");
     script.src = "./cordova/cordova.js";
     document.head.appendChild(script);
@@ -17814,12 +17654,9 @@ class LoadCordova {
   }
 }
 
-
-
-// ======== js/game/states/LoadAddons.js ========
 class LoadAddons {
   create() {
-    this.progressText = new ProgressText("LOADING ADD-ONS");
+    this.progressText = new ProgressText(__("Loading Add-ons...||Cargando Add-ons..."));
     this.loadingDots = new LoadingDots();
     this.initialize();
   }
@@ -17839,12 +17676,9 @@ class LoadAddons {
   }
 }
 
-
-
-// ======== js/game/states/LoadLocalSongs.js ========
 class LoadLocalSongs {
   create() {
-    this.progressText = new ProgressText("LOADING SONGS");
+    this.progressText = new ProgressText(__("Loading Songs...||Cargando canciones..."));
     this.songs = [];
     this.parser = new LocalSMParser();
     this.loadSongs();
@@ -17915,9 +17749,6 @@ class LoadLocalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadExternalSongs.js ========
 class LoadExternalSongs {
   init(nextState, nextStateParams) {
     this.nextState = nextState || 'SongSelect';
@@ -17927,7 +17758,7 @@ class LoadExternalSongs {
   create() {
     this.loadingDots = new LoadingDots();
     
-    this.progressText = new ProgressText("LOADING EXTERNAL SONGS");
+    this.progressText = new ProgressText(__("Loading External Songs...||Cargando canciones externas..."));
     
     this.fileSystem = new FileSystemTools();
     
@@ -18242,7 +18073,7 @@ class LoadExternalSongs {
   
   finish(resetIndex = 0) {
     if (this.songs.length === 0) {
-      this.showError("No external songs found");
+      this.showError(__("No external songs found||No se encontraron canciones"));
       return;
     }
     
@@ -18260,13 +18091,10 @@ class LoadExternalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadSongFolder.js ========
 class LoadSongFolder {
   create() {
-    this.progressText = new ProgressText("SELECT SONG FOLDER");
-
+    this.progressText = new ProgressText(__("Select Song Folder...||Seleccionar carpeta..."));
+    
     this.parser = new ExternalSMParser();
     this.showFileInput();
   }
@@ -18282,13 +18110,13 @@ class LoadSongFolder {
     };
     
     fileInput.oncancel = e => {
-      this.showError("Nothing selected");
+      this.showError(__("Nothing selected||Nada seleccionado"));
     };
 
     // Add a fallback for non-webkit browsers
     if (!fileInput.webkitdirectory) {
       fileInput.multiple = true;
-      this.progressText.write("Select all song files");
+      this.progressText.write(__("Select all song files||Seleccionar todos los archivos"));
     }
 
     fileInput.click();
@@ -18296,7 +18124,7 @@ class LoadSongFolder {
 
   async processFiles(files) {
     try {
-      this.progressText.write("LOADING SONG...");
+      this.progressText = new ProgressText(__("Loading Song...||Cargando canción..."));
       
       if (files[0].name.endsWith(".zip")) {
         this.processZipFile(files[0]);
@@ -18312,7 +18140,7 @@ class LoadSongFolder {
       const chartFileNames = Object.keys(fileMap).filter(name => name.endsWith(".sm"));
 
       if (chartFileNames.length === 0) {
-        this.showError("No .sm file found in selected folder");
+        this.showError(__("No .sm file found||No se encontró el archivo .sm"));
         return;
       }
 
@@ -18322,7 +18150,7 @@ class LoadSongFolder {
       const chart = await this.parser.parseSM(fileMap, content);
       
       if (chart.error) {
-        this.showError("Error in SM file");
+        this.showError(__("Error in SM file||Error en el archivo SM"));
         return;
       }
       
@@ -18340,12 +18168,12 @@ class LoadSongFolder {
   async processZipFile(file) {
     const JSZip = window.JSZip;
     if (!JSZip) {
-      this.showError("Couldn't load ZIP file");
+      this.showError(__("Couldn't load ZIP file||No se pudo cargar el ZIP"));
       throw new Error("JSZip library not loaded");
     }
     
     if (!file) {
-      this.showError("Couldn't load ZIP file");
+      this.showError(__("Couldn't load ZIP file||No se pudo cargar el ZIP"));
       throw new Error("Undefined .zip file");
     }
     
@@ -18372,7 +18200,7 @@ class LoadSongFolder {
     });
 
     if (!smFile) {
-      this.showError("No .sm file found in ZIP");
+      this.showError(__("No .sm file found in ZIP||No se encontró el archivo .sm en el ZIP"));
       return;
     }
 
@@ -18382,7 +18210,7 @@ class LoadSongFolder {
     const chart = await new LocalSMParser().parseSM(smContent, basePath);
 
     if (chart.error) {
-      this.showError("Error in SM file");
+      this.showError(__("Error in SM file||Error en el archivo SM"));
       return;
     }
 
@@ -18462,9 +18290,6 @@ class LoadSongFolder {
   }
 }
 
-
-
-// ======== js/game/states/LoadExternalSongFile.js ========
 class LoadExternalSongFile {
   init(fileName, filePath, nextState, nextStateParams) {
     this.fileName = fileName;
@@ -18476,8 +18301,8 @@ class LoadExternalSongFile {
   create() {
     this.loadingDots = new LoadingDots();
     
-    this.progressText = new ProgressText("LOADING SONG DATA");
-    
+    this.progressText = new ProgressText(__("Loading Song...||Cargando canción..."));
+
     this.fileSystem = new FileSystemTools();
     this.parser = new ExternalSMParser();
     
@@ -18514,13 +18339,13 @@ class LoadExternalSongFile {
         return;
       }
     } catch (parseError) {
-      // Failed to parse, continue loading next chart
-      this.showError(`Failed to parse ${this.fileName}:`);
+      // Failed to parse, abort
+      this.showError(__(`(Failed to parse|Error al analizar): ${this.fileName}`));
       console.warn(`Failed to parse ${this.fileName}:`, parseError);
       return;
     }
     
-    this.showError(`Failed to parse ${this.fileName}`);
+    this.showError(__(`(Failed to parse|Error al analizar): ${this.fileName}`));
   }
   
   async loadZipFileData() {
@@ -18543,12 +18368,12 @@ class LoadExternalSongFile {
     
     const JSZip = window.JSZip;
     if (!JSZip) {
-      this.showError("Couldn't load ZIP file");
+      this.showError(__("Couldn't load ZIP file||No se pudo cargar el ZIP"));
       throw new Error("JSZip library not loaded");
     }
     
     if (!file) {
-      this.showError("Couldn't load ZIP file");
+      this.showError(__("Couldn't load ZIP file||No se pudo cargar el ZIP"));
       throw new Error("Undefined .zip file");
     }
     
@@ -18568,7 +18393,7 @@ class LoadExternalSongFile {
   
   finish(chart = null) {
     if (!chart) {
-      this.showError("Couldn't load song");
+      this.showError(__("Couldn't load song||No se pudo cargar la canción"));
       return;
     }
     
@@ -18580,9 +18405,6 @@ class LoadExternalSongFile {
   }
 }
 
-
-
-// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -18592,7 +18414,7 @@ class Title {
     
     this.logo = new Logo();
 
-    this.inputInstructionText = new Text(game.width / 2, 100, "PRESS ANY KEY");
+    this.inputInstructionText = new Text(game.width / 2, 100, __("PRESS ANY KEY||PULSA CUALQUIER TECLA"));
     this.inputInstructionText.anchor.x = 0.5;
     game.add.tween(this.inputInstructionText).to({ alpha: 0 }, 500, "Linear", true, 0, -1).yoyo(true);
 
@@ -18613,33 +18435,55 @@ class Title {
 
     this.logo.intro(() => (this.introEnded = true));
 
-    // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
+  
   resetKeybindings() {
-    if (confirm("!! EMERGENCY RESET TRIGGERED !! Holding 3+ buttons during the title animation has triggered the emergency reset of the control settings. Proceed only if the controls have become unusable during remapping. This will reset keyboard and gamepad mappings to their initial state. Proceed?")) {
+    if (confirm(__(
+      "!! EMERGENCY RESET TRIGGERED !!\n" +
+      "Holding 3+ buttons during the title animation has triggered the emergency reset of the control settings.\n" +
+      "Proceed only if the controls have become unusable during remapping.\n" +
+      "This will reset keyboard and gamepad mappings to their initial state.\n\n" +
+      "Proceed?" +
+      "||" +
+      "!! RESET DE EMERGENCIA ACTIVADO !!\n" +
+      "Mantener 3+ botones durante la animación del título ha activado el reset de emergencia de los controles.\n" +
+      "Procede solo si los controles se han vuelto inutilizables durante la reasignación.\n" +
+      "Esto restablecerá las configuraciones de teclado y mando a su estado inicial.\n\n" +
+      "¿Proceder?"
+    ))) {
       Account.mapping.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
       Account.mapping.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
       saveAccount();
       gamepad.updateMapping(Account.mapping.keyboard, Account.mapping.gamepad);
-      notifications.show("Keybindings reset!");
+      notifications.show(__("Keybindings reset!||¡Teclas restablecidas!"));
     }
   }
+  
   restoreDefaults() {
-    if (confirm("!! EMERGENCY RESET TRIGGERED !! Holding 6+ buttons during the title animation has triggered a full factory reset. This will restore ALL settings, controls, and preferences to their default state. Proceed?")) {
+    if (confirm(__(
+      "!! EMERGENCY RESET TRIGGERED !!\n" +
+      "Holding 6+ buttons during the title animation has triggered a full factory reset.\n" +
+      "This will restore ALL settings, controls, and preferences to their default state.\n\n" +
+      "Proceed?" +
+      "||" +
+      "!! RESET DE EMERGENCIA ACTIVADO !!\n" +
+      "Mantener 6+ botones durante la animación del título ha activado un restablecimiento de fábrica completo.\n" +
+      "Esto restaurará TODOS los ajustes, controles y preferencias a su estado predeterminado.\n\n" +
+      "¿Proceder?"
+    ))) {
       Account.settings = DEFAULT_ACCOUNT.settings;
       saveAccount();
       window.location.reload();
     }
   }
+  
   update() {
     gamepad.update();
 
     if (this.introEnded && !this.outroStarted && (mouse.pressed.left || gamepad.pressed.any)) {
       this.outroStarted = true;
       this.text.alpha = 0;
-      
-      //ENABLE_UI_SFX && Audio.play("title_1");
       
       this.logo.outro(() => {
         let heldButtons = Object.values(gamepad.held).reduce((acc, held) => (held ? acc + 1 : acc));
@@ -18657,9 +18501,6 @@ class Title {
   }
 }
 
-
-
-// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -18717,10 +18558,14 @@ class MainMenu {
 
   showBugReportDialog() {
     this.confirmDialog(
-      "Seems like the game crashed last time.\n" +
+      __("Seems like the game crashed last time.\n" +
       "Sorry about that!!\n\n" +
       "As a solo developer, crash reports are super helpful for fixing issues.\n\n" +
-      "Could you quickly report what you were doing when it crashed?\n",
+      "Could you quickly report what you were doing when it crashed?\n" +
+      "||Parece que el juego se bloqueó la última vez.\n" +
+      "¡Perdón por eso!\n\n" +
+      "Como desarrollador solitario, los reportes de error son súper útiles para arreglar problemas.\n\n" +
+      "¿Podrías reportar rápidamente qué estabas haciendo cuando ocurrió?\n"),
       () => {
         // Open bug report page
         window.openExternalUrl(FEEDBACK_BUG_REPORT_URL);
@@ -18740,16 +18585,19 @@ class MainMenu {
         saveAccount();
         this.menu();
       },
-      "Report Bug",
-      "Maybe Later"
+      __("Report Bug||Reportar Bug"),
+      __("Maybe Later||Después")
     );
   }
 
   showRatingDialog() {
     this.confirmDialog(
-      "Hey! You've been playing a while!\n\n" +
+      __("Hey! You've been playing a while!\n\n" +
       "Do you like the game? Ratings really help keep me motivated.\n\n" +
-      "Would you mind leaving a quick rating?\n",
+      "Would you mind leaving a quick rating?\n" +
+      "||¡Vaya! ¡Llevas un buen rato jugando!\n\n" +
+      "¿Te gusta el juego? Las valoraciones realmente me ayudan a mantener la motivación.\n\n" +
+      "¿Te importaría dejar una valoración rápida?\n"),
       () => {
         // Rate Now
         window.openExternalUrl(FEEDBACK_REVIEW_URL);
@@ -18765,17 +18613,21 @@ class MainMenu {
         // No Thanks
         this.menu();
       },
-      "Rate Now", 
-      "No Thanks"
+      __("Rate Now||Valorar"), 
+      __("No Thanks||No, Gracias")
     );
   }
 
   showFeatureRequestDialog() {
     this.confirmDialog(
-      "Thank you for playing!\n\n" +
+      __("Thank you for playing!\n\n" +
       "I'm a solo developer, so hearing your ideas directly is incredibly valuable.\n\n" +
       "Got any feature requests or suggestions?\n" +
-      "What would you like to see in the game?\n",
+      "What would you like to see in the game?\n" +
+      "||¡Gracias por jugar!\n\n" +
+      "Soy un desarrollador solitario, así que escuchar tus ideas directamente es increíblemente valioso.\n\n" +
+      "¿Tienes alguna sugerencia o petición?\n" +
+      "¿Qué te gustaría ver en el juego?\n"),
       () => {
         // Share ideas
         window.openExternalUrl(FEEDBACK_FEATURE_REQUEST_URL);
@@ -18793,15 +18645,17 @@ class MainMenu {
         saveAccount();
         this.menu();
       },
-      "Share Ideas",
-      "Not Now"
+      __("Share Ideas||Compartir Ideas"),
+      __("Not Now||Ahora No")
     );
   }
   
   showCommunityDialog() {
     this.confirmDialog(
-      "Enjoying the game?\n" +
-      "Join the community to download more charts, and share your creations and high scores with other players!\n",
+      __("Enjoying the game?\n" +
+      "Join the community to download more charts, and share your creations and high scores with other players!\n" +
+      "||¿Disfrutando el juego?\n" +
+      "¡Únete a la comunidad para descargar más charts, y compartir tus creaciones y records con otros jugadores!\n"),
       () => {
         // Join
         window.openExternalUrl(COMMUNITY_HOMEPAGE_URL);
@@ -18817,8 +18671,8 @@ class MainMenu {
         // No Thanks
         this.menu();
       },
-      "Join", 
-      "No Thanks"
+      __("Join||Unirse"), 
+      __("No Thanks||No, Gracias")
     );
   }
 
@@ -18837,19 +18691,19 @@ class MainMenu {
       crop: false
     });
     
-    carousel.addItem("Rhythm Game", () => this.startGame());
-    carousel.addItem("Character Select", () => {
+    carousel.addItem(__("Rhythm Game||Partida"), () => this.startGame());
+    carousel.addItem(__("Character Select||Personaje"), () => {
       this.keepBackgroundMusic = true;
       game.state.start("CharacterSelect");
     });
-    carousel.addItem("Chart Editor", () => this.openEditor());
-    carousel.addItem("Settings", () => this.showSettings());
-    carousel.addItem("Extras", () => this.showExtras());
+    carousel.addItem(__("Chart Editor||Editor"), () => this.openEditor());
+    carousel.addItem(__("Settings||Ajustes"), () => this.showSettings());
+    carousel.addItem(__("Extras||Extras"), () => this.showExtras());
     
     game.onMenuIn.dispatch('home', carousel);
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
-      carousel.addItem("Exit", () => this.confirmExit());
+      carousel.addItem(__("Exit||Salir"), () => this.confirmExit());
       carousel.onCancel.add(() => this.confirmExit());
     }
   }
@@ -18863,14 +18717,14 @@ class MainMenu {
       crop: false
     });
     
-    carousel.addItem("Free Play", () => this.freePlay());
-    carousel.addItem("Extra Songs", () => this.showExtraSongs());
+    carousel.addItem(__("Free Play||Juego Libre"), () => this.freePlay());
+    carousel.addItem(__("Extra Songs||Canciones Extra"), () => this.showExtraSongs());
     carousel.addItem("Playlists", () => {
       this.keepBackgroundMusic = true;
       game.state.start("Playlists");
     });
     game.onMenuIn.dispatch('startGame', carousel);
-    carousel.addItem("< Back", () => this.showHomeMenu());
+    carousel.addItem(__("< Back||< Volver"), () => this.showHomeMenu());
     carousel.onCancel.add(() => this.showHomeMenu());
   }
 
@@ -18884,13 +18738,13 @@ class MainMenu {
     });
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
-      carousel.addItem("User Songs", () => this.loadExternalSongs());
-      carousel.addItem("Filesystem", () => this.startFileSelect());
+      carousel.addItem(__("User Songs||Canciones de Usuario"), () => this.loadExternalSongs());
+      carousel.addItem(__("Filesystem||Sistema de Archivos"), () => this.startFileSelect());
     }
-    carousel.addItem("Load Single Song", () => this.loadSingleSong());
+    carousel.addItem(__("Load Single Song||Cargar Canción Individual"), () => this.loadSingleSong());
     
     if (window.externalSongs && (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS)) {
-      carousel.addItem("Reload User Songs", () => {
+      carousel.addItem(__("Reload User Songs||Recargar Canciones de Usuario"), () => {
         backgroundMusic.refreshCache();
         window.externalSongs = undefined;
         this.loadExternalSongs();
@@ -18898,7 +18752,7 @@ class MainMenu {
     }
     
     game.onMenuIn.dispatch('extraSongs', carousel);
-    carousel.addItem("< Back", () => this.startGame());
+    carousel.addItem(__("< Back||< Volver"), () => this.startGame());
     carousel.onCancel.add(() => this.startGame());
   }
 
@@ -18912,18 +18766,18 @@ class MainMenu {
     });
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS || window.DEBUG) {
-      carousel.addItem("Addon Manager", () => this.showAddonManager());
+      carousel.addItem(__("Addon Manager||Gestor de Addons"), () => this.showAddonManager());
     }
-    carousel.addItem("Jukebox", () => this.startJukebox());
-    carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
-    carousel.addItem("Achievements", () => this.showAchievements());
-    carousel.addItem("Player Stats", () => this.showStats());
-    carousel.addItem("Feedback", () => this.showFeedback());
-    carousel.addItem("Comunity", () => this.showCommunity());
-    carousel.addItem("Credits", () => this.showCredits());
+    carousel.addItem(__("Jukebox||Jukebox"), () => this.startJukebox());
+    carousel.addItem(__("Offset Assistant||Asistente de Offset"), () => this.startOffsetAssistant());
+    carousel.addItem(__("Achievements||Logros"), () => this.showAchievements());
+    carousel.addItem(__("Player Stats||Estadísticas"), () => this.showStats());
+    carousel.addItem(__("Feedback||Comentarios"), () => this.showFeedback());
+    carousel.addItem(__("Community||Comunidad"), () => this.showCommunity());
+    carousel.addItem(__("Credits||Créditos"), () => this.showCredits());
     
     game.onMenuIn.dispatch('extras', carousel);
-    carousel.addItem("< Back", () => this.showHomeMenu());
+    carousel.addItem(__("< Back||< Volver"), () => this.showHomeMenu());
     carousel.onCancel.add(() => this.showHomeMenu());
   }
 
@@ -18941,12 +18795,12 @@ class MainMenu {
       this.showFeedback();
     };
     
-    carousel.addItem("Leave A Review", () => openLink(FEEDBACK_REVIEW_URL));
-    carousel.addItem("Feature Request", () => openLink(FEEDBACK_FEATURE_REQUEST_URL));
-    carousel.addItem("Bug Report", () => openLink(FEEDBACK_BUG_REPORT_URL));
+    carousel.addItem(__("Leave A Review||Dejar Reseña"), () => openLink(FEEDBACK_REVIEW_URL));
+    carousel.addItem(__("Feature Request||Solicitar Función"), () => openLink(FEEDBACK_FEATURE_REQUEST_URL));
+    carousel.addItem(__("Bug Report||Reportar Error"), () => openLink(FEEDBACK_BUG_REPORT_URL));
     
     game.onMenuIn.dispatch('feedback', carousel);
-    carousel.addItem("< Back", () => this.showExtras());
+    carousel.addItem(__("< Back||< Volver"), () => this.showExtras());
     carousel.onCancel.add(() => this.showExtras());
   }
   
@@ -18969,7 +18823,7 @@ class MainMenu {
     game.state.start("Settings");
   }
   
-  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+  confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
     });
@@ -18993,7 +18847,7 @@ class MainMenu {
 
   confirmExit() {
     this.confirmDialog(
-      "Are you sure you want to exit the game?",
+      __("Are you sure you want to exit the game?||¿Estás seguro de que quieres salir del juego?"),
       () => {
         switch (CURRENT_ENVIRONMENT) {
           case ENVIRONMENT.CORDOVA:
@@ -19005,8 +18859,8 @@ class MainMenu {
         }
       },
       () => this.showHomeMenu(),
-      "Exit",
-      "Cancel"
+      __("Exit||Salir"),
+      __("Cancel||Cancelar")
     );
   }
 
@@ -19040,15 +18894,15 @@ class MainMenu {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       if (!window.externalSongs) {
         this.confirmDialog(
-          "Load extra songs from external storage?",
+          __("Load extra songs from external storage?||¿Cargar canciones extras desde almacenamiento externo?"),
           () => {
             game.state.start("LoadExternalSongs", true, false, "Jukebox", [undefined, undefined]);
           },
           () => {
             game.state.start("Jukebox");
           },
-          "Load Songs",
-          "Skip"
+          __("Load Songs||Cargar Canciones"),
+          __("Skip||Saltar")
         );
       } else {
         game.state.start("Jukebox");
@@ -19088,9 +18942,6 @@ class MainMenu {
   }
 }
 
-
-
-// ======== js/game/states/Addons.js ========
 class Addons {
   create() {
     this.leaving = false;
@@ -19127,7 +18978,7 @@ class Addons {
   
   showNoAddonsDialog() {
     this.confirmDialog(
-      "NO ADDONS INSTALLED\n\nAddons extend the game with new features,\nvisual effects, and gameplay modifications.\n\nVisit the community page to download addons,\nor place addons in the 'Addons' folder.",
+      __("NO ADDONS INSTALLED\n\nAddons extend the game with new features,\nvisual effects, and gameplay modifications.\n\nVisit the community page to download addons,\nor place addons in the 'Addons' folder.||NO HAY ADDONS INSTALADOS\n\nLos addons expanden el juego con nuevas funciones,\nefectos visuales y modificaciones de gameplay.\n\nVisita la página de la comunidad para descargar addons,\no coloca addons en la carpeta 'Addons'."),
       () => {
         openExternalUrl(COMMUNITY_HOMEPAGE_URL);
         game.time.events.add(100, () => this.showNoAddonsDialog());
@@ -19135,8 +18986,8 @@ class Addons {
       () => {
         setTimeout(() => this.backToMainMenu());
       },
-      "VISIT COMMUNITY",
-      "RETURN"
+      __("VISIT COMMUNITY||VISITAR COMUNIDAD"),
+      __("RETURN||VOLVER")
     );
   }
   
@@ -19167,23 +19018,23 @@ class Addons {
     
     this.previewAddon(addons[0]);
     
-    this.carousel.addItem("< Back", () => this.applyChanges());
+    this.carousel.addItem(__("< Back||< Volver"), () => this.applyChanges());
     this.carousel.onCancel.add(() => this.applyChanges());
   }
   
   previewAddon(addon) {
    this.descriptionText.write(
       `${addon.name}\n\n` +
-      'State: ' + 
+      __(`(State|Estado): `) + 
       (addon.isHibernating ?
-        'Hybernating'
+        __(`(Hybernating|Hibernando)`)
         :
       (addon.isEnabled ?
-        'Enabled' : 'Disabled')) + '\n' +
-      `Version: v${addon.version}\n` +
-      `Author: ${addon.author}\n` +
-      `Behaviors: ${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n` +
-      `Assets: ${addon.assets ? addon.assets.length : 0}\n\n` +
+        __(`(Enabled|Activado)`) : __(`(Disabled|Desactivado)`))) + '\n' +
+      __(`(Version|Versión): v${addon.version}\n`) +
+      __(`(Author|Autor): ${addon.author}\n`) +
+      __(`(Behaviors|Comportamientos): ${addon.behaviors ? Object.keys(addon.behaviors).length : 0}\n`) +
+      __(`(Assets|Recursos): ${addon.assets ? addon.assets.length : 0}\n\n`) +
       `${addon.description}\n`
     ).wrap(130 - 4);
     
@@ -19204,49 +19055,56 @@ class Addons {
     this.carousel = this.carousel.replace();
     
     if (addon.isHibernating) {
-      this.carousel.addItem("Wake Addon", () => {
+      this.carousel.addItem(__("Wake Addon||Despertar Addon"), () => {
         addonManager.wakeAddon(addon.id);
         this.needsReload = true;
         this.loadAddons();
       });
     } else if (addon.isEnabled) {
-      this.carousel.addItem("Disable Addon", () => {
+      this.carousel.addItem(__("Disable Addon||Desactivar Addon"), () => {
         addonManager.disableAddon(addon.id);
         this.needsReload = false;
         this.loadAddons();
       });
-      this.carousel.addItem("Hibernate Addon", () => {
+      this.carousel.addItem(__("Hibernate Addon||Hibernar Addon"), () => {
         addonManager.hibernateAddon(addon.id);
         this.needsReload = true;
         this.loadAddons();
       });
     } else {
-      this.carousel.addItem("Enable Addon", () => {
+      this.carousel.addItem(__("Enable Addon||Activar Addon"), () => {
         addonManager.enableAddon(addon.id);
         this.needsReload = true;
         this.loadAddons();
       });
     }
     
-    this.carousel.addItem("Uninstall Addon", () => this.confirmDialog("The addon will be removed from storage. Continue?", () => {
-      addonManager.uninstallAddon(addon.id);
-      this.needsReload = true;
-      this.loadAddons();
-    }));
+    this.carousel.addItem(__("Uninstall Addon||Desinstalar Addon"), () => this.confirmDialog(
+      __("The addon will be removed from storage. Continue?||El addon será eliminado del almacenamiento. ¿Continuar?"),
+      () => {
+        addonManager.uninstallAddon(addon.id);
+        this.needsReload = true;
+        this.loadAddons();
+      }
+    ));
     
     game.onMenuIn.dispatch('addonDetails', this.carousel);
     
-    this.carousel.addItem("< Back", () => this.loadAddons());
+    this.carousel.addItem(__("< Back||< Volver"), () => this.loadAddons());
     this.carousel.onCancel.add(() => this.loadAddons());
   }
   
   applyChanges() {
     if (this.needsReload || addonManager.needsReload()) {
-      this.confirmDialog("Reload required. Restart now?", () => {
-        window.location.reload();
-      }, () => {
-        this.backToMainMenu();
-      });
+      this.confirmDialog(
+        __("Reload required. Restart now?||Se necesita recargar. ¿Reiniciar ahora?"),
+        () => {
+          window.location.reload();
+        },
+        () => {
+          this.backToMainMenu();
+        }
+      );
     } else {
       this.backToMainMenu();
     }
@@ -19263,7 +19121,7 @@ class Addons {
     this.windowManager.update();
   }
   
-  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+  confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
     });
@@ -19286,9 +19144,6 @@ class Addons {
   }
 }
 
-
-
-// ======== js/game/states/Settings.js ========
 class Settings {
   create() {
     this.futuristicLines = new FuturisticLines();
@@ -19301,11 +19156,9 @@ class Settings {
     
     this.showSettings();
     
-    // File input element for loading backup files
     this.fileInput = document.createElement("input");
     this.fileInput.type = "file";
     
-    // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
@@ -19315,7 +19168,7 @@ class Settings {
   }
   
   showSettings() {
-    const loading = new Text(game.width / 2, game.height / 2, "Please Wait...");
+    const loading = new Text(game.width / 2, game.height / 2, __("Please Wait...||Espera..."));
     loading.anchor.set(0.5);
     
     game.time.events.add(100, () => {
@@ -19336,7 +19189,7 @@ class Settings {
     
     // Music Volume
     settingsWindow.addRangeItem(
-      "Music Playback Volume",
+      __("(Music Playback Volume|Volumen de la Música)"),
       0,
       100,
       1,
@@ -19353,7 +19206,7 @@ class Settings {
     
     // Sfx Volume
     settingsWindow.addRangeItem(
-      "Sound Effects Volume",
+      __("(Sound Effects Volume|Volumen de los Efectos)"),
       0,
       100,
       1,
@@ -19371,7 +19224,7 @@ class Settings {
     // Auto-play setting
     settingsWindow.addSettingItem(
       "Auto-play",
-      ["OFF", "ON"], 
+      [__("(Off|Apagado)"), __("(On|Activado)")], 
       Account.settings.autoplay ? 1 : 0,
       index => {
         Account.settings.autoplay = index === 1;
@@ -19380,25 +19233,37 @@ class Settings {
     );
     
     // Metronome setting
-    const metronomeOptions = ['OFF', 'Note', 'Quarters', 'Eighths', 'Sixteenths', 'Thirty-seconds'];
-    const currentMetronomeIndex = metronomeOptions.indexOf(Account.settings.metronome || 'OFF');
+    const metronomeOptions = [
+      { key: 'Off', label: __("(Off|Apagado)") },
+      { key: 'Note', label: __("(Note|Nota)") },
+      { key: 'Quarters', label: __("(Quarters|Negras)") },
+      { key: 'Eighths', label: __("(Eighths|Corcheas)") },
+      { key: 'Sixteenths', label: __("(Sixteenths|Semicorcheas)") },
+      { key: 'Thirty-seconds', label: __("(Thirty-seconds|Fusas)") }
+    ];
+    const currentMetronomeIndex = metronomeOptions.findIndex(opt => opt.key === (Account.settings.metronome || 'Off'));
     settingsWindow.addSettingItem(
-      "Metronome",
-      metronomeOptions,
+      __("(Metronome|Metrónomo)"),
+      metronomeOptions.map(opt => opt.label),
       currentMetronomeIndex,
       index => {
-        Account.settings.metronome = metronomeOptions[index];
+        Account.settings.metronome = metronomeOptions[index].key;
         saveAccount();
       }
     );
-    
+        
     // Visualizer 
-    const visualizerOptions = ['NONE', 'BPM', 'ACCURACY', 'AUDIO'];
-    const currentVisualizer = Account.settings.visualizer || 'NONE';
+    const visualizerOptions = [
+      __("(None|Ninguno)"), 
+      "BPM", 
+      __("(Accuracy|Precisión)"), 
+      "Audio"
+    ];
+    const currentVisualizer = Account.settings.visualizer || 'None';
     const currentVisualizerIndex = visualizerOptions.indexOf(currentVisualizer);
     
     settingsWindow.addSettingItem(
-      "Visualizer",
+      __("(Visualizer|Visualizador)"),
       visualizerOptions,
       currentVisualizerIndex,
       index => {
@@ -19410,8 +19275,8 @@ class Settings {
     
     // Mouse 
     settingsWindow.addSettingItem(
-      "Enable Mouse",
-      ["YES", "NO"],
+      __("(Enable Mouse|Activar Mouse)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.enableMouse ? 0 : 1,
       index => {
         Account.settings.enableMouse = index === 0;
@@ -19422,8 +19287,8 @@ class Settings {
     
     // Touch 
     settingsWindow.addSettingItem(
-      "Enable Touch",
-      ["YES", "NO"],
+      __("(Enable Touch|Activar Táctil)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.enableTouch ? 0 : 1,
       index => {
         Account.settings.enableTouch = index === 0;
@@ -19434,8 +19299,8 @@ class Settings {
     
     // Scroll direction
     settingsWindow.addSettingItem(
-      "Scroll Direction",
-      ["FALLING", "RISING"],
+      __("(Scroll Direction|Dirección de Desplazamiento)"),
+      [__("(Falling|Cayendo)"), __("(Rising|Ascendente)")],
       Account.settings.scrollDirection === 'falling' ? 0 : 1,
       index => {
         Account.settings.scrollDirection = index === 0 ? 'falling' : 'rising';
@@ -19443,10 +19308,23 @@ class Settings {
       }
     );
     
+    // Idioma
+    settingsWindow.addSettingItem(
+      __("(Language|Idioma)"),
+      [__("(English|Inglés)"), __("(Spanish|Español)")],
+      Account.settings.language || 0,
+      index => {
+        Account.settings.language = index;
+        saveAccount();
+        restartNeeded = true;
+        notifications.show(__("Language changed. Restart required.||Idioma cambiado. Requiere reiniciar."), 2000, "info");
+      }
+    );
+    
     // Button Style
     settingsWindow.addSettingItem(
-      "Button Style",
-      ["X-BOX", "PLAYSTATION"],
+      __("(Button Style|Estilo de Botones)"),
+      ["X-Box", "Playstation"],
       (Account.settings.buttonStyle || 'xbox') === 'xbox' ? 0 : 1,
       index => {
         Account.settings.buttonStyle = index === 0 ? 'xbox' : 'ps';
@@ -19460,14 +19338,14 @@ class Settings {
     
     // Note colors
     const noteOptions = [
-      { value: 'NOTE', display: 'NOTE' },
-      { value: 'VIVID', display: 'VIVID' },
-      { value: 'FLAT', display: 'FLAT' },
-      { value: 'RAINBOW', display: 'RAINBOW' }
+      { value: 'NOTE', display: "Note" },
+      { value: 'VIVID', display: "Vivid" },
+      { value: 'FLAT', display: "Flat" },
+      { value: 'RAINBOW', display: "Rainbow" }
     ];
     const currentNoteIndex = noteOptions.findIndex(opt => opt.value === Account.settings.noteColorOption);
     settingsWindow.addSettingItem(
-      "Note Colors",
+      __("(Note Colors|Colores de Notas)"),
       noteOptions.map(opt => opt.display),
       currentNoteIndex,
       index => {
@@ -19478,8 +19356,16 @@ class Settings {
 
     // Note speed
     settingsWindow.addSettingItem(
-      "Note Speed",
-      ["Normal", "Double", "Triple", "Insane", "Sound Barrier", "Light Speed", "Faster than light"],
+      __("(Note Speed|Velocidad de Notas)"),
+      [
+        __("(Normal|Normal)"),
+        __("(Double|Doble)"),
+        __("(Triple|Triple)"),
+        __("(Insane|Alucinante)"),
+        __("(Sound Barrier|Barrera de Sonido)"),
+        __("(Light Speed|Velocidad de la Luz)"),
+        __("(Faster than light|Más Rápido que la Luz)")
+      ],
       Account.settings.noteSpeedMult - 1,
       index => {
         Account.settings.noteSpeedMult = index + 1;
@@ -19489,8 +19375,8 @@ class Settings {
     
     // Speed mod
     settingsWindow.addSettingItem(
-      "Speed Mod",
-      ["X-MOD", "C-MOD"],
+      __("(Speed Mod|Modo de Velocidad)"),
+      ["X-Mod", "C-Mod"],
       Account.settings.speedMod === 'C-MOD' ? 1 : 0,
       index => {
         Account.settings.speedMod = index === 1 ? 'C-MOD' : 'X-MOD';
@@ -19500,8 +19386,8 @@ class Settings {
     
     // Haptic feedback
     settingsWindow.addSettingItem(
-      "Haptic Feedback",
-      ["OFF", "ON"], 
+      __("(Haptic Feedback|Retroalimentación Háptica)"),
+      [__("(Off|Apagado)"), __("(On|Activado)")], 
       Account.settings.hapticFeedback ? 1 : 0,
       index => {
         Account.settings.hapticFeedback = index === 1;
@@ -19511,8 +19397,8 @@ class Settings {
     
     // Enable Temperature
     settingsWindow.addSettingItem(
-      "Enable Temperature (Experimental)",
-      ["YES", "NO"], 
+      __("(Enable Audio Temperature|Activar Temperatura del Audio) (Experimental)"),
+      [__("(Yes|Sí)"), __("(No|No)")], 
       Account.settings.enableTemperature ? 0 : 1,
       index => {
         Account.settings.enableTemperature = index === 0;
@@ -19522,8 +19408,8 @@ class Settings {
     
     // Enable Lyrics
     settingsWindow.addSettingItem(
-      "Enable Lyrics",
-      ["YES", "NO"], 
+      __("(Enable Lyrics|Activar Letras)"),
+      [__("(Yes|Sí)"), __("(No|No)")], 
       Account.settings.enableLyrics ? 0 : 1,
       index => {
         Account.settings.enableLyrics = index === 0;
@@ -19533,8 +19419,8 @@ class Settings {
     
     // Lyrics Position
     settingsWindow.addSettingItem(
-      "Lyrics Position",
-      ["BOTTOM", "TOP"], 
+      __("(Lyrics Position|Posición de Letras)"),
+      [__("(Bottom|Abajo)"), __("(Top|Arriba)")], 
       Account.settings.lyricsPosition,
       index => {
         Account.settings.lyricsPosition = index;
@@ -19544,7 +19430,7 @@ class Settings {
     
     // Background opacity
     settingsWindow.addRangeItem(
-      "Background Image Opacity",
+      __("(Background Image Opacity|Opacidad de Imagen de Fondo)"),
       0,
       100,
       1,
@@ -19558,7 +19444,7 @@ class Settings {
     
     // Video Background opacity
     settingsWindow.addRangeItem(
-      "Background Video Opacity",
+      __("(Background Video Opacity|Opacidad de Video de Fondo)"),
       0,
       100,
       1,
@@ -19572,8 +19458,8 @@ class Settings {
     
     // Video FPS
     settingsWindow.addSettingItem(
-      "Background Video FPS",
-      ["60 FPS", "30 FPS", "15 FPS"],
+      __("(Background Video FPS|FPS de Videos)"),
+      ["60 Fps", "30 Fps", "15 Fps"],
       (Account.settings.videoFPS || 1) - 1,
       index => {
         Account.settings.videoFPS = index + 1;
@@ -19583,8 +19469,8 @@ class Settings {
     
     // Song Info Intro
     settingsWindow.addSettingItem(
-      "Display Song Info Intro",
-      ["YES", "NO"],
+      __("(Display Song Info Intro|Mostrar Información de Canción)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.enableSongInfo ? 0 : 1,
       index => {
         Account.settings.enableSongInfo = index === 0;
@@ -19594,8 +19480,8 @@ class Settings {
     
     // Beat lines
     settingsWindow.addSettingItem(
-      "Enable Beat Lines",
-      ["YES", "NO"],
+      __("(Enable Beat Lines|Activar Líneas de Beat)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.beatLines ? 0 : 1,
       index => {
         Account.settings.beatLines = index === 0;
@@ -19605,8 +19491,8 @@ class Settings {
     
     // Chart background
     settingsWindow.addSettingItem(
-      "Enable Chart Overlay",
-      ["YES", "NO"],
+      __("(Enable Chart Overlay|Activar Superposición de Chart)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.enableChartBackground ? 0 : 1,
       index => {
         Account.settings.enableChartBackground = index === 0;
@@ -19616,7 +19502,7 @@ class Settings {
     
     // Chart Background opacity
     settingsWindow.addRangeItem(
-      "Chart Overlay Opacity",
+      __("(Chart Overlay Opacity|Opacidad de Superposición de Chart)"),
       0,
       100,
       1,
@@ -19630,7 +19516,7 @@ class Settings {
     
     // Global offset
     settingsWindow.addRangeItem(
-      "Global Offset",
+      __("(Global Offset|Offset Global)"),
       -2000,
       2000,
       1,
@@ -19650,8 +19536,12 @@ class Settings {
       menuMusicIndex = 2;
     }
     settingsWindow.addSettingItem(
-      "Menu Music",
-      ["LAST SONG", "RANDOM SONG", "OFF"],
+      __("(Menu Music|Música del Menú)"),
+      [
+        __("(Last Song|Última Canción)"), 
+        __("(Random Song|Canción Aleatoria)"), 
+        __("(Off|Apagado)")
+      ],
       menuMusicIndex,
       index => {
         switch (index) {
@@ -19673,8 +19563,8 @@ class Settings {
 
     // Renderer
     settingsWindow.addSettingItem(
-      "Renderer",
-      ["AUTO", "CANVAS (Experimental)", "WEBGL"],
+      __("(Renderer|Renderizador)"),
+      ["Auto", __("(Canvas (Experimental)|Canvas (Experimental))"), "Webgl"],
       Account.settings.renderer,
       index => {
         Account.settings.renderer = index;
@@ -19685,8 +19575,8 @@ class Settings {
     
     // Pixelated
     settingsWindow.addSettingItem(
-      "Pixelated",
-      ["YES", "NO"],
+      __("(Pixelated|Pixelado)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
       Account.settings.pixelated ? 0 : 1,
       index => {
         Account.settings.pixelated = index == 0;
@@ -19697,8 +19587,8 @@ class Settings {
     
     // Image Rendering Mode
     settingsWindow.addSettingItem(
-      "Image Rendering Mode",
-      ["COMPATIBILITY", "NORMAL"],
+      __("(Image Rendering Mode|Modo de Renderizado de Imágenes)"),
+      [__("(Compatibility|Compatibilidad)"), __("(Normal|Normal)")],
       Account.settings.imageRenderingCompatibility ? 0 : 1,
       index => {
         Account.settings.imageRenderingCompatibility = index === 0;
@@ -19708,8 +19598,8 @@ class Settings {
     
     // Safe Mode
     settingsWindow.addSettingItem(
-      "Safe Mode",
-      ["ENABLED", "DISABLED"],
+      __("(Safe Mode|Modo Seguro)"),
+      [__("(Enabled|Activado)"), __("(Disabled|Desactivado)")],
       Account.settings.safeMode ? 0 : 1,
       index => {
         restartNeeded = true;
@@ -19720,22 +19610,22 @@ class Settings {
     );
     
     // Configure keybindings
-    settingsWindow.addItem("Configure keybindings", ">", () => {
+    settingsWindow.addItem(__("(Configure keybindings|Configurar teclas)"), ">", () => {
       this.showKeybindingsMenu()
     });
     
     // Chart Modifiers
-    settingsWindow.addItem("Chart Modifiers", ">", () => this.showChartModifiersMenu());
+    settingsWindow.addItem(__("(Chart Modifiers|Modificadores de Chart)"), ">", () => this.showChartModifiersMenu());
     
     // Danger zone
-    settingsWindow.addItem("Erase Highscores", "", () => this.confirmEraseHighscores());
-    settingsWindow.addItem("Import Backup Data", "", () => this.importBackupData());
-    settingsWindow.addItem("Export Backup Data", "", () => this.exportBackupData());
-    settingsWindow.addItem("Restore Default Settings", "", () => this.confirmRestoreDefaults());
+    settingsWindow.addItem(__("(Erase Highscores|Borrar Highscores)"), "", () => this.confirmEraseHighscores());
+    settingsWindow.addItem(__("(Import Backup Data|Importar Datos de Respaldo)"), "", () => this.importBackupData());
+    settingsWindow.addItem(__("(Export Backup Data|Exportar Datos de Respaldo)"), "", () => this.exportBackupData());
+    settingsWindow.addItem(__("(Restore Default Settings|Restaurar Configuración Predeterminada)"), "", () => this.confirmRestoreDefaults());
     
     game.onMenuIn.dispatch('settings', settingsWindow);
     
-    settingsWindow.addItem("APPLY", "", () => {
+    settingsWindow.addItem(__("Apply||Aplicar"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       if (restartNeeded) {
         this.confirmRestart();
@@ -19760,13 +19650,17 @@ class Settings {
           this.windowManager.remove(this.settingsWindow, true);
       
           this.confirmDialog(
-            `Backup version: ${backupData.version || '???'}\n` +
+            __(`Backup version: ${backupData.version || '???'}\n` +
             `Backup date: ${backupData.exportDate ? new Date(backupData.exportDate).toDateString() : '???'}\n\n` +
             "Importing will overwrite your current account data including:\n" +
             "- High scores\n- Settings\n- Characters\n- Achievements\n- Statistics\n\n" +
-            "This action cannot be undone!\n\nAre you sure you want to import this backup?",
+            "This action cannot be undone!\n\nAre you sure you want to import this backup?||" +
+            `Versión del respaldo: ${backupData.version || '???'}\n` +
+            `Fecha del respaldo: ${backupData.exportDate ? new Date(backupData.exportDate).toDateString() : '???'}\n\n` +
+            "Importar sobrescribirá tus datos actuales de cuenta incluyendo:\n" +
+            "- Highscores\n- Configuración\n- Personajes\n- Logros\n- Estadísticas\n\n" +
+            "¡Esta acción no se puede deshacer!\n\n¿Estás seguro de que quieres importar este respaldo?"),
             () => {
-              // Merge backup with default structure to ensure all fields exist
               const mergedAccount = {
                 ...DEFAULT_ACCOUNT,
                 ...backupData,
@@ -19777,32 +19671,30 @@ class Settings {
                 mapping: { ...DEFAULT_ACCOUNT.mapping, ...backupData.mapping }
               };
               
-              // Update global Account object
               Object.assign(Account, mergedAccount);
               saveAccount();
               
-              notifications.show("Backup imported successfully!", 2000, "success");
+              notifications.show(__("Backup imported successfully!||¡Respaldo importado exitosamente!"), 2000, "success");
               
-              // Reload to apply all changes
               setTimeout(() => {
                 this.confirmDialog(
-                  "Import complete. Restart the game to ensure all data is properly loaded?",
+                  __("Import complete. Restart the game to ensure all data is properly loaded?||Importación completa. ¿Reiniciar el juego para asegurar que todos los datos se carguen correctamente?"),
                   () => location.reload(),
                   () => this.showSettings(),
-                  "Restart Now",
-                  "Later"
+                  __("Restart Now||Reiniciar Ahora"),
+                  __("Later||Después")
                 );
               }, 500);
             },
             () => {
               this.showSettings();
             },
-            "IMPORT",
-            "CANCEL"
+            __("Import||Importar"),
+            __("Cancel||Cancelar")
           );
         } catch (error) {
           console.error("Failed to parse backup file:", error);
-          notifications.show("Invalid backup file!", 2000, "error");
+          notifications.show(__("Invalid backup file!||¡Archivo de respaldo inválido!"), 2000, "error");
           this.showSettings();
         }
       };
@@ -19815,7 +19707,6 @@ class Settings {
   }
   
   async exportBackupData() {
-    // Create a backup object with all account data
     const backupData = {
       version: VERSION,
       exportDate: new Date().toISOString(),
@@ -19834,7 +19725,6 @@ class Settings {
     const filename = `PadManiacs_Backup_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
     
     if (CURRENT_ENVIRONMENT === ENVIRONMENT.WEB) {
-      // Download in browser
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -19843,19 +19733,18 @@ class Settings {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      notifications.show("Backup exported successfully!", 2000, "success");
+      notifications.show(__("Backup exported successfully!||¡Respaldo exportado exitosamente!"), 2000, "success");
       this.showSettings();
     } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
-      // Save to filesystem
       try {
         const fileSystem = new FileSystemTools();
         const outputDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + BACKUPS_DIRECTORY);
         await fileSystem.saveFile(outputDir, blob, filename);
-        notifications.show(`Backup saved to ${filename}`, 2000, "success");
+        notifications.show(__(`Backup saved to ${filename}||Respaldo guardado como ${filename}`), 2000, "success");
         this.showSettings();
       } catch (error) {
         console.error("Failed to save backup:", error);
-        notifications.show("Failed to save backup!", 2000, "error");
+        notifications.show(__("Failed to save backup!||¡Error al guardar el respaldo!"), 2000, "error");
         this.showSettings();
       }
     }
@@ -19873,7 +19762,7 @@ class Settings {
     game.state.start("ChartModifiers", true, false, "MainMenu");
   }
 
-  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+  confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
     });
@@ -19897,16 +19786,16 @@ class Settings {
 
   confirmEraseHighscores() {
     this.confirmDialog(
-      "This will permanently erase all your high scores.\nThis action cannot be undone!\n\nAre you sure?",
+      __("This will permanently erase all your high scores.\nThis action cannot be undone!\n\nAre you sure?||Esto borrará permanentemente todas tus puntuaciones altas.\n¡Esta acción no se puede deshacer!\n\n¿Estás seguro?"),
       () => {
         Account.highScores = {};
         saveAccount();
-        notifications.show("High scores erased!");
+        notifications.show(__("High scores erased!||¡Puntuaciones altas borradas!"));
         this.showSettings();
       },
       () => this.showSettings(),
-      "Erase",
-      "Cancel"
+      __("Erase||Borrar"),
+      __("Cancel||Cancelar")
     );
   }
 
@@ -19914,32 +19803,29 @@ class Settings {
     this.windowManager.remove(this.settingsWindow, true);
     
     this.confirmDialog(
-      "All settings will be restored to their default values.\nThe game will need to restart.\n\nContinue?",
+      __("All settings will be restored to their default values.\nThe game will need to restart.\n\nContinue?||Toda la configuración será restaurada a sus valores predeterminados.\nEl juego necesitará reiniciarse.\n\n¿Continuar?"),
       () => {
         Account.settings = DEFAULT_ACCOUNT.settings;
         saveAccount();
         window.location.reload();
       },
       () => this.showSettings(),
-      "Restore",
-      "Cancel"
+      __("Restore||Restaurar"),
+      __("Cancel||Cancelar")
     );
   }
 
   confirmRestart() {
     this.confirmDialog(
-      "Settings changed require a restart to take effect.\nRestart now?",
+      __("Settings changed require a restart to take effect.\nRestart now?||Los cambios en la configuración requieren un reinicio para aplicar.\n¿Reiniciar ahora?"),
       () => location.reload(),
       () => this.showMainMenu(),
-      "Restart",
-      "Later"
+      __("Restart||Reiniciar"),
+      __("Later||Después")
     );
   }
 }
 
-
-
-// ======== js/game/states/ChartModifiers.js ========
 class ChartModifiers {
   init(returnState = "Settings", ...returnParams) {
     this.returnState = returnState;
@@ -19976,14 +19862,14 @@ class ChartModifiers {
     if (this.returnState != 'Settings') {
       // Note colors
       const noteOptions = [
-        { value: 'NOTE', display: 'NOTE' },
-        { value: 'VIVID', display: 'VIVID' },
-        { value: 'FLAT', display: 'FLAT' },
-        { value: 'RAINBOW', display: 'RAINBOW' }
+        { value: 'NOTE', display: "NOTE" },
+        { value: 'VIVID', display: "VIVID" },
+        { value: 'FLAT', display: "FLAT" },
+        { value: 'RAINBOW', display: "RAINBOW" }
       ];
       const currentNoteIndex = noteOptions.findIndex(opt => opt.value === Account.settings.noteColorOption);
       settingsWindow.addSettingItem(
-        "Note Colors",
+        __("Note Colors||Colores de Notas"),
         noteOptions.map(opt => opt.display),
         currentNoteIndex,
         index => {
@@ -19994,8 +19880,16 @@ class ChartModifiers {
   
       // Note speed
       settingsWindow.addSettingItem(
-        "Note Speed",
-        ["Normal", "Double", "Triple", "Insane", "Sound Barrier", "Light Speed", "Faster than light"],
+        __("Note Speed||Velocidad de Notas"),
+        [
+          __("Normal||Normal"),
+          __("Double||Doble"),
+          __("Triple||Triple"),
+          __("Insane||Alucinante"),
+          __("Sound Barrier||Barrera de Sonido"),
+          __("Light Speed||Velocidad de la Luz"),
+          __("Faster than light||Más Rápido que la Luz")
+        ],
         Account.settings.noteSpeedMult - 1,
         index => {
           Account.settings.noteSpeedMult = index + 1;
@@ -20005,7 +19899,7 @@ class ChartModifiers {
       
       // Speed mod
       settingsWindow.addSettingItem(
-        "Speed Mod",
+        __("Speed Mod||Modo de Velocidad"),
         ["X-MOD", "C-MOD"],
         Account.settings.speedMod === 'C-MOD' ? 1 : 0,
         index => {
@@ -20030,9 +19924,19 @@ class ChartModifiers {
     Object.keys(this.modifiers).forEach(key => {
       const enabled = this.modifiers[key];
       
+      // Traducir nombres de modificadores
+      const modifierNames = {
+        'NO_JUMPS': __("No Jumps||Sin Saltos"),
+        'NO_HANDS': __("No Hands||Sin Manos"),
+        'NO_FREEZES': __("No Freezes||Sin Holds"),
+        'NO_MINES': __("No Mines||Sin Minas"),
+        'MIRRORED': __("Mirrored||Espejo"),
+        'RANDOMIZED': __("Randomized||Aleatorio")
+      };
+      
       settingsWindow.addSettingItem(
-        key.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-        ['ENABLED', 'DISABLED'],
+        modifierNames[key] || key.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
         enabled ? 0 : 1,
         index => {
           this.modifiers[key] = index === 0;
@@ -20040,16 +19944,16 @@ class ChartModifiers {
       );
     });
     
-    settingsWindow.addItem("APPLY", "", () => {
+    settingsWindow.addItem(__("APPLY||APLICAR"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       Account.settings.chartModifiers = this.modifiers;
       saveAccount();
-      console.log("Saved modifiers:", Account.settings.chartModifiers); // Debug
+      console.log("Saved modifiers:", Account.settings.chartModifiers);
       game.state.start(this.returnState, true, false, ...this.returnParams);
     }, true);
   }
 
-  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+  confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
     });
@@ -20072,9 +19976,6 @@ class ChartModifiers {
   }
 }
 
-
-
-// ======== js/game/states/Keybindings.js ========
 class Keybindings {
   create() {
     game.camera.fadeIn(0x000000);
@@ -20085,17 +19986,17 @@ class Keybindings {
       {
         position: "right",
         icon: "d-pad",
-        text: "NAVIGATE"
+        text: __("NAVIGATE||NAVEGAR")
       },
       {
         position: "right",
         icon: "a",
-        text: "CHANGE"
+        text: __("CHANGE||CAMBIAR")
       },
       {
         position: "right",
         icon: "b",
-        text: "BACK"
+        text: __("BACK||VOLVER")
       }
     ]);
     
@@ -20192,45 +20093,45 @@ class Keybindings {
     
     this.windowManager.focus(settingsWindow);
     
-    settingsWindow.addItem("PLAYER 1 KEYBOARD", ">", () => {
+    settingsWindow.addItem(__("Keyboard P1||Teclado P1"), ">", () => {
       this.windowManager.remove(settingsWindow, true);
       this.showKeyboardCustomization(1);
     });
     
-    settingsWindow.addItem("PLAYER 2 KEYBOARD", ">", () => {
+    settingsWindow.addItem(__("Keyboard P2||Teclado P2"), ">", () => {
       this.windowManager.remove(settingsWindow, true);
       this.showKeyboardCustomization(2);
     });
     
-    settingsWindow.addItem("PLAYER 1 GAMEPAD", ">", () => {
+    settingsWindow.addItem(__("Gamepad P1||Mando P1"), ">", () => {
       this.windowManager.remove(settingsWindow, true);
       this.showGamepadCustomization(1);
     });
     
-    settingsWindow.addItem("PLAYER 2 GAMEPAD", ">", () => {
+    settingsWindow.addItem(__("Gamepad P2||Mando P2"), ">", () => {
       this.windowManager.remove(settingsWindow, true);
       this.showGamepadCustomization(2);
     });
     
-    settingsWindow.addItem("RESET TO DEFAULTS", "", () => {
+    settingsWindow.addItem(__("RESET TO DEFAULTS||RESTABLECER"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(
-        "Reset all keybindings to default settings?",
+        __("Reset all keybindings to default settings?||¿Restablecer todas las configuraciones de teclas a los valores predeterminados?"),
         () => {
           this.pendingChanges.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
           this.pendingChanges.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
-          this.showNotification("Keybindings reset!");
+          this.showNotification(__("Keybindings reset!||¡Teclas restablecidas!"));
           this.showKeybindingsMenu();
         },
         () => {
           this.showKeybindingsMenu();
         },
-        "RESET",
-        "CANCEL"
+        __("RESET||RESTABLECER"),
+        __("CANCEL||CANCELAR")
       );
     });
     
-    settingsWindow.addItem("< BACK", "", () => {
+    settingsWindow.addItem(__("< BACK||< VOLVER"), "", () => {
       game.state.start("Settings");
     }, true);
     
@@ -20259,7 +20160,7 @@ class Keybindings {
       keysWindow.addItem(`${playerNum === 1 ? "P1" : "P2"} ${control.key}`, currentKey, () => {
         this.windowManager.remove(keysWindow, true);
         this.showKeyWaitOverlay(
-          `PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`,
+          __(`PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}||PRESIONA TECLA PARA: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`),
           (keyCode) => {
             this.mapKeyboardKey(playerNum, control.mappingKey, control.index, keyCode);
             this.showKeyboardCustomization(playerNum, keysWindow.selectedIndex, returnIndex);
@@ -20272,7 +20173,7 @@ class Keybindings {
       });
     });
     
-    keysWindow.addItem("< BACK", "", () => {
+    keysWindow.addItem(__("< BACK||< VOLVER"), "", () => {
       this.windowManager.remove(keysWindow, true);
       this.windowManager.unfocus();
       this.showKeybindingsMenu();
@@ -20301,7 +20202,7 @@ class Keybindings {
       gamepadWindow.addItem(`${playerNum === 1 ? "P1" : "P2"} ${control.key}`, currentButton, () => {
         this.windowManager.remove(gamepadWindow, true);
         this.showKeyWaitOverlay(
-          `PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`,
+          __(`PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}||PRESIONA BOTÓN DEL MANDO PARA: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`),
           (buttonCode) => {
             this.mapGamepadKey(playerNum, control.mappingKey, buttonCode);
             this.showGamepadCustomization(playerNum, gamepadWindow.selectedIndex, returnIndex);
@@ -20314,7 +20215,7 @@ class Keybindings {
       });
     });
     
-    gamepadWindow.addItem("< BACK", "", () => {
+    gamepadWindow.addItem(__("< BACK||< VOLVER"), "", () => {
       this.windowManager.remove(gamepadWindow, true);
       this.windowManager.unfocus();
       this.showKeybindingsMenu();
@@ -20336,7 +20237,7 @@ class Keybindings {
     instructionText.anchor.set(0.5, 0.5);
     instructionText.fontSize = 2;
     
-    const helpText = new Text(120, 100, "Hold ESC or MENU to unmap");
+    const helpText = new Text(120, 100, __("Hold ESC or MENU to unmap||Mantén ESC o MENÚ para desasignar"));
     helpText.anchor.set(0.5, 0.5);
     
     let escHoldStartTime = 0;
@@ -20379,7 +20280,7 @@ class Keybindings {
           progressInterval = null;
         }
         this.cleanupWaitOverlay();
-        this.showNotification("Key unmapped!");
+        this.showNotification(__("Key unmapped!||¡Tecla desasignada!"));
         onCancel?.();
       }
     };
@@ -20427,7 +20328,7 @@ class Keybindings {
         const keyName = this.getKeyName(keyCode);
         if (keyName === 'Unidentified' || keyName === '???') {
           cleanup();
-          this.showNotification(`Cannot map: ${keyName}`);
+          this.showNotification(__(`Cannot map: ${keyName}||No se puede asignar: ${keyName}`));
           this.showKeyWaitOverlay(message, onSubmit, onCancel);
           return;
         }
@@ -20440,7 +20341,7 @@ class Keybindings {
           keyCode
         );
         if (conflict) {
-          this.showNotification(`Changed with ${conflict.label}`);
+          this.showNotification(__(`Changed with ${conflict.label}||Cambiado con ${conflict.label}`));
         }
         onSubmit?.(keyCode);
       }
@@ -20466,7 +20367,7 @@ class Keybindings {
         buttonCode
       );
       if (conflict) {
-        setTimeout(() => this.showNotification(`Swapped with ${conflict.label}`));
+        setTimeout(() => this.showNotification(__(`Swapped with ${conflict.label}||Intercambiado con ${conflict.label}`)));
       }
       onSubmit?.(buttonCode);
     };
@@ -20540,7 +20441,7 @@ class Keybindings {
     }
     mapping[playerKey][mappingKey][index] = keyCode;
     
-    this.showNotification(`Mapped: ${this.getKeyName(keyCode)}`);
+    this.showNotification(__(`Mapped: ${this.getKeyName(keyCode)}||Asignado: ${this.getKeyName(keyCode)}`));
   }
   
   mapGamepadKey(playerNum, mappingKey, buttonCode) {
@@ -20557,7 +20458,7 @@ class Keybindings {
     
     mapping[playerKey][mappingKey] = buttonCode;
     
-    this.showNotification(`Mapped: ${GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`}`);
+    this.showNotification(__(`Mapped: ${GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`}||Asignado: ${GAMEPAD_KEY_NAMES[buttonCode] || `BOTÓN ${buttonCode}`}`));
   }
   
   findKeyboardKeyConflict(playerKey, mappingKey, index, keyCode) {
@@ -20624,7 +20525,7 @@ class Keybindings {
         mapping[playerKey][mappingKey].pop();
       }
       
-      this.showNotification("KEY UNMAPPED!");
+      this.showNotification(__("KEY UNMAPPED!||¡TECLA DESASIGNADA!"));
     }
   }
   
@@ -20634,7 +20535,7 @@ class Keybindings {
     
     mapping[playerKey][mappingKey] = null;
     
-    this.showNotification("BUTTON UNMAPPED!");
+    this.showNotification(__("BUTTON UNMAPPED!||¡BOTÓN DESASIGNADO!"));
   }
   
   getKeyboardKeyDisplay(playerKey, mappingKey, index) {
@@ -20696,9 +20597,6 @@ class Keybindings {
   }
 }
 
-
-
-// ======== js/game/states/FileSelect.js ========
 class FileSelect {
   init(extensions = null, onSelect = null, onCancel = null, allowCancel = true) {
     this.extensions = extensions;
@@ -20707,10 +20605,9 @@ class FileSelect {
     this.allowCancel = allowCancel;
     this.currentPath = '';
     this.currentDir = null;
-    this.history = []; // Stack for navigation history
+    this.history = [];
     this.fileSystem = new FileSystemTools();
     
-    // Restore state from window if exists
     if (window.fileSelectState) {
       this.restoreState(window.fileSelectState);
     }
@@ -20722,22 +20619,21 @@ class FileSelect {
     this.backgroundGradient = new BackgroundGradient();
     this.futuristicLines = new FuturisticLines();
     this.navigationHint = new NavigationHint([
-      { position: "left", icon: "cursor", text: "NAVIGATE" },
-      { position: "right", icon: "a", text: "SELECT" },
-      { position: "right", icon: "b", text: this.allowCancel ? "BACK/CANCEL" : "BACK" }
+      { position: "left", icon: "cursor", text: __("NAVIGATE||NAVEGAR") },
+      { position: "right", icon: "a", text: __("SELECT||SELECCIONAR") },
+      { position: "right", icon: "b", text: this.allowCancel ? __("BACK/CANCEL||VOLVER/CANCELAR") : __("BACK||VOLVER") }
     ]);
     
-    this.pathText = new Text(4, 4, "PATH: /", FONTS.default);
+    this.pathText = new Text(4, 4, __("PATH: /||RUTA: /"), FONTS.default);
     this.pathText.wrap(180);
     
-    this.emptyFolderText = new Text(game.width / 2, game.height / 2, "This folder is empty", FONTS.shaded);
+    this.emptyFolderText = new Text(game.width / 2, game.height / 2, __("This folder is empty||Esta carpeta está vacía"), FONTS.shaded);
     this.emptyFolderText.anchor.set(0.5);
     this.emptyFolderText.visible = false;
     
     this.loadDirectory();
   }
 
-  // Save current state to window
   saveState() {
     window.fileSelectState = {
       currentPath: this.currentDir ? this.currentDir.fullPath : '/',
@@ -20748,12 +20644,10 @@ class FileSelect {
     };
   }
 
-  // Restore state from window
   restoreState(state) {
     if (state.extensions) {
       this.extensions = state.extensions;
     }
-    // History will be restored after loading directory
     if (state.history) {
       this._restoreHistory = state.history;
     }
@@ -20783,7 +20677,6 @@ class FileSelect {
     
     try {
       if (dirEntry === null) {
-        // Check if we have a restored path
         if (this._restorePath && this._restorePath !== '/') {
           try {
             this.currentDir = await this.fileSystem.getDirectory(this._restorePath);
@@ -20792,7 +20685,6 @@ class FileSelect {
             entries = [...entries, ...files];
             this._restorePath = null;
           } catch (e) {
-            // If path doesn't exist, fallback to root
             this.currentDir = await this.fileSystem.getDirectory('');
             entries = await this.fileSystem.listDirectories(this.currentDir);
             const files = await this.fileSystem.listFiles(this.currentDir);
@@ -20814,7 +20706,7 @@ class FileSelect {
       console.error("Failed to load directory:", error);
       this.loadingDots.destroy();
       this.loadingDots = null;
-      this.showError("Cannot access file system");
+      this.showError(__("Cannot access file system||No se puede acceder al sistema de archivos"));
       return;
     }
   
@@ -20856,16 +20748,13 @@ class FileSelect {
       }
     });
     
-    // Restore history
     if (this._restoreHistory) {
       for (const path of this._restoreHistory) {
         if (path) {
           try {
             const dir = await this.fileSystem.getDirectory(path);
             this.history.push(dir);
-          } catch (e) {
-            // Skip invalid paths
-          }
+          } catch (e) {}
         }
       }
       this._restoreHistory = null;
@@ -20909,7 +20798,6 @@ class FileSelect {
       this.emptyFolderText.visible = true;
     }
     
-    // Restore selection
     if (this._restoreSelectedIndex !== undefined && this.carousel.items.length > this._restoreSelectedIndex) {
       this.carousel.selectIndex(this._restoreSelectedIndex);
       this._restoreSelectedIndex = undefined;
@@ -20928,7 +20816,6 @@ class FileSelect {
       this.history.push(this.currentDir);
       this.loadDirectory(entry);
     } else {
-      // Save state before leaving
       this.saveState();
       if (this.onSelect) {
         this.onSelect(entry);
@@ -20963,7 +20850,7 @@ class FileSelect {
   updatePathDisplay() {
     let path = this.currentDir ? this.currentDir.fullPath : '/';
     if (path === '') path = '/';
-    this.pathText.write("PATH: " + path);
+    this.pathText.write(__("PATH: ||RUTA: ") + path);
     this.pathText.wrap(240 - 10);
   }
   
@@ -20985,7 +20872,6 @@ class FileSelect {
   }
   
   shutdown() {
-    // Save state when leaving
     this.saveState();
     
     if (this.loadingDots) this.loadingDots.destroy();
@@ -20993,9 +20879,6 @@ class FileSelect {
   }
 }
 
-
-
-// ======== js/game/states/SongSelect.js ========
 class SongSelect {
   init(songs, index, autoSelect, type = "auto", playlistKey = null) {
     this.type = type;
@@ -21118,11 +21001,11 @@ class SongSelect {
 
     // Add songs to carousel
     if (this.songs.length === 0) {
-      this.songCarousel.addItem("No songs found", null);
+      this.songCarousel.addItem(__("No songs found||No se encontraron canciones"), null);
     } else {
       this.songs.forEach((song, index) => {
         const title = song.titleTranslit || song.title;
-        const displayText = title ? title : `Song ${index + 1}`;
+        const displayText = title ? title : __(`Song ${index + 1}||Canción ${index + 1}`);
         
         this.songCarousel.addItem(
           displayText,
@@ -21226,12 +21109,12 @@ class SongSelect {
     
     if (!highScores) {
       if (this.highScoreText) {
-        this.highScoreText.write("NO HIGH SCORES");
+        this.highScoreText.write(__("NO HIGH SCORES||SIN HIGH SCORES"));
       }
       return;
     }
     
-    let highScoreText = "HIGH SCORES:\n";
+    let highScoreText = __("HIGH SCORES:\n||HIGH SCORES:\n");
     
     // Show best score for each difficulty
     song.difficulties.forEach((diff, index) => {
@@ -21274,9 +21157,9 @@ class SongSelect {
     
     if (title) text += title + '\n';
     if (subtitle) text += subtitle + '\n';
-    if (artist) text += 'Artist: ' + artist + '\n';
+    if (artist) text += __("Artist: ") + artist + '\n';
     //if (genre) text += genre + '\n';
-    if (credit) text += 'Credit: ' + credit;
+    if (credit) text += __("Credit: ") + credit;
     
     return text;
   }
@@ -21358,8 +21241,8 @@ class SongSelect {
     
     game.onMenuIn.dispatch('gamemode', this.gamemodeCarousel);
     
-    this.gamemodeCarousel.addItem("Single Player", () => this.startGame(song, difficultyIndex, true));
-    this.gamemodeCarousel.addItem("Multiplayer", () => this.showMultiplayerScreen(song, difficultyIndex));
+    this.gamemodeCarousel.addItem(__("Single Player||Un Jugador"), () => this.startGame(song, difficultyIndex, true));
+    this.gamemodeCarousel.addItem(__("Multiplayer||Multijugador"), () => this.showMultiplayerScreen(song, difficultyIndex));
     
     this.gamemodeCarousel.onCancel.add(() => {
       this.showDifficultySelection(song);
@@ -21384,8 +21267,8 @@ class SongSelect {
     this.p1ReadyBackground.anchor.set(0.5);
     this.p2ReadyBackground.anchor.set(0.5);
     
-    this.p1ReadyText = new Text(0, 1, "READY", null, this.p1ReadyBackground);
-    this.p2ReadyText = new Text(0, 1, "READY", null, this.p2ReadyBackground);
+    this.p1ReadyText = new Text(0, 1, __("READY||LISTO"), null, this.p1ReadyBackground);
+    this.p2ReadyText = new Text(0, 1, __("READY||LISTO"), null, this.p2ReadyBackground);
     
     this.p1ReadyText.anchor.set(0.5);
     this.p2ReadyText.anchor.set(0.5);
@@ -21394,11 +21277,11 @@ class SongSelect {
     this.multiplayerScreen.addChild(this.p2ReadyBackground);
 
     // Prompt player 2 to press start
-    this.playerJoinInstructionText = new Text(120 + 55, 50 + 32, "PLAYER 2\n< PRESS START >", null, this.multiplayerScreen);
+    this.playerJoinInstructionText = new Text(120 + 55, 50 + 32, __("PLAYER 2\n< PRESS START >||JUGADOR 2\n< PRESIONA START >"), null, this.multiplayerScreen);
     this.playerJoinInstructionText.anchor.set(0.5);
     
     // Prompt both players to press start
-    this.startInstructionText = new Text(game.width / 2, 100, "PRESS START TO BEGIN", null, this.multiplayerScreen);
+    this.startInstructionText = new Text(game.width / 2, 100, __("PRESS START TO BEGIN||PRESIONA START PARA COMENZAR"), null, this.multiplayerScreen);
     this.startInstructionText.visible = false;
     this.startInstructionText.anchor.set(0.5);
     
@@ -21423,30 +21306,30 @@ class SongSelect {
     
     // Auto-play
     window.addSettingItem(
-      "Auto-play",
-      ["OFF", "ON"], 
+      "(Auto-play|Auto-juego)",
+      [__("(OFF|APAGADO)"), __("(ON|ACTIVADO)")], 
       settings.autoplay ? 1 : 0,
       index => settings.autoplay = index === 1
     );
     
     // Scroll Direction
     window.addSettingItem(
-      "Scroll",
-      ["FALLING", "RISING"],
+      __("(Scroll|Desplazamiento)"),
+      [__("(FALLING|CAYENDO)"), __("(RISING|ASCENDENTE)")],
       settings.scrollDirection === 'falling' ? 0 : 1,
       index => settings.scrollDirection = index === 0 ? 'falling' : 'rising'
     );
     
     // Note colors
     const noteOptions = [
-      { value: 'NOTE', display: 'NOTE' },
-      { value: 'VIVID', display: 'VIVID' },
-      { value: 'FLAT', display: 'FLAT' },
-      { value: 'RAINBOW', display: 'RAINBOW' }
+      { value: 'NOTE', display: "NOTE" },
+      { value: 'VIVID', display: "VIVID" },
+      { value: 'FLAT', display: "FLAT" },
+      { value: 'RAINBOW', display: "RAINBOW" }
     ];
     const currentNoteIndex = noteOptions.findIndex(opt => opt.value === settings.noteColorOption);
     window.addSettingItem(
-      "Note Colors",
+      __("(Note Colors|Colores de Notas)"),
       noteOptions.map(opt => opt.display),
       currentNoteIndex,
       index => settings.noteColorOption = noteOptions[index].value
@@ -21454,7 +21337,7 @@ class SongSelect {
 
     // Note speed
     window.addSettingItem(
-      "Note Speed",
+      __("(Note Speed|Velocidad de Notas)"),
       ["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
       settings.noteSpeedMult - 1,
       index => settings.noteSpeedMult = index + 1
@@ -21462,7 +21345,7 @@ class SongSelect {
     
     // Speed mod
     window.addSettingItem(
-      "Speed Mod",
+      __("(Speed Mod|Modo de Velocidad)"),
       ["X-MOD", "C-MOD"],
       settings.speedMod === 'C-MOD' ? 1 : 0,
       index => settings.speedMod = index === 1 ? 'C-MOD' : 'X-MOD'
@@ -21494,21 +21377,21 @@ class SongSelect {
     
     // Add to playlist
     if (!hasPlaylistKey) {
-      this.actionsMenu.addItem("Add to playlist", () => this.showAddToPlaylistMenu(currentSong));
+      this.actionsMenu.addItem(__("Add to playlist||Agregar a playlist"), () => this.showAddToPlaylistMenu(currentSong));
     } else {
-      this.actionsMenu.addItem("Add to another playlist", () => this.showAddToPlaylistMenu(currentSong, playlistKey));
+      this.actionsMenu.addItem(__("Add to another playlist||Agregar a otra playlist"), () => this.showAddToPlaylistMenu(currentSong, playlistKey));
     }
     
     // Remove from playlist
     if (hasPlaylistKey) {
-      this.actionsMenu.addItem("Remove from playlist", () => {
+      this.actionsMenu.addItem(__("Remove from playlist||Quitar de playlist"), () => {
         const playlistManager = PlaylistManager.getInstance();
         const playlist = playlistManager.getPlaylist(playlistKey);
         if (playlist) {
           const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
           if (index !== -1) {
             playlistManager.removeSong(playlistKey, index);
-            notifications.show("Removed from playlist!");
+            notifications.show(__("Removed from playlist!||¡Quitado de la playlist!"));
             this.closeActionsMenu();
             
             // Reinitialize with updated songs at the same index (or previous if last)
@@ -21522,7 +21405,7 @@ class SongSelect {
               this.playlistKey
             );
           } else {
-            notifications.show("Song not in playlist!");
+            notifications.show(__("Song not in playlist!||¡Canción no está en la playlist!"));
           }
         }
       });
@@ -21535,11 +21418,11 @@ class SongSelect {
       if (playlist) {
         const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
         if (index !== -1) {
-          this.actionsMenu.addItem("Move up", () => {
+          this.actionsMenu.addItem(__("Move up||Subir"), () => {
             if (index > 0) {
               const playlistManager = PlaylistManager.getInstance();
               playlistManager.moveSong(playlistKey, index, index - 1);
-              notifications.show("Moved up!");
+              notifications.show(__("Moved up!||¡Subido!"));
               this.closeActionsMenu();
               
               // Reinitialize with swapped songs at the new index
@@ -21554,11 +21437,11 @@ class SongSelect {
               );
             }
           });
-          this.actionsMenu.addItem("Move down", () => {
+          this.actionsMenu.addItem(__("Move down||Bajar"), () => {
             if (index < playlist.songs.length - 1) {
               const playlistManager = PlaylistManager.getInstance();
               playlistManager.moveSong(playlistKey, index, index + 1);
-              notifications.show("Moved down!");
+              notifications.show(__("Moved down!||¡Bajado!"));
               this.closeActionsMenu();
               
               // Reinitialize with swapped songs at the new index
@@ -21578,21 +21461,21 @@ class SongSelect {
     }
     
     // Statistics
-    this.actionsMenu.addItem("See properties", () => {
+    this.actionsMenu.addItem(__("See properties||Ver propiedades"), () => {
       game.state.start("SongStats", true, false, { chart: this.songs[this.songCarousel.selectedIndex], playlistKey: this.playlistKey }, "SongSelect", [this.songs, this.songCarousel.selectedIndex, this.autoSelect, this.type, this.playlistKey]);
     });
     
     // Open in Jukebox
-    this.actionsMenu.addItem("Open in Jukebox", () => {
+    this.actionsMenu.addItem(__("Open in Jukebox||Abrir en Jukebox"), () => {
       game.state.start("Jukebox", true, false, this.songs, this.songCarousel.selectedIndex);
     });
     
     // Open in Editor
-    this.actionsMenu.addItem("Open in Editor", () => {
+    this.actionsMenu.addItem(__("Open in Editor||Abrir en Editor"), () => {
       game.state.start("Editor", true, false, { chart: this.songs[this.songCarousel.selectedIndex] });
     });
     
-    this.actionsMenu.addItem("< Back", () => this.closeActionsMenu());
+    this.actionsMenu.addItem(__("< Back||< Volver"), () => this.closeActionsMenu());
     this.actionsMenu.onCancel.add(() => this.closeActionsMenu());
   }
   
@@ -21600,7 +21483,7 @@ class SongSelect {
     if (this.actionsMenu) this.actionsMenu.destroy();
     
     if (!song.isLocal) {
-      notifications.show("Songs loaded with file picker can't be added to playlists");
+      notifications.show(__("Songs loaded with file picker can't be added to playlists||Las canciones cargadas con selector de archivos no se pueden agregar a playlists"));
       this.showActionsMenu(omitKey);
       return;
     }
@@ -21614,7 +21497,7 @@ class SongSelect {
     
     const playlistManager = PlaylistManager.getInstance();
     
-    this.actionsMenu.addItem("Create new playlist", () => {
+    this.actionsMenu.addItem(__("Create new playlist||Crear nueva playlist"), () => {
       this.createPlaylistForSong(song);
     });
     
@@ -21622,17 +21505,17 @@ class SongSelect {
     for (const key of keys) {
       if (key === omitKey) continue;
       const playlist = playlistManager.getPlaylist(key);
-      this.actionsMenu.addItem(`Add to "${playlist.name}"`, () => {
+      this.actionsMenu.addItem(__(`Add to "${playlist.name}"||Agregar a "${playlist.name}"`), () => {
         this.closeActionsMenu();
         if (playlistManager.addSong(key, song)) {
-          notifications.show(`Added to "${playlist.name}"!`);
+          notifications.show(__(`Added to "${playlist.name}"!||¡Agregado a "${playlist.name}"!`));
         } else {
-          notifications.show("Song already in playlist!");
+          notifications.show(__("Song already in playlist!||¡Canción ya está en la playlist!"));
         }
       });
     }
     
-    this.actionsMenu.addItem("< Back", () => {
+    this.actionsMenu.addItem(__("< Back||< Volver"), () => {
       this.showActionsMenu(omitKey);
     });
     this.actionsMenu.onCancel.add(() => this.showActionsMenu(omitKey));
@@ -21642,7 +21525,7 @@ class SongSelect {
     const keyboard = new OnScreenKeyboard();
     
     window.focusedElement = new TextInput({
-      text: sog.titleTranslit || song.title || "New Playlist",
+      text: song.titleTranslit || song.title || __("New Playlist||Nueva playlist"),
       maxLength: 20,
       useNewline: false,
       y: 35,
@@ -21652,14 +21535,14 @@ class SongSelect {
           const key = playlistManager.createPlaylist(name.trim());
           if (key) {
             playlistManager.addSong(key, song);
-            notifications.show(`Playlist "${name}" created with song!`);
+            notifications.show(__(`Playlist "${name}" created with song!||¡Playlist "${name}" creada con esta canción!`));
             keyboard.destroy();
             this.closeActionsMenu();
           } else {
-            notifications.show("Playlist already exists!");
+            notifications.show(__("Playlist already exists!||¡La playlist ya existe!"));
           }
         } else {
-          notifications.show("Name cannot be empty!");
+          notifications.show(__("Name cannot be empty!||¡El nombre no puede estar vacío!"));
         }
       },
       onCancel: () => {
@@ -21793,9 +21676,6 @@ class SongSelect {
   }
 }
 
-
-
-// ======== js/game/states/SongStats.js ========
 class SongStats {
   init(song, returnState, returnParams = {}) {
     this.song = song;
@@ -21814,10 +21694,10 @@ class SongStats {
     this.scrollDirection = Account.settings.scrollDirection || 'falling';
     
     this.tabs = [
-      { id: 'general', label: 'General', create: this.createGeneralTab.bind(this) },
-      { id: 'difficulties', label: 'Difficulties', create: this.createDifficultiesTab.bind(this) },
-      { id: 'scores', label: 'Scores', create: this.createScoresTab.bind(this) },
-      { id: 'preview', label: 'Preview', create: this.createPreviewTab.bind(this) }
+      { id: 'general', label: __("General||General"), create: this.createGeneralTab.bind(this) },
+      { id: 'difficulties', label: __("Difficulties||Dificultades"), create: this.createDifficultiesTab.bind(this) },
+      { id: 'scores', label: __("Scores||Puntuaciones"), create: this.createScoresTab.bind(this) },
+      { id: 'preview', label: __("Preview||Vista Previa"), create: this.createPreviewTab.bind(this) }
     ];
     
     this.visibilityChangeListener = () => {
@@ -21888,7 +21768,7 @@ class SongStats {
     if (diff) {
       this.diffText.write(`${diff.type} ${diff.rating}`);
     } else {
-      this.diffText.write("No difficulty");
+      this.diffText.write(__("No difficulty||Sin dificultad"));
     }
     // Show only in difficulties and preview tabs
     this.diffText.visible = (this.currentTab === 1 || this.currentTab === 3);
@@ -22032,14 +21912,14 @@ class SongStats {
     }
     
     const info = new Text(104, 24, 
-      `Title: ${chart.title || 'Unknown'}\n` +
-      `Artist: ${chart.artist || 'Unknown'}\n` +
-      `Genre: ${chart.genre || 'Unknown'}\n` +
-      `Credit: ${chart.credit || 'Unknown'}\n` +
-      `Difficulties: ${totalDiffs}\n` +
-      `Total Notes: ${totalNotes}\n` +
-      `Sample Start: ${chart.sampleStart || 0}s\n` +
-      `Offset: ${chart.offset || 0}`,
+      __(`(Title|Título): ${chart.title || 'Unknown'}\n`) +
+      __(`(Artist|Artista): ${chart.artist || 'Unknown'}\n`) +
+      __(`(Genre|Género): ${chart.genre || 'Unknown'}\n`) +
+      __(`(Credit|Crédito): ${chart.credit || 'Unknown'}\n`) +
+      __(`(Difficulties|Dificultades): ${totalDiffs}\n`) +
+      __(`(Total Notes|Total de Notas): ${totalNotes}\n`) +
+      __(`(Sample Start|Inicio de Muestra): ${chart.sampleStart || 0}s\n`) +
+      __(`(Offset|Offset): ${chart.offset || 0}`),
       FONTS.default
     );
     info.wrap(136 - 8);
@@ -22066,17 +21946,17 @@ class SongStats {
     
     const mainMenu = () => {
       resetCarousel(true);
-      carousel.addItem("Play Song", () => modeSelect());
-      carousel.addItem("Open in Editor", () => {
+      carousel.addItem(__("Play Song||Jugar Canción"), () => modeSelect());
+      carousel.addItem(__("Open in Editor||Abrir en Editor"), () => {
         game.state.start("Editor", true, false, this.song);
       });
     };
     
     const modeSelect = () => {
       resetCarousel();
-      carousel.addItem("Normal", () => diffSelect(false));
-      carousel.addItem("Autoplay", () => diffSelect(true));
-      carousel.addItem("< Back", () => mainMenu());
+      carousel.addItem(__("Normal||Normal"), () => diffSelect(false));
+      carousel.addItem(__("Autoplay||Autoplay"), () => diffSelect(true));
+      carousel.addItem(__("< Back||< Volver"), () => mainMenu());
       carousel.onCancel.add(() => mainMenu());
     };
     
@@ -22104,7 +21984,7 @@ class SongStats {
     this.tabContent = game.add.group();
     const diffs = this.getDifficulties();
     if (diffs.length === 0) {
-      const text = new Text(4, 24, "No difficulties available", FONTS.default);
+      const text = new Text(4, 24, __("No difficulties available||No hay dificultades disponibles"), FONTS.default);
       this.tabContent.addChild(text);
       return;
     }
@@ -22187,12 +22067,12 @@ class SongStats {
     
     const total = totalNotes + mines + holds + rolls;
     
-    this._statsText.write(
-      `\n       Notes: ${String(totalNotes).padEnd(5)}  Mines: ${String(mines).padEnd(5)}\n` +
-      `       Holds: ${String(holds).padEnd(5)}  Rolls: ${String(rolls).padEnd(5)}\n` +
-      `       Jumps: ${String(jumps).padEnd(5)}  Hands: ${String(hands).padEnd(5)}\n` +
-      `             Total: ${String(total).padEnd(5)}`
-    );
+    this._statsText.write(__(
+      `\n       (Notes|Notas): ${String(totalNotes).padEnd(5)}  (Mines|Minas): ${String(mines).padEnd(5)}\n` +
+      `       (Holds|Holds): ${String(holds).padEnd(5)}  (Rolls|Rolls): ${String(rolls).padEnd(5)}\n` +
+      `       (Jumps|Saltos): ${String(jumps).padEnd(5)}  (Hands|Manos): ${String(hands).padEnd(5)}\n` +
+      `             (Total|Total): ${String(total).padEnd(5)}`
+    ));
     
     if (notes.length > 0) {
       const maxBeat = Math.max(...notes.map(n => n.beat));
@@ -22213,7 +22093,7 @@ class SongStats {
     const scores = Account.highScores[songKey] || {};
     const diffs = this.getDifficulties();
     if (diffs.length === 0) {
-      const text = new Text(4, 24, "No difficulties available", FONTS.default);
+      const text = new Text(4, 24, __("No difficulties available||No hay dificultades disponibles"), FONTS.default);
       this.tabContent.addChild(text);
       return;
     }
@@ -22247,25 +22127,25 @@ class SongStats {
         const data = item.data.score;
         const date = new Date(data.date);
         this._scoreDetails.write(
-          `Date: ${date.toLocaleDateString()}\n\n` +
-          `Score: ${data.score.toLocaleString()}\n` +
-          `Accuracy: ${data.accuracy.toFixed(2)}%\n` +
-          `Max Combo: ${data.maxCombo}\n\n` +
-          `Rating: ${data.rating}\n` +
-          `Judgements:\n` +
-          ` • Marvelous: ${data.judgements.marvelous}\n` +
-          ` • Perfect: ${data.judgements.perfect}\n` +
-          ` • Great: ${data.judgements.great}\n` +
-          ` • Good: ${data.judgements.good}\n` +
-          ` • Boo: ${data.judgements.boo}\n` +
-          ` • Miss: ${data.judgements.miss}`
+          __(`(Date|Fecha): ${date.toLocaleDateString()}\n\n`) +
+          __(`(Score|Puntaje): ${data.score.toLocaleString()}\n`) +
+          __(`(Accuracy|Precisión): ${data.accuracy.toFixed(2)}%\n`) +
+          __(`(Max Combo|Combo Máx): ${data.maxCombo}\n\n`) +
+          __(`(Rating|Calificación): ${data.rating}\n`) +
+          __("(Judgements|Juicios):\n") +
+          __(` • Marvelous: ${data.judgements.marvelous}\n`) +
+          __(` • Perfect: ${data.judgements.perfect}\n`) +
+          __(` • Great: ${data.judgements.great}\n`) +
+          __(` • Good: ${data.judgements.good}\n`) +
+          __(` • Boo: ${data.judgements.boo}\n`) +
+          __(` • Miss: ${data.judgements.miss}`)
         );
       } else {
-        this._scoreDetails.write('\n< NO HIGHSCORES >');
+        this._scoreDetails.write('\n< ' + __("(NO|SIN) HIGHSCORES") + ' >');
       }
     });
     
-    this._scoreDetails = new Text(104, 24, "Select a difficulty", FONTS.default);
+    this._scoreDetails = new Text(104, 24, __("Select a difficulty||Selecciona una dificultad"), FONTS.default);
     this._scoreDetails.tint = 0xffffff;
     this.tabContent.addChild(this._scoreDetails);
     
@@ -22279,7 +22159,7 @@ class SongStats {
     this.tabContent = game.add.group();
     const diff = this.getCurrentDifficulty();
     if (!diff) {
-      const text = new Text(4, 24, "No difficulty selected", FONTS.default);
+      const text = new Text(4, 24, __("No difficulty selected||Ninguna dificultad seleccionada"), FONTS.default);
       this.tabContent.addChild(text);
       return;
     }
@@ -22421,9 +22301,6 @@ class SongStats {
   }
 }
 
-
-
-// ======== js/game/states/CharacterSelect.js ========
 class CharacterSelect {
   create() {
     game.camera.fadeIn(0x000000);
@@ -22520,7 +22397,7 @@ class CharacterSelect {
     const char = this.selectedCharacter;
     this.nameText.write(char ? char.name : "");
     this.nameText.bringToTop();
-    this.levelText.write(char ? `Lv. ${char.level}` : "");
+    this.levelText.write(char ? __(`(Lv|Nv). ${char.level}`) : "");
     this.levelText.bringToTop();
 
     if (char) {
@@ -22545,18 +22422,18 @@ class CharacterSelect {
     if (char) {
       if (char.personality) {
         const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === char.personality);
-        text += `${personality.name} person, ${personality.description}\n\n`;
+        text += __(`(Personality|Personalidad): `) + `${personality.name}, ${personality.description}\n\n`;
       } else {
-        text += `Casual person\n\n`;
+        text += __(`(Personality|Personalidad): Casual\n\n`);
       }
       if (char.selectedSkill) {
         const skill = CHARACTER_SKILLS.find(s => s.id === char.selectedSkill);
-        text += `Skill: ${skill.name},\n\n${skill.description}\n\n`;
+        text += __(`(Skill|Habilidad): ${skill.name},\n\n${skill.description}\n\n`);
       } else {
-        text += '< No skill >';
+        text += __(`< No skill >||< Sin habilidad >`);
       }
     } else {
-      text = '< No character >';
+      text = __(`< No character >||< Sin personaje >`);
     }
 
     this.updateDetails("", text, !!char);
@@ -22620,7 +22497,7 @@ class CharacterSelect {
       index++;
     });
 
-    this.characterCarousel.addItem("× No character", () => {
+    this.characterCarousel.addItem(__("× No character||× Sin personaje"), () => {
       this.selectedCharacter = null;
       this.characterManager.unsetCharacter();
       this.showHomeUI();
@@ -22630,7 +22507,7 @@ class CharacterSelect {
 
     if (!this.selectedCharacter) this.characterCarousel.selectIndex(index);
 
-    this.characterCarousel.addItem("+ Add character", () => this.startCharacterCreation());
+    this.characterCarousel.addItem(__("+ Add character||+ Agregar personaje"), () => this.startCharacterCreation());
 
     this.characterCarousel.onSelect.add((index, item) => {
       this.selectCharacter(item.data.character || null);
@@ -22654,12 +22531,12 @@ class CharacterSelect {
       inactiveAlpha: 0.5
     });
 
-    this.actionMenu.addItem("Select", () => this.confirmSelection());
+    this.actionMenu.addItem(__("Select||Seleccionar"), () => this.confirmSelection());
     if (this.selectedCharacter?.unlockedSkills?.length) {
-      this.actionMenu.addItem("Set skill", () => this.setSkill());
+      this.actionMenu.addItem(__("Set skill||Elegir habilidad"), () => this.setSkill());
     }
-    this.actionMenu.addItem("Customize", () => this.customizeCharacter());
-    this.actionMenu.addItem("Delete", () => this.deleteCharacter());
+    this.actionMenu.addItem(__("Customize||Personalizar"), () => this.customizeCharacter());
+    this.actionMenu.addItem(__("Delete||Eliminar"), () => this.deleteCharacter());
 
     this.actionMenu.onCancel.add(() => {
       gamepad.releaseAll();
@@ -22728,88 +22605,94 @@ class CharacterSelect {
     let previewText = "";
     previewText += `${skill.description}\n\n`;
 
-    previewText += "Effect:\n";
+    previewText += __("(Effect|Efecto):\n");
     switch (skill.effect) {
       case 'convert_judgement':
-        previewText += `• Converts ${skill.effectParams.from} to ${skill.effectParams.to}\n`;
+        previewText += __(`• Converts ${skill.effectParams.from} to ${skill.effectParams.to}||• Convierte ${skill.effectParams.from} a ${skill.effectParams.to}\n`);
         break;
       case 'modify_judgement_window':
-        previewText += `• Judgement window ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• Judgement window ×${skill.effectParams.multiplier}||• Ventana de juicio ×${skill.effectParams.multiplier}\n`);
         break;
       case 'health_regen':
-        previewText += `• +${skill.effectParams.amount} HP every ${skill.effectParams.interval / 1000}s\n`;
+        previewText += __(`• +${skill.effectParams.amount} HP every ${skill.effectParams.interval / 1000}s||• +${skill.effectParams.amount} HP cada ${skill.effectParams.interval / 1000}s\n`);
         break;
       case 'modify_max_health':
-        previewText += `• +${skill.effectParams.amount} Max HP\n`;
+        previewText += __(`• +${skill.effectParams.amount} Max HP||• +${skill.effectParams.amount} HP Máx\n`);
         break;
       case 'modify_note_speed':
-        previewText += `• Note speed ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• Note speed ×${skill.effectParams.multiplier}||• Velocidad de notas ×${skill.effectParams.multiplier}\n`);
         break;
       case 'modify_hold_forgiveness':
-        previewText += `• Hold forgiveness ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• Hold forgiveness ×${skill.effectParams.multiplier}||• Perdón de holds ×${skill.effectParams.multiplier}\n`);
         break;
       case 'modify_roll_forgiveness':
-        previewText += `• Roll forgiveness ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• Roll forgiveness ×${skill.effectParams.multiplier}||• Perdón de rolls ×${skill.effectParams.multiplier}\n`);
         break;
       case 'reduce_mine_damage':
-        previewText += `• Reduces mine damage by ×${100 - 100 * skill.effectParams.multiplier}%\n`;
+        previewText += __(`• Reduces mine damage by ${100 - 100 * skill.effectParams.multiplier}%||• Reduce daño de minas en ${100 - 100 * skill.effectParams.multiplier}%\n`);
         break;
       case 'modify_score_gain':
-        previewText += `• ${skill.effectParams.judgement} Score ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• ${skill.effectParams.judgement} Score ×${skill.effectParams.multiplier}||• ${skill.effectParams.judgement} Puntaje ×${skill.effectParams.multiplier}\n`);
         break;
       case 'modify_health_gain':
-        previewText += `• Health gain ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• Health gain ×${skill.effectParams.multiplier}||• Ganancia de vida ×${skill.effectParams.multiplier}\n`);
         break;
       case 'combo_shield':
-        previewText += `• Enables Combo Shield\n`;
+        previewText += __(`• Enables Combo Shield||• Activa Escudo de Combo\n`);
         break;
       case 'modify_input_lag':
-        previewText += `• Modifies Input Lag\n`;
+        previewText += __(`• Modifies Input Lag||• Modifica Input Lag\n`);
         break;
       case 'burst_health_regen':
-        previewText += `• Gives ${skill.effectParams.amount}% Burst health regeneration\n`;
+        previewText += __(`• Gives ${skill.effectParams.amount} HP burst||• Da ${skill.effectParams.amount} HP de regeneración rápida\n`);
         break;
       case 'stabilize_judgement':
-        previewText += `• Judgement Stabilization\n`;
+        previewText += __(`• Judgement Stabilization||• Estabilización de juicios\n`);
         break;
       case 'general_boost':
-        previewText += `• General Boost\n`;
+        previewText += __(`• General Boost||• Boost general\n`);
+        break;
+      default:
+        previewText += __(`• ${skill.effect}||• ${skill.effect}\n`);
         break;
     }
 
-    previewText += "\nActivation:\n";
+    previewText += __("\n(Activation|Activación):\n");
     switch (skill.activationCondition) {
       case 'on_miss':
-        previewText += "• When you get a Miss judgement\n";
+        previewText += __("• When you get a Miss judgement||• Cuando obtienes un juicio Miss\n");
         break;
       case 'on_combo':
-        previewText += `• When combo reaches ${skill.effectParams.threshold}\n`;
+        previewText += __(`• When combo reaches ${skill.effectParams.threshold}||• Cuando el combo llega a ${skill.effectParams.threshold}\n`);
         break;
       case 'on_low_health':
-        previewText += `• When health drops below ${skill.effectParams.threshold}%\n`;
+        previewText += __(`• When health drops below ${skill.effectParams.threshold}%||• Cuando la vida baja del ${skill.effectParams.threshold}%\n`);
         break;
       case 'on_high_combo':
-        previewText += `• When combo reaches ${skill.effectParams.threshold}\n`;
+        previewText += __(`• When combo reaches ${skill.effectParams.threshold}||• Cuando el combo llega a ${skill.effectParams.threshold}\n`);
         break;
       case 'on_perfect_streak':
-        previewText += `• After ${skill.effectParams.threshold} perfect notes in a row\n`;
+        previewText += __(`• After ${skill.effectParams.threshold} perfect notes in a row||• Después de ${skill.effectParams.threshold} notas Perfect seguidas\n`);
         break;
       case 'on_critical_health':
-        previewText += `• When health drops below ${skill.effectParams.threshold}%\n`;
+        previewText += __(`• When health drops below ${skill.effectParams.threshold}%||• Cuando la vida baja del ${skill.effectParams.threshold}%\n`);
         break;
       case 'on_mine_hit':
-        previewText += `• Before hitting a mine\n`;
+        previewText += __(`• Before hitting a mine||• Antes de golpear una mina\n`);
         break;
       case 'custom':
-        previewText += `• ${skill.activationText || 'Custom'}`;
+        previewText += __(`• ${skill.activationText || 'Custom'}||• ${skill.activationText || 'Personalizado'}\n`);
+        break;
+      default:
+        previewText += __(`• ${skill.activationCondition}||• ${skill.activationCondition}\n`);
         break;
     }
 
     if (skill.duration > 0) {
-      previewText += `\nDuration: ${skill.duration / 1000}s\n`;
+      previewText += __(`\n(Duration|Duración): ${skill.duration / 1000}s\n`);
     }
     if (skill.cooldown > 0) {
-      previewText += `Cooldown: ${skill.cooldown / 1000}s\n`;
+      previewText += __(`(Cooldown|Enfriamiento): ${skill.cooldown / 1000}s\n`);
     }
 
     this.updateDetails(skill.name, previewText, false);
@@ -22832,15 +22715,15 @@ class CharacterSelect {
     });
 
     const slots = [
-      { id: 'front_hair', label: 'Front hair' },
-      { id: 'back_hair', label: 'Back hair' },
-      { id: 'hair_color', label: 'Hair Color' },
-      { id: 'skin', label: 'Skin tone' },
-      { id: 'top', label: 'Top' },
-      { id: 'bottom', label: 'Bottom' },
-      { id: 'shoes', label: 'Shoes' },
-      { id: 'accessory', label: 'Accessory' },
-      { id: 'special', label: 'Special' }
+      { id: 'front_hair', label: __("Front hair||Pelo frontal") },
+      { id: 'back_hair', label: __("Back hair||Pelo trasero") },
+      { id: 'hair_color', label: __("Hair Color||Color de pelo") },
+      { id: 'skin', label: __("Skin tone||Tono de piel") },
+      { id: 'top', label: __("Top||Parte superior") },
+      { id: 'bottom', label: __("Bottom||Parte inferior") },
+      { id: 'shoes', label: __("Shoes||Zapatos") },
+      { id: 'accessory', label: __("Accessory||Accesorio") },
+      { id: 'special', label: __("Special||Especial") }
     ];
 
     slots.forEach((slot) => {
@@ -22866,21 +22749,20 @@ class CharacterSelect {
 
   updateEquipmentText(slotId) {
     const slots = {
-      'front_hair': 'Front hair',
-      'back_hair': 'Back hair',
-      'hair_color': 'Hair Color' ,
-      'skin': 'Skin tone',
-      'top': 'Top',
-      'bottom': 'Bottom',
-      'shoes': 'Shoes',
-      'accessory': 'Accessory',
-      'special': 'Special'
+      'front_hair': __("Front hair||Pelo frontal"),
+      'back_hair': __("Back hair||Pelo trasero"),
+      'hair_color': __("Hair Color||Color de pelo"),
+      'skin': __("Skin tone||Tono de piel"),
+      'top': __("Top||Parte superior"),
+      'bottom': __("Bottom||Parte inferior"),
+      'shoes': __("Shoes||Zapatos"),
+      'accessory': __("Accessory||Accesorio"),
+      'special': __("Special||Especial")
     };
     
-    // Special handling for hair color
     if (slotId == 'hair_color') {
       const currentColor = this.selectedCharacter.appearance.tints?.hair || 0xa8705a;
-      this.updateDetails(slots['hair_color'], '\n\n\n' + this.colorToName(currentColor) + ' hair color.');
+      this.updateDetails(slots['hair_color'], '\n\n\n' + __(`(Hair color|Color de pelo): `) + this.colorToName(currentColor));
       return;
     }
 
@@ -22891,17 +22773,17 @@ class CharacterSelect {
     let desc = '';
 
     if (currentItem) {
-      labelText = currentItem.name || 'None';
+      labelText = currentItem.name || __("None||Ninguno");
       desc = currentItem.description || currentItem.name || '';
     }
 
-    if (!labelText || labelText === 'None') {
-      if (slotId === 'accessory') labelText = 'No accessory';
-      else if (slotId === 'special') labelText = 'No special clothing';
-      else if (slotId === 'shoes') labelText = 'No shoes';
+    if (!labelText || labelText === __("None||Ninguno")) {
+      if (slotId === 'accessory') labelText = __("No accessory||Sin accesorio");
+      else if (slotId === 'special') labelText = __("No special clothing||Sin ropa especial");
+      else if (slotId === 'shoes') labelText = __("No shoes||Sin zapatos");
     }
 
-    this.updateDetails(titleText, '\n\n\n' + (labelText || '< ??? >') + '\n\n' + (desc || ''));
+    this.updateDetails(titleText, '\n\n\n' + (labelText || __("< ??? >||< ??? >")) + '\n\n' + (desc || ''));
   }
   
   colorToName(color, step = 32) {
@@ -22916,168 +22798,158 @@ class CharacterSelect {
     
     const colorNames = [
       // Neutrals
-      { r: 0, g: 0, b: 0, name: "Black" },
-      { r: 32, g: 32, b: 32, name: "Dark Gray" },
-      { r: 96, g: 96, b: 96, name: "Gray" },
-      { r: 160, g: 160, b: 160, name: "Light Gray" },
-      { r: 224, g: 224, b: 224, name: "Silver" },
-      { r: 255, g: 255, b: 255, name: "White" },
+      { r: 0, g: 0, b: 0, name: __("Black||Negro") },
+      { r: 32, g: 32, b: 32, name: __("Dark Gray||Gris Oscuro") },
+      { r: 96, g: 96, b: 96, name: __("Gray||Gris") },
+      { r: 160, g: 160, b: 160, name: __("Light Gray||Gris Claro") },
+      { r: 224, g: 224, b: 224, name: __("Silver||Plateado") },
+      { r: 255, g: 255, b: 255, name: __("White||Blanco") },
       
       // Reds
-      { r: 255, g: 0, b: 0, name: "Red" },
-      { r: 255, g: 32, b: 32, name: "Bright Red" },
-      { r: 224, g: 0, b: 0, name: "Dark Red" },
-      { r: 192, g: 0, b: 0, name: "Crimson" },
-      { r: 160, g: 0, b: 0, name: "Blood Red" },
-      { r: 255, g: 64, b: 64, name: "Coral Red" },
-      { r: 255, g: 128, b: 128, name: "Light Red" },
+      { r: 255, g: 0, b: 0, name: __("Red||Rojo") },
+      { r: 255, g: 32, b: 32, name: __("Bright Red||Rojo Brillante") },
+      { r: 224, g: 0, b: 0, name: __("Dark Red||Rojo Oscuro") },
+      { r: 192, g: 0, b: 0, name: __("Crimson||Carmesí") },
+      { r: 160, g: 0, b: 0, name: __("Blood Red||Rojo Sangre") },
+      { r: 255, g: 64, b: 64, name: __("Coral Red||Rojo Coral") },
+      { r: 255, g: 128, b: 128, name: __("Light Red||Rojo Claro") },
       
       // Oranges
-      { r: 255, g: 128, b: 0, name: "Orange" },
-      { r: 255, g: 160, b: 0, name: "Light Orange" },
-      { r: 224, g: 96, b: 0, name: "Dark Orange" },
-      { r: 255, g: 64, b: 0, name: "Vermilion" },
-      { r: 255, g: 192, b: 64, name: "Apricot" },
-      { r: 255, g: 140, b: 0, name: "Tangerine" },
-      { r: 255, g: 165, b: 0, name: "Carrot" },
+      { r: 255, g: 128, b: 0, name: __("Orange||Naranja") },
+      { r: 255, g: 160, b: 0, name: __("Light Orange||Naranja Claro") },
+      { r: 224, g: 96, b: 0, name: __("Dark Orange||Naranja Oscuro") },
+      { r: 255, g: 64, b: 0, name: __("Vermilion||Vermellón") },
+      { r: 255, g: 192, b: 64, name: __("Apricot||Albaricoque") },
+      { r: 255, g: 140, b: 0, name: __("Tangerine||Mandarina") },
+      { r: 255, g: 165, b: 0, name: __("Carrot||Zanahoria") },
       
       // Yellows
-      { r: 255, g: 224, b: 0, name: "Yellow" },
-      { r: 255, g: 255, b: 0, name: "Bright Yellow" },
-      { r: 224, g: 192, b: 0, name: "Dark Yellow" },
-      { r: 255, g: 215, b: 0, name: "Gold" },
-      { r: 224, g: 184, b: 0, name: "Dark Gold" },
-      { r: 255, g: 255, b: 128, name: "Pale Yellow" },
-      { r: 255, g: 240, b: 128, name: "Cream" },
-      { r: 255, g: 200, b: 0, name: "Amber" },
+      { r: 255, g: 224, b: 0, name: __("Yellow||Amarillo") },
+      { r: 255, g: 255, b: 0, name: __("Bright Yellow||Amarillo Brillante") },
+      { r: 224, g: 192, b: 0, name: __("Dark Yellow||Amarillo Oscuro") },
+      { r: 255, g: 215, b: 0, name: __("Gold||Oro") },
+      { r: 224, g: 184, b: 0, name: __("Dark Gold||Oro Oscuro") },
+      { r: 255, g: 255, b: 128, name: __("Pale Yellow||Amarillo Pálido") },
+      { r: 255, g: 240, b: 128, name: __("Cream||Crema") },
+      { r: 255, g: 200, b: 0, name: __("Amber||Ámbar") },
       
       // Greens
-      { r: 0, g: 255, b: 0, name: "Green" },
-      { r: 32, g: 224, b: 32, name: "Bright Green" },
-      { r: 0, g: 160, b: 0, name: "Dark Green" },
-      { r: 0, g: 128, b: 64, name: "Forest Green" },
-      { r: 64, g: 224, b: 64, name: "Lime Green" },
-      { r: 128, g: 255, b: 128, name: "Mint" },
-      { r: 0, g: 200, b: 100, name: "Emerald" },
-      { r: 0, g: 100, b: 50, name: "Deep Forest" },
-      { r: 50, g: 205, b: 50, name: "Spring Green" },
+      { r: 0, g: 255, b: 0, name: __("Green||Verde") },
+      { r: 32, g: 224, b: 32, name: __("Bright Green||Verde Brillante") },
+      { r: 0, g: 160, b: 0, name: __("Dark Green||Verde Oscuro") },
+      { r: 0, g: 128, b: 64, name: __("Forest Green||Verde Bosque") },
+      { r: 64, g: 224, b: 64, name: __("Lime Green||Verde Lima") },
+      { r: 128, g: 255, b: 128, name: __("Mint||Menta") },
+      { r: 0, g: 200, b: 100, name: __("Emerald||Esmeralda") },
+      { r: 0, g: 100, b: 50, name: __("Deep Forest||Bosque Profundo") },
+      { r: 50, g: 205, b: 50, name: __("Spring Green||Verde Primavera") },
       
       // Cyans
-      { r: 0, g: 255, b: 255, name: "Cyan" },
-      { r: 0, g: 224, b: 224, name: "Bright Cyan" },
-      { r: 0, g: 160, b: 160, name: "Dark Cyan" },
-      { r: 0, g: 206, b: 209, name: "Teal" },
-      { r: 175, g: 238, b: 238, name: "Pale Turquoise" },
-      { r: 64, g: 224, b: 208, name: "Turquoise" },
-      { r: 128, g: 255, b: 224, name: "Aquamarine" },
-      { r: 0, g: 180, b: 180, name: "Deep Teal" },
+      { r: 0, g: 255, b: 255, name: __("Cyan||Cian") },
+      { r: 0, g: 224, b: 224, name: __("Bright Cyan||Cian Brillante") },
+      { r: 0, g: 160, b: 160, name: __("Dark Cyan||Cian Oscuro") },
+      { r: 0, g: 206, b: 209, name: __("Teal||Verde Azulado") },
+      { r: 175, g: 238, b: 238, name: __("Pale Turquoise||Turquesa Pálido") },
+      { r: 64, g: 224, b: 208, name: __("Turquoise||Turquesa") },
+      { r: 128, g: 255, b: 224, name: __("Aquamarine||Aguamarina") },
+      { r: 0, g: 180, b: 180, name: __("Deep Teal||Verde Azulado Profundo") },
       
       // Blues
-      { r: 0, g: 0, b: 255, name: "Blue" },
-      { r: 32, g: 32, b: 255, name: "Bright Blue" },
-      { r: 0, g: 0, b: 224, name: "Dark Blue" },
-      { r: 0, g: 128, b: 255, name: "Azure" },
-      { r: 65, g: 105, b: 225, name: "Royal Blue" },
-      { r: 70, g: 130, b: 180, name: "Steel Blue" },
-      { r: 128, g: 224, b: 255, name: "Sky Blue" },
-      { r: 100, g: 149, b: 237, name: "Cornflower Blue" },
-      { r: 0, g: 0, b: 128, name: "Navy" },
-      { r: 25, g: 25, b: 112, name: "Midnight Blue" },
-      { r: 0, g: 100, b: 200, name: "Ocean Blue" },
+      { r: 0, g: 0, b: 255, name: __("Blue||Azul") },
+      { r: 32, g: 32, b: 255, name: __("Bright Blue||Azul Brillante") },
+      { r: 0, g: 0, b: 224, name: __("Dark Blue||Azul Oscuro") },
+      { r: 0, g: 128, b: 255, name: __("Azure||Celeste") },
+      { r: 65, g: 105, b: 225, name: __("Royal Blue||Azul Real") },
+      { r: 70, g: 130, b: 180, name: __("Steel Blue||Azul Acero") },
+      { r: 128, g: 224, b: 255, name: __("Sky Blue||Azul Cielo") },
+      { r: 100, g: 149, b: 237, name: __("Cornflower Blue||Azul Aciano") },
+      { r: 0, g: 0, b: 128, name: __("Navy||Azul Marino") },
+      { r: 25, g: 25, b: 112, name: __("Midnight Blue||Azul Medianoche") },
+      { r: 0, g: 100, b: 200, name: __("Ocean Blue||Azul Océano") },
       
       // Purples
-      { r: 160, g: 0, b: 255, name: "Violet" },
-      { r: 224, g: 0, b: 255, name: "Purple" },
-      { r: 123, g: 104, b: 238, name: "Medium Purple" },
-      { r: 218, g: 112, b: 214, name: "Orchid" },
-      { r: 224, g: 128, b: 255, name: "Lavender" },
-      { r: 128, g: 0, b: 128, name: "Dark Purple" },
-      { r: 75, g: 0, b: 130, name: "Indigo" },
-      { r: 148, g: 0, b: 211, name: "Deep Violet" },
-      { r: 230, g: 230, b: 250, name: "Lavender Mist" },
+      { r: 160, g: 0, b: 255, name: __("Violet||Violeta") },
+      { r: 224, g: 0, b: 255, name: __("Purple||Púrpura") },
+      { r: 123, g: 104, b: 238, name: __("Medium Purple||Púrpura Medio") },
+      { r: 218, g: 112, b: 214, name: __("Orchid||Orquídea") },
+      { r: 224, g: 128, b: 255, name: __("Lavender||Lavanda") },
+      { r: 128, g: 0, b: 128, name: __("Dark Purple||Púrpura Oscuro") },
+      { r: 75, g: 0, b: 130, name: __("Indigo||Índigo") },
+      { r: 148, g: 0, b: 211, name: __("Deep Violet||Violeta Profundo") },
+      { r: 230, g: 230, b: 250, name: __("Lavender Mist||Neblina Lavanda") },
       
       // Pinks
-      { r: 255, g: 0, b: 255, name: "Magenta" },
-      { r: 255, g: 32, b: 224, name: "Bright Pink" },
-      { r: 255, g: 96, b: 192, name: "Pink" },
-      { r: 255, g: 160, b: 192, name: "Light Pink" },
-      { r: 224, g: 64, b: 160, name: "Dark Pink" },
-      { r: 255, g: 105, b: 180, name: "Hot Pink" },
-      { r: 255, g: 20, b: 147, name: "Deep Pink" },
-      { r: 255, g: 192, b: 203, name: "Pastel Pink" },
-      { r: 255, g: 240, b: 245, name: "Lavender Blush" },
+      { r: 255, g: 0, b: 255, name: __("Magenta||Magenta") },
+      { r: 255, g: 32, b: 224, name: __("Bright Pink||Rosa Brillante") },
+      { r: 255, g: 96, b: 192, name: __("Pink||Rosa") },
+      { r: 255, g: 160, b: 192, name: __("Light Pink||Rosa Claro") },
+      { r: 224, g: 64, b: 160, name: __("Dark Pink||Rosa Oscuro") },
+      { r: 255, g: 105, b: 180, name: __("Hot Pink||Rosa Fuerte") },
+      { r: 255, g: 20, b: 147, name: __("Deep Pink||Rosa Profundo") },
+      { r: 255, g: 192, b: 203, name: __("Pastel Pink||Rosa Pastel") },
+      { r: 255, g: 240, b: 245, name: __("Lavender Blush||Rubor Lavanda") },
       
       // Browns
-      { r: 192, g: 128, b: 64, name: "Brown" },
-      { r: 160, g: 96, b: 32, name: "Dark Brown" },
-      { r: 224, g: 160, b: 96, name: "Light Brown" },
-      { r: 128, g: 64, b: 32, name: "Saddle Brown" },
-      { r: 160, g: 82, b: 45, name: "Sienna" },
-      { r: 210, g: 105, b: 30, name: "Chocolate" },
-      { r: 205, g: 133, b: 63, name: "Peru" },
-      { r: 139, g: 69, b: 19, name: "Burnt Sienna" },
-      { r: 244, g: 164, b: 96, name: "Peach" },
-      { r: 245, g: 222, b: 179, name: "Wheat" },
-      { r: 255, g: 228, b: 196, name: "Bisque" },
-      { r: 255, g: 248, b: 220, name: "Cornsilk" },
-      { r: 255, g: 245, b: 238, name: "Seashell" },
-      { r: 245, g: 245, b: 220, name: "Beige" },
-      { r: 253, g: 245, b: 230, name: "Old Lace" },
-      { r: 255, g: 250, b: 240, name: "Floral White" },
-      { r: 240, g: 255, b: 240, name: "Honeydew" },
-      { r: 240, g: 248, b: 255, name: "Alice Blue" },
+      { r: 192, g: 128, b: 64, name: __("Brown||Marrón") },
+      { r: 160, g: 96, b: 32, name: __("Dark Brown||Marrón Oscuro") },
+      { r: 224, g: 160, b: 96, name: __("Light Brown||Marrón Claro") },
+      { r: 128, g: 64, b: 32, name: __("Saddle Brown||Marrón Montura") },
+      { r: 160, g: 82, b: 45, name: __("Sienna||Siena") },
+      { r: 210, g: 105, b: 30, name: __("Chocolate||Chocolate") },
+      { r: 205, g: 133, b: 63, name: __("Peru||Perú") },
+      { r: 139, g: 69, b: 19, name: __("Burnt Sienna||Siena Quemada") },
+      { r: 244, g: 164, b: 96, name: __("Peach||Durazno") },
+      { r: 245, g: 222, b: 179, name: __("Wheat||Trigo") },
+      { r: 255, g: 228, b: 196, name: __("Bisque||Bisque") },
+      { r: 255, g: 248, b: 220, name: __("Cornsilk||Seda de Maíz") },
+      { r: 255, g: 245, b: 238, name: __("Seashell||Concha Marina") },
+      { r: 245, g: 245, b: 220, name: __("Beige||Beige") },
+      { r: 253, g: 245, b: 230, name: __("Old Lace||Encaje Viejo") },
+      { r: 255, g: 250, b: 240, name: __("Floral White||Blanco Floral") },
+      { r: 240, g: 255, b: 240, name: __("Honeydew||Melón") },
+      { r: 240, g: 248, b: 255, name: __("Alice Blue||Azul Alice") },
       
       // Special Anime/Vibrant Colors
-      { r: 68, g: 196, b: 252, name: "Miku Turquoise" },
-      { r: 255, g: 56, b: 132, name: "Miku Pink" },
-      { r: 255, g: 128, b: 0, name: "Naruto Orange" },
-      { r: 255, g: 220, b: 0, name: "Pikachu Yellow" },
-      { r: 255, g: 0, b: 0, name: "Sonic Red" },
-      { r: 0, g: 200, b: 255, name: "Sonic Blue" },
-      { r: 255, g: 200, b: 255, name: "Sakura Pink" },
-      { r: 0, g: 150, b: 200, name: "Aoi Blue" },
-      { r: 255, g: 100, b: 0, name: "Yuzu Orange" },
-      { r: 200, g: 0, b: 200, name: "Lilac Purple" },
-      { r: 0, g: 200, b: 100, name: "Midori Green" },
-      { r: 255, g: 150, b: 255, name: "Pastel Pink" },
-      { r: 200, g: 200, b: 255, name: "Periwinkle" },
-      { r: 0, g: 255, b: 200, name: "Mint Green" },
-      { r: 255, g: 200, b: 200, name: "Cherry Blossom" },
-      { r: 100, g: 200, b: 255, name: "Natsu Blue" },
-      { r: 255, g: 100, b: 100, name: "Akai Red" },
-      { r: 255, g: 150, b: 100, name: "Kitsune Orange" },
-      { r: 255, g: 255, b: 100, name: "Himawari Yellow" },
-      { r: 100, g: 255, b: 100, name: "Kusa Green" },
-      { r: 100, g: 100, b: 255, name: "Sora Blue" },
-      { r: 255, g: 100, b: 200, name: "Momo Pink" },
-      { r: 200, g: 100, b: 255, name: "Fuji Purple" },
-      { r: 100, g: 255, b: 200, name: "Aoba Green" },
-      { r: 255, g: 200, b: 100, name: "Kogane Yellow" },
-      { r: 100, g: 100, b: 200, name: "Aoki Blue" },
-      { r: 200, g: 255, b: 200, name: "Shiro Mint" },
-      { r: 255, g: 200, b: 150, name: "Momiji Orange" },
-      { r: 150, g: 200, b: 255, name: "Suzu Blue" },
-      { r: 255, g: 150, b: 200, name: "Sakura Pink" },
-      { r: 200, g: 150, b: 255, name: "Sumire Violet" },
-      { r: 150, g: 255, b: 200, name: "Hajime Green" },
-      { r: 200, g: 255, b: 150, name: "Yuzu Green" },
-      { r: 255, g: 150, b: 150, name: "Beni Red" },
-      { r: 150, g: 150, b: 255, name: "Ruri Blue" },
-      { r: 255, g: 255, b: 150, name: "Kira Yellow" },
-      { r: 150, g: 255, b: 255, name: "Aoi Cyan" },
-      { r: 255, g: 255, b: 200, name: "Shiro Yellow" },
-      { r: 200, g: 200, b: 200, name: "Gin Silver" },
-      { r: 100, g: 100, b: 100, name: "Kuro Gray" },
+      { r: 68, g: 196, b: 252, name: __("Miku Turquoise||Turquesa Miku") },
+      { r: 255, g: 56, b: 132, name: __("Miku Pink||Rosa Miku") },
+      { r: 255, g: 128, b: 0, name: __("Naruto Orange||Naranja Naruto") },
+      { r: 255, g: 220, b: 0, name: __("Pikachu Yellow||Amarillo Pikachu") },
+      { r: 255, g: 0, b: 0, name: __("Sonic Red||Rojo Sonic") },
+      { r: 0, g: 200, b: 255, name: __("Sonic Blue||Azul Sonic") },
+      { r: 255, g: 200, b: 255, name: __("Sakura Pink||Rosa Sakura") },
+      { r: 0, g: 150, b: 200, name: __("Aoi Blue||Azul Aoi") },
+      { r: 255, g: 100, b: 0, name: __("Yuzu Orange||Naranja Yuzu") },
+      { r: 200, g: 0, b: 200, name: __("Lilac Purple||Púrpura Lila") },
+      { r: 0, g: 200, b: 100, name: __("Midori Green||Verde Midori") },
+      { r: 255, g: 150, b: 255, name: __("Pastel Pink||Rosa Pastel") },
+      { r: 200, g: 200, b: 255, name: __("Periwinkle||Bígaro") },
+      { r: 0, g: 255, b: 200, name: __("Mint Green||Verde Menta") },
+      { r: 255, g: 200, b: 200, name: __("Cherry Blossom||Flor de Cerezo") },
+      { r: 100, g: 200, b: 255, name: __("Natsu Blue||Azul Natsu") },
+      { r: 255, g: 100, b: 100, name: __("Akai Red||Akai Rojo") },
+      { r: 255, g: 150, b: 100, name: __("Kitsune Orange||Naranja Kitsune") },
+      { r: 255, g: 255, b: 100, name: __("Himawari Yellow||Amarillo Himawari") },
+      { r: 100, g: 255, b: 100, name: __("Kusa Green||Verde Kusa") },
+      { r: 100, g: 100, b: 255, name: __("Sora Blue||Azul Sora") },
+      { r: 255, g: 100, b: 200, name: __("Momo Pink||Rosa Momo") },
+      { r: 200, g: 100, b: 255, name: __("Fuji Purple||Púrpura Fuji") },
+      { r: 150, g: 255, b: 200, name: __("Hajime Green||Verde Hajime") },
+      { r: 200, g: 255, b: 150, name: __("Yuzu Green||Verde Yuzu") },
+      { r: 255, g: 150, b: 150, name: __("Beni Red||Rojo Beni") },
+      { r: 150, g: 150, b: 255, name: __("Ruri Blue||Azul Ruri") },
+      { r: 255, g: 255, b: 150, name: __("Kira Yellow||Amarillo Kira") },
+      { r: 150, g: 255, b: 255, name: __("Aoi Cyan||Aoi Cian") },
+      { r: 255, g: 255, b: 200, name: __("Shiro Yellow||Amarillo Shiro") },
+      { r: 200, g: 200, b: 200, name: __("Gin Silver||Plateado") },
+      { r: 100, g: 100, b: 100, name: __("Kuro Gray||Kuro Gris") },
     ];
     
-    // Find exact match with step-aligned values
     for (const cn of colorNames) {
       if (cn.r === rr && cn.g === gg && cn.b === bb) {
         return cn.name;
       }
     }
     
-    // If no exact match, find closest by Euclidean distance
     let closest = colorNames[0];
     let minDist = Infinity;
     
@@ -23092,17 +22964,16 @@ class CharacterSelect {
       }
     }
     
-    // If distance is too far, use a descriptive fallback
     const threshold = step * step * 3;
     if (minDist > threshold) {
       const brightness = Math.round((r * 0.299 + g * 0.587 + b * 0.114) / step) * step;
-      const hueNames = ["Red", "Orange", "Yellow", "Green", "Cyan", "Blue", "Purple", "Pink"];
+      const hueNames = [__("Red||Rojo"), __("Orange||Naranja"), __("Yellow||Amarillo"), __("Green||Verde"), __("Cyan||Cian"), __("Blue||Azul"), __("Purple||Púrpura"), __("Pink||Rosa")];
       const hue = Math.atan2(g - 128, r - 128) * 180 / Math.PI + 180;
       const hueIndex = Math.floor(hue / 45) % 8;
-      const baseName = hueNames[hueIndex] || "Color";
+      const baseName = hueNames[hueIndex] || __("Color||Color");
       
-      if (brightness < 32) return "Dark " + baseName;
-      if (brightness > 224) return "Light " + baseName;
+      if (brightness < 32) return __(`Dark ${baseName}||${baseName} Oscuro`);
+      if (brightness > 224) return __(`Light ${baseName}||${baseName} Claro`);
       return baseName;
     }
     
@@ -23117,20 +22988,20 @@ class CharacterSelect {
       const id = appearance.frontHair || 1;
       const styles = CHARACTER_SYSTEM.HAIR_STYLES.front;
       const style = styles[id - 1];
-      return { name: style?.name || `Front ${id}`, id: id, description: style?.description || 'Front hair style.' };
+      return { name: style?.name || __(`Front ${id}||Frontal ${id}`), id: id, description: style?.description || __("Front hair style.||Estilo de pelo frontal.") };
     }
 
     if (slotId === 'back_hair') {
       const id = appearance.backHair || 1;
       const styles = CHARACTER_SYSTEM.HAIR_STYLES.back;
       const style = styles[id - 1];
-      return { name: style?.name || `Back ${id}`, id: id, description: style?.description || 'Back hair style.' };
+      return { name: style?.name || __(`Back ${id}||Trasero ${id}`), id: id, description: style?.description || __("Back hair style.||Estilo de pelo trasero.") };
     }
 
     if (slotId === 'skin') {
       const idx = appearance.skinTone || 0;
       const skin = CHARACTER_SYSTEM.SKIN_TONES[idx];
-      return { name: skin?.name || 'Default', id: idx, description: skin?.description || 'Skin tone.' };
+      return { name: skin?.name || __("Default||Por Defecto"), id: idx, description: skin?.description || __("Skin tone.||Tono de piel.") };
     }
 
     const itemId = appearance.clothing?.[slotId];
@@ -23141,7 +23012,7 @@ class CharacterSelect {
       return { name: item.name, id: item.id, description: item.description || item.name };
     }
 
-    return { name: 'None', id: null, description: '' };
+    return { name: __("None||Ninguno"), id: null, description: '' };
   }
   
   showSlotItems(slotId) {
@@ -23174,23 +23045,23 @@ class CharacterSelect {
         const s = styles[id - 1];
         return {
           id: id,
-          name: s?.name || `Style ${id}`,
+          name: s?.name || __(`Style ${id}||Estilo ${id}`),
           type: slotId,
           isHair: true,
           hairType: type,
           dyable: false,
-          description: s?.description || (s?.name ? `${s.name} hair style` : `Hair style ${id}`)
+          description: s?.description || (s?.name ? __(`${s.name} hair style||Estilo de pelo ${s.name}`) : __(`Hair style ${id}||Estilo de pelo ${id}`))
         };
       });
     } else if (slotId === 'skin') {
       const skinOptions = CHARACTER_SYSTEM.SKIN_TONES;
       items = skinOptions.map((skin, index) => ({
         id: index,
-        name: skin.name || `Skin ${index + 1}`,
+        name: skin.name || __(`Skin ${index + 1}||Piel ${index + 1}`),
         type: slotId,
         isSkin: true,
         dyable: false,
-        description: skin.description || (skin.name ? `${skin.name} skin tone` : `Skin tone ${index + 1}`)
+        description: skin.description || (skin.name ? __(`${skin.name} skin tone||Tono de piel ${skin.name}`) : __(`Skin tone ${index + 1}||Tono de piel ${index + 1}`))
       }));
     } else {
       const allItems = CHARACTER_ITEMS.filter(item => item.type === slotId);
@@ -23205,16 +23076,15 @@ class CharacterSelect {
       if (slotTypesWithNone.includes(slotId)) {
         items.unshift({
           id: null,
-          name: 'None',
+          name: __("None||Ninguno"),
           type: slotId,
           isNone: true,
           dyable: false,
-          description: 'No item equipped.'
+          description: __("No item equipped.||Sin item equipado.")
         });
       }
     }
   
-    // Get current item ID from character
     let currentItemId = null;
     const appearance = this.selectedCharacter?.appearance;
     
@@ -23227,7 +23097,6 @@ class CharacterSelect {
       currentItemId = appearance?.clothing?.[slotId] || null;
     }
   
-    // Create the menu
     this.itemListMenu = new CarouselMenu(0, 8, 100, 130, {
       bgcolor: "#8e44ad",
       fgcolor: "#ffffff",
@@ -23237,7 +23106,6 @@ class CharacterSelect {
   
     let selectedIndex = 0;
   
-    // Add all items to the menu and track which one is current
     items.forEach((item, index) => {
       let isCurrent = false;
       
@@ -23264,7 +23132,6 @@ class CharacterSelect {
       );
     });
   
-    // Select the current item
     this.itemListMenu.selectIndex(selectedIndex);
   
     this.itemListMenu.onSelect.add((index, item) => {
@@ -23289,13 +23156,11 @@ class CharacterSelect {
     
       const fullItem = CHARACTER_ITEMS.find(i => i.id === selectedItem.id && i.type === slotId);
       
-      // Check if item has multiple layers
       if (fullItem && fullItem.layers && fullItem.layers.length > 1) {
         this.showLayerColorMenu(slotId, fullItem);
         return;
       }
       
-      // Check if item is an aura with dyable particles
       if (fullItem && fullItem.isAura && fullItem.dyable !== false) {
         this.customizeAuraColor(slotId, fullItem);
         return;
@@ -23419,7 +23284,7 @@ class CharacterSelect {
     let selectedIndex = 0;
 
     item.layers.forEach((layer, index) => {
-      const layerName = layer.name || `Layer ${index + 1}`;
+      const layerName = layer.name || __(`Layer ${index + 1}||Capa ${index + 1}`);
       const tintKey = slotId + '_layer' + index;
       const currentTint = tints[tintKey] || layer.tint || 0xffffff;
       const colorHex = '#' + currentTint.toString(16).padStart(6, '0');
@@ -23460,25 +23325,22 @@ class CharacterSelect {
   }
 
   customizeLayerColor(slotId, item, layerIndex, defaultColor) {
-    const layerName = item.layers[layerIndex].name || `Layer ${layerIndex + 1}`;
+    const layerName = item.layers[layerIndex].name || __(`Layer ${layerIndex + 1}||Capa ${layerIndex + 1}`);
     const colorKey = slotId + '_layer' + layerIndex;
     
     this.showColorInput(
-      `${layerName} color`,
+      __(`${layerName} color||Color de la ${layerName}`),
       defaultColor,
       (color) => {
-        // Live preview
         this.applyLayerColorToCharacter(colorKey, color);
       },
       (color) => {
-        // Confirm
         this.applyLayerColorToCharacter(colorKey, color);
         this.characterManager.saveToAccount();
         this.updateDetails("", "", false);
         this.showLayerColorMenu(slotId, item);
       },
       () => {
-        // Cancel
         this.updateDisplay();
         this.updateDetails("", "", false);
         this.showLayerColorMenu(slotId, item);
@@ -23502,28 +23364,25 @@ class CharacterSelect {
     const currentColor = this.selectedCharacter?.appearance?.tints?.[slotId] || item?.tint || 0xffffff;
     
     this.showColorInput(
-      `${item?.name || 'Item'} color`,
+      __(`${item?.name || 'Item'} color||Color de ${item?.name || 'Item'}`),
       currentColor,
       (color) => {
-        // Live preview
         this.applyItemColorToCharacter(slotId, color);
       },
       (color) => {
-        // Confirm
         this.applyItemColorToCharacter(slotId, color);
         this.characterManager.saveToAccount();
         this.updateDetails("", "", false);
         this.customizeCharacter();
       },
       () => {
-        // Cancel
         this.updateDisplay();
         this.updateDetails("", "", false);
         this.customizeCharacter();
       }
     );
   }
-
+  
   applyItemColorToCharacter(slotId, color) {
     if (!this.selectedCharacter) return;
     const appearance = this.selectedCharacter.appearance;
@@ -23540,10 +23399,9 @@ class CharacterSelect {
     const currentColor = this.selectedCharacter?.appearance?.tints?.special || item?.tint || 0xffffff;
     
     this.showColorInput(
-      `${item?.name || 'Aura'} color`,
+      __(`${item?.name || 'Aura'} color||Color de ${item?.name || 'Aura'}`),
       currentColor,
       (color) => {
-        // Live preview
         if (!this.selectedCharacter) return;
         const appearance = this.selectedCharacter.appearance;
         if (!appearance.tints) appearance.tints = {};
@@ -23555,7 +23413,6 @@ class CharacterSelect {
         }
       },
       (color) => {
-        // Confirm
         if (!this.selectedCharacter) return;
         const appearance = this.selectedCharacter.appearance;
         if (!appearance.tints) appearance.tints = {};
@@ -23565,7 +23422,6 @@ class CharacterSelect {
         this.customizeCharacter();
       },
       () => {
-        // Cancel
         this.updateDisplay();
         this.updateDetails("", "", false);
         this.customizeCharacter();
@@ -23579,10 +23435,9 @@ class CharacterSelect {
     this.updateEquipmentText('hair_color');
     
     this.showColorInput(
-      'Hair color',
+      __("Hair color||Color de pelo"),
       currentColor,
       (color) => {
-        // Update live preview
         if (!this.selectedCharacter.appearance.tints) {
           this.selectedCharacter.appearance.tints = {};
         }
@@ -23594,7 +23449,6 @@ class CharacterSelect {
         this.updateEquipmentText('hair_color');
       },
       (color) => {
-        // Confirm
         if (!this.selectedCharacter.appearance.tints) {
           this.selectedCharacter.appearance.tints = {};
         }
@@ -23604,7 +23458,6 @@ class CharacterSelect {
         this.customizeCharacter();
       },
       () => {
-        // Cancel - revert
         this.updateDisplay();
         this.updateDetails("", "", false);
         this.customizeCharacter();
@@ -23698,7 +23551,7 @@ class CharacterSelect {
 
   deleteCharacter() {
     this.confirm(
-      'Delete character?',
+      __("Delete character?||¿Eliminar personaje?"),
       () => {
         this.characterManager.deleteCharacter(this.selectedCharacter.name);
 
@@ -23721,7 +23574,7 @@ class CharacterSelect {
     this.clearAllMenus();
 
     const dialog = new DialogWindow(message, {
-      buttons: ['Yes', 'No'],
+      buttons: [__("Yes||Sí"), __("No||No")],
       defaultButton: recommended == 'no' ? 1 : 0
     });
 
@@ -23792,16 +23645,16 @@ class CharacterSelect {
     gamepad.signals.pressed.any.removeAll();
 
     const steps = [
-      { title: 'Choose skin tone', action: (callback) => this.creationCustomizeSkinTone(callback) },
-      { title: 'Choose hair color', action: (callback) => this.creationCustomizeHairColor(callback) },
-      { title: 'Choose front hair', action: (callback) => this.creationCustomizeHairStyle('frontHair', callback) },
-      { title: 'Choose back hair', action: (callback) => this.creationCustomizeHairStyle('backHair', callback) },
-      { title: 'Choose top', action: (callback) => this.creationCustomizeSlot('top', callback) },
-      { title: 'Choose bottom', action: (callback) => this.creationCustomizeSlot('bottom', callback) },
-      { title: 'Choose shoes', action: (callback) => this.creationCustomizeSlot('shoes', callback) },
-      { title: 'Choose accessory', action: (callback) => this.creationCustomizeSlot('accessory', callback) },
-      { title: 'Choose special', action: (callback) => this.creationCustomizeSlot('special', callback) },
-      { title: 'Name your character', action: (callback) => this.creationNameCharacter(callback) }
+      { title: __("Choose skin tone||Elige tono de piel"), action: (callback) => this.creationCustomizeSkinTone(callback) },
+      { title: __("Choose hair color||Elige color de pelo"), action: (callback) => this.creationCustomizeHairColor(callback) },
+      { title: __("Choose front hair||Elige pelo frontal"), action: (callback) => this.creationCustomizeHairStyle('frontHair', callback) },
+      { title: __("Choose back hair||Elige pelo trasero"), action: (callback) => this.creationCustomizeHairStyle('backHair', callback) },
+      { title: __("Choose top||Elige parte superior"), action: (callback) => this.creationCustomizeSlot('top', callback) },
+      { title: __("Choose bottom||Elige parte inferior"), action: (callback) => this.creationCustomizeSlot('bottom', callback) },
+      { title: __("Choose shoes||Elige zapatos"), action: (callback) => this.creationCustomizeSlot('shoes', callback) },
+      { title: __("Choose accessory||Elige accesorio"), action: (callback) => this.creationCustomizeSlot('accessory', callback) },
+      { title: __("Choose special||Elige especial"), action: (callback) => this.creationCustomizeSlot('special', callback) },
+      { title: __("Name your character||Nombra tu personaje"), action: (callback) => this.creationNameCharacter(callback) }
     ];
 
     if (this.creationStep < steps.length) {
@@ -23826,27 +23679,33 @@ class CharacterSelect {
     gamepad.releaseAll();
     this.creationWindow.forcedHighlightY = null;
 
-    this.creationWindow.addItem('Next', '', () => {
+    this.creationWindow.addItem(__("Next||Siguiente"), '', () => {
       this.creationStep++;
       this.showCreationStep();
     });
 
     if (this.creationStep > 0) {
-      this.creationWindow.addItem('Previous', '', () => {
+      this.creationWindow.addItem(__("Previous||Anterior"), '', () => {
         this.creationStep--;
         this.showCreationStep();
       }, true);
     }
 
-    this.creationWindow.addItem('Cancel', '', () => {
+    this.creationWindow.addItem(__("Cancel||Cancelar"), '', () => {
       this.cancelCharacterCreation();
     }, this.creationStep <= 0);
 
     this.creationWindowManager.focus(this.creationWindow);
   }
-
+  
   creationCustomizeSkinTone(callback) {
-    const skinOptions = ['Lighter', 'Light', 'Medium', 'Tan', 'Another'];
+    const skinOptions = [
+      __("Lighter||Clarito"),
+      __("Light||Claro"),
+      __("Medium||Medio"),
+      __("Tan||Bronceado"),
+      __("Another||Otro")
+    ];
     let currentIndex = this.newCharacterAppearance.skinTone;
 
     const skinText = new Text(120, 107, skinOptions[currentIndex], FONTS.default);
@@ -23886,7 +23745,6 @@ class CharacterSelect {
     const updateColor = () => {
       const newColor = (r << 16) | (g << 8) | b;
       this.newCharacterAppearance.tints.hair = newColor;
-      // Update temp display with tints
       this.tempCharacterDisplay.updateAppearance({ 
         hairColor: newColor,
         tints: { hair: newColor }
@@ -23948,23 +23806,22 @@ class CharacterSelect {
       unlocked = Account.characters.unlockedHairs[type === 'frontHair' ? 'front' : 'back'] || [1];
     }
     const styles = CHARACTER_SYSTEM.HAIR_STYLES[type === 'frontHair' ? 'front' : 'back'];
-    // Get the name from the style object
     const options = unlocked.map(id => {
       const style = styles[id - 1];
-      return style?.name || `Style ${id}`;
+      return style?.name || __(`Style ${id}||Estilo ${id}`);
     });
     const values = unlocked;
   
     let currentIndex = this.newCharacterAppearance[type] - 1;
     if (currentIndex < 0 || currentIndex >= options.length) currentIndex = 0;
   
-    const hairText = new Text(120, 107, options[currentIndex] || 'Style', FONTS.default);
+    const hairText = new Text(120, 107, options[currentIndex] || __("Style||Estilo"), FONTS.default);
     hairText.anchor.set(0.5);
   
     const updateHair = () => {
       this.newCharacterAppearance[type] = values[currentIndex];
       this.tempCharacterDisplay.updateAppearance({ [type]: values[currentIndex] });
-      hairText.write(options[currentIndex] || 'Style');
+      hairText.write(options[currentIndex] || __("Style||Estilo"));
     };
   
     const hairHandler = (key) => {
@@ -23996,7 +23853,7 @@ class CharacterSelect {
   
     let options = [];
     if (slotTypesWithNone.includes(slotId)) {
-      options.push({ id: null, name: 'None' });
+      options.push({ id: null, name: __("None||Ninguno") });
     }
   
     const unlockedIds = Account.characters.unlockedItems || [];
@@ -24016,10 +23873,10 @@ class CharacterSelect {
       if (found !== -1) currentIndex = found;
     }
   
-    const optionNames = options.map(opt => opt.name || 'None');
+    const optionNames = options.map(opt => opt.name || __("None||Ninguno"));
     const optionValues = options.map(opt => opt.id);
   
-    const itemText = new Text(120, 107, optionNames[currentIndex] || 'None', FONTS.default);
+    const itemText = new Text(120, 107, optionNames[currentIndex] || __("None||Ninguno"), FONTS.default);
     itemText.anchor.set(0.5);
   
     const itemHandler = (key) => {
@@ -24054,7 +23911,7 @@ class CharacterSelect {
       this.tempCharacterDisplay.updateAppearance({
         clothing: previewClothing
       });
-      itemText.write(optionNames[currentIndex] || 'None');
+      itemText.write(optionNames[currentIndex] || __("None||Ninguno"));
     };
   
     gamepad.signals.pressed.any.add(itemHandler);
@@ -24073,7 +23930,7 @@ class CharacterSelect {
       this.creationWindow.visible = false;
     }
 
-    const nameText = new Text(120, 20, 'Name your character', FONTS.shaded);
+    const nameText = new Text(120, 20, __("Name your character||Nombra tu personaje"), FONTS.shaded);
     nameText.anchor.set(0.5);
 
     this.navigationHint.visible = false;
@@ -24100,7 +23957,7 @@ class CharacterSelect {
 
           this.showHomeUI();
         } else {
-          notifications.show('Character name already exists');
+          notifications.show(__("Character name already exists||El nombre del personaje ya existe"));
           this.navigationHint.updateHints('general');
           this.creationNameCharacter(callback);
         }
@@ -24170,9 +24027,6 @@ class CharacterSelect {
   }
 }
 
-
-
-// ======== js/game/states/AchievementsMenu.js ========
 class AchievementsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -24210,7 +24064,7 @@ class AchievementsMenu {
     });
     
     // Toggle button
-    this.toggleText = new Text(4, 3, "Showing: Unlocked");
+    this.toggleText = new Text(4, 3, __("Showing: Unlocked||Sección: Desbloqueados"));
     
     game.onMenuIn.dispatch('achievements', this.carousel);
     
@@ -24228,7 +24082,7 @@ class AchievementsMenu {
     
     if (achievements.length === 0) {
       this.carousel.addItem(
-        this.showingUnlocked ? "No achievements unlocked" : "No achievements available",
+        this.showingUnlocked ? __("No achievements unlocked||Ningún logro desbloqueado") : __("No achievements available||No hay logros disponibles"),
         null,
         { bgcolor: '#34495e' }
       );
@@ -24257,7 +24111,7 @@ class AchievementsMenu {
     }
     
     if (this.toggleText) {
-      this.toggleText.write(`Showing: ${this.showingUnlocked ? 'Unlocked' : 'Locked'}`);
+      this.toggleText.write(__("Showing: Unlocked||Sección: Desbloqueados"));
     }
     
     // Handle carousel selection
@@ -24279,20 +24133,20 @@ class AchievementsMenu {
     const isUnlocked = Account.achievements.unlocked[achievement.id];
     
     let details = `${achievement.name}\n`;
-    details += `Category: ${achievement.category}\n\n`;
+    details += __(`(Category|Categoría): ${achievement.category}\n\n`);
     
     if (isUnlocked) {
       details += achievement.description.achieved + '\n\n';
       const unlockData = Account.achievements.unlocked[achievement.id];
       const unlockDate = new Date(unlockData.unlockedAt);
-      details += `Unlocked: ${unlockDate.toLocaleDateString()}\n`;
-      details += `Experience: +${unlockData.expReward}`;
+      details += __(`(Unlocked|Desbloqueado): ${unlockDate.toLocaleDateString()}\n`);
+      details += __(`(Experience|Experiencia): +${unlockData.expReward}`);
     } else {
       details += achievement.description.unachieved + '\n\n';
       if (achievement.hidden) {
-        details += "???\n(Hidden Achievement)";
+        details += __("(Hidden Achievement|Logro Oculto)");
       } else {
-        details += `Experience: +${achievement.expReward}`;
+        details += __(`(Experience|Experiencia): +${achievement.expReward}`);
       }
     }
     
@@ -24311,9 +24165,6 @@ class AchievementsMenu {
   }
 }
 
-
-
-// ======== js/game/states/StatsMenu.js ========
 class StatsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -24321,24 +24172,22 @@ class StatsMenu {
     new FuturisticLines();
     new BackgroundGradient();
     
-    this.titleText = new Text(120, 10, "PLAYER STATISTICS");
+    this.titleText = new Text(120, 10, __("PLAYER STATISTICS||ESTADÍSTICAS DE JUGADOR"));
     this.titleText.anchor.x = 0.5;
     
-    this.leftColumn = new Text(20, 70, "");
+    this.leftColumn = new Text(4, 70, "");
     this.leftColumn.anchor.y = 0.5;
     
-    this.rightColumn = new Text(130, 70, "");
+    this.rightColumn = new Text(120, 70, "");
     this.rightColumn.anchor.y = 0.5;
     
-    this.instructionText = new Text(120, 120, "PRESS ANY KEY TO LEAVE");
+    this.instructionText = new Text(120, 120, __("PRESS ANY KEY TO LEAVE||PRESIONA CUALQUIER TECLA PARA SALIR"));
     this.instructionText.anchor.x = 0.5;
     
     this.updateStatsText();
     
-    // Update stats for real-time updates
     this.updateTimer = game.time.events.loop(100, this.updateStatsText, this);
     
-    // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
@@ -24372,24 +24221,28 @@ class StatsMenu {
     let leftColumnText = "";
     let rightColumnText = "";
     
-    // Left column - General Stats
-    leftColumnText += `Games Played: ${stats.totalGamesPlayed}\n`;
-    leftColumnText += `Score: ${stats.totalScore}\n`;
-    leftColumnText += `Max Combo: ${stats.maxCombo}\n`;
-    leftColumnText += `Perfect Games: ${stats.perfectGames}\n`;
-    leftColumnText += `Characters: ${stats.charactersCreated}\n`;
-    leftColumnText += `Max Level: ${stats.maxCharacterLevel}\n`;
-    leftColumnText += `Skills Unlocked: ${stats.skillsUnlocked}\n`;
+    leftColumnText += __("(Games Played|Partidas Jugadas): ") + stats.totalGamesPlayed + "\n";
+    leftColumnText += __("(Total Score|Puntaje Total): ") + stats.totalScore.toLocaleString() + "\n";
+    leftColumnText += __("(Max Combo|Combo Máx): ") + stats.maxCombo + "\n";
+    leftColumnText += __("(Perfect Games|Partidas Perfectas): ") + stats.perfectGames + "\n";
+    leftColumnText += __("(Full Combos|Combos Completos): ") + (stats.fullCombos || 0) + "\n";
+    leftColumnText += __("(Flawless Full Combos|Combos Completos Impecables): ") + (stats.flawlessFullCombos || 0) + "\n";
+    leftColumnText += __("(Max FC Streak|Máx Racha de FC): ") + (stats.maxFullComboStreak || 0) + "\n";
+    leftColumnText += __("(Total Notes Hit|Notas Acertadas): ") + (stats.totalNotesHit || 0) + "\n";
+    leftColumnText += __("(Max Marvelous In Game|Máx Marvelous en Partida): ") + (stats.maxMarvelousInGame || 0) + "\n";
+    leftColumnText += __("(Multiplayer Games|Partidas Multijugador): ") + (stats.multiplayerGamesPlayed || 0) + "\n";
     
-    // Right column - Time & Progression Stats
-    rightColumnText += `Total Time: ${this.formatTime(stats.totalTimePlayed)}\n`;
-    rightColumnText += `Play Sessions: ${stats.totalPlaySessions}\n`;
-    rightColumnText += `Avg Session: ${this.formatSessionTime(stats.averageSessionTime)}\n`;
-    rightColumnText += `Longest Session: ${this.formatSessionTime(stats.longestSession)}\n`;
-    rightColumnText += `Current Streak: ${stats.currentStreak} days\n`;
-    rightColumnText += `Longest Streak: ${stats.longestStreak} days\n`;
-    rightColumnText += `High Scores: ${stats.highScoresSet}\n`;
-
+    rightColumnText += __("(Total Time|Tiempo Total): ") + this.formatTime(stats.totalTimePlayed) + "\n";
+    rightColumnText += __("(Play Sessions|Sesiones de Juego): ") + stats.totalPlaySessions + "\n";
+    rightColumnText += __("(Avg Session|Sesión Promedio): ") + this.formatSessionTime(stats.averageSessionTime) + "\n";
+    rightColumnText += __("(Longest Session|Sesión Más Larga): ") + this.formatSessionTime(stats.longestSession) + "\n";
+    rightColumnText += __("(Current Streak|Racha Actual): ") + stats.currentStreak + " " + __("(days|días)") + "\n";
+    rightColumnText += __("(Longest Streak|Racha Más Larga): ") + stats.longestStreak + " " + __("(days|días)") + "\n";
+    rightColumnText += __("High Scores: ") + stats.highScoresSet + "\n";
+    rightColumnText += __("(Characters Created|Personajes Creados): ") + (stats.charactersCreated || 0) + "\n";
+    rightColumnText += __("(Max Character Level|Nivel Máx de Personaje): ") + (stats.maxCharacterLevel || 0) + "\n";
+    rightColumnText += __("(Skills Unlocked|Habilidades Desbloqueadas): ") + (stats.skillsUnlocked || 0) + "\n";
+    
     this.leftColumn.write(leftColumnText);
     this.rightColumn.write(rightColumnText);
   }
@@ -24397,7 +24250,6 @@ class StatsMenu {
   update() {
     gamepad.update();
     
-    // Press any key to go back
     if (gamepad.pressed.any || mouse.pressed.any) {
       game.state.start("MainMenu");
     }
@@ -24410,9 +24262,6 @@ class StatsMenu {
   }
 }
 
-
-
-// ======== js/game/states/Play.js ========
 class Play {
   init(song, difficultyIndex, playtestMode, autoplay, playlistKey) {
     this.originalSong = song;
@@ -24937,7 +24786,7 @@ class Play {
       },
       {
         value: this.song.chart.credit,
-        prefix: 'Chart by ',
+        prefix: __('Chart (by|por) '),
         font: 'default_shadow',
         delay: 150,
         height:  8,
@@ -25526,13 +25375,13 @@ class Play {
     const gameResults = this.getGameResults(this.player);
     
     // Track full combo and flawless combo stats
+    const judgements = this.player.judgementCounts;
+    const totalNotes = this.player.totalNotes;
+    const isFullCombo = judgements.miss === 0;
+    const isFlawless = isFullCombo && (judgements.marvelous + judgements.perfect) === totalNotes;
+    const isAbsoluteFlawless = isFullCombo && judgements.marvelous === totalNotes;
+    
     if (!this.autoplay) {
-      const judgements = this.player.judgementCounts;
-      const totalNotes = this.player.totalNotes;
-      const isFullCombo = judgements.miss === 0;
-      const isFlawless = isFullCombo && (judgements.marvelous + judgements.perfect) === totalNotes;
-      const isAbsoluteFlawless = isFullCombo && judgements.marvelous === totalNotes;
-      
       // Update stats
       if (isFullCombo) {
         Account.stats.fullCombos = (Account.stats.fullCombos || 0) + 1;
@@ -25692,27 +25541,27 @@ class Play {
       animate: true
     });
     
-    this.pauseCarousel.addItem("Continue", () => this.resume());
+    this.pauseCarousel.addItem(__("Continue||Continuar"), () => this.resume());
     if (this.autoplay && !this.playtestMode) {
-      this.pauseCarousel.addItem("Disable Autoplay", () => {
+      this.pauseCarousel.addItem(__("(Disable|Desactivar) Autoplay"), () => {
         Account.settings.autoplay = false;
         game.state.start("SongSelect", true, false, null, null, true, this.playlistKey);
       });
     }
     if (this.playtestMode) {
       if (this.autoplay) {
-        this.pauseCarousel.addItem("Disable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false, this.playlistKey));
+        this.pauseCarousel.addItem(__("(Disable|Desactivar) Autoplay"), () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false, this.playlistKey));
       } else {
-        this.pauseCarousel.addItem("Enable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true, this.playlistKey));
+        this.pauseCarousel.addItem(__("(Enable|Activar) Autoplay"), () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true, this.playlistKey));
       }
     }
-    this.pauseCarousel.addItem("Restart", () => this.restartSong());
-    this.pauseCarousel.addItem(this.playtestMode ? "< Back To Editor" : "Give Up", () => this.songEnd());
+    this.pauseCarousel.addItem("Restart||Reiniciar", () => this.restartSong());
+    this.pauseCarousel.addItem(this.playtestMode ? __("< (Back To Editor|Volver Al Editor)") : __("Give Up||Rendirse"), () => this.songEnd());
     
     game.onMenuIn.dispatch('pause', this.pauseCarousel);
     
     if (!this.playtestMode) {
-      this.pauseCarousel.addItem("QUIT", () => game.state.start("MainMenu"));
+      this.pauseCarousel.addItem(__("QUIT||SALIR"), () => game.state.start("MainMenu"));
     }
     
     this.pauseCarousel.onCancel.add(() => this.resume());
@@ -25920,9 +25769,6 @@ class Play {
   }
 }
 
-
-
-// ======== js/game/states/PlayMulti.js ========
 class PlayMulti extends Play {
   constructor() {
     super();
@@ -26219,9 +26065,6 @@ class PlayMulti extends Play {
   }
 }
 
-
-
-// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData;
@@ -26357,25 +26200,25 @@ class Results {
     const autoplay = this.gameData.autoplay;
     
     // Score
-    this.scoreText = new Text(10, 30, `Score: ${autoplay ? "---" : this.finalScore.toLocaleString()}`, FONTS.default);
+    this.scoreText = new Text(10, 30, __(`(Score|Puntaje): ${autoplay ? "---" : this.finalScore.toLocaleString()}`), FONTS.default);
     
     // Accuracy
-    this.accuracyText = new Text(10, 40, `Accuracy: ${autoplay ? "---" : `${this.finalAccuracy.toFixed(2)}%`}`, FONTS.default);
+    this.accuracyText = new Text(10, 40, __(`(Accuracy|Precisión): ${autoplay ? "---" : `${this.finalAccuracy.toFixed(2)}%`}`), FONTS.default);
     
     // Rating
-    this.ratingText = new Text(10, 50, `Rating: ${autoplay ? "AUTO" : this.scoreRating}`, FONTS.default);
+    this.ratingText = new Text(10, 50, __(`(Rating|Calificación): ${autoplay ? "AUTO" : this.scoreRating}`), FONTS.default);
     this.ratingText.tint = this.getRatingColor(this.scoreRating);
     
     // Combo
-    this.comboText = new Text(10, 60, `Max Combo: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
+    this.comboText = new Text(10, 60, __(`(Max Combo|Combo Máx): ${autoplay ? "---" : player.maxCombo}`), FONTS.default);
     
     // Judgements
-    this.judgementsText = new Text(15, 70, autoplay ? "\nAUTOPLAY ENABLED" : this.getJudgementsText(player.judgementCounts));
+    this.judgementsText = new Text(15, 70, autoplay ? __("AUTOPLAY ENABLED||AUTOPLAY ACTIVADO") : this.getJudgementsText(player.judgementCounts));
     this.judgementsText.tint = autoplay ? 0xff0000 : 0xffffff;
 
     // New record indicator
     if (!autoplay && this.isNewRecord) {
-      this.recordText = new Text(this.scoreText.right + 16, this.scoreText.y, "NEW RECORD!", FONTS.bold_shadow);
+      this.recordText = new Text(game.width / 2, 110, __("NEW RECORD!||¡NUEVO RÉCORD!"), FONTS.bold_shadow);
       this.recordText.anchor.x = 0.5;
       this.recordText.x += this.scoreText.width / 2;
       this.recordText.tint = 0xFFD700; // Gold color
@@ -26441,18 +26284,18 @@ class Results {
       fgcolor: '#ffffff'
     });
     
-    menu.addItem("Next", () => {
+    menu.addItem(__("Next||Siguiente"), () => {
       game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
     });
-    menu.addItem("Continue", () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
+    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
     if (Account.settings.autoplay) {
-      menu.addItem("Disable Autoplay", () => {
+      menu.addItem(__("Disable Autoplay||Desactivar Autoplay"), () => {
         Account.settings.autoplay = false;
         game.state.start("SongSelect", window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
       });
     }
-    menu.addItem("Retry", () => game.state.start("Play", true, false, this.gameData.song, this.gameData.playlistKey));
-    menu.addItem("Quit", () => game.state.start("MainMenu"));
+    menu.addItem(__("Retry||Reintentar"), () => game.state.start("Play", true, false, this.gameData.song, this.gameData.playlistKey));
+    menu.addItem(__("Quit||Salir"), () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results', menu);
   }
@@ -26500,9 +26343,6 @@ class Results {
   }
 }
 
-
-
-// ======== js/game/states/ResultsMulti.js ========
 class ResultsMulti extends Results {
   constructor() {
     super();
@@ -26582,7 +26422,7 @@ class ResultsMulti extends Results {
     this.showPlayerResults(2);
     
     if (this.winner == 0) {
-      const drawText = new Text(game.width / 2, 112 - 14, "DRAW", FONTS.bold);
+      const drawText = new Text(game.width / 2, 112 - 14, __("DRAW||EMPATE"), FONTS.bold);
       drawText.anchor.x = 0.5;
       drawText.tint = 0xFF007F; // Purple color
       
@@ -26590,7 +26430,7 @@ class ResultsMulti extends Results {
     } else if (this.winner == 1) {
       window.multiplayerState.counter.player1 ++;
     } else if (this.winner == 2) {
-      window.multiplayerState.counter.player1 ++;
+      window.multiplayerState.counter.player2 ++;
     }
     
     this.showMenu();
@@ -26635,7 +26475,7 @@ class ResultsMulti extends Results {
     return 0;
   }
   
-  showPlayerResults(playerNumber = playerNumber) {
+  showPlayerResults(playerNumber) {
     const player = this.gameResults["player" + playerNumber];
     
     const xPos = playerNumber == 1 ? 10 : 240 - 10;
@@ -26645,32 +26485,32 @@ class ResultsMulti extends Results {
     const autoplay = player.autoplay;
     
     // Score
-    const scoreText = new Text(xPos, 30, `Score: ${autoplay ? "---" : player.score.toLocaleString()}`, FONTS.default);
+    const scoreText = new Text(xPos, 30, __(`(Score|Puntaje): ${autoplay ? "---" : player.score.toLocaleString()}`), FONTS.default);
     scoreText.anchor.x = xAnchor;
     
     // Accuracy
-    const accuracyText = new Text(xPos, 40, `Accuracy: ${autoplay ? "---" : `${player.accuracy.toFixed(2)}%`}`, FONTS.default);
+    const accuracyText = new Text(xPos, 40, __(`(Accuracy|Precisión): ${autoplay ? "---" : `${player.accuracy.toFixed(2)}%`}`), FONTS.default);
     accuracyText.anchor.x = xAnchor;
     
     // Rating
     const scoreRating = player.getScoreRating();
     
-    const ratingText = new Text(xPos, 50, `Rating: ${autoplay ? "AUTO" : scoreRating}`, FONTS.shaded);
+    const ratingText = new Text(xPos, 50, __(`(Rating|Calificación): ${autoplay ? "AUTO" : scoreRating}`), FONTS.shaded);
     ratingText.tint = this.getRatingColor(scoreRating);
     ratingText.anchor.x = xAnchor;
     
     // Combo
-    const comboText = new Text(xPos, 60, `Max Combo: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
+    const comboText = new Text(xPos, 60, __(`(Max Combo|Combo Máx): ${autoplay ? "---" : player.maxCombo}`), FONTS.default);
     comboText.anchor.x = xAnchor;
     
-    // Judgements
-    const judgementsText = new Text(xPos, 70, autoplay ? "\nAUTOPLAY ENABLED" : this.getJudgementsText(player.judgementCounts));
+    // Judgements (no se traducen)
+    const judgementsText = new Text(xPos, 70, autoplay ? __("AUTOPLAY ENABLED||AUTOPLAY ACTIVADO") : this.getJudgementsText(player.judgementCounts));
     judgementsText.tint = autoplay ? 0xff0000 : 0xffffff;
     judgementsText.anchor.x = xAnchor;
     
     // Winner record indicator
     if (!autoplay && this.winner == playerNumber) {
-      const winnerText = new Text(game.width / 2, 112 - 14, `PLAYER ${playerNumber} WINS!`, FONTS.bold);
+      const winnerText = new Text(game.width / 2, 112 - 14, __(`PLAYER ${playerNumber} WINS!||¡JUGADOR ${playerNumber} GANA!`), FONTS.bold);
       winnerText.anchor.x = 0.5;
       winnerText.tint = 0xFFD700; // Gold color
       
@@ -26687,20 +26527,17 @@ class ResultsMulti extends Results {
       margin: { top: 0, bottom: 0, left: 0, right: 0 },
     });
     
-    menu.addItem("Next", () => {
+    menu.addItem(__("Next||Siguiente"), () => {
       game.state.start("SongSelect", window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
     });
-    menu.addItem("Continue", () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
-    menu.addItem("Retry", () => game.state.start("PlayMulti", true, false, this.config, undefined, undefined, undefined, this.gameData.playlistKey));
-    menu.addItem("Quit", () => game.state.start("MainMenu"));
+    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
+    menu.addItem(__("Retry||Reintentar"), () => game.state.start("PlayMulti", true, false, this.config, undefined, undefined, undefined, this.gameData.playlistKey));
+    menu.addItem(__("Quit||Salir"), () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results_multi', menu);
   }
 }
 
-
-
-// ======== js/game/states/Playlists.js ========
 class Playlists {
   create() {
     game.camera.fadeIn(0x000000);
@@ -26721,7 +26558,7 @@ class Playlists {
     this.carousel = new CarouselMenu(0, 16, game.width, game.height - 24, {
       bgcolor: '#9b59b6',
       fgcolor: '#ffffff',
-      align: 'left',
+      gradient: 'false',
       animate: true
     });
     
@@ -26735,8 +26572,8 @@ class Playlists {
       }, { bgcolor: '#2c3e50', playlistKey: key });
     }
     
-    this.carousel.addItem("+ Add Playlist", () => this.addPlaylist());
-    this.carousel.addItem("< Back", () => game.state.start("MainMenu"));
+    this.carousel.addItem("+ (Add|Añadir) Playlist", () => this.addPlaylist());
+    this.carousel.addItem("< (Back|Volver)", () => game.state.start("MainMenu"));
     
     this.carousel.onCancel.add(() => game.state.start("MainMenu"));
     this.actionText.write("PLAYLISTS");
@@ -26746,21 +26583,21 @@ class Playlists {
     const keyboard = new OnScreenKeyboard(undefined, 55);
     
     window.focusedElement = new TextInput({
-      text: "My Playlist",
+      text: __("(My|Mi) Playlist"),
       maxLength: 20,
       useNewline: false,
       onConfirm: (name) => {
         if (name.trim()) {
           const key = this.playlistManager.createPlaylist(name.trim());
           if (key) {
-            notifications.show(`Playlist "${name}" created!`);
+            notifications.show(__(`( |¡)Playlist "${name}" (created|creada)!`));
             keyboard.destroy();
             this.showPlaylistList();
           } else {
-            notifications.show("Playlist already exists!");
+            notifications.show(__("Playlist already exists!||La playlist ya existe"));
           }
         } else {
-          notifications.show("Name cannot be empty!");
+          notifications.show(__("Name cannot be empty!||El nombre no puede ir vacio"));
         }
       },
       onCancel: () => {
@@ -26782,7 +26619,7 @@ class Playlists {
     this.carousel = new CarouselMenu(0, 16, game.width, game.height - 24, {
       bgcolor: '#2c3e50',
       fgcolor: '#ffffff',
-      align: 'left',
+      gradient: 'false',
       animate: true
     });
     
@@ -26807,7 +26644,7 @@ class Playlists {
       }, { bgcolor: '#c0392b' });
     }
     
-    this.carousel.addItem("× Delete playlist", () => {
+    this.carousel.addItem("× (Delete|Borrar) playlist", () => {
       this.deletePlaylist(key);
     }, { bgcolor: '#e74c3c' });
     
@@ -26815,60 +26652,12 @@ class Playlists {
     this.carousel.onCancel.add(() => this.showPlaylistList());
   }
 
-  removeFromPlaylist(key) {
-    const playlist = this.playlistManager.getPlaylist(key);
-    if (!playlist || playlist.songs.length === 0) return;
-    
-    const songs = playlist.songs;
-    const removeCarousel = new CarouselMenu(0, 36, game.width, game.height - 48, {
-      bgcolor: '#8e44ad',
-      fgcolor: '#ffffff',
-      align: 'left',
-      animate: true
-    });
-    
-    for (let i = 0; i < songs.length; i++) {
-      const song = songs[i];
-      const title = song.titleTranslit || song.title || `Song ${i + 1}`;
-      removeCarousel.addItem(`× ${title}`, () => {
-        this.playlistManager.removeSong(key, i);
-        notifications.show(`Removed "${title}" from playlist`);
-        this.openPlaylist(key);
-      }, { bgcolor: '#c0392b' });
-    }
-    
-    removeCarousel.addItem("< Back", () => this.openPlaylist(key));
-    removeCarousel.onCancel.add(() => this.openPlaylist(key));
-    
-    // Replace carousel
-    if (this.carousel) this.carousel.destroy();
-    this.carousel = removeCarousel;
-    this.actionText.write("Select song to remove");
-  }
-
-  clearPlaylist(key) {
-    this.confirmDialog(
-      "Remove all songs from this playlist?",
-      () => {
-        const playlist = this.playlistManager.getPlaylist(key);
-        if (playlist) {
-          playlist.songs = [];
-          playlist.updatedAt = Date.now();
-          this.playlistManager.save();
-          notifications.show("Playlist cleared!");
-          this.openPlaylist(key);
-        }
-      },
-      () => this.openPlaylist(key)
-    );
-  }
-
   deletePlaylist(key) {
     this.confirmDialog(
-      "Delete this playlist permanently?",
+      __("Delete this playlist permanently?||¿Borrar playlist para siempre?"),
       () => {
         this.playlistManager.deletePlaylist(key);
-        notifications.show("Playlist deleted!");
+        notifications.show(__("Playlist (deleted|borrada)!"));
         this.showPlaylistList();
       },
       () => this.openPlaylist(key)
@@ -26887,7 +26676,7 @@ class Playlists {
 
   confirmDialog(message, onConfirm, onCancel) {
     const dialog = new DialogWindow(message, {
-      buttons: ["Yes", "No"],
+      buttons: [__("Yes||Sí"), "No"],
       defaultButton: 1
     });
     dialog.onConfirm.add((buttonIndex) => {
@@ -26906,9 +26695,6 @@ class Playlists {
   }
 }
 
-
-
-// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
@@ -27326,12 +27112,10 @@ class Jukebox {
   updateSongDisplay() {
     const song = this.currentSong;
     
-    // Update text displays
-    this.songTitle.write(song.titleTranslit || song.title || "Unknown Title", 33);
-    this.songArtist.write(song.artistTranslit || song.artist || "Unknown Artist", 33);
+    this.songTitle.write(song.titleTranslit || song.title || __("Unknown Title||Título Desconocido"), 33);
+    this.songArtist.write(song.artistTranslit || song.artist || __("Unknown Artist||Artista Desconocido"), 33);
     this.songCredit.write(song.credit || "", 33);
     
-    // Load banner
     this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
     this.bannerSprite.dirty();
     
@@ -27489,19 +27273,17 @@ class Jukebox {
     let currentVolume = Account.settings.volume;
     let newVolume = currentVolume + delta;
     
-    // Clamp volume between 0 and 100
     newVolume = Phaser.Math.clamp(newVolume, 0, 100);
     
     if (newVolume !== currentVolume) {
       Account.settings.volume = newVolume;
       saveAccount();
       
-      // Update audio volume
       this.audioElement.volume = newVolume / 100;
       
-      // Show volume feedback
-      const volumeLevels = ["MUTE", "25%", "50%", "75%", "100%"];
-      this.volumeLabel.write(`VOLUME: ${newVolume > 0 ? newVolume + '%' : 'MUTE'}`);
+      const volumeText = newVolume > 0 ? `${newVolume}%` : __("(MUTE|SILENCIADO)");
+      this.volumeLabel.write(__(`(VOLUME|VOLUMEN): ${volumeText}`));
+      
       this.volumeLabel.visible = true;
       this.lastVolumeUpdate = game.time.now;
     }
@@ -27573,8 +27355,9 @@ class Jukebox {
     
     // Show shuffle state label
     this.shuffleLabel.visible = true;
-    this.shuffleLabel.write(`SHUFFLE: ${this.isShuffled ? 'ON' : 'OFF'}`);
     
+    this.shuffleLabel.write(__(`(SHUFFLE|ALEATORIO): ${this.isShuffled ? 'ON' : 'OFF'}`));
+
     game.time.events.add(1500, () => this.shuffleLabel.visible = false);
   }
 
@@ -27696,22 +27479,22 @@ class Jukebox {
     
     const menu = this.windowManager.createWindow(20, 4, 9, 8, "1");
     
-    menu.addItem("Song List", ">", () => {
+    menu.addItem(__("Song List||Playlist"), ">", () => {
       menu.destroy();
       menuBg.destroy();
       this.menuVisible = false;
       this.showSongList();
     });
     
-    menu.addSettingItem("Shuffle", ["ON", "OFF"], this.isShuffled ? 0 : 1, () => this.toggleShuffle());
+    menu.addSettingItem(__("Shuffle||Aleatorio"), [__("ON||Sí"), __("OFF||No")], this.isShuffled ? 0 : 1, () => this.toggleShuffle());
     
-    menu.addItem("Close Menu", "", () => {
+    menu.addItem(__("Close Menu||Cerrar Menú"), "", () => {
       menu.destroy();
       menuBg.destroy();
       setTimeout(() => this.menuVisible = false);
     }, true);
     
-    menu.addItem("< Exit Jukebox", "", () => {
+    menu.addItem(__("< Exit Jukebox||< Volver"), "", () => {
       this.exitJukebox();
     });
     
@@ -27900,9 +27683,6 @@ class Jukebox {
   }
 }
 
-
-
-// ======== js/game/states/Editor.js ========
 class Editor {
   init(song = null) {
     this.song = song || this.createNewSong();
@@ -28103,30 +27883,28 @@ class Editor {
     
     const leftWidth = game.width / 2;
     const rightWidth = game.width / 2;
-
-    // Left side: Main menu
+  
     this.mainCarousel = new CarouselMenu(0, 0, leftWidth, game.height / 2, {
       align: "left",
       bgcolor: "#9b59b6",
       fgcolor: "#ffffff",
       animate: true
     });
-
-    this.mainCarousel.addItem("File", () => this.showFileMenu());
-    this.mainCarousel.addItem("Edit", () => this.showEditMenu());
-    this.mainCarousel.addItem("Playtest", () => this.playtest());
-    this.mainCarousel.addItem("Export", () => this.showExportMenu());
-    this.mainCarousel.addItem("< Exit", () => this.exitEditor());
-
+  
+    this.mainCarousel.addItem("(File|Archivo)", () => this.showFileMenu());
+    this.mainCarousel.addItem("(Edit|Editar)", () => this.showEditMenu());
+    this.mainCarousel.addItem("(Playtest|Probar)", () => this.playtest());
+    this.mainCarousel.addItem("(Export|Exportar)", () => this.showExportMenu());
+    this.mainCarousel.addItem("< (Exit|Salir)", () => this.exitEditor());
+  
     this.mainCarousel.onCancel.add(() => this.exitEditor());
-
+  
     game.onMenuIn.dispatch("editorMain", this.mainCarousel);
-
-    // Right side: Song info
+  
     this.songInfoText = new Text(240 - 4, 4, this.getSongInfoText());
     this.songInfoText.anchor.x = 1;
     this.songInfoText.wrap(rightWidth - 8);
-
+  
     this.updateInfoText();
   }
   
@@ -28173,20 +27951,20 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
-    carousel.addItem("Load Audio", () => this.pickFile("audio/*", e => this.loadAudioFile(e.target.files[0]), () => this.showFileMenu()));
-    carousel.addItem("Load Background", () => this.pickFile("image/*", e => this.loadBackgroundFile(e.target.files[0]), () => this.showFileMenu()));
-    carousel.addItem("Load Banner", () => this.pickFile("image/*", e => this.loadBannerFile(e.target.files[0]), () => this.showFileMenu()));
-    carousel.addItem("Load Lyrics", () => this.pickFile(".lrc", e => this.loadLyricsFile(e.target.files[0]), () => this.showFileMenu()));
+  
+    carousel.addItem("(Load Audio|Cargar Audio)", () => this.pickFile("audio/*", e => this.loadAudioFile(e.target.files[0]), () => this.showFileMenu()));
+    carousel.addItem("(Load Background|Cargar Fondo)", () => this.pickFile("image/*", e => this.loadBackgroundFile(e.target.files[0]), () => this.showFileMenu()));
+    carousel.addItem("(Load Banner|Cargar Banner)", () => this.pickFile("image/*", e => this.loadBannerFile(e.target.files[0]), () => this.showFileMenu()));
+    carousel.addItem("(Load Lyrics|Cargar Letras)", () => this.pickFile(".lrc", e => this.loadLyricsFile(e.target.files[0]), () => this.showFileMenu()));
     if (this.song.chart.backgrounds && this.song.chart.backgrounds.length > 0) {
-      carousel.addItem("Edit BG Changes", () => this.editBGChangeFiles());
+      carousel.addItem("(Edit BG Changes|Editar Cambios de Fondo)", () => this.editBGChangeFiles());
     }
-    carousel.addItem("New Song", () => this.createNewSongAndReload());
-    carousel.addItem("Load Song", () => this.loadSong());
-
+    carousel.addItem("(New Song|Nueva Canción)", () => this.createNewSongAndReload());
+    carousel.addItem("(Load Song|Cargar Canción)", () => this.loadSong());
+  
     game.onMenuIn.dispatch("editorFile", carousel);
-
-    carousel.addItem("< Back", () => this.showHomeScreen());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showHomeScreen());
     carousel.onCancel.add(() => this.showHomeScreen());
     
     this.updateInfoText();
@@ -28274,13 +28052,13 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
-    carousel.addItem("Charts", () => this.showChartsMenu());
-    carousel.addItem("Metadata", () => this.showMetadataEdit());
-
+  
+    carousel.addItem("(Charts|Charts)", () => this.showChartsMenu());
+    carousel.addItem("(Metadata|Metadatos)", () => this.showMetadataEdit());
+  
     game.onMenuIn.dispatch("editorEdit", carousel);
-
-    carousel.addItem("< Back", () => this.showHomeScreen());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showHomeScreen());
     carousel.onCancel.add(() => this.showHomeScreen());
   }
 
@@ -28291,14 +28069,12 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
-    carousel.addItem("Export StepMania Song", () => this.exportSong());
-
-    // TODO: Options to export lonely SM file, audio, banner, background or bg changes in a zip
-
+  
+    carousel.addItem("(Export StepMania Song|Exportar Canción StepMania)", () => this.exportSong());
+  
     game.onMenuIn.dispatch("editorProject", carousel);
-
-    carousel.addItem("< Back", () => this.showHomeScreen());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showHomeScreen());
     carousel.onCancel.add(() => this.showHomeScreen());
   }
 
@@ -28309,17 +28085,17 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
+  
     this.song.chart.difficulties.forEach((diff, index) => {
       const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
-      carousel.addItem(`${diff.type} (${diff.rating}) - ${noteCount} notes`, () => this.showChartOptions(index), { difficulty: diff, index: index });
+      carousel.addItem(__(`${diff.type} (${diff.rating}) - ${noteCount} (notes|notas)`), () => this.showChartOptions(index), { difficulty: diff, index: index });
     });
-
-    carousel.addItem("+ Add Difficulty", () => this.addNewDifficulty());
-
+  
+    carousel.addItem("+ (Add Difficulty|Agregar Dificultad)", () => this.addNewDifficulty());
+  
     game.onMenuIn.dispatch("editorCharts", carousel);
-
-    carousel.addItem("< Back", () => this.showEditMenu());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showEditMenu());
     carousel.onCancel.add(() => this.showEditMenu());
   }
 
@@ -28330,15 +28106,15 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
-    carousel.addItem("Edit Chart", () => this.editChart(difficultyIndex));
-    carousel.addItem("Set Difficulty Type", () => this.setDifficultyType(difficultyIndex));
-    carousel.addItem("Set Difficulty Rating", () => this.setDifficultyRating(difficultyIndex));
-    carousel.addItem("Delete Difficulty", () => this.deleteDifficulty(difficultyIndex));
-
+  
+    carousel.addItem("(Edit Chart|Editar Chart)", () => this.editChart(difficultyIndex));
+    carousel.addItem("(Set Difficulty Type|Establecer Tipo de Dificultad)", () => this.setDifficultyType(difficultyIndex));
+    carousel.addItem("(Set Difficulty Rating|Establecer Nivel de Dificultad)", () => this.setDifficultyRating(difficultyIndex));
+    carousel.addItem("(Delete Difficulty|Eliminar Dificultad)", () => this.deleteDifficulty(difficultyIndex));
+  
     game.onMenuIn.dispatch("editorChartOptions", carousel);
-
-    carousel.addItem("< Back", () => this.showChartsMenu());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showChartsMenu());
     carousel.onCancel.add(() => this.showChartsMenu());
   }
 
@@ -28365,15 +28141,15 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
+  
     this.song.chart.difficulties.forEach((diff, index) => {
       const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
-      carousel.addItem(`${diff.type} (${diff.rating}) - ${noteCount} notes`, () => this.startPlaytest(index), { difficulty: diff, index: index });
+      carousel.addItem(__(`${diff.type} (${diff.rating}) - ${noteCount} (notes|notas)`), () => this.startPlaytest(index), { difficulty: diff, index: index });
     });
-
+  
     game.onMenuIn.dispatch("editorPlaytest", carousel);
-
-    carousel.addItem("< Back", () => this.showHomeScreen());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showHomeScreen());
     carousel.onCancel.add(() => this.showHomeScreen());
   }
   
@@ -28401,23 +28177,25 @@ class Editor {
       const currentTime = this.chartRenderer.beatToSec(this.cursorBeat);
       const formatedTime = TimeUtils.formatTime(currentTime);
       const currentBpm = this.chartRenderer ? this.chartRenderer.getCurrentBPM(this.cursorBeat) : "---";
-
+  
       const text = this.isPlaying
-        ?
-          "Playing\n" +
-          `TIME: ${formatedTime}\n` +
-          `BEAT: ${this.cursorBeat.toFixed(0)}\n` +
-          `BPM: ${currentBpm}`
-        :
-          `EDITING: ${diff.type} (${diff.rating})\n` +
-          `SNAP: 1/${this.snapDivision}\n` +
-          `TIME: ${formatedTime}\n` +
-          `BEAT: ${this.cursorBeat.toFixed(3)}\n` +
-          `BPM: ${currentBpm}\n` +
-          `NOTES: ${noteCount}\n` +
-          `SELECTED: ${this.selectedNotes.length}`;
+        ? __(
+            `(Playing|Reproduciendo)
+  (TIME|TIEMPO): ${formatedTime}
+  (BEAT|BEAT): ${this.cursorBeat.toFixed(0)}
+  (BPM|BPM): ${currentBpm}`
+          )
+        : __(
+            `(EDITING|EDITANDO): ${diff.type} (${diff.rating})
+  (SNAP|SNAP): 1/${this.snapDivision}
+  (TIME|TIEMPO): ${formatedTime}
+  (BEAT|BEAT): ${this.cursorBeat.toFixed(3)}
+  (BPM|BPM): ${currentBpm}
+  (NOTES|NOTAS): ${noteCount}
+  (SELECTED|SELECCIONADAS): ${this.selectedNotes.length}`
+          );
       
-      const bgText = `BG: ${this.getCurrentBgFileName()}`;
+      const bgText = __(`(BG|Fondo): ${this.getCurrentBgFileName()}`);
       
       if (text != this.infoText.texture.text) this.infoText.write(text);
       if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 45);
@@ -29083,9 +28861,9 @@ class Editor {
 
   showContextMenu() {
     if (this.isPlaying || this.menuVisible) return;
-
+  
     this.menuVisible = true;
-
+  
     const contextMenu = new CarouselMenu(0, 48, 80, 56, {
       bgcolor: "#34495e",
       fgcolor: "#ffffff",
@@ -29094,95 +28872,95 @@ class Editor {
       inactiveAlpha: 0.6,
       activeAlpha: 1
     });
-
+  
     if (this.selectedNotes.length === 0) {
-      contextMenu.addItem("Place Mine", () => this.placeMine(this.cursorColumn, this.cursorBeat));
-      contextMenu.addItem("Place Quick Hold", () => this.placeQuickHold());
-
+      contextMenu.addItem("(Place Mine|Colocar Mina)", () => this.placeMine(this.cursorColumn, this.cursorBeat));
+      contextMenu.addItem("(Place Quick Hold|Colocar Hold Rápido)", () => this.placeQuickHold());
+  
       if (this.clipboard.length) {
-        contextMenu.addItem("Paste Notes", () => this.pasteNotes());
-        contextMenu.addItem("Clear Clipboard", () => this.clearClipboard());
+        contextMenu.addItem("(Paste Notes|Pegar Notas)", () => this.pasteNotes());
+        contextMenu.addItem("(Clear Clipboard|Limpiar Portapapeles)", () => this.clearClipboard());
       }
-
+  
       if (!this.getBPMChange()) {
-        contextMenu.addItem("Add BPM Change", () => this.addBPMChange());
+        contextMenu.addItem("(Add BPM Change|Agregar Cambio de BPM)", () => this.addBPMChange());
       } else {
-        contextMenu.addItem("Edit BPM Value", () => this.editBPMChange());
-        contextMenu.addItem("Remove BPM Change", () => this.removeBPMChange());
+        contextMenu.addItem("(Edit BPM Value|Editar Valor de BPM)", () => this.editBPMChange());
+        contextMenu.addItem("(Remove BPM Change|Eliminar Cambio de BPM)", () => this.removeBPMChange());
       }
-
+  
       if (!this.getStop()) {
-        contextMenu.addItem("Add Stop", () => this.addStop());
+        contextMenu.addItem("(Add Stop|Agregar Stop)", () => this.addStop());
       } else {
-        contextMenu.addItem("Edit Stop Duration", () => this.editStop());
-        contextMenu.addItem("Remove Stop", () => this.removeStop());
+        contextMenu.addItem("(Edit Stop Duration|Editar Duración del Stop)", () => this.editStop());
+        contextMenu.addItem("(Remove Stop|Eliminar Stop)", () => this.removeStop());
       }
-
+  
       if (!this.getBGChange()) {
-        contextMenu.addItem("Add BG Change", () => this.addBGChange());
-        contextMenu.addItem("Add -nosongbg-", () => this.addNoSongBgChange());
+        contextMenu.addItem("(Add BG Change|Agregar Cambio de Fondo)", () => this.addBGChange());
+        contextMenu.addItem("(Add -nosongbg-|Agregar -nosongbg-)", () => this.addNoSongBgChange());
       } else {
-        contextMenu.addItem("Edit BG Change", () => this.editBGChange());
-        contextMenu.addItem("Remove BG Change", () => this.removeBGChange());
+        contextMenu.addItem("(Edit BG Change|Editar Cambio de Fondo)", () => this.editBGChange());
+        contextMenu.addItem("(Remove BG Change|Eliminar Cambio de Fondo)", () => this.removeBGChange());
       }
       
-      contextMenu.addItem("Detect BPM Here", () => this.detectBPMHere());
+      contextMenu.addItem("(Detect BPM Here|Detectar BPM Aquí)", () => this.detectBPMHere());
     } else if (this.selectedNotes.length === 1) {
       const note = this.selectedNotes[0];
-      contextMenu.addItem("Unselect", () => (this.selectedNotes = []));
+      contextMenu.addItem("(Unselect|Deseleccionar)", () => (this.selectedNotes = []));
       
-      contextMenu.addItem("Copy Note", () => this.copyNotes([ note ]));
+      contextMenu.addItem("(Copy Note|Copiar Nota)", () => this.copyNotes([ note ]));
       
       if (this.clipboard.length) {
-        contextMenu.addItem("Paste Notes", () => this.pasteNotes());
-        contextMenu.addItem("Clear Clipboard", () => this.clearClipboard());
+        contextMenu.addItem("(Paste Notes|Pegar Notas)", () => this.pasteNotes());
+        contextMenu.addItem("(Clear Clipboard|Limpiar Portapapeles)", () => this.clearClipboard());
       }
       
       if (note.type === "1") {
-        contextMenu.addItem("Turn Into Mine", () => this.convertNoteType("M"));
+        contextMenu.addItem("(Turn Into Mine|Convertir en Mina)", () => this.convertNoteType("M"));
       } else if (note.type === "M") {
-        contextMenu.addItem("Turn Into Note", () => this.convertNoteType("1"));
+        contextMenu.addItem("(Turn Into Note|Convertir en Nota)", () => this.convertNoteType("1"));
       } else if (note.type === "2" || note.type === "4") {
-        contextMenu.addItem("Turn Into Roll", () => this.convertFreezeType("4"));
-        contextMenu.addItem("Turn Into Hold", () => this.convertFreezeType("2"));
+        contextMenu.addItem("(Turn Into Roll|Convertir en Roll)", () => this.convertFreezeType("4"));
+        contextMenu.addItem("(Turn Into Hold|Convertir en Hold)", () => this.convertFreezeType("2"));
       }
-
-      contextMenu.addItem("Align To Beat Division", () => this.alignToBeatDivision());
-      contextMenu.addItem("Delete", () => this.deleteSelectedNotes());
+  
+      contextMenu.addItem("(Align To Beat Division|Alinear a División de Beat)", () => this.alignToBeatDivision());
+      contextMenu.addItem("(Delete|Eliminar)", () => this.deleteSelectedNotes());
     } else {
-      contextMenu.addItem("Unselect All", () => (this.selectedNotes = []));
-
+      contextMenu.addItem("(Unselect All|Deseleccionar Todo)", () => (this.selectedNotes = []));
+  
       const allNotes = this.selectedNotes.every(n => n.type === "1" || n.type === "M");
       const allFreezes = this.selectedNotes.every(n => n.type === "2" || n.type === "4");
-
-      contextMenu.addItem("Copy Notes", () => this.copyNotes(this.selectedNotes));
-
+  
+      contextMenu.addItem("(Copy Notes|Copiar Notas)", () => this.copyNotes(this.selectedNotes));
+  
       if (this.clipboard.length) {
-        contextMenu.addItem("Paste Notes", () => this.pasteNotes());
-        contextMenu.addItem("Clear Clipboard", () => this.clearClipboard());
+        contextMenu.addItem("(Paste Notes|Pegar Notas)", () => this.pasteNotes());
+        contextMenu.addItem("(Clear Clipboard|Limpiar Portapapeles)", () => this.clearClipboard());
       }
       
-      contextMenu.addItem("Mirror Notes", () => this.mirrorNotes());
-
+      contextMenu.addItem("(Mirror Notes|Espejo de Notas)", () => this.mirrorNotes());
+  
       if (allNotes) {
-        contextMenu.addItem("Turn All Into Mines", () => this.convertNotesType("M"));
-        contextMenu.addItem("Turn All Into Notes", () => this.convertNotesType("1"));
+        contextMenu.addItem("(Turn All Into Mines|Convertir Todo en Minas)", () => this.convertNotesType("M"));
+        contextMenu.addItem("(Turn All Into Notes|Convertir Todo en Notas)", () => this.convertNotesType("1"));
       } else if (allFreezes) {
-        contextMenu.addItem("Turn All Into Rolls", () => this.convertFreezesType("4"));
-        contextMenu.addItem("Turn All Into Holds", () => this.convertFreezesType("2"));
+        contextMenu.addItem("(Turn All Into Rolls|Convertir Todo en Rolls)", () => this.convertFreezesType("4"));
+        contextMenu.addItem("(Turn All Into Holds|Convertir Todo en Holds)", () => this.convertFreezesType("2"));
       }
-
-      contextMenu.addItem("Align All To Beat Division", () => this.alignAllToBeatDivision());
-      contextMenu.addItem("Delete All", () => this.deleteSelectedNotes());
+  
+      contextMenu.addItem("(Align All To Beat Division|Alinear Todo a División de Beat)", () => this.alignAllToBeatDivision());
+      contextMenu.addItem("(Delete All|Eliminar Todo)", () => this.deleteSelectedNotes());
     }
-
-    contextMenu.addItem("Save And Exit", () => this.saveAndExit());
-
+  
+    contextMenu.addItem("(Save And Exit|Guardar y Salir)", () => this.saveAndExit());
+  
     contextMenu.onConfirm.add(() => {
       contextMenu.destroy();
       this.menuVisible = false;
     });
-
+  
     contextMenu.onCancel.add(() => {
       contextMenu.destroy();
       this.menuVisible = false;
@@ -29192,7 +28970,7 @@ class Editor {
   copyNotes(notes = []) {
     if (notes.length) {
       this.clipboard = notes;
-      notifications.show(`Copied ${notes.length} notes`);
+      notifications.show(__(`(Copied|Copiadas) ${notes.length} (notes|notas)`));
     }
   }
   
@@ -29383,24 +29161,24 @@ class Editor {
       const notes = chart.notes[diff.type + diff.rating];
       if (notes) totalNotes += notes.length;
     });
-
-    return `
-Title: ${chart.title || "< empty >"}
-Subtitle: ${chart.subtitle || "< empty >"}
-Artist: ${chart.artist || "< empty >"}
-Genre: ${chart.genre || "< empty >"}
-Credit: ${chart.credit || "< empty >"}
-
-Difficulties: ${chart.difficulties.length}
-Total Notes: ${totalNotes}
-Bpm Changes: ${chart.bpmChanges.length}
-Stops: ${chart.stops.length}
-Bg Changes: ${chart.backgrounds.length}
-
-Offset: ${chart.offset}
-Sample Start: ${chart.sampleStart}
-Sample Length: ${chart.sampleLength}
-    `.trim();
+  
+    return __(
+      `(Title|Título): ${chart.title || "< (empty|vacío) >"}
+  (Subtitle|Subtítulo): ${chart.subtitle || "< (empty|vacío) >"}
+  (Artist|Artista): ${chart.artist || "< (empty|vacío) >"}
+  (Genre|Género): ${chart.genre || "< (empty|vacío) >"}
+  (Credit|Crédito): ${chart.credit || "< (empty|vacío) >"}
+  
+  (Difficulties|Dificultades): ${chart.difficulties.length}
+  (Total Notes|Total de Notas): ${totalNotes}
+  (Bpm Changes|Cambios de BPM): ${chart.bpmChanges.length}
+  (Stops|Stops): ${chart.stops.length}
+  (Bg Changes|Cambios de Fondo): ${chart.backgrounds.length}
+  
+  (Offset|Offset): ${chart.offset}
+  (Sample Start|Inicio de Muestra): ${chart.sampleStart}
+  (Sample Length|Duración de Muestra): ${chart.sampleLength}`
+    ).trim();
   }
 
   handleFileSelect(event) {
@@ -29430,7 +29208,7 @@ Sample Length: ${chart.sampleLength}
 
       if (chartFileNames.length === 0) {
         this.showFileMenu();
-        notifications.show("No chart files found");
+        notifications.show(__("No chart files found||El chart no tiene archivos"));
         return;
       }
 
@@ -29441,7 +29219,7 @@ Sample Length: ${chart.sampleLength}
       chart.folderName = `Single_External_${smFileName}`;
       chart.loaded = true;
       
-      this.showLoadingScreen("Processing Files");
+      this.showLoadingScreen(__("Processing Files||Procesando Archivos"));
       
       // Load main files
       this.files.audio = await FileTools.urlToBase64(chart.audioUrl);
@@ -29480,7 +29258,7 @@ Sample Length: ${chart.sampleLength}
       this.song.chart.audio = file.name;
       this.song.chart.audioUrl = url;
       
-      this.showLoadingScreen("Processing Audio");
+      this.showLoadingScreen(__("Processing Audio||Procesando Audio"));
       
       const reader = new FileReader();
       reader.onload = () => {
@@ -29502,7 +29280,7 @@ Sample Length: ${chart.sampleLength}
       this.song.chart.background = file.name;
       this.song.chart.backgroundUrl = url;
 
-      this.showLoadingScreen("Processing Background");
+      this.showLoadingScreen(__("Processing Background||Procesando Fondo"));
       
       const reader = new FileReader();
       reader.onload = () => {
@@ -29524,7 +29302,7 @@ Sample Length: ${chart.sampleLength}
       this.song.chart.banner = file.name;
       this.song.chart.bannerUrl = url;
       
-      this.showLoadingScreen("Processing Banner");
+      this.showLoadingScreen(__("Processing Banner||Procesando Banner"));
       
       this.updateBanner(url);
       
@@ -29543,7 +29321,7 @@ Sample Length: ${chart.sampleLength}
   
   async loadLyricsFile(file) {
     try {
-      this.showLoadingScreen("Processing Lyrics");
+      this.showLoadingScreen(__("Processing Lyrics||Procesando Letras"));
       
       const reader = new FileReader();
       reader.onload = () => {
@@ -29637,7 +29415,7 @@ Sample Length: ${chart.sampleLength}
       }
 
       if (fileEntry) {
-        this.showLoadingScreen(`Loading ${targetProp} file`);
+        this.showLoadingScreen(`Loading ${targetProp} file||Cargando archivo "${targetProp}"`);
         
         const blob = await fileEntry.async("blob");
 
@@ -29693,7 +29471,7 @@ Sample Length: ${chart.sampleLength}
     
     this.hideLoadingScreen();
 
-    notifications.show("StepMania song imported!");
+    notifications.show(__("StepMania song imported!||Canción importada"));
   }
 
   async importSMFile(file) {
@@ -29714,37 +29492,40 @@ Sample Length: ${chart.sampleLength}
     this.refreshLyrics();
     this.audio.src = "";
     
-    notifications.show("SM file imported! Load audio/background files manually.");
+    notifications.show(__("SM file imported! Load audio/background files manually.||¡Archivo .SM importado! Carga el audio e imágenes manualmente"));
   }
 
   async exportSong() {
     try {
-      this.showLoadingScreen("Exporting song");
-
+      this.showLoadingScreen(__("Exporting song||Exportando canción"));
+  
+      // Asegurar que los archivos estén cargados antes de exportar
+      await this.ensureFilesLoaded();
+  
       // Prepare song data
       const songData = await FileTools.prepareSongForExport(this.song, this.files);
-
+  
       // Generate SM content
       const smContent = SMFile.generateSM(songData);
-
+  
       // Create ZIP file
       const JSZip = window.JSZip;
       if (!JSZip) {
         throw new Error("JSZip library not loaded");
       }
-
+  
       const zip = new JSZip();
-
+  
       // Add SM file
       const smFilename = `${songData.title || "song"}.sm`;
       zip.file(smFilename, smContent);
-
+  
       // Add resources
-      this.addSongResourcesToZip(songData, zip);
-
+      await this.addSongResourcesToZip(songData, zip);
+  
       // Generate ZIP file
       const blob = await zip.generateAsync({ type: "blob" });
-
+  
       // Save file
       const fileName = `${songData.title || "song"}.zip`;
       await this.saveFile(blob, fileName);
@@ -29762,35 +29543,138 @@ Sample Length: ${chart.sampleLength}
         Account.stats.usedAllNoteTypesInChart = true;
         saveAccount();
       }
-
+  
       this.hideLoadingScreen();
       this.showHomeScreen();
-      notifications.show("Song exported successfully!");
+      notifications.show(__("Song exported successfully!||¡Canción exportada!"));
     } catch (error) {
       console.error("Export failed:", error);
       this.hideLoadingScreen();
       this.showHomeScreen();
-      notifications.show("Export failed!", 2000, "error");
+      notifications.show(__("Export failed!||Problema al exportar"), 2000, "error");
     }
   }
+  
+  async ensureFilesLoaded() {
+    // Verificar y cargar audio si no está cargado
+    if (!this.files.audio && this.song.chart.audioUrl) {
+      try {
+        this.files.audio = await this.fetchFileAsBlob(this.song.chart.audioUrl);
+      } catch (e) {
+        console.warn("Could not load audio file:", e);
+      }
+    }
+    
+    // Verificar y cargar background si no está cargado
+    if (!this.files.background && this.song.chart.backgroundUrl && this.song.chart.backgroundUrl !== "no-media") {
+      try {
+        this.files.background = await this.fetchFileAsBlob(this.song.chart.backgroundUrl);
+      } catch (e) {
+        console.warn("Could not load background file:", e);
+      }
+    }
+    
+    // Verificar y cargar banner si no está cargado
+    if (!this.files.banner && this.song.chart.bannerUrl && this.song.chart.bannerUrl !== "no-media") {
+      try {
+        this.files.banner = await this.fetchFileAsBlob(this.song.chart.bannerUrl);
+      } catch (e) {
+        console.warn("Could not load banner file:", e);
+      }
+    }
+    
+    // Verificar y cargar archivos extra (BG changes)
+    if (this.song.chart.backgrounds) {
+      for (const bg of this.song.chart.backgrounds) {
+        if (bg.file && bg.file !== "no-media" && bg.file !== "-nosongbg-" && !this.files.extra[bg.file]) {
+          try {
+            if (bg.url) {
+              this.files.extra[bg.file] = await this.fetchFileAsBlob(bg.url);
+            }
+          } catch (e) {
+            console.warn(`Could not load background file: ${bg.file}`, e);
+          }
+        }
+      }
+    }
+  }
+  
+  async fetchFileAsBlob(url) {
+    return await FileTools.fetchFileAsBlob(url);
+  }
 
-  addSongResourcesToZip(songData, zip) {
+  async addSongResourcesToZip(songData, zip) {
     // Add main files
-    songData.audio !== "no-media" && zip.file(songData.audio, this.files.audio, { base64: true });
-    songData.background !== "no-media" && zip.file(songData.background, this.files.background, { base64: true });
-    songData.banner !== "no-media" && zip.file(songData.banner, this.files.banner, { base64: true });
-    songData.lyricsContent && zip.file(songData.lyrics, this.files.lyrics);
-
+    if (songData.audio !== "no-media" && this.files.audio) {
+      await this.addFileToZip(zip, songData.audio, this.files.audio);
+    }
+    
+    if (songData.background !== "no-media" && this.files.background) {
+      await this.addFileToZip(zip, songData.background, this.files.background);
+    }
+    
+    if (songData.banner !== "no-media" && this.files.banner) {
+      await this.addFileToZip(zip, songData.banner, this.files.banner);
+    }
+    
+    if (songData.lyricsContent && this.files.lyrics) {
+      zip.file(songData.lyrics, this.files.lyrics);
+    }
+  
     // Add BG change files
     if (songData.backgrounds) {
       for (const bg of songData.backgrounds) {
         if (bg.file && bg.file !== "no-media" && this.files.extra[bg.file]) {
-          zip.file(bg.file, this.files.extra[bg.file], { base64: true });
+          await this.addFileToZip(zip, bg.file, this.files.extra[bg.file]);
         }
       }
     }
-
+  
     return zip;
+  }
+  
+  async addFileToZip(zip, filename, data) {
+    // Si es un Blob o File, leer como ArrayBuffer
+    if (data instanceof Blob || data instanceof File) {
+      const arrayBuffer = await data.arrayBuffer();
+      zip.file(filename, arrayBuffer);
+      return;
+    }
+    
+    // Si es una URL (blob: o data:), fetch y convertir
+    if (typeof data === 'string' && (data.startsWith('blob:') || data.startsWith('data:'))) {
+      try {
+        const response = await fetch(data);
+        const blob = await response.blob();
+        const arrayBuffer = await blob.arrayBuffer();
+        zip.file(filename, arrayBuffer);
+        return;
+      } catch (error) {
+        console.warn(`Failed to fetch file from URL: ${filename}`, error);
+      }
+    }
+    
+    // Si es una string base64
+    if (typeof data === 'string') {
+      const base64Data = data.includes('base64,') ? data.split('base64,')[1] : data;
+      zip.file(filename, base64Data, { base64: true });
+      return;
+    }
+    
+    // Si es un ArrayBuffer
+    if (data instanceof ArrayBuffer) {
+      zip.file(filename, data);
+      return;
+    }
+    
+    // Si es un objeto con propiedades de archivo (para compatibilidad)
+    if (data && typeof data === 'object' && data._file) {
+      const arrayBuffer = await data._file.arrayBuffer();
+      zip.file(filename, arrayBuffer);
+      return;
+    }
+    
+    console.warn(`Cannot add file to zip: ${filename} - unsupported data type`, typeof data);
   }
 
   async saveFile(blob, filename) {
@@ -29905,18 +29789,18 @@ Sample Length: ${chart.sampleLength}
       fgcolor: "#ffffff",
       animate: true
     });
-
-    carousel.addItem("Edit Title", () => this.editMetadataField("title"));
-    carousel.addItem("Edit Subtitle", () => this.editMetadataField("subtitle"));
-    carousel.addItem("Edit Artist", () => this.editMetadataField("artist"));
-    carousel.addItem("Edit Genre", () => this.editMetadataField("genre"));
-    carousel.addItem("Edit Credit", () => this.editMetadataField("credit"));
-    carousel.addItem("Edit BPM", () => this.editSongBpm());
-    carousel.addItem("Edit Offset", () => this.editSongOffset());
-    carousel.addItem("Edit Sample Start", () => this.editSampleStart());
-    carousel.addItem("Edit Sample Length", () => this.editSampleLength());
-
-    carousel.addItem("< Back", () => this.showEditMenu());
+  
+    carousel.addItem("(Edit Title|Editar Título)", () => this.editMetadataField("title"));
+    carousel.addItem("(Edit Subtitle|Editar Subtítulo)", () => this.editMetadataField("subtitle"));
+    carousel.addItem("(Edit Artist|Editar Artista)", () => this.editMetadataField("artist"));
+    carousel.addItem("(Edit Genre|Editar Género)", () => this.editMetadataField("genre"));
+    carousel.addItem("(Edit Credit|Editar Crédito)", () => this.editMetadataField("credit"));
+    carousel.addItem("(Edit BPM|Editar BPM)", () => this.editSongBpm());
+    carousel.addItem("(Edit Offset|Editar Offset)", () => this.editSongOffset());
+    carousel.addItem("(Edit Sample Start|Editar Inicio de Muestra)", () => this.editSampleStart());
+    carousel.addItem("(Edit Sample Length|Editar Duración de Muestra)", () => this.editSampleLength());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showEditMenu());
     carousel.onCancel.add(() => this.showEditMenu());
   }
 
@@ -29970,7 +29854,7 @@ Sample Length: ${chart.sampleLength}
         }
         this.showMetadataEdit();
         this.updateInfoText();
-        notifications.show("BPM UPDATED");
+        notifications.show(__("BPM (UPDATED|ACTUALIZADO)"));
         keyboard.destroy();
         window.focusedElement = null;
       },
@@ -29999,7 +29883,7 @@ Sample Length: ${chart.sampleLength}
       onConfirm: (value) => {
         this.song.chart.offset = value;
         this.showMetadataEdit();
-        notifications.show("AUDIO OFFSET UPDATED");
+        notifications.show(__("AUDIO OFFSET (UPDATED|ACTUALIZADO)"));
         keyboard.destroy();
         window.focusedElement = null;
       },
@@ -30034,7 +29918,7 @@ Sample Length: ${chart.sampleLength}
         
         this.updateInfoText();
         this.showMetadataEdit();
-        notifications.show("SAMPLE START UPDATED");
+        notifications.show(__("SAMPLE START (UPDATED|ACTUALIZADO)"));
         keyboard.destroy();
         window.focusedElement = null;
       },
@@ -30083,9 +29967,9 @@ Sample Length: ${chart.sampleLength}
       fgcolor: "#ffffff",
       animate: true
     });
-
+  
     this.song.chart.backgrounds.forEach((bg, index) => {
-      const fileName = bg.file ? bg.file.split("/").pop() : "No file";
+      const fileName = bg.file ? bg.file.split("/").pop() : "(No file|Sin archivo)";
       carousel.addItem(fileName,
         () => this.showBGChangeMenu(index),
         { bg, fileName, index }
@@ -30097,19 +29981,19 @@ Sample Length: ${chart.sampleLength}
         const bg = item.data.bg;
         
         this.songInfoText.write(`${item.data.fileName}
-
-TYPE: ${item.data.fileName == '-nosongbg-' ? 'NONE' : bg.type}
-INDEX: ${index + 1}
-TIME: ${TimeUtils.formatTime(this.chartRenderer.beatToSec(bg.beat))}
-BEAT: ${bg.beat}`);
-
+  
+  TYPE: ${item.data.fileName == '-nosongbg-' ? 'NONE' : bg.type}
+  INDEX: ${index + 1}
+  TIME: ${TimeUtils.formatTime(this.chartRenderer.beatToSec(bg.beat))}
+  BEAT: ${bg.beat}`);
+  
         this.songInfoText.wrap(game.width / 2 - 8);
       }
     });
     
-    carousel.selectIndex(0); // Force an update
+    carousel.selectIndex(0);
   
-    carousel.addItem("< Back", () => this.showFileMenu());
+    carousel.addItem("< (Back|Volver)", () => this.showFileMenu());
     carousel.onCancel.add(() => this.showFileMenu());
   }
   
@@ -30124,7 +30008,7 @@ BEAT: ${bg.beat}`);
     });
     
     if (bg) {
-      carousel.addItem("REPLACE", () => {
+      carousel.addItem("(REPLACE|REEMPLAZAR)", () => {
         this.pickFile("image/*,video/*", async event => {
           const file = event.target.files[0];
           bg.file = file.name;
@@ -30133,7 +30017,7 @@ BEAT: ${bg.beat}`);
         }, () => this.showBGChangeMenu(bgIndex));
       });
       
-      carousel.addItem("REMOVE", () => {
+      carousel.addItem("(REMOVE|ELIMINAR)", () => {
         this.song.chart.backgrounds.splice(bgIndex, 1);
         this.chartRenderer.removeTag(bg.beat, 'bg');
         delete this.files.extra[bg.file];
@@ -30141,7 +30025,7 @@ BEAT: ${bg.beat}`);
       });
     }
     
-    carousel.addItem("< Back", () => this.editBGChangeFiles());
+    carousel.addItem("< (Back|Volver)", () => this.editBGChangeFiles());
     carousel.onCancel.add(() => this.editBGChangeFiles());
   }
 
@@ -30584,15 +30468,12 @@ BEAT: ${bg.beat}`);
   }
 }
 
-
-
-// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
     this.returnStateParams = returnStateParams;
     this.isWaitingForInput = false;
-    this.backgroundInterval = 8000; // Change background every 8 seconds
+    this.backgroundInterval = 8000;
     this.availableBackgrounds = [];
     this.bpmChanges = null;
     this.stops = null;
@@ -30602,56 +30483,46 @@ class Credits {
   create() {
     game.camera.fadeIn(0x000000);
     
-    // Create background system
     this.setupBackground();
-    
-    // Start background music
     this.startBackgroundMusic();
     
-    // Create credits container
     this.creditsContainer = game.add.group();
     
-    // Base credits content
     const creditsContent = [
       { text: "PADMANIACS", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 15 },
-      { text: "Created by Retora", font: FONTS.default_shadow, tint: 0xffffff, spacing: 50 },
+      { text: __("Created by Retora||Creado por Retora"), font: FONTS.default_shadow, tint: 0xffffff, spacing: 50 },
       
-      // Dynamic song credits section
-      { text: "SONG CREDITS", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 30 }
+      { text: __("SONG CREDITS||CRÉDITOS DE CANCIONES"), font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 30 }
     ];
     
-    // Add credits from local songs
     const songCredits = this.getSongCredits();
     if (songCredits.length > 0) {
       creditsContent.push(...songCredits);
       creditsContent.push({ text: "", font: FONTS.default, tint: 0xffffff, spacing: 25 });
     }
     
-    // Credit Atelier Magicae for some sound effects
-    creditsContent.push({ text: "SOUND EFFECTS", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 20 });
-    creditsContent.push({ text: "Atelier Magicae", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 });
-    creditsContent.push({ text: "Retora", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 });
-    creditsContent.push({ text: "", font: FONTS.default, tint: 0xffffff, spacing: 15 });
-    
-    // Continue with remaining credits
     creditsContent.push(
-      { text: "Special Thanks", font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 20 },
+      { text: __("SOUND EFFECTS||EFECTOS DE SONIDO"), font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 20 },
+      { text: "Atelier Magicae", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 },
+      { text: "Retora", font: FONTS.default_shadow, tint: 0xffffff, spacing: 15 },
+      { text: "", font: FONTS.default, tint: 0xffffff, spacing: 15 },
+      
+      { text: __("Special Thanks||Agradecimientos Especiales"), font: FONTS.bold_shadow, tint: 0x76fcde, spacing: 20 },
       { text: "StepMania Team", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "photonstorm", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "itch.io", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
-      { text: "You!", font: FONTS.bold_shadow, tint: [0xffffff, 0x05ff00], spacing: 25 },
+      { text: __("You!||¡Tú!"), font: FONTS.bold_shadow, tint: [0xffffff, 0x05ff00], spacing: 25 },
       
       { text: COPYRIGHT, font: FONTS.default_shadow, tint: 0x888888, spacing: 40 },
     );
     
-    // Create all text elements
-    let currentY = game.height + 20; // Start below the screen
+    let currentY = game.height + 20;
     
     creditsContent.forEach((credit, index) => {
       const text = new Text(game.width / 2, currentY, credit.text, credit.font, this.creditsContainer);
       text.anchor.set(0.5);
       text.wrap(200);
-      text.creditData = credit; // Store spacing info
+      text.creditData = credit;
       
       if (typeof credit.tint == 'number') {
         text.tint = credit.tint;
@@ -30673,31 +30544,23 @@ class Credits {
       currentY += credit.spacing;
     });
     
-    // Store total height for scrolling calculation
     this.totalHeight = currentY;
     this.startY = this.creditsContainer.y;
-    
-    // Setup completion detection
     this.creditsComplete = false;
     
-    // Execute addon behaviors
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
   setupBackground() {
-    // Create background sprite
     this.backgroundSprite = game.add.sprite(0, 0);
     this.backgroundSprite.alpha = 0.7;
     
-    // Collect all available backgrounds from songs
     this.collectBackgrounds();
     
-    // Start background slideshow
     if (this.availableBackgrounds.length > 0) {
       this.showNextBackground();
       this.backgroundTimer = game.time.events.loop(this.backgroundInterval, this.showNextBackground, this);
     } else {
-      // Fallback: create gradient background
       this.backgroundSprite.loadTexture("ui_background_gradient");
     }
   }
@@ -30705,7 +30568,6 @@ class Credits {
   collectBackgrounds() {
     this.availableBackgrounds = [];
     
-    // Collect from local songs
     if (window.localSongs && Array.isArray(window.localSongs)) {
       window.localSongs.forEach(song => {
         if (song.background && song.background !== "no-media") {
@@ -30717,7 +30579,6 @@ class Credits {
       });
     }
     
-    // Collect from external songs
     if (window.externalSongs && Array.isArray(window.externalSongs)) {
       window.externalSongs.forEach(song => {
         if (song.background && song.background !== "no-media") {
@@ -30729,7 +30590,6 @@ class Credits {
       });
     }
     
-    // Remove duplicates
     this.availableBackgrounds = [...new Set(this.availableBackgrounds)];
     
     console.log(`Found ${this.availableBackgrounds.length} backgrounds for slideshow`);
@@ -30740,23 +30600,18 @@ class Credits {
     
     const nextBackground = game.rnd.pick(this.availableBackgrounds);
     
-    // Create temporary image to load and display
     const tempImg = new Image();
     tempImg.onload = () => {
-      // Create canvas for the background
       const canvas = document.createElement('canvas');
       canvas.width = 240;
       canvas.height = 140;
       const ctx = canvas.getContext('2d');
       
-      // Draw and scale the image to fit
       ctx.drawImage(tempImg, 0, 0, 240, 140);
       
-      // Create texture and apply to sprite
       const texture = PIXI.Texture.fromCanvas(canvas);
       this.backgroundSprite.loadTexture(texture);
       
-      // Fade in effect
       this.backgroundSprite.alpha = 0;
       game.add.tween(this.backgroundSprite).to({ alpha: 0.4 }, 1000, "Linear", true);
     };
@@ -30765,43 +30620,34 @@ class Credits {
   }
 
   startBackgroundMusic() {
-    // Stop any existing background music
     if (backgroundMusic) {
       backgroundMusic.stop();
     }
     
-    // Get all available songs
     const allSongs = [];
     
-    // Add local songs
     if (window.localSongs && Array.isArray(window.localSongs)) {
       allSongs.push(...window.localSongs);
     }
     
-    // Add external songs
     if (window.externalSongs && Array.isArray(window.externalSongs)) {
       allSongs.push(...window.externalSongs);
     }
     
-    // Filter songs that have audio
     const songsWithAudio = allSongs.filter(song => song.audioUrl);
     
     if (songsWithAudio.length > 0) {
-      // Pick a random song
       const randomSong = game.rnd.pick(songsWithAudio);
       
-      // Create audio element for credits music
       this.creditsMusic = document.createElement("audio");
       this.creditsMusic.src = randomSong.audioUrl;
       this.creditsMusic.volume = Account.settings.volume / 100;
       this.creditsMusic.loop = true;
       
-      // Set bpm changes and stops
       this.bpmChanges = randomSong.bpmChanges;
       this.stops = randomSong.stops;
       this.startTime = game.time.now;
       
-      // Start playback
       this.creditsMusic.play().catch(error => {
         console.warn("Could not play credits music:", error);
       });
@@ -30815,26 +30661,23 @@ class Credits {
     
     if (window.localSongs && Array.isArray(window.localSongs)) {
       window.localSongs.forEach(song => {
-        // Check if song has credit information
-        const title = song.titleTranslit || song.title || "Unknown Song";
+        const title = song.titleTranslit || song.title || __("Unknown Song||Canción Desconocida");
         const artist = song.artistTranslit || song.artist;
         const credit = song.credit;
         
         if (credit) {
-          // Add song title and credit
           songCredits.push(
             { text: artist, font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
             { text: title, font: FONTS.bold_shadow, tint: 0xffffff, spacing: 8 },
-            { text: `Chart by ${credit}`, font: FONTS.default_shadow, tint: 0xa0a0a0, spacing: 25 }
+            { text: __(`Chart by ${credit}||Chart por ${credit}`), font: FONTS.default_shadow, tint: 0xa0a0a0, spacing: 25 }
           );
         }
       });
     }
     
-    // Also add disclaimer
     songCredits.push(
       { text: "", font: FONTS.default, tint: 0xffffff, spacing: 8 },
-      { text: "All songs and charts belong to their respective copyright holders.", font: FONTS.default_shadow, tint: 0x888888, spacing: 12 }
+      { text: __("All songs and charts belong to their respective copyright holders.||Todas las canciones y charts pertenecen a sus respectivos dueños de copyright."), font: FONTS.default_shadow, tint: 0x888888, spacing: 12 }
     );
     
     return songCredits;
@@ -30882,12 +30725,10 @@ class Credits {
   update() {
     const { now, beat } = this.getSongTime();
     
-    // Update audio visualizer
     if (this.visualizer) {
       this.visualizer.update();
     }
     
-    // Update gamepad
     gamepad.update();
     
     if (this.creditsComplete) return;
@@ -30896,10 +30737,8 @@ class Credits {
     const isAtStop = this.getLastStop(beat) && this.getLastStop().beat == this.currentBeat ;
     const scrollSpeed = isAtStop ? 0 : currentBpm / 10;
     
-    // Scroll credits upward
     this.creditsContainer.y -= scrollSpeed * (gamepad.held.any || mouse.held.any ? 4 : 1) * (game.time.elapsed / 1000);
     
-    // Check if credits have finished scrolling
     const bottomOfCredits = this.creditsContainer.y + this.totalHeight;
     if (bottomOfCredits < 0 && !this.creditsComplete) {
       this.creditsComplete = true;
@@ -30908,14 +30747,12 @@ class Credits {
   }
 
   onCreditsComplete() {
-    // Show continue prompt
-    this.continueText = new Text(game.width / 2, game.height / 2, "Thank you for playing", FONTS.bold_shadow);
+    this.continueText = new Text(game.width / 2, game.height / 2, __("Thank you for playing||Gracias por jugar"), FONTS.bold_shadow);
     this.continueText.anchor.set(0.5);
     this.continueText.alpha = 0;
     
     game.add.tween(this.continueText).to({ alpha: 1 }, 1000, "Linear", true);
     
-    // Wait for input to return
     this.isWaitingForInput = true;
     gamepad.signals.pressed.any.addOnce(() => {
       this.returnToMenu();
@@ -30923,7 +30760,6 @@ class Credits {
   }
 
   returnToMenu() {
-    // Fade out and transition to next game screen
     game.camera.fade(0x000000, 1000);
     game.camera.onFadeComplete.addOnce(() => {
       game.state.start(this.returnState, true, false, this.returnStateParams);
@@ -30931,27 +30767,21 @@ class Credits {
   }
 
   shutdown() {
-    // Clean up event listeners
     if (this.skipHandler) {
       gamepad.signals.pressed.any.remove(this.skipHandler);
     }
     
-    // Clean up music
     if (this.creditsMusic) {
       this.creditsMusic.pause();
       this.creditsMusic.src = "";
     }
     
-    // Clean up background timer
     if (this.backgroundTimer) {
       game.time.events.remove(this.backgroundTimer);
     }
   }
 }
 
-
-
-// ======== js/game/states/ErrorScreen.js ========
 class ErrorScreen {
   init(message, recoverStateKey) {
     this.message = message || "The causes of this failure are unknown yet";
@@ -30988,9 +30818,6 @@ Please Report The Developer Immediately!
   }
 }
 
-
-
-// ======== js/game/player/ChartRenderer.js ========
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -31973,9 +31800,6 @@ class ChartRenderer {
   }
 }
 
-
-
-// ======== js/game/player/AudioTemperatureMeter.js ========
 class AudioTemperatureMeter {
   constructor(scene, audioElement) {
     this.scene = scene;
@@ -32330,9 +32154,6 @@ class AudioTemperatureMeter {
   }
 }
 
-
-
-// ======== js/game/player/Player.js ========
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
     this.scene = scene;
@@ -33215,9 +33036,6 @@ class Player {
   }
 }
 
-
-
-// ======== js/game/player/FirstPlayer.js ========
 class FirstPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "left" side
@@ -33235,9 +33053,6 @@ class FirstPlayer extends Player {
   }
 }
 
-
-
-// ======== js/game/player/SecondPlayer.js ========
 class SecondPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "right" side

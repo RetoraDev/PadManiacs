@@ -4,6 +4,7 @@ const DEFAULT_ACCOUNT = {
     volume: 100,
     sfxVolume: 100,
     autoplay: false,
+    language: 0,
     enableMenuMusic: true,
     randomSong: false,
     renderer: 0,

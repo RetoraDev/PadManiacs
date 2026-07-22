@@ -1,6 +1,6 @@
 class LoadLocalSongs {
   create() {
-    this.progressText = new ProgressText("LOADING SONGS");
+    this.progressText = new ProgressText(__("Loading Songs...||Cargando canciones..."));
     this.songs = [];
     this.parser = new LocalSMParser();
     this.loadSongs();

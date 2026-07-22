@@ -37,9 +37,9 @@ class Character {
     this.lastSkillLevelUp = data.lastSkillLevelUp || 0;
     this.lastHairUnlockLevel = data.lastHairUnlockLevel || 0;
     this.lastItemUnlockLevel = data.lastItemUnlockLevel || 0;
-    this.personality = data.personality || null; // null means no personality yet
-    this.developedPersonalities = data.developedPersonalities || []; // track developed personalities
-    this.personalityStudyHistory = data.personalityStudyHistory || []; // for debugging
+    this.personality = data.personality || null;
+    this.developedPersonalities = data.developedPersonalities || [];
+    this.personalityStudyHistory = data.personalityStudyHistory || [];
     this.currentPersonalityIndex = data.currentPersonalityIndex || 0;
   }
   
@@ -76,7 +76,7 @@ class Character {
         this.level >= CHARACTER_SYSTEM.MIN_LEVEL_FOR_SKILL) {
       const unlockedSkill = this.unlockRandomSkill();
       if (unlockedSkill) {
-        notifications.show(`New skill unlocked: ${unlockedSkill.name}`, 2000, "unlock");
+        notifications.show(__("New skill unlocked: ||Nueva habilidad desbloqueada: ") + unlockedSkill.name, 2000, "unlock");
       }
     }
     
@@ -88,7 +88,7 @@ class Character {
       if (unlockedHair) {
         this.lastHairUnlockLevel = this.level;
         
-        notifications.show(`New hair style unlocked: ${CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1].name}`, 2000, "unlock");
+        notifications.show(__("New hair style unlocked: ||Nuevo corte de pelo desbloqueado: ") + CHARACTER_SYSTEM.HAIR_STYLES[unlockedHair.type][unlockedHair.id-1].name, 2000, "unlock");
       }
     }
     
@@ -99,7 +99,7 @@ class Character {
       const unlockedItem = this.unlockRandomItem();
       if (unlockedItem) {
         this.lastItemUnlockLevel = this.level;
-        notifications.show(`New item unlocked: ${unlockedItem.name}`, 2000, "unlock");
+        notifications.show(__("New item unlocked: ||Nuevo item desbloqueado: ") + unlockedItem.name, 2000, "unlock");
       }
     }
     
@@ -109,21 +109,19 @@ class Character {
         this.skillLevel < CHARACTER_SYSTEM.MAX_SKILL_LEVEL) {
       this.skillLevel++;
       this.lastSkillLevelUp = this.level;
-      notifications.show(`Skill level increased to ${this.skillLevel}`, 2000, "unlock");
+      notifications.show(__("Skill level increased to ||Nivel de habilidad ha aumentado a ") + this.skillLevel, 2000, "unlock");
     }
   }
 
   unlockRandomSkill() {
     const personality = this.personality ? CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.personality) : null;
     
-    // Get all available skills not yet unlocked
     let availableSkills = CHARACTER_SKILLS.filter(skill => 
       !this.unlockedSkills.includes(skill.id)
     );
     
     if (availableSkills.length === 0) return null;
     
-    // If character has a personality with skill tendencies, bias the selection
     if (personality && personality.skillTendencies) {
       const tendencies = personality.skillTendencies;
       const preferredSkills = [];
@@ -132,14 +130,12 @@ class Character {
       for (const skill of availableSkills) {
         let matches = false;
         
-        // Check activation condition preference
         if (tendencies.activation && tendencies.activation.length > 0) {
           if (tendencies.activation.includes(skill.activationCondition)) {
             matches = true;
           }
         }
         
-        // Check effect preference
         if (tendencies.effects && tendencies.effects.length > 0) {
           if (tendencies.effects.includes(skill.effect)) {
             matches = true;
@@ -153,14 +149,12 @@ class Character {
         }
       }
       
-      // 70% chance to pick from preferred skills if any exist
       if (preferredSkills.length > 0 && Math.random() < 0.7) {
         const randomSkill = preferredSkills[Math.floor(Math.random() * preferredSkills.length)];
         this.unlockedSkills.push(randomSkill.id);
         return randomSkill;
       }
       
-      // Otherwise pick from other skills (or preferred if no others)
       const pool = otherSkills.length > 0 ? otherSkills : preferredSkills;
       if (pool.length > 0) {
         const randomSkill = pool[Math.floor(Math.random() * pool.length)];
@@ -169,7 +163,6 @@ class Character {
       }
     }
     
-    // No personality or no tendencies, pick random
     const randomSkill = availableSkills[Math.floor(Math.random() * availableSkills.length)];
     this.unlockedSkills.push(randomSkill.id);
     return randomSkill;
@@ -179,31 +172,26 @@ class Character {
     const availableFrontHairs = [];
     const availableBackHairs = [];
     
-    // Find all front hair styles not yet unlocked
     for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.front.length; i++) {
       if (!Account.characters.unlockedHairs.front.includes(i)) {
         availableFrontHairs.push(i);
       }
     }
     
-    // Find all back hair styles not yet unlocked
     for (let i = 1; i <= CHARACTER_SYSTEM.HAIR_STYLES.back.length; i++) {
       if (!Account.characters.unlockedHairs.back.includes(i)) {
         availableBackHairs.push(i);
       }
     }
     
-    // Randomly choose between front or back hair unlock
     const unlockType = Math.random() < 0.5 ? 'front' : 'back';
     const availableHairs = unlockType === 'front' ? availableFrontHairs : availableBackHairs;
     
     if (availableHairs.length > 0) {
       const randomHairId = availableHairs[Math.floor(Math.random() * availableHairs.length)];
       
-      // Add to Account's unlocked hairs
       Account.characters.unlockedHairs[unlockType].push(randomHairId);
       
-      // Save to localStorage
       localStorage.setItem("Account", JSON.stringify(Account));
       
       return {
@@ -216,10 +204,8 @@ class Character {
   }
 
   unlockRandomItem() {
-    // Default items that are already equipped or unlocked by default
     const defaultItems = ["top_seifuku_default", "bottom_skirt_blue", "shoes_common"];
     
-    // Get all items that are NOT in unlockedItems and NOT default items
     const availableItems = CHARACTER_ITEMS.filter(item => 
       !Account.characters.unlockedItems.includes(item.id) &&
       !defaultItems.includes(item.id)
@@ -228,10 +214,8 @@ class Character {
     if (availableItems.length > 0) {
       const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
       
-      // Add to Account's unlocked items
       Account.characters.unlockedItems.push(randomItem.id);
       
-      // Save to localStorage
       saveAccount();
       
       return randomItem;
@@ -247,22 +231,18 @@ class Character {
     const personalities = CHARACTER_SYSTEM.PERSONALITIES;
     const developed = this.developedPersonalities || [];
     
-    // If already developed all possible personalities, stop
     if (developed.length >= personalities.length) {
       if (window.LOG_PERSONALITY_STUDY) {
-        console.log(`${this.name} has developed all personalities`);
+        console.log(this.name + " has developed all personalities");
       }
       return null;
     }
     
-    // Check which personalities we should study next
     let candidates = [];
     
     if (developed.length === 0) {
-      // No personality yet - check all
       candidates = personalities;
     } else {
-      // Check possible next personalities
       const lastDeveloped = personalities.find(p => p.id === developed[developed.length - 1]);
       if (lastDeveloped && lastDeveloped.possibleNextPersonalities) {
         candidates = personalities.filter(p => 
@@ -271,17 +251,15 @@ class Character {
         );
       }
       
-      // If no candidates from next personalities, check all not developed
       if (candidates.length === 0) {
         candidates = personalities.filter(p => !developed.includes(p.id));
       }
     }
     
     if (window.LOG_PERSONALITY_STUDY) {
-      console.log(`Studying personality ${candidates.length} candidates for ${this.name}`);
+      console.log("Studying personality " + candidates.length + " candidates for " + this.name);
     }
     
-    // Score each candidate based on game results
     let bestCandidate = null;
     let bestScore = 0;
     
@@ -293,25 +271,24 @@ class Character {
       }
       
       if (window.LOG_PERSONALITY_STUDY) {
-        console.log(`${personality.name}: score ${score.toFixed(2)}`);
+        console.log(personality.name + ": score " + score.toFixed(2));
       }
     }
     
-    // Threshold to develop personality (need at least 0.7 to unlock)
     if (bestCandidate && bestScore >= 0.7) {
       this.developedPersonalities.push(bestCandidate.id);
       this.personality = bestCandidate.id;
       this.currentPersonalityIndex = this.developedPersonalities.length - 1;
       
       if (window.LOG_PERSONALITY_STUDY) {
-        console.log(`${this.name} developed "${bestCandidate.name}" personality! (score: ${bestScore.toFixed(2)})`);
+        console.log(this.name + " developed " + bestCandidate.name + " personality! (score: " + bestScore.toFixed(2) + ")");
       }
       
       return bestCandidate;
     }
     
     if (window.LOG_PERSONALITY_STUDY) {
-      console.log(`${this.name} didn't develop a personality this time (best score: ${bestScore.toFixed(2)})`);
+      console.log(this.name + " didn't develop a personality this time (best score: " + bestScore.toFixed(2) + ")");
     }
     
     return null;
@@ -325,7 +302,6 @@ class Character {
     const judgements = gameResults.judgements || {};
     const totalNotes = Object.values(judgements).reduce((a, b) => a + b, 0);
     
-    // Games played check
     if (reasons.gamesPlayed !== undefined) {
       const games = stats.gamesPlayed || 0;
       const ratio = Math.min(1, games / reasons.gamesPlayed);
@@ -333,7 +309,6 @@ class Character {
       totalChecks++;
     }
     
-    // Accuracy check
     if (reasons.accuracyMin !== undefined) {
       const acc = gameResults.accuracy || 0;
       const ratio = Math.min(1, acc / reasons.accuracyMin);
@@ -341,7 +316,6 @@ class Character {
       totalChecks++;
     }
     
-    // Combo check
     if (reasons.comboMin !== undefined) {
       const combo = gameResults.maxCombo || 0;
       const ratio = Math.min(1, combo / reasons.comboMin);
@@ -349,16 +323,13 @@ class Character {
       totalChecks++;
     }
     
-    // Perfect streak check
     if (reasons.perfectStreakMin !== undefined) {
-      // Calculate perfect streak from game data
       const perfectStreak = gameResults.maxPerfectStreak || 0;
       const ratio = Math.min(1, perfectStreak / reasons.perfectStreakMin);
       score += ratio;
       totalChecks++;
     }
     
-    // Perfect games check
     if (reasons.perfectGames !== undefined) {
       const perfectGames = stats.perfectGames || 0;
       const ratio = Math.min(1, perfectGames / reasons.perfectGames);
@@ -366,7 +337,6 @@ class Character {
       totalChecks++;
     }
     
-    // Max marvelous in game check
     if (reasons.maxMarvelous !== undefined) {
       const marvelous = judgements.marvelous || 0;
       const ratio = Math.min(1, marvelous / reasons.maxMarvelous);
@@ -374,7 +344,6 @@ class Character {
       totalChecks++;
     }
     
-    // Max miss check
     if (reasons.maxMiss !== undefined) {
       const miss = judgements.miss || 0;
       const ratio = Math.max(0, 1 - (miss / reasons.maxMiss));
@@ -382,7 +351,6 @@ class Character {
       totalChecks++;
     }
     
-    // Rating threshold check
     if (reasons.ratingThreshold !== undefined) {
       const rating = gameResults.rating || 'F';
       const ratingValues = { 'F': 0, 'E': 0.1, 'D': 0.2, 'C': 0.3, 'B': 0.4, 'A': 0.5, 'S': 0.6, 'SS': 0.7, 'SSS': 0.8, 'SSS+': 0.9 };
@@ -392,7 +360,6 @@ class Character {
       totalChecks++;
     }
     
-    // Return normalized score (0-1)
     return totalChecks > 0 ? score / totalChecks : 0;
   }
 

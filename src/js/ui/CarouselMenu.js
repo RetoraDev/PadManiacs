@@ -78,7 +78,7 @@ class CarouselMenu extends Phaser.Sprite {
       parent: null,
       background: null,
       text: null,
-      textContent: text,
+      textContent: text._localized ? text : __(text),
       callback: callback,
       data: data,
       index: index,

@@ -77,7 +77,7 @@ class ResultsMulti extends Results {
     this.showPlayerResults(2);
     
     if (this.winner == 0) {
-      const drawText = new Text(game.width / 2, 112 - 14, "DRAW", FONTS.bold);
+      const drawText = new Text(game.width / 2, 112 - 14, __("DRAW||EMPATE"), FONTS.bold);
       drawText.anchor.x = 0.5;
       drawText.tint = 0xFF007F; // Purple color
       
@@ -85,7 +85,7 @@ class ResultsMulti extends Results {
     } else if (this.winner == 1) {
       window.multiplayerState.counter.player1 ++;
     } else if (this.winner == 2) {
-      window.multiplayerState.counter.player1 ++;
+      window.multiplayerState.counter.player2 ++;
     }
     
     this.showMenu();
@@ -130,7 +130,7 @@ class ResultsMulti extends Results {
     return 0;
   }
   
-  showPlayerResults(playerNumber = playerNumber) {
+  showPlayerResults(playerNumber) {
     const player = this.gameResults["player" + playerNumber];
     
     const xPos = playerNumber == 1 ? 10 : 240 - 10;
@@ -140,32 +140,32 @@ class ResultsMulti extends Results {
     const autoplay = player.autoplay;
     
     // Score
-    const scoreText = new Text(xPos, 30, `Score: ${autoplay ? "---" : player.score.toLocaleString()}`, FONTS.default);
+    const scoreText = new Text(xPos, 30, __(`(Score|Puntaje): ${autoplay ? "---" : player.score.toLocaleString()}`), FONTS.default);
     scoreText.anchor.x = xAnchor;
     
     // Accuracy
-    const accuracyText = new Text(xPos, 40, `Accuracy: ${autoplay ? "---" : `${player.accuracy.toFixed(2)}%`}`, FONTS.default);
+    const accuracyText = new Text(xPos, 40, __(`(Accuracy|Precisión): ${autoplay ? "---" : `${player.accuracy.toFixed(2)}%`}`), FONTS.default);
     accuracyText.anchor.x = xAnchor;
     
     // Rating
     const scoreRating = player.getScoreRating();
     
-    const ratingText = new Text(xPos, 50, `Rating: ${autoplay ? "AUTO" : scoreRating}`, FONTS.shaded);
+    const ratingText = new Text(xPos, 50, __(`(Rating|Calificación): ${autoplay ? "AUTO" : scoreRating}`), FONTS.shaded);
     ratingText.tint = this.getRatingColor(scoreRating);
     ratingText.anchor.x = xAnchor;
     
     // Combo
-    const comboText = new Text(xPos, 60, `Max Combo: ${autoplay ? "---" : player.maxCombo}`, FONTS.default);
+    const comboText = new Text(xPos, 60, __(`(Max Combo|Combo Máx): ${autoplay ? "---" : player.maxCombo}`), FONTS.default);
     comboText.anchor.x = xAnchor;
     
-    // Judgements
-    const judgementsText = new Text(xPos, 70, autoplay ? "\nAUTOPLAY ENABLED" : this.getJudgementsText(player.judgementCounts));
+    // Judgements (no se traducen)
+    const judgementsText = new Text(xPos, 70, autoplay ? __("AUTOPLAY ENABLED||AUTOPLAY ACTIVADO") : this.getJudgementsText(player.judgementCounts));
     judgementsText.tint = autoplay ? 0xff0000 : 0xffffff;
     judgementsText.anchor.x = xAnchor;
     
     // Winner record indicator
     if (!autoplay && this.winner == playerNumber) {
-      const winnerText = new Text(game.width / 2, 112 - 14, `PLAYER ${playerNumber} WINS!`, FONTS.bold);
+      const winnerText = new Text(game.width / 2, 112 - 14, __(`PLAYER ${playerNumber} WINS!||¡JUGADOR ${playerNumber} GANA!`), FONTS.bold);
       winnerText.anchor.x = 0.5;
       winnerText.tint = 0xFFD700; // Gold color
       
@@ -182,12 +182,12 @@ class ResultsMulti extends Results {
       margin: { top: 0, bottom: 0, left: 0, right: 0 },
     });
     
-    menu.addItem("Next", () => {
+    menu.addItem(__("Next||Siguiente"), () => {
       game.state.start("SongSelect", window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
     });
-    menu.addItem("Continue", () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
-    menu.addItem("Retry", () => game.state.start("PlayMulti", true, false, this.config, undefined, undefined, undefined, this.gameData.playlistKey));
-    menu.addItem("Quit", () => game.state.start("MainMenu"));
+    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
+    menu.addItem(__("Retry||Reintentar"), () => game.state.start("PlayMulti", true, false, this.config, undefined, undefined, undefined, this.gameData.playlistKey));
+    menu.addItem(__("Quit||Salir"), () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results_multi', menu);
   }

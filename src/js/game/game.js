@@ -119,6 +119,7 @@ window.getDifficultyColor = (value, returnIntFormat = false) => {
   }
 };
 
+// Audio pooling system
 const Audio = {
   pool: {},
   add: function (key) {

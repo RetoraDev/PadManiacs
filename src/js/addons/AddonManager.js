@@ -16,7 +16,7 @@ class AddonManager {
     this.hibernatingAddons = new Set(Account.settings?.hibernatingAddons || []);
     
     if (this.safeMode) {
-      console.log("🔒 Addon Safe Mode enabled - skipping addon loading");
+      console.log("Addon Safe Mode enabled: skipping addon loading");
       this.isInitialized = true;
       return;
     }
@@ -27,7 +27,7 @@ class AddonManager {
 
   async loadAddons() {
     try {
-      console.log("📦 Loading addons...");
+      console.log("Loading addons...");
       
       await this.loadAddonsFromStorage();
       
@@ -110,7 +110,7 @@ class AddonManager {
     this.processAddonAssets(addon);
     
     this.addons.set(addon.id, addon);
-    console.log(`📦 Loaded addon: ${addon.name} v${addon.version} (${addon.isEnabled ? 'enabled' : 'disabled'})`);
+    console.log(`Loaded addon: ${addon.name} v${addon.version} (${addon.isEnabled ? 'enabled' : 'disabled'})`);
   }
 
   async processAddons() {

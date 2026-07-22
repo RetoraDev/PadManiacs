@@ -120,11 +120,11 @@ class SongSelect {
 
     // Add songs to carousel
     if (this.songs.length === 0) {
-      this.songCarousel.addItem("No songs found", null);
+      this.songCarousel.addItem(__("No songs found||No se encontraron canciones"), null);
     } else {
       this.songs.forEach((song, index) => {
         const title = song.titleTranslit || song.title;
-        const displayText = title ? title : `Song ${index + 1}`;
+        const displayText = title ? title : __(`Song ${index + 1}||Canción ${index + 1}`);
         
         this.songCarousel.addItem(
           displayText,
@@ -228,12 +228,12 @@ class SongSelect {
     
     if (!highScores) {
       if (this.highScoreText) {
-        this.highScoreText.write("NO HIGH SCORES");
+        this.highScoreText.write(__("NO HIGH SCORES||SIN HIGH SCORES"));
       }
       return;
     }
     
-    let highScoreText = "HIGH SCORES:\n";
+    let highScoreText = __("HIGH SCORES:\n||HIGH SCORES:\n");
     
     // Show best score for each difficulty
     song.difficulties.forEach((diff, index) => {
@@ -276,9 +276,9 @@ class SongSelect {
     
     if (title) text += title + '\n';
     if (subtitle) text += subtitle + '\n';
-    if (artist) text += 'Artist: ' + artist + '\n';
+    if (artist) text += __("Artist: ") + artist + '\n';
     //if (genre) text += genre + '\n';
-    if (credit) text += 'Credit: ' + credit;
+    if (credit) text += __("Credit: ") + credit;
     
     return text;
   }
@@ -360,8 +360,8 @@ class SongSelect {
     
     game.onMenuIn.dispatch('gamemode', this.gamemodeCarousel);
     
-    this.gamemodeCarousel.addItem("Single Player", () => this.startGame(song, difficultyIndex, true));
-    this.gamemodeCarousel.addItem("Multiplayer", () => this.showMultiplayerScreen(song, difficultyIndex));
+    this.gamemodeCarousel.addItem(__("Single Player||Un Jugador"), () => this.startGame(song, difficultyIndex, true));
+    this.gamemodeCarousel.addItem(__("Multiplayer||Multijugador"), () => this.showMultiplayerScreen(song, difficultyIndex));
     
     this.gamemodeCarousel.onCancel.add(() => {
       this.showDifficultySelection(song);
@@ -386,8 +386,8 @@ class SongSelect {
     this.p1ReadyBackground.anchor.set(0.5);
     this.p2ReadyBackground.anchor.set(0.5);
     
-    this.p1ReadyText = new Text(0, 1, "READY", null, this.p1ReadyBackground);
-    this.p2ReadyText = new Text(0, 1, "READY", null, this.p2ReadyBackground);
+    this.p1ReadyText = new Text(0, 1, __("READY||LISTO"), null, this.p1ReadyBackground);
+    this.p2ReadyText = new Text(0, 1, __("READY||LISTO"), null, this.p2ReadyBackground);
     
     this.p1ReadyText.anchor.set(0.5);
     this.p2ReadyText.anchor.set(0.5);
@@ -396,11 +396,11 @@ class SongSelect {
     this.multiplayerScreen.addChild(this.p2ReadyBackground);
 
     // Prompt player 2 to press start
-    this.playerJoinInstructionText = new Text(120 + 55, 50 + 32, "PLAYER 2\n< PRESS START >", null, this.multiplayerScreen);
+    this.playerJoinInstructionText = new Text(120 + 55, 50 + 32, __("PLAYER 2\n< PRESS START >||JUGADOR 2\n< PRESIONA START >"), null, this.multiplayerScreen);
     this.playerJoinInstructionText.anchor.set(0.5);
     
     // Prompt both players to press start
-    this.startInstructionText = new Text(game.width / 2, 100, "PRESS START TO BEGIN", null, this.multiplayerScreen);
+    this.startInstructionText = new Text(game.width / 2, 100, __("PRESS START TO BEGIN||PRESIONA START PARA COMENZAR"), null, this.multiplayerScreen);
     this.startInstructionText.visible = false;
     this.startInstructionText.anchor.set(0.5);
     
@@ -425,30 +425,30 @@ class SongSelect {
     
     // Auto-play
     window.addSettingItem(
-      "Auto-play",
-      ["OFF", "ON"], 
+      "(Auto-play|Auto-juego)",
+      [__("(OFF|APAGADO)"), __("(ON|ACTIVADO)")], 
       settings.autoplay ? 1 : 0,
       index => settings.autoplay = index === 1
     );
     
     // Scroll Direction
     window.addSettingItem(
-      "Scroll",
-      ["FALLING", "RISING"],
+      __("(Scroll|Desplazamiento)"),
+      [__("(FALLING|CAYENDO)"), __("(RISING|ASCENDENTE)")],
       settings.scrollDirection === 'falling' ? 0 : 1,
       index => settings.scrollDirection = index === 0 ? 'falling' : 'rising'
     );
     
     // Note colors
     const noteOptions = [
-      { value: 'NOTE', display: 'NOTE' },
-      { value: 'VIVID', display: 'VIVID' },
-      { value: 'FLAT', display: 'FLAT' },
-      { value: 'RAINBOW', display: 'RAINBOW' }
+      { value: 'NOTE', display: "NOTE" },
+      { value: 'VIVID', display: "VIVID" },
+      { value: 'FLAT', display: "FLAT" },
+      { value: 'RAINBOW', display: "RAINBOW" }
     ];
     const currentNoteIndex = noteOptions.findIndex(opt => opt.value === settings.noteColorOption);
     window.addSettingItem(
-      "Note Colors",
+      __("(Note Colors|Colores de Notas)"),
       noteOptions.map(opt => opt.display),
       currentNoteIndex,
       index => settings.noteColorOption = noteOptions[index].value
@@ -456,7 +456,7 @@ class SongSelect {
 
     // Note speed
     window.addSettingItem(
-      "Note Speed",
+      __("(Note Speed|Velocidad de Notas)"),
       ["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
       settings.noteSpeedMult - 1,
       index => settings.noteSpeedMult = index + 1
@@ -464,7 +464,7 @@ class SongSelect {
     
     // Speed mod
     window.addSettingItem(
-      "Speed Mod",
+      __("(Speed Mod|Modo de Velocidad)"),
       ["X-MOD", "C-MOD"],
       settings.speedMod === 'C-MOD' ? 1 : 0,
       index => settings.speedMod = index === 1 ? 'C-MOD' : 'X-MOD'
@@ -496,21 +496,21 @@ class SongSelect {
     
     // Add to playlist
     if (!hasPlaylistKey) {
-      this.actionsMenu.addItem("Add to playlist", () => this.showAddToPlaylistMenu(currentSong));
+      this.actionsMenu.addItem(__("Add to playlist||Agregar a playlist"), () => this.showAddToPlaylistMenu(currentSong));
     } else {
-      this.actionsMenu.addItem("Add to another playlist", () => this.showAddToPlaylistMenu(currentSong, playlistKey));
+      this.actionsMenu.addItem(__("Add to another playlist||Agregar a otra playlist"), () => this.showAddToPlaylistMenu(currentSong, playlistKey));
     }
     
     // Remove from playlist
     if (hasPlaylistKey) {
-      this.actionsMenu.addItem("Remove from playlist", () => {
+      this.actionsMenu.addItem(__("Remove from playlist||Quitar de playlist"), () => {
         const playlistManager = PlaylistManager.getInstance();
         const playlist = playlistManager.getPlaylist(playlistKey);
         if (playlist) {
           const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
           if (index !== -1) {
             playlistManager.removeSong(playlistKey, index);
-            notifications.show("Removed from playlist!");
+            notifications.show(__("Removed from playlist!||¡Quitado de la playlist!"));
             this.closeActionsMenu();
             
             // Reinitialize with updated songs at the same index (or previous if last)
@@ -524,7 +524,7 @@ class SongSelect {
               this.playlistKey
             );
           } else {
-            notifications.show("Song not in playlist!");
+            notifications.show(__("Song not in playlist!||¡Canción no está en la playlist!"));
           }
         }
       });
@@ -537,11 +537,11 @@ class SongSelect {
       if (playlist) {
         const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
         if (index !== -1) {
-          this.actionsMenu.addItem("Move up", () => {
+          this.actionsMenu.addItem(__("Move up||Subir"), () => {
             if (index > 0) {
               const playlistManager = PlaylistManager.getInstance();
               playlistManager.moveSong(playlistKey, index, index - 1);
-              notifications.show("Moved up!");
+              notifications.show(__("Moved up!||¡Subido!"));
               this.closeActionsMenu();
               
               // Reinitialize with swapped songs at the new index
@@ -556,11 +556,11 @@ class SongSelect {
               );
             }
           });
-          this.actionsMenu.addItem("Move down", () => {
+          this.actionsMenu.addItem(__("Move down||Bajar"), () => {
             if (index < playlist.songs.length - 1) {
               const playlistManager = PlaylistManager.getInstance();
               playlistManager.moveSong(playlistKey, index, index + 1);
-              notifications.show("Moved down!");
+              notifications.show(__("Moved down!||¡Bajado!"));
               this.closeActionsMenu();
               
               // Reinitialize with swapped songs at the new index
@@ -580,21 +580,21 @@ class SongSelect {
     }
     
     // Statistics
-    this.actionsMenu.addItem("See properties", () => {
+    this.actionsMenu.addItem(__("See properties||Ver propiedades"), () => {
       game.state.start("SongStats", true, false, { chart: this.songs[this.songCarousel.selectedIndex], playlistKey: this.playlistKey }, "SongSelect", [this.songs, this.songCarousel.selectedIndex, this.autoSelect, this.type, this.playlistKey]);
     });
     
     // Open in Jukebox
-    this.actionsMenu.addItem("Open in Jukebox", () => {
+    this.actionsMenu.addItem(__("Open in Jukebox||Abrir en Jukebox"), () => {
       game.state.start("Jukebox", true, false, this.songs, this.songCarousel.selectedIndex);
     });
     
     // Open in Editor
-    this.actionsMenu.addItem("Open in Editor", () => {
+    this.actionsMenu.addItem(__("Open in Editor||Abrir en Editor"), () => {
       game.state.start("Editor", true, false, { chart: this.songs[this.songCarousel.selectedIndex] });
     });
     
-    this.actionsMenu.addItem("< Back", () => this.closeActionsMenu());
+    this.actionsMenu.addItem(__("< Back||< Volver"), () => this.closeActionsMenu());
     this.actionsMenu.onCancel.add(() => this.closeActionsMenu());
   }
   
@@ -602,7 +602,7 @@ class SongSelect {
     if (this.actionsMenu) this.actionsMenu.destroy();
     
     if (!song.isLocal) {
-      notifications.show("Songs loaded with file picker can't be added to playlists");
+      notifications.show(__("Songs loaded with file picker can't be added to playlists||Las canciones cargadas con selector de archivos no se pueden agregar a playlists"));
       this.showActionsMenu(omitKey);
       return;
     }
@@ -616,7 +616,7 @@ class SongSelect {
     
     const playlistManager = PlaylistManager.getInstance();
     
-    this.actionsMenu.addItem("Create new playlist", () => {
+    this.actionsMenu.addItem(__("Create new playlist||Crear nueva playlist"), () => {
       this.createPlaylistForSong(song);
     });
     
@@ -624,17 +624,17 @@ class SongSelect {
     for (const key of keys) {
       if (key === omitKey) continue;
       const playlist = playlistManager.getPlaylist(key);
-      this.actionsMenu.addItem(`Add to "${playlist.name}"`, () => {
+      this.actionsMenu.addItem(__(`Add to "${playlist.name}"||Agregar a "${playlist.name}"`), () => {
         this.closeActionsMenu();
         if (playlistManager.addSong(key, song)) {
-          notifications.show(`Added to "${playlist.name}"!`);
+          notifications.show(__(`Added to "${playlist.name}"!||¡Agregado a "${playlist.name}"!`));
         } else {
-          notifications.show("Song already in playlist!");
+          notifications.show(__("Song already in playlist!||¡Canción ya está en la playlist!"));
         }
       });
     }
     
-    this.actionsMenu.addItem("< Back", () => {
+    this.actionsMenu.addItem(__("< Back||< Volver"), () => {
       this.showActionsMenu(omitKey);
     });
     this.actionsMenu.onCancel.add(() => this.showActionsMenu(omitKey));
@@ -644,7 +644,7 @@ class SongSelect {
     const keyboard = new OnScreenKeyboard();
     
     window.focusedElement = new TextInput({
-      text: sog.titleTranslit || song.title || "New Playlist",
+      text: song.titleTranslit || song.title || __("New Playlist||Nueva playlist"),
       maxLength: 20,
       useNewline: false,
       y: 35,
@@ -654,14 +654,14 @@ class SongSelect {
           const key = playlistManager.createPlaylist(name.trim());
           if (key) {
             playlistManager.addSong(key, song);
-            notifications.show(`Playlist "${name}" created with song!`);
+            notifications.show(__(`Playlist "${name}" created with song!||¡Playlist "${name}" creada con esta canción!`));
             keyboard.destroy();
             this.closeActionsMenu();
           } else {
-            notifications.show("Playlist already exists!");
+            notifications.show(__("Playlist already exists!||¡La playlist ya existe!"));
           }
         } else {
-          notifications.show("Name cannot be empty!");
+          notifications.show(__("Name cannot be empty!||¡El nombre no puede estar vacío!"));
         }
       },
       onCancel: () => {

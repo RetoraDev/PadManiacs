@@ -97,6 +97,8 @@ class Window extends Phaser.Sprite {
   }
 
   addItem(text, valueText, callback = null, backButton = false) {
+    text = text._localized ? text : __(text);
+    
     const itemText = new Text(8 + this.offset.x, 0, text, {
       ...FONTS[this.font],
       tint: this.fontTint
@@ -132,16 +134,15 @@ class Window extends Phaser.Sprite {
   }
 
   addSettingItem(text, options, currentIndex, callback = null) {
+    text = text._localized ? text : __(text);
+    
     const itemText = new Text(8 + this.offset.x, 0, text, {
       ...FONTS[this.font],
       tint: this.fontTint
     });
     this.addChild(itemText);
     
-    // Translate text
-    options = options.map(option => Window.processMultilingual(option));
-
-    const valueText = new Text(this.size.width * 8 -8- 4, 0, options[currentIndex].toString(), {
+    const valueText = new Text(this.size.width * 8 -8- 4, 0, options[currentIndex]?.toString() || "", {
       ...FONTS[this.font],
       tint: this.fontTint
     });
@@ -165,6 +166,8 @@ class Window extends Phaser.Sprite {
   }
   
   addRangeItem(text, min = 0, max = 100, step = 1, value = 0, suffix = "", callback = null) {
+    text = text._localized ? text : __(text);
+    
     const itemText = new Text(8 + this.offset.x, 0, text, {
       ...FONTS[this.font],
       tint: this.fontTint
@@ -191,28 +194,6 @@ class Window extends Phaser.Sprite {
     this.items.push(item);
     this.update();
     return item;
-  }
-  
-  static processMultilingual(text) {
-    // Translate text only
-    if (typeof text !== 'string') {
-      return text;
-    }
-
-    // Handle simple split case (text||text)
-    const simpleSplitRegex = /([^|(]+\|\|[^|)]+)/g;
-    text = text.replace(simpleSplitRegex, match => {
-      const parts = match.split('||');
-      return parts[SETTINGS.language] || parts[0]; // Default to first part if language index is invalid
-    });
-
-    // Handle parenthetical cases (ES|EN)
-    const parenRegex = /\(([^)|]+)\|([^)]+)\)/g;
-    text = text.replace(parenRegex, (match, esText, enText) => {
-      return SETTINGS.language === 0 ? esText : enText;
-    });
-
-    return text;
   }
   
   getVisibleHeight(excluding = 0) {

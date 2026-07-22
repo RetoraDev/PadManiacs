@@ -8,12 +8,12 @@ window.LOG_PERSONALITY_STUDY = window.DEBUG;
 
 window.UNLOCK_ALL_CLOTHES = false;
 
-const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★";
+const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★áéíóúüñÁÉÍÓÚÜÑ";
 const TINY_FONT_MAP = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\" •<>=%∥▶";
 
 const FONTS = {
   default: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_default",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 4,
@@ -21,7 +21,7 @@ const FONTS = {
     autoUpperCase: false
   },
   default_shadow: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_defaul_shadow",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 4,
@@ -29,7 +29,7 @@ const FONTS = {
     autoUpperCase: false
   },
   default_stroke: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_defaul_stroke",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 5,
@@ -37,7 +37,7 @@ const FONTS = {
     autoUpperCase: false
   },
   bold: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_bold",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 6,
@@ -45,7 +45,7 @@ const FONTS = {
     autoUpperCase: false
   },
   bold_shadow: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_bold_shadow",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 6,
@@ -53,7 +53,7 @@ const FONTS = {
     autoUpperCase: false
   },
   bold_stroke: {
-    credit: "From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com",
+    credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
     font: "font_bold_stroke",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 7,
@@ -93,7 +93,7 @@ const FONTS = {
     autoUpperCase: false
   },
   biscuitlocker_combo: {
-    credit: "From 'Pixel GB Block Numbers' by Biscuit Locker 2025 (games@biscuitlocker.com)",
+    credit: __("From 'Pixel GB Block Numbers' by Biscuit Locker 2025 (games@biscuitlocker.com)||De 'Pixel GB Block Numbers' por Biscuit Locker 2025 (games@biscuitlocker.com)"),
     font: "font_combo",
     fontMap: "0123456789 ",
     fontWidth: 8,
@@ -109,183 +109,183 @@ const NAVIGATION_HINT_PRESETS = {
     {
       position: "right",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "right",
       icon: "a",
-      text: "OK"
+      text: __("OK||OK")
     },
     {
       position: "right",
       icon: "b",
-      text: "BACK"
+      text: __("BACK||VOLVER")
     }
   ],
   general_no_a: [
     {
       position: "right",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "right",
       icon: "b",
-      text: "BACK"
+      text: __("BACK||VOLVER")
     }
   ],
   general_no_b: [
     {
       position: "right",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "right",
       icon: "b",
-      text: "BACK"
+      text: __("BACK||VOLVER")
     }
   ],
   song_select: [
     {
       position: "right",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "right",
       icon: "a",
-      text: "OK"
+      text: __("OK||OK")
     },
     {
       position: "right",
       icon: "b",
-      text: "BACK"
+      text: __("BACK||VOLVER")
     },
     {
       position: "right",
       icon: "start",
-      text: "OPTION"
+      text: __("OPTION||OPCIÓN")
     },
     {
       position: "right",
       icon: "select",
-      text: "AUTO"
+      text: __("AUTO||AUTO")
     }
   ],
   jukebox: [
     {
       position: "left",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "center",
       icon: "a",
-      text: "∥/▶" 
+      text: __("∥/▶||∥/▶") 
     },
     {
       position: "right",
       icon: "b",
-      text: "FULL"
+      text: __("FULL||COMPLETO")
     }
   ],
   color_input: [
     {
       position: "left",
       icon: "d-pad",
-      text: " /"
+      text: __(" /|| /")
     },
     {
       position: "left",
       icon: "a",
-      text: " /"
+      text: __(" /|| /")
     },
     {
       position: "left",
       icon: "b",
-      text: " COLOR"
+      text: __(" COLOR||COLOR")
     },
     {
       position: "right",
       icon: "start",
-      text: "OK"
+      text: __("OK||OK")
     }
   ],
   text_input: [
     {
       position: "left",
       icon: "d-pad",
-      text: " /"
+      text: __(" /|| /")
     },
     {
       position: "left",
       icon: "a",
-      text: " /"
+      text: __(" /|| /")
     },
     {
       position: "left",
       icon: "b",
-      text: " TEXT"
+      text: __(" TEXT||TEXTO")
     },
     {
       position: "right",
       icon: "start",
-      text: "OK"
+      text: __("OK||OK")
     }
   ],
   achievements: [
     {
       position: "left",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "right",
       icon: "select",
-      text: "DISPLAY"
+      text: __("DISPLAY||MOSTRAR")
     },
     {
       position: "right",
       icon: "b",
-      text: "BACK"
+      text: __("BACK||VOLVER")
     }
   ],
   editor: [
     {
       position: "left",
       icon: "d-pad",
-      text: "NAVIGATE"
+      text: __("NAVIGATE||NAVEGAR")
     },
     {
       position: "left",
       icon: "start",
-      text: "MENU"
+      text: __("MENU||MENÚ")
     },
     {
       position: "left",
       icon: "select",
-      text: "∥/▶"
+      text: __("∥/▶||∥/▶")
     },
     {
       position: "right",
       icon: "a",
-      text: "SELECT"
+      text: __("SELECT||SELECCIONAR")
     },
     {
       position: "right",
       icon: "b",
-      text: "NOTE"
+      text: __("NOTE||NOTA")
     }
   ],
   song_stats: [
-    { position: "left", icon: "d-pad", text: "NAVIGATE" },
-    { position: "right", icon: "b", text: "BACK" }
+    { position: "left", icon: "d-pad", text: __("NAVIGATE||NAVEGAR") },
+    { position: "right", icon: "b", text: __("BACK||VOLVER") }
   ],
   song_stats_song_preview: [
-    { position: "left", icon: "left", text: "NAVIGATE" },
-    { position: "right", icon: "select", text: "DIFFICULTY" },
-    { position: "right", icon: "b", text: "BACK" }
+    { position: "left", icon: "left", text: __("NAVIGATE||NAVEGAR") },
+    { position: "right", icon: "select", text: __("DIFFICULTY||DIFICULTAD") },
+    { position: "right", icon: "b", text: __("BACK||VOLVER") }
   ]
 };
 
@@ -309,11 +309,11 @@ const DEFAULT_SONG_FOLDERS = [
 ];
 
 const JUDGE_WINDOWS = {
-  marvelous: 55,      // ~22.5ms (extended 55ms)
-  perfect: 75,        // 45ms (extended to 75ms)  
-  great: 99,          // 90ms (extended to 99ms)
-  good: 140,          // 135ms (extended to 140ms)
-  boo: 180            // 180ms
+  marvelous: 55,
+  perfect: 75,
+  great: 99,
+  good: 140,
+  boo: 180
 };
 
 const SCORE_VALUES = {
@@ -330,17 +330,13 @@ const FEEDBACK_REVIEW_URL = "https://retora.itch.io/padmaniacs/rate";
 const FEEDBACK_FEATURE_REQUEST_URL = "https://itch.io/t/5585472/feature-requests";
 const FEEDBACK_BUG_REPORT_URL = "https://itch.io/t/5585499/bug-reports";
 
-const COMMUNITY_PROMPT_MIN_PLAYTIME = 60 * 60; // 1 hour
-const RATING_PROMPT_MIN_PLAYTIME = 15 * 60; // 15 minutes
-const FEATURE_REQUEST_MIN_PLAYTIME = 30 * 60; // 30 minutes
+const COMMUNITY_PROMPT_MIN_PLAYTIME = 60 * 60;
+const RATING_PROMPT_MIN_PLAYTIME = 15 * 60;
+const FEATURE_REQUEST_MIN_PLAYTIME = 30 * 60;
 
 // Keyboard key names
-// https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
 const KEYBOARD_KEY_NAMES = {
-  // Unidentified keys
   "Unidentified": "???",
-  
-  // Modifier keys
   "Alt": "ALT",
   "AltGraph": "ALT GR",
   "CapsLock": "CAPS LOCK",
@@ -356,13 +352,9 @@ const KEYBOARD_KEY_NAMES = {
   "Super": "SUPER",
   "Symbol": "SYMBOL",
   "SymbolLock": "SYMBOL LOCK",
-
-  // Whitespace keys
   "Enter": "ENTER",
   "Tab": "TAB",
   " ": "SPACE",
-  
-  // Navigation keys
   "ArrowUp": "UP",
   "ArrowDown": "DOWN", 
   "ArrowLeft": "LEFT",
@@ -371,8 +363,6 @@ const KEYBOARD_KEY_NAMES = {
   "End": "END",
   "PageUp": "PAGE UP",
   "PageDown": "PAGE DOWN",
-  
-  // Edition keys
   "Backspace": "BACKSPACE",
   "Clear": "CLEAR",
   "Copy": "COPY",
@@ -385,8 +375,6 @@ const KEYBOARD_KEY_NAMES = {
   "Paste": "PASTE",
   "Redo": "REDO",
   "Undo": "UNDO",
-  
-  // UI keys
   "Accept": "ACCEPT",
   "Again": "AGAIN",
   "Attn": "ATTN",
@@ -405,8 +393,6 @@ const KEYBOARD_KEY_NAMES = {
   "Select": "SELECT",
   "ZoomIn": "ZOOM +",
   "ZoomOut": "ZOOM -",
-  
-  // Device keys
   "BrightnessDown": "BRIGHTNESS -",
   "BrightnessUp": "BRIGHTNESS +",
   "Eject": "EJECT",
@@ -417,8 +403,6 @@ const KEYBOARD_KEY_NAMES = {
   "Hibernate": "HIBERNATE",
   "Standby": "Suspend",
   "WakeUp": "WAKE UP",
-  
-  // IME and composition keys
   "AllCandidates": "ALL CANDIDATES",
   "Alphanumeric": "ALPHANUMERIC",
   "CodeInput": "CODE INPUT",
@@ -438,10 +422,6 @@ const KEYBOARD_KEY_NAMES = {
   "PreviousCandidate": "PREVIOUS CANDIDATE",
   "Process": "PROCESS",
   "SingleCandidate": "SINGLE CANDIDATE",
-  
-  // TODO: Add Korean and Japanese keyboard key codes, and Dead keycodes for Linux
-  
-  // Function keys
   "F1": "F1",
   "F2": "F2",
   "F3": "F3", 
@@ -470,8 +450,6 @@ const KEYBOARD_KEY_NAMES = {
   "Soft2": "SOFT 1",
   "Soft3": "SOFT 3",
   "Soft4": "SOFT 4",
-  
-  // Smartphone keys
   "AppSwitch": "APP SWITCH",
   "Call": "CALL",
   "Camera": "CAMERA",
@@ -484,8 +462,6 @@ const KEYBOARD_KEY_NAMES = {
   "Notification": "NOTIFICATION",
   "MannerMode": "MODE",
   "VoiceDial": "VOICE DIAL",
-  
-  // Multimedia keys
   "ChannelDown": "CH DOWN",
   "ChannelUp": "CH UP",
   "MediaFastForward": "FAST FORWARD",
@@ -498,11 +474,6 @@ const KEYBOARD_KEY_NAMES = {
   "MediaNextTrack": "NEXT",
   "MediaTrackPrevious": "PREVIOUS",
   "MediaPreviousTrack": "PREVIOUS",
-  
-  // TODO: Add TV, Apps, Mail and Documents keys
-
-  // Numeric keypad keys
-  // Number Pad
   "Numpad0": "NUM 0",
   "Numpad1": "NUM 1",
   "Numpad2": "NUM 2",
@@ -521,8 +492,6 @@ const KEYBOARD_KEY_NAMES = {
   "NumpadEnter": "NUM ENTER",
   "NumpadComma": "NUM ,",
   "NumpadEqual": "NUM =",
-  
-  // Numpad keys
   "Decimal": "DECIMAL",
   "Key11": "11",
   "Key12": "12",
@@ -536,21 +505,16 @@ const KEYBOARD_KEY_NAMES = {
   "Subtract": "SUBTRACT",
   "-": "-",
   "Separator": "SEPARATOR",
-  
-   // Numbers 0-9
   "0": "0", "1": "1", "2": "2", "3": "3", "4": "4",
   "5": "5", "6": "6", "7": "7", "8": "8", "9": "9",
-  
-  // Letters A-Z
   "A": "A", "B": "B", "C": "C", "D": "D", "E": "E", "F": "F", "G": "G",
   "H": "H", "I": "I", "J": "J", "K": "K", "L": "L", "M": "M", "N": "N",
   "O": "O", "P": "P", "Q": "Q", "R": "R", "S": "S", "T": "T", "U": "U",
   "V": "V", "W": "W", "X": "X", "Y": "Y", "Z": "Z"
 };
 
-// Keyboard key codes 
+// Keyboard key codes
 const KEYBOARD_KEY_CODES = {
-  // Letters A-Z
   A: 'A'.charCodeAt(0),
   B: 'B'.charCodeAt(0),
   C: 'C'.charCodeAt(0),
@@ -577,8 +541,6 @@ const KEYBOARD_KEY_CODES = {
   X: 'X'.charCodeAt(0),
   Y: 'Y'.charCodeAt(0),
   Z: 'Z'.charCodeAt(0),
-  
-  // Numbers 0-9
   '0': '0'.charCodeAt(0),
   '1': '1'.charCodeAt(0),
   '2': '2'.charCodeAt(0),
@@ -589,8 +551,6 @@ const KEYBOARD_KEY_CODES = {
   '7': '7'.charCodeAt(0),
   '8': '8'.charCodeAt(0),
   '9': '9'.charCodeAt(0),
-  
-  // Numpad
   'NUM 0': 96,
   'NUM 1': 97,
   'NUM 2': 98,
@@ -607,8 +567,6 @@ const KEYBOARD_KEY_CODES = {
   'NUM -': 109,
   'NUM .': 110,
   'NUM /': 111,
-  
-  // Function keys
   F1: 112,
   F2: 113,
   F3: 114,
@@ -624,8 +582,6 @@ const KEYBOARD_KEY_CODES = {
   F13: 124,
   F14: 125,
   F15: 126,
-  
-  // Modifiers and special keys
   BACK: 8,
   TAB: 9,
   CLEAR: 12,
@@ -648,8 +604,6 @@ const KEYBOARD_KEY_CODES = {
   DEL: 46,
   HELP: 47,
   NUM: 144,
-  
-  // Symbols (matching KEYBOARD_KEY_NAMES short names)
   ';': 186,
   '=': 187,
   ',': 188,
@@ -661,8 +615,6 @@ const KEYBOARD_KEY_CODES = {
   '\\': 220,
   ']': 221,
   "'": 222,
-  
-  // Multimedia keys
   PLAY: 179,
   PAUSE: 179,
   NEXT: 176,

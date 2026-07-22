@@ -1,6 +1,6 @@
 class LoadAddons {
   create() {
-    this.progressText = new ProgressText("LOADING ADD-ONS");
+    this.progressText = new ProgressText(__("Loading Add-ons...||Cargando Add-ons..."));
     this.loadingDots = new LoadingDots();
     this.initialize();
   }

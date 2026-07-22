@@ -198,30 +198,28 @@ class Editor {
     
     const leftWidth = game.width / 2;
     const rightWidth = game.width / 2;
-
-    // Left side: Main menu
+  
     this.mainCarousel = new CarouselMenu(0, 0, leftWidth, game.height / 2, {
       align: "left",
       bgcolor: "#9b59b6",
       fgcolor: "#ffffff",
       animate: true
     });
-
-    this.mainCarousel.addItem("File", () => this.showFileMenu());
-    this.mainCarousel.addItem("Edit", () => this.showEditMenu());
-    this.mainCarousel.addItem("Playtest", () => this.playtest());
-    this.mainCarousel.addItem("Export", () => this.showExportMenu());
-    this.mainCarousel.addItem("< Exit", () => this.exitEditor());
-
+  
+    this.mainCarousel.addItem("(File|Archivo)", () => this.showFileMenu());
+    this.mainCarousel.addItem("(Edit|Editar)", () => this.showEditMenu());
+    this.mainCarousel.addItem("(Playtest|Probar)", () => this.playtest());
+    this.mainCarousel.addItem("(Export|Exportar)", () => this.showExportMenu());
+    this.mainCarousel.addItem("< (Exit|Salir)", () => this.exitEditor());
+  
     this.mainCarousel.onCancel.add(() => this.exitEditor());
-
+  
     game.onMenuIn.dispatch("editorMain", this.mainCarousel);
-
-    // Right side: Song info
+  
     this.songInfoText = new Text(240 - 4, 4, this.getSongInfoText());
     this.songInfoText.anchor.x = 1;
     this.songInfoText.wrap(rightWidth - 8);
-
+  
     this.updateInfoText();
   }
   
@@ -268,20 +266,20 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
-    carousel.addItem("Load Audio", () => this.pickFile("audio/*", e => this.loadAudioFile(e.target.files[0]), () => this.showFileMenu()));
-    carousel.addItem("Load Background", () => this.pickFile("image/*", e => this.loadBackgroundFile(e.target.files[0]), () => this.showFileMenu()));
-    carousel.addItem("Load Banner", () => this.pickFile("image/*", e => this.loadBannerFile(e.target.files[0]), () => this.showFileMenu()));
-    carousel.addItem("Load Lyrics", () => this.pickFile(".lrc", e => this.loadLyricsFile(e.target.files[0]), () => this.showFileMenu()));
+  
+    carousel.addItem("(Load Audio|Cargar Audio)", () => this.pickFile("audio/*", e => this.loadAudioFile(e.target.files[0]), () => this.showFileMenu()));
+    carousel.addItem("(Load Background|Cargar Fondo)", () => this.pickFile("image/*", e => this.loadBackgroundFile(e.target.files[0]), () => this.showFileMenu()));
+    carousel.addItem("(Load Banner|Cargar Banner)", () => this.pickFile("image/*", e => this.loadBannerFile(e.target.files[0]), () => this.showFileMenu()));
+    carousel.addItem("(Load Lyrics|Cargar Letras)", () => this.pickFile(".lrc", e => this.loadLyricsFile(e.target.files[0]), () => this.showFileMenu()));
     if (this.song.chart.backgrounds && this.song.chart.backgrounds.length > 0) {
-      carousel.addItem("Edit BG Changes", () => this.editBGChangeFiles());
+      carousel.addItem("(Edit BG Changes|Editar Cambios de Fondo)", () => this.editBGChangeFiles());
     }
-    carousel.addItem("New Song", () => this.createNewSongAndReload());
-    carousel.addItem("Load Song", () => this.loadSong());
-
+    carousel.addItem("(New Song|Nueva Canción)", () => this.createNewSongAndReload());
+    carousel.addItem("(Load Song|Cargar Canción)", () => this.loadSong());
+  
     game.onMenuIn.dispatch("editorFile", carousel);
-
-    carousel.addItem("< Back", () => this.showHomeScreen());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showHomeScreen());
     carousel.onCancel.add(() => this.showHomeScreen());
     
     this.updateInfoText();
@@ -369,13 +367,13 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
-    carousel.addItem("Charts", () => this.showChartsMenu());
-    carousel.addItem("Metadata", () => this.showMetadataEdit());
-
+  
+    carousel.addItem("(Charts|Charts)", () => this.showChartsMenu());
+    carousel.addItem("(Metadata|Metadatos)", () => this.showMetadataEdit());
+  
     game.onMenuIn.dispatch("editorEdit", carousel);
-
-    carousel.addItem("< Back", () => this.showHomeScreen());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showHomeScreen());
     carousel.onCancel.add(() => this.showHomeScreen());
   }
 
@@ -386,14 +384,12 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
-    carousel.addItem("Export StepMania Song", () => this.exportSong());
-
-    // TODO: Options to export lonely SM file, audio, banner, background or bg changes in a zip
-
+  
+    carousel.addItem("(Export StepMania Song|Exportar Canción StepMania)", () => this.exportSong());
+  
     game.onMenuIn.dispatch("editorProject", carousel);
-
-    carousel.addItem("< Back", () => this.showHomeScreen());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showHomeScreen());
     carousel.onCancel.add(() => this.showHomeScreen());
   }
 
@@ -404,17 +400,17 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
+  
     this.song.chart.difficulties.forEach((diff, index) => {
       const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
-      carousel.addItem(`${diff.type} (${diff.rating}) - ${noteCount} notes`, () => this.showChartOptions(index), { difficulty: diff, index: index });
+      carousel.addItem(__(`${diff.type} (${diff.rating}) - ${noteCount} (notes|notas)`), () => this.showChartOptions(index), { difficulty: diff, index: index });
     });
-
-    carousel.addItem("+ Add Difficulty", () => this.addNewDifficulty());
-
+  
+    carousel.addItem("+ (Add Difficulty|Agregar Dificultad)", () => this.addNewDifficulty());
+  
     game.onMenuIn.dispatch("editorCharts", carousel);
-
-    carousel.addItem("< Back", () => this.showEditMenu());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showEditMenu());
     carousel.onCancel.add(() => this.showEditMenu());
   }
 
@@ -425,15 +421,15 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
-    carousel.addItem("Edit Chart", () => this.editChart(difficultyIndex));
-    carousel.addItem("Set Difficulty Type", () => this.setDifficultyType(difficultyIndex));
-    carousel.addItem("Set Difficulty Rating", () => this.setDifficultyRating(difficultyIndex));
-    carousel.addItem("Delete Difficulty", () => this.deleteDifficulty(difficultyIndex));
-
+  
+    carousel.addItem("(Edit Chart|Editar Chart)", () => this.editChart(difficultyIndex));
+    carousel.addItem("(Set Difficulty Type|Establecer Tipo de Dificultad)", () => this.setDifficultyType(difficultyIndex));
+    carousel.addItem("(Set Difficulty Rating|Establecer Nivel de Dificultad)", () => this.setDifficultyRating(difficultyIndex));
+    carousel.addItem("(Delete Difficulty|Eliminar Dificultad)", () => this.deleteDifficulty(difficultyIndex));
+  
     game.onMenuIn.dispatch("editorChartOptions", carousel);
-
-    carousel.addItem("< Back", () => this.showChartsMenu());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showChartsMenu());
     carousel.onCancel.add(() => this.showChartsMenu());
   }
 
@@ -460,15 +456,15 @@ class Editor {
       fgcolor: "#ffffff",
       animate: true
     });
-
+  
     this.song.chart.difficulties.forEach((diff, index) => {
       const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
-      carousel.addItem(`${diff.type} (${diff.rating}) - ${noteCount} notes`, () => this.startPlaytest(index), { difficulty: diff, index: index });
+      carousel.addItem(__(`${diff.type} (${diff.rating}) - ${noteCount} (notes|notas)`), () => this.startPlaytest(index), { difficulty: diff, index: index });
     });
-
+  
     game.onMenuIn.dispatch("editorPlaytest", carousel);
-
-    carousel.addItem("< Back", () => this.showHomeScreen());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showHomeScreen());
     carousel.onCancel.add(() => this.showHomeScreen());
   }
   
@@ -496,23 +492,25 @@ class Editor {
       const currentTime = this.chartRenderer.beatToSec(this.cursorBeat);
       const formatedTime = TimeUtils.formatTime(currentTime);
       const currentBpm = this.chartRenderer ? this.chartRenderer.getCurrentBPM(this.cursorBeat) : "---";
-
+  
       const text = this.isPlaying
-        ?
-          "Playing\n" +
-          `TIME: ${formatedTime}\n` +
-          `BEAT: ${this.cursorBeat.toFixed(0)}\n` +
-          `BPM: ${currentBpm}`
-        :
-          `EDITING: ${diff.type} (${diff.rating})\n` +
-          `SNAP: 1/${this.snapDivision}\n` +
-          `TIME: ${formatedTime}\n` +
-          `BEAT: ${this.cursorBeat.toFixed(3)}\n` +
-          `BPM: ${currentBpm}\n` +
-          `NOTES: ${noteCount}\n` +
-          `SELECTED: ${this.selectedNotes.length}`;
+        ? __(
+            `(Playing|Reproduciendo)
+  (TIME|TIEMPO): ${formatedTime}
+  (BEAT|BEAT): ${this.cursorBeat.toFixed(0)}
+  (BPM|BPM): ${currentBpm}`
+          )
+        : __(
+            `(EDITING|EDITANDO): ${diff.type} (${diff.rating})
+  (SNAP|SNAP): 1/${this.snapDivision}
+  (TIME|TIEMPO): ${formatedTime}
+  (BEAT|BEAT): ${this.cursorBeat.toFixed(3)}
+  (BPM|BPM): ${currentBpm}
+  (NOTES|NOTAS): ${noteCount}
+  (SELECTED|SELECCIONADAS): ${this.selectedNotes.length}`
+          );
       
-      const bgText = `BG: ${this.getCurrentBgFileName()}`;
+      const bgText = __(`(BG|Fondo): ${this.getCurrentBgFileName()}`);
       
       if (text != this.infoText.texture.text) this.infoText.write(text);
       if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 45);
@@ -1178,9 +1176,9 @@ class Editor {
 
   showContextMenu() {
     if (this.isPlaying || this.menuVisible) return;
-
+  
     this.menuVisible = true;
-
+  
     const contextMenu = new CarouselMenu(0, 48, 80, 56, {
       bgcolor: "#34495e",
       fgcolor: "#ffffff",
@@ -1189,95 +1187,95 @@ class Editor {
       inactiveAlpha: 0.6,
       activeAlpha: 1
     });
-
+  
     if (this.selectedNotes.length === 0) {
-      contextMenu.addItem("Place Mine", () => this.placeMine(this.cursorColumn, this.cursorBeat));
-      contextMenu.addItem("Place Quick Hold", () => this.placeQuickHold());
-
+      contextMenu.addItem("(Place Mine|Colocar Mina)", () => this.placeMine(this.cursorColumn, this.cursorBeat));
+      contextMenu.addItem("(Place Quick Hold|Colocar Hold Rápido)", () => this.placeQuickHold());
+  
       if (this.clipboard.length) {
-        contextMenu.addItem("Paste Notes", () => this.pasteNotes());
-        contextMenu.addItem("Clear Clipboard", () => this.clearClipboard());
+        contextMenu.addItem("(Paste Notes|Pegar Notas)", () => this.pasteNotes());
+        contextMenu.addItem("(Clear Clipboard|Limpiar Portapapeles)", () => this.clearClipboard());
       }
-
+  
       if (!this.getBPMChange()) {
-        contextMenu.addItem("Add BPM Change", () => this.addBPMChange());
+        contextMenu.addItem("(Add BPM Change|Agregar Cambio de BPM)", () => this.addBPMChange());
       } else {
-        contextMenu.addItem("Edit BPM Value", () => this.editBPMChange());
-        contextMenu.addItem("Remove BPM Change", () => this.removeBPMChange());
+        contextMenu.addItem("(Edit BPM Value|Editar Valor de BPM)", () => this.editBPMChange());
+        contextMenu.addItem("(Remove BPM Change|Eliminar Cambio de BPM)", () => this.removeBPMChange());
       }
-
+  
       if (!this.getStop()) {
-        contextMenu.addItem("Add Stop", () => this.addStop());
+        contextMenu.addItem("(Add Stop|Agregar Stop)", () => this.addStop());
       } else {
-        contextMenu.addItem("Edit Stop Duration", () => this.editStop());
-        contextMenu.addItem("Remove Stop", () => this.removeStop());
+        contextMenu.addItem("(Edit Stop Duration|Editar Duración del Stop)", () => this.editStop());
+        contextMenu.addItem("(Remove Stop|Eliminar Stop)", () => this.removeStop());
       }
-
+  
       if (!this.getBGChange()) {
-        contextMenu.addItem("Add BG Change", () => this.addBGChange());
-        contextMenu.addItem("Add -nosongbg-", () => this.addNoSongBgChange());
+        contextMenu.addItem("(Add BG Change|Agregar Cambio de Fondo)", () => this.addBGChange());
+        contextMenu.addItem("(Add -nosongbg-|Agregar -nosongbg-)", () => this.addNoSongBgChange());
       } else {
-        contextMenu.addItem("Edit BG Change", () => this.editBGChange());
-        contextMenu.addItem("Remove BG Change", () => this.removeBGChange());
+        contextMenu.addItem("(Edit BG Change|Editar Cambio de Fondo)", () => this.editBGChange());
+        contextMenu.addItem("(Remove BG Change|Eliminar Cambio de Fondo)", () => this.removeBGChange());
       }
       
-      contextMenu.addItem("Detect BPM Here", () => this.detectBPMHere());
+      contextMenu.addItem("(Detect BPM Here|Detectar BPM Aquí)", () => this.detectBPMHere());
     } else if (this.selectedNotes.length === 1) {
       const note = this.selectedNotes[0];
-      contextMenu.addItem("Unselect", () => (this.selectedNotes = []));
+      contextMenu.addItem("(Unselect|Deseleccionar)", () => (this.selectedNotes = []));
       
-      contextMenu.addItem("Copy Note", () => this.copyNotes([ note ]));
+      contextMenu.addItem("(Copy Note|Copiar Nota)", () => this.copyNotes([ note ]));
       
       if (this.clipboard.length) {
-        contextMenu.addItem("Paste Notes", () => this.pasteNotes());
-        contextMenu.addItem("Clear Clipboard", () => this.clearClipboard());
+        contextMenu.addItem("(Paste Notes|Pegar Notas)", () => this.pasteNotes());
+        contextMenu.addItem("(Clear Clipboard|Limpiar Portapapeles)", () => this.clearClipboard());
       }
       
       if (note.type === "1") {
-        contextMenu.addItem("Turn Into Mine", () => this.convertNoteType("M"));
+        contextMenu.addItem("(Turn Into Mine|Convertir en Mina)", () => this.convertNoteType("M"));
       } else if (note.type === "M") {
-        contextMenu.addItem("Turn Into Note", () => this.convertNoteType("1"));
+        contextMenu.addItem("(Turn Into Note|Convertir en Nota)", () => this.convertNoteType("1"));
       } else if (note.type === "2" || note.type === "4") {
-        contextMenu.addItem("Turn Into Roll", () => this.convertFreezeType("4"));
-        contextMenu.addItem("Turn Into Hold", () => this.convertFreezeType("2"));
+        contextMenu.addItem("(Turn Into Roll|Convertir en Roll)", () => this.convertFreezeType("4"));
+        contextMenu.addItem("(Turn Into Hold|Convertir en Hold)", () => this.convertFreezeType("2"));
       }
-
-      contextMenu.addItem("Align To Beat Division", () => this.alignToBeatDivision());
-      contextMenu.addItem("Delete", () => this.deleteSelectedNotes());
+  
+      contextMenu.addItem("(Align To Beat Division|Alinear a División de Beat)", () => this.alignToBeatDivision());
+      contextMenu.addItem("(Delete|Eliminar)", () => this.deleteSelectedNotes());
     } else {
-      contextMenu.addItem("Unselect All", () => (this.selectedNotes = []));
-
+      contextMenu.addItem("(Unselect All|Deseleccionar Todo)", () => (this.selectedNotes = []));
+  
       const allNotes = this.selectedNotes.every(n => n.type === "1" || n.type === "M");
       const allFreezes = this.selectedNotes.every(n => n.type === "2" || n.type === "4");
-
-      contextMenu.addItem("Copy Notes", () => this.copyNotes(this.selectedNotes));
-
+  
+      contextMenu.addItem("(Copy Notes|Copiar Notas)", () => this.copyNotes(this.selectedNotes));
+  
       if (this.clipboard.length) {
-        contextMenu.addItem("Paste Notes", () => this.pasteNotes());
-        contextMenu.addItem("Clear Clipboard", () => this.clearClipboard());
+        contextMenu.addItem("(Paste Notes|Pegar Notas)", () => this.pasteNotes());
+        contextMenu.addItem("(Clear Clipboard|Limpiar Portapapeles)", () => this.clearClipboard());
       }
       
-      contextMenu.addItem("Mirror Notes", () => this.mirrorNotes());
-
+      contextMenu.addItem("(Mirror Notes|Espejo de Notas)", () => this.mirrorNotes());
+  
       if (allNotes) {
-        contextMenu.addItem("Turn All Into Mines", () => this.convertNotesType("M"));
-        contextMenu.addItem("Turn All Into Notes", () => this.convertNotesType("1"));
+        contextMenu.addItem("(Turn All Into Mines|Convertir Todo en Minas)", () => this.convertNotesType("M"));
+        contextMenu.addItem("(Turn All Into Notes|Convertir Todo en Notas)", () => this.convertNotesType("1"));
       } else if (allFreezes) {
-        contextMenu.addItem("Turn All Into Rolls", () => this.convertFreezesType("4"));
-        contextMenu.addItem("Turn All Into Holds", () => this.convertFreezesType("2"));
+        contextMenu.addItem("(Turn All Into Rolls|Convertir Todo en Rolls)", () => this.convertFreezesType("4"));
+        contextMenu.addItem("(Turn All Into Holds|Convertir Todo en Holds)", () => this.convertFreezesType("2"));
       }
-
-      contextMenu.addItem("Align All To Beat Division", () => this.alignAllToBeatDivision());
-      contextMenu.addItem("Delete All", () => this.deleteSelectedNotes());
+  
+      contextMenu.addItem("(Align All To Beat Division|Alinear Todo a División de Beat)", () => this.alignAllToBeatDivision());
+      contextMenu.addItem("(Delete All|Eliminar Todo)", () => this.deleteSelectedNotes());
     }
-
-    contextMenu.addItem("Save And Exit", () => this.saveAndExit());
-
+  
+    contextMenu.addItem("(Save And Exit|Guardar y Salir)", () => this.saveAndExit());
+  
     contextMenu.onConfirm.add(() => {
       contextMenu.destroy();
       this.menuVisible = false;
     });
-
+  
     contextMenu.onCancel.add(() => {
       contextMenu.destroy();
       this.menuVisible = false;
@@ -1287,7 +1285,7 @@ class Editor {
   copyNotes(notes = []) {
     if (notes.length) {
       this.clipboard = notes;
-      notifications.show(`Copied ${notes.length} notes`);
+      notifications.show(__(`(Copied|Copiadas) ${notes.length} (notes|notas)`));
     }
   }
   
@@ -1478,24 +1476,24 @@ class Editor {
       const notes = chart.notes[diff.type + diff.rating];
       if (notes) totalNotes += notes.length;
     });
-
-    return `
-Title: ${chart.title || "< empty >"}
-Subtitle: ${chart.subtitle || "< empty >"}
-Artist: ${chart.artist || "< empty >"}
-Genre: ${chart.genre || "< empty >"}
-Credit: ${chart.credit || "< empty >"}
-
-Difficulties: ${chart.difficulties.length}
-Total Notes: ${totalNotes}
-Bpm Changes: ${chart.bpmChanges.length}
-Stops: ${chart.stops.length}
-Bg Changes: ${chart.backgrounds.length}
-
-Offset: ${chart.offset}
-Sample Start: ${chart.sampleStart}
-Sample Length: ${chart.sampleLength}
-    `.trim();
+  
+    return __(
+      `(Title|Título): ${chart.title || "< (empty|vacío) >"}
+  (Subtitle|Subtítulo): ${chart.subtitle || "< (empty|vacío) >"}
+  (Artist|Artista): ${chart.artist || "< (empty|vacío) >"}
+  (Genre|Género): ${chart.genre || "< (empty|vacío) >"}
+  (Credit|Crédito): ${chart.credit || "< (empty|vacío) >"}
+  
+  (Difficulties|Dificultades): ${chart.difficulties.length}
+  (Total Notes|Total de Notas): ${totalNotes}
+  (Bpm Changes|Cambios de BPM): ${chart.bpmChanges.length}
+  (Stops|Stops): ${chart.stops.length}
+  (Bg Changes|Cambios de Fondo): ${chart.backgrounds.length}
+  
+  (Offset|Offset): ${chart.offset}
+  (Sample Start|Inicio de Muestra): ${chart.sampleStart}
+  (Sample Length|Duración de Muestra): ${chart.sampleLength}`
+    ).trim();
   }
 
   handleFileSelect(event) {
@@ -1525,7 +1523,7 @@ Sample Length: ${chart.sampleLength}
 
       if (chartFileNames.length === 0) {
         this.showFileMenu();
-        notifications.show("No chart files found");
+        notifications.show(__("No chart files found||El chart no tiene archivos"));
         return;
       }
 
@@ -1536,7 +1534,7 @@ Sample Length: ${chart.sampleLength}
       chart.folderName = `Single_External_${smFileName}`;
       chart.loaded = true;
       
-      this.showLoadingScreen("Processing Files");
+      this.showLoadingScreen(__("Processing Files||Procesando Archivos"));
       
       // Load main files
       this.files.audio = await FileTools.urlToBase64(chart.audioUrl);
@@ -1575,7 +1573,7 @@ Sample Length: ${chart.sampleLength}
       this.song.chart.audio = file.name;
       this.song.chart.audioUrl = url;
       
-      this.showLoadingScreen("Processing Audio");
+      this.showLoadingScreen(__("Processing Audio||Procesando Audio"));
       
       const reader = new FileReader();
       reader.onload = () => {
@@ -1597,7 +1595,7 @@ Sample Length: ${chart.sampleLength}
       this.song.chart.background = file.name;
       this.song.chart.backgroundUrl = url;
 
-      this.showLoadingScreen("Processing Background");
+      this.showLoadingScreen(__("Processing Background||Procesando Fondo"));
       
       const reader = new FileReader();
       reader.onload = () => {
@@ -1619,7 +1617,7 @@ Sample Length: ${chart.sampleLength}
       this.song.chart.banner = file.name;
       this.song.chart.bannerUrl = url;
       
-      this.showLoadingScreen("Processing Banner");
+      this.showLoadingScreen(__("Processing Banner||Procesando Banner"));
       
       this.updateBanner(url);
       
@@ -1638,7 +1636,7 @@ Sample Length: ${chart.sampleLength}
   
   async loadLyricsFile(file) {
     try {
-      this.showLoadingScreen("Processing Lyrics");
+      this.showLoadingScreen(__("Processing Lyrics||Procesando Letras"));
       
       const reader = new FileReader();
       reader.onload = () => {
@@ -1732,7 +1730,7 @@ Sample Length: ${chart.sampleLength}
       }
 
       if (fileEntry) {
-        this.showLoadingScreen(`Loading ${targetProp} file`);
+        this.showLoadingScreen(`Loading ${targetProp} file||Cargando archivo "${targetProp}"`);
         
         const blob = await fileEntry.async("blob");
 
@@ -1788,7 +1786,7 @@ Sample Length: ${chart.sampleLength}
     
     this.hideLoadingScreen();
 
-    notifications.show("StepMania song imported!");
+    notifications.show(__("StepMania song imported!||Canción importada"));
   }
 
   async importSMFile(file) {
@@ -1809,37 +1807,40 @@ Sample Length: ${chart.sampleLength}
     this.refreshLyrics();
     this.audio.src = "";
     
-    notifications.show("SM file imported! Load audio/background files manually.");
+    notifications.show(__("SM file imported! Load audio/background files manually.||¡Archivo .SM importado! Carga el audio e imágenes manualmente"));
   }
 
   async exportSong() {
     try {
-      this.showLoadingScreen("Exporting song");
-
+      this.showLoadingScreen(__("Exporting song||Exportando canción"));
+  
+      // Asegurar que los archivos estén cargados antes de exportar
+      await this.ensureFilesLoaded();
+  
       // Prepare song data
       const songData = await FileTools.prepareSongForExport(this.song, this.files);
-
+  
       // Generate SM content
       const smContent = SMFile.generateSM(songData);
-
+  
       // Create ZIP file
       const JSZip = window.JSZip;
       if (!JSZip) {
         throw new Error("JSZip library not loaded");
       }
-
+  
       const zip = new JSZip();
-
+  
       // Add SM file
       const smFilename = `${songData.title || "song"}.sm`;
       zip.file(smFilename, smContent);
-
+  
       // Add resources
-      this.addSongResourcesToZip(songData, zip);
-
+      await this.addSongResourcesToZip(songData, zip);
+  
       // Generate ZIP file
       const blob = await zip.generateAsync({ type: "blob" });
-
+  
       // Save file
       const fileName = `${songData.title || "song"}.zip`;
       await this.saveFile(blob, fileName);
@@ -1857,35 +1858,138 @@ Sample Length: ${chart.sampleLength}
         Account.stats.usedAllNoteTypesInChart = true;
         saveAccount();
       }
-
+  
       this.hideLoadingScreen();
       this.showHomeScreen();
-      notifications.show("Song exported successfully!");
+      notifications.show(__("Song exported successfully!||¡Canción exportada!"));
     } catch (error) {
       console.error("Export failed:", error);
       this.hideLoadingScreen();
       this.showHomeScreen();
-      notifications.show("Export failed!", 2000, "error");
+      notifications.show(__("Export failed!||Problema al exportar"), 2000, "error");
     }
   }
+  
+  async ensureFilesLoaded() {
+    // Verificar y cargar audio si no está cargado
+    if (!this.files.audio && this.song.chart.audioUrl) {
+      try {
+        this.files.audio = await this.fetchFileAsBlob(this.song.chart.audioUrl);
+      } catch (e) {
+        console.warn("Could not load audio file:", e);
+      }
+    }
+    
+    // Verificar y cargar background si no está cargado
+    if (!this.files.background && this.song.chart.backgroundUrl && this.song.chart.backgroundUrl !== "no-media") {
+      try {
+        this.files.background = await this.fetchFileAsBlob(this.song.chart.backgroundUrl);
+      } catch (e) {
+        console.warn("Could not load background file:", e);
+      }
+    }
+    
+    // Verificar y cargar banner si no está cargado
+    if (!this.files.banner && this.song.chart.bannerUrl && this.song.chart.bannerUrl !== "no-media") {
+      try {
+        this.files.banner = await this.fetchFileAsBlob(this.song.chart.bannerUrl);
+      } catch (e) {
+        console.warn("Could not load banner file:", e);
+      }
+    }
+    
+    // Verificar y cargar archivos extra (BG changes)
+    if (this.song.chart.backgrounds) {
+      for (const bg of this.song.chart.backgrounds) {
+        if (bg.file && bg.file !== "no-media" && bg.file !== "-nosongbg-" && !this.files.extra[bg.file]) {
+          try {
+            if (bg.url) {
+              this.files.extra[bg.file] = await this.fetchFileAsBlob(bg.url);
+            }
+          } catch (e) {
+            console.warn(`Could not load background file: ${bg.file}`, e);
+          }
+        }
+      }
+    }
+  }
+  
+  async fetchFileAsBlob(url) {
+    return await FileTools.fetchFileAsBlob(url);
+  }
 
-  addSongResourcesToZip(songData, zip) {
+  async addSongResourcesToZip(songData, zip) {
     // Add main files
-    songData.audio !== "no-media" && zip.file(songData.audio, this.files.audio, { base64: true });
-    songData.background !== "no-media" && zip.file(songData.background, this.files.background, { base64: true });
-    songData.banner !== "no-media" && zip.file(songData.banner, this.files.banner, { base64: true });
-    songData.lyricsContent && zip.file(songData.lyrics, this.files.lyrics);
-
+    if (songData.audio !== "no-media" && this.files.audio) {
+      await this.addFileToZip(zip, songData.audio, this.files.audio);
+    }
+    
+    if (songData.background !== "no-media" && this.files.background) {
+      await this.addFileToZip(zip, songData.background, this.files.background);
+    }
+    
+    if (songData.banner !== "no-media" && this.files.banner) {
+      await this.addFileToZip(zip, songData.banner, this.files.banner);
+    }
+    
+    if (songData.lyricsContent && this.files.lyrics) {
+      zip.file(songData.lyrics, this.files.lyrics);
+    }
+  
     // Add BG change files
     if (songData.backgrounds) {
       for (const bg of songData.backgrounds) {
         if (bg.file && bg.file !== "no-media" && this.files.extra[bg.file]) {
-          zip.file(bg.file, this.files.extra[bg.file], { base64: true });
+          await this.addFileToZip(zip, bg.file, this.files.extra[bg.file]);
         }
       }
     }
-
+  
     return zip;
+  }
+  
+  async addFileToZip(zip, filename, data) {
+    // Si es un Blob o File, leer como ArrayBuffer
+    if (data instanceof Blob || data instanceof File) {
+      const arrayBuffer = await data.arrayBuffer();
+      zip.file(filename, arrayBuffer);
+      return;
+    }
+    
+    // Si es una URL (blob: o data:), fetch y convertir
+    if (typeof data === 'string' && (data.startsWith('blob:') || data.startsWith('data:'))) {
+      try {
+        const response = await fetch(data);
+        const blob = await response.blob();
+        const arrayBuffer = await blob.arrayBuffer();
+        zip.file(filename, arrayBuffer);
+        return;
+      } catch (error) {
+        console.warn(`Failed to fetch file from URL: ${filename}`, error);
+      }
+    }
+    
+    // Si es una string base64
+    if (typeof data === 'string') {
+      const base64Data = data.includes('base64,') ? data.split('base64,')[1] : data;
+      zip.file(filename, base64Data, { base64: true });
+      return;
+    }
+    
+    // Si es un ArrayBuffer
+    if (data instanceof ArrayBuffer) {
+      zip.file(filename, data);
+      return;
+    }
+    
+    // Si es un objeto con propiedades de archivo (para compatibilidad)
+    if (data && typeof data === 'object' && data._file) {
+      const arrayBuffer = await data._file.arrayBuffer();
+      zip.file(filename, arrayBuffer);
+      return;
+    }
+    
+    console.warn(`Cannot add file to zip: ${filename} - unsupported data type`, typeof data);
   }
 
   async saveFile(blob, filename) {
@@ -2000,18 +2104,18 @@ Sample Length: ${chart.sampleLength}
       fgcolor: "#ffffff",
       animate: true
     });
-
-    carousel.addItem("Edit Title", () => this.editMetadataField("title"));
-    carousel.addItem("Edit Subtitle", () => this.editMetadataField("subtitle"));
-    carousel.addItem("Edit Artist", () => this.editMetadataField("artist"));
-    carousel.addItem("Edit Genre", () => this.editMetadataField("genre"));
-    carousel.addItem("Edit Credit", () => this.editMetadataField("credit"));
-    carousel.addItem("Edit BPM", () => this.editSongBpm());
-    carousel.addItem("Edit Offset", () => this.editSongOffset());
-    carousel.addItem("Edit Sample Start", () => this.editSampleStart());
-    carousel.addItem("Edit Sample Length", () => this.editSampleLength());
-
-    carousel.addItem("< Back", () => this.showEditMenu());
+  
+    carousel.addItem("(Edit Title|Editar Título)", () => this.editMetadataField("title"));
+    carousel.addItem("(Edit Subtitle|Editar Subtítulo)", () => this.editMetadataField("subtitle"));
+    carousel.addItem("(Edit Artist|Editar Artista)", () => this.editMetadataField("artist"));
+    carousel.addItem("(Edit Genre|Editar Género)", () => this.editMetadataField("genre"));
+    carousel.addItem("(Edit Credit|Editar Crédito)", () => this.editMetadataField("credit"));
+    carousel.addItem("(Edit BPM|Editar BPM)", () => this.editSongBpm());
+    carousel.addItem("(Edit Offset|Editar Offset)", () => this.editSongOffset());
+    carousel.addItem("(Edit Sample Start|Editar Inicio de Muestra)", () => this.editSampleStart());
+    carousel.addItem("(Edit Sample Length|Editar Duración de Muestra)", () => this.editSampleLength());
+  
+    carousel.addItem("< (Back|Volver)", () => this.showEditMenu());
     carousel.onCancel.add(() => this.showEditMenu());
   }
 
@@ -2065,7 +2169,7 @@ Sample Length: ${chart.sampleLength}
         }
         this.showMetadataEdit();
         this.updateInfoText();
-        notifications.show("BPM UPDATED");
+        notifications.show(__("BPM (UPDATED|ACTUALIZADO)"));
         keyboard.destroy();
         window.focusedElement = null;
       },
@@ -2094,7 +2198,7 @@ Sample Length: ${chart.sampleLength}
       onConfirm: (value) => {
         this.song.chart.offset = value;
         this.showMetadataEdit();
-        notifications.show("AUDIO OFFSET UPDATED");
+        notifications.show(__("AUDIO OFFSET (UPDATED|ACTUALIZADO)"));
         keyboard.destroy();
         window.focusedElement = null;
       },
@@ -2129,7 +2233,7 @@ Sample Length: ${chart.sampleLength}
         
         this.updateInfoText();
         this.showMetadataEdit();
-        notifications.show("SAMPLE START UPDATED");
+        notifications.show(__("SAMPLE START (UPDATED|ACTUALIZADO)"));
         keyboard.destroy();
         window.focusedElement = null;
       },
@@ -2178,9 +2282,9 @@ Sample Length: ${chart.sampleLength}
       fgcolor: "#ffffff",
       animate: true
     });
-
+  
     this.song.chart.backgrounds.forEach((bg, index) => {
-      const fileName = bg.file ? bg.file.split("/").pop() : "No file";
+      const fileName = bg.file ? bg.file.split("/").pop() : "(No file|Sin archivo)";
       carousel.addItem(fileName,
         () => this.showBGChangeMenu(index),
         { bg, fileName, index }
@@ -2192,19 +2296,19 @@ Sample Length: ${chart.sampleLength}
         const bg = item.data.bg;
         
         this.songInfoText.write(`${item.data.fileName}
-
-TYPE: ${item.data.fileName == '-nosongbg-' ? 'NONE' : bg.type}
-INDEX: ${index + 1}
-TIME: ${TimeUtils.formatTime(this.chartRenderer.beatToSec(bg.beat))}
-BEAT: ${bg.beat}`);
-
+  
+  TYPE: ${item.data.fileName == '-nosongbg-' ? 'NONE' : bg.type}
+  INDEX: ${index + 1}
+  TIME: ${TimeUtils.formatTime(this.chartRenderer.beatToSec(bg.beat))}
+  BEAT: ${bg.beat}`);
+  
         this.songInfoText.wrap(game.width / 2 - 8);
       }
     });
     
-    carousel.selectIndex(0); // Force an update
+    carousel.selectIndex(0);
   
-    carousel.addItem("< Back", () => this.showFileMenu());
+    carousel.addItem("< (Back|Volver)", () => this.showFileMenu());
     carousel.onCancel.add(() => this.showFileMenu());
   }
   
@@ -2219,7 +2323,7 @@ BEAT: ${bg.beat}`);
     });
     
     if (bg) {
-      carousel.addItem("REPLACE", () => {
+      carousel.addItem("(REPLACE|REEMPLAZAR)", () => {
         this.pickFile("image/*,video/*", async event => {
           const file = event.target.files[0];
           bg.file = file.name;
@@ -2228,7 +2332,7 @@ BEAT: ${bg.beat}`);
         }, () => this.showBGChangeMenu(bgIndex));
       });
       
-      carousel.addItem("REMOVE", () => {
+      carousel.addItem("(REMOVE|ELIMINAR)", () => {
         this.song.chart.backgrounds.splice(bgIndex, 1);
         this.chartRenderer.removeTag(bg.beat, 'bg');
         delete this.files.extra[bg.file];
@@ -2236,7 +2340,7 @@ BEAT: ${bg.beat}`);
       });
     }
     
-    carousel.addItem("< Back", () => this.editBGChangeFiles());
+    carousel.addItem("< (Back|Volver)", () => this.editBGChangeFiles());
     carousel.onCancel.add(() => this.editBGChangeFiles());
   }
 

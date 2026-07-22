@@ -34,14 +34,14 @@ class ChartModifiers {
     if (this.returnState != 'Settings') {
       // Note colors
       const noteOptions = [
-        { value: 'NOTE', display: 'NOTE' },
-        { value: 'VIVID', display: 'VIVID' },
-        { value: 'FLAT', display: 'FLAT' },
-        { value: 'RAINBOW', display: 'RAINBOW' }
+        { value: 'NOTE', display: "NOTE" },
+        { value: 'VIVID', display: "VIVID" },
+        { value: 'FLAT', display: "FLAT" },
+        { value: 'RAINBOW', display: "RAINBOW" }
       ];
       const currentNoteIndex = noteOptions.findIndex(opt => opt.value === Account.settings.noteColorOption);
       settingsWindow.addSettingItem(
-        "Note Colors",
+        __("Note Colors||Colores de Notas"),
         noteOptions.map(opt => opt.display),
         currentNoteIndex,
         index => {
@@ -52,8 +52,16 @@ class ChartModifiers {
   
       // Note speed
       settingsWindow.addSettingItem(
-        "Note Speed",
-        ["Normal", "Double", "Triple", "Insane", "Sound Barrier", "Light Speed", "Faster than light"],
+        __("Note Speed||Velocidad de Notas"),
+        [
+          __("Normal||Normal"),
+          __("Double||Doble"),
+          __("Triple||Triple"),
+          __("Insane||Alucinante"),
+          __("Sound Barrier||Barrera de Sonido"),
+          __("Light Speed||Velocidad de la Luz"),
+          __("Faster than light||Más Rápido que la Luz")
+        ],
         Account.settings.noteSpeedMult - 1,
         index => {
           Account.settings.noteSpeedMult = index + 1;
@@ -63,7 +71,7 @@ class ChartModifiers {
       
       // Speed mod
       settingsWindow.addSettingItem(
-        "Speed Mod",
+        __("Speed Mod||Modo de Velocidad"),
         ["X-MOD", "C-MOD"],
         Account.settings.speedMod === 'C-MOD' ? 1 : 0,
         index => {
@@ -88,9 +96,19 @@ class ChartModifiers {
     Object.keys(this.modifiers).forEach(key => {
       const enabled = this.modifiers[key];
       
+      // Traducir nombres de modificadores
+      const modifierNames = {
+        'NO_JUMPS': __("No Jumps||Sin Saltos"),
+        'NO_HANDS': __("No Hands||Sin Manos"),
+        'NO_FREEZES': __("No Freezes||Sin Holds"),
+        'NO_MINES': __("No Mines||Sin Minas"),
+        'MIRRORED': __("Mirrored||Espejo"),
+        'RANDOMIZED': __("Randomized||Aleatorio")
+      };
+      
       settingsWindow.addSettingItem(
-        key.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-        ['ENABLED', 'DISABLED'],
+        modifierNames[key] || key.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
         enabled ? 0 : 1,
         index => {
           this.modifiers[key] = index === 0;
@@ -98,16 +116,16 @@ class ChartModifiers {
       );
     });
     
-    settingsWindow.addItem("APPLY", "", () => {
+    settingsWindow.addItem(__("APPLY||APLICAR"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       Account.settings.chartModifiers = this.modifiers;
       saveAccount();
-      console.log("Saved modifiers:", Account.settings.chartModifiers); // Debug
+      console.log("Saved modifiers:", Account.settings.chartModifiers);
       game.state.start(this.returnState, true, false, ...this.returnParams);
     }, true);
   }
 
-  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+  confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
     });

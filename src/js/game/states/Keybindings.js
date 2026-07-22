@@ -8,17 +8,17 @@ class Keybindings {
       {
         position: "right",
         icon: "d-pad",
-        text: "NAVIGATE"
+        text: __("NAVIGATE||NAVEGAR")
       },
       {
         position: "right",
         icon: "a",
-        text: "CHANGE"
+        text: __("CHANGE||CAMBIAR")
       },
       {
         position: "right",
         icon: "b",
-        text: "BACK"
+        text: __("BACK||VOLVER")
       }
     ]);
     
@@ -115,45 +115,45 @@ class Keybindings {
     
     this.windowManager.focus(settingsWindow);
     
-    settingsWindow.addItem("PLAYER 1 KEYBOARD", ">", () => {
+    settingsWindow.addItem(__("Keyboard P1||Teclado P1"), ">", () => {
       this.windowManager.remove(settingsWindow, true);
       this.showKeyboardCustomization(1);
     });
     
-    settingsWindow.addItem("PLAYER 2 KEYBOARD", ">", () => {
+    settingsWindow.addItem(__("Keyboard P2||Teclado P2"), ">", () => {
       this.windowManager.remove(settingsWindow, true);
       this.showKeyboardCustomization(2);
     });
     
-    settingsWindow.addItem("PLAYER 1 GAMEPAD", ">", () => {
+    settingsWindow.addItem(__("Gamepad P1||Mando P1"), ">", () => {
       this.windowManager.remove(settingsWindow, true);
       this.showGamepadCustomization(1);
     });
     
-    settingsWindow.addItem("PLAYER 2 GAMEPAD", ">", () => {
+    settingsWindow.addItem(__("Gamepad P2||Mando P2"), ">", () => {
       this.windowManager.remove(settingsWindow, true);
       this.showGamepadCustomization(2);
     });
     
-    settingsWindow.addItem("RESET TO DEFAULTS", "", () => {
+    settingsWindow.addItem(__("RESET TO DEFAULTS||RESTABLECER"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(
-        "Reset all keybindings to default settings?",
+        __("Reset all keybindings to default settings?||¿Restablecer todas las configuraciones de teclas a los valores predeterminados?"),
         () => {
           this.pendingChanges.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
           this.pendingChanges.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
-          this.showNotification("Keybindings reset!");
+          this.showNotification(__("Keybindings reset!||¡Teclas restablecidas!"));
           this.showKeybindingsMenu();
         },
         () => {
           this.showKeybindingsMenu();
         },
-        "RESET",
-        "CANCEL"
+        __("RESET||RESTABLECER"),
+        __("CANCEL||CANCELAR")
       );
     });
     
-    settingsWindow.addItem("< BACK", "", () => {
+    settingsWindow.addItem(__("< BACK||< VOLVER"), "", () => {
       game.state.start("Settings");
     }, true);
     
@@ -182,7 +182,7 @@ class Keybindings {
       keysWindow.addItem(`${playerNum === 1 ? "P1" : "P2"} ${control.key}`, currentKey, () => {
         this.windowManager.remove(keysWindow, true);
         this.showKeyWaitOverlay(
-          `PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`,
+          __(`PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}||PRESIONA TECLA PARA: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`),
           (keyCode) => {
             this.mapKeyboardKey(playerNum, control.mappingKey, control.index, keyCode);
             this.showKeyboardCustomization(playerNum, keysWindow.selectedIndex, returnIndex);
@@ -195,7 +195,7 @@ class Keybindings {
       });
     });
     
-    keysWindow.addItem("< BACK", "", () => {
+    keysWindow.addItem(__("< BACK||< VOLVER"), "", () => {
       this.windowManager.remove(keysWindow, true);
       this.windowManager.unfocus();
       this.showKeybindingsMenu();
@@ -224,7 +224,7 @@ class Keybindings {
       gamepadWindow.addItem(`${playerNum === 1 ? "P1" : "P2"} ${control.key}`, currentButton, () => {
         this.windowManager.remove(gamepadWindow, true);
         this.showKeyWaitOverlay(
-          `PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`,
+          __(`PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}||PRESIONA BOTÓN DEL MANDO PARA: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`),
           (buttonCode) => {
             this.mapGamepadKey(playerNum, control.mappingKey, buttonCode);
             this.showGamepadCustomization(playerNum, gamepadWindow.selectedIndex, returnIndex);
@@ -237,7 +237,7 @@ class Keybindings {
       });
     });
     
-    gamepadWindow.addItem("< BACK", "", () => {
+    gamepadWindow.addItem(__("< BACK||< VOLVER"), "", () => {
       this.windowManager.remove(gamepadWindow, true);
       this.windowManager.unfocus();
       this.showKeybindingsMenu();
@@ -259,7 +259,7 @@ class Keybindings {
     instructionText.anchor.set(0.5, 0.5);
     instructionText.fontSize = 2;
     
-    const helpText = new Text(120, 100, "Hold ESC or MENU to unmap");
+    const helpText = new Text(120, 100, __("Hold ESC or MENU to unmap||Mantén ESC o MENÚ para desasignar"));
     helpText.anchor.set(0.5, 0.5);
     
     let escHoldStartTime = 0;
@@ -302,7 +302,7 @@ class Keybindings {
           progressInterval = null;
         }
         this.cleanupWaitOverlay();
-        this.showNotification("Key unmapped!");
+        this.showNotification(__("Key unmapped!||¡Tecla desasignada!"));
         onCancel?.();
       }
     };
@@ -350,7 +350,7 @@ class Keybindings {
         const keyName = this.getKeyName(keyCode);
         if (keyName === 'Unidentified' || keyName === '???') {
           cleanup();
-          this.showNotification(`Cannot map: ${keyName}`);
+          this.showNotification(__(`Cannot map: ${keyName}||No se puede asignar: ${keyName}`));
           this.showKeyWaitOverlay(message, onSubmit, onCancel);
           return;
         }
@@ -363,7 +363,7 @@ class Keybindings {
           keyCode
         );
         if (conflict) {
-          this.showNotification(`Changed with ${conflict.label}`);
+          this.showNotification(__(`Changed with ${conflict.label}||Cambiado con ${conflict.label}`));
         }
         onSubmit?.(keyCode);
       }
@@ -389,7 +389,7 @@ class Keybindings {
         buttonCode
       );
       if (conflict) {
-        setTimeout(() => this.showNotification(`Swapped with ${conflict.label}`));
+        setTimeout(() => this.showNotification(__(`Swapped with ${conflict.label}||Intercambiado con ${conflict.label}`)));
       }
       onSubmit?.(buttonCode);
     };
@@ -463,7 +463,7 @@ class Keybindings {
     }
     mapping[playerKey][mappingKey][index] = keyCode;
     
-    this.showNotification(`Mapped: ${this.getKeyName(keyCode)}`);
+    this.showNotification(__(`Mapped: ${this.getKeyName(keyCode)}||Asignado: ${this.getKeyName(keyCode)}`));
   }
   
   mapGamepadKey(playerNum, mappingKey, buttonCode) {
@@ -480,7 +480,7 @@ class Keybindings {
     
     mapping[playerKey][mappingKey] = buttonCode;
     
-    this.showNotification(`Mapped: ${GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`}`);
+    this.showNotification(__(`Mapped: ${GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`}||Asignado: ${GAMEPAD_KEY_NAMES[buttonCode] || `BOTÓN ${buttonCode}`}`));
   }
   
   findKeyboardKeyConflict(playerKey, mappingKey, index, keyCode) {
@@ -547,7 +547,7 @@ class Keybindings {
         mapping[playerKey][mappingKey].pop();
       }
       
-      this.showNotification("KEY UNMAPPED!");
+      this.showNotification(__("KEY UNMAPPED!||¡TECLA DESASIGNADA!"));
     }
   }
   
@@ -557,7 +557,7 @@ class Keybindings {
     
     mapping[playerKey][mappingKey] = null;
     
-    this.showNotification("BUTTON UNMAPPED!");
+    this.showNotification(__("BUTTON UNMAPPED!||¡BOTÓN DESASIGNADO!"));
   }
   
   getKeyboardKeyDisplay(playerKey, mappingKey, index) {

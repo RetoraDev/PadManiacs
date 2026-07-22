@@ -16,10 +16,10 @@ class SongStats {
     this.scrollDirection = Account.settings.scrollDirection || 'falling';
     
     this.tabs = [
-      { id: 'general', label: 'General', create: this.createGeneralTab.bind(this) },
-      { id: 'difficulties', label: 'Difficulties', create: this.createDifficultiesTab.bind(this) },
-      { id: 'scores', label: 'Scores', create: this.createScoresTab.bind(this) },
-      { id: 'preview', label: 'Preview', create: this.createPreviewTab.bind(this) }
+      { id: 'general', label: __("General||General"), create: this.createGeneralTab.bind(this) },
+      { id: 'difficulties', label: __("Difficulties||Dificultades"), create: this.createDifficultiesTab.bind(this) },
+      { id: 'scores', label: __("Scores||Puntuaciones"), create: this.createScoresTab.bind(this) },
+      { id: 'preview', label: __("Preview||Vista Previa"), create: this.createPreviewTab.bind(this) }
     ];
     
     this.visibilityChangeListener = () => {
@@ -90,7 +90,7 @@ class SongStats {
     if (diff) {
       this.diffText.write(`${diff.type} ${diff.rating}`);
     } else {
-      this.diffText.write("No difficulty");
+      this.diffText.write(__("No difficulty||Sin dificultad"));
     }
     // Show only in difficulties and preview tabs
     this.diffText.visible = (this.currentTab === 1 || this.currentTab === 3);
@@ -234,14 +234,14 @@ class SongStats {
     }
     
     const info = new Text(104, 24, 
-      `Title: ${chart.title || 'Unknown'}\n` +
-      `Artist: ${chart.artist || 'Unknown'}\n` +
-      `Genre: ${chart.genre || 'Unknown'}\n` +
-      `Credit: ${chart.credit || 'Unknown'}\n` +
-      `Difficulties: ${totalDiffs}\n` +
-      `Total Notes: ${totalNotes}\n` +
-      `Sample Start: ${chart.sampleStart || 0}s\n` +
-      `Offset: ${chart.offset || 0}`,
+      __(`(Title|Título): ${chart.title || 'Unknown'}\n`) +
+      __(`(Artist|Artista): ${chart.artist || 'Unknown'}\n`) +
+      __(`(Genre|Género): ${chart.genre || 'Unknown'}\n`) +
+      __(`(Credit|Crédito): ${chart.credit || 'Unknown'}\n`) +
+      __(`(Difficulties|Dificultades): ${totalDiffs}\n`) +
+      __(`(Total Notes|Total de Notas): ${totalNotes}\n`) +
+      __(`(Sample Start|Inicio de Muestra): ${chart.sampleStart || 0}s\n`) +
+      __(`(Offset|Offset): ${chart.offset || 0}`),
       FONTS.default
     );
     info.wrap(136 - 8);
@@ -268,17 +268,17 @@ class SongStats {
     
     const mainMenu = () => {
       resetCarousel(true);
-      carousel.addItem("Play Song", () => modeSelect());
-      carousel.addItem("Open in Editor", () => {
+      carousel.addItem(__("Play Song||Jugar Canción"), () => modeSelect());
+      carousel.addItem(__("Open in Editor||Abrir en Editor"), () => {
         game.state.start("Editor", true, false, this.song);
       });
     };
     
     const modeSelect = () => {
       resetCarousel();
-      carousel.addItem("Normal", () => diffSelect(false));
-      carousel.addItem("Autoplay", () => diffSelect(true));
-      carousel.addItem("< Back", () => mainMenu());
+      carousel.addItem(__("Normal||Normal"), () => diffSelect(false));
+      carousel.addItem(__("Autoplay||Autoplay"), () => diffSelect(true));
+      carousel.addItem(__("< Back||< Volver"), () => mainMenu());
       carousel.onCancel.add(() => mainMenu());
     };
     
@@ -306,7 +306,7 @@ class SongStats {
     this.tabContent = game.add.group();
     const diffs = this.getDifficulties();
     if (diffs.length === 0) {
-      const text = new Text(4, 24, "No difficulties available", FONTS.default);
+      const text = new Text(4, 24, __("No difficulties available||No hay dificultades disponibles"), FONTS.default);
       this.tabContent.addChild(text);
       return;
     }
@@ -389,12 +389,12 @@ class SongStats {
     
     const total = totalNotes + mines + holds + rolls;
     
-    this._statsText.write(
-      `\n       Notes: ${String(totalNotes).padEnd(5)}  Mines: ${String(mines).padEnd(5)}\n` +
-      `       Holds: ${String(holds).padEnd(5)}  Rolls: ${String(rolls).padEnd(5)}\n` +
-      `       Jumps: ${String(jumps).padEnd(5)}  Hands: ${String(hands).padEnd(5)}\n` +
-      `             Total: ${String(total).padEnd(5)}`
-    );
+    this._statsText.write(__(
+      `\n       (Notes|Notas): ${String(totalNotes).padEnd(5)}  (Mines|Minas): ${String(mines).padEnd(5)}\n` +
+      `       (Holds|Holds): ${String(holds).padEnd(5)}  (Rolls|Rolls): ${String(rolls).padEnd(5)}\n` +
+      `       (Jumps|Saltos): ${String(jumps).padEnd(5)}  (Hands|Manos): ${String(hands).padEnd(5)}\n` +
+      `             (Total|Total): ${String(total).padEnd(5)}`
+    ));
     
     if (notes.length > 0) {
       const maxBeat = Math.max(...notes.map(n => n.beat));
@@ -415,7 +415,7 @@ class SongStats {
     const scores = Account.highScores[songKey] || {};
     const diffs = this.getDifficulties();
     if (diffs.length === 0) {
-      const text = new Text(4, 24, "No difficulties available", FONTS.default);
+      const text = new Text(4, 24, __("No difficulties available||No hay dificultades disponibles"), FONTS.default);
       this.tabContent.addChild(text);
       return;
     }
@@ -449,25 +449,25 @@ class SongStats {
         const data = item.data.score;
         const date = new Date(data.date);
         this._scoreDetails.write(
-          `Date: ${date.toLocaleDateString()}\n\n` +
-          `Score: ${data.score.toLocaleString()}\n` +
-          `Accuracy: ${data.accuracy.toFixed(2)}%\n` +
-          `Max Combo: ${data.maxCombo}\n\n` +
-          `Rating: ${data.rating}\n` +
-          `Judgements:\n` +
-          ` • Marvelous: ${data.judgements.marvelous}\n` +
-          ` • Perfect: ${data.judgements.perfect}\n` +
-          ` • Great: ${data.judgements.great}\n` +
-          ` • Good: ${data.judgements.good}\n` +
-          ` • Boo: ${data.judgements.boo}\n` +
-          ` • Miss: ${data.judgements.miss}`
+          __(`(Date|Fecha): ${date.toLocaleDateString()}\n\n`) +
+          __(`(Score|Puntaje): ${data.score.toLocaleString()}\n`) +
+          __(`(Accuracy|Precisión): ${data.accuracy.toFixed(2)}%\n`) +
+          __(`(Max Combo|Combo Máx): ${data.maxCombo}\n\n`) +
+          __(`(Rating|Calificación): ${data.rating}\n`) +
+          __("(Judgements|Juicios):\n") +
+          __(` • Marvelous: ${data.judgements.marvelous}\n`) +
+          __(` • Perfect: ${data.judgements.perfect}\n`) +
+          __(` • Great: ${data.judgements.great}\n`) +
+          __(` • Good: ${data.judgements.good}\n`) +
+          __(` • Boo: ${data.judgements.boo}\n`) +
+          __(` • Miss: ${data.judgements.miss}`)
         );
       } else {
-        this._scoreDetails.write('\n< NO HIGHSCORES >');
+        this._scoreDetails.write('\n< ' + __("(NO|SIN) HIGHSCORES") + ' >');
       }
     });
     
-    this._scoreDetails = new Text(104, 24, "Select a difficulty", FONTS.default);
+    this._scoreDetails = new Text(104, 24, __("Select a difficulty||Selecciona una dificultad"), FONTS.default);
     this._scoreDetails.tint = 0xffffff;
     this.tabContent.addChild(this._scoreDetails);
     
@@ -481,7 +481,7 @@ class SongStats {
     this.tabContent = game.add.group();
     const diff = this.getCurrentDifficulty();
     if (!diff) {
-      const text = new Text(4, 24, "No difficulty selected", FONTS.default);
+      const text = new Text(4, 24, __("No difficulty selected||Ninguna dificultad seleccionada"), FONTS.default);
       this.tabContent.addChild(text);
       return;
     }

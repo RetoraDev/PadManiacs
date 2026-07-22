@@ -35,8 +35,7 @@ class Load {
       this.loadedCount++;
     });
 
-    // Create simple progress display
-    this.progressText = new ProgressText("LOADING ASSETS");
+    this.progressText = new ProgressText(__("Loading assets...||Cargando recursos..."));
   }
 
   create() {

@@ -415,12 +415,10 @@ class Jukebox {
   updateSongDisplay() {
     const song = this.currentSong;
     
-    // Update text displays
-    this.songTitle.write(song.titleTranslit || song.title || "Unknown Title", 33);
-    this.songArtist.write(song.artistTranslit || song.artist || "Unknown Artist", 33);
+    this.songTitle.write(song.titleTranslit || song.title || __("Unknown Title||Título Desconocido"), 33);
+    this.songArtist.write(song.artistTranslit || song.artist || __("Unknown Artist||Artista Desconocido"), 33);
     this.songCredit.write(song.credit || "", 33);
     
-    // Load banner
     this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
     this.bannerSprite.dirty();
     
@@ -578,19 +576,17 @@ class Jukebox {
     let currentVolume = Account.settings.volume;
     let newVolume = currentVolume + delta;
     
-    // Clamp volume between 0 and 100
     newVolume = Phaser.Math.clamp(newVolume, 0, 100);
     
     if (newVolume !== currentVolume) {
       Account.settings.volume = newVolume;
       saveAccount();
       
-      // Update audio volume
       this.audioElement.volume = newVolume / 100;
       
-      // Show volume feedback
-      const volumeLevels = ["MUTE", "25%", "50%", "75%", "100%"];
-      this.volumeLabel.write(`VOLUME: ${newVolume > 0 ? newVolume + '%' : 'MUTE'}`);
+      const volumeText = newVolume > 0 ? `${newVolume}%` : __("(MUTE|SILENCIADO)");
+      this.volumeLabel.write(__(`(VOLUME|VOLUMEN): ${volumeText}`));
+      
       this.volumeLabel.visible = true;
       this.lastVolumeUpdate = game.time.now;
     }
@@ -662,8 +658,9 @@ class Jukebox {
     
     // Show shuffle state label
     this.shuffleLabel.visible = true;
-    this.shuffleLabel.write(`SHUFFLE: ${this.isShuffled ? 'ON' : 'OFF'}`);
     
+    this.shuffleLabel.write(__(`(SHUFFLE|ALEATORIO): ${this.isShuffled ? 'ON' : 'OFF'}`));
+
     game.time.events.add(1500, () => this.shuffleLabel.visible = false);
   }
 
@@ -785,22 +782,22 @@ class Jukebox {
     
     const menu = this.windowManager.createWindow(20, 4, 9, 8, "1");
     
-    menu.addItem("Song List", ">", () => {
+    menu.addItem(__("Song List||Playlist"), ">", () => {
       menu.destroy();
       menuBg.destroy();
       this.menuVisible = false;
       this.showSongList();
     });
     
-    menu.addSettingItem("Shuffle", ["ON", "OFF"], this.isShuffled ? 0 : 1, () => this.toggleShuffle());
+    menu.addSettingItem(__("Shuffle||Aleatorio"), [__("ON||Sí"), __("OFF||No")], this.isShuffled ? 0 : 1, () => this.toggleShuffle());
     
-    menu.addItem("Close Menu", "", () => {
+    menu.addItem(__("Close Menu||Cerrar Menú"), "", () => {
       menu.destroy();
       menuBg.destroy();
       setTimeout(() => this.menuVisible = false);
     }, true);
     
-    menu.addItem("< Exit Jukebox", "", () => {
+    menu.addItem(__("< Exit Jukebox||< Volver"), "", () => {
       this.exitJukebox();
     });
     

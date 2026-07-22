@@ -55,10 +55,14 @@ class MainMenu {
 
   showBugReportDialog() {
     this.confirmDialog(
-      "Seems like the game crashed last time.\n" +
+      __("Seems like the game crashed last time.\n" +
       "Sorry about that!!\n\n" +
       "As a solo developer, crash reports are super helpful for fixing issues.\n\n" +
-      "Could you quickly report what you were doing when it crashed?\n",
+      "Could you quickly report what you were doing when it crashed?\n" +
+      "||Parece que el juego se bloqueó la última vez.\n" +
+      "¡Perdón por eso!\n\n" +
+      "Como desarrollador solitario, los reportes de error son súper útiles para arreglar problemas.\n\n" +
+      "¿Podrías reportar rápidamente qué estabas haciendo cuando ocurrió?\n"),
       () => {
         // Open bug report page
         window.openExternalUrl(FEEDBACK_BUG_REPORT_URL);
@@ -78,16 +82,19 @@ class MainMenu {
         saveAccount();
         this.menu();
       },
-      "Report Bug",
-      "Maybe Later"
+      __("Report Bug||Reportar Bug"),
+      __("Maybe Later||Después")
     );
   }
 
   showRatingDialog() {
     this.confirmDialog(
-      "Hey! You've been playing a while!\n\n" +
+      __("Hey! You've been playing a while!\n\n" +
       "Do you like the game? Ratings really help keep me motivated.\n\n" +
-      "Would you mind leaving a quick rating?\n",
+      "Would you mind leaving a quick rating?\n" +
+      "||¡Vaya! ¡Llevas un buen rato jugando!\n\n" +
+      "¿Te gusta el juego? Las valoraciones realmente me ayudan a mantener la motivación.\n\n" +
+      "¿Te importaría dejar una valoración rápida?\n"),
       () => {
         // Rate Now
         window.openExternalUrl(FEEDBACK_REVIEW_URL);
@@ -103,17 +110,21 @@ class MainMenu {
         // No Thanks
         this.menu();
       },
-      "Rate Now", 
-      "No Thanks"
+      __("Rate Now||Valorar"), 
+      __("No Thanks||No, Gracias")
     );
   }
 
   showFeatureRequestDialog() {
     this.confirmDialog(
-      "Thank you for playing!\n\n" +
+      __("Thank you for playing!\n\n" +
       "I'm a solo developer, so hearing your ideas directly is incredibly valuable.\n\n" +
       "Got any feature requests or suggestions?\n" +
-      "What would you like to see in the game?\n",
+      "What would you like to see in the game?\n" +
+      "||¡Gracias por jugar!\n\n" +
+      "Soy un desarrollador solitario, así que escuchar tus ideas directamente es increíblemente valioso.\n\n" +
+      "¿Tienes alguna sugerencia o petición?\n" +
+      "¿Qué te gustaría ver en el juego?\n"),
       () => {
         // Share ideas
         window.openExternalUrl(FEEDBACK_FEATURE_REQUEST_URL);
@@ -131,15 +142,17 @@ class MainMenu {
         saveAccount();
         this.menu();
       },
-      "Share Ideas",
-      "Not Now"
+      __("Share Ideas||Compartir Ideas"),
+      __("Not Now||Ahora No")
     );
   }
   
   showCommunityDialog() {
     this.confirmDialog(
-      "Enjoying the game?\n" +
-      "Join the community to download more charts, and share your creations and high scores with other players!\n",
+      __("Enjoying the game?\n" +
+      "Join the community to download more charts, and share your creations and high scores with other players!\n" +
+      "||¿Disfrutando el juego?\n" +
+      "¡Únete a la comunidad para descargar más charts, y compartir tus creaciones y records con otros jugadores!\n"),
       () => {
         // Join
         window.openExternalUrl(COMMUNITY_HOMEPAGE_URL);
@@ -155,8 +168,8 @@ class MainMenu {
         // No Thanks
         this.menu();
       },
-      "Join", 
-      "No Thanks"
+      __("Join||Unirse"), 
+      __("No Thanks||No, Gracias")
     );
   }
 
@@ -175,19 +188,19 @@ class MainMenu {
       crop: false
     });
     
-    carousel.addItem("Rhythm Game", () => this.startGame());
-    carousel.addItem("Character Select", () => {
+    carousel.addItem(__("Rhythm Game||Partida"), () => this.startGame());
+    carousel.addItem(__("Character Select||Personaje"), () => {
       this.keepBackgroundMusic = true;
       game.state.start("CharacterSelect");
     });
-    carousel.addItem("Chart Editor", () => this.openEditor());
-    carousel.addItem("Settings", () => this.showSettings());
-    carousel.addItem("Extras", () => this.showExtras());
+    carousel.addItem(__("Chart Editor||Editor"), () => this.openEditor());
+    carousel.addItem(__("Settings||Ajustes"), () => this.showSettings());
+    carousel.addItem(__("Extras||Extras"), () => this.showExtras());
     
     game.onMenuIn.dispatch('home', carousel);
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
-      carousel.addItem("Exit", () => this.confirmExit());
+      carousel.addItem(__("Exit||Salir"), () => this.confirmExit());
       carousel.onCancel.add(() => this.confirmExit());
     }
   }
@@ -201,14 +214,14 @@ class MainMenu {
       crop: false
     });
     
-    carousel.addItem("Free Play", () => this.freePlay());
-    carousel.addItem("Extra Songs", () => this.showExtraSongs());
+    carousel.addItem(__("Free Play||Juego Libre"), () => this.freePlay());
+    carousel.addItem(__("Extra Songs||Canciones Extra"), () => this.showExtraSongs());
     carousel.addItem("Playlists", () => {
       this.keepBackgroundMusic = true;
       game.state.start("Playlists");
     });
     game.onMenuIn.dispatch('startGame', carousel);
-    carousel.addItem("< Back", () => this.showHomeMenu());
+    carousel.addItem(__("< Back||< Volver"), () => this.showHomeMenu());
     carousel.onCancel.add(() => this.showHomeMenu());
   }
 
@@ -222,13 +235,13 @@ class MainMenu {
     });
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
-      carousel.addItem("User Songs", () => this.loadExternalSongs());
-      carousel.addItem("Filesystem", () => this.startFileSelect());
+      carousel.addItem(__("User Songs||Canciones de Usuario"), () => this.loadExternalSongs());
+      carousel.addItem(__("Filesystem||Sistema de Archivos"), () => this.startFileSelect());
     }
-    carousel.addItem("Load Single Song", () => this.loadSingleSong());
+    carousel.addItem(__("Load Single Song||Cargar Canción Individual"), () => this.loadSingleSong());
     
     if (window.externalSongs && (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS)) {
-      carousel.addItem("Reload User Songs", () => {
+      carousel.addItem(__("Reload User Songs||Recargar Canciones de Usuario"), () => {
         backgroundMusic.refreshCache();
         window.externalSongs = undefined;
         this.loadExternalSongs();
@@ -236,7 +249,7 @@ class MainMenu {
     }
     
     game.onMenuIn.dispatch('extraSongs', carousel);
-    carousel.addItem("< Back", () => this.startGame());
+    carousel.addItem(__("< Back||< Volver"), () => this.startGame());
     carousel.onCancel.add(() => this.startGame());
   }
 
@@ -250,18 +263,18 @@ class MainMenu {
     });
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS || window.DEBUG) {
-      carousel.addItem("Addon Manager", () => this.showAddonManager());
+      carousel.addItem(__("Addon Manager||Gestor de Addons"), () => this.showAddonManager());
     }
-    carousel.addItem("Jukebox", () => this.startJukebox());
-    carousel.addItem("Offset Assistant", () => this.startOffsetAssistant());
-    carousel.addItem("Achievements", () => this.showAchievements());
-    carousel.addItem("Player Stats", () => this.showStats());
-    carousel.addItem("Feedback", () => this.showFeedback());
-    carousel.addItem("Comunity", () => this.showCommunity());
-    carousel.addItem("Credits", () => this.showCredits());
+    carousel.addItem(__("Jukebox||Jukebox"), () => this.startJukebox());
+    carousel.addItem(__("Offset Assistant||Asistente de Offset"), () => this.startOffsetAssistant());
+    carousel.addItem(__("Achievements||Logros"), () => this.showAchievements());
+    carousel.addItem(__("Player Stats||Estadísticas"), () => this.showStats());
+    carousel.addItem(__("Feedback||Comentarios"), () => this.showFeedback());
+    carousel.addItem(__("Community||Comunidad"), () => this.showCommunity());
+    carousel.addItem(__("Credits||Créditos"), () => this.showCredits());
     
     game.onMenuIn.dispatch('extras', carousel);
-    carousel.addItem("< Back", () => this.showHomeMenu());
+    carousel.addItem(__("< Back||< Volver"), () => this.showHomeMenu());
     carousel.onCancel.add(() => this.showHomeMenu());
   }
 
@@ -279,12 +292,12 @@ class MainMenu {
       this.showFeedback();
     };
     
-    carousel.addItem("Leave A Review", () => openLink(FEEDBACK_REVIEW_URL));
-    carousel.addItem("Feature Request", () => openLink(FEEDBACK_FEATURE_REQUEST_URL));
-    carousel.addItem("Bug Report", () => openLink(FEEDBACK_BUG_REPORT_URL));
+    carousel.addItem(__("Leave A Review||Dejar Reseña"), () => openLink(FEEDBACK_REVIEW_URL));
+    carousel.addItem(__("Feature Request||Solicitar Función"), () => openLink(FEEDBACK_FEATURE_REQUEST_URL));
+    carousel.addItem(__("Bug Report||Reportar Error"), () => openLink(FEEDBACK_BUG_REPORT_URL));
     
     game.onMenuIn.dispatch('feedback', carousel);
-    carousel.addItem("< Back", () => this.showExtras());
+    carousel.addItem(__("< Back||< Volver"), () => this.showExtras());
     carousel.onCancel.add(() => this.showExtras());
   }
   
@@ -307,7 +320,7 @@ class MainMenu {
     game.state.start("Settings");
   }
   
-  confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
+  confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
     });
@@ -331,7 +344,7 @@ class MainMenu {
 
   confirmExit() {
     this.confirmDialog(
-      "Are you sure you want to exit the game?",
+      __("Are you sure you want to exit the game?||¿Estás seguro de que quieres salir del juego?"),
       () => {
         switch (CURRENT_ENVIRONMENT) {
           case ENVIRONMENT.CORDOVA:
@@ -343,8 +356,8 @@ class MainMenu {
         }
       },
       () => this.showHomeMenu(),
-      "Exit",
-      "Cancel"
+      __("Exit||Salir"),
+      __("Cancel||Cancelar")
     );
   }
 
@@ -378,15 +391,15 @@ class MainMenu {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       if (!window.externalSongs) {
         this.confirmDialog(
-          "Load extra songs from external storage?",
+          __("Load extra songs from external storage?||¿Cargar canciones extras desde almacenamiento externo?"),
           () => {
             game.state.start("LoadExternalSongs", true, false, "Jukebox", [undefined, undefined]);
           },
           () => {
             game.state.start("Jukebox");
           },
-          "Load Songs",
-          "Skip"
+          __("Load Songs||Cargar Canciones"),
+          __("Skip||Saltar")
         );
       } else {
         game.state.start("Jukebox");

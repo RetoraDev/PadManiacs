@@ -6,10 +6,9 @@ class FileSelect {
     this.allowCancel = allowCancel;
     this.currentPath = '';
     this.currentDir = null;
-    this.history = []; // Stack for navigation history
+    this.history = [];
     this.fileSystem = new FileSystemTools();
     
-    // Restore state from window if exists
     if (window.fileSelectState) {
       this.restoreState(window.fileSelectState);
     }
@@ -21,22 +20,21 @@ class FileSelect {
     this.backgroundGradient = new BackgroundGradient();
     this.futuristicLines = new FuturisticLines();
     this.navigationHint = new NavigationHint([
-      { position: "left", icon: "cursor", text: "NAVIGATE" },
-      { position: "right", icon: "a", text: "SELECT" },
-      { position: "right", icon: "b", text: this.allowCancel ? "BACK/CANCEL" : "BACK" }
+      { position: "left", icon: "cursor", text: __("NAVIGATE||NAVEGAR") },
+      { position: "right", icon: "a", text: __("SELECT||SELECCIONAR") },
+      { position: "right", icon: "b", text: this.allowCancel ? __("BACK/CANCEL||VOLVER/CANCELAR") : __("BACK||VOLVER") }
     ]);
     
-    this.pathText = new Text(4, 4, "PATH: /", FONTS.default);
+    this.pathText = new Text(4, 4, __("PATH: /||RUTA: /"), FONTS.default);
     this.pathText.wrap(180);
     
-    this.emptyFolderText = new Text(game.width / 2, game.height / 2, "This folder is empty", FONTS.shaded);
+    this.emptyFolderText = new Text(game.width / 2, game.height / 2, __("This folder is empty||Esta carpeta está vacía"), FONTS.shaded);
     this.emptyFolderText.anchor.set(0.5);
     this.emptyFolderText.visible = false;
     
     this.loadDirectory();
   }
 
-  // Save current state to window
   saveState() {
     window.fileSelectState = {
       currentPath: this.currentDir ? this.currentDir.fullPath : '/',
@@ -47,12 +45,10 @@ class FileSelect {
     };
   }
 
-  // Restore state from window
   restoreState(state) {
     if (state.extensions) {
       this.extensions = state.extensions;
     }
-    // History will be restored after loading directory
     if (state.history) {
       this._restoreHistory = state.history;
     }
@@ -82,7 +78,6 @@ class FileSelect {
     
     try {
       if (dirEntry === null) {
-        // Check if we have a restored path
         if (this._restorePath && this._restorePath !== '/') {
           try {
             this.currentDir = await this.fileSystem.getDirectory(this._restorePath);
@@ -91,7 +86,6 @@ class FileSelect {
             entries = [...entries, ...files];
             this._restorePath = null;
           } catch (e) {
-            // If path doesn't exist, fallback to root
             this.currentDir = await this.fileSystem.getDirectory('');
             entries = await this.fileSystem.listDirectories(this.currentDir);
             const files = await this.fileSystem.listFiles(this.currentDir);
@@ -113,7 +107,7 @@ class FileSelect {
       console.error("Failed to load directory:", error);
       this.loadingDots.destroy();
       this.loadingDots = null;
-      this.showError("Cannot access file system");
+      this.showError(__("Cannot access file system||No se puede acceder al sistema de archivos"));
       return;
     }
   
@@ -155,16 +149,13 @@ class FileSelect {
       }
     });
     
-    // Restore history
     if (this._restoreHistory) {
       for (const path of this._restoreHistory) {
         if (path) {
           try {
             const dir = await this.fileSystem.getDirectory(path);
             this.history.push(dir);
-          } catch (e) {
-            // Skip invalid paths
-          }
+          } catch (e) {}
         }
       }
       this._restoreHistory = null;
@@ -208,7 +199,6 @@ class FileSelect {
       this.emptyFolderText.visible = true;
     }
     
-    // Restore selection
     if (this._restoreSelectedIndex !== undefined && this.carousel.items.length > this._restoreSelectedIndex) {
       this.carousel.selectIndex(this._restoreSelectedIndex);
       this._restoreSelectedIndex = undefined;
@@ -227,7 +217,6 @@ class FileSelect {
       this.history.push(this.currentDir);
       this.loadDirectory(entry);
     } else {
-      // Save state before leaving
       this.saveState();
       if (this.onSelect) {
         this.onSelect(entry);
@@ -262,7 +251,7 @@ class FileSelect {
   updatePathDisplay() {
     let path = this.currentDir ? this.currentDir.fullPath : '/';
     if (path === '') path = '/';
-    this.pathText.write("PATH: " + path);
+    this.pathText.write(__("PATH: ||RUTA: ") + path);
     this.pathText.wrap(240 - 10);
   }
   
@@ -284,7 +273,6 @@ class FileSelect {
   }
   
   shutdown() {
-    // Save state when leaving
     this.saveState();
     
     if (this.loadingDots) this.loadingDots.destroy();

@@ -94,7 +94,7 @@ class CharacterSelect {
     const char = this.selectedCharacter;
     this.nameText.write(char ? char.name : "");
     this.nameText.bringToTop();
-    this.levelText.write(char ? `Lv. ${char.level}` : "");
+    this.levelText.write(char ? __(`(Lv|Nv). ${char.level}`) : "");
     this.levelText.bringToTop();
 
     if (char) {
@@ -119,18 +119,18 @@ class CharacterSelect {
     if (char) {
       if (char.personality) {
         const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === char.personality);
-        text += `${personality.name} person, ${personality.description}\n\n`;
+        text += __(`(Personality|Personalidad): `) + `${personality.name}, ${personality.description}\n\n`;
       } else {
-        text += `Casual person\n\n`;
+        text += __(`(Personality|Personalidad): Casual\n\n`);
       }
       if (char.selectedSkill) {
         const skill = CHARACTER_SKILLS.find(s => s.id === char.selectedSkill);
-        text += `Skill: ${skill.name},\n\n${skill.description}\n\n`;
+        text += __(`(Skill|Habilidad): ${skill.name},\n\n${skill.description}\n\n`);
       } else {
-        text += '< No skill >';
+        text += __(`< No skill >||< Sin habilidad >`);
       }
     } else {
-      text = '< No character >';
+      text = __(`< No character >||< Sin personaje >`);
     }
 
     this.updateDetails("", text, !!char);
@@ -194,7 +194,7 @@ class CharacterSelect {
       index++;
     });
 
-    this.characterCarousel.addItem("× No character", () => {
+    this.characterCarousel.addItem(__("× No character||× Sin personaje"), () => {
       this.selectedCharacter = null;
       this.characterManager.unsetCharacter();
       this.showHomeUI();
@@ -204,7 +204,7 @@ class CharacterSelect {
 
     if (!this.selectedCharacter) this.characterCarousel.selectIndex(index);
 
-    this.characterCarousel.addItem("+ Add character", () => this.startCharacterCreation());
+    this.characterCarousel.addItem(__("+ Add character||+ Agregar personaje"), () => this.startCharacterCreation());
 
     this.characterCarousel.onSelect.add((index, item) => {
       this.selectCharacter(item.data.character || null);
@@ -228,12 +228,12 @@ class CharacterSelect {
       inactiveAlpha: 0.5
     });
 
-    this.actionMenu.addItem("Select", () => this.confirmSelection());
+    this.actionMenu.addItem(__("Select||Seleccionar"), () => this.confirmSelection());
     if (this.selectedCharacter?.unlockedSkills?.length) {
-      this.actionMenu.addItem("Set skill", () => this.setSkill());
+      this.actionMenu.addItem(__("Set skill||Elegir habilidad"), () => this.setSkill());
     }
-    this.actionMenu.addItem("Customize", () => this.customizeCharacter());
-    this.actionMenu.addItem("Delete", () => this.deleteCharacter());
+    this.actionMenu.addItem(__("Customize||Personalizar"), () => this.customizeCharacter());
+    this.actionMenu.addItem(__("Delete||Eliminar"), () => this.deleteCharacter());
 
     this.actionMenu.onCancel.add(() => {
       gamepad.releaseAll();
@@ -302,88 +302,94 @@ class CharacterSelect {
     let previewText = "";
     previewText += `${skill.description}\n\n`;
 
-    previewText += "Effect:\n";
+    previewText += __("(Effect|Efecto):\n");
     switch (skill.effect) {
       case 'convert_judgement':
-        previewText += `• Converts ${skill.effectParams.from} to ${skill.effectParams.to}\n`;
+        previewText += __(`• Converts ${skill.effectParams.from} to ${skill.effectParams.to}||• Convierte ${skill.effectParams.from} a ${skill.effectParams.to}\n`);
         break;
       case 'modify_judgement_window':
-        previewText += `• Judgement window ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• Judgement window ×${skill.effectParams.multiplier}||• Ventana de juicio ×${skill.effectParams.multiplier}\n`);
         break;
       case 'health_regen':
-        previewText += `• +${skill.effectParams.amount} HP every ${skill.effectParams.interval / 1000}s\n`;
+        previewText += __(`• +${skill.effectParams.amount} HP every ${skill.effectParams.interval / 1000}s||• +${skill.effectParams.amount} HP cada ${skill.effectParams.interval / 1000}s\n`);
         break;
       case 'modify_max_health':
-        previewText += `• +${skill.effectParams.amount} Max HP\n`;
+        previewText += __(`• +${skill.effectParams.amount} Max HP||• +${skill.effectParams.amount} HP Máx\n`);
         break;
       case 'modify_note_speed':
-        previewText += `• Note speed ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• Note speed ×${skill.effectParams.multiplier}||• Velocidad de notas ×${skill.effectParams.multiplier}\n`);
         break;
       case 'modify_hold_forgiveness':
-        previewText += `• Hold forgiveness ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• Hold forgiveness ×${skill.effectParams.multiplier}||• Perdón de holds ×${skill.effectParams.multiplier}\n`);
         break;
       case 'modify_roll_forgiveness':
-        previewText += `• Roll forgiveness ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• Roll forgiveness ×${skill.effectParams.multiplier}||• Perdón de rolls ×${skill.effectParams.multiplier}\n`);
         break;
       case 'reduce_mine_damage':
-        previewText += `• Reduces mine damage by ×${100 - 100 * skill.effectParams.multiplier}%\n`;
+        previewText += __(`• Reduces mine damage by ${100 - 100 * skill.effectParams.multiplier}%||• Reduce daño de minas en ${100 - 100 * skill.effectParams.multiplier}%\n`);
         break;
       case 'modify_score_gain':
-        previewText += `• ${skill.effectParams.judgement} Score ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• ${skill.effectParams.judgement} Score ×${skill.effectParams.multiplier}||• ${skill.effectParams.judgement} Puntaje ×${skill.effectParams.multiplier}\n`);
         break;
       case 'modify_health_gain':
-        previewText += `• Health gain ×${skill.effectParams.multiplier}\n`;
+        previewText += __(`• Health gain ×${skill.effectParams.multiplier}||• Ganancia de vida ×${skill.effectParams.multiplier}\n`);
         break;
       case 'combo_shield':
-        previewText += `• Enables Combo Shield\n`;
+        previewText += __(`• Enables Combo Shield||• Activa Escudo de Combo\n`);
         break;
       case 'modify_input_lag':
-        previewText += `• Modifies Input Lag\n`;
+        previewText += __(`• Modifies Input Lag||• Modifica Input Lag\n`);
         break;
       case 'burst_health_regen':
-        previewText += `• Gives ${skill.effectParams.amount}% Burst health regeneration\n`;
+        previewText += __(`• Gives ${skill.effectParams.amount} HP burst||• Da ${skill.effectParams.amount} HP de regeneración rápida\n`);
         break;
       case 'stabilize_judgement':
-        previewText += `• Judgement Stabilization\n`;
+        previewText += __(`• Judgement Stabilization||• Estabilización de juicios\n`);
         break;
       case 'general_boost':
-        previewText += `• General Boost\n`;
+        previewText += __(`• General Boost||• Boost general\n`);
+        break;
+      default:
+        previewText += __(`• ${skill.effect}||• ${skill.effect}\n`);
         break;
     }
 
-    previewText += "\nActivation:\n";
+    previewText += __("\n(Activation|Activación):\n");
     switch (skill.activationCondition) {
       case 'on_miss':
-        previewText += "• When you get a Miss judgement\n";
+        previewText += __("• When you get a Miss judgement||• Cuando obtienes un juicio Miss\n");
         break;
       case 'on_combo':
-        previewText += `• When combo reaches ${skill.effectParams.threshold}\n`;
+        previewText += __(`• When combo reaches ${skill.effectParams.threshold}||• Cuando el combo llega a ${skill.effectParams.threshold}\n`);
         break;
       case 'on_low_health':
-        previewText += `• When health drops below ${skill.effectParams.threshold}%\n`;
+        previewText += __(`• When health drops below ${skill.effectParams.threshold}%||• Cuando la vida baja del ${skill.effectParams.threshold}%\n`);
         break;
       case 'on_high_combo':
-        previewText += `• When combo reaches ${skill.effectParams.threshold}\n`;
+        previewText += __(`• When combo reaches ${skill.effectParams.threshold}||• Cuando el combo llega a ${skill.effectParams.threshold}\n`);
         break;
       case 'on_perfect_streak':
-        previewText += `• After ${skill.effectParams.threshold} perfect notes in a row\n`;
+        previewText += __(`• After ${skill.effectParams.threshold} perfect notes in a row||• Después de ${skill.effectParams.threshold} notas Perfect seguidas\n`);
         break;
       case 'on_critical_health':
-        previewText += `• When health drops below ${skill.effectParams.threshold}%\n`;
+        previewText += __(`• When health drops below ${skill.effectParams.threshold}%||• Cuando la vida baja del ${skill.effectParams.threshold}%\n`);
         break;
       case 'on_mine_hit':
-        previewText += `• Before hitting a mine\n`;
+        previewText += __(`• Before hitting a mine||• Antes de golpear una mina\n`);
         break;
       case 'custom':
-        previewText += `• ${skill.activationText || 'Custom'}`;
+        previewText += __(`• ${skill.activationText || 'Custom'}||• ${skill.activationText || 'Personalizado'}\n`);
+        break;
+      default:
+        previewText += __(`• ${skill.activationCondition}||• ${skill.activationCondition}\n`);
         break;
     }
 
     if (skill.duration > 0) {
-      previewText += `\nDuration: ${skill.duration / 1000}s\n`;
+      previewText += __(`\n(Duration|Duración): ${skill.duration / 1000}s\n`);
     }
     if (skill.cooldown > 0) {
-      previewText += `Cooldown: ${skill.cooldown / 1000}s\n`;
+      previewText += __(`(Cooldown|Enfriamiento): ${skill.cooldown / 1000}s\n`);
     }
 
     this.updateDetails(skill.name, previewText, false);
@@ -406,15 +412,15 @@ class CharacterSelect {
     });
 
     const slots = [
-      { id: 'front_hair', label: 'Front hair' },
-      { id: 'back_hair', label: 'Back hair' },
-      { id: 'hair_color', label: 'Hair Color' },
-      { id: 'skin', label: 'Skin tone' },
-      { id: 'top', label: 'Top' },
-      { id: 'bottom', label: 'Bottom' },
-      { id: 'shoes', label: 'Shoes' },
-      { id: 'accessory', label: 'Accessory' },
-      { id: 'special', label: 'Special' }
+      { id: 'front_hair', label: __("Front hair||Pelo frontal") },
+      { id: 'back_hair', label: __("Back hair||Pelo trasero") },
+      { id: 'hair_color', label: __("Hair Color||Color de pelo") },
+      { id: 'skin', label: __("Skin tone||Tono de piel") },
+      { id: 'top', label: __("Top||Parte superior") },
+      { id: 'bottom', label: __("Bottom||Parte inferior") },
+      { id: 'shoes', label: __("Shoes||Zapatos") },
+      { id: 'accessory', label: __("Accessory||Accesorio") },
+      { id: 'special', label: __("Special||Especial") }
     ];
 
     slots.forEach((slot) => {
@@ -440,21 +446,20 @@ class CharacterSelect {
 
   updateEquipmentText(slotId) {
     const slots = {
-      'front_hair': 'Front hair',
-      'back_hair': 'Back hair',
-      'hair_color': 'Hair Color' ,
-      'skin': 'Skin tone',
-      'top': 'Top',
-      'bottom': 'Bottom',
-      'shoes': 'Shoes',
-      'accessory': 'Accessory',
-      'special': 'Special'
+      'front_hair': __("Front hair||Pelo frontal"),
+      'back_hair': __("Back hair||Pelo trasero"),
+      'hair_color': __("Hair Color||Color de pelo"),
+      'skin': __("Skin tone||Tono de piel"),
+      'top': __("Top||Parte superior"),
+      'bottom': __("Bottom||Parte inferior"),
+      'shoes': __("Shoes||Zapatos"),
+      'accessory': __("Accessory||Accesorio"),
+      'special': __("Special||Especial")
     };
     
-    // Special handling for hair color
     if (slotId == 'hair_color') {
       const currentColor = this.selectedCharacter.appearance.tints?.hair || 0xa8705a;
-      this.updateDetails(slots['hair_color'], '\n\n\n' + this.colorToName(currentColor) + ' hair color.');
+      this.updateDetails(slots['hair_color'], '\n\n\n' + __(`(Hair color|Color de pelo): `) + this.colorToName(currentColor));
       return;
     }
 
@@ -465,17 +470,17 @@ class CharacterSelect {
     let desc = '';
 
     if (currentItem) {
-      labelText = currentItem.name || 'None';
+      labelText = currentItem.name || __("None||Ninguno");
       desc = currentItem.description || currentItem.name || '';
     }
 
-    if (!labelText || labelText === 'None') {
-      if (slotId === 'accessory') labelText = 'No accessory';
-      else if (slotId === 'special') labelText = 'No special clothing';
-      else if (slotId === 'shoes') labelText = 'No shoes';
+    if (!labelText || labelText === __("None||Ninguno")) {
+      if (slotId === 'accessory') labelText = __("No accessory||Sin accesorio");
+      else if (slotId === 'special') labelText = __("No special clothing||Sin ropa especial");
+      else if (slotId === 'shoes') labelText = __("No shoes||Sin zapatos");
     }
 
-    this.updateDetails(titleText, '\n\n\n' + (labelText || '< ??? >') + '\n\n' + (desc || ''));
+    this.updateDetails(titleText, '\n\n\n' + (labelText || __("< ??? >||< ??? >")) + '\n\n' + (desc || ''));
   }
   
   colorToName(color, step = 32) {
@@ -490,168 +495,158 @@ class CharacterSelect {
     
     const colorNames = [
       // Neutrals
-      { r: 0, g: 0, b: 0, name: "Black" },
-      { r: 32, g: 32, b: 32, name: "Dark Gray" },
-      { r: 96, g: 96, b: 96, name: "Gray" },
-      { r: 160, g: 160, b: 160, name: "Light Gray" },
-      { r: 224, g: 224, b: 224, name: "Silver" },
-      { r: 255, g: 255, b: 255, name: "White" },
+      { r: 0, g: 0, b: 0, name: __("Black||Negro") },
+      { r: 32, g: 32, b: 32, name: __("Dark Gray||Gris Oscuro") },
+      { r: 96, g: 96, b: 96, name: __("Gray||Gris") },
+      { r: 160, g: 160, b: 160, name: __("Light Gray||Gris Claro") },
+      { r: 224, g: 224, b: 224, name: __("Silver||Plateado") },
+      { r: 255, g: 255, b: 255, name: __("White||Blanco") },
       
       // Reds
-      { r: 255, g: 0, b: 0, name: "Red" },
-      { r: 255, g: 32, b: 32, name: "Bright Red" },
-      { r: 224, g: 0, b: 0, name: "Dark Red" },
-      { r: 192, g: 0, b: 0, name: "Crimson" },
-      { r: 160, g: 0, b: 0, name: "Blood Red" },
-      { r: 255, g: 64, b: 64, name: "Coral Red" },
-      { r: 255, g: 128, b: 128, name: "Light Red" },
+      { r: 255, g: 0, b: 0, name: __("Red||Rojo") },
+      { r: 255, g: 32, b: 32, name: __("Bright Red||Rojo Brillante") },
+      { r: 224, g: 0, b: 0, name: __("Dark Red||Rojo Oscuro") },
+      { r: 192, g: 0, b: 0, name: __("Crimson||Carmesí") },
+      { r: 160, g: 0, b: 0, name: __("Blood Red||Rojo Sangre") },
+      { r: 255, g: 64, b: 64, name: __("Coral Red||Rojo Coral") },
+      { r: 255, g: 128, b: 128, name: __("Light Red||Rojo Claro") },
       
       // Oranges
-      { r: 255, g: 128, b: 0, name: "Orange" },
-      { r: 255, g: 160, b: 0, name: "Light Orange" },
-      { r: 224, g: 96, b: 0, name: "Dark Orange" },
-      { r: 255, g: 64, b: 0, name: "Vermilion" },
-      { r: 255, g: 192, b: 64, name: "Apricot" },
-      { r: 255, g: 140, b: 0, name: "Tangerine" },
-      { r: 255, g: 165, b: 0, name: "Carrot" },
+      { r: 255, g: 128, b: 0, name: __("Orange||Naranja") },
+      { r: 255, g: 160, b: 0, name: __("Light Orange||Naranja Claro") },
+      { r: 224, g: 96, b: 0, name: __("Dark Orange||Naranja Oscuro") },
+      { r: 255, g: 64, b: 0, name: __("Vermilion||Vermellón") },
+      { r: 255, g: 192, b: 64, name: __("Apricot||Albaricoque") },
+      { r: 255, g: 140, b: 0, name: __("Tangerine||Mandarina") },
+      { r: 255, g: 165, b: 0, name: __("Carrot||Zanahoria") },
       
       // Yellows
-      { r: 255, g: 224, b: 0, name: "Yellow" },
-      { r: 255, g: 255, b: 0, name: "Bright Yellow" },
-      { r: 224, g: 192, b: 0, name: "Dark Yellow" },
-      { r: 255, g: 215, b: 0, name: "Gold" },
-      { r: 224, g: 184, b: 0, name: "Dark Gold" },
-      { r: 255, g: 255, b: 128, name: "Pale Yellow" },
-      { r: 255, g: 240, b: 128, name: "Cream" },
-      { r: 255, g: 200, b: 0, name: "Amber" },
+      { r: 255, g: 224, b: 0, name: __("Yellow||Amarillo") },
+      { r: 255, g: 255, b: 0, name: __("Bright Yellow||Amarillo Brillante") },
+      { r: 224, g: 192, b: 0, name: __("Dark Yellow||Amarillo Oscuro") },
+      { r: 255, g: 215, b: 0, name: __("Gold||Oro") },
+      { r: 224, g: 184, b: 0, name: __("Dark Gold||Oro Oscuro") },
+      { r: 255, g: 255, b: 128, name: __("Pale Yellow||Amarillo Pálido") },
+      { r: 255, g: 240, b: 128, name: __("Cream||Crema") },
+      { r: 255, g: 200, b: 0, name: __("Amber||Ámbar") },
       
       // Greens
-      { r: 0, g: 255, b: 0, name: "Green" },
-      { r: 32, g: 224, b: 32, name: "Bright Green" },
-      { r: 0, g: 160, b: 0, name: "Dark Green" },
-      { r: 0, g: 128, b: 64, name: "Forest Green" },
-      { r: 64, g: 224, b: 64, name: "Lime Green" },
-      { r: 128, g: 255, b: 128, name: "Mint" },
-      { r: 0, g: 200, b: 100, name: "Emerald" },
-      { r: 0, g: 100, b: 50, name: "Deep Forest" },
-      { r: 50, g: 205, b: 50, name: "Spring Green" },
+      { r: 0, g: 255, b: 0, name: __("Green||Verde") },
+      { r: 32, g: 224, b: 32, name: __("Bright Green||Verde Brillante") },
+      { r: 0, g: 160, b: 0, name: __("Dark Green||Verde Oscuro") },
+      { r: 0, g: 128, b: 64, name: __("Forest Green||Verde Bosque") },
+      { r: 64, g: 224, b: 64, name: __("Lime Green||Verde Lima") },
+      { r: 128, g: 255, b: 128, name: __("Mint||Menta") },
+      { r: 0, g: 200, b: 100, name: __("Emerald||Esmeralda") },
+      { r: 0, g: 100, b: 50, name: __("Deep Forest||Bosque Profundo") },
+      { r: 50, g: 205, b: 50, name: __("Spring Green||Verde Primavera") },
       
       // Cyans
-      { r: 0, g: 255, b: 255, name: "Cyan" },
-      { r: 0, g: 224, b: 224, name: "Bright Cyan" },
-      { r: 0, g: 160, b: 160, name: "Dark Cyan" },
-      { r: 0, g: 206, b: 209, name: "Teal" },
-      { r: 175, g: 238, b: 238, name: "Pale Turquoise" },
-      { r: 64, g: 224, b: 208, name: "Turquoise" },
-      { r: 128, g: 255, b: 224, name: "Aquamarine" },
-      { r: 0, g: 180, b: 180, name: "Deep Teal" },
+      { r: 0, g: 255, b: 255, name: __("Cyan||Cian") },
+      { r: 0, g: 224, b: 224, name: __("Bright Cyan||Cian Brillante") },
+      { r: 0, g: 160, b: 160, name: __("Dark Cyan||Cian Oscuro") },
+      { r: 0, g: 206, b: 209, name: __("Teal||Verde Azulado") },
+      { r: 175, g: 238, b: 238, name: __("Pale Turquoise||Turquesa Pálido") },
+      { r: 64, g: 224, b: 208, name: __("Turquoise||Turquesa") },
+      { r: 128, g: 255, b: 224, name: __("Aquamarine||Aguamarina") },
+      { r: 0, g: 180, b: 180, name: __("Deep Teal||Verde Azulado Profundo") },
       
       // Blues
-      { r: 0, g: 0, b: 255, name: "Blue" },
-      { r: 32, g: 32, b: 255, name: "Bright Blue" },
-      { r: 0, g: 0, b: 224, name: "Dark Blue" },
-      { r: 0, g: 128, b: 255, name: "Azure" },
-      { r: 65, g: 105, b: 225, name: "Royal Blue" },
-      { r: 70, g: 130, b: 180, name: "Steel Blue" },
-      { r: 128, g: 224, b: 255, name: "Sky Blue" },
-      { r: 100, g: 149, b: 237, name: "Cornflower Blue" },
-      { r: 0, g: 0, b: 128, name: "Navy" },
-      { r: 25, g: 25, b: 112, name: "Midnight Blue" },
-      { r: 0, g: 100, b: 200, name: "Ocean Blue" },
+      { r: 0, g: 0, b: 255, name: __("Blue||Azul") },
+      { r: 32, g: 32, b: 255, name: __("Bright Blue||Azul Brillante") },
+      { r: 0, g: 0, b: 224, name: __("Dark Blue||Azul Oscuro") },
+      { r: 0, g: 128, b: 255, name: __("Azure||Celeste") },
+      { r: 65, g: 105, b: 225, name: __("Royal Blue||Azul Real") },
+      { r: 70, g: 130, b: 180, name: __("Steel Blue||Azul Acero") },
+      { r: 128, g: 224, b: 255, name: __("Sky Blue||Azul Cielo") },
+      { r: 100, g: 149, b: 237, name: __("Cornflower Blue||Azul Aciano") },
+      { r: 0, g: 0, b: 128, name: __("Navy||Azul Marino") },
+      { r: 25, g: 25, b: 112, name: __("Midnight Blue||Azul Medianoche") },
+      { r: 0, g: 100, b: 200, name: __("Ocean Blue||Azul Océano") },
       
       // Purples
-      { r: 160, g: 0, b: 255, name: "Violet" },
-      { r: 224, g: 0, b: 255, name: "Purple" },
-      { r: 123, g: 104, b: 238, name: "Medium Purple" },
-      { r: 218, g: 112, b: 214, name: "Orchid" },
-      { r: 224, g: 128, b: 255, name: "Lavender" },
-      { r: 128, g: 0, b: 128, name: "Dark Purple" },
-      { r: 75, g: 0, b: 130, name: "Indigo" },
-      { r: 148, g: 0, b: 211, name: "Deep Violet" },
-      { r: 230, g: 230, b: 250, name: "Lavender Mist" },
+      { r: 160, g: 0, b: 255, name: __("Violet||Violeta") },
+      { r: 224, g: 0, b: 255, name: __("Purple||Púrpura") },
+      { r: 123, g: 104, b: 238, name: __("Medium Purple||Púrpura Medio") },
+      { r: 218, g: 112, b: 214, name: __("Orchid||Orquídea") },
+      { r: 224, g: 128, b: 255, name: __("Lavender||Lavanda") },
+      { r: 128, g: 0, b: 128, name: __("Dark Purple||Púrpura Oscuro") },
+      { r: 75, g: 0, b: 130, name: __("Indigo||Índigo") },
+      { r: 148, g: 0, b: 211, name: __("Deep Violet||Violeta Profundo") },
+      { r: 230, g: 230, b: 250, name: __("Lavender Mist||Neblina Lavanda") },
       
       // Pinks
-      { r: 255, g: 0, b: 255, name: "Magenta" },
-      { r: 255, g: 32, b: 224, name: "Bright Pink" },
-      { r: 255, g: 96, b: 192, name: "Pink" },
-      { r: 255, g: 160, b: 192, name: "Light Pink" },
-      { r: 224, g: 64, b: 160, name: "Dark Pink" },
-      { r: 255, g: 105, b: 180, name: "Hot Pink" },
-      { r: 255, g: 20, b: 147, name: "Deep Pink" },
-      { r: 255, g: 192, b: 203, name: "Pastel Pink" },
-      { r: 255, g: 240, b: 245, name: "Lavender Blush" },
+      { r: 255, g: 0, b: 255, name: __("Magenta||Magenta") },
+      { r: 255, g: 32, b: 224, name: __("Bright Pink||Rosa Brillante") },
+      { r: 255, g: 96, b: 192, name: __("Pink||Rosa") },
+      { r: 255, g: 160, b: 192, name: __("Light Pink||Rosa Claro") },
+      { r: 224, g: 64, b: 160, name: __("Dark Pink||Rosa Oscuro") },
+      { r: 255, g: 105, b: 180, name: __("Hot Pink||Rosa Fuerte") },
+      { r: 255, g: 20, b: 147, name: __("Deep Pink||Rosa Profundo") },
+      { r: 255, g: 192, b: 203, name: __("Pastel Pink||Rosa Pastel") },
+      { r: 255, g: 240, b: 245, name: __("Lavender Blush||Rubor Lavanda") },
       
       // Browns
-      { r: 192, g: 128, b: 64, name: "Brown" },
-      { r: 160, g: 96, b: 32, name: "Dark Brown" },
-      { r: 224, g: 160, b: 96, name: "Light Brown" },
-      { r: 128, g: 64, b: 32, name: "Saddle Brown" },
-      { r: 160, g: 82, b: 45, name: "Sienna" },
-      { r: 210, g: 105, b: 30, name: "Chocolate" },
-      { r: 205, g: 133, b: 63, name: "Peru" },
-      { r: 139, g: 69, b: 19, name: "Burnt Sienna" },
-      { r: 244, g: 164, b: 96, name: "Peach" },
-      { r: 245, g: 222, b: 179, name: "Wheat" },
-      { r: 255, g: 228, b: 196, name: "Bisque" },
-      { r: 255, g: 248, b: 220, name: "Cornsilk" },
-      { r: 255, g: 245, b: 238, name: "Seashell" },
-      { r: 245, g: 245, b: 220, name: "Beige" },
-      { r: 253, g: 245, b: 230, name: "Old Lace" },
-      { r: 255, g: 250, b: 240, name: "Floral White" },
-      { r: 240, g: 255, b: 240, name: "Honeydew" },
-      { r: 240, g: 248, b: 255, name: "Alice Blue" },
+      { r: 192, g: 128, b: 64, name: __("Brown||Marrón") },
+      { r: 160, g: 96, b: 32, name: __("Dark Brown||Marrón Oscuro") },
+      { r: 224, g: 160, b: 96, name: __("Light Brown||Marrón Claro") },
+      { r: 128, g: 64, b: 32, name: __("Saddle Brown||Marrón Montura") },
+      { r: 160, g: 82, b: 45, name: __("Sienna||Siena") },
+      { r: 210, g: 105, b: 30, name: __("Chocolate||Chocolate") },
+      { r: 205, g: 133, b: 63, name: __("Peru||Perú") },
+      { r: 139, g: 69, b: 19, name: __("Burnt Sienna||Siena Quemada") },
+      { r: 244, g: 164, b: 96, name: __("Peach||Durazno") },
+      { r: 245, g: 222, b: 179, name: __("Wheat||Trigo") },
+      { r: 255, g: 228, b: 196, name: __("Bisque||Bisque") },
+      { r: 255, g: 248, b: 220, name: __("Cornsilk||Seda de Maíz") },
+      { r: 255, g: 245, b: 238, name: __("Seashell||Concha Marina") },
+      { r: 245, g: 245, b: 220, name: __("Beige||Beige") },
+      { r: 253, g: 245, b: 230, name: __("Old Lace||Encaje Viejo") },
+      { r: 255, g: 250, b: 240, name: __("Floral White||Blanco Floral") },
+      { r: 240, g: 255, b: 240, name: __("Honeydew||Melón") },
+      { r: 240, g: 248, b: 255, name: __("Alice Blue||Azul Alice") },
       
       // Special Anime/Vibrant Colors
-      { r: 68, g: 196, b: 252, name: "Miku Turquoise" },
-      { r: 255, g: 56, b: 132, name: "Miku Pink" },
-      { r: 255, g: 128, b: 0, name: "Naruto Orange" },
-      { r: 255, g: 220, b: 0, name: "Pikachu Yellow" },
-      { r: 255, g: 0, b: 0, name: "Sonic Red" },
-      { r: 0, g: 200, b: 255, name: "Sonic Blue" },
-      { r: 255, g: 200, b: 255, name: "Sakura Pink" },
-      { r: 0, g: 150, b: 200, name: "Aoi Blue" },
-      { r: 255, g: 100, b: 0, name: "Yuzu Orange" },
-      { r: 200, g: 0, b: 200, name: "Lilac Purple" },
-      { r: 0, g: 200, b: 100, name: "Midori Green" },
-      { r: 255, g: 150, b: 255, name: "Pastel Pink" },
-      { r: 200, g: 200, b: 255, name: "Periwinkle" },
-      { r: 0, g: 255, b: 200, name: "Mint Green" },
-      { r: 255, g: 200, b: 200, name: "Cherry Blossom" },
-      { r: 100, g: 200, b: 255, name: "Natsu Blue" },
-      { r: 255, g: 100, b: 100, name: "Akai Red" },
-      { r: 255, g: 150, b: 100, name: "Kitsune Orange" },
-      { r: 255, g: 255, b: 100, name: "Himawari Yellow" },
-      { r: 100, g: 255, b: 100, name: "Kusa Green" },
-      { r: 100, g: 100, b: 255, name: "Sora Blue" },
-      { r: 255, g: 100, b: 200, name: "Momo Pink" },
-      { r: 200, g: 100, b: 255, name: "Fuji Purple" },
-      { r: 100, g: 255, b: 200, name: "Aoba Green" },
-      { r: 255, g: 200, b: 100, name: "Kogane Yellow" },
-      { r: 100, g: 100, b: 200, name: "Aoki Blue" },
-      { r: 200, g: 255, b: 200, name: "Shiro Mint" },
-      { r: 255, g: 200, b: 150, name: "Momiji Orange" },
-      { r: 150, g: 200, b: 255, name: "Suzu Blue" },
-      { r: 255, g: 150, b: 200, name: "Sakura Pink" },
-      { r: 200, g: 150, b: 255, name: "Sumire Violet" },
-      { r: 150, g: 255, b: 200, name: "Hajime Green" },
-      { r: 200, g: 255, b: 150, name: "Yuzu Green" },
-      { r: 255, g: 150, b: 150, name: "Beni Red" },
-      { r: 150, g: 150, b: 255, name: "Ruri Blue" },
-      { r: 255, g: 255, b: 150, name: "Kira Yellow" },
-      { r: 150, g: 255, b: 255, name: "Aoi Cyan" },
-      { r: 255, g: 255, b: 200, name: "Shiro Yellow" },
-      { r: 200, g: 200, b: 200, name: "Gin Silver" },
-      { r: 100, g: 100, b: 100, name: "Kuro Gray" },
+      { r: 68, g: 196, b: 252, name: __("Miku Turquoise||Turquesa Miku") },
+      { r: 255, g: 56, b: 132, name: __("Miku Pink||Rosa Miku") },
+      { r: 255, g: 128, b: 0, name: __("Naruto Orange||Naranja Naruto") },
+      { r: 255, g: 220, b: 0, name: __("Pikachu Yellow||Amarillo Pikachu") },
+      { r: 255, g: 0, b: 0, name: __("Sonic Red||Rojo Sonic") },
+      { r: 0, g: 200, b: 255, name: __("Sonic Blue||Azul Sonic") },
+      { r: 255, g: 200, b: 255, name: __("Sakura Pink||Rosa Sakura") },
+      { r: 0, g: 150, b: 200, name: __("Aoi Blue||Azul Aoi") },
+      { r: 255, g: 100, b: 0, name: __("Yuzu Orange||Naranja Yuzu") },
+      { r: 200, g: 0, b: 200, name: __("Lilac Purple||Púrpura Lila") },
+      { r: 0, g: 200, b: 100, name: __("Midori Green||Verde Midori") },
+      { r: 255, g: 150, b: 255, name: __("Pastel Pink||Rosa Pastel") },
+      { r: 200, g: 200, b: 255, name: __("Periwinkle||Bígaro") },
+      { r: 0, g: 255, b: 200, name: __("Mint Green||Verde Menta") },
+      { r: 255, g: 200, b: 200, name: __("Cherry Blossom||Flor de Cerezo") },
+      { r: 100, g: 200, b: 255, name: __("Natsu Blue||Azul Natsu") },
+      { r: 255, g: 100, b: 100, name: __("Akai Red||Akai Rojo") },
+      { r: 255, g: 150, b: 100, name: __("Kitsune Orange||Naranja Kitsune") },
+      { r: 255, g: 255, b: 100, name: __("Himawari Yellow||Amarillo Himawari") },
+      { r: 100, g: 255, b: 100, name: __("Kusa Green||Verde Kusa") },
+      { r: 100, g: 100, b: 255, name: __("Sora Blue||Azul Sora") },
+      { r: 255, g: 100, b: 200, name: __("Momo Pink||Rosa Momo") },
+      { r: 200, g: 100, b: 255, name: __("Fuji Purple||Púrpura Fuji") },
+      { r: 150, g: 255, b: 200, name: __("Hajime Green||Verde Hajime") },
+      { r: 200, g: 255, b: 150, name: __("Yuzu Green||Verde Yuzu") },
+      { r: 255, g: 150, b: 150, name: __("Beni Red||Rojo Beni") },
+      { r: 150, g: 150, b: 255, name: __("Ruri Blue||Azul Ruri") },
+      { r: 255, g: 255, b: 150, name: __("Kira Yellow||Amarillo Kira") },
+      { r: 150, g: 255, b: 255, name: __("Aoi Cyan||Aoi Cian") },
+      { r: 255, g: 255, b: 200, name: __("Shiro Yellow||Amarillo Shiro") },
+      { r: 200, g: 200, b: 200, name: __("Gin Silver||Plateado") },
+      { r: 100, g: 100, b: 100, name: __("Kuro Gray||Kuro Gris") },
     ];
     
-    // Find exact match with step-aligned values
     for (const cn of colorNames) {
       if (cn.r === rr && cn.g === gg && cn.b === bb) {
         return cn.name;
       }
     }
     
-    // If no exact match, find closest by Euclidean distance
     let closest = colorNames[0];
     let minDist = Infinity;
     
@@ -666,17 +661,16 @@ class CharacterSelect {
       }
     }
     
-    // If distance is too far, use a descriptive fallback
     const threshold = step * step * 3;
     if (minDist > threshold) {
       const brightness = Math.round((r * 0.299 + g * 0.587 + b * 0.114) / step) * step;
-      const hueNames = ["Red", "Orange", "Yellow", "Green", "Cyan", "Blue", "Purple", "Pink"];
+      const hueNames = [__("Red||Rojo"), __("Orange||Naranja"), __("Yellow||Amarillo"), __("Green||Verde"), __("Cyan||Cian"), __("Blue||Azul"), __("Purple||Púrpura"), __("Pink||Rosa")];
       const hue = Math.atan2(g - 128, r - 128) * 180 / Math.PI + 180;
       const hueIndex = Math.floor(hue / 45) % 8;
-      const baseName = hueNames[hueIndex] || "Color";
+      const baseName = hueNames[hueIndex] || __("Color||Color");
       
-      if (brightness < 32) return "Dark " + baseName;
-      if (brightness > 224) return "Light " + baseName;
+      if (brightness < 32) return __(`Dark ${baseName}||${baseName} Oscuro`);
+      if (brightness > 224) return __(`Light ${baseName}||${baseName} Claro`);
       return baseName;
     }
     
@@ -691,20 +685,20 @@ class CharacterSelect {
       const id = appearance.frontHair || 1;
       const styles = CHARACTER_SYSTEM.HAIR_STYLES.front;
       const style = styles[id - 1];
-      return { name: style?.name || `Front ${id}`, id: id, description: style?.description || 'Front hair style.' };
+      return { name: style?.name || __(`Front ${id}||Frontal ${id}`), id: id, description: style?.description || __("Front hair style.||Estilo de pelo frontal.") };
     }
 
     if (slotId === 'back_hair') {
       const id = appearance.backHair || 1;
       const styles = CHARACTER_SYSTEM.HAIR_STYLES.back;
       const style = styles[id - 1];
-      return { name: style?.name || `Back ${id}`, id: id, description: style?.description || 'Back hair style.' };
+      return { name: style?.name || __(`Back ${id}||Trasero ${id}`), id: id, description: style?.description || __("Back hair style.||Estilo de pelo trasero.") };
     }
 
     if (slotId === 'skin') {
       const idx = appearance.skinTone || 0;
       const skin = CHARACTER_SYSTEM.SKIN_TONES[idx];
-      return { name: skin?.name || 'Default', id: idx, description: skin?.description || 'Skin tone.' };
+      return { name: skin?.name || __("Default||Por Defecto"), id: idx, description: skin?.description || __("Skin tone.||Tono de piel.") };
     }
 
     const itemId = appearance.clothing?.[slotId];
@@ -715,7 +709,7 @@ class CharacterSelect {
       return { name: item.name, id: item.id, description: item.description || item.name };
     }
 
-    return { name: 'None', id: null, description: '' };
+    return { name: __("None||Ninguno"), id: null, description: '' };
   }
   
   showSlotItems(slotId) {
@@ -748,23 +742,23 @@ class CharacterSelect {
         const s = styles[id - 1];
         return {
           id: id,
-          name: s?.name || `Style ${id}`,
+          name: s?.name || __(`Style ${id}||Estilo ${id}`),
           type: slotId,
           isHair: true,
           hairType: type,
           dyable: false,
-          description: s?.description || (s?.name ? `${s.name} hair style` : `Hair style ${id}`)
+          description: s?.description || (s?.name ? __(`${s.name} hair style||Estilo de pelo ${s.name}`) : __(`Hair style ${id}||Estilo de pelo ${id}`))
         };
       });
     } else if (slotId === 'skin') {
       const skinOptions = CHARACTER_SYSTEM.SKIN_TONES;
       items = skinOptions.map((skin, index) => ({
         id: index,
-        name: skin.name || `Skin ${index + 1}`,
+        name: skin.name || __(`Skin ${index + 1}||Piel ${index + 1}`),
         type: slotId,
         isSkin: true,
         dyable: false,
-        description: skin.description || (skin.name ? `${skin.name} skin tone` : `Skin tone ${index + 1}`)
+        description: skin.description || (skin.name ? __(`${skin.name} skin tone||Tono de piel ${skin.name}`) : __(`Skin tone ${index + 1}||Tono de piel ${index + 1}`))
       }));
     } else {
       const allItems = CHARACTER_ITEMS.filter(item => item.type === slotId);
@@ -779,16 +773,15 @@ class CharacterSelect {
       if (slotTypesWithNone.includes(slotId)) {
         items.unshift({
           id: null,
-          name: 'None',
+          name: __("None||Ninguno"),
           type: slotId,
           isNone: true,
           dyable: false,
-          description: 'No item equipped.'
+          description: __("No item equipped.||Sin item equipado.")
         });
       }
     }
   
-    // Get current item ID from character
     let currentItemId = null;
     const appearance = this.selectedCharacter?.appearance;
     
@@ -801,7 +794,6 @@ class CharacterSelect {
       currentItemId = appearance?.clothing?.[slotId] || null;
     }
   
-    // Create the menu
     this.itemListMenu = new CarouselMenu(0, 8, 100, 130, {
       bgcolor: "#8e44ad",
       fgcolor: "#ffffff",
@@ -811,7 +803,6 @@ class CharacterSelect {
   
     let selectedIndex = 0;
   
-    // Add all items to the menu and track which one is current
     items.forEach((item, index) => {
       let isCurrent = false;
       
@@ -838,7 +829,6 @@ class CharacterSelect {
       );
     });
   
-    // Select the current item
     this.itemListMenu.selectIndex(selectedIndex);
   
     this.itemListMenu.onSelect.add((index, item) => {
@@ -863,13 +853,11 @@ class CharacterSelect {
     
       const fullItem = CHARACTER_ITEMS.find(i => i.id === selectedItem.id && i.type === slotId);
       
-      // Check if item has multiple layers
       if (fullItem && fullItem.layers && fullItem.layers.length > 1) {
         this.showLayerColorMenu(slotId, fullItem);
         return;
       }
       
-      // Check if item is an aura with dyable particles
       if (fullItem && fullItem.isAura && fullItem.dyable !== false) {
         this.customizeAuraColor(slotId, fullItem);
         return;
@@ -993,7 +981,7 @@ class CharacterSelect {
     let selectedIndex = 0;
 
     item.layers.forEach((layer, index) => {
-      const layerName = layer.name || `Layer ${index + 1}`;
+      const layerName = layer.name || __(`Layer ${index + 1}||Capa ${index + 1}`);
       const tintKey = slotId + '_layer' + index;
       const currentTint = tints[tintKey] || layer.tint || 0xffffff;
       const colorHex = '#' + currentTint.toString(16).padStart(6, '0');
@@ -1034,25 +1022,22 @@ class CharacterSelect {
   }
 
   customizeLayerColor(slotId, item, layerIndex, defaultColor) {
-    const layerName = item.layers[layerIndex].name || `Layer ${layerIndex + 1}`;
+    const layerName = item.layers[layerIndex].name || __(`Layer ${layerIndex + 1}||Capa ${layerIndex + 1}`);
     const colorKey = slotId + '_layer' + layerIndex;
     
     this.showColorInput(
-      `${layerName} color`,
+      __(`${layerName} color||Color de la ${layerName}`),
       defaultColor,
       (color) => {
-        // Live preview
         this.applyLayerColorToCharacter(colorKey, color);
       },
       (color) => {
-        // Confirm
         this.applyLayerColorToCharacter(colorKey, color);
         this.characterManager.saveToAccount();
         this.updateDetails("", "", false);
         this.showLayerColorMenu(slotId, item);
       },
       () => {
-        // Cancel
         this.updateDisplay();
         this.updateDetails("", "", false);
         this.showLayerColorMenu(slotId, item);
@@ -1076,28 +1061,25 @@ class CharacterSelect {
     const currentColor = this.selectedCharacter?.appearance?.tints?.[slotId] || item?.tint || 0xffffff;
     
     this.showColorInput(
-      `${item?.name || 'Item'} color`,
+      __(`${item?.name || 'Item'} color||Color de ${item?.name || 'Item'}`),
       currentColor,
       (color) => {
-        // Live preview
         this.applyItemColorToCharacter(slotId, color);
       },
       (color) => {
-        // Confirm
         this.applyItemColorToCharacter(slotId, color);
         this.characterManager.saveToAccount();
         this.updateDetails("", "", false);
         this.customizeCharacter();
       },
       () => {
-        // Cancel
         this.updateDisplay();
         this.updateDetails("", "", false);
         this.customizeCharacter();
       }
     );
   }
-
+  
   applyItemColorToCharacter(slotId, color) {
     if (!this.selectedCharacter) return;
     const appearance = this.selectedCharacter.appearance;
@@ -1114,10 +1096,9 @@ class CharacterSelect {
     const currentColor = this.selectedCharacter?.appearance?.tints?.special || item?.tint || 0xffffff;
     
     this.showColorInput(
-      `${item?.name || 'Aura'} color`,
+      __(`${item?.name || 'Aura'} color||Color de ${item?.name || 'Aura'}`),
       currentColor,
       (color) => {
-        // Live preview
         if (!this.selectedCharacter) return;
         const appearance = this.selectedCharacter.appearance;
         if (!appearance.tints) appearance.tints = {};
@@ -1129,7 +1110,6 @@ class CharacterSelect {
         }
       },
       (color) => {
-        // Confirm
         if (!this.selectedCharacter) return;
         const appearance = this.selectedCharacter.appearance;
         if (!appearance.tints) appearance.tints = {};
@@ -1139,7 +1119,6 @@ class CharacterSelect {
         this.customizeCharacter();
       },
       () => {
-        // Cancel
         this.updateDisplay();
         this.updateDetails("", "", false);
         this.customizeCharacter();
@@ -1153,10 +1132,9 @@ class CharacterSelect {
     this.updateEquipmentText('hair_color');
     
     this.showColorInput(
-      'Hair color',
+      __("Hair color||Color de pelo"),
       currentColor,
       (color) => {
-        // Update live preview
         if (!this.selectedCharacter.appearance.tints) {
           this.selectedCharacter.appearance.tints = {};
         }
@@ -1168,7 +1146,6 @@ class CharacterSelect {
         this.updateEquipmentText('hair_color');
       },
       (color) => {
-        // Confirm
         if (!this.selectedCharacter.appearance.tints) {
           this.selectedCharacter.appearance.tints = {};
         }
@@ -1178,7 +1155,6 @@ class CharacterSelect {
         this.customizeCharacter();
       },
       () => {
-        // Cancel - revert
         this.updateDisplay();
         this.updateDetails("", "", false);
         this.customizeCharacter();
@@ -1272,7 +1248,7 @@ class CharacterSelect {
 
   deleteCharacter() {
     this.confirm(
-      'Delete character?',
+      __("Delete character?||¿Eliminar personaje?"),
       () => {
         this.characterManager.deleteCharacter(this.selectedCharacter.name);
 
@@ -1295,7 +1271,7 @@ class CharacterSelect {
     this.clearAllMenus();
 
     const dialog = new DialogWindow(message, {
-      buttons: ['Yes', 'No'],
+      buttons: [__("Yes||Sí"), __("No||No")],
       defaultButton: recommended == 'no' ? 1 : 0
     });
 
@@ -1366,16 +1342,16 @@ class CharacterSelect {
     gamepad.signals.pressed.any.removeAll();
 
     const steps = [
-      { title: 'Choose skin tone', action: (callback) => this.creationCustomizeSkinTone(callback) },
-      { title: 'Choose hair color', action: (callback) => this.creationCustomizeHairColor(callback) },
-      { title: 'Choose front hair', action: (callback) => this.creationCustomizeHairStyle('frontHair', callback) },
-      { title: 'Choose back hair', action: (callback) => this.creationCustomizeHairStyle('backHair', callback) },
-      { title: 'Choose top', action: (callback) => this.creationCustomizeSlot('top', callback) },
-      { title: 'Choose bottom', action: (callback) => this.creationCustomizeSlot('bottom', callback) },
-      { title: 'Choose shoes', action: (callback) => this.creationCustomizeSlot('shoes', callback) },
-      { title: 'Choose accessory', action: (callback) => this.creationCustomizeSlot('accessory', callback) },
-      { title: 'Choose special', action: (callback) => this.creationCustomizeSlot('special', callback) },
-      { title: 'Name your character', action: (callback) => this.creationNameCharacter(callback) }
+      { title: __("Choose skin tone||Elige tono de piel"), action: (callback) => this.creationCustomizeSkinTone(callback) },
+      { title: __("Choose hair color||Elige color de pelo"), action: (callback) => this.creationCustomizeHairColor(callback) },
+      { title: __("Choose front hair||Elige pelo frontal"), action: (callback) => this.creationCustomizeHairStyle('frontHair', callback) },
+      { title: __("Choose back hair||Elige pelo trasero"), action: (callback) => this.creationCustomizeHairStyle('backHair', callback) },
+      { title: __("Choose top||Elige parte superior"), action: (callback) => this.creationCustomizeSlot('top', callback) },
+      { title: __("Choose bottom||Elige parte inferior"), action: (callback) => this.creationCustomizeSlot('bottom', callback) },
+      { title: __("Choose shoes||Elige zapatos"), action: (callback) => this.creationCustomizeSlot('shoes', callback) },
+      { title: __("Choose accessory||Elige accesorio"), action: (callback) => this.creationCustomizeSlot('accessory', callback) },
+      { title: __("Choose special||Elige especial"), action: (callback) => this.creationCustomizeSlot('special', callback) },
+      { title: __("Name your character||Nombra tu personaje"), action: (callback) => this.creationNameCharacter(callback) }
     ];
 
     if (this.creationStep < steps.length) {
@@ -1400,27 +1376,33 @@ class CharacterSelect {
     gamepad.releaseAll();
     this.creationWindow.forcedHighlightY = null;
 
-    this.creationWindow.addItem('Next', '', () => {
+    this.creationWindow.addItem(__("Next||Siguiente"), '', () => {
       this.creationStep++;
       this.showCreationStep();
     });
 
     if (this.creationStep > 0) {
-      this.creationWindow.addItem('Previous', '', () => {
+      this.creationWindow.addItem(__("Previous||Anterior"), '', () => {
         this.creationStep--;
         this.showCreationStep();
       }, true);
     }
 
-    this.creationWindow.addItem('Cancel', '', () => {
+    this.creationWindow.addItem(__("Cancel||Cancelar"), '', () => {
       this.cancelCharacterCreation();
     }, this.creationStep <= 0);
 
     this.creationWindowManager.focus(this.creationWindow);
   }
-
+  
   creationCustomizeSkinTone(callback) {
-    const skinOptions = ['Lighter', 'Light', 'Medium', 'Tan', 'Another'];
+    const skinOptions = [
+      __("Lighter||Clarito"),
+      __("Light||Claro"),
+      __("Medium||Medio"),
+      __("Tan||Bronceado"),
+      __("Another||Otro")
+    ];
     let currentIndex = this.newCharacterAppearance.skinTone;
 
     const skinText = new Text(120, 107, skinOptions[currentIndex], FONTS.default);
@@ -1460,7 +1442,6 @@ class CharacterSelect {
     const updateColor = () => {
       const newColor = (r << 16) | (g << 8) | b;
       this.newCharacterAppearance.tints.hair = newColor;
-      // Update temp display with tints
       this.tempCharacterDisplay.updateAppearance({ 
         hairColor: newColor,
         tints: { hair: newColor }
@@ -1522,23 +1503,22 @@ class CharacterSelect {
       unlocked = Account.characters.unlockedHairs[type === 'frontHair' ? 'front' : 'back'] || [1];
     }
     const styles = CHARACTER_SYSTEM.HAIR_STYLES[type === 'frontHair' ? 'front' : 'back'];
-    // Get the name from the style object
     const options = unlocked.map(id => {
       const style = styles[id - 1];
-      return style?.name || `Style ${id}`;
+      return style?.name || __(`Style ${id}||Estilo ${id}`);
     });
     const values = unlocked;
   
     let currentIndex = this.newCharacterAppearance[type] - 1;
     if (currentIndex < 0 || currentIndex >= options.length) currentIndex = 0;
   
-    const hairText = new Text(120, 107, options[currentIndex] || 'Style', FONTS.default);
+    const hairText = new Text(120, 107, options[currentIndex] || __("Style||Estilo"), FONTS.default);
     hairText.anchor.set(0.5);
   
     const updateHair = () => {
       this.newCharacterAppearance[type] = values[currentIndex];
       this.tempCharacterDisplay.updateAppearance({ [type]: values[currentIndex] });
-      hairText.write(options[currentIndex] || 'Style');
+      hairText.write(options[currentIndex] || __("Style||Estilo"));
     };
   
     const hairHandler = (key) => {
@@ -1570,7 +1550,7 @@ class CharacterSelect {
   
     let options = [];
     if (slotTypesWithNone.includes(slotId)) {
-      options.push({ id: null, name: 'None' });
+      options.push({ id: null, name: __("None||Ninguno") });
     }
   
     const unlockedIds = Account.characters.unlockedItems || [];
@@ -1590,10 +1570,10 @@ class CharacterSelect {
       if (found !== -1) currentIndex = found;
     }
   
-    const optionNames = options.map(opt => opt.name || 'None');
+    const optionNames = options.map(opt => opt.name || __("None||Ninguno"));
     const optionValues = options.map(opt => opt.id);
   
-    const itemText = new Text(120, 107, optionNames[currentIndex] || 'None', FONTS.default);
+    const itemText = new Text(120, 107, optionNames[currentIndex] || __("None||Ninguno"), FONTS.default);
     itemText.anchor.set(0.5);
   
     const itemHandler = (key) => {
@@ -1628,7 +1608,7 @@ class CharacterSelect {
       this.tempCharacterDisplay.updateAppearance({
         clothing: previewClothing
       });
-      itemText.write(optionNames[currentIndex] || 'None');
+      itemText.write(optionNames[currentIndex] || __("None||Ninguno"));
     };
   
     gamepad.signals.pressed.any.add(itemHandler);
@@ -1647,7 +1627,7 @@ class CharacterSelect {
       this.creationWindow.visible = false;
     }
 
-    const nameText = new Text(120, 20, 'Name your character', FONTS.shaded);
+    const nameText = new Text(120, 20, __("Name your character||Nombra tu personaje"), FONTS.shaded);
     nameText.anchor.set(0.5);
 
     this.navigationHint.visible = false;
@@ -1674,7 +1654,7 @@ class CharacterSelect {
 
           this.showHomeUI();
         } else {
-          notifications.show('Character name already exists');
+          notifications.show(__("Character name already exists||El nombre del personaje ya existe"));
           this.navigationHint.updateHints('general');
           this.creationNameCharacter(callback);
         }

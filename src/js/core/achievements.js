@@ -11,14 +11,14 @@ const ACHIEVEMENTS = {
 
 // Achievement categories
 const ACHIEVEMENT_CATEGORIES = {
-  GAMEPLAY: "Gameplay",
-  CHARACTER: "Character",
-  PROGRESSION: "Progression",
-  MASTERY: "Mastery",
-  TIME: "Time",
-  HOLIDAYS: "Holidays",
-  EDITOR: "Editor",
-  MISC: "Miscellaneous"
+  GAMEPLAY: __("Gameplay||Juego"),
+  CHARACTER: __("Character||Personaje"),
+  PROGRESSION: __("Progression||Progresión"),
+  MASTERY: __("Mastery||Maestría"),
+  TIME: __("Time||Tiempo"),
+  HOLIDAYS: __("Holidays||Festivos"),
+  EDITOR: __("Editor||Editor"),
+  MISC: __("Miscellaneous||Varios")
 };
 
 // Achievement definitions
@@ -26,11 +26,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Gameplay Achievements
   {
     id: "first_game",
-    name: "First Steps",
+    name: __("First Steps||Primeros Pasos"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete your first game",
-      achieved: "You completed your first game!"
+      unachieved: __("Complete your first game||Completa tu primera partida"),
+      achieved: __("You completed your first game!||¡Completaste tu primera partida!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalGamesPlayed >= 1,
@@ -38,11 +38,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_extra_songs_game",
-    name: "Love My Charts",
+    name: __("Love My Charts||Amo Mis Charts"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete your first external song",
-      achieved: "You completed your first external song!"
+      unachieved: __("Complete your first external song||Completa tu primera canción externa"),
+      achieved: __("You completed your first external song!||¡Completaste tu primera canción externa!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: (_, song) => song.complete && song.isExternal,
@@ -50,11 +50,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_100",
-    name: "Getting the Rhythm",
+    name: __("Getting the Rhythm||Tomando el Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 100 combo",
-      achieved: "You reached 100 combo!"
+      unachieved: __("Reach 100 combo||Alcanza 100 combo"),
+      achieved: __("You reached 100 combo!||¡Alcanzaste 100 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.maxCombo >= 100,
@@ -62,11 +62,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_500",
-    name: "Combo Builder",
+    name: __("Combo Builder||Constructor de Combo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 500 combo",
-      achieved: "You reached 500 combo!"
+      unachieved: __("Reach 500 combo||Alcanza 500 combo"),
+      achieved: __("You reached 500 combo!||¡Alcanzaste 500 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.maxCombo >= 500,
@@ -74,11 +74,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_1000",
-    name: "Chain Master",
+    name: __("Chain Master||Maestro de la Cadena"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 1000 combo",
-      achieved: "You reached 1000 combo!"
+      unachieved: __("Reach 1000 combo||Alcanza 1000 combo"),
+      achieved: __("You reached 1000 combo!||¡Alcanzaste 1000 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.maxCombo >= 1000,
@@ -86,11 +86,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_1500",
-    name: "Rhythm Savant",
+    name: __("Rhythm Savant||Sabio del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 1500 combo",
-      achieved: "You reached 1500 combo!"
+      unachieved: __("Reach 1500 combo||Alcanza 1500 combo"),
+      achieved: __("You reached 1500 combo!||¡Alcanzaste 1500 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.maxCombo >= 1500,
@@ -98,11 +98,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_2000",
-    name: "Unbreakable Chain",
+    name: __("Unbreakable Chain||Cadena Irrompible"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 2000 combo",
-      achieved: "You reached 2000 combo!"
+      unachieved: __("Reach 2000 combo||Alcanza 2000 combo"),
+      achieved: __("You reached 2000 combo!||¡Alcanzaste 2000 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.maxCombo >= 2000,
@@ -110,11 +110,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "combo_3000",
-    name: "Perfect Flow",
+    name: __("Perfect Flow||Flujo Perfecto"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Reach 3000 combo",
-      achieved: "You reached 3000 combo!"
+      unachieved: __("Reach 3000 combo||Alcanza 3000 combo"),
+      achieved: __("You reached 3000 combo!||¡Alcanzaste 3000 combo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.maxCombo >= 3000,
@@ -122,11 +122,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "perfect_game",
-    name: "Flawless Performance",
+    name: __("Flawless Performance||Actuación Impecable"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete a song with 100% accuracy",
-      achieved: "You completed a song with 100% accuracy!"
+      unachieved: __("Complete a song with 100% accuracy||Completa una canción con 100% de precisión"),
+      achieved: __("You completed a song with 100% accuracy!||¡Completaste una canción con 100% de precisión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.perfectGames >= 1,
@@ -134,11 +134,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "perfect_games_5",
-    name: "Consistent Perfection",
+    name: __("Consistent Perfection||Perfección Constante"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete 5 songs with 100% accuracy",
-      achieved: "You completed 5 songs with 100% accuracy!"
+      unachieved: __("Complete 5 songs with 100% accuracy||Completa 5 canciones con 100% de precisión"),
+      achieved: __("You completed 5 songs with 100% accuracy!||¡Completaste 5 canciones con 100% de precisión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.perfectGames >= 5,
@@ -146,11 +146,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "perfect_games_25",
-    name: "Perfection Master",
+    name: __("Perfection Master||Maestro de la Perfección"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete 25 songs with 100% accuracy",
-      achieved: "You completed 25 songs with 100% accuracy!"
+      unachieved: __("Complete 25 songs with 100% accuracy||Completa 25 canciones con 100% de precisión"),
+      achieved: __("You completed 25 songs with 100% accuracy!||¡Completaste 25 canciones con 100% de precisión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.perfectGames >= 25,
@@ -158,11 +158,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "marvelous_500",
-    name: "Marvelous Master",
+    name: __("Marvelous Master||Maestro Maravilloso"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 500 Marvelous judgements in one game",
-      achieved: "You got 500 Marvelous judgements!"
+      unachieved: __("Get 500 Marvelous judgements in one game||Obtén 500 juicios Marvelous en una partida"),
+      achieved: __("You got 500 Marvelous judgements!||¡Obtuviste 500 juicios Marvelous!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.maxMarvelousInGame >= 500,
@@ -170,11 +170,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "marvelous_1000",
-    name: "Precision Expert",
+    name: __("Precision Expert||Experto en Precisión"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 1000 Marvelous judgements in one game",
-      achieved: "You got 1000 Marvelous judgements!"
+      unachieved: __("Get 1000 Marvelous judgements in one game||Obtén 1000 juicios Marvelous en una partida"),
+      achieved: __("You got 1000 Marvelous judgements!||¡Obtuviste 1000 juicios Marvelous!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.maxMarvelousInGame >= 1000,
@@ -182,11 +182,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "marvelous_1500",
-    name: "Timing Virtuoso",
+    name: __("Timing Virtuoso||Virtuoso del Timing"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 1500 Marvelous judgements in one game",
-      achieved: "You got 1500 Marvelous judgements!"
+      unachieved: __("Get 1500 Marvelous judgements in one game||Obtén 1500 juicios Marvelous en una partida"),
+      achieved: __("You got 1500 Marvelous judgements!||¡Obtuviste 1500 juicios Marvelous!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.maxMarvelousInGame >= 1500,
@@ -194,11 +194,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "all_marvelous",
-    name: "Absolute Precision",
+    name: __("Absolute Precision||Precisión Absoluta"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get only Marvelous judgements in a song",
-      achieved: "You got only Marvelous judgements in a song!"
+      unachieved: __("Get only Marvelous judgements in a song||Obtén solo juicios Marvelous en una canción"),
+      achieved: __("You got only Marvelous judgements in a song!||¡Obtuviste solo juicios Marvelous en una canción!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: (_, song) => song.complete && song.judgements.marvelous >= song.totalNotes,
@@ -206,11 +206,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_million",
-    name: "Millionaire",
+    name: __("Millionaire||Millonario"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Score 1,000,000 points in one game",
-      achieved: "You scored 1,000,000 points in one game!"
+      unachieved: __("Score 1,000,000 points in one game||Consigue 1,000,000 puntos en una partida"),
+      achieved: __("You scored 1,000,000 points in one game!||¡Consiguiste 1,000,000 puntos en una partida!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: (_, song) => song.score >= 1000000,
@@ -218,11 +218,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "accuracy_90",
-    name: "A Grade",
+    name: __("A Grade||Nota A"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Achieve 90% accuracy in a song",
-      achieved: "You achieved 90% accuracy in a song!"
+      unachieved: __("Achieve 90% accuracy in a song||Alcanza 90% de precisión en una canción"),
+      achieved: __("You achieved 90% accuracy in a song!||¡Alcanzaste 90% de precisión en una canción!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: (_, song) => song.accuracy >= 90,
@@ -230,11 +230,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "accuracy_95",
-    name: "S Grade",
+    name: __("S Grade||Nota S"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Achieve 95% accuracy in a song",
-      achieved: "You achieved 95% accuracy in a song!"
+      unachieved: __("Achieve 95% accuracy in a song||Alcanza 95% de precisión en una canción"),
+      achieved: __("You achieved 95% accuracy in a song!||¡Alcanzaste 95% de precisión en una canción!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: (_, song) => song.accuracy >= 95,
@@ -242,11 +242,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "accuracy_99",
-    name: "SS Grade",
+    name: __("SS Grade||Nota SS"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Achieve 99% accuracy in a song",
-      achieved: "You achieved 99% accuracy in a song!"
+      unachieved: __("Achieve 99% accuracy in a song||Alcanza 99% de precisión en una canción"),
+      achieved: __("You achieved 99% accuracy in a song!||¡Alcanzaste 99% de precisión en una canción!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: (_, song) => song.accuracy >= 99,
@@ -254,11 +254,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "no_boo_game",
-    name: "Clean Play",
+    name: __("Clean Play||Juego Limpio"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete a song without any Boo judgements",
-      achieved: "You completed a song without any Boo judgements!"
+      unachieved: __("Complete a song without any Boo judgements||Completa una canción sin juicios Boo"),
+      achieved: __("You completed a song without any Boo judgements!||¡Completaste una canción sin juicios Boo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: (_, song) => song.complete && song.judgements.boo <= 0,
@@ -266,11 +266,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "only_perfect_plus",
-    name: "Perfect+ Only",
+    name: __("Perfect+ Only||Solo Perfect+"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get only Marvelous and Perfect judgements",
-      achieved: "You got only Marvelous and Perfect judgements!"
+      unachieved: __("Get only Marvelous and Perfect judgements||Obtén solo juicios Marvelous y Perfect"),
+      achieved: __("You got only Marvelous and Perfect judgements!||¡Obtuviste solo juicios Marvelous y Perfect!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: (_, song) => song.complete && song.judgements.marvelous + song.judgements.perfect >= song.totalNotes,
@@ -278,11 +278,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "speed_challenge",
-    name: "Speed Demon",
+    name: __("Speed Demon||Demonio de Velocidad"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete a song on maximum note speed",
-      achieved: "You completed a song on maximum note speed!"
+      unachieved: __("Complete a song on maximum note speed||Completa una canción a velocidad máxima"),
+      achieved: __("You completed a song on maximum note speed!||¡Completaste una canción a velocidad máxima!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: (_, song) => song.complete && Account.settings.noteSpeedMult >= 6,
@@ -290,11 +290,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_full_combo",
-    name: "First Full Combo",
+    name: __("First Full Combo||Primer Combo Completo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete your first full combo",
-      achieved: "You completed your first full combo!"
+      unachieved: __("Complete your first full combo||Completa tu primer combo completo"),
+      achieved: __("You completed your first full combo!||¡Completaste tu primer combo completo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.fullCombos >= 1,
@@ -302,11 +302,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_5",
-    name: "Consistent Combo",
+    name: __("Consistent Combo||Combo Consistente"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 5 full combos",
-      achieved: "You got 5 full combos!"
+      unachieved: __("Get 5 full combos||Obtén 5 combos completos"),
+      achieved: __("You got 5 full combos!||¡Obtuviste 5 combos completos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.fullCombos >= 5,
@@ -314,11 +314,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_25",
-    name: "Combo Master",
+    name: __("Combo Master||Maestro del Combo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 25 full combos",
-      achieved: "You got 25 full combos!"
+      unachieved: __("Get 25 full combos||Obtén 25 combos completos"),
+      achieved: __("You got 25 full combos!||¡Obtuviste 25 combos completos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.fullCombos >= 25,
@@ -326,11 +326,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_100",
-    name: "Unstoppable",
+    name: __("Unstoppable||Imparable"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 100 full combos",
-      achieved: "You got 100 full combos!"
+      unachieved: __("Get 100 full combos||Obtén 100 combos completos"),
+      achieved: __("You got 100 full combos!||¡Obtuviste 100 combos completos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.fullCombos >= 100,
@@ -338,11 +338,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_streak_3",
-    name: "On Fire",
+    name: __("On Fire||En Racha"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 3 full combos in a row",
-      achieved: "You got 3 full combos in a row!"
+      unachieved: __("Get 3 full combos in a row||Obtén 3 combos completos seguidos"),
+      achieved: __("You got 3 full combos in a row!||¡Obtuviste 3 combos completos seguidos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.maxFullComboStreak >= 3,
@@ -350,11 +350,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_streak_5",
-    name: "Burning Rhythm",
+    name: __("Burning Rhythm||Ritmo Ardiente"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 5 full combos in a row",
-      achieved: "You got 5 full combos in a row!"
+      unachieved: __("Get 5 full combos in a row||Obtén 5 combos completos seguidos"),
+      achieved: __("You got 5 full combos in a row!||¡Obtuviste 5 combos completos seguidos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.maxFullComboStreak >= 5,
@@ -362,11 +362,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_streak_10",
-    name: "Unstoppable Rhythm",
+    name: __("Unstoppable Rhythm||Ritmo Imparable"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 10 full combos in a row",
-      achieved: "You got 10 full combos in a row!"
+      unachieved: __("Get 10 full combos in a row||Obtén 10 combos completos seguidos"),
+      achieved: __("You got 10 full combos in a row!||¡Obtuviste 10 combos completos seguidos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.maxFullComboStreak >= 10,
@@ -374,11 +374,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "full_combo_streak_20",
-    name: "Rhythm God",
+    name: __("Rhythm God||Dios del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 20 full combos in a row",
-      achieved: "You got 20 full combos in a row!"
+      unachieved: __("Get 20 full combos in a row||Obtén 20 combos completos seguidos"),
+      achieved: __("You got 20 full combos in a row!||¡Obtuviste 20 combos completos seguidos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.maxFullComboStreak >= 20,
@@ -386,11 +386,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_flawless",
-    name: "Flawless",
+    name: __("Flawless||Impecable"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete a flawless full combo",
-      achieved: "You completed a flawless full combo!"
+      unachieved: __("Complete a flawless full combo||Completa un combo completo impecable"),
+      achieved: __("You completed a flawless full combo!||¡Completaste un combo completo impecable!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.flawlessFullCombos >= 1,
@@ -398,11 +398,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "flawless_5",
-    name: "Flawless Master",
+    name: __("Flawless Master||Maestro Impecable"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 5 flawless full combos",
-      achieved: "You got 5 flawless full combos!"
+      unachieved: __("Get 5 flawless full combos||Obtén 5 combos completos impecables"),
+      achieved: __("You got 5 flawless full combos!||¡Obtuviste 5 combos completos impecables!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.flawlessFullCombos >= 5,
@@ -410,11 +410,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "flawless_10",
-    name: "Perfectionist",
+    name: __("Perfectionist||Perfeccionista"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 10 flawless full combos",
-      achieved: "You got 10 flawless full combos!"
+      unachieved: __("Get 10 flawless full combos||Obtén 10 combos completos impecables"),
+      achieved: __("You got 10 flawless full combos!||¡Obtuviste 10 combos completos impecables!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.flawlessFullCombos >= 10,
@@ -422,11 +422,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "flawless_streak_3",
-    name: "Perfect Run",
+    name: __("Perfect Run||Racha Perfecta"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Get 3 flawless full combos in a row",
-      achieved: "You got 3 flawless full combos in a row!"
+      unachieved: __("Get 3 flawless full combos in a row||Obtén 3 combos completos impecables seguidos"),
+      achieved: __("You got 3 flawless full combos in a row!||¡Obtuviste 3 combos completos impecables seguidos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.flawlessStreak >= 3,
@@ -434,11 +434,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "absolute_flawless",
-    name: "Absolute Perfection",
+    name: __("Absolute Perfection||Perfección Absoluta"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete a song with only Marvelous judgements",
-      achieved: "You completed a song with only Marvelous judgements!"
+      unachieved: __("Complete a song with only Marvelous judgements||Completa una canción solo con juicios Marvelous"),
+      achieved: __("You completed a song with only Marvelous judgements!||¡Completaste una canción solo con juicios Marvelous!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.absoluteFlawless >= 1,
@@ -446,11 +446,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_multiplayer_game",
-    name: "Together We Play",
+    name: __("Together We Play||Jugamos Juntos"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Complete your first multiplayer game",
-      achieved: "You completed your first multiplayer game!"
+      unachieved: __("Complete your first multiplayer game||Completa tu primera partida multijugador"),
+      achieved: __("You completed your first multiplayer game!||¡Completaste tu primera partida multijugador!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.multiplayerGamesPlayed >= 1,
@@ -458,11 +458,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "multiplayer_games_10",
-    name: "Co-op Player",
+    name: __("Co-op Player||Jugador Cooperativo"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Play 10 multiplayer games",
-      achieved: "You played 10 multiplayer games!"
+      unachieved: __("Play 10 multiplayer games||Juega 10 partidas multijugador"),
+      achieved: __("You played 10 multiplayer games!||¡Jugaste 10 partidas multijugador!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.multiplayerGamesPlayed >= 10,
@@ -470,11 +470,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "multiplayer_games_50",
-    name: "Multiplayer Veteran",
+    name: __("Multiplayer Veteran||Veterano Multijugador"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Play 50 multiplayer games",
-      achieved: "You played 50 multiplayer games!"
+      unachieved: __("Play 50 multiplayer games||Juega 50 partidas multijugador"),
+      achieved: __("You played 50 multiplayer games!||¡Jugaste 50 partidas multijugador!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.multiplayerGamesPlayed >= 50,
@@ -482,11 +482,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "multiplayer_games_100",
-    name: "Versus Master",
+    name: __("Versus Master||Maestro del Versus"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Play 100 multiplayer games",
-      achieved: "You played 100 multiplayer games!"
+      unachieved: __("Play 100 multiplayer games||Juega 100 partidas multijugador"),
+      achieved: __("You played 100 multiplayer games!||¡Jugaste 100 partidas multijugador!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.multiplayerGamesPlayed >= 100,
@@ -494,11 +494,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "multiplayer_games_500",
-    name: "Rivalry Legend",
+    name: __("Rivalry Legend||Leyenda de Rivalidad"),
     category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
     description: {
-      unachieved: "Play 500 multiplayer games",
-      achieved: "You played 500 multiplayer games!"
+      unachieved: __("Play 500 multiplayer games||Juega 500 partidas multijugador"),
+      achieved: __("You played 500 multiplayer games!||¡Jugaste 500 partidas multijugador!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.multiplayerGamesPlayed >= 500,
@@ -508,11 +508,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Character Achievements
   {
     id: "first_character",
-    name: "New Identity",
+    name: __("New Identity||Nueva Identidad"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Create your first character",
-      achieved: "You created your first character!"
+      unachieved: __("Create your first character||Crea tu primer personaje"),
+      achieved: __("You created your first character!||¡Creaste tu primer personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.charactersCreated >= 1,
@@ -520,11 +520,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_collector",
-    name: "Character Collector",
+    name: __("Character Collector||Coleccionista de Personajes"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Create 5 different characters",
-      achieved: "You created 5 different characters!"
+      unachieved: __("Create 5 different characters||Crea 5 personajes diferentes"),
+      achieved: __("You created 5 different characters!||¡Creaste 5 personajes diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.charactersCreated >= 5,
@@ -532,11 +532,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_archivist",
-    name: "Character Archivist",
+    name: __("Character Archivist||Archivista de Personajes"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Create 10 different characters",
-      achieved: "You created 10 different characters!"
+      unachieved: __("Create 10 different characters||Crea 10 personajes diferentes"),
+      achieved: __("You created 10 different characters!||¡Creaste 10 personajes diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.charactersCreated >= 10,
@@ -544,11 +544,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_level_5",
-    name: "Apprentice Dancer",
+    name: __("Apprentice Dancer||Bailarín Aprendiz"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach character level 5",
-      achieved: "You reached character level 5!"
+      unachieved: __("Reach character level 5||Alcanza el nivel 5 de personaje"),
+      achieved: __("You reached character level 5!||¡Alcanzaste el nivel 5 de personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.maxCharacterLevel >= 5,
@@ -556,11 +556,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_level_10",
-    name: "Seasoned Performer",
+    name: __("Seasoned Performer||Artista Experimentado"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach character level 10",
-      achieved: "You reached character level 10!"
+      unachieved: __("Reach character level 10||Alcanza el nivel 10 de personaje"),
+      achieved: __("You reached character level 10!||¡Alcanzaste el nivel 10 de personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.maxCharacterLevel >= 10,
@@ -568,11 +568,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_level_20",
-    name: "Experienced Artist",
+    name: __("Experienced Artist||Artista Experimentado"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach character level 20",
-      achieved: "You reached character level 20!"
+      unachieved: __("Reach character level 20||Alcanza el nivel 20 de personaje"),
+      achieved: __("You reached character level 20!||¡Alcanzaste el nivel 20 de personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.maxCharacterLevel >= 20,
@@ -580,11 +580,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_level_30",
-    name: "Veteran Dancer",
+    name: __("Veteran Dancer||Bailarín Veterano"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach character level 30",
-      achieved: "You reached character level 30!"
+      unachieved: __("Reach character level 30||Alcanza el nivel 30 de personaje"),
+      achieved: __("You reached character level 30!||¡Alcanzaste el nivel 30 de personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.maxCharacterLevel >= 30,
@@ -592,11 +592,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_level_50",
-    name: "Rhythm Legend",
+    name: __("Rhythm Legend||Leyenda del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach character level 50",
-      achieved: "You reached character level 50!"
+      unachieved: __("Reach character level 50||Alcanza el nivel 50 de personaje"),
+      achieved: __("You reached character level 50!||¡Alcanzaste el nivel 50 de personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.maxCharacterLevel >= 50,
@@ -604,11 +604,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_skill",
-    name: "First Skill",
+    name: __("First Skill||Primera Habilidad"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock your first skill",
-      achieved: "You unlocked your first skill!"
+      unachieved: __("Unlock your first skill||Desbloquea tu primera habilidad"),
+      achieved: __("You unlocked your first skill!||¡Desbloqueaste tu primera habilidad!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.skillsUnlocked >= 1,
@@ -616,11 +616,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_collector",
-    name: "Skill Collector",
+    name: __("Skill Collector||Coleccionista de Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 5 different skills",
-      achieved: "You unlocked 5 different skills!"
+      unachieved: __("Unlock 5 different skills||Desbloquea 5 habilidades diferentes"),
+      achieved: __("You unlocked 5 different skills!||¡Desbloqueaste 5 habilidades diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.skillsUnlocked >= 5,
@@ -628,11 +628,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_master",
-    name: "Skill Master",
+    name: __("Skill Master||Maestro de Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 10 different skills",
-      achieved: "You unlocked 10 different skills!"
+      unachieved: __("Unlock 10 different skills||Desbloquea 10 habilidades diferentes"),
+      achieved: __("You unlocked 10 different skills!||¡Desbloqueaste 10 habilidades diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.skillsUnlocked >= 10,
@@ -640,11 +640,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_grandmaster",
-    name: "Skill Grandmaster",
+    name: __("Skill Grandmaster||Gran Maestro de Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 20 different skills",
-      achieved: "You unlocked 20 different skills!"
+      unachieved: __("Unlock 20 different skills||Desbloquea 20 habilidades diferentes"),
+      achieved: __("You unlocked 20 different skills!||¡Desbloqueaste 20 habilidades diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.skillsUnlocked >= 20,
@@ -652,11 +652,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_legend",
-    name: "Skill Legend",
+    name: __("Skill Legend||Leyenda de Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 30 different skills",
-      achieved: "You unlocked 30 different skills!"
+      unachieved: __("Unlock 30 different skills||Desbloquea 30 habilidades diferentes"),
+      achieved: __("You unlocked 30 different skills!||¡Desbloqueaste 30 habilidades diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.skillsUnlocked >= 30,
@@ -664,11 +664,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_hair_style",
-    name: "New Look",
+    name: __("New Look||Nuevo Look"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock a new hair style",
-      achieved: "You unlocked a new hair style!"
+      unachieved: __("Unlock a new hair style||Desbloquea un nuevo peinado"),
+      achieved: __("You unlocked a new hair style!||¡Desbloqueaste un nuevo peinado!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.charactersCreated >= 1,
@@ -676,11 +676,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "fashion_collector",
-    name: "Fashion Collector",
+    name: __("Fashion Collector||Coleccionista de Moda"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 5 different clothing items",
-      achieved: "You unlocked 5 different clothing items!"
+      unachieved: __("Unlock 5 different clothing items||Desbloquea 5 prendas diferentes"),
+      achieved: __("You unlocked 5 different clothing items!||¡Desbloqueaste 5 prendas diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.charactersCreated >= 2,
@@ -688,11 +688,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "fashion_icon",
-    name: "Fashion Icon",
+    name: __("Fashion Icon||Icono de Moda"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 10 different clothing items",
-      achieved: "You unlocked 10 different clothing items!"
+      unachieved: __("Unlock 10 different clothing items||Desbloquea 10 prendas diferentes"),
+      achieved: __("You unlocked 10 different clothing items!||¡Desbloqueaste 10 prendas diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.charactersCreated >= 3,
@@ -700,11 +700,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "accessory_hunter",
-    name: "Accessory Hunter",
+    name: __("Accessory Hunter||Cazador de Accesorios"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Unlock 5 different accessories",
-      achieved: "You unlocked 5 different accessories!"
+      unachieved: __("Unlock 5 different accessories||Desbloquea 5 accesorios diferentes"),
+      achieved: __("You unlocked 5 different accessories!||¡Desbloqueaste 5 accesorios diferentes!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.charactersCreated >= 2,
@@ -712,11 +712,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "max_skill_level",
-    name: "Maxed Out",
+    name: __("Maxed Out||Al Máximo"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Reach maximum skill level with a character",
-      achieved: "You reached maximum skill level with a character!"
+      unachieved: __("Reach maximum skill level with a character||Alcanza el nivel máximo de habilidad con un personaje"),
+      achieved: __("You reached maximum skill level with a character!||¡Alcanzaste el nivel máximo de habilidad con un personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.maxCharacterLevel >= CHARACTER_SYSTEM.MAX_SKILL_LEVEL,
@@ -724,11 +724,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "character_perfection",
-    name: "Character Perfection",
+    name: __("Character Perfection||Perfección de Personaje"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Max out all character stats",
-      achieved: "You maxed out all character stats!"
+      unachieved: __("Max out all character stats||Maximiza todas las estadísticas del personaje"),
+      achieved: __("You maxed out all character stats!||¡Maximizaste todas las estadísticas del personaje!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.maxCharacterLevel >= 50 && stats.skillsUnlocked >= 30,
@@ -736,11 +736,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "name_master",
-    name: "Name Master",
+    name: __("Name Master||Maestro de Nombres"),
     category: ACHIEVEMENT_CATEGORIES.CHARACTER,
     description: {
-      unachieved: "Create a character with maximum name length",
-      achieved: "You created a character with maximum name length!"
+      unachieved: __("Create a character with maximum name length||Crea un personaje con el nombre más largo posible"),
+      achieved: __("You created a character with maximum name length!||¡Creaste un personaje con el nombre más largo posible!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.charactersCreated >= 1,
@@ -750,11 +750,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Progression Achievements
   {
     id: "games_10",
-    name: "Dedicated Player",
+    name: __("Dedicated Player||Jugador Dedicado"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Play 10 games",
-      achieved: "You played 10 games!"
+      unachieved: __("Play 10 games||Juega 10 partidas"),
+      achieved: __("You played 10 games!||¡Jugaste 10 partidas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalGamesPlayed >= 25,
@@ -762,11 +762,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "games_25",
-    name: "Regular Player",
+    name: __("Regular Player||Jugador Regular"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Play 25 games",
-      achieved: "You played 25 games!"
+      unachieved: __("Play 25 games||Juega 25 partidas"),
+      achieved: __("You played 25 games!||¡Jugaste 25 partidas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalGamesPlayed >= 25,
@@ -774,11 +774,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "games_50",
-    name: "Rhythm Enthusiast",
+    name: __("Rhythm Enthusiast||Entusiasta del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Play 50 games",
-      achieved: "You played 50 games!"
+      unachieved: __("Play 50 games||Juega 50 partidas"),
+      achieved: __("You played 50 games!||¡Jugaste 50 partidas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalGamesPlayed >= 50,
@@ -786,11 +786,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "games_100",
-    name: "Addicted to Rhythm",
+    name: __("Addicted to Rhythm||Adicto al Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Play 100 games",
-      achieved: "You played 100 games!"
+      unachieved: __("Play 100 games||Juega 100 partidas"),
+      achieved: __("You played 100 games!||¡Jugaste 100 partidas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.totalGamesPlayed >= 250,
@@ -798,11 +798,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "streak_3",
-    name: "Consistent Player",
+    name: __("Consistent Player||Jugador Constante"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Maintain a 3-day play streak",
-      achieved: "You maintained a 3-day play streak!"
+      unachieved: __("Maintain a 3-day play streak||Mantén una racha de 3 días jugando"),
+      achieved: __("You maintained a 3-day play streak!||¡Mantuviste una racha de 3 días jugando!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.currentStreak >= 3,
@@ -810,11 +810,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "streak_7",
-    name: "Weekly Warrior",
+    name: __("Weekly Warrior||Guerrero Semanal"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Maintain a 7-day play streak",
-      achieved: "You maintained a 7-day play streak!"
+      unachieved: __("Maintain a 7-day play streak||Mantén una racha de 7 días jugando"),
+      achieved: __("You maintained a 7-day play streak!||¡Mantuviste una racha de 7 días jugando!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.currentStreak >= 7,
@@ -822,11 +822,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "streak_14",
-    name: "Fortnight Fanatic",
+    name: __("Fortnight Fanatic||Fanático de Quince Días"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Maintain a 14-day play streak",
-      achieved: "You maintained a 14-day play streak!"
+      unachieved: __("Maintain a 14-day play streak||Mantén una racha de 14 días jugando"),
+      achieved: __("You maintained a 14-day play streak!||¡Mantuviste una racha de 14 días jugando!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.currentStreak >= 14,
@@ -834,11 +834,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "streak_30",
-    name: "Monthly Master",
+    name: __("Monthly Master||Maestro Mensual"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Maintain a 30-day play streak",
-      achieved: "You maintained a 30-day play streak!"
+      unachieved: __("Maintain a 30-day play streak||Mantén una racha de 30 días jugando"),
+      achieved: __("You maintained a 30-day play streak!||¡Mantuviste una racha de 30 días jugando!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.currentStreak >= 30,
@@ -846,11 +846,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "streak_90",
-    name: "Seasoned Veteran",
+    name: __("Seasoned Veteran||Veterano Experimentado"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Maintain a 90-day play streak",
-      achieved: "You maintained a 90-day play streak!"
+      unachieved: __("Maintain a 90-day play streak||Mantén una racha de 90 días jugando"),
+      achieved: __("You maintained a 90-day play streak!||¡Mantuviste una racha de 90 días jugando!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.currentStreak >= 90,
@@ -858,11 +858,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_high_score",
-    name: "High Scorer",
+    name: __("High Scorer||Puntuación Alta"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Set your first high score",
-      achieved: "You set your first high score!"
+      unachieved: __("Set your first high score||Establece tu primera puntuación alta"),
+      achieved: __("You set your first high score!||¡Estableciste tu primera puntuación alta!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.highScoresSet >= 1,
@@ -870,11 +870,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "high_score_master",
-    name: "High Score Hunter",
+    name: __("High Score Hunter||Cazador de Puntuaciones Altas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Set 10 high scores",
-      achieved: "You set 10 high scores!"
+      unachieved: __("Set 10 high scores||Establece 10 puntuaciones altas"),
+      achieved: __("You set 10 high scores!||¡Estableciste 10 puntuaciones altas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.highScoresSet >= 10,
@@ -882,11 +882,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "high_score_expert",
-    name: "High Score Expert",
+    name: __("High Score Expert||Experto en Puntuaciones Altas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Set 25 high scores",
-      achieved: "You set 25 high scores!"
+      unachieved: __("Set 25 high scores||Establece 25 puntuaciones altas"),
+      achieved: __("You set 25 high scores!||¡Estableciste 25 puntuaciones altas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.highScoresSet >= 25,
@@ -894,11 +894,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "high_score_legend",
-    name: "High Score Legend",
+    name: __("High Score Legend||Leyenda de Puntuaciones Altas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Set 50 high scores",
-      achieved: "You set 50 high scores!"
+      unachieved: __("Set 50 high scores||Establece 50 puntuaciones altas"),
+      achieved: __("You set 50 high scores!||¡Estableciste 50 puntuaciones altas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.highScoresSet >= 50,
@@ -906,11 +906,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "total_score_1m",
-    name: "Million Points",
+    name: __("Million Points||Millón de Puntos"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Reach 1 million total score",
-      achieved: "You reached 1 million total score!"
+      unachieved: __("Reach 1 million total score||Alcanza 1 millón de puntos totales"),
+      achieved: __("You reached 1 million total score!||¡Alcanzaste 1 millón de puntos totales!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalScore >= 1000000,
@@ -918,11 +918,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "total_score_10m",
-    name: "Ten Million Points",
+    name: __("Ten Million Points||Diez Millones de Puntos"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Reach 10 million total score",
-      achieved: "You reached 10 million total score!"
+      unachieved: __("Reach 10 million total score||Alcanza 10 millones de puntos totales"),
+      achieved: __("You reached 10 million total score!||¡Alcanzaste 10 millones de puntos totales!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalScore >= 10000000,
@@ -930,11 +930,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "total_score_100m",
-    name: "Hundred Million Points",
+    name: __("Hundred Million Points||Cien Millones de Puntos"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Reach 100 million total score",
-      achieved: "You reached 100 million total score!"
+      unachieved: __("Reach 100 million total score||Alcanza 100 millones de puntos totales"),
+      achieved: __("You reached 100 million total score!||¡Alcanzaste 100 millones de puntos totales!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.totalScore >= 100000000,
@@ -942,11 +942,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "notes_1000",
-    name: "Thousand Notes",
+    name: __("Thousand Notes||Mil Notas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Hit 1000 notes total",
-      achieved: "You hit 1000 notes total!"
+      unachieved: __("Hit 1000 notes total||Acierta 1000 notas en total"),
+      achieved: __("You hit 1000 notes total!||¡Acertaste 1000 notas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalNotesHit >= 1000,
@@ -954,11 +954,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "notes_10000",
-    name: "Ten Thousand Notes",
+    name: __("Ten Thousand Notes||Diez Mil Notas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Hit 10,000 notes total",
-      achieved: "You hit 10,000 notes total!"
+      unachieved: __("Hit 10,000 notes total||Acierta 10,000 notas en total"),
+      achieved: __("You hit 10,000 notes total!||¡Acertaste 10,000 notas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalNotesHit >= 10000,
@@ -966,11 +966,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "notes_100000",
-    name: "Hundred Thousand Notes",
+    name: __("Hundred Thousand Notes||Cien Mil Notas"),
     category: ACHIEVEMENT_CATEGORIES.PROGRESSION,
     description: {
-      unachieved: "Hit 100,000 notes total",
-      achieved: "You hit 100,000 notes total!"
+      unachieved: __("Hit 100,000 notes total||Acierta 100,000 notas en total"),
+      achieved: __("You hit 100,000 notes total!||¡Acertaste 100,000 notas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalNotesHit >= 100000,
@@ -980,11 +980,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Time Achievements
   {
     id: "time_1_hour",
-    name: "Hour of Rhythm",
+    name: __("Hour of Rhythm||Hora de Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play for 1 hour total",
-      achieved: "You played for 1 hour total!"
+      unachieved: __("Play for 1 hour total||Juega durante 1 hora en total"),
+      achieved: __("You played for 1 hour total!||¡Jugaste durante 1 hora en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalTimePlayed >= 3600,
@@ -992,11 +992,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "time_5_hours",
-    name: "Rhythm Enthusiast",
+    name: __("Rhythm Enthusiast||Entusiasta del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play for 5 hours total",
-      achieved: "You played for 5 hours total!"
+      unachieved: __("Play for 5 hours total||Juega durante 5 horas en total"),
+      achieved: __("You played for 5 hours total!||¡Jugaste durante 5 horas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalTimePlayed >= 18000,
@@ -1004,11 +1004,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "time_10_hours",
-    name: "Dedicated Dancer",
+    name: __("Dedicated Dancer||Bailarín Dedicado"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play for 10 hours total",
-      achieved: "You played for 10 hours total!"
+      unachieved: __("Play for 10 hours total||Juega durante 10 horas en total"),
+      achieved: __("You played for 10 hours total!||¡Jugaste durante 10 horas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalTimePlayed >= 36000,
@@ -1016,11 +1016,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "time_24_hours",
-    name: "Rhythm Marathon",
+    name: __("Rhythm Marathon||Maratón de Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play for 24 hours total",
-      achieved: "You played for 24 hours total!"
+      unachieved: __("Play for 24 hours total||Juega durante 24 horas en total"),
+      achieved: __("You played for 24 hours total!||¡Jugaste durante 24 horas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.totalTimePlayed >= 86400,
@@ -1028,11 +1028,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "time_100_hours",
-    name: "Rhythm Master",
+    name: __("Rhythm Master||Maestro del Ritmo"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play for 100 hours total",
-      achieved: "You played for 100 hours total!"
+      unachieved: __("Play for 100 hours total||Juega durante 100 horas en total"),
+      achieved: __("You played for 100 hours total!||¡Jugaste durante 100 horas en total!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.totalTimePlayed >= 360000,
@@ -1040,11 +1040,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "session_30_min",
-    name: "Focused Session",
+    name: __("Focused Session||Sesión Enfocada"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play a single session for 30 minutes",
-      achieved: "You played a single session for 30 minutes!"
+      unachieved: __("Play a single session for 30 minutes||Juega una sesión de 30 minutos"),
+      achieved: __("You played a single session for 30 minutes!||¡Jugaste una sesión de 30 minutos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.longestSession >= 1800,
@@ -1052,11 +1052,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "session_1_hour",
-    name: "Extended Session",
+    name: __("Extended Session||Sesión Extendida"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play a single session for 1 hour",
-      achieved: "You played a single session for 1 hour!"
+      unachieved: __("Play a single session for 1 hour||Juega una sesión de 1 hora"),
+      achieved: __("You played a single session for 1 hour!||¡Jugaste una sesión de 1 hora!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.longestSession >= 3600,
@@ -1064,11 +1064,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "session_2_hours",
-    name: "Marathon Session",
+    name: __("Marathon Session||Sesión Maratón"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play a single session for 2 hours",
-      achieved: "You played a single session for 2 hours!"
+      unachieved: __("Play a single session for 2 hours||Juega una sesión de 2 horas"),
+      achieved: __("You played a single session for 2 hours!||¡Jugaste una sesión de 2 horas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.longestSession >= 7200,
@@ -1076,11 +1076,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "session_4_hours",
-    name: "Ultra Marathon",
+    name: __("Ultra Marathon||Ultra Maratón"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play a single session for 4 hours",
-      achieved: "You played a single session for 4 hours!"
+      unachieved: __("Play a single session for 4 hours||Juega una sesión de 4 horas"),
+      achieved: __("You played a single session for 4 hours!||¡Jugaste una sesión de 4 horas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
     condition: stats => stats.longestSession >= 14400,
@@ -1088,11 +1088,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "early_bird",
-    name: "Early Bird",
+    name: __("Early Bird||Madrugador"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play between 5 AM and 9 AM",
-      achieved: "You played between 5 AM and 9 AM!"
+      unachieved: __("Play between 5 AM and 9 AM||Juega entre las 5 AM y 9 AM"),
+      achieved: __("You played between 5 AM and 9 AM!||¡Jugaste entre las 5 AM y 9 AM!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.playedEarlyMorning,
@@ -1100,11 +1100,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "night_owl",
-    name: "Night Owl",
+    name: __("Night Owl||Búho Nocturno"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play between midnight and 4 AM",
-      achieved: "You played between midnight and 4 AM!"
+      unachieved: __("Play between midnight and 4 AM||Juega entre la medianoche y las 4 AM"),
+      achieved: __("You played between midnight and 4 AM!||¡Jugaste entre la medianoche y las 4 AM!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.playedAtNight,
@@ -1112,11 +1112,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "weekend_warrior",
-    name: "Weekend Warrior",
+    name: __("Weekend Warrior||Guerrero de Fin de Semana"),
     category: ACHIEVEMENT_CATEGORIES.TIME,
     description: {
-      unachieved: "Play on a weekend",
-      achieved: "You played on a weekend!"
+      unachieved: __("Play on a weekend||Juega durante el fin de semana"),
+      achieved: __("You played on a weekend!||¡Jugaste durante el fin de semana!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.playedWeekend,
@@ -1124,11 +1124,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "holiday_player",
-    name: "Holiday Player",
+    name: __("Holiday Player||Jugador Festivo"),
     category: ACHIEVEMENT_CATEGORIES.HOLIDAYS,
     description: {
-      unachieved: "Play on a holiday",
-      achieved: "You played on a holiday!"
+      unachieved: __("Play on a holiday||Juega en un día festivo"),
+      achieved: __("You played on a holiday!||¡Jugaste en un día festivo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.playedHoliday,
@@ -1138,11 +1138,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Editor Achievements
   {
     id: "first_arrow_placed",
-    name: "First Step",
+    name: __("First Step||Primer Paso"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place your first arrow in the editor",
-      achieved: "You placed your first arrow!"
+      unachieved: __("Place your first arrow in the editor||Coloca tu primera flecha en el editor"),
+      achieved: __("You placed your first arrow!||¡Colocaste tu primera flecha!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalPlacedArrows >= 1,
@@ -1150,11 +1150,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "arrow_master",
-    name: "Arrow Architect",
+    name: __("Arrow Architect||Arquitecto de Flechas"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 100 arrows in the editor",
-      achieved: "You placed 100 arrows!"
+      unachieved: __("Place 100 arrows in the editor||Coloca 100 flechas en el editor"),
+      achieved: __("You placed 100 arrows!||¡Colocaste 100 flechas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalPlacedArrows >= 100,
@@ -1162,11 +1162,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "arrow_expert",
-    name: "Pattern Weaver",
+    name: __("Pattern Weaver||Tejedor de Patrones"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 500 arrows in the editor",
-      achieved: "You placed 500 arrows!"
+      unachieved: __("Place 500 arrows in the editor||Coloca 500 flechas en el editor"),
+      achieved: __("You placed 500 arrows!||¡Colocaste 500 flechas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalPlacedArrows >= 500,
@@ -1174,11 +1174,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "arrow_legend",
-    name: "Stepchart Legend",
+    name: __("Stepchart Legend||Leyenda del Stepchart"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 1000 arrows in the editor",
-      achieved: "You placed 1000 arrows!"
+      unachieved: __("Place 1000 arrows in the editor||Coloca 1000 flechas en el editor"),
+      achieved: __("You placed 1000 arrows!||¡Colocaste 1000 flechas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalPlacedArrows >= 1000,
@@ -1186,11 +1186,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_freeze_placed",
-    name: "Hold On",
+    name: __("Hold On||Espera"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place your first freeze arrow",
-      achieved: "You placed your first freeze arrow!"
+      unachieved: __("Place your first freeze arrow||Coloca tu primera flecha de presión"),
+      achieved: __("You placed your first freeze arrow!||¡Colocaste tu primera flecha de presión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalPlacedFreezes >= 1,
@@ -1198,11 +1198,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "freeze_master",
-    name: "Hold Master",
+    name: __("Hold Master||Maestro de Presión"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 50 freeze arrows",
-      achieved: "You placed 50 freeze arrows!"
+      unachieved: __("Place 50 freeze arrows||Coloca 50 flechas de presión"),
+      achieved: __("You placed 50 freeze arrows!||¡Colocaste 50 flechas de presión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalPlacedFreezes >= 50,
@@ -1210,11 +1210,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "freeze_artist",
-    name: "Sustain Artist",
+    name: __("Sustain Artist||Artista de Sostenido"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 200 freeze arrows",
-      achieved: "You placed 200 freeze arrows!"
+      unachieved: __("Place 200 freeze arrows||Coloca 200 flechas de presión"),
+      achieved: __("You placed 200 freeze arrows!||¡Colocaste 200 flechas de presión!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalPlacedFreezes >= 200,
@@ -1222,11 +1222,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_mine_placed",
-    name: "Danger Zone",
+    name: __("Danger Zone||Zona de Peligro"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place your first mine",
-      achieved: "You placed your first mine!"
+      unachieved: __("Place your first mine||Coloca tu primera mina"),
+      achieved: __("You placed your first mine!||¡Colocaste tu primera mina!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalPlacedMines >= 1,
@@ -1234,11 +1234,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "mine_layer",
-    name: "Mine Layer",
+    name: __("Mine Layer||Colocador de Minas"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 25 mines",
-      achieved: "You placed 25 mines!"
+      unachieved: __("Place 25 mines||Coloca 25 minas"),
+      achieved: __("You placed 25 mines!||¡Colocaste 25 minas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalPlacedMines >= 25,
@@ -1246,11 +1246,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "mine_expert",
-    name: "Trap Master",
+    name: __("Trap Master||Maestro de Trampas"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Place 100 mines",
-      achieved: "You placed 100 mines!"
+      unachieved: __("Place 100 mines||Coloca 100 minas"),
+      achieved: __("You placed 100 mines!||¡Colocaste 100 minas!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalPlacedMines >= 100,
@@ -1258,11 +1258,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_chart_created",
-    name: "Chart Creator",
+    name: __("Chart Creator||Creador de Charts"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Create your first complete chart",
-      achieved: "You created your first complete chart!"
+      unachieved: __("Create your first complete chart||Crea tu primer chart completo"),
+      achieved: __("You created your first complete chart!||¡Creaste tu primer chart completo!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.chartsCreated >= 1,
@@ -1270,11 +1270,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "chart_creator",
-    name: "Prolific Creator",
+    name: __("Prolific Creator||Creador Prolífico"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Create 5 complete charts",
-      achieved: "You created 5 complete charts!"
+      unachieved: __("Create 5 complete charts||Crea 5 charts completos"),
+      achieved: __("You created 5 complete charts!||¡Creaste 5 charts completos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.chartsCreated >= 5,
@@ -1282,11 +1282,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "chart_master",
-    name: "Chart Master",
+    name: __("Chart Master||Maestro de Charts"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Create 10 complete charts",
-      achieved: "You created 10 complete charts!"
+      unachieved: __("Create 10 complete charts||Crea 10 charts completos"),
+      achieved: __("You created 10 complete charts!||¡Creaste 10 charts completos!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.chartsCreated >= 10,
@@ -1294,11 +1294,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_song_imported",
-    name: "Music Importer",
+    name: __("Music Importer||Importador de Música"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Import your first song",
-      achieved: "You imported your first song!"
+      unachieved: __("Import your first song||Importa tu primera canción"),
+      achieved: __("You imported your first song!||¡Importaste tu primera canción!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalImportedSongs >= 1,
@@ -1306,11 +1306,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "song_collector",
-    name: "Music Collector",
+    name: __("Music Collector||Coleccionista de Música"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Import 5 songs",
-      achieved: "You imported 5 songs!"
+      unachieved: __("Import 5 songs||Importa 5 canciones"),
+      achieved: __("You imported 5 songs!||¡Importaste 5 canciones!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalImportedSongs >= 5,
@@ -1318,11 +1318,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "music_archivist",
-    name: "Music Archivist",
+    name: __("Music Archivist||Archivista Musical"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Import 10 songs",
-      achieved: "You imported 10 songs!"
+      unachieved: __("Import 10 songs||Importa 10 canciones"),
+      achieved: __("You imported 10 songs!||¡Importaste 10 canciones!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalImportedSongs >= 10,
@@ -1330,11 +1330,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "first_song_exported",
-    name: "Chart Exporter",
+    name: __("Chart Exporter||Exportador de Charts"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Export your first chart",
-      achieved: "You exported your first chart!"
+      unachieved: __("Export your first chart||Exporta tu primer chart"),
+      achieved: __("You exported your first chart!||¡Exportaste tu primer chart!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalExportedSongs >= 1,
@@ -1342,11 +1342,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "song_exporter",
-    name: "Content Creator",
+    name: __("Content Creator||Creador de Contenido"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Export 5 charts",
-      achieved: "You exported 5 charts!"
+      unachieved: __("Export 5 charts||Exporta 5 charts"),
+      achieved: __("You exported 5 charts!||¡Exportaste 5 charts!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalExportedSongs >= 5,
@@ -1354,11 +1354,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "chart_publisher",
-    name: "Chart Publisher",
+    name: __("Chart Publisher||Publicador de Charts"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Export 10 charts",
-      achieved: "You exported 10 charts!"
+      unachieved: __("Export 10 charts||Exporta 10 charts"),
+      achieved: __("You exported 10 charts!||¡Exportaste 10 charts!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.totalExportedSongs >= 10,
@@ -1366,11 +1366,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "editor_time_1_hour",
-    name: "Editor Apprentice",
+    name: __("Editor Apprentice||Aprendiz de Editor"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Spend 1 hour in the editor",
-      achieved: "You spent 1 hour in the editor!"
+      unachieved: __("Spend 1 hour in the editor||Pasa 1 hora en el editor"),
+      achieved: __("You spent 1 hour in the editor!||¡Pasaste 1 hora en el editor!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.editorTimeSpent >= 3600,
@@ -1378,11 +1378,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "editor_time_5_hours",
-    name: "Editor Enthusiast",
+    name: __("Editor Enthusiast||Entusiasta del Editor"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Spend 5 hours in the editor",
-      achieved: "You spent 5 hours in the editor!"
+      unachieved: __("Spend 5 hours in the editor||Pasa 5 horas en el editor"),
+      achieved: __("You spent 5 hours in the editor!||¡Pasaste 5 horas en el editor!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.editorTimeSpent >= 18000,
@@ -1390,11 +1390,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "editor_time_10_hours",
-    name: "Editor Veteran",
+    name: __("Editor Veteran||Veterano del Editor"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Spend 10 hours in the editor",
-      achieved: "You spent 10 hours in the editor!"
+      unachieved: __("Spend 10 hours in the editor||Pasa 10 horas en el editor"),
+      achieved: __("You spent 10 hours in the editor!||¡Pasaste 10 horas en el editor!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.editorTimeSpent >= 36000,
@@ -1402,11 +1402,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "editor_time_24_hours",
-    name: "Editor Master",
+    name: __("Editor Master||Maestro del Editor"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Spend 24 hours in the editor",
-      achieved: "You spent 24 hours in the editor!"
+      unachieved: __("Spend 24 hours in the editor||Pasa 24 horas en el editor"),
+      achieved: __("You spent 24 hours in the editor!||¡Pasaste 24 horas en el editor!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.editorTimeSpent >= 86400,
@@ -1414,11 +1414,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "difficulty_setter",
-    name: "Difficulty Designer",
+    name: __("Difficulty Designer||Diseñador de Dificultades"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Set difficulty ratings for 5 charts",
-      achieved: "You set difficulty ratings for 5 charts!"
+      unachieved: __("Set difficulty ratings for 5 charts||Establece niveles de dificultad para 5 charts"),
+      achieved: __("You set difficulty ratings for 5 charts!||¡Estableciste niveles de dificultad para 5 charts!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.chartsWithDifficultySet >= 5,
@@ -1426,11 +1426,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "all_note_types",
-    name: "Note Variety Expert",
+    name: __("Note Variety Expert||Experto en Variedad de Notas"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Use all note types in a single chart",
-      achieved: "You used all note types in a single chart!"
+      unachieved: __("Use all note types in a single chart||Usa todos los tipos de notas en un solo chart"),
+      achieved: __("You used all note types in a single chart!||¡Usaste todos los tipos de notas en un solo chart!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.usedAllNoteTypesInChart,
@@ -1438,11 +1438,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "chart_test_play",
-    name: "Quality Tester",
+    name: __("Quality Tester||Probador de Calidad"),
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
     description: {
-      unachieved: "Test play your own chart",
-      achieved: "You test played your own chart!"
+      unachieved: __("Test play your own chart||Prueba tu propio chart"),
+      achieved: __("You test played your own chart!||¡Probaste tu propio chart!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.chartsTestPlayed >= 1,
@@ -1452,11 +1452,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Mastery Achievements
   {
     id: "all_difficulties",
-    name: "Versatile Player",
+    name: __("Versatile Player||Jugador Versátil"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete songs on all difficulty types",
-      achieved: "You completed songs on all difficulty types!"
+      unachieved: __("Complete songs on all difficulty types||Completa canciones en todos los tipos de dificultad"),
+      achieved: __("You completed songs on all difficulty types!||¡Completaste canciones en todos los tipos de dificultad!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalBeginnerGamesPlayed && stats.totalEasyGamesPlayed && stats.totalMediumGamesPlayed && stats.totalHardGamesPlayed && stats.totalChallengeGamesPlayed && stats.totalEditGamesPlayed,
@@ -1464,11 +1464,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "beginner_master",
-    name: "Beginner Master",
+    name: __("Beginner Master||Maestro Principiante"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 25 Beginner difficulty charts",
-      achieved: "You completed 25 Beginner difficulty charts!"
+      unachieved: __("Complete 25 Beginner difficulty charts||Completa 25 charts de dificultad Principiante"),
+      achieved: __("You completed 25 Beginner difficulty charts!||¡Completaste 25 charts de dificultad Principiante!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalBeginnerGamesPlayed >= 25,
@@ -1476,11 +1476,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "easy_master",
-    name: "Easy Master",
+    name: __("Easy Master||Maestro Fácil"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 25 Easy difficulty charts",
-      achieved: "You completed 25 Easy difficulty charts!"
+      unachieved: __("Complete 25 Easy difficulty charts||Completa 25 charts de dificultad Fácil"),
+      achieved: __("You completed 25 Easy difficulty charts!||¡Completaste 25 charts de dificultad Fácil!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.totalEasyGamesPlayed >= 25,
@@ -1488,11 +1488,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "medium_master",
-    name: "Medium Master",
+    name: __("Medium Master||Maestro Medio"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 25 Medium difficulty charts",
-      achieved: "You completed 25 Medium difficulty charts!"
+      unachieved: __("Complete 25 Medium difficulty charts||Completa 25 charts de dificultad Media"),
+      achieved: __("You completed 25 Medium difficulty charts!||¡Completaste 25 charts de dificultad Media!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.totalMediumGamesPlayed >= 25,
@@ -1500,11 +1500,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "hard_master",
-    name: "Hard Master",
+    name: __("Hard Master||Maestro Difícil"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 25 Hard difficulty charts",
-      achieved: "You completed 25 Hard difficulty charts!"
+      unachieved: __("Complete 25 Hard difficulty charts||Completa 25 charts de dificultad Difícil"),
+      achieved: __("You completed 25 Hard difficulty charts!||¡Completaste 25 charts de dificultad Difícil!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: stats => stats.totalHardGamesPlayed >= 25,
@@ -1512,11 +1512,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "challenge_master",
-    name: "Challenge Master",
+    name: __("Challenge Master||Maestro del Desafío"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete 25 Challenge difficulty charts",
-      achieved: "You completed 25 Challenge difficulty charts!"
+      unachieved: __("Complete 25 Challenge difficulty charts||Completa 25 charts de dificultad Desafío"),
+      achieved: __("You completed 25 Challenge difficulty charts!||¡Completaste 25 charts de dificultad Desafío!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: stats => stats.totalChallengeGamesPlayed >= 25,
@@ -1524,11 +1524,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "difficulty_11",
-    name: "Expert Player",
+    name: __("Expert Player||Jugador Experto"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete a difficulty 11 chart",
-      achieved: "You completed a difficulty 11 chart!"
+      unachieved: __("Complete a difficulty 11 chart||Completa un chart de dificultad 11"),
+      achieved: __("You completed a difficulty 11 chart!||¡Completaste un chart de dificultad 11!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: (_, song) => song.complete && song.difficultyRating >= 11,
@@ -1536,11 +1536,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "difficulty_15",
-    name: "Master Player",
+    name: __("Master Player||Jugador Maestro"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete a difficulty 15 song",
-      achieved: "You completed a difficulty 15 song!"
+      unachieved: __("Complete a difficulty 15 song||Completa una canción de dificultad 15"),
+      achieved: __("You completed a difficulty 15 song!||¡Completaste una canción de dificultad 15!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: (_, song) => song.complete && song.difficultyRating >= 15,
@@ -1548,11 +1548,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "difficulty_25",
-    name: "Just... Don't know what to say",
+    name: __("Just... Don't know what to say||Solo... No sé qué decir"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Complete a difficulty 25 song",
-      achieved: "You completed a difficulty 25 song!"
+      unachieved: __("Complete a difficulty 25 song||Completa una canción de dificultad 25"),
+      achieved: __("You completed a difficulty 25 song!||¡Completaste una canción de dificultad 25!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
     condition: (_, song) => song.complete && song.difficultyRating >= 15,
@@ -1560,11 +1560,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_spammer",
-    name: "Skill Spammer",
+    name: __("Skill Spammer||Spam de Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Use 5 skills in a single game",
-      achieved: "You used 5 skills in a single game!"
+      unachieved: __("Use 5 skills in a single game||Usa 5 habilidades en una sola partida"),
+      achieved: __("You used 5 skills in a single game!||¡Usaste 5 habilidades en una sola partida!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.maxSkillsInGame >= 5,
@@ -1572,11 +1572,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "skill_expert",
-    name: "Skill Expert",
+    name: __("Skill Expert||Experto en Habilidades"),
     category: ACHIEVEMENT_CATEGORIES.MASTERY,
     description: {
-      unachieved: "Use 10 skills in a single game",
-      achieved: "You used 10 skills in a single game!"
+      unachieved: __("Use 10 skills in a single game||Usa 10 habilidades en una sola partida"),
+      achieved: __("You used 10 skills in a single game!||¡Usaste 10 habilidades en una sola partida!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.maxSkillsInGame >= 10,
@@ -1588,11 +1588,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   // Miscellaneous
   {
     id: "submit_bug_report",
-    name: "Crash Tester",
+    name: __("Crash Tester||Probador de Fallos"),
     category: ACHIEVEMENT_CATEGORIES.MISC,
     description: {
-      unachieved: "Submit a bug report",
-      achieved: "You submitted a bug report!"
+      unachieved: __("Submit a bug report||Envía un reporte de error"),
+      achieved: __("You submitted a bug report!||¡Enviaste un reporte de error!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.submittedBugReport,
@@ -1600,11 +1600,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "submit_rating",
-    name: "Review it!",
+    name: __("Review it!||¡Reséñalo!"),
     category: ACHIEVEMENT_CATEGORIES.MISC,
     description: {
-      unachieved: "Submit a review about this game",
-      achieved: "You submitted a review! Thank you!"
+      unachieved: __("Submit a review about this game||Envía una reseña sobre este juego"),
+      achieved: __("You submitted a review! Thank you!||¡Enviaste una reseña! ¡Gracias!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.gameRated,
@@ -1612,11 +1612,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "submit_feature_request",
-    name: "Hmm... Maybe add this",
+    name: __("Hmm... Maybe add this||Mmm... Quizás añadir esto"),
     category: ACHIEVEMENT_CATEGORIES.MISC,
     description: {
-      unachieved: "Request a feature",
-      achieved: "You requested a feature!"
+      unachieved: __("Request a feature||Solicita una funcionalidad"),
+      achieved: __("You requested a feature!||¡Solicitaste una funcionalidad!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
     condition: stats => stats.featureRequestPrompted,
@@ -1624,11 +1624,11 @@ const ACHIEVEMENT_DEFINITIONS = [
   },
   {
     id: "community_explorer",
-    name: "Community Explorer",
+    name: __("Community Explorer||Explorador de la Comunidad"),
     category: ACHIEVEMENT_CATEGORIES.MISC,
     description: {
-      unachieved: "Visit the community homepage",
-      achieved: "You visited the community!"
+      unachieved: __("Visit the community homepage||Visita la página de la comunidad"),
+      achieved: __("You visited the community!||¡Visitaste la comunidad!")
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: (stats) => stats.wentToCommunity,

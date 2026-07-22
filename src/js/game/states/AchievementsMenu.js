@@ -35,7 +35,7 @@ class AchievementsMenu {
     });
     
     // Toggle button
-    this.toggleText = new Text(4, 3, "Showing: Unlocked");
+    this.toggleText = new Text(4, 3, __("Showing: Unlocked||Sección: Desbloqueados"));
     
     game.onMenuIn.dispatch('achievements', this.carousel);
     
@@ -53,7 +53,7 @@ class AchievementsMenu {
     
     if (achievements.length === 0) {
       this.carousel.addItem(
-        this.showingUnlocked ? "No achievements unlocked" : "No achievements available",
+        this.showingUnlocked ? __("No achievements unlocked||Ningún logro desbloqueado") : __("No achievements available||No hay logros disponibles"),
         null,
         { bgcolor: '#34495e' }
       );
@@ -82,7 +82,7 @@ class AchievementsMenu {
     }
     
     if (this.toggleText) {
-      this.toggleText.write(`Showing: ${this.showingUnlocked ? 'Unlocked' : 'Locked'}`);
+      this.toggleText.write(__("Showing: Unlocked||Sección: Desbloqueados"));
     }
     
     // Handle carousel selection
@@ -104,20 +104,20 @@ class AchievementsMenu {
     const isUnlocked = Account.achievements.unlocked[achievement.id];
     
     let details = `${achievement.name}\n`;
-    details += `Category: ${achievement.category}\n\n`;
+    details += __(`(Category|Categoría): ${achievement.category}\n\n`);
     
     if (isUnlocked) {
       details += achievement.description.achieved + '\n\n';
       const unlockData = Account.achievements.unlocked[achievement.id];
       const unlockDate = new Date(unlockData.unlockedAt);
-      details += `Unlocked: ${unlockDate.toLocaleDateString()}\n`;
-      details += `Experience: +${unlockData.expReward}`;
+      details += __(`(Unlocked|Desbloqueado): ${unlockDate.toLocaleDateString()}\n`);
+      details += __(`(Experience|Experiencia): +${unlockData.expReward}`);
     } else {
       details += achievement.description.unachieved + '\n\n';
       if (achievement.hidden) {
-        details += "???\n(Hidden Achievement)";
+        details += __("(Hidden Achievement|Logro Oculto)");
       } else {
-        details += `Experience: +${achievement.expReward}`;
+        details += __(`(Experience|Experiencia): +${achievement.expReward}`);
       }
     }
     

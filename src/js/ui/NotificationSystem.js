@@ -10,7 +10,7 @@ class NotificationSystem {
     this.charWidth = 4;
     
     this.notificationWindow = null;
-    this.notificationTint = null;
+    this.notificationTint = [0xffffff];
     this.notificationTexts = null;
     
     this.restrictedStates = new Set(['Title', 'Play', 'Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
@@ -130,6 +130,11 @@ class NotificationSystem {
     let tintAnimationIndex = 0;
     this.tintAnimationLoop = game.time.events.loop(100, () => {
       if (!this.notificationWindow) return;
+      
+      if (!this.notificationTint) {
+        this.notification.tint = 0x76fcde;
+        return;
+      }
       
       const tint = this.notificationTint[tintAnimationIndex];
       

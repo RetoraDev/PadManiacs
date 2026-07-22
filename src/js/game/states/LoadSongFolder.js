@@ -1,7 +1,7 @@
 class LoadSongFolder {
   create() {
-    this.progressText = new ProgressText("SELECT SONG FOLDER");
-
+    this.progressText = new ProgressText(__("Select Song Folder...||Seleccionar carpeta..."));
+    
     this.parser = new ExternalSMParser();
     this.showFileInput();
   }
@@ -17,13 +17,13 @@ class LoadSongFolder {
     };
     
     fileInput.oncancel = e => {
-      this.showError("Nothing selected");
+      this.showError(__("Nothing selected||Nada seleccionado"));
     };
 
     // Add a fallback for non-webkit browsers
     if (!fileInput.webkitdirectory) {
       fileInput.multiple = true;
-      this.progressText.write("Select all song files");
+      this.progressText.write(__("Select all song files||Seleccionar todos los archivos"));
     }
 
     fileInput.click();
@@ -31,7 +31,7 @@ class LoadSongFolder {
 
   async processFiles(files) {
     try {
-      this.progressText.write("LOADING SONG...");
+      this.progressText = new ProgressText(__("Loading Song...||Cargando canción..."));
       
       if (files[0].name.endsWith(".zip")) {
         this.processZipFile(files[0]);
@@ -47,7 +47,7 @@ class LoadSongFolder {
       const chartFileNames = Object.keys(fileMap).filter(name => name.endsWith(".sm"));
 
       if (chartFileNames.length === 0) {
-        this.showError("No .sm file found in selected folder");
+        this.showError(__("No .sm file found||No se encontró el archivo .sm"));
         return;
       }
 
@@ -57,7 +57,7 @@ class LoadSongFolder {
       const chart = await this.parser.parseSM(fileMap, content);
       
       if (chart.error) {
-        this.showError("Error in SM file");
+        this.showError(__("Error in SM file||Error en el archivo SM"));
         return;
       }
       
@@ -75,12 +75,12 @@ class LoadSongFolder {
   async processZipFile(file) {
     const JSZip = window.JSZip;
     if (!JSZip) {
-      this.showError("Couldn't load ZIP file");
+      this.showError(__("Couldn't load ZIP file||No se pudo cargar el ZIP"));
       throw new Error("JSZip library not loaded");
     }
     
     if (!file) {
-      this.showError("Couldn't load ZIP file");
+      this.showError(__("Couldn't load ZIP file||No se pudo cargar el ZIP"));
       throw new Error("Undefined .zip file");
     }
     
@@ -107,7 +107,7 @@ class LoadSongFolder {
     });
 
     if (!smFile) {
-      this.showError("No .sm file found in ZIP");
+      this.showError(__("No .sm file found in ZIP||No se encontró el archivo .sm en el ZIP"));
       return;
     }
 
@@ -117,7 +117,7 @@ class LoadSongFolder {
     const chart = await new LocalSMParser().parseSM(smContent, basePath);
 
     if (chart.error) {
-      this.showError("Error in SM file");
+      this.showError(__("Error in SM file||Error en el archivo SM"));
       return;
     }
 
