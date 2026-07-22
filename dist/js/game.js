@@ -5,17 +5,20 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.1.1 dev
- * Build: 7/20/2026, 4:43:44 AM
+ * Build: 7/22/2026, 1:57:29 AM
  * Platform: Development
- * Debug: false
+ * Debug: true
  * Minified: false
  */
 
+
+
+// ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2026";
 
 const VERSION = "v1.1.1 dev";
 
-window.DEBUG = false;
+window.DEBUG = true;
 
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
 
@@ -177,6 +180,11 @@ const NAVIGATION_HINT_PRESETS = {
     },
     {
       position: "right",
+      icon: "start",
+      text: "OPTION"
+    },
+    {
+      position: "right",
       icon: "select",
       text: "AUTO"
     }
@@ -285,6 +293,15 @@ const NAVIGATION_HINT_PRESETS = {
       icon: "b",
       text: "NOTE"
     }
+  ],
+  song_stats: [
+    { position: "left", icon: "d-pad", text: "NAVIGATE" },
+    { position: "right", icon: "b", text: "BACK" }
+  ],
+  song_stats_song_preview: [
+    { position: "left", icon: "left", text: "NAVIGATE" },
+    { position: "right", icon: "select", text: "DIFFICULTY" },
+    { position: "right", icon: "b", text: "BACK" }
   ]
 };
 
@@ -739,6 +756,9 @@ const DEFAULT_GAMEPAD_MAPPING = {
 
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg"];
 
+
+
+// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -773,6 +793,9 @@ const REGULAR_VIBRATION_INTENSITY = 75;
 const WEAK_VIBRATION_INTENSITY = 50;
 const STRONG_VIBRATION_INTENSITY = 50;
 
+
+
+// ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 12,
@@ -3156,6 +3179,9 @@ const CHARACTER_ITEMS = [
   }
 ];
 
+
+
+// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
   version: 1.11, // 1.1.1
   settings: {
@@ -3228,6 +3254,13 @@ const DEFAULT_ACCOUNT = {
     maxCombo: 0,
     perfectGames: 0,
     maxMarvelousInGame: 0,
+    fullCombos: 0,
+    flawlessFullCombos: 0,
+    absoluteFlawless: 0,
+    maxFullComboStreak: 0,
+    currentFullComboStreak: 0,
+    flawlessStreak: 0,
+    multiplayerGamesPlayed: 0,
 
     // Character stats
     charactersCreated: 0,
@@ -3277,7 +3310,12 @@ const DEFAULT_ACCOUNT = {
     featureRequestPrompted: false,
     lastCrashed: false,
     submittedBugReport: false,
-    wentToCommunity: false
+    wentToCommunity: false,
+    editorTimeSpent: 0, 
+    chartsCreated: 0,
+    chartsWithDifficultySet: 0,
+    usedAllNoteTypesInChart: false,
+    chartsTestPlayed: 0
   },
   achievements: {
     unlocked: {},
@@ -3289,6 +3327,9 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
+
+
+// ======== js/core/achievements.js ========
 // Achievements system constants
 const ACHIEVEMENTS = {
   EXPERIENCE_VALUES: {
@@ -3577,6 +3618,222 @@ const ACHIEVEMENT_DEFINITIONS = [
     },
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
     condition: (_, song) => song.complete && Account.settings.noteSpeedMult >= 6,
+    hidden: false
+  },
+  {
+    id: "first_full_combo",
+    name: "First Full Combo",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete your first full combo",
+      achieved: "You completed your first full combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.fullCombos >= 1,
+    hidden: false
+  },
+  {
+    id: "full_combo_5",
+    name: "Consistent Combo",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 5 full combos",
+      achieved: "You got 5 full combos!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.fullCombos >= 5,
+    hidden: false
+  },
+  {
+    id: "full_combo_25",
+    name: "Combo Master",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 25 full combos",
+      achieved: "You got 25 full combos!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.fullCombos >= 25,
+    hidden: false
+  },
+  {
+    id: "full_combo_100",
+    name: "Unstoppable",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 100 full combos",
+      achieved: "You got 100 full combos!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.fullCombos >= 100,
+    hidden: false
+  },
+  {
+    id: "full_combo_streak_3",
+    name: "On Fire",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 3 full combos in a row",
+      achieved: "You got 3 full combos in a row!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.maxFullComboStreak >= 3,
+    hidden: false
+  },
+  {
+    id: "full_combo_streak_5",
+    name: "Burning Rhythm",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 5 full combos in a row",
+      achieved: "You got 5 full combos in a row!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.maxFullComboStreak >= 5,
+    hidden: false
+  },
+  {
+    id: "full_combo_streak_10",
+    name: "Unstoppable Rhythm",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 10 full combos in a row",
+      achieved: "You got 10 full combos in a row!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.maxFullComboStreak >= 10,
+    hidden: false
+  },
+  {
+    id: "full_combo_streak_20",
+    name: "Rhythm God",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 20 full combos in a row",
+      achieved: "You got 20 full combos in a row!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: stats => stats.maxFullComboStreak >= 20,
+    hidden: false
+  },
+  {
+    id: "first_flawless",
+    name: "Flawless",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete a flawless full combo",
+      achieved: "You completed a flawless full combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.flawlessFullCombos >= 1,
+    hidden: false
+  },
+  {
+    id: "flawless_5",
+    name: "Flawless Master",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 5 flawless full combos",
+      achieved: "You got 5 flawless full combos!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.flawlessFullCombos >= 5,
+    hidden: false
+  },
+  {
+    id: "flawless_10",
+    name: "Perfectionist",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 10 flawless full combos",
+      achieved: "You got 10 flawless full combos!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: stats => stats.flawlessFullCombos >= 10,
+    hidden: false
+  },
+  {
+    id: "flawless_streak_3",
+    name: "Perfect Run",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 3 flawless full combos in a row",
+      achieved: "You got 3 flawless full combos in a row!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.flawlessStreak >= 3,
+    hidden: false
+  },
+  {
+    id: "absolute_flawless",
+    name: "Absolute Perfection",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete a song with only Marvelous judgements",
+      achieved: "You completed a song with only Marvelous judgements!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: stats => stats.absoluteFlawless >= 1,
+    hidden: false
+  },
+  {
+    id: "first_multiplayer_game",
+    name: "Together We Play",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete your first multiplayer game",
+      achieved: "You completed your first multiplayer game!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.multiplayerGamesPlayed >= 1,
+    hidden: false
+  },
+  {
+    id: "multiplayer_games_10",
+    name: "Co-op Player",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Play 10 multiplayer games",
+      achieved: "You played 10 multiplayer games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.multiplayerGamesPlayed >= 10,
+    hidden: false
+  },
+  {
+    id: "multiplayer_games_50",
+    name: "Multiplayer Veteran",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Play 50 multiplayer games",
+      achieved: "You played 50 multiplayer games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.multiplayerGamesPlayed >= 50,
+    hidden: false
+  },
+  {
+    id: "multiplayer_games_100",
+    name: "Versus Master",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Play 100 multiplayer games",
+      achieved: "You played 100 multiplayer games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.multiplayerGamesPlayed >= 100,
+    hidden: false
+  },
+  {
+    id: "multiplayer_games_500",
+    name: "Rivalry Legend",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Play 500 multiplayer games",
+      achieved: "You played 500 multiplayer games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: stats => stats.multiplayerGamesPlayed >= 500,
     hidden: false
   },
 
@@ -4488,18 +4745,6 @@ const ACHIEVEMENT_DEFINITIONS = [
     hidden: false
   },
   {
-    id: "complex_chart",
-    name: "Complexity Creator",
-    category: ACHIEVEMENT_CATEGORIES.EDITOR,
-    description: {
-      unachieved: "Create a chart with 1000+ notes",
-      achieved: "You created a chart with 1000+ notes!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: stats => stats.createdChartWith1000Notes,
-    hidden: false
-  },
-  {
     id: "difficulty_setter",
     name: "Difficulty Designer",
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
@@ -4534,18 +4779,6 @@ const ACHIEVEMENT_DEFINITIONS = [
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.chartsTestPlayed >= 1,
     hidden: false
-  },
-  {
-    id: "editor_completionist",
-    name: "Editor Completionist",
-    category: ACHIEVEMENT_CATEGORIES.EDITOR,
-    description: {
-      unachieved: "Complete all basic editor achievements",
-      achieved: "You completed all basic editor achievements!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: stats => stats.totalPlacedArrows >= 1000 && stats.totalPlacedFreezes >= 200 && stats.totalPlacedMines >= 100 && stats.chartsCreated >= 10 && stats.totalExportedSongs >= 10 && stats.editorTimeSpent >= 36000,
-    hidden: true
   },
 
   // Mastery Achievements
@@ -4735,6 +4968,9 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
+
+
+// ======== js/character/Character.js ========
 class Character {
   constructor(data) {
     this.name = data.name;
@@ -5239,6 +5475,9 @@ class Character {
   }
 }
 
+
+
+// ======== js/character/CharacterDisplay.js ========
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
@@ -5828,6 +6067,9 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/character/CharacterCroppedDisplay.js ========
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
@@ -5886,18 +6128,27 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
+
+
+// ======== js/character/CharacterPortrait.js ========
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
+
+
+// ======== js/character/CharacterCloseShot.js ========
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
+
+
+// ======== js/character/CharacterManager.js ========
 class CharacterManager {
   constructor() {
     this.characters = new Map();
@@ -6114,6 +6365,9 @@ class CharacterManager {
   }
 }
 
+
+
+// ======== js/character/CharacterSkillSystem.js ========
 class CharacterSkillSystem {
   constructor(scene, character) {
     this.scene = scene;
@@ -6497,6 +6751,9 @@ class CharacterSkillSystem {
   }
 }
 
+
+
+// ======== js/achievements/AchievementsManager.js ========
 class AchievementsManager {
   constructor() {
     this.newAchievements = [];
@@ -6739,7 +6996,7 @@ class AchievementsManager {
       } 
     }
   }
-  
+
   getHolidayName(month, date) {
     const holidays = this.getHolidays();
     if (holidays[month]) {
@@ -7021,6 +7278,94 @@ class AchievementsManager {
   }
 }
 
+
+
+// ======== js/playlist/PlaylistManager.js ========
+class PlaylistManager {
+  constructor() {
+    this.playlists = Account.playlists || {};
+    this.lastPlaylistKey = null;
+  }
+
+  createPlaylist(name) {
+    const key = this.generateKey(name);
+    if (this.playlists[key]) return null;
+    
+    this.playlists[key] = {
+      name: name,
+      songs: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    this.save();
+    return key;
+  }
+
+  generateKey(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now().toString(36);
+  }
+
+  addSong(playlistKey, song) {
+    if (!this.playlists[playlistKey]) return false;
+    if (this.playlists[playlistKey].songs.find(s => s.audioUrl === song.audioUrl)) return false;
+    
+    this.playlists[playlistKey].songs.push(song);
+    this.playlists[playlistKey].updatedAt = Date.now();
+    this.save();
+    return true;
+  }
+
+  removeSong(playlistKey, songIndex) {
+    if (!this.playlists[playlistKey]) return false;
+    this.playlists[playlistKey].songs.splice(songIndex, 1);
+    this.playlists[playlistKey].updatedAt = Date.now();
+    this.save();
+    return true;
+  }
+
+  moveSong(playlistKey, fromIndex, toIndex) {
+    if (!this.playlists[playlistKey]) return false;
+    const songs = this.playlists[playlistKey].songs;
+    if (fromIndex < 0 || fromIndex >= songs.length || toIndex < 0 || toIndex >= songs.length) return false;
+    
+    const [song] = songs.splice(fromIndex, 1);
+    songs.splice(toIndex, 0, song);
+    this.playlists[playlistKey].updatedAt = Date.now();
+    this.save();
+    return true;
+  }
+
+  getPlaylist(key) {
+    return this.playlists[key] || null;
+  }
+
+  getPlaylistNames() {
+    return Object.keys(this.playlists);
+  }
+
+  deletePlaylist(key) {
+    if (!this.playlists[key]) return false;
+    delete this.playlists[key];
+    this.save();
+    return true;
+  }
+
+  save() {
+    Account.playlists = this.playlists;
+    saveAccount();
+  }
+
+  static getInstance() {
+    if (!PlaylistManager._instance) {
+      PlaylistManager._instance = new PlaylistManager();
+    }
+    return PlaylistManager._instance;
+  }
+}
+
+
+
+// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config = {}, parent) {
     super(game, x, y, null);
@@ -7280,6 +7625,9 @@ class Text extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -7804,6 +8152,9 @@ class Window extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
@@ -8084,6 +8435,9 @@ class WindowManager {
   }
 }
 
+
+
+// ======== js/ui/DialogWindow.js ========
 class DialogWindow extends Phaser.Sprite {
   constructor(text, options = {}) {
     const {
@@ -8536,6 +8890,9 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/CarouselMenu.js ========
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -9267,14 +9624,20 @@ class CarouselMenu extends Phaser.Sprite {
     this.onCancel.dispose();
   }
   
+  replace() {
+    this.destroy();
+    return new CarouselMenu(this.x, this.y, this.viewport.width, this.viewport.height, this.config);
+  }
+  
   destroy(createNew = false) {
     this.clear();
     super.destroy();
-    
-    return createNew ? new CarouselMenu(this.x, this.y, this.viewport.width, this.viewport.height, this.config) : null;
   }
 }
 
+
+
+// ======== js/ui/Background.js ========
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 1000) {
     super(game, 0, 0, key);
@@ -9297,12 +9660,18 @@ class Background extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/BackgroundGradient.js ========
 class BackgroundGradient extends Background {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super("ui_background_gradient", true, min, max, time);
   }
 } 
 
+
+
+// ======== js/ui/CanvasBackground.js ========
 class CanvasBackground extends Phaser.Sprite {
   constructor(x = 0, y = 0, canvas) {
     super(game, x, y);
@@ -9336,6 +9705,9 @@ class CanvasBackground extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -9523,6 +9895,9 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -9536,6 +9911,9 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -9585,6 +9963,9 @@ class Logo extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(hints = []) {
     super(game, 0, game.height - 6);
@@ -10012,6 +10393,9 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 2, text, FONTS.default);
@@ -10020,6 +10404,9 @@ class ProgressText extends Text {
   }
 }
 
+
+
+// ======== js/ui/ExperienceBar.js ========
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
@@ -10067,6 +10454,9 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/SkillBar.js ========
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
@@ -10094,6 +10484,9 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/TextInput.js ========
 class TextInput extends Phaser.Sprite {
   constructor(config = {}) {
     config = {
@@ -10340,6 +10733,9 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NumberInput.js ========
 class NumberInput extends TextInput {
   constructor(config = {}) {
     config = {
@@ -10491,6 +10887,9 @@ class NumberInput extends TextInput {
   }
 }
 
+
+
+// ======== js/ui/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -10870,6 +11269,9 @@ class NotificationSystem {
   }
 }
 
+
+
+// ======== js/ui/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -11061,6 +11463,9 @@ class Lyrics {
   }
 }
 
+
+
+// ======== js/ui/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -11353,6 +11758,9 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/MouseCursor.js ========
 class MouseCursor {
   constructor() {
     this.sprite = null;
@@ -11545,6 +11953,9 @@ class MouseCursor {
   }
 }
 
+
+
+// ======== js/ui/BarChart.js ========
 class BarChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -11640,6 +12051,9 @@ class BarChart extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LineChart.js ========
 class LineChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -11753,6 +12167,9 @@ class LineChart extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -11848,6 +12265,9 @@ class FileSystemTools {
   }
 }
 
+
+
+// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -12257,6 +12677,9 @@ class NodeFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -12372,6 +12795,9 @@ class CordovaFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -12415,6 +12841,9 @@ class FallbackFileSystem {
   }
 }
 
+
+
+// ======== js/game/game.js ========
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 let Account = {
@@ -12472,7 +12901,7 @@ const addFpsText = () => {
   return text;
 };
 
-const openExternalUrl = url => {
+window.openExternalUrl = url => {
   // Ensure URL is properly encoded
   const encodedUrl = encodeURI(url);
   
@@ -12490,6 +12919,49 @@ const openExternalUrl = url => {
       a.target = '_blank';
       a.click();
       break;
+  }
+};
+
+window.getSongKey = song => {
+  if (!song) return null;
+  
+  if (song.chart) song = song.chart;
+  
+  // Create unique key for song (for both local and external)
+  if (song.folderName) {
+    return `local_${song.folderName}`;
+  } else if (song.audioUrl) {
+    // For external songs, use audio URL hash
+    return `external_${this.hashString(song.audioUrl)}`;
+  }
+  return `unknown_${Date.now()}`;
+}
+
+window.getDifficultyColor = (value, returnIntFormat = false) => {
+  const max = 11; // The actual maximum considered difficulty
+  
+  // Ensure the value is within the range [0, max]
+  value = Math.max(0, Math.min(max, value));
+
+  // Extract the RGB components of the start and end colors
+  var startColor = { r: 25, g: 210, b: 25 };
+  var endColor = { r: 210, g: 0, b: 0 };
+
+  // Interpolate between the start and end colors
+  var r = Math.floor(startColor.r + (endColor.r - startColor.r) * (value / max));
+  var g = Math.floor(startColor.g + (endColor.g - startColor.g) * (value / max));
+  var b = Math.floor(startColor.b + (endColor.b - startColor.b) * (value / max));
+
+  // Combine the RGB components into a single tint value
+  if (returnIntFormat) {
+    return (r << 16) | (g << 8) | b;
+  } else {
+    // Combine the RGB components into a single tint value
+    const hexR = Phaser.Color.componentToHex(r);
+    const hexG = Phaser.Color.componentToHex(g);
+    const hexB = Phaser.Color.componentToHex(b);
+    
+    return `#${hexR}${hexG}${hexB}`;
   }
 };
 
@@ -12594,6 +13066,9 @@ window.multiplayerState = {
   }
 };
 
+
+
+// ======== js/utils/ScreenRecorder.js ========
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -12963,6 +13438,9 @@ class ScreenRecorder {
   }
 }
 
+
+
+// ======== js/utils/Metronome.js ========
 class Metronome {
   constructor(scene) {
     this.scene = scene;
@@ -13124,6 +13602,9 @@ class Metronome {
   }
 }
 
+
+
+// ======== js/utils/TimeUtils.js ========
 class TimeUtils {
   static isValidTime(time) {
     return typeof time != undefined && typeof time != null && !isNaN(time) && time != Infinity;
@@ -13143,6 +13624,9 @@ class TimeUtils {
   }
 }
 
+
+
+// ======== js/input/GamepadListener.js ========
 class GamepadListener {
   constructor(game) {
     this.game = game;
@@ -13161,6 +13645,9 @@ class GamepadListener {
   }
 }
 
+
+
+// ======== js/input/KeyboardListener.js ========
 class KeyboardListener {
   constructor(game) {
     this.game = game;
@@ -13179,6 +13666,9 @@ class KeyboardListener {
   }
 }
 
+
+
+// ======== js/input/InputManager.js ========
 let inputManager, gamepad, gamepad1, gamepad2;
 
 class InputManager {
@@ -13206,6 +13696,9 @@ class InputManager {
   }
 }
 
+
+
+// ======== js/input/Gamepad.js ========
 class Gamepad {
   constructor(game, keyboardMap, gamepadMap, playerIndex = 0) {
     this.game = game;
@@ -13833,6 +14326,9 @@ class Gamepad {
   }
 }
 
+
+
+// ======== js/input/AllPads.js ========
 class AllPads extends Gamepad {
   constructor(game, gamepads) {
     super(game, undefined, undefined, 0);
@@ -13947,6 +14443,9 @@ class AllPads extends Gamepad {
   destroy() {}
 }
 
+
+
+// ======== js/input/OnScreenKeyboard.js ========
 class OnScreenKeyboard extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x || 60, y || 75, "ui_keyboard", 0);
@@ -14156,6 +14655,9 @@ class OnScreenKeyboard extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/input/NumericTypeOnScreenKeyboard.js ========
 class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   constructor(x, y) {
     super(80, 70);
@@ -14183,6 +14685,9 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   }
 }
 
+
+
+// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -14418,6 +14923,9 @@ class BackgroundMusic {
   }
 }
 
+
+
+// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -14442,6 +14950,9 @@ class Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -14482,6 +14993,9 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -14548,6 +15062,9 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -14640,6 +15157,9 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -14998,6 +15518,9 @@ class FullScreenAudioVisualizer {
   }
 }
 
+
+
+// ======== js/parsers/SMFile.js ========
 class SMFile {
   static generateSM(songData) {
     let smContent = "";
@@ -15289,6 +15812,9 @@ class SMFile {
   }
 }
 
+
+
+// ======== js/parsers/FileTools.js ========
 class FileTools {
   static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
@@ -15454,6 +15980,9 @@ class FileTools {
   }
 }
 
+
+
+// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   constructor() {
     this.baseUrl = "";
@@ -15725,6 +16254,9 @@ class LocalSMParser {
   }
 }
 
+
+
+// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   async parseSM(files, smContent) {
@@ -16191,6 +16723,9 @@ class ExternalSMParser {
   }
 }
 
+
+
+// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -16602,6 +17137,9 @@ class AddonManager {
   }
 }
 
+
+
+// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -16755,10 +17293,12 @@ class Boot {
     game.state.add("Title", Title);
     game.state.add("MainMenu", MainMenu);
     game.state.add("Addons", Addons);
+    game.state.add("Playlists", Playlists);
     game.state.add("Settings", Settings);
     game.state.add("ChartModifiers", ChartModifiers);
     game.state.add("Keybindings", Keybindings);
     game.state.add("SongSelect", SongSelect);
+    game.state.add("SongStats", SongStats);
     game.state.add("FileSelect", FileSelect);
     game.state.add("CharacterSelect", CharacterSelect);
     game.state.add("AchievementsMenu", AchievementsMenu);
@@ -17174,6 +17714,9 @@ class Boot {
   }
 }
 
+
+
+// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -17221,6 +17764,9 @@ class Load {
   }
 }
 
+
+
+// ======== js/game/states/LoadCordova.js ========
 class LoadCordova {
   create() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
@@ -17268,6 +17814,9 @@ class LoadCordova {
   }
 }
 
+
+
+// ======== js/game/states/LoadAddons.js ========
 class LoadAddons {
   create() {
     this.progressText = new ProgressText("LOADING ADD-ONS");
@@ -17290,6 +17839,9 @@ class LoadAddons {
   }
 }
 
+
+
+// ======== js/game/states/LoadLocalSongs.js ========
 class LoadLocalSongs {
   create() {
     this.progressText = new ProgressText("LOADING SONGS");
@@ -17347,6 +17899,7 @@ class LoadLocalSongs {
       // Parse the SM file
       const chart = await this.parser.parseSM(smContent, baseUrl);
       chart.folderName = folderName;
+      chart.isLocal = true;
       chart.loaded = true;
       
       return chart;
@@ -17362,6 +17915,9 @@ class LoadLocalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadExternalSongs.js ========
 class LoadExternalSongs {
   init(nextState, nextStateParams) {
     this.nextState = nextState || 'SongSelect';
@@ -17515,6 +18071,7 @@ class LoadExternalSongs {
           if (chart && chart.difficulties && chart.difficulties.length > 0) {
             // Chart file parsed successfully
             chart.folderName = dirEntry.name || `External_Song_${smFileName}`;
+            chart.isLocal = true;
             chart.loaded = true;
             return chart;
           }
@@ -17703,6 +18260,9 @@ class LoadExternalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadSongFolder.js ========
 class LoadSongFolder {
   create() {
     this.progressText = new ProgressText("SELECT SONG FOLDER");
@@ -17902,6 +18462,9 @@ class LoadSongFolder {
   }
 }
 
+
+
+// ======== js/game/states/LoadExternalSongFile.js ========
 class LoadExternalSongFile {
   init(fileName, filePath, nextState, nextStateParams) {
     this.fileName = fileName;
@@ -18017,6 +18580,9 @@ class LoadExternalSongFile {
   }
 }
 
+
+
+// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -18091,6 +18657,9 @@ class Title {
   }
 }
 
+
+
+// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -18154,7 +18723,7 @@ class MainMenu {
       "Could you quickly report what you were doing when it crashed?\n",
       () => {
         // Open bug report page
-        openExternalUrl(FEEDBACK_BUG_REPORT_URL);
+        window.openExternalUrl(FEEDBACK_BUG_REPORT_URL);
         
         // Clear the flag and show menu
         Account.stats.lastCrashed = false;
@@ -18183,7 +18752,7 @@ class MainMenu {
       "Would you mind leaving a quick rating?\n",
       () => {
         // Rate Now
-        openExternalUrl(FEEDBACK_REVIEW_URL);
+        window.openExternalUrl(FEEDBACK_REVIEW_URL);
         
         Account.stats.gameRated = true;
         saveAccount();
@@ -18209,7 +18778,7 @@ class MainMenu {
       "What would you like to see in the game?\n",
       () => {
         // Share ideas
-        openExternalUrl(FEEDBACK_FEATURE_REQUEST_URL);
+        window.openExternalUrl(FEEDBACK_FEATURE_REQUEST_URL);
         
         Account.stats.featureRequestPrompted = true;
         saveAccount();
@@ -18235,7 +18804,7 @@ class MainMenu {
       "Join the community to download more charts, and share your creations and high scores with other players!\n",
       () => {
         // Join
-        openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+        window.openExternalUrl(COMMUNITY_HOMEPAGE_URL);
         
         Account.stats.wentToCommunity = true;
         saveAccount();
@@ -18296,6 +18865,10 @@ class MainMenu {
     
     carousel.addItem("Free Play", () => this.freePlay());
     carousel.addItem("Extra Songs", () => this.showExtraSongs());
+    carousel.addItem("Playlists", () => {
+      this.keepBackgroundMusic = true;
+      game.state.start("Playlists");
+    });
     game.onMenuIn.dispatch('startGame', carousel);
     carousel.addItem("< Back", () => this.showHomeMenu());
     carousel.onCancel.add(() => this.showHomeMenu());
@@ -18364,7 +18937,7 @@ class MainMenu {
     });
     
     const openLink = url => {
-      openExternalUrl(url);
+      window.openExternalUrl(url);
       this.showFeedback();
     };
     
@@ -18378,7 +18951,7 @@ class MainMenu {
   }
   
   showCommunity() {
-    openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+    window.openExternalUrl(COMMUNITY_HOMEPAGE_URL);
     
     Account.stats.wentToCommunity = true;
     saveAccount();
@@ -18515,6 +19088,9 @@ class MainMenu {
   }
 }
 
+
+
+// ======== js/game/states/Addons.js ========
 class Addons {
   create() {
     this.leaving = false;
@@ -18565,7 +19141,7 @@ class Addons {
   }
   
   loadAddons() {
-    this.carousel = this.carousel.destroy(true);
+    this.carousel = this.carousel.replace();
 
     const addons = addonManager.getAddonList();
     
@@ -18625,7 +19201,7 @@ class Addons {
   }
   
   showAddonDetails(addon) {
-    this.carousel = this.carousel.destroy(true);
+    this.carousel = this.carousel.replace();
     
     if (addon.isHibernating) {
       this.carousel.addItem("Wake Addon", () => {
@@ -18710,6 +19286,9 @@ class Addons {
   }
 }
 
+
+
+// ======== js/game/states/Settings.js ========
 class Settings {
   create() {
     this.futuristicLines = new FuturisticLines();
@@ -19091,7 +19670,7 @@ class Settings {
         saveAccount();
       }
     );
-    
+
     // Renderer
     settingsWindow.addSettingItem(
       "Renderer",
@@ -19358,6 +19937,9 @@ class Settings {
   }
 }
 
+
+
+// ======== js/game/states/ChartModifiers.js ========
 class ChartModifiers {
   init(returnState = "Settings", ...returnParams) {
     this.returnState = returnState;
@@ -19490,6 +20072,9 @@ class ChartModifiers {
   }
 }
 
+
+
+// ======== js/game/states/Keybindings.js ========
 class Keybindings {
   create() {
     game.camera.fadeIn(0x000000);
@@ -19635,6 +20220,7 @@ class Keybindings {
           this.pendingChanges.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
           this.pendingChanges.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
           this.showNotification("Keybindings reset!");
+          this.showKeybindingsMenu();
         },
         () => {
           this.showKeybindingsMenu();
@@ -20110,6 +20696,9 @@ class Keybindings {
   }
 }
 
+
+
+// ======== js/game/states/FileSelect.js ========
 class FileSelect {
   init(extensions = null, onSelect = null, onCancel = null, allowCancel = true) {
     this.extensions = extensions;
@@ -20404,9 +20993,16 @@ class FileSelect {
   }
 }
 
+
+
+// ======== js/game/states/SongSelect.js ========
 class SongSelect {
-  init(songs, index, autoSelect, type = "auto") {
+  init(songs, index, autoSelect, type = "auto", playlistKey = null) {
     this.type = type;
+    this.playlistKey = playlistKey;
+    
+    this.isActionMenuOpen = false;
+    this.actionsMenuBlocked = false;
     
     switch (type) {
       case "local":
@@ -20698,7 +21294,9 @@ class SongSelect {
     const y = 37;
     const width = game.width / 2;
     const height = game.height;
-
+    
+    this.actionsMenuBlocked = true;
+    
     this.difficultyCarousel = new CarouselMenu(x, y, width, height, {
       bgcolor: "#e67e22",
       fgcolor: "#ffffff",
@@ -20726,13 +21324,14 @@ class SongSelect {
         {
           difficulty: diff,
           index: index,
-          bgcolor: this.getDifficultyColor(parseInt(diff.rating))
+          bgcolor: window.getDifficultyColor(parseInt(diff.rating))
         }
       );
     });
 
     this.difficultyCarousel.onCancel.add(() => {
       this.createSongSelectionMenu();
+      this.actionsMenuBlocked = false;
     });
   }
   
@@ -20870,35 +21469,214 @@ class SongSelect {
     );
   }
 
-  getDifficultyColor(value) {
-    const max = 11; // The actual maximum considered difficulty
-    
-    // Ensure the value is within the range [0, max]
-    value = Math.max(0, Math.min(max, value));
-
-    // Extract the RGB components of the start and end colors
-    var startColor = { r: 25, g: 210, b: 25 };
-    var endColor = { r: 210, g: 0, b: 0 };
-
-    // Interpolate between the start and end colors
-    var r = Math.floor(startColor.r + (endColor.r - startColor.r) * (value / max));
-    var g = Math.floor(startColor.g + (endColor.g - startColor.g) * (value / max));
-    var b = Math.floor(startColor.b + (endColor.b - startColor.b) * (value / max));
-
-    // Combine the RGB components into a single tint value
-    const hexR = Phaser.Color.componentToHex(r);
-    const hexG = Phaser.Color.componentToHex(g);
-    const hexB = Phaser.Color.componentToHex(b);
-    
-    return `#${hexR}${hexG}${hexB}`;
-  }
-
   startGame(song, difficultyIndex, singlePlayer = true) {
     // Start gameplay with selected song
     game.state.start(singlePlayer ? "Play" : "PlayMulti", true, false, {
       chart: song,
       difficultyIndex
+    }, undefined, undefined, this.playlistKey);
+  }
+
+  showActionsMenu(playlistKey) {
+    this.isActionMenuOpen = true;
+    this.songCarousel.visible = false;
+    this.songCarousel.inputEnabled = false;
+    
+    this.actionsMenu = new CarouselMenu(0, 35, game.width / 2, 100, {
+      bgcolor: '#2c3e50',
+      fgcolor: '#ffffff',
+      align: 'left',
+      animate: true
     });
+    
+    const hasPlaylistKey = !!playlistKey;
+    const currentSong = this.songs[this.songCarousel.selectedIndex];
+    
+    // Add to playlist
+    if (!hasPlaylistKey) {
+      this.actionsMenu.addItem("Add to playlist", () => this.showAddToPlaylistMenu(currentSong));
+    } else {
+      this.actionsMenu.addItem("Add to another playlist", () => this.showAddToPlaylistMenu(currentSong, playlistKey));
+    }
+    
+    // Remove from playlist
+    if (hasPlaylistKey) {
+      this.actionsMenu.addItem("Remove from playlist", () => {
+        const playlistManager = PlaylistManager.getInstance();
+        const playlist = playlistManager.getPlaylist(playlistKey);
+        if (playlist) {
+          const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
+          if (index !== -1) {
+            playlistManager.removeSong(playlistKey, index);
+            notifications.show("Removed from playlist!");
+            this.closeActionsMenu();
+            
+            // Reinitialize with updated songs at the same index (or previous if last)
+            const updatedPlaylist = playlistManager.getPlaylist(playlistKey);
+            const newIndex = Math.min(index, updatedPlaylist.songs.length - 1);
+            game.state.start("SongSelect", true, false, 
+              updatedPlaylist.songs, 
+              newIndex, 
+              false, 
+              this.type, 
+              this.playlistKey
+            );
+          } else {
+            notifications.show("Song not in playlist!");
+          }
+        }
+      });
+    }
+    
+    // Move up/down
+    if (hasPlaylistKey) {
+      const playlistManager = PlaylistManager.getInstance();
+      const playlist = playlistManager.getPlaylist(playlistKey);
+      if (playlist) {
+        const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
+        if (index !== -1) {
+          this.actionsMenu.addItem("Move up", () => {
+            if (index > 0) {
+              const playlistManager = PlaylistManager.getInstance();
+              playlistManager.moveSong(playlistKey, index, index - 1);
+              notifications.show("Moved up!");
+              this.closeActionsMenu();
+              
+              // Reinitialize with swapped songs at the new index
+              const updatedPlaylist = playlistManager.getPlaylist(playlistKey);
+              const newIndex = index - 1; // The song moved up one position
+              game.state.start("SongSelect", true, false, 
+                updatedPlaylist.songs, 
+                newIndex, 
+                false, 
+                this.type, 
+                this.playlistKey
+              );
+            }
+          });
+          this.actionsMenu.addItem("Move down", () => {
+            if (index < playlist.songs.length - 1) {
+              const playlistManager = PlaylistManager.getInstance();
+              playlistManager.moveSong(playlistKey, index, index + 1);
+              notifications.show("Moved down!");
+              this.closeActionsMenu();
+              
+              // Reinitialize with swapped songs at the new index
+              const updatedPlaylist = playlistManager.getPlaylist(playlistKey);
+              const newIndex = index + 1; // The song moved down one position
+              game.state.start("SongSelect", true, false, 
+                updatedPlaylist.songs, 
+                newIndex, 
+                false, 
+                this.type, 
+                this.playlistKey
+              );
+            }
+          });
+        }
+      }
+    }
+    
+    // Statistics
+    this.actionsMenu.addItem("See properties", () => {
+      game.state.start("SongStats", true, false, { chart: this.songs[this.songCarousel.selectedIndex], playlistKey: this.playlistKey }, "SongSelect", [this.songs, this.songCarousel.selectedIndex, this.autoSelect, this.type, this.playlistKey]);
+    });
+    
+    // Open in Jukebox
+    this.actionsMenu.addItem("Open in Jukebox", () => {
+      game.state.start("Jukebox", true, false, this.songs, this.songCarousel.selectedIndex);
+    });
+    
+    // Open in Editor
+    this.actionsMenu.addItem("Open in Editor", () => {
+      game.state.start("Editor", true, false, { chart: this.songs[this.songCarousel.selectedIndex] });
+    });
+    
+    this.actionsMenu.addItem("< Back", () => this.closeActionsMenu());
+    this.actionsMenu.onCancel.add(() => this.closeActionsMenu());
+  }
+  
+  showAddToPlaylistMenu(song, omitKey) {
+    if (this.actionsMenu) this.actionsMenu.destroy();
+    
+    if (!song.isLocal) {
+      notifications.show("Songs loaded with file picker can't be added to playlists");
+      this.showActionsMenu(omitKey);
+      return;
+    }
+    
+    this.actionsMenu = new CarouselMenu(0, 35, game.width / 2, 100, {
+      bgcolor: '#8e44ad',
+      fgcolor: '#ffffff',
+      align: 'left',
+      animate: true
+    });
+    
+    const playlistManager = PlaylistManager.getInstance();
+    
+    this.actionsMenu.addItem("Create new playlist", () => {
+      this.createPlaylistForSong(song);
+    });
+    
+    const keys = playlistManager.getPlaylistNames();
+    for (const key of keys) {
+      if (key === omitKey) continue;
+      const playlist = playlistManager.getPlaylist(key);
+      this.actionsMenu.addItem(`Add to "${playlist.name}"`, () => {
+        this.closeActionsMenu();
+        if (playlistManager.addSong(key, song)) {
+          notifications.show(`Added to "${playlist.name}"!`);
+        } else {
+          notifications.show("Song already in playlist!");
+        }
+      });
+    }
+    
+    this.actionsMenu.addItem("< Back", () => {
+      this.showActionsMenu(omitKey);
+    });
+    this.actionsMenu.onCancel.add(() => this.showActionsMenu(omitKey));
+  }
+  
+  createPlaylistForSong(song) {
+    const keyboard = new OnScreenKeyboard();
+    
+    window.focusedElement = new TextInput({
+      text: sog.titleTranslit || song.title || "New Playlist",
+      maxLength: 20,
+      useNewline: false,
+      y: 35,
+      onConfirm: (name) => {
+        if (name.trim()) {
+          const playlistManager = PlaylistManager.getInstance();
+          const key = playlistManager.createPlaylist(name.trim());
+          if (key) {
+            playlistManager.addSong(key, song);
+            notifications.show(`Playlist "${name}" created with song!`);
+            keyboard.destroy();
+            this.closeActionsMenu();
+          } else {
+            notifications.show("Playlist already exists!");
+          }
+        } else {
+          notifications.show("Name cannot be empty!");
+        }
+      },
+      onCancel: () => {
+        keyboard.destroy();
+        this.closeActionsMenu();
+      }
+    });
+  }
+  
+  closeActionsMenu() {
+    this.isActionMenuOpen = false;
+    this.songCarousel.inputEnabled = true;
+    this.songCarousel.visible = true;
+    if (this.actionsMenu) {
+      this.actionsMenu.destroy();
+      this.actionsMenu = null;
+    }
   }
 
   update() {
@@ -20994,6 +21772,8 @@ class SongSelect {
         gamepad.pressed.start = false;
         ENABLE_UI_SFX && Audio.play('ui_select');
       }
+    } else if (gamepad.pressed.start && !this.isActionMenuOpen && !this.actionsMenuBlocked) {
+      this.showActionsMenu(this.playlistKey);
     }
   }
   
@@ -21013,6 +21793,637 @@ class SongSelect {
   }
 }
 
+
+
+// ======== js/game/states/SongStats.js ========
+class SongStats {
+  init(song, returnState, returnParams = {}) {
+    this.song = song;
+    this.playlistKey = this.song.playlistKey || null;
+    this.returnState = returnState;
+    this.returnParams = returnParams;
+    this.currentTab = 0;
+    this.currentDifficultyIndex = 0;
+    this.tabContent = null;
+    this.chartRenderer = null;
+    this.previewAudio = null;
+    this.previewPlaying = false;
+    this.previewBeat = 0;
+    this.previewStartTime = 0;
+    this.isDestroyed = false;
+    this.scrollDirection = Account.settings.scrollDirection || 'falling';
+    
+    this.tabs = [
+      { id: 'general', label: 'General', create: this.createGeneralTab.bind(this) },
+      { id: 'difficulties', label: 'Difficulties', create: this.createDifficultiesTab.bind(this) },
+      { id: 'scores', label: 'Scores', create: this.createScoresTab.bind(this) },
+      { id: 'preview', label: 'Preview', create: this.createPreviewTab.bind(this) }
+    ];
+    
+    this.visibilityChangeListener = () => {
+      if (this.previewAudio) {
+        if (document.hidden) {
+          this.previewAudio.volume = 0;
+        } else {
+          this.previewAudio.volume = Account.settings.volume / 100;
+        }
+      }
+    };
+    
+    window.addEventListener('visibilitychange', this.visibilityChangeListener);
+  }
+
+  create() {
+    game.camera.fadeIn(0x000000);
+    
+    this.background = new CanvasBackground();
+    this.background.alpha = 0.3;
+    
+    this.backgroundGradient = new BackgroundGradient(0, 0.3);
+    this.futuristicLines = new FuturisticLines();
+    
+    const chart = this.song.chart;
+    if (chart.backgroundUrl && chart.backgroundUrl !== "no-media") {
+      const img = new Image();
+      img.onload = () => {
+        if (this.isDestroyed) return;
+        this.background.ctx.drawImage(img, 0, 0, 240, 140);
+        this.background.dirty();
+      };
+      img.src = chart.backgroundUrl;
+    }
+    
+    this.navigationHint = new NavigationHint("song_stats");
+    
+    this.windowManager = new WindowManager();
+    
+    this.headerGroup = game.add.group();
+    this.leftArrow = new Text(92, 6, "<", FONTS.default);
+    this.leftArrow.anchor.set(0.5);
+    this.leftArrow.tint = 0x76fcde;
+    this.headerGroup.add(this.leftArrow);
+    
+    this.tabTitle = new Text(120, 6, "", FONTS.default);
+    this.tabTitle.anchor.set(0.5);
+    this.tabTitle.tint = 0x76fcde;
+    this.headerGroup.add(this.tabTitle);
+    
+    this.rightArrow = new Text(148, 6, ">", FONTS.default);
+    this.rightArrow.anchor.set(0.5);
+    this.rightArrow.tint = 0x76fcde;
+    this.headerGroup.add(this.rightArrow);
+    
+    this.diffText = new Text(120, 16, "", FONTS.tiny_default);
+    this.diffText.anchor.set(0.5);
+    this.diffText.tint = 0x888888;
+    this.headerGroup.add(this.diffText);
+    
+    this.startArrowIdle();
+    this.updateDiffText();
+    this.showTab(0);
+  }
+
+  updateDiffText() {
+    const diff = this.getCurrentDifficulty();
+    if (diff) {
+      this.diffText.write(`${diff.type} ${diff.rating}`);
+    } else {
+      this.diffText.write("No difficulty");
+    }
+    // Show only in difficulties and preview tabs
+    this.diffText.visible = (this.currentTab === 1 || this.currentTab === 3);
+  }
+
+  startArrowIdle() {
+    if (this.leftArrowTween) {
+      this.leftArrowTween.start();
+    } else {
+      this.leftArrowTween = game.add.tween(this.leftArrow)
+        .to({ x: 89 }, 300, Phaser.Easing.Quadratic.InOut, true, 0, -1)
+        .yoyo(true);
+    }
+    
+    if (this.rightArrowTween) {
+      this.rightArrowTween.start();
+    } else {
+      this.rightArrowTween = game.add.tween(this.rightArrow)
+        .to({ x: 151 }, 300, Phaser.Easing.Quadratic.InOut, true, 0, -1)
+        .yoyo(true);
+    }
+  }
+
+  stopArrowIdle() {
+    if (this.leftArrowTween) {
+      this.leftArrowTween.stop();
+      this.leftArrowTween = null;
+    }
+    if (this.rightArrowTween) {
+      this.rightArrowTween.stop();
+      this.rightArrowTween = null;
+    }
+  }
+
+  animateArrowPress(direction) {
+    const arrow = direction === -1 ? this.leftArrow : this.rightArrow;
+    const targetX = arrow.x + (direction * 3);
+    const originalX = direction === -1 ? 92 : 148;
+    
+    game.add.tween(arrow)
+      .to({ x: targetX }, 100, Phaser.Easing.Quadratic.Out, true)
+      .yoyo(true);
+  }
+
+  showTab(index) {
+    if (this.isDestroyed) return;
+    this.currentTab = index;
+    this.clearTab();
+    this.tabTitle.write(this.tabs[index].label);
+    this.tabs[index].create();
+    this.updateDiffText();
+    this.navigationHint.updateHints(index === 3 ? "song_stats_song_preview" : "song_stats");
+  }
+
+  clearTab() {
+    if (this.tabContent) {
+      this.tabContent.destroy();
+      this.tabContent = null;
+    }
+    if (this.chartRenderer && this.currentTab !== 3) {
+      this.chartRenderer.destroy();
+      this.chartRenderer = null;
+    }
+    if (this.previewAudio) {
+      this.previewAudio.pause();
+      this.previewAudio = null;
+    }
+    this.previewPlaying = false;
+  }
+
+  getDifficulties() {
+    return this.song.chart.difficulties || [];
+  }
+
+  getCurrentDifficulty() {
+    const diffs = this.getDifficulties();
+    if (diffs.length === 0) return null;
+    if (this.currentDifficultyIndex >= diffs.length) {
+      this.currentDifficultyIndex = 0;
+    }
+    return diffs[this.currentDifficultyIndex];
+  }
+
+  getCurrentNotes() {
+    const diff = this.getCurrentDifficulty();
+    if (!diff) return [];
+    const key = diff.type + diff.rating;
+    return this.song.chart.notes[key] || [];
+  }
+
+  rotateDifficulty() {
+    const diffs = this.getDifficulties();
+    if (diffs.length === 0) return;
+    this.currentDifficultyIndex = (this.currentDifficultyIndex + 1) % diffs.length;
+    this.updateDiffText();
+    
+    if (this.currentTab === 1) {
+      this.showTab(1);
+    }
+    if (this.currentTab === 3) {
+      this.clearTab();
+      this.createPreviewTab();
+    }
+  }
+
+  getScrollDirection(beat) {
+    return this.scrollDirection === 'falling' ? -1 : 1;
+  }
+
+  getCurrentTime() {
+    const chartOffset = this.song.chart.offset || 0;
+    const currentTime = ((game.time.now - this.previewStartTime + (chartOffset * 1000)) / 1000) + this.chartRenderer.beatToSec(this.previewBeat);
+    const currentBeat = this.chartRenderer.secToBeat(currentTime);
+    return {
+      now: currentTime,
+      beat: currentBeat
+    };
+  }
+
+  createGeneralTab() {
+    this.tabContent = game.add.group();
+    const banner = new CanvasBackground(4, 24);
+    this.tabContent.addChild(banner);
+    
+    const chart = this.song.chart;
+    if (chart.bannerUrl && chart.bannerUrl !== "no-media") {
+      const img = new Image();
+      img.onload = () => {
+        if (this.isDestroyed) return;
+        banner.ctx.drawImage(img, 0, 0, 96, 32);
+        banner.dirty();
+      };
+      img.src = chart.bannerUrl;
+    }
+    
+    const totalDiffs = (chart.difficulties || []).length;
+    let totalNotes = 0;
+    for (const diff of chart.difficulties || []) {
+      const notes = chart.notes[diff.type + diff.rating] || [];
+      totalNotes += notes.length;
+    }
+    
+    const info = new Text(104, 24, 
+      `Title: ${chart.title || 'Unknown'}\n` +
+      `Artist: ${chart.artist || 'Unknown'}\n` +
+      `Genre: ${chart.genre || 'Unknown'}\n` +
+      `Credit: ${chart.credit || 'Unknown'}\n` +
+      `Difficulties: ${totalDiffs}\n` +
+      `Total Notes: ${totalNotes}\n` +
+      `Sample Start: ${chart.sampleStart || 0}s\n` +
+      `Offset: ${chart.offset || 0}`,
+      FONTS.default
+    );
+    info.wrap(136 - 8);
+    this.tabContent.addChild(info);
+    
+    let carousel;
+    
+    const resetCarousel = (disableCancel = false) => {
+      if (carousel) carousel.destroy();
+      
+      carousel = new CarouselMenu(0, 24 + 32, 80, 86, {
+        bgcolor: '#2c3e50',
+        fgcolor: '#ffffff',
+        align: 'left',
+        animate: true,
+        margin: { left: 4, right: 4 },
+        disableCancel: disableCancel
+      });
+      
+      this.tabContent.addChild(carousel);
+      
+      this.returnBlocked = !disableCancel;
+    };
+    
+    const mainMenu = () => {
+      resetCarousel(true);
+      carousel.addItem("Play Song", () => modeSelect());
+      carousel.addItem("Open in Editor", () => {
+        game.state.start("Editor", true, false, this.song);
+      });
+    };
+    
+    const modeSelect = () => {
+      resetCarousel();
+      carousel.addItem("Normal", () => diffSelect(false));
+      carousel.addItem("Autoplay", () => diffSelect(true));
+      carousel.addItem("< Back", () => mainMenu());
+      carousel.onCancel.add(() => mainMenu());
+    };
+    
+    const diffSelect = (autoplay) => {
+      resetCarousel();
+      this.song.chart.difficulties.sort((a, b) => a.rating - b.rating).forEach((diff, index) => {
+        carousel.addItem(
+          `${diff.type} (${diff.rating})`,
+          (item) => {
+            game.state.start("Play", true, false, this.song, index, undefined, autoplay, undefined, this.playlistKey);
+          },
+          {
+            difficulty: diff,
+            index: index,
+            bgcolor: window.getDifficultyColor(parseInt(diff.rating))
+          }
+        );
+      });
+    };
+    
+    mainMenu();
+  }
+
+  createDifficultiesTab() {
+    this.tabContent = game.add.group();
+    const diffs = this.getDifficulties();
+    if (diffs.length === 0) {
+      const text = new Text(4, 24, "No difficulties available", FONTS.default);
+      this.tabContent.addChild(text);
+      return;
+    }
+    
+    // Preview carousel
+    const diffCarousel = new CarouselMenu(0, 24, 80, 86, {
+      bgcolor: '#2c3e50',
+      fgcolor: '#ffffff',
+      align: 'left',
+      animate: true,
+      margin: { left: 4, right: 4 },
+      disableConfirm: true,
+      disableCancel: true
+    });
+    this.tabContent.addChild(diffCarousel);
+    
+    diffs.forEach((diff, index) => {
+      const noteCount = this.song.chart.notes[diff.type + diff.rating]?.length || 0;
+      diffCarousel.addItem(
+        ` ${diff.type} ${diff.rating}`,
+        null,
+        { bgcolor: '#34495e', diffIndex: index }
+      );
+    });
+    diffCarousel.selectIndex(this.currentDifficultyIndex);
+    
+    this._rightContainer = game.add.group();
+    this.tabContent.addChild(this._rightContainer);
+    
+    this._densityChart = new LineChart(84, 24, 152, 56, [0]);
+    this._densityChart.config.lineColor = 0x76fcde;
+    this._densityChart.config.fillUnderLine = true;
+    this._densityChart.config.fillColor = 0x76fcde;
+    this._densityChart.config.fillAlpha = 0.2;
+    this._densityChart.drawChart();
+    this._rightContainer.addChild(this._densityChart);
+    
+    this._statsText = new Text(84, 82, "", FONTS.default);
+    this._statsText.tint = 0xffffff;
+    this._rightContainer.addChild(this._statsText);
+    
+    diffCarousel.onSelect.add((index, item) => {
+      if (item.data && item.data.diffIndex !== undefined) {
+        this.currentDifficultyIndex = item.data.diffIndex;
+        this.updateDiffText();
+        this.updateDifficultyStats();
+      }
+    });
+    
+    this.updateDifficultyStats();
+  }
+
+  updateDifficultyStats() {
+    const diff = this.getCurrentDifficulty();
+    if (!diff) return;
+    
+    const notes = this.getCurrentNotes();
+    
+    let totalNotes = 0, mines = 0, holds = 0, rolls = 0;
+    let jumps = 0, hands = 0;
+    const beats = new Map();
+    
+    for (const note of notes) {
+      if (note.type === 'M') mines++;
+      else if (note.type === '2') holds++;
+      else if (note.type === '4') rolls++;
+      else if (note.type === '1') totalNotes++;
+      
+      if (note.type === '1' || note.type === '2' || note.type === '4') {
+        const key = note.beat.toFixed(6);
+        if (!beats.has(key)) beats.set(key, []);
+        beats.get(key).push(note);
+      }
+    }
+    
+    for (const beatNotes of beats.values()) {
+      if (beatNotes.length >= 3) hands++;
+      else if (beatNotes.length === 2) jumps++;
+    }
+    
+    const total = totalNotes + mines + holds + rolls;
+    
+    this._statsText.write(
+      `\n       Notes: ${String(totalNotes).padEnd(5)}  Mines: ${String(mines).padEnd(5)}\n` +
+      `       Holds: ${String(holds).padEnd(5)}  Rolls: ${String(rolls).padEnd(5)}\n` +
+      `       Jumps: ${String(jumps).padEnd(5)}  Hands: ${String(hands).padEnd(5)}\n` +
+      `             Total: ${String(total).padEnd(5)}`
+    );
+    
+    if (notes.length > 0) {
+      const maxBeat = Math.max(...notes.map(n => n.beat));
+      const data = [];
+      const step = 4;
+      for (let i = 0; i <= maxBeat + step; i += step) {
+        data.push(notes.filter(n => n.beat >= i && n.beat < i + step).length);
+      }
+      this._densityChart.setData(data);
+    } else {
+      this._densityChart.setData([0]);
+    }
+  }
+
+  createScoresTab() {
+    this.tabContent = game.add.group();
+    const songKey = window.getSongKey(this.song);
+    const scores = Account.highScores[songKey] || {};
+    const diffs = this.getDifficulties();
+    if (diffs.length === 0) {
+      const text = new Text(4, 24, "No difficulties available", FONTS.default);
+      this.tabContent.addChild(text);
+      return;
+    }
+    
+    const sorted = [...diffs].sort((a, b) => a.rating - b.rating);
+    
+    const diffCarousel = new CarouselMenu(0, 24, 100, 86, {
+      bgcolor: '#2c3e50',
+      fgcolor: '#ffffff',
+      align: 'left',
+      animate: true,
+      margin: { left: 4, right: 4 }
+    });
+    this.tabContent.addChild(diffCarousel);
+    
+    sorted.forEach((diff, index) => {
+      const key = diff.type + diff.rating;
+      const data = scores[key];
+      const label = data ? `${diff.type} ${diff.rating} ✓` : `${diff.type} ${diff.rating}`;
+      diffCarousel.addItem(label, null, {
+        bgcolor: data ? '#27ae60' : '#34495e',
+        diffIndex: index,
+        diff: diff,
+        score: data
+      });
+    });
+    diffCarousel.selectIndex(0);
+    
+    diffCarousel.onSelect.add((index, item) => {
+      if (item.data && item.data.score) {
+        const data = item.data.score;
+        const date = new Date(data.date);
+        this._scoreDetails.write(
+          `Date: ${date.toLocaleDateString()}\n\n` +
+          `Score: ${data.score.toLocaleString()}\n` +
+          `Accuracy: ${data.accuracy.toFixed(2)}%\n` +
+          `Max Combo: ${data.maxCombo}\n\n` +
+          `Rating: ${data.rating}\n` +
+          `Judgements:\n` +
+          ` • Marvelous: ${data.judgements.marvelous}\n` +
+          ` • Perfect: ${data.judgements.perfect}\n` +
+          ` • Great: ${data.judgements.great}\n` +
+          ` • Good: ${data.judgements.good}\n` +
+          ` • Boo: ${data.judgements.boo}\n` +
+          ` • Miss: ${data.judgements.miss}`
+        );
+      } else {
+        this._scoreDetails.write('\n< NO HIGHSCORES >');
+      }
+    });
+    
+    this._scoreDetails = new Text(104, 24, "Select a difficulty", FONTS.default);
+    this._scoreDetails.tint = 0xffffff;
+    this.tabContent.addChild(this._scoreDetails);
+    
+    const firstItem = diffCarousel.items[0];
+    if (firstItem && firstItem.data) {
+      diffCarousel.onSelect.dispatch(0, firstItem);
+    }
+  }
+
+  createPreviewTab() {
+    this.tabContent = game.add.group();
+    const diff = this.getCurrentDifficulty();
+    if (!diff) {
+      const text = new Text(4, 24, "No difficulty selected", FONTS.default);
+      this.tabContent.addChild(text);
+      return;
+    }
+    
+    this.chartRenderer = new ChartRenderer(this, this.song, this.currentDifficultyIndex, {
+      enableGameplayLogic: false,
+      enableJudgement: false,
+      enableInput: false,
+      enableHealth: false,
+      enableMissChecking: false,
+      enableReceptors: true,
+      enableBeatLines: true,
+      enableSpeedRendering: true,
+      enableBGRendering: true,
+      judgeLineYFalling: 90,
+      judgeLineYRising: 50,
+      enableChartBackground: true,
+      chartBackgroundOpacity: 0.4
+    });
+    this.chartRenderer.notes.forEach(n => n.hitEffectShown = false);
+    this.chartRenderer.receptors.forEach(r => r.visible = true);
+    this.chartRenderer.backgroundGraphics.visible = false;
+    
+    this.tabContent.addChild(this.chartRenderer.receptorsGroup);
+    this.tabContent.addChild(this.chartRenderer.notesGroup);
+    this.tabContent.addChild(this.chartRenderer.freezeBodyGroup);
+    this.tabContent.addChild(this.chartRenderer.freezeEndGroup);
+    this.tabContent.addChild(this.chartRenderer.linesGroup);
+    this.tabContent.addChild(this.chartRenderer.minesGroup);
+    this.tabContent.addChild(this.chartRenderer.tagsGroup);
+    this.tabContent.addChild(this.chartRenderer.speedModGraphics);
+    this.tabContent.addChild(this.chartRenderer.bgChangeGraphics);
+    this.tabContent.addChild(this.chartRenderer.backgroundGraphics);
+    
+    this.previewBeat = 0;
+    this.previewPlaying = false;
+    this.previewStartTime = game.time.now;
+    
+    if (!this.previewAudio) {
+      this.previewAudio = document.createElement('audio');
+      this.previewAudio.src = this.song.chart.audioUrl;
+    }
+    
+    this.previewAudio.currentTime = 0;
+    this.previewAudio.play();
+  }
+
+  updatePreview() {
+    if (this.isDestroyed || !this.chartRenderer || this.currentTab !== 3) return;
+    
+    const chartOffset = this.song.chart.offset || 0;
+    const currentTime = ((game.time.now - this.previewStartTime + (chartOffset * 1000)) / 1000) + this.chartRenderer.beatToSec(this.previewBeat);
+    const beat = this.chartRenderer.secToBeat(currentTime);
+    
+    if (this.previewPlaying) {
+      this.previewBeat = beat;
+    }
+    
+    const now = this.chartRenderer.beatToSec(beat);
+    this.chartRenderer.render(now, beat);
+    if (this.chartRenderer.notes) {
+      this.chartRenderer.notes.forEach(note => {
+        if (!note.hitEffectShown && note.sec - now <= 0 && note.sec - now > -0.5) {
+          this.playExplosionEffect(note.column);
+          note.hitEffectShown = true;
+        }
+      });
+    }
+  }
+
+  playExplosionEffect(column) {
+    if (!this.chartRenderer) return;
+    const receptor = this.chartRenderer.receptors[column];
+    if (receptor && receptor.explosion) {
+      receptor.explosion.visible = true;
+      receptor.explosion.alpha = 1;
+      game.add.tween(receptor.explosion).to({ alpha: 0 }, 200, "Linear", true)
+        .onComplete.add(() => receptor.explosion.visible = false);
+    }
+  }
+
+  update() {
+    if (this.isDestroyed) return;
+    gamepad.update();
+    this.windowManager.update();
+    
+    if (gamepad.pressed.left) {
+      this.animateArrowPress(-1);
+      this.showTab((this.currentTab - 1 + this.tabs.length) % this.tabs.length);
+    }
+    if (gamepad.pressed.right) {
+      this.animateArrowPress(1);
+      this.showTab((this.currentTab + 1) % this.tabs.length);
+    }
+    
+    if (this.currentTab === 3) {
+      this.updatePreview();
+      
+      if (gamepad.pressed.select) {
+        this.rotateDifficulty();
+      }
+    }
+    
+    if (this.currentTab !== 3) {
+      if (this.previewAudio && !this.previewAudio.paused) this.previewAudio.pause();
+    }
+    
+    if (!this.returnBlocked && gamepad.pressed.b) {
+      this.cleanup();
+      const params = Array.isArray(this.returnParams) ? this.returnParams : [this.returnParams];
+      game.state.start(this.returnState, true, false, ...params);
+    }
+  }
+
+  cleanup() {
+    this.isDestroyed = true;
+    this.stopArrowIdle();
+    window.removeEventListener("visibilitychange", this.visibilityChangeListener);
+    if (this.previewAudio) {
+      this.previewAudio.pause();
+      this.previewAudio = null;
+    }
+    if (this.chartRenderer) {
+      this.chartRenderer.destroy();
+      this.chartRenderer = null;
+    }
+    if (this.tabContent) {
+      this.tabContent.destroy();
+      this.tabContent = null;
+    }
+    if (this.headerGroup) {
+      this.headerGroup.destroy();
+      this.headerGroup = null;
+    }
+  }
+
+  shutdown() {
+    this.cleanup();
+  }
+}
+
+
+
+// ======== js/game/states/CharacterSelect.js ========
 class CharacterSelect {
   create() {
     game.camera.fadeIn(0x000000);
@@ -22759,6 +24170,9 @@ class CharacterSelect {
   }
 }
 
+
+
+// ======== js/game/states/AchievementsMenu.js ========
 class AchievementsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -22897,6 +24311,9 @@ class AchievementsMenu {
   }
 }
 
+
+
+// ======== js/game/states/StatsMenu.js ========
 class StatsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -22993,8 +24410,11 @@ class StatsMenu {
   }
 }
 
+
+
+// ======== js/game/states/Play.js ========
 class Play {
-  init(song, difficultyIndex, playtestMode, autoplay) {
+  init(song, difficultyIndex, playtestMode, autoplay, playlistKey) {
     this.originalSong = song;
     this.song = structuredClone(song);
     this.difficultyIndex = difficultyIndex || song.difficultyIndex;
@@ -23010,6 +24430,7 @@ class Play {
     this.started = false;
     this.startTime = 0;
     this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
+    this.playlistKey = playlistKey;
     this.userOffset = Account.settings.userOffset || 0;
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
@@ -23027,6 +24448,9 @@ class Play {
     this.characterManager = new CharacterManager();
     this.currentCharacter = this.characterManager.getCurrentCharacter();
     this.skillSystem = new CharacterSkillSystem(this, this.currentCharacter);
+    
+    // Update stats
+    if (playtestMode) Account.stats.chartsTestPlayed ++;
     
     // Save last song to Account
     Account.lastSong = {
@@ -23330,10 +24754,10 @@ class Play {
     
     this.overHud = game.add.sprite(0, 0);
     
-    const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
+    const difficulty = this.song.chart.difficulties[this.difficultyIndex];
     
     this.difficultyBanner = game.add.sprite(0, 0, "ui_difficulty_banner", 0);
-    this.difficultyBanner.tint = this.getDifficultyColor(difficulty.rating);
+    this.difficultyBanner.tint = window.getDifficultyColor(difficulty.rating, true);
     this.hudTop.addChild(this.difficultyBanner);
     
     this.difficultyTypeText = new Text(5, 1, difficulty.type.substr(0, 9), FONTS.default, this.difficultyBanner);
@@ -23444,35 +24868,6 @@ class Play {
         lrc: Account.settings.enableLyrics ? lrcContent : "",
       });
     }
-  }
-  
-  getDifficultyColor(value) {
-    const max = 11; // The actual maximum considered difficulty
-    
-    // Ensure the value is within the range [0, max]
-    value = Math.max(0, Math.min(max, value));
-
-    // Extract the RGB components of the start and end colors
-    var startColor = { r: 25, g: 210, b: 25 };
-    var endColor = { r: 210, g: 0, b: 0 };
-
-    // Interpolate between the start and end colors
-    var r = Math.floor(startColor.r + (endColor.r - startColor.r) * (value / max));
-    var g = Math.floor(startColor.g + (endColor.g - startColor.g) * (value / max));
-    var b = Math.floor(startColor.b + (endColor.b - startColor.b) * (value / max));
-
-    // Combine the RGB components into a single tint value
-    return (r << 16) | (g << 8) | b;
-  }
-  
-  getDifficultyColorFromType(type) {
-    return {
-      'Beginner': 0x00ffb2,
-      'Easy': 0x00ff4c,
-      'Medium': 0xffcc00,
-      'Hard': 0xff7f00,
-      'Challenge': 0xff4c00,
-    }[type];
   }
   
   setInitialBackground() {
@@ -23830,6 +25225,9 @@ class Play {
     if (this.preloadedBackgroundElements[filename]) {
       const element = this.preloadedBackgroundElements[filename];
       
+      // Handle previous bg effects
+      this.handlePreviousBgFadeOut();
+      
       // Check if element is errored
       if (!element || element.__errored) {
         console.warn(`Preloaded background is errored: ${filename}`);
@@ -23879,6 +25277,9 @@ class Play {
     // Check if there is already a background preloaded
     if (this.preloadedBackgroundElements[filename]) {
       const element = this.preloadedBackgroundElements[filename];
+      
+      // Handle previous bg effects
+      this.handlePreviousBgFadeOut();
       
       // Check if element is errored
       if (!element || element.__errored) {
@@ -23948,7 +25349,23 @@ class Play {
   applyBackground(bg) {
     if (bg.file == '-nosongbg-') {
       this.clearBackground();
-    } else if (bg.type == 'video') {
+      this.currentBackground = bg;
+      return;
+    }
+    
+    // Cancel any existing fade tween
+    if (this._bgFadeTween) {
+      this._bgFadeTween.stop();
+      this._bgFadeTween = null;
+    }
+    
+    // Cancel any existing effect timer
+    if (this._bgEffectTimer) {
+      clearTimeout(this._bgEffectTimer);
+      this._bgEffectTimer = null;
+    }
+    
+    if (bg.type == 'video') {
       this.loadBackgroundVideo(bg.file, bg.url, () => {
         this.applyBgEffects(bg);
       }, () => {
@@ -23963,15 +25380,111 @@ class Play {
   
   applyBgEffects(bg) {
     const alpha = bg.type == 'video' ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
+    const targetAlpha = parseFloat(bg.opacity) * alpha;
     
-    if (bg.fadeIn) {
-      this.backgroundSprite.alpha = 0;
-      game.add.tween(this.backgroundSprite).to({ alpha: parseFloat(bg.opacity) * alpha }, 500, "Linear",true);
-    } else {
-      this.backgroundSprite.alpha = bg.opacity * alpha;
+    // Cancel any existing fade tween
+    if (this._bgFadeTween) {
+      this._bgFadeTween.stop();
+      this._bgFadeTween = null;
     }
     
-    // TODO: When applying bg effects take in account bg.fadeOut and bg.effect. May be tricky to implement them, specially bg.effect
+    // Handle fade in
+    if (bg.fadeIn && bg.fadeIn > 0) {
+      this.backgroundSprite.alpha = 0;
+      this._bgFadeTween = game.add.tween(this.backgroundSprite)
+        .to({ alpha: targetAlpha }, bg.fadeIn * 1000, Phaser.Easing.Quadratic.InOut, true);
+    } else {
+      this.backgroundSprite.alpha = targetAlpha;
+    }
+    
+    // Handle fade out (schedule it)
+    if (bg.fadeOut && bg.fadeOut > 0) {
+      // Calculate duration until fade out starts
+      // We need to know when this background will be replaced
+      // Since we don't know when the next BG change is, we store the fadeOut info
+      this._pendingFadeOut = {
+        duration: bg.fadeOut * 1000,
+        targetAlpha: 0
+      };
+    } else {
+      this._pendingFadeOut = null;
+    }
+    
+    // Handle effect (bg.effect)
+    // StepMania effects: 0=none, 1=stretch, 2=scroll, 3=...
+    if (bg.effect && bg.effect > 0) {
+      // Commented, the existing implementation is poor and doesn't handle them correctly
+      // this.applyBgEffect(bg);
+    }
+  }
+  
+  applyBgEffect(bg) {
+    // Cancel existing effect
+    if (this._bgEffectTimer) {
+      clearInterval(this._bgEffectTimer);
+      this._bgEffectTimer = null;
+    }
+    
+    switch (parseInt(bg.effect)) {
+      case 1: // Stretch - horizontal distortion
+        this._bgEffectTimer = setInterval(() => {
+          if (!this.backgroundSprite || this.shootingDown) {
+            clearInterval(this._bgEffectTimer);
+            this._bgEffectTimer = null;
+            return;
+          }
+          const wave = Math.sin(Date.now() * 0.002) * 0.05 + 1;
+          this.backgroundSprite.scale.x = wave;
+        }, 50);
+        break;
+        
+      case 2: // Scroll - vertical pan
+        this._bgEffectTimer = setInterval(() => {
+          if (!this.backgroundSprite || this.shootingDown) {
+            clearInterval(this._bgEffectTimer);
+            this._bgEffectTimer = null;
+            return;
+          }
+          const offset = (Date.now() * 0.02) % 112;
+          this.backgroundSprite.crop(new Phaser.Rectangle(0, offset, 240, 140));
+        }, 50);
+        break;
+        
+      case 3: // Pulse - alpha oscillation
+        this._bgEffectTimer = setInterval(() => {
+          if (!this.backgroundSprite || this.shootingDown) {
+            clearInterval(this._bgEffectTimer);
+            this._bgEffectTimer = null;
+            return;
+          }
+          const pulse = 0.6 + Math.sin(Date.now() * 0.003) * 0.4;
+          this.backgroundSprite.alpha = parseFloat(bg.opacity) * pulse * 
+            (bg.type == 'video' ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity);
+        }, 50);
+        break;
+        
+      default:
+        // No effect
+        break;
+    }
+  }
+  
+  handlePreviousBgFadeOut() {
+    // If there's a pending fade out for the current background
+    if (this._pendingFadeOut && this.currentBackground) {
+      // Fade out current background
+      if (this._bgFadeTween) {
+        this._bgFadeTween.stop();
+      }
+      this._bgFadeTween = game.add.tween(this.backgroundSprite)
+        .to({ alpha: 0 }, this._pendingFadeOut.duration, Phaser.Easing.Quadratic.InOut, true)
+        .onComplete.add(() => {
+          if (this.backgroundSprite) {
+            this.backgroundSprite.alpha = 0;
+          }
+        });
+      this._pendingFadeOut = null;
+    }
   }
   
   getGameResults(player = this.player) {
@@ -23990,7 +25503,7 @@ class Play {
   }
   
   restartSong() {
-    game.state.start("Play", true, false, this.originalSong, this.difficultyIndex, this.playtestMode, this.autoplay);
+    game.state.start("Play", true, false, this.originalSong, this.difficultyIndex, this.playtestMode, this.autoplay, this.playlistKey);
   }
   
   songEnd() {
@@ -24012,6 +25525,45 @@ class Play {
     // Update character stats
     const gameResults = this.getGameResults(this.player);
     
+    // Track full combo and flawless combo stats
+    if (!this.autoplay) {
+      const judgements = this.player.judgementCounts;
+      const totalNotes = this.player.totalNotes;
+      const isFullCombo = judgements.miss === 0;
+      const isFlawless = isFullCombo && (judgements.marvelous + judgements.perfect) === totalNotes;
+      const isAbsoluteFlawless = isFullCombo && judgements.marvelous === totalNotes;
+      
+      // Update stats
+      if (isFullCombo) {
+        Account.stats.fullCombos = (Account.stats.fullCombos || 0) + 1;
+        
+        // Update full combo streak
+        Account.stats.currentFullComboStreak = (Account.stats.currentFullComboStreak || 0) + 1;
+        if (Account.stats.currentFullComboStreak > (Account.stats.maxFullComboStreak || 0)) {
+          Account.stats.maxFullComboStreak = Account.stats.currentFullComboStreak;
+        }
+        
+        // Track flawless
+        if (isFlawless) {
+          Account.stats.flawlessFullCombos = (Account.stats.flawlessFullCombos || 0) + 1;
+          Account.stats.flawlessStreak = (Account.stats.flawlessStreak || 0) + 1;
+        } else {
+          Account.stats.flawlessStreak = 0;
+        }
+        
+        // Track absolute flawless
+        if (isAbsoluteFlawless) {
+          Account.stats.absoluteFlawless = (Account.stats.absoluteFlawless || 0) + 1;
+        }
+      } else {
+        // Reset streaks on non-full combo
+        Account.stats.currentFullComboStreak = 0;
+        Account.stats.flawlessStreak = 0;
+      }
+      
+      saveAccount();
+    }
+    
     // Calculate experience gain (0 if autoplay is enabled)
     const expGain = this.autoplay ? 0 : this.characterManager.calculateExperienceGain(gameResults);
     
@@ -24032,7 +25584,11 @@ class Play {
       playtestMode: this.playtestMode,
       player: this.player,
       expGain: expGain,
-      gameResults: gameResults
+      gameResults: gameResults,
+      playlistKey: this.playlistKey,
+      isFullCombo: isFullCombo,
+      isFlawless: isFlawless,
+      isAbsoluteFlawless: isAbsoluteFlawless
     };
     
     // Hide HUD
@@ -24140,14 +25696,14 @@ class Play {
     if (this.autoplay && !this.playtestMode) {
       this.pauseCarousel.addItem("Disable Autoplay", () => {
         Account.settings.autoplay = false;
-        game.state.start("SongSelect", true, false, null, null, true);
+        game.state.start("SongSelect", true, false, null, null, true, this.playlistKey);
       });
     }
     if (this.playtestMode) {
       if (this.autoplay) {
-        this.pauseCarousel.addItem("Disable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false));
+        this.pauseCarousel.addItem("Disable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, false, this.playlistKey));
       } else {
-        this.pauseCarousel.addItem("Enable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true));
+        this.pauseCarousel.addItem("Enable Autoplay", () => game.state.start("Play", true, false, this.song, this.difficultyIndex, true, true, this.playlistKey));
       }
     }
     this.pauseCarousel.addItem("Restart", () => this.restartSong());
@@ -24321,6 +25877,11 @@ class Play {
   shutdown() {
     this.shootingDown = true;
     
+    if (this._bgEffectTimer) {
+      clearInterval(this._bgEffectTimer);
+      this._bgEffectTimer = null;
+    }
+    
     this.audio.removeEventListener("ended", this.audioEndListener);
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     this.audio.pause();
@@ -24359,15 +25920,18 @@ class Play {
   }
 }
 
+
+
+// ======== js/game/states/PlayMulti.js ========
 class PlayMulti extends Play {
   constructor() {
     super();
   }
   
-  init(config) {
+  init(config, _, __, ___, playlistKey) {
     const { song, difficultyIndex } = config;
     
-    super.init({ chart: song, difficultyIndex }, difficultyIndex, false, false);
+    super.init({ chart: song, difficultyIndex }, difficultyIndex, undefined, undefined, playlistKey);
     
     this.config = config;
     
@@ -24410,7 +25974,7 @@ class PlayMulti extends Play {
     const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
     
     this.difficultyBanner = game.add.sprite(game.width / 2, 0, "ui_difficulty_banner_multi", 0);
-    this.difficultyBanner.tint = this.getDifficultyColor(difficulty.rating);
+    this.difficultyBanner.tint = window.getDifficultyColor(difficulty.rating, true);
     this.difficultyBanner.anchor.x = 0.5;
     this.hudTop.addChild(this.difficultyBanner);
     
@@ -24517,6 +26081,7 @@ class PlayMulti extends Play {
   getGameResults() {
     return {
       song: this.song,
+      playlistKey: this.playlistKey,
       difficultyIndex: this.difficultyIndex,
       results: {
         player1: super.getGameResults(this.player1),
@@ -24543,6 +26108,12 @@ class PlayMulti extends Play {
     if (this.playtestMode) {
       game.state.start("Editor", true, false, this.song);
       return;
+    }
+    
+    // Track multiplayer games played
+    if (!this.autoplay) {
+      Account.stats.multiplayerGamesPlayed = (Account.stats.multiplayerGamesPlayed || 0) + 1;
+      saveAccount();
     }
     
     // Get results
@@ -24648,6 +26219,9 @@ class PlayMulti extends Play {
   }
 }
 
+
+
+// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData;
@@ -24702,7 +26276,7 @@ class Results {
       return false;
     }
     
-    const songKey = this.getSongKey(song);
+    const songKey = window.getSongKey(song);
     const difficultyKey = `${difficulty.type}${difficulty.rating}`;
     
     if (!Account.highScores[songKey]) {
@@ -24728,17 +26302,6 @@ class Results {
     }
     
     return isNewRecord;
-  }
-
-  getSongKey(song) {
-    // Create unique key for song (for both local and external)
-    if (song.chart.folderName) {
-      return `local_${song.chart.folderName}`;
-    } else if (song.chart.audioUrl) {
-      // For external songs, use audio URL hash
-      return `external_${this.hashString(song.chart.audioUrl)}`;
-    }
-    return `unknown_${Date.now()}`;
   }
 
   hashString(str) {
@@ -24786,7 +26349,7 @@ class Results {
     
     this.songText = new Text(8, 10, `${title}`, FONTS.shaded);
     this.diffText = new Text(10, 20, `${difficulty.type} (${difficulty.rating})`);
-    this.diffText.tint = new Play().getDifficultyColor(difficulty.rating);
+    this.diffText.tint = window.getDifficultyColor(difficulty.rating, true);
     
     if (title.length > 25) this.songText.scrollwrite(title, 25);
     
@@ -24879,16 +26442,16 @@ class Results {
     });
     
     menu.addItem("Next", () => {
-      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto");
+      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
     });
-    menu.addItem("Continue", () => game.state.start("SongSelect"));
+    menu.addItem("Continue", () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
     if (Account.settings.autoplay) {
       menu.addItem("Disable Autoplay", () => {
         Account.settings.autoplay = false;
-        game.state.start("SongSelect");
+        game.state.start("SongSelect", window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
       });
     }
-    menu.addItem("Retry", () => game.state.start("Play", true, false, this.gameData.song));
+    menu.addItem("Retry", () => game.state.start("Play", true, false, this.gameData.song, this.gameData.playlistKey));
     menu.addItem("Quit", () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results', menu);
@@ -24937,6 +26500,9 @@ class Results {
   }
 }
 
+
+
+// ======== js/game/states/ResultsMulti.js ========
 class ResultsMulti extends Results {
   constructor() {
     super();
@@ -25006,7 +26572,7 @@ class ResultsMulti extends Results {
     
     this.songText = new Text(8, 10, `${title}`, FONTS.default_shadow);
     this.diffText = new Text(10, 20, `${difficulty.type} (${difficulty.rating})`, FONTS.default);
-    this.diffText.tint = new Play().getDifficultyColor(difficulty.rating);
+    this.diffText.tint = window.getDifficultyColor(difficulty.rating, true);
     
     if (title.length > 25) this.songText.scrollwrite(title, 25);
     
@@ -25033,16 +26599,40 @@ class ResultsMulti extends Results {
   getWinner() {
     const { player1, player2 } = this.gameResults.results;
     
-    // TODO: Winner calculation would more complex logic
     if (player1.autoplay || player2.autoplay) {
-      return 0; // Draw case: Autoplay
-    } else if (player1.score == player2.score) {
-      return 0; // Draw case: Both players have same score
-    } else if (player1.score > player2.score) {
-      return 1; // Player 1 wins
-    } else {
-      return 2; // Player 2 wins
+      return 0;
     }
+    
+    // Compare by score first
+    if (player1.score > player2.score) return 1;
+    if (player2.score > player1.score) return 2;
+    
+    // Same score: compare by accuracy
+    if (player1.accuracy > player2.accuracy) return 1;
+    if (player2.accuracy > player1.accuracy) return 2;
+    
+    // Same accuracy: compare by max combo
+    if (player1.maxCombo > player2.maxCombo) return 1;
+    if (player2.maxCombo > player1.maxCombo) return 2;
+    
+    // Same combo: compare by judgement counts (weighted)
+    const getWeightedScore = (j) => {
+      return (j.marvelous || 0) * 4 +
+             (j.perfect || 0) * 3 +
+             (j.great || 0) * 2 +
+             (j.good || 0) * 1 -
+             (j.boo || 0) * 2 -
+             (j.miss || 0) * 5;
+    };
+    
+    const p1Weighted = getWeightedScore(player1.judgementCounts);
+    const p2Weighted = getWeightedScore(player2.judgementCounts);
+    
+    if (p1Weighted > p2Weighted) return 1;
+    if (p2Weighted > p1Weighted) return 2;
+    
+    // Still tied: draw
+    return 0;
   }
   
   showPlayerResults(playerNumber = playerNumber) {
@@ -25098,16 +26688,227 @@ class ResultsMulti extends Results {
     });
     
     menu.addItem("Next", () => {
-      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto");
+      game.state.start("SongSelect", window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
     });
-    menu.addItem("Continue", () => game.state.start("SongSelect"));
-    menu.addItem("Retry", () => game.state.start("PlayMulti", true, false, this.config));
+    menu.addItem("Continue", () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
+    menu.addItem("Retry", () => game.state.start("PlayMulti", true, false, this.config, undefined, undefined, undefined, this.gameData.playlistKey));
     menu.addItem("Quit", () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results_multi', menu);
   }
 }
 
+
+
+// ======== js/game/states/Playlists.js ========
+class Playlists {
+  create() {
+    game.camera.fadeIn(0x000000);
+    
+    new BackgroundGradient();
+    new FuturisticLines();
+    this.navigationHint = new NavigationHint('general');
+    
+    this.playlistManager = PlaylistManager.getInstance();
+    this.actionText = new Text(4, 4, "PLAYLISTS", FONTS.default);
+    
+    this.showPlaylistList();
+  }
+
+  showPlaylistList() {
+    if (this.carousel) this.carousel.destroy();
+    
+    this.carousel = new CarouselMenu(0, 16, game.width, game.height - 24, {
+      bgcolor: '#9b59b6',
+      fgcolor: '#ffffff',
+      align: 'left',
+      animate: true
+    });
+    
+    const keys = this.playlistManager.getPlaylistNames();
+    
+    for (const key of keys) {
+      const playlist = this.playlistManager.getPlaylist(key);
+      const count = playlist.songs.length;
+      this.carousel.addItem(`${playlist.name} (${count} songs)`, () => {
+        this.openPlaylist(key);
+      }, { bgcolor: '#2c3e50', playlistKey: key });
+    }
+    
+    this.carousel.addItem("+ Add Playlist", () => this.addPlaylist());
+    this.carousel.addItem("< Back", () => game.state.start("MainMenu"));
+    
+    this.carousel.onCancel.add(() => game.state.start("MainMenu"));
+    this.actionText.write("PLAYLISTS");
+  }
+
+  addPlaylist() {
+    const keyboard = new OnScreenKeyboard(undefined, 55);
+    
+    window.focusedElement = new TextInput({
+      text: "My Playlist",
+      maxLength: 20,
+      useNewline: false,
+      onConfirm: (name) => {
+        if (name.trim()) {
+          const key = this.playlistManager.createPlaylist(name.trim());
+          if (key) {
+            notifications.show(`Playlist "${name}" created!`);
+            keyboard.destroy();
+            this.showPlaylistList();
+          } else {
+            notifications.show("Playlist already exists!");
+          }
+        } else {
+          notifications.show("Name cannot be empty!");
+        }
+      },
+      onCancel: () => {
+        keyboard.destroy();
+        this.showPlaylistList();
+      }
+    });
+  }
+
+  openPlaylist(key) {
+    const playlist = this.playlistManager.getPlaylist(key);
+    if (!playlist) return;
+    
+    if (this.carousel) this.carousel.destroy();
+    
+    this.currentPlaylistKey = key;
+    this.actionText.write(`${playlist.name} (${playlist.songs.length} songs)`);
+    
+    this.carousel = new CarouselMenu(0, 16, game.width, game.height - 24, {
+      bgcolor: '#2c3e50',
+      fgcolor: '#ffffff',
+      align: 'left',
+      animate: true
+    });
+    
+    const songs = playlist.songs;
+    
+    for (let i = 0; i < songs.length; i++) {
+      const song = songs[i];
+      const title = song.titleTranslit || song.title || `Song ${i + 1}`;
+      this.carousel.addItem(`${i + 1}. ${title}`, () => {
+        this.startSongSelect(key, songs, i);
+      }, { 
+        bgcolor: '#34495e', 
+        song: song, 
+        songIndex: i,
+        playlistKey: key
+      });
+    }
+    
+    if (songs.length) {
+      this.carousel.addItem("× Clear playlist", () => {
+        this.clearPlaylist(key);
+      }, { bgcolor: '#c0392b' });
+    }
+    
+    this.carousel.addItem("× Delete playlist", () => {
+      this.deletePlaylist(key);
+    }, { bgcolor: '#e74c3c' });
+    
+    this.carousel.addItem("< Back", () => this.showPlaylistList());
+    this.carousel.onCancel.add(() => this.showPlaylistList());
+  }
+
+  removeFromPlaylist(key) {
+    const playlist = this.playlistManager.getPlaylist(key);
+    if (!playlist || playlist.songs.length === 0) return;
+    
+    const songs = playlist.songs;
+    const removeCarousel = new CarouselMenu(0, 36, game.width, game.height - 48, {
+      bgcolor: '#8e44ad',
+      fgcolor: '#ffffff',
+      align: 'left',
+      animate: true
+    });
+    
+    for (let i = 0; i < songs.length; i++) {
+      const song = songs[i];
+      const title = song.titleTranslit || song.title || `Song ${i + 1}`;
+      removeCarousel.addItem(`× ${title}`, () => {
+        this.playlistManager.removeSong(key, i);
+        notifications.show(`Removed "${title}" from playlist`);
+        this.openPlaylist(key);
+      }, { bgcolor: '#c0392b' });
+    }
+    
+    removeCarousel.addItem("< Back", () => this.openPlaylist(key));
+    removeCarousel.onCancel.add(() => this.openPlaylist(key));
+    
+    // Replace carousel
+    if (this.carousel) this.carousel.destroy();
+    this.carousel = removeCarousel;
+    this.actionText.write("Select song to remove");
+  }
+
+  clearPlaylist(key) {
+    this.confirmDialog(
+      "Remove all songs from this playlist?",
+      () => {
+        const playlist = this.playlistManager.getPlaylist(key);
+        if (playlist) {
+          playlist.songs = [];
+          playlist.updatedAt = Date.now();
+          this.playlistManager.save();
+          notifications.show("Playlist cleared!");
+          this.openPlaylist(key);
+        }
+      },
+      () => this.openPlaylist(key)
+    );
+  }
+
+  deletePlaylist(key) {
+    this.confirmDialog(
+      "Delete this playlist permanently?",
+      () => {
+        this.playlistManager.deletePlaylist(key);
+        notifications.show("Playlist deleted!");
+        this.showPlaylistList();
+      },
+      () => this.openPlaylist(key)
+    );
+  }
+
+  startSongSelect(playlistKey, songs, songIndex) {
+    game.state.start("SongSelect", true, false, 
+      songs, 
+      songIndex, 
+      false, 
+      "auto",
+      playlistKey
+    );
+  }
+
+  confirmDialog(message, onConfirm, onCancel) {
+    const dialog = new DialogWindow(message, {
+      buttons: ["Yes", "No"],
+      defaultButton: 1
+    });
+    dialog.onConfirm.add((buttonIndex) => {
+      if (buttonIndex === 0) onConfirm();
+      else onCancel();
+      dialog.destroy();
+    });
+    dialog.onCancel.add(() => {
+      onCancel();
+      dialog.destroy();
+    });
+  }
+
+  update() {
+    gamepad.update();
+  }
+}
+
+
+
+// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
@@ -26099,6 +27900,9 @@ class Jukebox {
   }
 }
 
+
+
+// ======== js/game/states/Editor.js ========
 class Editor {
   init(song = null) {
     this.song = song || this.createNewSong();
@@ -26624,6 +28428,7 @@ class Editor {
       
       if (this.songInfoText) {
         this.songInfoText.write(this.getSongInfoText());
+        this.songInfoText.wrap(game.width / 2 - 8);
       }
     }
   }
@@ -27944,7 +29749,19 @@ Sample Length: ${chart.sampleLength}
       const fileName = `${songData.title || "song"}.zip`;
       await this.saveFile(blob, fileName);
       
+      // Update stats
       Account.stats.totalExportedSongs ++;
+      
+      const allNotes = [];
+      for (const diff of this.song.chart.difficulties) {
+        const notes = this.song.chart.notes[diff.type + diff.rating] || [];
+        allNotes.push(...notes);
+      }
+      const types = new Set(allNotes.map(n => n.type));
+      if (types.has('1') && types.has('2') && types.has('3') && types.has('4') && types.has('M')) {
+        Account.stats.usedAllNoteTypesInChart = true;
+        saveAccount();
+      }
 
       this.hideLoadingScreen();
       this.showHomeScreen();
@@ -28021,6 +29838,8 @@ Sample Length: ${chart.sampleLength}
           this.song.chart.notes[newKey] = this.song.chart.notes[oldKey];
           delete this.song.chart.notes[oldKey];
         }
+        
+        Account.stats.chartsWithDifficultySet++;
 
         this.showChartsMenu();
       });
@@ -28663,6 +30482,8 @@ BEAT: ${bg.beat}`);
   update() {
     gamepad.update();
     
+    Account.stats.editorTimeSpent += game.time.elapsed / 1000;
+    
     const { now, beat } = this.getCurrentTime();
     
     this.chartRenderer.render(now, beat);
@@ -28763,6 +30584,9 @@ BEAT: ${bg.beat}`);
   }
 }
 
+
+
+// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
@@ -29125,6 +30949,9 @@ class Credits {
   }
 }
 
+
+
+// ======== js/game/states/ErrorScreen.js ========
 class ErrorScreen {
   init(message, recoverStateKey) {
     this.message = message || "The causes of this failure are unknown yet";
@@ -29155,12 +30982,15 @@ Please Report The Developer Immediately!
     }, { once: true });
     
     game.canvas.parentNode.addEventListener("click", () => {
-      openExternalUrl(FEEDBACK_BUG_REPORT_URL);
+      window.openExternalUrl(FEEDBACK_BUG_REPORT_URL);
       game.state.start(this.recoverStateKey);
     }, { once: true });
   }
 }
 
+
+
+// ======== js/game/player/ChartRenderer.js ========
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -30143,6 +31973,9 @@ class ChartRenderer {
   }
 }
 
+
+
+// ======== js/game/player/AudioTemperatureMeter.js ========
 class AudioTemperatureMeter {
   constructor(scene, audioElement) {
     this.scene = scene;
@@ -30497,6 +32330,9 @@ class AudioTemperatureMeter {
   }
 }
 
+
+
+// ======== js/game/player/Player.js ========
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
     this.scene = scene;
@@ -30507,7 +32343,7 @@ class Player {
     this.hud = scene.hud;
     
     // Use ChartRenderer for rendering
-    this.renderer = new ChartRenderer(scene, JSON.parse(JSON.stringify(scene.song)), scene.song.difficultyIndex, {
+    this.renderer = new ChartRenderer(scene, JSON.parse(JSON.stringify(scene.song)), scene.song.difficultyIndex || scene.difficultyIndex, {
       enableGameplayLogic: true,
       enableJudgement: true,
       enableInput: true,
@@ -31161,7 +32997,7 @@ class Player {
   
       game.tweens.removeFrom(this.judgementText);
       
-      // NOTE: This is the old tween animation, disabled and replaced by this new one
+      // This is the old tween animation, disabled and replaced by this new one
       //game.add.tween(this.judgementText.scale).to({ x: 1.5, y: 1 }, 200, "Linear", true).yoyo(true);
       //game.add.tween(this.judgementText).to({ alpha: 0 }, 200, "Linear", true, 200);
       
@@ -31379,6 +33215,9 @@ class Player {
   }
 }
 
+
+
+// ======== js/game/player/FirstPlayer.js ========
 class FirstPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "left" side
@@ -31396,6 +33235,9 @@ class FirstPlayer extends Player {
   }
 }
 
+
+
+// ======== js/game/player/SecondPlayer.js ========
 class SecondPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "right" side

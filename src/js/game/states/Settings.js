@@ -379,7 +379,7 @@ class Settings {
         saveAccount();
       }
     );
-    
+
     // Renderer
     settingsWindow.addSettingItem(
       "Renderer",

@@ -240,7 +240,7 @@ class AchievementsManager {
       } 
     }
   }
-  
+
   getHolidayName(month, date) {
     const holidays = this.getHolidays();
     if (holidays[month]) {

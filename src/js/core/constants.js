@@ -277,6 +277,15 @@ const NAVIGATION_HINT_PRESETS = {
       icon: "b",
       text: "NOTE"
     }
+  ],
+  song_stats: [
+    { position: "left", icon: "d-pad", text: "NAVIGATE" },
+    { position: "right", icon: "b", text: "BACK" }
+  ],
+  song_stats_song_preview: [
+    { position: "left", icon: "left", text: "NAVIGATE" },
+    { position: "right", icon: "select", text: "DIFFICULTY" },
+    { position: "right", icon: "b", text: "BACK" }
   ]
 };
 

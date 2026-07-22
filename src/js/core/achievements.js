@@ -288,6 +288,222 @@ const ACHIEVEMENT_DEFINITIONS = [
     condition: (_, song) => song.complete && Account.settings.noteSpeedMult >= 6,
     hidden: false
   },
+  {
+    id: "first_full_combo",
+    name: "First Full Combo",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete your first full combo",
+      achieved: "You completed your first full combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.fullCombos >= 1,
+    hidden: false
+  },
+  {
+    id: "full_combo_5",
+    name: "Consistent Combo",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 5 full combos",
+      achieved: "You got 5 full combos!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.fullCombos >= 5,
+    hidden: false
+  },
+  {
+    id: "full_combo_25",
+    name: "Combo Master",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 25 full combos",
+      achieved: "You got 25 full combos!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.fullCombos >= 25,
+    hidden: false
+  },
+  {
+    id: "full_combo_100",
+    name: "Unstoppable",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 100 full combos",
+      achieved: "You got 100 full combos!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.fullCombos >= 100,
+    hidden: false
+  },
+  {
+    id: "full_combo_streak_3",
+    name: "On Fire",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 3 full combos in a row",
+      achieved: "You got 3 full combos in a row!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.maxFullComboStreak >= 3,
+    hidden: false
+  },
+  {
+    id: "full_combo_streak_5",
+    name: "Burning Rhythm",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 5 full combos in a row",
+      achieved: "You got 5 full combos in a row!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.maxFullComboStreak >= 5,
+    hidden: false
+  },
+  {
+    id: "full_combo_streak_10",
+    name: "Unstoppable Rhythm",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 10 full combos in a row",
+      achieved: "You got 10 full combos in a row!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.maxFullComboStreak >= 10,
+    hidden: false
+  },
+  {
+    id: "full_combo_streak_20",
+    name: "Rhythm God",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 20 full combos in a row",
+      achieved: "You got 20 full combos in a row!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: stats => stats.maxFullComboStreak >= 20,
+    hidden: false
+  },
+  {
+    id: "first_flawless",
+    name: "Flawless",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete a flawless full combo",
+      achieved: "You completed a flawless full combo!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.flawlessFullCombos >= 1,
+    hidden: false
+  },
+  {
+    id: "flawless_5",
+    name: "Flawless Master",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 5 flawless full combos",
+      achieved: "You got 5 flawless full combos!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.flawlessFullCombos >= 5,
+    hidden: false
+  },
+  {
+    id: "flawless_10",
+    name: "Perfectionist",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 10 flawless full combos",
+      achieved: "You got 10 flawless full combos!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: stats => stats.flawlessFullCombos >= 10,
+    hidden: false
+  },
+  {
+    id: "flawless_streak_3",
+    name: "Perfect Run",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Get 3 flawless full combos in a row",
+      achieved: "You got 3 flawless full combos in a row!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.flawlessStreak >= 3,
+    hidden: false
+  },
+  {
+    id: "absolute_flawless",
+    name: "Absolute Perfection",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete a song with only Marvelous judgements",
+      achieved: "You completed a song with only Marvelous judgements!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: stats => stats.absoluteFlawless >= 1,
+    hidden: false
+  },
+  {
+    id: "first_multiplayer_game",
+    name: "Together We Play",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Complete your first multiplayer game",
+      achieved: "You completed your first multiplayer game!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+    condition: stats => stats.multiplayerGamesPlayed >= 1,
+    hidden: false
+  },
+  {
+    id: "multiplayer_games_10",
+    name: "Co-op Player",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Play 10 multiplayer games",
+      achieved: "You played 10 multiplayer games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.UNCOMMON,
+    condition: stats => stats.multiplayerGamesPlayed >= 10,
+    hidden: false
+  },
+  {
+    id: "multiplayer_games_50",
+    name: "Multiplayer Veteran",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Play 50 multiplayer games",
+      achieved: "You played 50 multiplayer games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+    condition: stats => stats.multiplayerGamesPlayed >= 50,
+    hidden: false
+  },
+  {
+    id: "multiplayer_games_100",
+    name: "Versus Master",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Play 100 multiplayer games",
+      achieved: "You played 100 multiplayer games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.EPIC,
+    condition: stats => stats.multiplayerGamesPlayed >= 100,
+    hidden: false
+  },
+  {
+    id: "multiplayer_games_500",
+    name: "Rivalry Legend",
+    category: ACHIEVEMENT_CATEGORIES.GAMEPLAY,
+    description: {
+      unachieved: "Play 500 multiplayer games",
+      achieved: "You played 500 multiplayer games!"
+    },
+    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
+    condition: stats => stats.multiplayerGamesPlayed >= 500,
+    hidden: false
+  },
 
   // Character Achievements
   {
@@ -1197,18 +1413,6 @@ const ACHIEVEMENT_DEFINITIONS = [
     hidden: false
   },
   {
-    id: "complex_chart",
-    name: "Complexity Creator",
-    category: ACHIEVEMENT_CATEGORIES.EDITOR,
-    description: {
-      unachieved: "Create a chart with 1000+ notes",
-      achieved: "You created a chart with 1000+ notes!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
-    condition: stats => stats.createdChartWith1000Notes,
-    hidden: false
-  },
-  {
     id: "difficulty_setter",
     name: "Difficulty Designer",
     category: ACHIEVEMENT_CATEGORIES.EDITOR,
@@ -1243,18 +1447,6 @@ const ACHIEVEMENT_DEFINITIONS = [
     expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
     condition: stats => stats.chartsTestPlayed >= 1,
     hidden: false
-  },
-  {
-    id: "editor_completionist",
-    name: "Editor Completionist",
-    category: ACHIEVEMENT_CATEGORIES.EDITOR,
-    description: {
-      unachieved: "Complete all basic editor achievements",
-      achieved: "You completed all basic editor achievements!"
-    },
-    expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.LEGENDARY,
-    condition: stats => stats.totalPlacedArrows >= 1000 && stats.totalPlacedFreezes >= 200 && stats.totalPlacedMines >= 100 && stats.chartsCreated >= 10 && stats.totalExportedSongs >= 10 && stats.editorTimeSpent >= 36000,
-    hidden: true
   },
 
   // Mastery Achievements

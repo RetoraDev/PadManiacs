@@ -49,7 +49,7 @@ class PlayMulti extends Play {
     const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
     
     this.difficultyBanner = game.add.sprite(game.width / 2, 0, "ui_difficulty_banner_multi", 0);
-    this.difficultyBanner.tint = this.getDifficultyColor(difficulty.rating);
+    this.difficultyBanner.tint = window.getDifficultyColor(difficulty.rating, true);
     this.difficultyBanner.anchor.x = 0.5;
     this.hudTop.addChild(this.difficultyBanner);
     
@@ -183,6 +183,12 @@ class PlayMulti extends Play {
     if (this.playtestMode) {
       game.state.start("Editor", true, false, this.song);
       return;
+    }
+    
+    // Track multiplayer games played
+    if (!this.autoplay) {
+      Account.stats.multiplayerGamesPlayed = (Account.stats.multiplayerGamesPlayed || 0) + 1;
+      saveAccount();
     }
     
     // Get results

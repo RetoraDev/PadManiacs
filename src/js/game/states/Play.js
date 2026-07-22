@@ -34,6 +34,9 @@ class Play {
     this.currentCharacter = this.characterManager.getCurrentCharacter();
     this.skillSystem = new CharacterSkillSystem(this, this.currentCharacter);
     
+    // Update stats
+    if (playtestMode) Account.stats.chartsTestPlayed ++;
+    
     // Save last song to Account
     Account.lastSong = {
       url: this.song.chart.audioUrl,
@@ -336,10 +339,10 @@ class Play {
     
     this.overHud = game.add.sprite(0, 0);
     
-    const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
+    const difficulty = this.song.chart.difficulties[this.difficultyIndex];
     
     this.difficultyBanner = game.add.sprite(0, 0, "ui_difficulty_banner", 0);
-    this.difficultyBanner.tint = this.getDifficultyColor(difficulty.rating);
+    this.difficultyBanner.tint = window.getDifficultyColor(difficulty.rating, true);
     this.hudTop.addChild(this.difficultyBanner);
     
     this.difficultyTypeText = new Text(5, 1, difficulty.type.substr(0, 9), FONTS.default, this.difficultyBanner);
@@ -450,35 +453,6 @@ class Play {
         lrc: Account.settings.enableLyrics ? lrcContent : "",
       });
     }
-  }
-  
-  getDifficultyColor(value) {
-    const max = 11; // The actual maximum considered difficulty
-    
-    // Ensure the value is within the range [0, max]
-    value = Math.max(0, Math.min(max, value));
-
-    // Extract the RGB components of the start and end colors
-    var startColor = { r: 25, g: 210, b: 25 };
-    var endColor = { r: 210, g: 0, b: 0 };
-
-    // Interpolate between the start and end colors
-    var r = Math.floor(startColor.r + (endColor.r - startColor.r) * (value / max));
-    var g = Math.floor(startColor.g + (endColor.g - startColor.g) * (value / max));
-    var b = Math.floor(startColor.b + (endColor.b - startColor.b) * (value / max));
-
-    // Combine the RGB components into a single tint value
-    return (r << 16) | (g << 8) | b;
-  }
-  
-  getDifficultyColorFromType(type) {
-    return {
-      'Beginner': 0x00ffb2,
-      'Easy': 0x00ff4c,
-      'Medium': 0xffcc00,
-      'Hard': 0xff7f00,
-      'Challenge': 0xff4c00,
-    }[type];
   }
   
   setInitialBackground() {
@@ -836,6 +810,9 @@ class Play {
     if (this.preloadedBackgroundElements[filename]) {
       const element = this.preloadedBackgroundElements[filename];
       
+      // Handle previous bg effects
+      this.handlePreviousBgFadeOut();
+      
       // Check if element is errored
       if (!element || element.__errored) {
         console.warn(`Preloaded background is errored: ${filename}`);
@@ -885,6 +862,9 @@ class Play {
     // Check if there is already a background preloaded
     if (this.preloadedBackgroundElements[filename]) {
       const element = this.preloadedBackgroundElements[filename];
+      
+      // Handle previous bg effects
+      this.handlePreviousBgFadeOut();
       
       // Check if element is errored
       if (!element || element.__errored) {
@@ -954,7 +934,23 @@ class Play {
   applyBackground(bg) {
     if (bg.file == '-nosongbg-') {
       this.clearBackground();
-    } else if (bg.type == 'video') {
+      this.currentBackground = bg;
+      return;
+    }
+    
+    // Cancel any existing fade tween
+    if (this._bgFadeTween) {
+      this._bgFadeTween.stop();
+      this._bgFadeTween = null;
+    }
+    
+    // Cancel any existing effect timer
+    if (this._bgEffectTimer) {
+      clearTimeout(this._bgEffectTimer);
+      this._bgEffectTimer = null;
+    }
+    
+    if (bg.type == 'video') {
       this.loadBackgroundVideo(bg.file, bg.url, () => {
         this.applyBgEffects(bg);
       }, () => {
@@ -969,15 +965,111 @@ class Play {
   
   applyBgEffects(bg) {
     const alpha = bg.type == 'video' ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
+    const targetAlpha = parseFloat(bg.opacity) * alpha;
     
-    if (bg.fadeIn) {
-      this.backgroundSprite.alpha = 0;
-      game.add.tween(this.backgroundSprite).to({ alpha: parseFloat(bg.opacity) * alpha }, 500, "Linear",true);
-    } else {
-      this.backgroundSprite.alpha = bg.opacity * alpha;
+    // Cancel any existing fade tween
+    if (this._bgFadeTween) {
+      this._bgFadeTween.stop();
+      this._bgFadeTween = null;
     }
     
-    // TODO: When applying bg effects take in account bg.fadeOut and bg.effect. May be tricky to implement them, specially bg.effect
+    // Handle fade in
+    if (bg.fadeIn && bg.fadeIn > 0) {
+      this.backgroundSprite.alpha = 0;
+      this._bgFadeTween = game.add.tween(this.backgroundSprite)
+        .to({ alpha: targetAlpha }, bg.fadeIn * 1000, Phaser.Easing.Quadratic.InOut, true);
+    } else {
+      this.backgroundSprite.alpha = targetAlpha;
+    }
+    
+    // Handle fade out (schedule it)
+    if (bg.fadeOut && bg.fadeOut > 0) {
+      // Calculate duration until fade out starts
+      // We need to know when this background will be replaced
+      // Since we don't know when the next BG change is, we store the fadeOut info
+      this._pendingFadeOut = {
+        duration: bg.fadeOut * 1000,
+        targetAlpha: 0
+      };
+    } else {
+      this._pendingFadeOut = null;
+    }
+    
+    // Handle effect (bg.effect)
+    // StepMania effects: 0=none, 1=stretch, 2=scroll, 3=...
+    if (bg.effect && bg.effect > 0) {
+      // Commented, the existing implementation is poor and doesn't handle them correctly
+      // this.applyBgEffect(bg);
+    }
+  }
+  
+  applyBgEffect(bg) {
+    // Cancel existing effect
+    if (this._bgEffectTimer) {
+      clearInterval(this._bgEffectTimer);
+      this._bgEffectTimer = null;
+    }
+    
+    switch (parseInt(bg.effect)) {
+      case 1: // Stretch - horizontal distortion
+        this._bgEffectTimer = setInterval(() => {
+          if (!this.backgroundSprite || this.shootingDown) {
+            clearInterval(this._bgEffectTimer);
+            this._bgEffectTimer = null;
+            return;
+          }
+          const wave = Math.sin(Date.now() * 0.002) * 0.05 + 1;
+          this.backgroundSprite.scale.x = wave;
+        }, 50);
+        break;
+        
+      case 2: // Scroll - vertical pan
+        this._bgEffectTimer = setInterval(() => {
+          if (!this.backgroundSprite || this.shootingDown) {
+            clearInterval(this._bgEffectTimer);
+            this._bgEffectTimer = null;
+            return;
+          }
+          const offset = (Date.now() * 0.02) % 112;
+          this.backgroundSprite.crop(new Phaser.Rectangle(0, offset, 240, 140));
+        }, 50);
+        break;
+        
+      case 3: // Pulse - alpha oscillation
+        this._bgEffectTimer = setInterval(() => {
+          if (!this.backgroundSprite || this.shootingDown) {
+            clearInterval(this._bgEffectTimer);
+            this._bgEffectTimer = null;
+            return;
+          }
+          const pulse = 0.6 + Math.sin(Date.now() * 0.003) * 0.4;
+          this.backgroundSprite.alpha = parseFloat(bg.opacity) * pulse * 
+            (bg.type == 'video' ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity);
+        }, 50);
+        break;
+        
+      default:
+        // No effect
+        break;
+    }
+  }
+  
+  handlePreviousBgFadeOut() {
+    // If there's a pending fade out for the current background
+    if (this._pendingFadeOut && this.currentBackground) {
+      // Fade out current background
+      if (this._bgFadeTween) {
+        this._bgFadeTween.stop();
+      }
+      this._bgFadeTween = game.add.tween(this.backgroundSprite)
+        .to({ alpha: 0 }, this._pendingFadeOut.duration, Phaser.Easing.Quadratic.InOut, true)
+        .onComplete.add(() => {
+          if (this.backgroundSprite) {
+            this.backgroundSprite.alpha = 0;
+          }
+        });
+      this._pendingFadeOut = null;
+    }
   }
   
   getGameResults(player = this.player) {
@@ -1018,6 +1110,45 @@ class Play {
     // Update character stats
     const gameResults = this.getGameResults(this.player);
     
+    // Track full combo and flawless combo stats
+    if (!this.autoplay) {
+      const judgements = this.player.judgementCounts;
+      const totalNotes = this.player.totalNotes;
+      const isFullCombo = judgements.miss === 0;
+      const isFlawless = isFullCombo && (judgements.marvelous + judgements.perfect) === totalNotes;
+      const isAbsoluteFlawless = isFullCombo && judgements.marvelous === totalNotes;
+      
+      // Update stats
+      if (isFullCombo) {
+        Account.stats.fullCombos = (Account.stats.fullCombos || 0) + 1;
+        
+        // Update full combo streak
+        Account.stats.currentFullComboStreak = (Account.stats.currentFullComboStreak || 0) + 1;
+        if (Account.stats.currentFullComboStreak > (Account.stats.maxFullComboStreak || 0)) {
+          Account.stats.maxFullComboStreak = Account.stats.currentFullComboStreak;
+        }
+        
+        // Track flawless
+        if (isFlawless) {
+          Account.stats.flawlessFullCombos = (Account.stats.flawlessFullCombos || 0) + 1;
+          Account.stats.flawlessStreak = (Account.stats.flawlessStreak || 0) + 1;
+        } else {
+          Account.stats.flawlessStreak = 0;
+        }
+        
+        // Track absolute flawless
+        if (isAbsoluteFlawless) {
+          Account.stats.absoluteFlawless = (Account.stats.absoluteFlawless || 0) + 1;
+        }
+      } else {
+        // Reset streaks on non-full combo
+        Account.stats.currentFullComboStreak = 0;
+        Account.stats.flawlessStreak = 0;
+      }
+      
+      saveAccount();
+    }
+    
     // Calculate experience gain (0 if autoplay is enabled)
     const expGain = this.autoplay ? 0 : this.characterManager.calculateExperienceGain(gameResults);
     
@@ -1039,7 +1170,10 @@ class Play {
       player: this.player,
       expGain: expGain,
       gameResults: gameResults,
-      playlistKey: this.playlistKey
+      playlistKey: this.playlistKey,
+      isFullCombo: isFullCombo,
+      isFlawless: isFlawless,
+      isAbsoluteFlawless: isAbsoluteFlawless
     };
     
     // Hide HUD
@@ -1327,6 +1461,11 @@ class Play {
   
   shutdown() {
     this.shootingDown = true;
+    
+    if (this._bgEffectTimer) {
+      clearInterval(this._bgEffectTimer);
+      this._bgEffectTimer = null;
+    }
     
     this.audio.removeEventListener("ended", this.audioEndListener);
     window.removeEventListener("visibilitychange", this.visibilityChangeListener);

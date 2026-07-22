@@ -8,7 +8,7 @@ class Player {
     this.hud = scene.hud;
     
     // Use ChartRenderer for rendering
-    this.renderer = new ChartRenderer(scene, JSON.parse(JSON.stringify(scene.song)), scene.song.difficultyIndex, {
+    this.renderer = new ChartRenderer(scene, JSON.parse(JSON.stringify(scene.song)), scene.song.difficultyIndex || scene.difficultyIndex, {
       enableGameplayLogic: true,
       enableJudgement: true,
       enableInput: true,
@@ -662,7 +662,7 @@ class Player {
   
       game.tweens.removeFrom(this.judgementText);
       
-      // NOTE: This is the old tween animation, disabled and replaced by this new one
+      // This is the old tween animation, disabled and replaced by this new one
       //game.add.tween(this.judgementText.scale).to({ x: 1.5, y: 1 }, 200, "Linear", true).yoyo(true);
       //game.add.tween(this.judgementText).to({ alpha: 0 }, 200, "Linear", true, 200);
       

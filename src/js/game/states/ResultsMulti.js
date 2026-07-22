@@ -67,7 +67,7 @@ class ResultsMulti extends Results {
     
     this.songText = new Text(8, 10, `${title}`, FONTS.default_shadow);
     this.diffText = new Text(10, 20, `${difficulty.type} (${difficulty.rating})`, FONTS.default);
-    this.diffText.tint = new Play().getDifficultyColor(difficulty.rating);
+    this.diffText.tint = window.getDifficultyColor(difficulty.rating, true);
     
     if (title.length > 25) this.songText.scrollwrite(title, 25);
     
@@ -94,16 +94,40 @@ class ResultsMulti extends Results {
   getWinner() {
     const { player1, player2 } = this.gameResults.results;
     
-    // TODO: Winner calculation would more complex logic
     if (player1.autoplay || player2.autoplay) {
-      return 0; // Draw case: Autoplay
-    } else if (player1.score == player2.score) {
-      return 0; // Draw case: Both players have same score
-    } else if (player1.score > player2.score) {
-      return 1; // Player 1 wins
-    } else {
-      return 2; // Player 2 wins
+      return 0;
     }
+    
+    // Compare by score first
+    if (player1.score > player2.score) return 1;
+    if (player2.score > player1.score) return 2;
+    
+    // Same score: compare by accuracy
+    if (player1.accuracy > player2.accuracy) return 1;
+    if (player2.accuracy > player1.accuracy) return 2;
+    
+    // Same accuracy: compare by max combo
+    if (player1.maxCombo > player2.maxCombo) return 1;
+    if (player2.maxCombo > player1.maxCombo) return 2;
+    
+    // Same combo: compare by judgement counts (weighted)
+    const getWeightedScore = (j) => {
+      return (j.marvelous || 0) * 4 +
+             (j.perfect || 0) * 3 +
+             (j.great || 0) * 2 +
+             (j.good || 0) * 1 -
+             (j.boo || 0) * 2 -
+             (j.miss || 0) * 5;
+    };
+    
+    const p1Weighted = getWeightedScore(player1.judgementCounts);
+    const p2Weighted = getWeightedScore(player2.judgementCounts);
+    
+    if (p1Weighted > p2Weighted) return 1;
+    if (p2Weighted > p1Weighted) return 2;
+    
+    // Still tied: draw
+    return 0;
   }
   
   showPlayerResults(playerNumber = playerNumber) {

@@ -55,7 +55,7 @@ const addFpsText = () => {
   return text;
 };
 
-const openExternalUrl = url => {
+window.openExternalUrl = url => {
   // Ensure URL is properly encoded
   const encodedUrl = encodeURI(url);
   
@@ -73,6 +73,49 @@ const openExternalUrl = url => {
       a.target = '_blank';
       a.click();
       break;
+  }
+};
+
+window.getSongKey = song => {
+  if (!song) return null;
+  
+  if (song.chart) song = song.chart;
+  
+  // Create unique key for song (for both local and external)
+  if (song.folderName) {
+    return `local_${song.folderName}`;
+  } else if (song.audioUrl) {
+    // For external songs, use audio URL hash
+    return `external_${this.hashString(song.audioUrl)}`;
+  }
+  return `unknown_${Date.now()}`;
+}
+
+window.getDifficultyColor = (value, returnIntFormat = false) => {
+  const max = 11; // The actual maximum considered difficulty
+  
+  // Ensure the value is within the range [0, max]
+  value = Math.max(0, Math.min(max, value));
+
+  // Extract the RGB components of the start and end colors
+  var startColor = { r: 25, g: 210, b: 25 };
+  var endColor = { r: 210, g: 0, b: 0 };
+
+  // Interpolate between the start and end colors
+  var r = Math.floor(startColor.r + (endColor.r - startColor.r) * (value / max));
+  var g = Math.floor(startColor.g + (endColor.g - startColor.g) * (value / max));
+  var b = Math.floor(startColor.b + (endColor.b - startColor.b) * (value / max));
+
+  // Combine the RGB components into a single tint value
+  if (returnIntFormat) {
+    return (r << 16) | (g << 8) | b;
+  } else {
+    // Combine the RGB components into a single tint value
+    const hexR = Phaser.Color.componentToHex(r);
+    const hexG = Phaser.Color.componentToHex(g);
+    const hexB = Phaser.Color.componentToHex(b);
+    
+    return `#${hexR}${hexG}${hexB}`;
   }
 };
 

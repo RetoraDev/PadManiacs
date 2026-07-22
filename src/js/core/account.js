@@ -70,6 +70,13 @@ const DEFAULT_ACCOUNT = {
     maxCombo: 0,
     perfectGames: 0,
     maxMarvelousInGame: 0,
+    fullCombos: 0,
+    flawlessFullCombos: 0,
+    absoluteFlawless: 0,
+    maxFullComboStreak: 0,
+    currentFullComboStreak: 0,
+    flawlessStreak: 0,
+    multiplayerGamesPlayed: 0,
 
     // Character stats
     charactersCreated: 0,
@@ -119,7 +126,12 @@ const DEFAULT_ACCOUNT = {
     featureRequestPrompted: false,
     lastCrashed: false,
     submittedBugReport: false,
-    wentToCommunity: false
+    wentToCommunity: false,
+    editorTimeSpent: 0, 
+    chartsCreated: 0,
+    chartsWithDifficultySet: 0,
+    usedAllNoteTypesInChart: false,
+    chartsTestPlayed: 0
   },
   achievements: {
     unlocked: {},

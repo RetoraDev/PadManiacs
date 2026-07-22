@@ -28,7 +28,7 @@ Please Report The Developer Immediately!
     }, { once: true });
     
     game.canvas.parentNode.addEventListener("click", () => {
-      openExternalUrl(FEEDBACK_BUG_REPORT_URL);
+      window.openExternalUrl(FEEDBACK_BUG_REPORT_URL);
       game.state.start(this.recoverStateKey);
     }, { once: true });
   }

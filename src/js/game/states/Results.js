@@ -52,7 +52,7 @@ class Results {
       return false;
     }
     
-    const songKey = this.getSongKey(song);
+    const songKey = window.getSongKey(song);
     const difficultyKey = `${difficulty.type}${difficulty.rating}`;
     
     if (!Account.highScores[songKey]) {
@@ -78,17 +78,6 @@ class Results {
     }
     
     return isNewRecord;
-  }
-
-  getSongKey(song) {
-    // Create unique key for song (for both local and external)
-    if (song.chart.folderName) {
-      return `local_${song.chart.folderName}`;
-    } else if (song.chart.audioUrl) {
-      // For external songs, use audio URL hash
-      return `external_${this.hashString(song.chart.audioUrl)}`;
-    }
-    return `unknown_${Date.now()}`;
   }
 
   hashString(str) {
@@ -136,7 +125,7 @@ class Results {
     
     this.songText = new Text(8, 10, `${title}`, FONTS.shaded);
     this.diffText = new Text(10, 20, `${difficulty.type} (${difficulty.rating})`);
-    this.diffText.tint = new Play().getDifficultyColor(difficulty.rating);
+    this.diffText.tint = window.getDifficultyColor(difficulty.rating, true);
     
     if (title.length > 25) this.songText.scrollwrite(title, 25);
     

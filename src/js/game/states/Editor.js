@@ -523,6 +523,7 @@ class Editor {
       
       if (this.songInfoText) {
         this.songInfoText.write(this.getSongInfoText());
+        this.songInfoText.wrap(game.width / 2 - 8);
       }
     }
   }
@@ -1843,7 +1844,19 @@ Sample Length: ${chart.sampleLength}
       const fileName = `${songData.title || "song"}.zip`;
       await this.saveFile(blob, fileName);
       
+      // Update stats
       Account.stats.totalExportedSongs ++;
+      
+      const allNotes = [];
+      for (const diff of this.song.chart.difficulties) {
+        const notes = this.song.chart.notes[diff.type + diff.rating] || [];
+        allNotes.push(...notes);
+      }
+      const types = new Set(allNotes.map(n => n.type));
+      if (types.has('1') && types.has('2') && types.has('3') && types.has('4') && types.has('M')) {
+        Account.stats.usedAllNoteTypesInChart = true;
+        saveAccount();
+      }
 
       this.hideLoadingScreen();
       this.showHomeScreen();
@@ -1920,6 +1933,8 @@ Sample Length: ${chart.sampleLength}
           this.song.chart.notes[newKey] = this.song.chart.notes[oldKey];
           delete this.song.chart.notes[oldKey];
         }
+        
+        Account.stats.chartsWithDifficultySet++;
 
         this.showChartsMenu();
       });
@@ -2561,6 +2576,8 @@ BEAT: ${bg.beat}`);
 
   update() {
     gamepad.update();
+    
+    Account.stats.editorTimeSpent += game.time.elapsed / 1000;
     
     const { now, beat } = this.getCurrentTime();
     

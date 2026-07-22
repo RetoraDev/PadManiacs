@@ -326,7 +326,7 @@ class SongSelect {
         {
           difficulty: diff,
           index: index,
-          bgcolor: this.getDifficultyColor(parseInt(diff.rating))
+          bgcolor: window.getDifficultyColor(parseInt(diff.rating))
         }
       );
     });
@@ -471,29 +471,6 @@ class SongSelect {
     );
   }
 
-  getDifficultyColor(value) {
-    const max = 11; // The actual maximum considered difficulty
-    
-    // Ensure the value is within the range [0, max]
-    value = Math.max(0, Math.min(max, value));
-
-    // Extract the RGB components of the start and end colors
-    var startColor = { r: 25, g: 210, b: 25 };
-    var endColor = { r: 210, g: 0, b: 0 };
-
-    // Interpolate between the start and end colors
-    var r = Math.floor(startColor.r + (endColor.r - startColor.r) * (value / max));
-    var g = Math.floor(startColor.g + (endColor.g - startColor.g) * (value / max));
-    var b = Math.floor(startColor.b + (endColor.b - startColor.b) * (value / max));
-
-    // Combine the RGB components into a single tint value
-    const hexR = Phaser.Color.componentToHex(r);
-    const hexG = Phaser.Color.componentToHex(g);
-    const hexB = Phaser.Color.componentToHex(b);
-    
-    return `#${hexR}${hexG}${hexB}`;
-  }
-
   startGame(song, difficultyIndex, singlePlayer = true) {
     // Start gameplay with selected song
     game.state.start(singlePlayer ? "Play" : "PlayMulti", true, false, {
@@ -603,8 +580,8 @@ class SongSelect {
     }
     
     // Statistics
-    this.actionsMenu.addItem("See statistics", () => {
-      game.state.start("SongStats", true, false, { chart: this.songs[this.songCarousel.selectedIndex] }, "SongSelect", [this.songs, this.songCarousel.selectedIndex, this.autoSelect, this.type, this.playlistKey]);
+    this.actionsMenu.addItem("See properties", () => {
+      game.state.start("SongStats", true, false, { chart: this.songs[this.songCarousel.selectedIndex], playlistKey: this.playlistKey }, "SongSelect", [this.songs, this.songCarousel.selectedIndex, this.autoSelect, this.type, this.playlistKey]);
     });
     
     // Open in Jukebox
@@ -623,6 +600,12 @@ class SongSelect {
   
   showAddToPlaylistMenu(song, omitKey) {
     if (this.actionsMenu) this.actionsMenu.destroy();
+    
+    if (!song.isLocal) {
+      notifications.show("Songs loaded with file picker can't be added to playlists");
+      this.showActionsMenu(omitKey);
+      return;
+    }
     
     this.actionsMenu = new CarouselMenu(0, 35, game.width / 2, 100, {
       bgcolor: '#8e44ad',
@@ -661,7 +644,7 @@ class SongSelect {
     const keyboard = new OnScreenKeyboard();
     
     window.focusedElement = new TextInput({
-      text: song.titleTranslit || song.title || "New Playlist",
+      text: sog.titleTranslit || song.title || "New Playlist",
       maxLength: 20,
       useNewline: false,
       y: 35,

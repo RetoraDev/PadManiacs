@@ -61,7 +61,7 @@ class MainMenu {
       "Could you quickly report what you were doing when it crashed?\n",
       () => {
         // Open bug report page
-        openExternalUrl(FEEDBACK_BUG_REPORT_URL);
+        window.openExternalUrl(FEEDBACK_BUG_REPORT_URL);
         
         // Clear the flag and show menu
         Account.stats.lastCrashed = false;
@@ -90,7 +90,7 @@ class MainMenu {
       "Would you mind leaving a quick rating?\n",
       () => {
         // Rate Now
-        openExternalUrl(FEEDBACK_REVIEW_URL);
+        window.openExternalUrl(FEEDBACK_REVIEW_URL);
         
         Account.stats.gameRated = true;
         saveAccount();
@@ -116,7 +116,7 @@ class MainMenu {
       "What would you like to see in the game?\n",
       () => {
         // Share ideas
-        openExternalUrl(FEEDBACK_FEATURE_REQUEST_URL);
+        window.openExternalUrl(FEEDBACK_FEATURE_REQUEST_URL);
         
         Account.stats.featureRequestPrompted = true;
         saveAccount();
@@ -142,7 +142,7 @@ class MainMenu {
       "Join the community to download more charts, and share your creations and high scores with other players!\n",
       () => {
         // Join
-        openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+        window.openExternalUrl(COMMUNITY_HOMEPAGE_URL);
         
         Account.stats.wentToCommunity = true;
         saveAccount();
@@ -275,7 +275,7 @@ class MainMenu {
     });
     
     const openLink = url => {
-      openExternalUrl(url);
+      window.openExternalUrl(url);
       this.showFeedback();
     };
     
@@ -289,7 +289,7 @@ class MainMenu {
   }
   
   showCommunity() {
-    openExternalUrl(COMMUNITY_HOMEPAGE_URL);
+    window.openExternalUrl(COMMUNITY_HOMEPAGE_URL);
     
     Account.stats.wentToCommunity = true;
     saveAccount();

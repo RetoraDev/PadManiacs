@@ -55,6 +55,7 @@ class LoadLocalSongs {
       // Parse the SM file
       const chart = await this.parser.parseSM(smContent, baseUrl);
       chart.folderName = folderName;
+      chart.isLocal = true;
       chart.loaded = true;
       
       return chart;

@@ -143,6 +143,7 @@ class Keybindings {
           this.pendingChanges.keyboard = JSON.parse(JSON.stringify(DEFAULT_KEYBOARD_MAPPING));
           this.pendingChanges.gamepad = JSON.parse(JSON.stringify(DEFAULT_GAMEPAD_MAPPING));
           this.showNotification("Keybindings reset!");
+          this.showKeybindingsMenu();
         },
         () => {
           this.showKeybindingsMenu();

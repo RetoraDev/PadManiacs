@@ -1,6 +1,7 @@
 class SongStats {
   init(song, returnState, returnParams = {}) {
     this.song = song;
+    this.playlistKey = this.song.playlistKey || null;
     this.returnState = returnState;
     this.returnParams = returnParams;
     this.currentTab = 0;
@@ -32,20 +33,29 @@ class SongStats {
     };
     
     window.addEventListener('visibilitychange', this.visibilityChangeListener);
-    
   }
 
   create() {
     game.camera.fadeIn(0x000000);
     
-    this.backgroundGradient = new BackgroundGradient();
+    this.background = new CanvasBackground();
+    this.background.alpha = 0.3;
+    
+    this.backgroundGradient = new BackgroundGradient(0, 0.3);
     this.futuristicLines = new FuturisticLines();
     
-    this.navigationHint = new NavigationHint([
-      { position: "left", icon: "d-pad", text: "NAVIGATE" },
-      { position: "right", icon: "select", text: "DIFFICULTY" },
-      { position: "right", icon: "b", text: "BACK" }
-    ]);
+    const chart = this.song.chart;
+    if (chart.backgroundUrl && chart.backgroundUrl !== "no-media") {
+      const img = new Image();
+      img.onload = () => {
+        if (this.isDestroyed) return;
+        this.background.ctx.drawImage(img, 0, 0, 240, 140);
+        this.background.dirty();
+      };
+      img.src = chart.backgroundUrl;
+    }
+    
+    this.navigationHint = new NavigationHint("song_stats");
     
     this.windowManager = new WindowManager();
     
@@ -83,16 +93,25 @@ class SongStats {
       this.diffText.write("No difficulty");
     }
     // Show only in difficulties and preview tabs
-    this.diffText.visible = (this.currentTab === 1 || this.currentTab === 2 || this.currentTab === 3);
+    this.diffText.visible = (this.currentTab === 1 || this.currentTab === 3);
   }
 
   startArrowIdle() {
-    this.leftArrowTween = game.add.tween(this.leftArrow)
-      .to({ x: 89 }, 300, Phaser.Easing.Quadratic.InOut, true, 0, -1)
-      .yoyo(true);
-    this.rightArrowTween = game.add.tween(this.rightArrow)
-      .to({ x: 151 }, 300, Phaser.Easing.Quadratic.InOut, true, 0, -1)
-      .yoyo(true);
+    if (this.leftArrowTween) {
+      this.leftArrowTween.start();
+    } else {
+      this.leftArrowTween = game.add.tween(this.leftArrow)
+        .to({ x: 89 }, 300, Phaser.Easing.Quadratic.InOut, true, 0, -1)
+        .yoyo(true);
+    }
+    
+    if (this.rightArrowTween) {
+      this.rightArrowTween.start();
+    } else {
+      this.rightArrowTween = game.add.tween(this.rightArrow)
+        .to({ x: 151 }, 300, Phaser.Easing.Quadratic.InOut, true, 0, -1)
+        .yoyo(true);
+    }
   }
 
   stopArrowIdle() {
@@ -107,18 +126,13 @@ class SongStats {
   }
 
   animateArrowPress(direction) {
-    this.stopArrowIdle();
     const arrow = direction === -1 ? this.leftArrow : this.rightArrow;
     const targetX = arrow.x + (direction * 3);
     const originalX = direction === -1 ? 92 : 148;
     
     game.add.tween(arrow)
       .to({ x: targetX }, 100, Phaser.Easing.Quadratic.Out, true)
-      .onComplete.add(() => {
-        game.add.tween(arrow)
-          .to({ x: originalX }, 100, Phaser.Easing.Quadratic.In, true)
-          .onComplete.add(() => this.startArrowIdle());
-      });
+      .yoyo(true);
   }
 
   showTab(index) {
@@ -128,6 +142,7 @@ class SongStats {
     this.tabTitle.write(this.tabs[index].label);
     this.tabs[index].create();
     this.updateDiffText();
+    this.navigationHint.updateHints(index === 3 ? "song_stats_song_preview" : "song_stats");
   }
 
   clearTab() {
@@ -195,25 +210,6 @@ class SongStats {
     };
   }
 
-  getSongKey() {
-    const chart = this.song.chart;
-    // Use folderName if available (local or external songs)
-    if (chart.folderName) {
-      return `local_${chart.folderName}`;
-    }
-    // Fallback to audio URL hash
-    if (chart.audioUrl) {
-      let hash = 0;
-      for (let i = 0; i < chart.audioUrl.length; i++) {
-        const char = chart.audioUrl.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-      }
-      return `external_${hash.toString(36)}`;
-    }
-    return `unknown_${Date.now()}`;
-  }
-
   createGeneralTab() {
     this.tabContent = game.add.group();
     const banner = new CanvasBackground(4, 24);
@@ -250,6 +246,60 @@ class SongStats {
     );
     info.wrap(136 - 8);
     this.tabContent.addChild(info);
+    
+    let carousel;
+    
+    const resetCarousel = (disableCancel = false) => {
+      if (carousel) carousel.destroy();
+      
+      carousel = new CarouselMenu(0, 24 + 32, 80, 86, {
+        bgcolor: '#2c3e50',
+        fgcolor: '#ffffff',
+        align: 'left',
+        animate: true,
+        margin: { left: 4, right: 4 },
+        disableCancel: disableCancel
+      });
+      
+      this.tabContent.addChild(carousel);
+      
+      this.returnBlocked = !disableCancel;
+    };
+    
+    const mainMenu = () => {
+      resetCarousel(true);
+      carousel.addItem("Play Song", () => modeSelect());
+      carousel.addItem("Open in Editor", () => {
+        game.state.start("Editor", true, false, this.song);
+      });
+    };
+    
+    const modeSelect = () => {
+      resetCarousel();
+      carousel.addItem("Normal", () => diffSelect(false));
+      carousel.addItem("Autoplay", () => diffSelect(true));
+      carousel.addItem("< Back", () => mainMenu());
+      carousel.onCancel.add(() => mainMenu());
+    };
+    
+    const diffSelect = (autoplay) => {
+      resetCarousel();
+      this.song.chart.difficulties.sort((a, b) => a.rating - b.rating).forEach((diff, index) => {
+        carousel.addItem(
+          `${diff.type} (${diff.rating})`,
+          (item) => {
+            game.state.start("Play", true, false, this.song, index, undefined, autoplay, undefined, this.playlistKey);
+          },
+          {
+            difficulty: diff,
+            index: index,
+            bgcolor: window.getDifficultyColor(parseInt(diff.rating))
+          }
+        );
+      });
+    };
+    
+    mainMenu();
   }
 
   createDifficultiesTab() {
@@ -261,7 +311,7 @@ class SongStats {
       return;
     }
     
-    // Preview carousel - all same color, no > indicator
+    // Preview carousel
     const diffCarousel = new CarouselMenu(0, 24, 80, 86, {
       bgcolor: '#2c3e50',
       fgcolor: '#ffffff',
@@ -343,7 +393,7 @@ class SongStats {
       `\n       Notes: ${String(totalNotes).padEnd(5)}  Mines: ${String(mines).padEnd(5)}\n` +
       `       Holds: ${String(holds).padEnd(5)}  Rolls: ${String(rolls).padEnd(5)}\n` +
       `       Jumps: ${String(jumps).padEnd(5)}  Hands: ${String(hands).padEnd(5)}\n` +
-      `            Total: ${String(total).padEnd(5)}`
+      `             Total: ${String(total).padEnd(5)}`
     );
     
     if (notes.length > 0) {
@@ -361,7 +411,7 @@ class SongStats {
 
   createScoresTab() {
     this.tabContent = game.add.group();
-    const songKey = this.getSongKey();
+    const songKey = window.getSongKey(this.song);
     const scores = Account.highScores[songKey] || {};
     const diffs = this.getDifficulties();
     if (diffs.length === 0) {
@@ -399,14 +449,21 @@ class SongStats {
         const data = item.data.score;
         const date = new Date(data.date);
         this._scoreDetails.write(
+          `Date: ${date.toLocaleDateString()}\n\n` +
           `Score: ${data.score.toLocaleString()}\n` +
           `Accuracy: ${data.accuracy.toFixed(2)}%\n` +
+          `Max Combo: ${data.maxCombo}\n\n` +
           `Rating: ${data.rating}\n` +
-          `Max Combo: ${data.maxCombo}\n` +
-          `Date: ${date.toLocaleDateString()}`
+          `Judgements:\n` +
+          ` • Marvelous: ${data.judgements.marvelous}\n` +
+          ` • Perfect: ${data.judgements.perfect}\n` +
+          ` • Great: ${data.judgements.great}\n` +
+          ` • Good: ${data.judgements.good}\n` +
+          ` • Boo: ${data.judgements.boo}\n` +
+          ` • Miss: ${data.judgements.miss}`
         );
-      } else if (item.data && item.data.diff) {
-        this._scoreDetails.write(`\n\n< No score recorded >`);
+      } else {
+        this._scoreDetails.write('\n< NO HIGHSCORES >');
       }
     });
     
@@ -439,11 +496,10 @@ class SongStats {
       enableBeatLines: true,
       enableSpeedRendering: true,
       enableBGRendering: true,
-      judgeLineYFalling: 80,
-      judgeLineYRising: 60,
+      judgeLineYFalling: 90,
+      judgeLineYRising: 50,
       enableChartBackground: true,
-      chartBackgroundOpacity: 0.2,
-      scrollDirection: this.scrollDirection
+      chartBackgroundOpacity: 0.4
     });
     this.chartRenderer.notes.forEach(n => n.hitEffectShown = false);
     this.chartRenderer.receptors.forEach(r => r.visible = true);
@@ -533,7 +589,7 @@ class SongStats {
       if (this.previewAudio && !this.previewAudio.paused) this.previewAudio.pause();
     }
     
-    if (gamepad.pressed.b) {
+    if (!this.returnBlocked && gamepad.pressed.b) {
       this.cleanup();
       const params = Array.isArray(this.returnParams) ? this.returnParams : [this.returnParams];
       game.state.start(this.returnState, true, false, ...params);
