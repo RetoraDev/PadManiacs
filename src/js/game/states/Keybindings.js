@@ -135,7 +135,7 @@ class Keybindings {
       this.showGamepadCustomization(2);
     });
     
-    settingsWindow.addItem(__("RESET TO DEFAULTS||RESTABLECER"), "", () => {
+    settingsWindow.addItem(__("Reset To Defaults||restablecer"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(
         __("Reset all keybindings to default settings?||¿Restablecer todas las configuraciones de teclas a los valores predeterminados?"),
@@ -153,7 +153,7 @@ class Keybindings {
       );
     });
     
-    settingsWindow.addItem(__("< BACK||< VOLVER"), "", () => {
+    settingsWindow.addItem(__("< Back||< Volver"), "", () => {
       game.state.start("Settings");
     }, true);
     

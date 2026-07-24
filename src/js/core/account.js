@@ -1,5 +1,5 @@
 const DEFAULT_ACCOUNT = {
-  version: 1.11, // 1.1.1
+  version: 1.2, // 1.2.0
   settings: {
     volume: 100,
     sfxVolume: 100,

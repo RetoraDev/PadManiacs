@@ -4,9 +4,9 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.1.1
- * Build: 7/22/2026, 8:12:54 AM
- * Platform: Web
+ * Version: v1.2.0 dev
+ * Build: 7/23/2026, 8:49:50 PM
+ * Platform: Development
  * Debug: false
  * Minified: false
  */
@@ -78,7 +78,7 @@ const __ = window.__;
 
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.1.1";
+const VERSION = "v1.2.0 dev";
 
 window.DEBUG = false;
 
@@ -361,7 +361,7 @@ const NAVIGATION_HINT_PRESETS = {
     { position: "right", icon: "b", text: __("BACK||VOLVER") }
   ],
   song_stats_song_preview: [
-    { position: "left", icon: "left", text: __("NAVIGATE||NAVEGAR") },
+    { position: "left", icon: "d-pad", text: __("NAVIGATE||NAVEGAR") },
     { position: "right", icon: "select", text: __("DIFFICULTY||DIFICULTAD") },
     { position: "right", icon: "b", text: __("BACK||VOLVER") }
   ]
@@ -779,7 +779,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -3234,7 +3234,7 @@ const CHARACTER_ITEMS = [
 ];
 
 const DEFAULT_ACCOUNT = {
-  version: 1.11, // 1.1.1
+  version: 1.2, // 1.2.0
   settings: {
     volume: 100,
     sfxVolume: 100,
@@ -8856,6 +8856,8 @@ class CarouselMenu extends Phaser.Sprite {
       activeAlpha: 0.9,
       doubleClickConfirm: false,
       gradient: true,
+      itemHeight: 8,
+      itemSpacing: 1,
       ...config,
       margin: { top: 4, bottom: 4, left: 4, right: 4, ...(config.margin || {}) },
     };
@@ -8869,8 +8871,8 @@ class CarouselMenu extends Phaser.Sprite {
     this.selectedIndex = 0;
     this.hoveredIndex = 0;
     this.scrollOffset = 0;
-    this.itemHeight = 8;
-    this.itemSpacing = 1;
+    this.itemHeight = this.config.itemHeight;
+    this.itemSpacing = this.config.itemSpacing;
     this.totalItemHeight = this.itemHeight + this.itemSpacing;
     
     this.visibleItems = Math.floor((height - this.config.margin.top - this.config.margin.bottom) / this.totalItemHeight);
@@ -8948,7 +8950,7 @@ class CarouselMenu extends Phaser.Sprite {
     this.addChild(itemParent);
     
     const bgWidth = this.viewport.width - this.config.margin.left - this.config.margin.right;
-    const bgHeight = this.itemHeight;
+    const bgHeight = data.height || this.itemHeight;
     
     const background = this.createGradientBackground(bgWidth, bgHeight, data.bgcolor);
     background.x = item.originalX;
@@ -9375,6 +9377,7 @@ class CarouselMenu extends Phaser.Sprite {
   
   updateItemVisibility(targetIndex) {
     this.items.forEach((item, index) => {
+      // TODO: Correcly place items based on their individual item.data.height and the space they take in viewport 
       const isSelected = index === (targetIndex || this.selectedIndex);
       const isVisible = index >= this.scrollOffset && 
                        index < this.scrollOffset + this.visibleItems;
@@ -9401,6 +9404,8 @@ class CarouselMenu extends Phaser.Sprite {
   
   updateItemPositions() {
     this.items.forEach((item, index) => {
+      // TODO: Correcly place items based on their individual item.data.height and the space they take in viewport 
+      
       const visibleIndex = index - this.scrollOffset;
       const targetY = this.config.margin.top + (visibleIndex * this.totalItemHeight);
       
@@ -10406,7 +10411,7 @@ class TextInput extends Phaser.Sprite {
       y: 35,
       width: 8,
       height: 2,
-      useNewLine: true,
+      useNewLine: false,
       maxLength: 28,
       onConfirm: null,
       onCancel: null,
@@ -10929,7 +10934,7 @@ class NotificationSystem {
       if (!this.notificationWindow) return;
       
       if (!this.notificationTint) {
-        this.notification.tint = 0x76fcde;
+        this.notificationWindow.tint = 0x76fcde;
         return;
       }
       
@@ -17903,6 +17908,7 @@ class LoadExternalSongs {
             // Chart file parsed successfully
             chart.folderName = dirEntry.name || `External_Song_${smFileName}`;
             chart.isLocal = true;
+            chart.isExternal = true;
             chart.loaded = true;
             return chart;
           }
@@ -18124,7 +18130,7 @@ class LoadSongFolder {
 
   async processFiles(files) {
     try {
-      this.progressText = new ProgressText(__("Loading Song...||Cargando canción..."));
+      this.progressText.write(__("Loading Song...||Cargando canción..."));
       
       if (files[0].name.endsWith(".zip")) {
         this.processZipFile(files[0]);
@@ -18155,6 +18161,7 @@ class LoadSongFolder {
       }
       
       chart.folderName = `Single_External_${smFileName}`;
+      chart.isExternal = true;
       chart.loaded = true;
 
       // Start gameplay directly with this single song
@@ -18334,6 +18341,7 @@ class LoadExternalSongFile {
       if (chart && chart.difficulties && chart.difficulties.length > 0) {
         // Chart file parsed successfully
         chart.folderName = dirEntry.name || `External_Song_${this.fileName.toLowerCase()}`;
+        chart.isExternal = true;
         chart.loaded = true;
         this.finish(chart);
         return;
@@ -20113,7 +20121,7 @@ class Keybindings {
       this.showGamepadCustomization(2);
     });
     
-    settingsWindow.addItem(__("RESET TO DEFAULTS||RESTABLECER"), "", () => {
+    settingsWindow.addItem(__("Reset To Defaults||restablecer"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(
         __("Reset all keybindings to default settings?||¿Restablecer todas las configuraciones de teclas a los valores predeterminados?"),
@@ -20131,7 +20139,7 @@ class Keybindings {
       );
     });
     
-    settingsWindow.addItem(__("< BACK||< VOLVER"), "", () => {
+    settingsWindow.addItem(__("< Back||< Volver"), "", () => {
       game.state.start("Settings");
     }, true);
     
@@ -21522,13 +21530,16 @@ class SongSelect {
   }
   
   createPlaylistForSong(song) {
-    const keyboard = new OnScreenKeyboard();
+    const keyboard = new OnScreenKeyboard(undefined, 68);
+    
+    this.highScoreText.visible = false;
     
     window.focusedElement = new TextInput({
-      text: song.titleTranslit || song.title || __("New Playlist||Nueva playlist"),
+      text: __("(My|Mi) Playlist"),
+      width: 12,
       maxLength: 20,
       useNewline: false,
-      y: 35,
+      y: 38,
       onConfirm: (name) => {
         if (name.trim()) {
           const playlistManager = PlaylistManager.getInstance();
@@ -21537,17 +21548,19 @@ class SongSelect {
             playlistManager.addSong(key, song);
             notifications.show(__(`Playlist "${name}" created with song!||¡Playlist "${name}" creada con esta canción!`));
             keyboard.destroy();
-            this.closeActionsMenu();
           } else {
             notifications.show(__("Playlist already exists!||¡La playlist ya existe!"));
           }
         } else {
           notifications.show(__("Name cannot be empty!||¡El nombre no puede estar vacío!"));
         }
+        this.closeActionsMenu();
+        this.highScoreText.visible = true;
       },
       onCancel: () => {
         keyboard.destroy();
         this.closeActionsMenu();
+        this.highScoreText.visible = true;
       }
     });
   }
@@ -21734,8 +21747,6 @@ class SongStats {
     }
     
     this.navigationHint = new NavigationHint("song_stats");
-    
-    this.windowManager = new WindowManager();
     
     this.headerGroup = game.add.group();
     this.leftArrow = new Text(92, 6, "<", FONTS.default);
@@ -22177,30 +22188,39 @@ class SongStats {
       judgeLineYFalling: 90,
       judgeLineYRising: 50,
       enableChartBackground: true,
-      chartBackgroundOpacity: 0.4
+      chartBackgroundOpacity: 0.3,
+      parent: this.tabContent
     });
     this.chartRenderer.notes.forEach(n => n.hitEffectShown = false);
     this.chartRenderer.receptors.forEach(r => r.visible = true);
-    this.chartRenderer.backgroundGraphics.visible = false;
     
-    this.tabContent.addChild(this.chartRenderer.receptorsGroup);
-    this.tabContent.addChild(this.chartRenderer.notesGroup);
-    this.tabContent.addChild(this.chartRenderer.freezeBodyGroup);
-    this.tabContent.addChild(this.chartRenderer.freezeEndGroup);
-    this.tabContent.addChild(this.chartRenderer.linesGroup);
-    this.tabContent.addChild(this.chartRenderer.minesGroup);
-    this.tabContent.addChild(this.chartRenderer.tagsGroup);
-    this.tabContent.addChild(this.chartRenderer.speedModGraphics);
-    this.tabContent.addChild(this.chartRenderer.bgChangeGraphics);
-    this.tabContent.addChild(this.chartRenderer.backgroundGraphics);
+    this.navigationHint.bringToTop();
     
     this.previewBeat = 0;
     this.previewPlaying = false;
-    this.previewStartTime = game.time.now;
+    this.previewStartTime = null;
     
     if (!this.previewAudio) {
+      const dots = new LoadingDots();
+      dots.x -= 4;
+      dots.y -= 8;
+      this.navigationBlocked = true;
       this.previewAudio = document.createElement('audio');
       this.previewAudio.src = this.song.chart.audioUrl;
+      this.previewAudio.oncanplaythrough = () => {
+        this.previewStartTime = game.time.now;
+        this.previewAudio.oncanplaythrough = null;
+        this.navigationBlocked = false;
+        dots.destroy();
+      };
+      this.previewAudio.onerror = () => {
+        this.previewStartTime = game.time.now;
+        this.previewAudio.onerror = null;
+        this.navigationBlocked = false;
+        dots.destroy();
+      };
+    } else {
+      this.previewStartTime = game.time.now;
     }
     
     this.previewAudio.currentTime = 0;
@@ -22208,7 +22228,7 @@ class SongStats {
   }
 
   updatePreview() {
-    if (this.isDestroyed || !this.chartRenderer || this.currentTab !== 3) return;
+    if (this.isDestroyed || !this.chartRenderer || this.currentTab !== 3 || !this.previewStartTime) return;
     
     const chartOffset = this.song.chart.offset || 0;
     const currentTime = ((game.time.now - this.previewStartTime + (chartOffset * 1000)) / 1000) + this.chartRenderer.beatToSec(this.previewBeat);
@@ -22243,8 +22263,10 @@ class SongStats {
 
   update() {
     if (this.isDestroyed) return;
+    
     gamepad.update();
-    this.windowManager.update();
+    
+    if (this.navigationBlocked) return;
     
     if (gamepad.pressed.left) {
       this.animateArrowPress(-1);
@@ -24264,6 +24286,9 @@ class StatsMenu {
 
 class Play {
   init(song, difficultyIndex, playtestMode, autoplay, playlistKey) {
+    if (typeof song.difficultyIndex != undefined && typeof difficultyIndex != undefined) {
+      song.difficultyIndex = difficultyIndex;
+    }
     this.originalSong = song;
     this.song = structuredClone(song);
     this.difficultyIndex = difficultyIndex || song.difficultyIndex;
@@ -24401,7 +24426,7 @@ class Play {
     
     if (activeModifiers.length === 0) return;
     
-    const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
+    const difficulty = this.song.chart.difficulties[this.difficultyIndex];
     const noteKey = difficulty.type + difficulty.rating;
     let notes = this.song.chart.notes[noteKey];
     if (!notes) return;
@@ -25347,7 +25372,7 @@ class Play {
       judgements: { ...player.judgementCounts },
       totalNotes: this.song.chart.notes.length,
       skillsUsed: this.skillSystem.getSkillsUsed(),
-      difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
+      difficultyRating: this.song.chart.difficulties[this.difficultyIndex].rating
     };
   }
   
@@ -25453,7 +25478,7 @@ class Play {
     
     if (gameResults.complete) {
       Account.stats.totalGamesPlayed++;
-      const difficultyType = this.song.chart.difficulties[this.song.difficultyIndex].type;
+      const difficultyType = this.song.chart.difficulties[this.difficultyIndex].type;
       Account.stats[`total${difficultyType}GamesPlayed`] += 1;
     }
     Account.stats.totalScore += this.player.score;
@@ -26294,7 +26319,7 @@ class Results {
         game.state.start("SongSelect", window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
       });
     }
-    menu.addItem(__("Retry||Reintentar"), () => game.state.start("Play", true, false, this.gameData.song, this.gameData.playlistKey));
+    menu.addItem(__("Retry||Reintentar"), () => game.state.start("Play", true, false, this.gameData.song, this.gameData.song.difficultyIndex, undefined, undefined, this.gameData.playlistKey));
     menu.addItem(__("Quit||Salir"), () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results', menu);
@@ -26542,7 +26567,7 @@ class Playlists {
   create() {
     game.camera.fadeIn(0x000000);
     
-    new BackgroundGradient();
+    new BackgroundGradient(0, 0.3);
     new FuturisticLines();
     this.navigationHint = new NavigationHint('general');
     
@@ -26555,10 +26580,10 @@ class Playlists {
   showPlaylistList() {
     if (this.carousel) this.carousel.destroy();
     
-    this.carousel = new CarouselMenu(0, 16, game.width, game.height - 24, {
+    this.carousel = new CarouselMenu(0, 16, game.width - 8, game.height - 24, {
       bgcolor: '#9b59b6',
       fgcolor: '#ffffff',
-      gradient: 'false',
+      gradient: false,
       animate: true
     });
     
@@ -26569,11 +26594,11 @@ class Playlists {
       const count = playlist.songs.length;
       this.carousel.addItem(`${playlist.name} (${count} songs)`, () => {
         this.openPlaylist(key);
-      }, { bgcolor: '#2c3e50', playlistKey: key });
+      }, { playlistKey: key });
     }
     
-    this.carousel.addItem("+ (Add|Añadir) Playlist", () => this.addPlaylist());
-    this.carousel.addItem("< (Back|Volver)", () => game.state.start("MainMenu"));
+    this.carousel.addItem("+ (Add|Añadir) Playlist", () => this.addPlaylist(), { bgcolor: '#2c3e50' });
+    this.carousel.addItem("< (Back|Volver)", () => game.state.start("MainMenu"), { bgcolor: '#2c3e50' });
     
     this.carousel.onCancel.add(() => game.state.start("MainMenu"));
     this.actionText.write("PLAYLISTS");
@@ -26584,6 +26609,7 @@ class Playlists {
     
     window.focusedElement = new TextInput({
       text: __("(My|Mi) Playlist"),
+      width: 12,
       maxLength: 20,
       useNewline: false,
       onConfirm: (name) => {
@@ -26616,11 +26642,12 @@ class Playlists {
     this.currentPlaylistKey = key;
     this.actionText.write(`${playlist.name} (${playlist.songs.length} songs)`);
     
-    this.carousel = new CarouselMenu(0, 16, game.width, game.height - 24, {
+    this.carousel = new CarouselMenu(0, 16, game.width - 8, game.height - 24, {
       bgcolor: '#2c3e50',
       fgcolor: '#ffffff',
-      gradient: 'false',
-      animate: true
+      gradient: false,
+      animate: true,
+      itemHeight: 9
     });
     
     const songs = playlist.songs;
@@ -28036,15 +28063,6 @@ class Editor {
     Account.stats.totalImportedSongs ++;
   }
 
-  readTextFileContent(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsText(file);
-    });
-  }
-
   showEditMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -29163,21 +29181,21 @@ class Editor {
     });
   
     return __(
-      `(Title|Título): ${chart.title || "< (empty|vacío) >"}
-  (Subtitle|Subtítulo): ${chart.subtitle || "< (empty|vacío) >"}
-  (Artist|Artista): ${chart.artist || "< (empty|vacío) >"}
-  (Genre|Género): ${chart.genre || "< (empty|vacío) >"}
-  (Credit|Crédito): ${chart.credit || "< (empty|vacío) >"}
+`(Title|Título): ${chart.title || "< (empty|vacío) >"}
+(Subtitle|Subtítulo): ${chart.subtitle || "< (empty|vacío) >"}
+(Artist|Artista): ${chart.artist || "< (empty|vacío) >"}
+(Genre|Género): ${chart.genre || "< (empty|vacío) >"}
+(Credit|Crédito): ${chart.credit || "< (empty|vacío) >"}
   
-  (Difficulties|Dificultades): ${chart.difficulties.length}
-  (Total Notes|Total de Notas): ${totalNotes}
-  (Bpm Changes|Cambios de BPM): ${chart.bpmChanges.length}
-  (Stops|Stops): ${chart.stops.length}
-  (Bg Changes|Cambios de Fondo): ${chart.backgrounds.length}
-  
-  (Offset|Offset): ${chart.offset}
-  (Sample Start|Inicio de Muestra): ${chart.sampleStart}
-  (Sample Length|Duración de Muestra): ${chart.sampleLength}`
+(Difficulties|Dificultades): ${chart.difficulties.length}
+(Total Notes|Total de Notas): ${totalNotes}
+(Bpm Changes|Cambios de BPM): ${chart.bpmChanges.length}
+(Stops|Stops): ${chart.stops.length}
+(Bg Changes|Cambios de Fondo): ${chart.backgrounds.length}
+
+(Offset|Offset): ${chart.offset}
+(Sample Start|Inicio de Muestra): ${chart.sampleStart}
+(Sample Length|Duración de Muestra): ${chart.sampleLength}`
     ).trim();
   }
 
@@ -29213,7 +29231,7 @@ class Editor {
       }
 
       const smFileName = chartFileNames[0];
-      const content = await this.readTextFileContent(fileMap[smFileName.toLowerCase()]);
+      const content = await FileTools.readTextFile(fileMap[smFileName.toLowerCase()]);
 
       const chart = await new ExternalSMParser().parseSM(fileMap, content);
       chart.folderName = `Single_External_${smFileName}`;
@@ -29475,7 +29493,7 @@ class Editor {
   }
 
   async importSMFile(file) {
-    const content = await this.readTextFileContent(file);
+    const content = await FileTools.readTextFile(file);
     const chart = await new LocalSMParser().parseSM(content);
 
     this.song = { chart, difficulties: 0 };
@@ -30953,14 +30971,9 @@ class ChartRenderer {
         default: COLORS.PINK // Ultra-fast - Purple/Pink
       }
     };
-
-    this.backgroundGraphics = game.add.graphics(0, 0);
-    this.speedModGraphics = game.add.graphics(0, 0);
-    this.bgChangeGraphics = game.add.graphics(0, 0);
     
-    this.tags = {};
-
     // Groups for pooling
+    this.backgroundGroup = new Phaser.Group(game);
     this.linesGroup = new Phaser.SpriteBatch(game);
     this.receptorsGroup = new Phaser.SpriteBatch(game);
     this.freezeBodyGroup = new Phaser.Group(game);
@@ -30973,6 +30986,7 @@ class ChartRenderer {
     // Add groups to parent if needed
     if (this.options.parent) {
       this.parent = this.options.parent;
+      this.parent.addChild(this.backgroundGroup);
       this.parent.addChild(this.linesGroup);
       this.parent.addChild(this.receptorsGroup);
       this.parent.addChild(this.freezeBodyGroup);
@@ -30983,6 +30997,16 @@ class ChartRenderer {
       this.parent.addChild(this.tagsGroup);
     }
 
+    this.backgroundGraphics = game.add.graphics(0, 0);
+    this.speedModGraphics = game.add.graphics(0, 0);
+    this.bgChangeGraphics = game.add.graphics(0, 0);
+    
+    this.backgroundGroup.addChild(this.backgroundGraphics);
+    this.backgroundGroup.addChild(this.speedModGraphics);
+    this.backgroundGroup.addChild(this.bgChangeGraphics);
+
+    this.tags = {};
+    
     this.receptors = [];
     this.initialize();
   }
@@ -31164,6 +31188,8 @@ class ChartRenderer {
   }
   
   render(now, beat) {
+    if (this.paused) return;
+    
     if (this.scrollDirection === "falling") {
       this.renderFalling(now, beat);
     } else {
@@ -32301,7 +32327,33 @@ class Player {
     return (192 - totalWidth) / 2;
   }
   
-  findClosestNote(column, beat, noteTypes, searchRangeSeconds = 0.5) {
+  findClosestNote(column, beat, noteTypes = ["1", "2"], searchRangeSeconds = 0.5) {
+    const now = this.renderer.beatToSec(beat);
+        
+    const candidateNotes = [];
+    
+    for (const note of this.notes) {
+      if (
+        note.column < 0 || note.column == column &&
+        noteTypes.includes(note.type) &&
+        note.sec - now <= searchRangeSeconds / 2 &&
+        note.sec - now > - searchRangeSeconds / 2
+      ) {
+        candidateNotes.push(note);
+      }
+    };
+    
+    if (candidateNotes.length === 0) return null;
+    
+    // Find closest by time, not beats
+    return candidateNotes.reduce((closest, current) => {
+      const currentTimeDelta = Math.abs(current.sec - now);
+      const closestTimeDelta = Math.abs(closest.sec - now);
+      return currentTimeDelta < closestTimeDelta ? current : closest;
+    });
+  }
+  
+  findClosestNoteOld(column, beat, noteTypes, searchRangeSeconds = 0.5) {
     // Convert search range from seconds to beats for initial filtering
     const currentTime = this.scene.getCurrentTime().now;
     const searchRangeBeats = searchRangeSeconds * (this.getCurrentBPM(beat) / 60);

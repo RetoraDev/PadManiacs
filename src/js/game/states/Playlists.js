@@ -2,7 +2,7 @@ class Playlists {
   create() {
     game.camera.fadeIn(0x000000);
     
-    new BackgroundGradient();
+    new BackgroundGradient(0, 0.3);
     new FuturisticLines();
     this.navigationHint = new NavigationHint('general');
     
@@ -15,10 +15,10 @@ class Playlists {
   showPlaylistList() {
     if (this.carousel) this.carousel.destroy();
     
-    this.carousel = new CarouselMenu(0, 16, game.width, game.height - 24, {
+    this.carousel = new CarouselMenu(0, 16, game.width - 8, game.height - 24, {
       bgcolor: '#9b59b6',
       fgcolor: '#ffffff',
-      gradient: 'false',
+      gradient: false,
       animate: true
     });
     
@@ -29,11 +29,11 @@ class Playlists {
       const count = playlist.songs.length;
       this.carousel.addItem(`${playlist.name} (${count} songs)`, () => {
         this.openPlaylist(key);
-      }, { bgcolor: '#2c3e50', playlistKey: key });
+      }, { playlistKey: key });
     }
     
-    this.carousel.addItem("+ (Add|Añadir) Playlist", () => this.addPlaylist());
-    this.carousel.addItem("< (Back|Volver)", () => game.state.start("MainMenu"));
+    this.carousel.addItem("+ (Add|Añadir) Playlist", () => this.addPlaylist(), { bgcolor: '#2c3e50' });
+    this.carousel.addItem("< (Back|Volver)", () => game.state.start("MainMenu"), { bgcolor: '#2c3e50' });
     
     this.carousel.onCancel.add(() => game.state.start("MainMenu"));
     this.actionText.write("PLAYLISTS");
@@ -44,6 +44,7 @@ class Playlists {
     
     window.focusedElement = new TextInput({
       text: __("(My|Mi) Playlist"),
+      width: 12,
       maxLength: 20,
       useNewline: false,
       onConfirm: (name) => {
@@ -76,11 +77,12 @@ class Playlists {
     this.currentPlaylistKey = key;
     this.actionText.write(`${playlist.name} (${playlist.songs.length} songs)`);
     
-    this.carousel = new CarouselMenu(0, 16, game.width, game.height - 24, {
+    this.carousel = new CarouselMenu(0, 16, game.width - 8, game.height - 24, {
       bgcolor: '#2c3e50',
       fgcolor: '#ffffff',
-      gradient: 'false',
-      animate: true
+      gradient: false,
+      animate: true,
+      itemHeight: 9
     });
     
     const songs = playlist.songs;

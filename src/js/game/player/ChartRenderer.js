@@ -133,14 +133,9 @@ class ChartRenderer {
         default: COLORS.PINK // Ultra-fast - Purple/Pink
       }
     };
-
-    this.backgroundGraphics = game.add.graphics(0, 0);
-    this.speedModGraphics = game.add.graphics(0, 0);
-    this.bgChangeGraphics = game.add.graphics(0, 0);
     
-    this.tags = {};
-
     // Groups for pooling
+    this.backgroundGroup = new Phaser.Group(game);
     this.linesGroup = new Phaser.SpriteBatch(game);
     this.receptorsGroup = new Phaser.SpriteBatch(game);
     this.freezeBodyGroup = new Phaser.Group(game);
@@ -153,6 +148,7 @@ class ChartRenderer {
     // Add groups to parent if needed
     if (this.options.parent) {
       this.parent = this.options.parent;
+      this.parent.addChild(this.backgroundGroup);
       this.parent.addChild(this.linesGroup);
       this.parent.addChild(this.receptorsGroup);
       this.parent.addChild(this.freezeBodyGroup);
@@ -163,6 +159,16 @@ class ChartRenderer {
       this.parent.addChild(this.tagsGroup);
     }
 
+    this.backgroundGraphics = game.add.graphics(0, 0);
+    this.speedModGraphics = game.add.graphics(0, 0);
+    this.bgChangeGraphics = game.add.graphics(0, 0);
+    
+    this.backgroundGroup.addChild(this.backgroundGraphics);
+    this.backgroundGroup.addChild(this.speedModGraphics);
+    this.backgroundGroup.addChild(this.bgChangeGraphics);
+
+    this.tags = {};
+    
     this.receptors = [];
     this.initialize();
   }
@@ -344,6 +350,8 @@ class ChartRenderer {
   }
   
   render(now, beat) {
+    if (this.paused) return;
+    
     if (this.scrollDirection === "falling") {
       this.renderFalling(now, beat);
     } else {

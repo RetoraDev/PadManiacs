@@ -6,7 +6,7 @@ class TextInput extends Phaser.Sprite {
       y: 35,
       width: 8,
       height: 2,
-      useNewLine: true,
+      useNewLine: false,
       maxLength: 28,
       onConfirm: null,
       onCancel: null,

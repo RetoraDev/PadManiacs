@@ -20,10 +20,6 @@
 #LISTSORT:;
 #BPMS:0.000=85.000,140.000=77.000,140.500=76.500,141.250=76.000,144.000=74.000,144.500=66.000,146.000=39.500;
 #STOPS:;
-#BGCHANGES:1.875=Hatsune Miku - Melt.avi=1.000=1=0=1,
-148.500=Hatsune Miku - Melt-bg.png=1.000=1=0=1,
-99999=-nosongbg-=1.000=0=0=0 // don't automatically add -songbackground-
-;
 #ATTACKS:;
 
 //---------------dance-single - ----------------

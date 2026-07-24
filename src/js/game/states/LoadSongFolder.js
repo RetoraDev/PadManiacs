@@ -31,7 +31,7 @@ class LoadSongFolder {
 
   async processFiles(files) {
     try {
-      this.progressText = new ProgressText(__("Loading Song...||Cargando canción..."));
+      this.progressText.write(__("Loading Song...||Cargando canción..."));
       
       if (files[0].name.endsWith(".zip")) {
         this.processZipFile(files[0]);
@@ -62,6 +62,7 @@ class LoadSongFolder {
       }
       
       chart.folderName = `Single_External_${smFileName}`;
+      chart.isExternal = true;
       chart.loaded = true;
 
       // Start gameplay directly with this single song

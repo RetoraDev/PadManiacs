@@ -1,4 +1,4 @@
-﻿#TITLE:重音territory ～ずっとテトのターン;
+#TITLE:重音territory ～ずっとテトのターン;
 #SUBTITLE:VCP 1;
 #ARTIST:oxi feat. 重音テト;
 #TITLETRANSLIT:Kasane Territory;
@@ -20,8 +20,7 @@
 ;
 #TIMESIGNATURES:0.000=4=4
 ;
-#BGCHANGES:0.000=Kasane Territory - Kasane Teto.AVI=1.000=0=0=1=====,
-263.000=Kasane Territory - Kasane Teto-bg2.png=1.000=0=0=1=====,
+#BGCHANGES:263.000=Kasane Territory - Kasane Teto-bg2.png=1.000=0=0=1=====,
 99999=-nosongbg-=1.000=0=0=0 // don't automatically add -songbackground-
 ;
 #KEYSOUNDS:;

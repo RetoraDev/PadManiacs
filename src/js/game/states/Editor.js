@@ -351,15 +351,6 @@ class Editor {
     Account.stats.totalImportedSongs ++;
   }
 
-  readTextFileContent(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsText(file);
-    });
-  }
-
   showEditMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -1478,21 +1469,21 @@ class Editor {
     });
   
     return __(
-      `(Title|Título): ${chart.title || "< (empty|vacío) >"}
-  (Subtitle|Subtítulo): ${chart.subtitle || "< (empty|vacío) >"}
-  (Artist|Artista): ${chart.artist || "< (empty|vacío) >"}
-  (Genre|Género): ${chart.genre || "< (empty|vacío) >"}
-  (Credit|Crédito): ${chart.credit || "< (empty|vacío) >"}
+`(Title|Título): ${chart.title || "< (empty|vacío) >"}
+(Subtitle|Subtítulo): ${chart.subtitle || "< (empty|vacío) >"}
+(Artist|Artista): ${chart.artist || "< (empty|vacío) >"}
+(Genre|Género): ${chart.genre || "< (empty|vacío) >"}
+(Credit|Crédito): ${chart.credit || "< (empty|vacío) >"}
   
-  (Difficulties|Dificultades): ${chart.difficulties.length}
-  (Total Notes|Total de Notas): ${totalNotes}
-  (Bpm Changes|Cambios de BPM): ${chart.bpmChanges.length}
-  (Stops|Stops): ${chart.stops.length}
-  (Bg Changes|Cambios de Fondo): ${chart.backgrounds.length}
-  
-  (Offset|Offset): ${chart.offset}
-  (Sample Start|Inicio de Muestra): ${chart.sampleStart}
-  (Sample Length|Duración de Muestra): ${chart.sampleLength}`
+(Difficulties|Dificultades): ${chart.difficulties.length}
+(Total Notes|Total de Notas): ${totalNotes}
+(Bpm Changes|Cambios de BPM): ${chart.bpmChanges.length}
+(Stops|Stops): ${chart.stops.length}
+(Bg Changes|Cambios de Fondo): ${chart.backgrounds.length}
+
+(Offset|Offset): ${chart.offset}
+(Sample Start|Inicio de Muestra): ${chart.sampleStart}
+(Sample Length|Duración de Muestra): ${chart.sampleLength}`
     ).trim();
   }
 
@@ -1528,7 +1519,7 @@ class Editor {
       }
 
       const smFileName = chartFileNames[0];
-      const content = await this.readTextFileContent(fileMap[smFileName.toLowerCase()]);
+      const content = await FileTools.readTextFile(fileMap[smFileName.toLowerCase()]);
 
       const chart = await new ExternalSMParser().parseSM(fileMap, content);
       chart.folderName = `Single_External_${smFileName}`;
@@ -1790,7 +1781,7 @@ class Editor {
   }
 
   async importSMFile(file) {
-    const content = await this.readTextFileContent(file);
+    const content = await FileTools.readTextFile(file);
     const chart = await new LocalSMParser().parseSM(content);
 
     this.song = { chart, difficulties: 0 };

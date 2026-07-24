@@ -17,9 +17,6 @@
 #SELECTABLE:YES;
 #BPMS:0.000=154.000;
 #STOPS:;
-#BGCHANGES:0.000=Thousand Cherry Tree.mpg=1.000=1=0=0=StretchNoLoop==CrossFade==,
-99999=-nosongbg-=1.000=0=0=0 // don't automatically add -songbackground-
-;
 #KEYSOUNDS:;
 
 //---------------dance-single - Gpop----------------

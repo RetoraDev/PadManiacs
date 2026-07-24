@@ -132,7 +132,7 @@ class NotificationSystem {
       if (!this.notificationWindow) return;
       
       if (!this.notificationTint) {
-        this.notification.tint = 0x76fcde;
+        this.notificationWindow.tint = 0x76fcde;
         return;
       }
       

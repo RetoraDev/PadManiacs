@@ -641,13 +641,16 @@ class SongSelect {
   }
   
   createPlaylistForSong(song) {
-    const keyboard = new OnScreenKeyboard();
+    const keyboard = new OnScreenKeyboard(undefined, 68);
+    
+    this.highScoreText.visible = false;
     
     window.focusedElement = new TextInput({
-      text: song.titleTranslit || song.title || __("New Playlist||Nueva playlist"),
+      text: __("(My|Mi) Playlist"),
+      width: 12,
       maxLength: 20,
       useNewline: false,
-      y: 35,
+      y: 38,
       onConfirm: (name) => {
         if (name.trim()) {
           const playlistManager = PlaylistManager.getInstance();
@@ -656,17 +659,19 @@ class SongSelect {
             playlistManager.addSong(key, song);
             notifications.show(__(`Playlist "${name}" created with song!||¡Playlist "${name}" creada con esta canción!`));
             keyboard.destroy();
-            this.closeActionsMenu();
           } else {
             notifications.show(__("Playlist already exists!||¡La playlist ya existe!"));
           }
         } else {
           notifications.show(__("Name cannot be empty!||¡El nombre no puede estar vacío!"));
         }
+        this.closeActionsMenu();
+        this.highScoreText.visible = true;
       },
       onCancel: () => {
         keyboard.destroy();
         this.closeActionsMenu();
+        this.highScoreText.visible = true;
       }
     });
   }

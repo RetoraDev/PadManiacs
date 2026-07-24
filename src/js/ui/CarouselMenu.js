@@ -17,6 +17,8 @@ class CarouselMenu extends Phaser.Sprite {
       activeAlpha: 0.9,
       doubleClickConfirm: false,
       gradient: true,
+      itemHeight: 8,
+      itemSpacing: 1,
       ...config,
       margin: { top: 4, bottom: 4, left: 4, right: 4, ...(config.margin || {}) },
     };
@@ -30,8 +32,8 @@ class CarouselMenu extends Phaser.Sprite {
     this.selectedIndex = 0;
     this.hoveredIndex = 0;
     this.scrollOffset = 0;
-    this.itemHeight = 8;
-    this.itemSpacing = 1;
+    this.itemHeight = this.config.itemHeight;
+    this.itemSpacing = this.config.itemSpacing;
     this.totalItemHeight = this.itemHeight + this.itemSpacing;
     
     this.visibleItems = Math.floor((height - this.config.margin.top - this.config.margin.bottom) / this.totalItemHeight);
@@ -109,7 +111,7 @@ class CarouselMenu extends Phaser.Sprite {
     this.addChild(itemParent);
     
     const bgWidth = this.viewport.width - this.config.margin.left - this.config.margin.right;
-    const bgHeight = this.itemHeight;
+    const bgHeight = data.height || this.itemHeight;
     
     const background = this.createGradientBackground(bgWidth, bgHeight, data.bgcolor);
     background.x = item.originalX;
@@ -536,6 +538,7 @@ class CarouselMenu extends Phaser.Sprite {
   
   updateItemVisibility(targetIndex) {
     this.items.forEach((item, index) => {
+      // TODO: Correcly place items based on their individual item.data.height and the space they take in viewport 
       const isSelected = index === (targetIndex || this.selectedIndex);
       const isVisible = index >= this.scrollOffset && 
                        index < this.scrollOffset + this.visibleItems;
@@ -562,6 +565,8 @@ class CarouselMenu extends Phaser.Sprite {
   
   updateItemPositions() {
     this.items.forEach((item, index) => {
+      // TODO: Correcly place items based on their individual item.data.height and the space they take in viewport 
+      
       const visibleIndex = index - this.scrollOffset;
       const targetY = this.config.margin.top + (visibleIndex * this.totalItemHeight);
       

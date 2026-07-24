@@ -283,7 +283,7 @@ const NAVIGATION_HINT_PRESETS = {
     { position: "right", icon: "b", text: __("BACK||VOLVER") }
   ],
   song_stats_song_preview: [
-    { position: "left", icon: "left", text: __("NAVIGATE||NAVEGAR") },
+    { position: "left", icon: "d-pad", text: __("NAVIGATE||NAVEGAR") },
     { position: "right", icon: "select", text: __("DIFFICULTY||DIFICULTAD") },
     { position: "right", icon: "b", text: __("BACK||VOLVER") }
   ]

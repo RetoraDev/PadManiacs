@@ -18,10 +18,6 @@
 #DISPLAYBPM:67.500:135.000;
 #BPMS:0.000=67.500,32.000=135.000,212.000=67.500,242.000=33.750;
 #STOPS:;
-#BGCHANGES:0.000=Gigantic Girl.mpg=1.000=1=0=0=StretchNoLoop==CrossFade==,
-242.000=gigantic girl bg.png=1.000=1=0=0=StretchNoLoop==CrossFade==,
-99999=-nosongbg-=1.000=0=0=0 // don't automatically add -songbackground-
-;
 #KEYSOUNDS:;
 
 //---------------dance-single - CondorTalon----------------

@@ -145,7 +145,33 @@ class Player {
     return (192 - totalWidth) / 2;
   }
   
-  findClosestNote(column, beat, noteTypes, searchRangeSeconds = 0.5) {
+  findClosestNote(column, beat, noteTypes = ["1", "2"], searchRangeSeconds = 0.5) {
+    const now = this.renderer.beatToSec(beat);
+        
+    const candidateNotes = [];
+    
+    for (const note of this.notes) {
+      if (
+        note.column < 0 || note.column == column &&
+        noteTypes.includes(note.type) &&
+        note.sec - now <= searchRangeSeconds / 2 &&
+        note.sec - now > - searchRangeSeconds / 2
+      ) {
+        candidateNotes.push(note);
+      }
+    };
+    
+    if (candidateNotes.length === 0) return null;
+    
+    // Find closest by time, not beats
+    return candidateNotes.reduce((closest, current) => {
+      const currentTimeDelta = Math.abs(current.sec - now);
+      const closestTimeDelta = Math.abs(closest.sec - now);
+      return currentTimeDelta < closestTimeDelta ? current : closest;
+    });
+  }
+  
+  findClosestNoteOld(column, beat, noteTypes, searchRangeSeconds = 0.5) {
     // Convert search range from seconds to beats for initial filtering
     const currentTime = this.scene.getCurrentTime().now;
     const searchRangeBeats = searchRangeSeconds * (this.getCurrentBPM(beat) / 60);

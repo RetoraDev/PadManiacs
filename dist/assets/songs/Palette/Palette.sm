@@ -18,9 +18,6 @@
 #BPMS:0.000=180.000;
 #STOPS:69.000=0.667
 ;
-#BGCHANGES:0.250=Palette.mpg=1.000=1=0=0=StretchNoLoop==CrossFade==,
-99999=-nosongbg-=1.000=0=0=0 // don't automatically add -songbackground-
-;
 #KEYSOUNDS:;
 
 //---------------dance-single - Gpop----------------

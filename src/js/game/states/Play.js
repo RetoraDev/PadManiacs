@@ -1,5 +1,8 @@
 class Play {
   init(song, difficultyIndex, playtestMode, autoplay, playlistKey) {
+    if (typeof song.difficultyIndex != undefined && typeof difficultyIndex != undefined) {
+      song.difficultyIndex = difficultyIndex;
+    }
     this.originalSong = song;
     this.song = structuredClone(song);
     this.difficultyIndex = difficultyIndex || song.difficultyIndex;
@@ -137,7 +140,7 @@ class Play {
     
     if (activeModifiers.length === 0) return;
     
-    const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
+    const difficulty = this.song.chart.difficulties[this.difficultyIndex];
     const noteKey = difficulty.type + difficulty.rating;
     let notes = this.song.chart.notes[noteKey];
     if (!notes) return;
@@ -1083,7 +1086,7 @@ class Play {
       judgements: { ...player.judgementCounts },
       totalNotes: this.song.chart.notes.length,
       skillsUsed: this.skillSystem.getSkillsUsed(),
-      difficultyRating: this.song.chart.difficulties[this.song.difficultyIndex].rating
+      difficultyRating: this.song.chart.difficulties[this.difficultyIndex].rating
     };
   }
   
@@ -1189,7 +1192,7 @@ class Play {
     
     if (gameResults.complete) {
       Account.stats.totalGamesPlayed++;
-      const difficultyType = this.song.chart.difficulties[this.song.difficultyIndex].type;
+      const difficultyType = this.song.chart.difficulties[this.difficultyIndex].type;
       Account.stats[`total${difficultyType}GamesPlayed`] += 1;
     }
     Account.stats.totalScore += this.player.score;

@@ -227,7 +227,7 @@ class Results {
         game.state.start("SongSelect", window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
       });
     }
-    menu.addItem(__("Retry||Reintentar"), () => game.state.start("Play", true, false, this.gameData.song, this.gameData.playlistKey));
+    menu.addItem(__("Retry||Reintentar"), () => game.state.start("Play", true, false, this.gameData.song, this.gameData.song.difficultyIndex, undefined, undefined, this.gameData.playlistKey));
     menu.addItem(__("Quit||Salir"), () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results', menu);

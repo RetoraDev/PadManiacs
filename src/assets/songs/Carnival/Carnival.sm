@@ -19,9 +19,6 @@
 #STOPS:252.000=1.417
 ,406.000=1.890
 ;
-#BGCHANGES:0.000=Carnival.mpg=1.000=1=0=1=StretchNoLoop==CrossFade==,
-99999=-nosongbg-=1.000=0=0=0 // don't automatically add -songbackground-
-;
 #KEYSOUNDS:;
 
 //---------------dance-single - CondorTalon----------------

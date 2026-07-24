@@ -57,8 +57,6 @@ class SongStats {
     
     this.navigationHint = new NavigationHint("song_stats");
     
-    this.windowManager = new WindowManager();
-    
     this.headerGroup = game.add.group();
     this.leftArrow = new Text(92, 6, "<", FONTS.default);
     this.leftArrow.anchor.set(0.5);
@@ -499,30 +497,39 @@ class SongStats {
       judgeLineYFalling: 90,
       judgeLineYRising: 50,
       enableChartBackground: true,
-      chartBackgroundOpacity: 0.4
+      chartBackgroundOpacity: 0.3,
+      parent: this.tabContent
     });
     this.chartRenderer.notes.forEach(n => n.hitEffectShown = false);
     this.chartRenderer.receptors.forEach(r => r.visible = true);
-    this.chartRenderer.backgroundGraphics.visible = false;
     
-    this.tabContent.addChild(this.chartRenderer.receptorsGroup);
-    this.tabContent.addChild(this.chartRenderer.notesGroup);
-    this.tabContent.addChild(this.chartRenderer.freezeBodyGroup);
-    this.tabContent.addChild(this.chartRenderer.freezeEndGroup);
-    this.tabContent.addChild(this.chartRenderer.linesGroup);
-    this.tabContent.addChild(this.chartRenderer.minesGroup);
-    this.tabContent.addChild(this.chartRenderer.tagsGroup);
-    this.tabContent.addChild(this.chartRenderer.speedModGraphics);
-    this.tabContent.addChild(this.chartRenderer.bgChangeGraphics);
-    this.tabContent.addChild(this.chartRenderer.backgroundGraphics);
+    this.navigationHint.bringToTop();
     
     this.previewBeat = 0;
     this.previewPlaying = false;
-    this.previewStartTime = game.time.now;
+    this.previewStartTime = null;
     
     if (!this.previewAudio) {
+      const dots = new LoadingDots();
+      dots.x -= 4;
+      dots.y -= 8;
+      this.navigationBlocked = true;
       this.previewAudio = document.createElement('audio');
       this.previewAudio.src = this.song.chart.audioUrl;
+      this.previewAudio.oncanplaythrough = () => {
+        this.previewStartTime = game.time.now;
+        this.previewAudio.oncanplaythrough = null;
+        this.navigationBlocked = false;
+        dots.destroy();
+      };
+      this.previewAudio.onerror = () => {
+        this.previewStartTime = game.time.now;
+        this.previewAudio.onerror = null;
+        this.navigationBlocked = false;
+        dots.destroy();
+      };
+    } else {
+      this.previewStartTime = game.time.now;
     }
     
     this.previewAudio.currentTime = 0;
@@ -530,7 +537,7 @@ class SongStats {
   }
 
   updatePreview() {
-    if (this.isDestroyed || !this.chartRenderer || this.currentTab !== 3) return;
+    if (this.isDestroyed || !this.chartRenderer || this.currentTab !== 3 || !this.previewStartTime) return;
     
     const chartOffset = this.song.chart.offset || 0;
     const currentTime = ((game.time.now - this.previewStartTime + (chartOffset * 1000)) / 1000) + this.chartRenderer.beatToSec(this.previewBeat);
@@ -565,8 +572,10 @@ class SongStats {
 
   update() {
     if (this.isDestroyed) return;
+    
     gamepad.update();
-    this.windowManager.update();
+    
+    if (this.navigationBlocked) return;
     
     if (gamepad.pressed.left) {
       this.animateArrowPress(-1);

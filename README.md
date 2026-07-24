@@ -80,6 +80,8 @@ PadManiacs supports community-created modifications through an add-on system. Ad
 
 See [Modding API Documentation](https://retoradev.github.io/PadManiacsDocumentation/) for complete modding information.
 
+> Documentation is outdated, you have to explore source code yourself 
+
 ### The Add-on Manager
 Accessible from the main menu, the Add-on Manager allows you to:
 - Install add-ons from ZIP files

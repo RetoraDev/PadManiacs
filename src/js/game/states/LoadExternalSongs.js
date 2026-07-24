@@ -152,6 +152,7 @@ class LoadExternalSongs {
             // Chart file parsed successfully
             chart.folderName = dirEntry.name || `External_Song_${smFileName}`;
             chart.isLocal = true;
+            chart.isExternal = true;
             chart.loaded = true;
             return chart;
           }
