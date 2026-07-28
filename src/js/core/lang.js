@@ -43,6 +43,7 @@ window.__ = function(text) {
   
   // Fast path: if no special characters, return as-is and cache
   if (text.indexOf('||') === -1 && text.indexOf('(') === -1) {
+    text._localized = true;
     __cache.set(cacheKey, text);
     return text;
   }
@@ -56,6 +57,8 @@ window.__ = function(text) {
     const selected = mainParts[lang] || mainParts[0];
     result = __processParens(selected, lang);
   }
+  
+  result._localized = true;
   
   __cache.set(cacheKey, result);
   return result;

@@ -60,6 +60,13 @@ class PlaylistManager {
     return Object.keys(this.playlists);
   }
 
+  renamePlaylist(key, name) {
+    if (!this.playlists[key]) return false;
+    this.playlists[key].name = name;
+    this.save();
+    return true;
+  }
+  
   deletePlaylist(key) {
     if (!this.playlists[key]) return false;
     delete this.playlists[key];

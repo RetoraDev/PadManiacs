@@ -120,8 +120,8 @@ class ResultsMulti extends Results {
              (j.miss || 0) * 5;
     };
     
-    const p1Weighted = getWeightedScore(player1.judgementCounts);
-    const p2Weighted = getWeightedScore(player2.judgementCounts);
+    const p1Weighted = getWeightedScore(player1.judgements);
+    const p2Weighted = getWeightedScore(player2.judgements);
     
     if (p1Weighted > p2Weighted) return 1;
     if (p2Weighted > p1Weighted) return 2;
@@ -183,10 +183,10 @@ class ResultsMulti extends Results {
     });
     
     menu.addItem(__("Next||Siguiente"), () => {
-      game.state.start("SongSelect", window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
+      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto", this.gameResults.playlistKey);
     });
-    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
-    menu.addItem(__("Retry||Reintentar"), () => game.state.start("PlayMulti", true, false, this.config, undefined, undefined, undefined, this.gameData.playlistKey));
+    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", true, false, null, window.selectStartingIndex, false, "auto", this.gameResults.playlistKey));
+    menu.addItem(__("Retry||Reintentar"), () => game.state.start("PlayMulti", true, false, this.config, undefined, undefined, undefined, this.gameResults.playlistKey));
     menu.addItem(__("Quit||Salir"), () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results_multi', menu);

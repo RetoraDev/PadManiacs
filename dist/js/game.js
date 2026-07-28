@@ -4,9 +4,9 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.2.0 dev
- * Build: 7/23/2026, 8:49:50 PM
- * Platform: Development
+ * Version: v1.2.0
+ * Build: 7/27/2026, 10:15:55 PM
+ * Platform: Web
  * Debug: false
  * Minified: false
  */
@@ -56,6 +56,7 @@ window.__ = function(text) {
   
   // Fast path: if no special characters, return as-is and cache
   if (text.indexOf('||') === -1 && text.indexOf('(') === -1) {
+    text._localized = true;
     __cache.set(cacheKey, text);
     return text;
   }
@@ -70,6 +71,8 @@ window.__ = function(text) {
     result = __processParens(selected, lang);
   }
   
+  result._localized = true;
+  
   __cache.set(cacheKey, result);
   return result;
 };
@@ -78,7 +81,7 @@ const __ = window.__;
 
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.2.0 dev";
+const VERSION = "v1.2.0";
 
 window.DEBUG = false;
 
@@ -779,7 +782,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -3243,6 +3246,8 @@ const DEFAULT_ACCOUNT = {
     enableMenuMusic: true,
     randomSong: false,
     renderer: 0,
+    enableMouse: true,
+    enableTouch: true,
     pixelated: true,
     noteColorOption: "NOTE",
     noteSpeedMult: 1,
@@ -3254,8 +3259,6 @@ const DEFAULT_ACCOUNT = {
     beatsPerMeasure: 4, // TODO: Make this configurable
     speedMod: "X-MOD",
     hapticFeedback: false,
-    enableMouse: true,
-    enableTouch: true,
     backgroundOpacity: 0.7,
     buttonStyle: 'xbox',
     enableChartBackground: false,
@@ -7321,6 +7324,13 @@ class PlaylistManager {
     return Object.keys(this.playlists);
   }
 
+  renamePlaylist(key, name) {
+    if (!this.playlists[key]) return false;
+    this.playlists[key].name = name;
+    this.save();
+    return true;
+  }
+  
   deletePlaylist(key) {
     if (!this.playlists[key]) return false;
     delete this.playlists[key];
@@ -12756,7 +12766,7 @@ const bootGame = () => {
     forceSingleUpdate: false,
     maxPointers: Account.settings.enableTouch || Account.settings.enableMouse ? 2 : 0,
     keyboard: true,
-    mouse: !!Account.settings.enableMouse,
+    mouse: true, //!!Account.settings.enableMouse,
     mouseWheel: !!Account.settings.enableMouse,
     mspointer: false,
     multiTexture: false,
@@ -14436,6 +14446,9 @@ class OnScreenKeyboard extends Phaser.Sprite {
     this.keycode = key.code || null;
     
     const rawInput = this.symbol ? key.symbol || key.char || key.code || '' : key.char || key.code || key.symbol || '';
+    
+    if (typeof rawInput != 'string') return;
+    
     const input = this.shift ? rawInput.toUpperCase() : rawInput.toLowerCase();
     
     this.onDown.dispatch(key, input);
@@ -17113,7 +17126,12 @@ class Boot {
     if (typeof Account.settings.lyricsPosition == 'undefined') {
       Account.settings.lyricsPosition = 0;
     }
-      
+    
+    if (currentVersion >= 1.2) {
+      Account.settings.enableMouse = true;
+      game.input.mouse.enabled = true;
+    }
+    
     Account.version = currentVersion;
     saveAccount();
   }
@@ -18745,9 +18763,9 @@ class MainMenu {
       crop: false
     });
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       carousel.addItem(__("User Songs||Canciones de Usuario"), () => this.loadExternalSongs());
-      carousel.addItem(__("Filesystem||Sistema de Archivos"), () => this.startFileSelect());
+      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) carousel.addItem(__("Filesystem||Sistema de Archivos"), () => this.startFileSelect());
     }
     carousel.addItem(__("Load Single Song||Cargar Canción Individual"), () => this.loadSingleSong());
     
@@ -19282,6 +19300,7 @@ class Settings {
     );
     
     // Mouse 
+    /*
     settingsWindow.addSettingItem(
       __("(Enable Mouse|Activar Mouse)"),
       [__("(Yes|Sí)"), __("(No|No)")],
@@ -19292,18 +19311,21 @@ class Settings {
         restartNeeded = true;
       }
     );
+    */
     
     // Touch 
-    settingsWindow.addSettingItem(
-      __("(Enable Touch|Activar Táctil)"),
-      [__("(Yes|Sí)"), __("(No|No)")],
-      Account.settings.enableTouch ? 0 : 1,
-      index => {
-        Account.settings.enableTouch = index === 0;
-        saveAccount();
-        restartNeeded = true;
-      }
-    );
+    if (game.device.touch) {
+      settingsWindow.addSettingItem(
+        __("(Enable Touch|Activar Táctil)"),
+        [__("(Yes|Sí)"), __("(No|No)")],
+        Account.settings.enableTouch ? 0 : 1,
+        index => {
+          Account.settings.enableTouch = index === 0;
+          saveAccount();
+          restartNeeded = true;
+        }
+      );
+    }
     
     // Scroll direction
     settingsWindow.addSettingItem(
@@ -21365,7 +21387,7 @@ class SongSelect {
     game.state.start(singlePlayer ? "Play" : "PlayMulti", true, false, {
       chart: song,
       difficultyIndex
-    }, undefined, undefined, this.playlistKey);
+    }, difficultyIndex, undefined, undefined, this.playlistKey);
   }
 
   showActionsMenu(playlistKey) {
@@ -21547,13 +21569,13 @@ class SongSelect {
           if (key) {
             playlistManager.addSong(key, song);
             notifications.show(__(`Playlist "${name}" created with song!||¡Playlist "${name}" creada con esta canción!`));
-            keyboard.destroy();
           } else {
             notifications.show(__("Playlist already exists!||¡La playlist ya existe!"));
           }
         } else {
           notifications.show(__("Name cannot be empty!||¡El nombre no puede estar vacío!"));
         }
+        keyboard.destroy();
         this.closeActionsMenu();
         this.highScoreText.visible = true;
       },
@@ -24291,7 +24313,7 @@ class Play {
     }
     this.originalSong = song;
     this.song = structuredClone(song);
-    this.difficultyIndex = difficultyIndex || song.difficultyIndex;
+    this.difficultyIndex = typeof difficultyIndex != undefined ? difficultyIndex : song.difficultyIndex;
     this.player = null;
     this.backgroundQueue = [];
     this.preloadedBackgroundElements = {};
@@ -25092,7 +25114,6 @@ class Play {
     // Pause any existing video
     if (this.video) {
       this.video.pause();
-      this.video = null;
     }
     
     // Check if there is already a background preloaded
@@ -25145,7 +25166,6 @@ class Play {
     // Pause any existing video
     if (this.video && this.video != this.preloadedBackgroundElements[filename]) {
       this.video.pause();
-      this.video = null;
     }
     
     // Check if there is already a background preloaded
@@ -26312,7 +26332,7 @@ class Results {
     menu.addItem(__("Next||Siguiente"), () => {
       game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
     });
-    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
+    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", true, false, null, window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
     if (Account.settings.autoplay) {
       menu.addItem(__("Disable Autoplay||Desactivar Autoplay"), () => {
         Account.settings.autoplay = false;
@@ -26490,8 +26510,8 @@ class ResultsMulti extends Results {
              (j.miss || 0) * 5;
     };
     
-    const p1Weighted = getWeightedScore(player1.judgementCounts);
-    const p2Weighted = getWeightedScore(player2.judgementCounts);
+    const p1Weighted = getWeightedScore(player1.judgements);
+    const p2Weighted = getWeightedScore(player2.judgements);
     
     if (p1Weighted > p2Weighted) return 1;
     if (p2Weighted > p1Weighted) return 2;
@@ -26553,10 +26573,10 @@ class ResultsMulti extends Results {
     });
     
     menu.addItem(__("Next||Siguiente"), () => {
-      game.state.start("SongSelect", window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
+      game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto", this.gameResults.playlistKey);
     });
-    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
-    menu.addItem(__("Retry||Reintentar"), () => game.state.start("PlayMulti", true, false, this.config, undefined, undefined, undefined, this.gameData.playlistKey));
+    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", true, false, null, window.selectStartingIndex, false, "auto", this.gameResults.playlistKey));
+    menu.addItem(__("Retry||Reintentar"), () => game.state.start("PlayMulti", true, false, this.config, undefined, undefined, undefined, this.gameResults.playlistKey));
     menu.addItem(__("Quit||Salir"), () => game.state.start("MainMenu"));
     
     game.onMenuIn.dispatch('results_multi', menu);
@@ -26572,7 +26592,10 @@ class Playlists {
     this.navigationHint = new NavigationHint('general');
     
     this.playlistManager = PlaylistManager.getInstance();
-    this.actionText = new Text(4, 4, "PLAYLISTS", FONTS.default);
+    
+    this.actionText = new Text(8, 6, "PLAYLISTS", FONTS.bold_shadow);
+    this.detailText = new Text(8, 6, "", FONTS.default_shadow);
+    this.detailText.tint = 0x989898;
     
     this.showPlaylistList();
   }
@@ -26602,6 +26625,7 @@ class Playlists {
     
     this.carousel.onCancel.add(() => game.state.start("MainMenu"));
     this.actionText.write("PLAYLISTS");
+    this.detailText.write("");
   }
 
   addPlaylist() {
@@ -26617,14 +26641,14 @@ class Playlists {
           const key = this.playlistManager.createPlaylist(name.trim());
           if (key) {
             notifications.show(__(`( |¡)Playlist "${name}" (created|creada)!`));
-            keyboard.destroy();
-            this.showPlaylistList();
           } else {
             notifications.show(__("Playlist already exists!||La playlist ya existe"));
           }
         } else {
           notifications.show(__("Name cannot be empty!||El nombre no puede ir vacio"));
         }
+        keyboard.destroy();
+        this.showPlaylistList();
       },
       onCancel: () => {
         keyboard.destroy();
@@ -26640,7 +26664,9 @@ class Playlists {
     if (this.carousel) this.carousel.destroy();
     
     this.currentPlaylistKey = key;
-    this.actionText.write(`${playlist.name} (${playlist.songs.length} songs)`);
+    this.actionText.write(playlist.name);
+    this.detailText.x = this.actionText.right + 4;
+    this.detailText.write(`(${playlist.songs.length} ${__("songs||canciones")})`);
     
     this.carousel = new CarouselMenu(0, 16, game.width - 8, game.height - 24, {
       bgcolor: '#2c3e50',
@@ -26665,18 +26691,54 @@ class Playlists {
       });
     }
     
+    this.carousel.addItem("(Rename|Renombrar) playlist", () => {
+      this.renamePlaylist(key);
+    }, { bgcolor: '#34495e' });
+    
     if (songs.length) {
-      this.carousel.addItem("× Clear playlist", () => {
+      this.carousel.addItem("(Clear|Limpiar) playlist", () => {
         this.clearPlaylist(key);
       }, { bgcolor: '#c0392b' });
     }
     
-    this.carousel.addItem("× (Delete|Borrar) playlist", () => {
+    this.carousel.addItem("(Delete|Borrar) playlist", () => {
       this.deletePlaylist(key);
     }, { bgcolor: '#e74c3c' });
     
     this.carousel.addItem("< Back", () => this.showPlaylistList());
     this.carousel.onCancel.add(() => this.showPlaylistList());
+  }
+  
+  renamePlaylist(key) {
+    const playlist = this.playlistManager.getPlaylist(key);
+    
+    if (!playlist) {
+      this.showPlaylistList();
+      return;
+    }
+    
+    const keyboard = new OnScreenKeyboard(undefined, 55);
+    
+    window.focusedElement = new TextInput({
+      text: playlist.name,
+      width: 12,
+      maxLength: 20,
+      useNewline: false,
+      onConfirm: (name) => {
+        if (name.trim()) {
+          this.playlistManager.renamePlaylist(key, name);
+          notifications.show(__("Playlist (renamed|renombrada)"));
+        } else {
+          notifications.show(__("Name cannot be empty!||El nombre no puede ir vacio"));
+        }
+        keyboard.destroy();
+        this.openPlaylist(key);
+      },
+      onCancel: () => {
+        keyboard.destroy();
+        this.openPlaylist(key);
+      }
+    });
   }
 
   deletePlaylist(key) {

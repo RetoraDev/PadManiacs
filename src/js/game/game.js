@@ -25,7 +25,7 @@ const bootGame = () => {
     forceSingleUpdate: false,
     maxPointers: Account.settings.enableTouch || Account.settings.enableMouse ? 2 : 0,
     keyboard: true,
-    mouse: !!Account.settings.enableMouse,
+    mouse: true, //!!Account.settings.enableMouse,
     mouseWheel: !!Account.settings.enableMouse,
     mspointer: false,
     multiTexture: false,

@@ -220,7 +220,7 @@ class Results {
     menu.addItem(__("Next||Siguiente"), () => {
       game.state.start("SongSelect", true, false, null, window.selectStartingIndex + 1, true, "auto", this.gameData.playlistKey);
     });
-    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
+    menu.addItem(__("Continue||Continuar"), () => game.state.start("SongSelect", true, false, null, window.selectStartingIndex, false, "auto", this.gameData.playlistKey));
     if (Account.settings.autoplay) {
       menu.addItem(__("Disable Autoplay||Desactivar Autoplay"), () => {
         Account.settings.autoplay = false;

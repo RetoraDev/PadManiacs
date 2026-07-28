@@ -129,6 +129,9 @@ class OnScreenKeyboard extends Phaser.Sprite {
     this.keycode = key.code || null;
     
     const rawInput = this.symbol ? key.symbol || key.char || key.code || '' : key.char || key.code || key.symbol || '';
+    
+    if (typeof rawInput != 'string') return;
+    
     const input = this.shift ? rawInput.toUpperCase() : rawInput.toLowerCase();
     
     this.onDown.dispatch(key, input);

@@ -5,7 +5,7 @@ class Play {
     }
     this.originalSong = song;
     this.song = structuredClone(song);
-    this.difficultyIndex = difficultyIndex || song.difficultyIndex;
+    this.difficultyIndex = typeof difficultyIndex != undefined ? difficultyIndex : song.difficultyIndex;
     this.player = null;
     this.backgroundQueue = [];
     this.preloadedBackgroundElements = {};
@@ -806,7 +806,6 @@ class Play {
     // Pause any existing video
     if (this.video) {
       this.video.pause();
-      this.video = null;
     }
     
     // Check if there is already a background preloaded
@@ -859,7 +858,6 @@ class Play {
     // Pause any existing video
     if (this.video && this.video != this.preloadedBackgroundElements[filename]) {
       this.video.pause();
-      this.video = null;
     }
     
     // Check if there is already a background preloaded

@@ -8,6 +8,8 @@ const DEFAULT_ACCOUNT = {
     enableMenuMusic: true,
     randomSong: false,
     renderer: 0,
+    enableMouse: true,
+    enableTouch: true,
     pixelated: true,
     noteColorOption: "NOTE",
     noteSpeedMult: 1,
@@ -19,8 +21,6 @@ const DEFAULT_ACCOUNT = {
     beatsPerMeasure: 4, // TODO: Make this configurable
     speedMod: "X-MOD",
     hapticFeedback: false,
-    enableMouse: true,
-    enableTouch: true,
     backgroundOpacity: 0.7,
     buttonStyle: 'xbox',
     enableChartBackground: false,

@@ -94,7 +94,7 @@ Accessible from the main menu, the Add-on Manager allows you to:
 - SSC chart format support is not implemented
 - Background videos work, but .AVI format is not supported by HTML5 video players
 - Web version requires manual song loading
-- Doubles charts are not supported since it's hard to implement Single Player Doubles on mobile
+- Double charts are not supported since it's hard to implement Single Player Doubles on mobile
 - Most mobile file browsers may require selecting individual files one by one
 
 ## License

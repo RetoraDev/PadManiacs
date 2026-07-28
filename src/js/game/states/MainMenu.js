@@ -234,9 +234,9 @@ class MainMenu {
       crop: false
     });
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       carousel.addItem(__("User Songs||Canciones de Usuario"), () => this.loadExternalSongs());
-      carousel.addItem(__("Filesystem||Sistema de Archivos"), () => this.startFileSelect());
+      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) carousel.addItem(__("Filesystem||Sistema de Archivos"), () => this.startFileSelect());
     }
     carousel.addItem(__("Load Single Song||Cargar Canción Individual"), () => this.loadSingleSong());
     

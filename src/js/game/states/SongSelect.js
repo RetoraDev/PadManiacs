@@ -476,7 +476,7 @@ class SongSelect {
     game.state.start(singlePlayer ? "Play" : "PlayMulti", true, false, {
       chart: song,
       difficultyIndex
-    }, undefined, undefined, this.playlistKey);
+    }, difficultyIndex, undefined, undefined, this.playlistKey);
   }
 
   showActionsMenu(playlistKey) {
@@ -658,13 +658,13 @@ class SongSelect {
           if (key) {
             playlistManager.addSong(key, song);
             notifications.show(__(`Playlist "${name}" created with song!||¡Playlist "${name}" creada con esta canción!`));
-            keyboard.destroy();
           } else {
             notifications.show(__("Playlist already exists!||¡La playlist ya existe!"));
           }
         } else {
           notifications.show(__("Name cannot be empty!||¡El nombre no puede estar vacío!"));
         }
+        keyboard.destroy();
         this.closeActionsMenu();
         this.highScoreText.visible = true;
       },

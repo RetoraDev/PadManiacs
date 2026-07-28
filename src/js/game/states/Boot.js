@@ -119,7 +119,12 @@ class Boot {
     if (typeof Account.settings.lyricsPosition == 'undefined') {
       Account.settings.lyricsPosition = 0;
     }
-      
+    
+    if (currentVersion >= 1.2) {
+      Account.settings.enableMouse = true;
+      game.input.mouse.enabled = true;
+    }
+    
     Account.version = currentVersion;
     saveAccount();
   }

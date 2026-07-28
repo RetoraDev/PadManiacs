@@ -7,7 +7,10 @@ class Playlists {
     this.navigationHint = new NavigationHint('general');
     
     this.playlistManager = PlaylistManager.getInstance();
-    this.actionText = new Text(4, 4, "PLAYLISTS", FONTS.default);
+    
+    this.actionText = new Text(8, 6, "PLAYLISTS", FONTS.bold_shadow);
+    this.detailText = new Text(8, 6, "", FONTS.default_shadow);
+    this.detailText.tint = 0x989898;
     
     this.showPlaylistList();
   }
@@ -37,6 +40,7 @@ class Playlists {
     
     this.carousel.onCancel.add(() => game.state.start("MainMenu"));
     this.actionText.write("PLAYLISTS");
+    this.detailText.write("");
   }
 
   addPlaylist() {
@@ -52,14 +56,14 @@ class Playlists {
           const key = this.playlistManager.createPlaylist(name.trim());
           if (key) {
             notifications.show(__(`( |¡)Playlist "${name}" (created|creada)!`));
-            keyboard.destroy();
-            this.showPlaylistList();
           } else {
             notifications.show(__("Playlist already exists!||La playlist ya existe"));
           }
         } else {
           notifications.show(__("Name cannot be empty!||El nombre no puede ir vacio"));
         }
+        keyboard.destroy();
+        this.showPlaylistList();
       },
       onCancel: () => {
         keyboard.destroy();
@@ -75,7 +79,9 @@ class Playlists {
     if (this.carousel) this.carousel.destroy();
     
     this.currentPlaylistKey = key;
-    this.actionText.write(`${playlist.name} (${playlist.songs.length} songs)`);
+    this.actionText.write(playlist.name);
+    this.detailText.x = this.actionText.right + 4;
+    this.detailText.write(`(${playlist.songs.length} ${__("songs||canciones")})`);
     
     this.carousel = new CarouselMenu(0, 16, game.width - 8, game.height - 24, {
       bgcolor: '#2c3e50',
@@ -100,18 +106,54 @@ class Playlists {
       });
     }
     
+    this.carousel.addItem("(Rename|Renombrar) playlist", () => {
+      this.renamePlaylist(key);
+    }, { bgcolor: '#34495e' });
+    
     if (songs.length) {
-      this.carousel.addItem("× Clear playlist", () => {
+      this.carousel.addItem("(Clear|Limpiar) playlist", () => {
         this.clearPlaylist(key);
       }, { bgcolor: '#c0392b' });
     }
     
-    this.carousel.addItem("× (Delete|Borrar) playlist", () => {
+    this.carousel.addItem("(Delete|Borrar) playlist", () => {
       this.deletePlaylist(key);
     }, { bgcolor: '#e74c3c' });
     
     this.carousel.addItem("< Back", () => this.showPlaylistList());
     this.carousel.onCancel.add(() => this.showPlaylistList());
+  }
+  
+  renamePlaylist(key) {
+    const playlist = this.playlistManager.getPlaylist(key);
+    
+    if (!playlist) {
+      this.showPlaylistList();
+      return;
+    }
+    
+    const keyboard = new OnScreenKeyboard(undefined, 55);
+    
+    window.focusedElement = new TextInput({
+      text: playlist.name,
+      width: 12,
+      maxLength: 20,
+      useNewline: false,
+      onConfirm: (name) => {
+        if (name.trim()) {
+          this.playlistManager.renamePlaylist(key, name);
+          notifications.show(__("Playlist (renamed|renombrada)"));
+        } else {
+          notifications.show(__("Name cannot be empty!||El nombre no puede ir vacio"));
+        }
+        keyboard.destroy();
+        this.openPlaylist(key);
+      },
+      onCancel: () => {
+        keyboard.destroy();
+        this.openPlaylist(key);
+      }
+    });
   }
 
   deletePlaylist(key) {

@@ -128,6 +128,7 @@ class Settings {
     );
     
     // Mouse 
+    /*
     settingsWindow.addSettingItem(
       __("(Enable Mouse|Activar Mouse)"),
       [__("(Yes|Sí)"), __("(No|No)")],
@@ -138,18 +139,21 @@ class Settings {
         restartNeeded = true;
       }
     );
+    */
     
     // Touch 
-    settingsWindow.addSettingItem(
-      __("(Enable Touch|Activar Táctil)"),
-      [__("(Yes|Sí)"), __("(No|No)")],
-      Account.settings.enableTouch ? 0 : 1,
-      index => {
-        Account.settings.enableTouch = index === 0;
-        saveAccount();
-        restartNeeded = true;
-      }
-    );
+    if (game.device.touch) {
+      settingsWindow.addSettingItem(
+        __("(Enable Touch|Activar Táctil)"),
+        [__("(Yes|Sí)"), __("(No|No)")],
+        Account.settings.enableTouch ? 0 : 1,
+        index => {
+          Account.settings.enableTouch = index === 0;
+          saveAccount();
+          restartNeeded = true;
+        }
+      );
+    }
     
     // Scroll direction
     settingsWindow.addSettingItem(
