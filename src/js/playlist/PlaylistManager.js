@@ -1,6 +1,6 @@
 class PlaylistManager {
   constructor() {
-    this.playlists = Account.playlists || {};
+    this.playlists = JSON.parse(localStorage.getItem('Playlists') || "{}");
     this.lastPlaylistKey = null;
   }
 
@@ -75,8 +75,8 @@ class PlaylistManager {
   }
 
   save() {
-    Account.playlists = this.playlists;
-    saveAccount();
+    window.playlists = this.playlists;
+    localStorage.setItem('Playlists', JSON.stringify(this.playlists));
   }
 
   static getInstance() {

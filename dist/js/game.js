@@ -4,8 +4,8 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.2.0
- * Build: 7/27/2026, 10:15:55 PM
+ * Version: v1.2.1
+ * Build: 7/29/2026, 10:38:42 PM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -81,7 +81,7 @@ const __ = window.__;
 
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.2.0";
+const VERSION = "v1.2.1";
 
 window.DEBUG = false;
 
@@ -3254,7 +3254,7 @@ const DEFAULT_ACCOUNT = {
     userOffset: 0,
     scrollDirection: "falling",
     visualizer: "BPM",
-    metronome: "OFF",
+    metronome: "Off",
     beatLines: false,
     beatsPerMeasure: 4, // TODO: Make this configurable
     speedMod: "X-MOD",
@@ -7264,7 +7264,7 @@ class AchievementsManager {
 
 class PlaylistManager {
   constructor() {
-    this.playlists = Account.playlists || {};
+    this.playlists = JSON.parse(localStorage.getItem('Playlists') || "{}");
     this.lastPlaylistKey = null;
   }
 
@@ -7339,8 +7339,8 @@ class PlaylistManager {
   }
 
   save() {
-    Account.playlists = this.playlists;
-    saveAccount();
+    window.playlists = this.playlists;
+    localStorage.setItem('Playlists', JSON.stringify(this.playlists));
   }
 
   static getInstance() {

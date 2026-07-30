@@ -96,6 +96,9 @@ Accessible from the main menu, the Add-on Manager allows you to:
 - Web version requires manual song loading
 - Double charts are not supported since it's hard to implement Single Player Doubles on mobile
 - Most mobile file browsers may require selecting individual files one by one
+- Limited HTML5 gamepad API makes some gamepads unusable with the game. In such case, users will need to use X360CE and similar programs
+- Saved data sometimes could be too large for some low-end devices 
+- Some mobile devices prevent external songs to be loaded due for security
 
 ## License
 
