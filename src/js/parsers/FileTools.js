@@ -1,4 +1,46 @@
 class FileTools {
+  static isValidFileURL(url) {
+    if (typeof url != 'string') {
+      return false;
+    }
+    
+    return true;
+  }
+  
+  static xhr(url, responseType, onload, onerror) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = responseType;
+    
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        onload?.(xhr.response);
+      } else {
+        onload?.("");
+      }
+    };
+    xhr.onerror = onerror;
+    xhr.send();
+    
+    return xhr;
+  }
+  
+  static async getFileAsBlob(url) {
+    return new Promise((resolve, reject) => {
+      if (typeof url !== "string") {
+        resolve(url);
+        return;
+      }
+      
+      // Handle file:// URLs and blob URLs
+      if (FileTools.isValidFileURL(url)) {
+        FileTools.xhr(url, 'blob', resolve, reject);
+      } else {
+        reject();
+      }
+    });
+  }
+  
   static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
       if (typeof url !== "string") {
@@ -13,28 +55,21 @@ class FileTools {
       }
       
       // Handle file:// URLs and blob URLs
-      if (url.startsWith('file://') || url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.responseType = 'blob';
+      if (FileTools.isValidFileURL(url)) {
+        const xhr = FileTools.xhr(url, 'blob', blob => {
+          const reader = new FileReader();
+          reader.onload = function() {
+            resolve(reader.result);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        }, () => {
+          resolve("");
+        });
         
-        xhr.onload = function() {
-          if (this.status === 200) {
-            const reader = new FileReader();
-            reader.onload = function() {
-              resolve(reader.result);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(xhr.response);
-          } else {
-            resolve("");
-          }
-        };
-        xhr.onerror = reject;
-        xhr.send();
         return;
       }
-      
+
       resolve("");
     });
   }
@@ -130,17 +165,11 @@ class FileTools {
   
   static loadTextFile(url) {
     return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          resolve(xhr.responseText);
-        } else {
-          resolve(null);
-        }
-      };
-      xhr.onerror = () => resolve(null);
-      xhr.send();
+      const xhr = FileTools.xhr(url, 'text', () => {
+        resolve(xhr.responseText);
+      }, () => {
+        reject(null);
+      });
     });
   }
   

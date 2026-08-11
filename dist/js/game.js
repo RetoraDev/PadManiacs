@@ -4,13 +4,16 @@
  * Licensed under the PadManiacs License (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.2.1
- * Build: 7/29/2026, 10:38:42 PM
+ * Version: v1.2.1 dev
+ * Build: 8/9/2026, 7:46:56 AM
  * Platform: Web
- * Debug: false
+ * Debug: true
  * Minified: false
  */
 
+
+
+// ======== js/core/lang.js ========
 // Cache for localized strings
 const __cache = new Map();
 let __currentLanguage = -1;
@@ -79,11 +82,14 @@ window.__ = function(text) {
 
 const __ = window.__;
 
+
+
+// ======== js/core/constants.js ========
 const COPYRIGHT = "(C) RETORA 2026";
 
-const VERSION = "v1.2.1";
+const VERSION = "v1.2.1 dev";
 
-window.DEBUG = false;
+window.DEBUG = true;
 
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
 
@@ -773,6 +779,9 @@ const DEFAULT_GAMEPAD_MAPPING = {
 
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg"];
 
+
+
+// ======== js/core/environment.js ========
 // Environment detection constants
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
@@ -807,6 +816,9 @@ const REGULAR_VIBRATION_INTENSITY = 75;
 const WEAK_VIBRATION_INTENSITY = 50;
 const STRONG_VIBRATION_INTENSITY = 50;
 
+
+
+// ======== js/core/character.js ========
 // Character system constants
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 12,
@@ -3236,6 +3248,9 @@ const CHARACTER_ITEMS = [
   }
 ];
 
+
+
+// ======== js/core/account.js ========
 const DEFAULT_ACCOUNT = {
   version: 1.2, // 1.2.0
   settings: {
@@ -3382,6 +3397,9 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
+
+
+// ======== js/core/achievements.js ========
 // Achievements system constants
 const ACHIEVEMENTS = {
   EXPERIENCE_VALUES: {
@@ -5020,6 +5038,9 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
+
+
+// ======== js/character/Character.js ========
 class Character {
   constructor(data) {
     this.name = data.name;
@@ -5491,6 +5512,9 @@ class Character {
   }
 }
 
+
+
+// ======== js/character/CharacterDisplay.js ========
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
@@ -6080,6 +6104,9 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/character/CharacterCroppedDisplay.js ========
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
@@ -6138,18 +6165,27 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
+
+
+// ======== js/character/CharacterPortrait.js ========
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
+
+
+// ======== js/character/CharacterCloseShot.js ========
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
+
+
+// ======== js/character/CharacterManager.js ========
 class CharacterManager {
   constructor() {
     this.characters = new Map();
@@ -6366,6 +6402,9 @@ class CharacterManager {
   }
 }
 
+
+
+// ======== js/character/CharacterSkillSystem.js ========
 class CharacterSkillSystem {
   constructor(scene, character) {
     this.scene = scene;
@@ -6749,6 +6788,9 @@ class CharacterSkillSystem {
   }
 }
 
+
+
+// ======== js/achievements/AchievementsManager.js ========
 class AchievementsManager {
   constructor() {
     this.newAchievements = [];
@@ -7262,6 +7304,9 @@ class AchievementsManager {
   }
 }
 
+
+
+// ======== js/playlist/PlaylistManager.js ========
 class PlaylistManager {
   constructor() {
     this.playlists = JSON.parse(localStorage.getItem('Playlists') || "{}");
@@ -7351,6 +7396,9 @@ class PlaylistManager {
   }
 }
 
+
+
+// ======== js/ui/Text.js ========
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config = {}, parent) {
     super(game, x, y, null);
@@ -7610,6 +7658,9 @@ class Text extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Window.js ========
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
@@ -8115,6 +8166,9 @@ class Window extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/WindowManager.js ========
 class WindowManager {
   constructor() {
     this.windows = [];
@@ -8395,6 +8449,9 @@ class WindowManager {
   }
 }
 
+
+
+// ======== js/ui/DialogWindow.js ========
 class DialogWindow extends Phaser.Sprite {
   constructor(text, options = {}) {
     const {
@@ -8847,6 +8904,9 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/CarouselMenu.js ========
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
@@ -9594,6 +9654,9 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Background.js ========
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 1000) {
     super(game, 0, 0, key);
@@ -9616,12 +9679,18 @@ class Background extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/BackgroundGradient.js ========
 class BackgroundGradient extends Background {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super("ui_background_gradient", true, min, max, time);
   }
 } 
 
+
+
+// ======== js/ui/CanvasBackground.js ========
 class CanvasBackground extends Phaser.Sprite {
   constructor(x = 0, y = 0, canvas) {
     super(game, x, y);
@@ -9655,6 +9724,9 @@ class CanvasBackground extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/FuturisticLines.js ========
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
@@ -9842,6 +9914,9 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LoadingDots.js ========
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -9855,6 +9930,9 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Logo.js ========
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
@@ -9904,6 +9982,9 @@ class Logo extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NavigationHint.js ========
 class NavigationHint extends Phaser.Sprite {
   constructor(hints = []) {
     super(game, 0, game.height - 6);
@@ -10331,6 +10412,9 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/ProgressText.js ========
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 2, text, FONTS.default);
@@ -10339,6 +10423,9 @@ class ProgressText extends Text {
   }
 }
 
+
+
+// ======== js/ui/ExperienceBar.js ========
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
@@ -10386,6 +10473,9 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/SkillBar.js ========
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
@@ -10413,6 +10503,9 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/TextInput.js ========
 class TextInput extends Phaser.Sprite {
   constructor(config = {}) {
     config = {
@@ -10659,6 +10752,9 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NumberInput.js ========
 class NumberInput extends TextInput {
   constructor(config = {}) {
     config = {
@@ -10810,6 +10906,9 @@ class NumberInput extends TextInput {
   }
 }
 
+
+
+// ======== js/ui/NotificationSystem.js ========
 class NotificationSystem {
   constructor() {
     this.queue = [];
@@ -11194,6 +11293,9 @@ class NotificationSystem {
   }
 }
 
+
+
+// ======== js/ui/Lyrics.js ========
 class Lyrics {
   constructor(options = {}) {
     this.textElement = options.textElement || null; // Text instance to display lyrics
@@ -11385,6 +11487,9 @@ class Lyrics {
   }
 }
 
+
+
+// ======== js/ui/OffsetAssistant.js ========
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
@@ -11677,6 +11782,9 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/MouseCursor.js ========
 class MouseCursor {
   constructor() {
     this.sprite = null;
@@ -11869,6 +11977,9 @@ class MouseCursor {
   }
 }
 
+
+
+// ======== js/ui/BarChart.js ========
 class BarChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -11964,6 +12075,9 @@ class BarChart extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LineChart.js ========
 class LineChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
@@ -12077,6 +12191,9 @@ class LineChart extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/filesystem/filesystem.js ========
 class FileSystemTools {
   constructor() {
     this.platform = this.detectPlatform();
@@ -12172,6 +12289,9 @@ class FileSystemTools {
   }
 }
 
+
+
+// ======== js/filesystem/node-filesystem.js ========
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -12581,6 +12701,9 @@ class NodeFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/cordova-filesystem.js ========
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -12696,6 +12819,9 @@ class CordovaFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/fallback-filesystem.js ========
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -12739,6 +12865,9 @@ class FallbackFileSystem {
   }
 }
 
+
+
+// ======== js/game/game.js ========
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 let Account = {
@@ -12962,6 +13091,9 @@ window.multiplayerState = {
   }
 };
 
+
+
+// ======== js/utils/ScreenRecorder.js ========
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -13331,6 +13463,9 @@ class ScreenRecorder {
   }
 }
 
+
+
+// ======== js/utils/Metronome.js ========
 class Metronome {
   constructor(scene) {
     this.scene = scene;
@@ -13492,6 +13627,9 @@ class Metronome {
   }
 }
 
+
+
+// ======== js/utils/TimeUtils.js ========
 class TimeUtils {
   static isValidTime(time) {
     return typeof time != undefined && typeof time != null && !isNaN(time) && time != Infinity;
@@ -13511,6 +13649,9 @@ class TimeUtils {
   }
 }
 
+
+
+// ======== js/input/GamepadListener.js ========
 class GamepadListener {
   constructor(game) {
     this.game = game;
@@ -13529,6 +13670,9 @@ class GamepadListener {
   }
 }
 
+
+
+// ======== js/input/KeyboardListener.js ========
 class KeyboardListener {
   constructor(game) {
     this.game = game;
@@ -13547,6 +13691,9 @@ class KeyboardListener {
   }
 }
 
+
+
+// ======== js/input/InputManager.js ========
 let inputManager, gamepad, gamepad1, gamepad2;
 
 class InputManager {
@@ -13574,6 +13721,9 @@ class InputManager {
   }
 }
 
+
+
+// ======== js/input/Gamepad.js ========
 class Gamepad {
   constructor(game, keyboardMap, gamepadMap, playerIndex = 0) {
     this.game = game;
@@ -14201,6 +14351,9 @@ class Gamepad {
   }
 }
 
+
+
+// ======== js/input/AllPads.js ========
 class AllPads extends Gamepad {
   constructor(game, gamepads) {
     super(game, undefined, undefined, 0);
@@ -14315,6 +14468,9 @@ class AllPads extends Gamepad {
   destroy() {}
 }
 
+
+
+// ======== js/input/OnScreenKeyboard.js ========
 class OnScreenKeyboard extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x || 60, y || 75, "ui_keyboard", 0);
@@ -14527,6 +14683,9 @@ class OnScreenKeyboard extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/input/NumericTypeOnScreenKeyboard.js ========
 class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   constructor(x, y) {
     super(80, 70);
@@ -14554,6 +14713,9 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   }
 }
 
+
+
+// ======== js/audio/BackgroundMusic.js ========
 class BackgroundMusic {
   constructor() {
     this.audio = document.createElement("audio");
@@ -14789,6 +14951,9 @@ class BackgroundMusic {
   }
 }
 
+
+
+// ======== js/visualizers/Visualizer.js ========
 class Visualizer {
   constructor(scene, x, y, width, height) {
     this.scene = scene;
@@ -14813,6 +14978,9 @@ class Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AccurracyVisualizer.js ========
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -14853,6 +15021,9 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AudioVisualizer.js ========
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -14919,6 +15090,9 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/BPMVisualizer.js ========
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
@@ -15011,6 +15185,9 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
     this.audioElement = audioElement;
@@ -15369,6 +15546,9 @@ class FullScreenAudioVisualizer {
   }
 }
 
+
+
+// ======== js/parsers/SMFile.js ========
 class SMFile {
   static generateSM(songData) {
     let smContent = "";
@@ -15660,7 +15840,52 @@ class SMFile {
   }
 }
 
+
+
+// ======== js/parsers/FileTools.js ========
 class FileTools {
+  static isValidFileURL(url) {
+    if (typeof url != 'string') {
+      return false;
+    }
+    
+    return true;
+  }
+  
+  static xhr(url, responseType, onload, onerror) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = responseType;
+    
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        onload?.(xhr.response);
+      } else {
+        onload?.("");
+      }
+    };
+    xhr.onerror = onerror;
+    xhr.send();
+    
+    return xhr;
+  }
+  
+  static async getFileAsBlob(url) {
+    return new Promise((resolve, reject) => {
+      if (typeof url !== "string") {
+        resolve(url);
+        return;
+      }
+      
+      // Handle file:// URLs and blob URLs
+      if (FileTools.isValidFileURL(url)) {
+        FileTools.xhr(url, 'blob', resolve, reject);
+      } else {
+        reject();
+      }
+    });
+  }
+  
   static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
       if (typeof url !== "string") {
@@ -15675,28 +15900,21 @@ class FileTools {
       }
       
       // Handle file:// URLs and blob URLs
-      if (url.startsWith('file://') || url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.responseType = 'blob';
+      if (FileTools.isValidFileURL(url)) {
+        const xhr = FileTools.xhr(url, 'blob', blob => {
+          const reader = new FileReader();
+          reader.onload = function() {
+            resolve(reader.result);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        }, () => {
+          resolve("");
+        });
         
-        xhr.onload = function() {
-          if (this.status === 200) {
-            const reader = new FileReader();
-            reader.onload = function() {
-              resolve(reader.result);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(xhr.response);
-          } else {
-            resolve("");
-          }
-        };
-        xhr.onerror = reject;
-        xhr.send();
         return;
       }
-      
+
       resolve("");
     });
   }
@@ -15792,17 +16010,11 @@ class FileTools {
   
   static loadTextFile(url) {
     return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          resolve(xhr.responseText);
-        } else {
-          resolve(null);
-        }
-      };
-      xhr.onerror = () => resolve(null);
-      xhr.send();
+      const xhr = FileTools.xhr(url, 'text', () => {
+        resolve(xhr.responseText);
+      }, () => {
+        reject(null);
+      });
     });
   }
   
@@ -15857,6 +16069,9 @@ class FileTools {
   }
 }
 
+
+
+// ======== js/parsers/LocalSMParser.js ========
 class LocalSMParser {
   constructor() {
     this.baseUrl = "";
@@ -16128,6 +16343,9 @@ class LocalSMParser {
   }
 }
 
+
+
+// ======== js/parsers/ExternalSMParser.js ========
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   async parseSM(files, smContent) {
@@ -16594,6 +16812,9 @@ class ExternalSMParser {
   }
 }
 
+
+
+// ======== js/addons/AddonManager.js ========
 class AddonManager {
   constructor() {
     this.addons = new Map();
@@ -17005,6 +17226,9 @@ class AddonManager {
   }
 }
 
+
+
+// ======== js/game/states/Boot.js ========
 class Boot {
   preload() {
     this.load.baseURL = "assets/";
@@ -17584,6 +17808,9 @@ class Boot {
   }
 }
 
+
+
+// ======== js/game/states/Load.js ========
 class Load {
   init(resources, nextState, nextStateParams) {
     this.resources = resources || [];
@@ -17630,6 +17857,9 @@ class Load {
   }
 }
 
+
+
+// ======== js/game/states/LoadCordova.js ========
 class LoadCordova {
   create() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
@@ -17677,6 +17907,9 @@ class LoadCordova {
   }
 }
 
+
+
+// ======== js/game/states/LoadAddons.js ========
 class LoadAddons {
   create() {
     this.progressText = new ProgressText(__("Loading Add-ons...||Cargando Add-ons..."));
@@ -17699,6 +17932,9 @@ class LoadAddons {
   }
 }
 
+
+
+// ======== js/game/states/LoadLocalSongs.js ========
 class LoadLocalSongs {
   create() {
     this.progressText = new ProgressText(__("Loading Songs...||Cargando canciones..."));
@@ -17772,6 +18008,9 @@ class LoadLocalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadExternalSongs.js ========
 class LoadExternalSongs {
   init(nextState, nextStateParams) {
     this.nextState = nextState || 'SongSelect';
@@ -18115,6 +18354,9 @@ class LoadExternalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadSongFolder.js ========
 class LoadSongFolder {
   create() {
     this.progressText = new ProgressText(__("Select Song Folder...||Seleccionar carpeta..."));
@@ -18315,6 +18557,9 @@ class LoadSongFolder {
   }
 }
 
+
+
+// ======== js/game/states/LoadExternalSongFile.js ========
 class LoadExternalSongFile {
   init(fileName, filePath, nextState, nextStateParams) {
     this.fileName = fileName;
@@ -18431,6 +18676,9 @@ class LoadExternalSongFile {
   }
 }
 
+
+
+// ======== js/game/states/Title.js ========
 class Title {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -18527,6 +18775,9 @@ class Title {
   }
 }
 
+
+
+// ======== js/game/states/MainMenu.js ========
 class MainMenu {
   create() {
     game.camera.fadeIn(0xffffff);
@@ -18968,6 +19219,9 @@ class MainMenu {
   }
 }
 
+
+
+// ======== js/game/states/Addons.js ========
 class Addons {
   create() {
     this.leaving = false;
@@ -19170,6 +19424,9 @@ class Addons {
   }
 }
 
+
+
+// ======== js/game/states/Settings.js ========
 class Settings {
   create() {
     this.futuristicLines = new FuturisticLines();
@@ -19856,6 +20113,9 @@ class Settings {
   }
 }
 
+
+
+// ======== js/game/states/ChartModifiers.js ========
 class ChartModifiers {
   init(returnState = "Settings", ...returnParams) {
     this.returnState = returnState;
@@ -20006,6 +20266,9 @@ class ChartModifiers {
   }
 }
 
+
+
+// ======== js/game/states/Keybindings.js ========
 class Keybindings {
   create() {
     game.camera.fadeIn(0x000000);
@@ -20627,6 +20890,9 @@ class Keybindings {
   }
 }
 
+
+
+// ======== js/game/states/FileSelect.js ========
 class FileSelect {
   init(extensions = null, onSelect = null, onCancel = null, allowCancel = true) {
     this.extensions = extensions;
@@ -20909,6 +21175,9 @@ class FileSelect {
   }
 }
 
+
+
+// ======== js/game/states/SongSelect.js ========
 class SongSelect {
   init(songs, index, autoSelect, type = "auto", playlistKey = null) {
     this.type = type;
@@ -20916,6 +21185,8 @@ class SongSelect {
     
     this.isActionMenuOpen = false;
     this.actionsMenuBlocked = false;
+    
+    this.compatibilityBannersCache = window.compatibilityBannersCache || {};
     
     switch (type) {
       case "local":
@@ -21084,19 +21355,12 @@ class SongSelect {
       if (!this.autoSelect) this.loadingDots.visible = true;
       this.songCarousel.config.disableNavigation = true;
       
-      if (Account.settings.imageRenderingCompatibility) {
-        this.bannerSprite.loadTexture('__default');
-        game.cache.addImageAsync('__song_banner', song.bannerUrl, () => {
-          if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
-          this.bannerSprite.loadTexture('__song_banner');
-          this.bannerSprite.width = 96;
-          this.bannerSprite.height = 32;
-          this.songCarousel.config.disableNavigation = false;
-        });
-      } else {
+      const isCrossOrigin = true; // TODO: Add a method to check if bannerUrl is at a cross origin, specially at Cordova Filesystem or Node FS
+    
+      const loadBanner = (url) => {
         this.bannerSprite.restoreCanvas();
-          
-        this.bannerImg.src = song.bannerUrl;
+  
+        this.bannerImg.src = url;
         this.bannerImg.onload = () => {
           if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
           
@@ -21108,10 +21372,25 @@ class SongSelect {
           this.songCarousel.config.disableNavigation = false;
         };
         this.bannerImg.onerror = () => {
+          console.warn('Could not load banner:', `'${url}'`);
           this.loadingDots.visible = false;
           this.bannerSprite.loadTexture('ui_banner_no_image');
           this.songCarousel.config.disableNavigation = false;
         };
+      };
+    
+      if (Account.settings.imageRenderingCompatibility) {
+        if (isCrossOrigin) {
+          FileTools.urlToDataURL(song.bannerUrl).then(url => {
+            loadBanner(url);
+          }, () => {
+            loadBanner(song.bannerUrl);
+          });
+        } else {
+          loadBanner(song.bannerUrl);
+        }
+      } else {
+        loadBanner(song.bannerUrl);
       }
     } else {
       this.bannerSprite.loadTexture('ui_banner_no_image');
@@ -21708,9 +21987,14 @@ class SongSelect {
     if (this.visibilityChangeListener) {
       window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     }
+    
+    window.compatibilityBannersCache = this.compatibilityBannersCache;
   }
 }
 
+
+
+// ======== js/game/states/SongStats.js ========
 class SongStats {
   init(song, returnState, returnParams = {}) {
     this.song = song;
@@ -22345,6 +22629,9 @@ class SongStats {
   }
 }
 
+
+
+// ======== js/game/states/CharacterSelect.js ========
 class CharacterSelect {
   create() {
     game.camera.fadeIn(0x000000);
@@ -24071,6 +24358,9 @@ class CharacterSelect {
   }
 }
 
+
+
+// ======== js/game/states/AchievementsMenu.js ========
 class AchievementsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -24209,6 +24499,9 @@ class AchievementsMenu {
   }
 }
 
+
+
+// ======== js/game/states/StatsMenu.js ========
 class StatsMenu {
   create() {
     game.camera.fadeIn(0x000000);
@@ -24306,6 +24599,9 @@ class StatsMenu {
   }
 }
 
+
+
+// ======== js/game/states/Play.js ========
 class Play {
   init(song, difficultyIndex, playtestMode, autoplay, playlistKey) {
     if (typeof song.difficultyIndex != undefined && typeof difficultyIndex != undefined) {
@@ -25814,6 +26110,9 @@ class Play {
   }
 }
 
+
+
+// ======== js/game/states/PlayMulti.js ========
 class PlayMulti extends Play {
   constructor() {
     super();
@@ -26110,6 +26409,9 @@ class PlayMulti extends Play {
   }
 }
 
+
+
+// ======== js/game/states/Results.js ========
 class Results {
   init(gameData) {
     this.gameData = gameData;
@@ -26388,6 +26690,9 @@ class Results {
   }
 }
 
+
+
+// ======== js/game/states/ResultsMulti.js ========
 class ResultsMulti extends Results {
   constructor() {
     super();
@@ -26583,6 +26888,9 @@ class ResultsMulti extends Results {
   }
 }
 
+
+
+// ======== js/game/states/Playlists.js ========
 class Playlists {
   create() {
     game.camera.fadeIn(0x000000);
@@ -26784,6 +27092,9 @@ class Playlists {
   }
 }
 
+
+
+// ======== js/game/states/Jukebox.js ========
 class Jukebox {
   init(songs = null, startIndex = 0) {
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
@@ -27772,6 +28083,9 @@ class Jukebox {
   }
 }
 
+
+
+// ======== js/game/states/Editor.js ========
 class Editor {
   init(song = null) {
     this.song = song || this.createNewSong();
@@ -30548,6 +30862,9 @@ class Editor {
   }
 }
 
+
+
+// ======== js/game/states/Credits.js ========
 class Credits {
   init(returnState = 'MainMenu', returnStateParams = {}) {
     this.returnState = returnState;
@@ -30862,6 +31179,9 @@ class Credits {
   }
 }
 
+
+
+// ======== js/game/states/ErrorScreen.js ========
 class ErrorScreen {
   init(message, recoverStateKey) {
     this.message = message || "The causes of this failure are unknown yet";
@@ -30898,6 +31218,9 @@ Please Report The Developer Immediately!
   }
 }
 
+
+
+// ======== js/game/player/ChartRenderer.js ========
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -31888,6 +32211,9 @@ class ChartRenderer {
   }
 }
 
+
+
+// ======== js/game/player/AudioTemperatureMeter.js ========
 class AudioTemperatureMeter {
   constructor(scene, audioElement) {
     this.scene = scene;
@@ -32242,6 +32568,9 @@ class AudioTemperatureMeter {
   }
 }
 
+
+
+// ======== js/game/player/Player.js ========
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
     this.scene = scene;
@@ -33150,6 +33479,9 @@ class Player {
   }
 }
 
+
+
+// ======== js/game/player/FirstPlayer.js ========
 class FirstPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "left" side
@@ -33167,6 +33499,9 @@ class FirstPlayer extends Player {
   }
 }
 
+
+
+// ======== js/game/player/SecondPlayer.js ========
 class SecondPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "right" side

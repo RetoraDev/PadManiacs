@@ -959,18 +959,18 @@ class BuildSystem {
       // Then build each platform with their specific environment
       await this.buildAndroid();
       await this.buildNWJS();
-      await this.buildWeb();
+      await this.buildBaseFiles('web');
     } else if (platform === 'web') {
       await this.buildBaseFiles('web');
       await this.buildWeb();
     } else if (platform === 'nwjs') {
       await this.buildBaseFiles('nwjs');
       await this.buildNWJS();
-      await this.buildWeb();
+      await this.buildBaseFiles('web');
     } else if (platform === 'cordova') {
       await this.buildBaseFiles('cordova');
       await this.buildAndroid();
-      await this.buildWeb();
+      await this.buildBaseFiles('web');
     } else if (platform === 'none') {
       await this.buildBaseFiles('none');
       this.log('Development build complete', 'success');
