@@ -6,8 +6,6 @@ class SongSelect {
     this.isActionMenuOpen = false;
     this.actionsMenuBlocked = false;
     
-    this.compatibilityBannersCache = window.compatibilityBannersCache || {};
-    
     switch (type) {
       case "local":
         this.songs = songs || window.localSongs || [];
@@ -175,12 +173,19 @@ class SongSelect {
       if (!this.autoSelect) this.loadingDots.visible = true;
       this.songCarousel.config.disableNavigation = true;
       
-      const isCrossOrigin = true; // TODO: Add a method to check if bannerUrl is at a cross origin, specially at Cordova Filesystem or Node FS
-    
-      const loadBanner = (url) => {
+      if (Account.settings.imageRenderingCompatibility) {
+        this.bannerSprite.loadTexture('__default');
+        game.cache.addImageAsync('__song_banner', song.bannerUrl, () => {
+          if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
+          this.bannerSprite.loadTexture('__song_banner');
+          this.bannerSprite.width = 96;
+          this.bannerSprite.height = 32;
+          this.songCarousel.config.disableNavigation = false;
+        });
+      } else {
         this.bannerSprite.restoreCanvas();
-  
-        this.bannerImg.src = url;
+          
+        this.bannerImg.src = song.bannerUrl;
         this.bannerImg.onload = () => {
           if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
           
@@ -192,25 +197,10 @@ class SongSelect {
           this.songCarousel.config.disableNavigation = false;
         };
         this.bannerImg.onerror = () => {
-          console.warn('Could not load banner:', `'${url}'`);
           this.loadingDots.visible = false;
           this.bannerSprite.loadTexture('ui_banner_no_image');
           this.songCarousel.config.disableNavigation = false;
         };
-      };
-    
-      if (Account.settings.imageRenderingCompatibility) {
-        if (isCrossOrigin) {
-          FileTools.urlToDataURL(song.bannerUrl).then(url => {
-            loadBanner(url);
-          }, () => {
-            loadBanner(song.bannerUrl);
-          });
-        } else {
-          loadBanner(song.bannerUrl);
-        }
-      } else {
-        loadBanner(song.bannerUrl);
       }
     } else {
       this.bannerSprite.loadTexture('ui_banner_no_image');
@@ -807,7 +797,5 @@ class SongSelect {
     if (this.visibilityChangeListener) {
       window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     }
-    
-    window.compatibilityBannersCache = this.compatibilityBannersCache;
   }
 }

@@ -22,7 +22,7 @@ class Text extends Phaser.Sprite {
     this.tint = this.config.tint;
     
     if (this.config.typewriter) {
-      this.typewriter(text);
+      this.typewrite(text);
     } else {
       this.write(text);
     }
