@@ -174,14 +174,39 @@ class SongSelect {
       this.songCarousel.config.disableNavigation = true;
       
       if (Account.settings.imageRenderingCompatibility) {
-        this.bannerSprite.loadTexture('__default');
-        game.cache.addImageAsync('__song_banner', song.bannerUrl, () => {
-          if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
-          this.bannerSprite.loadTexture('__song_banner');
-          this.bannerSprite.width = 96;
-          this.bannerSprite.height = 32;
-          this.songCarousel.config.disableNavigation = false;
-        });
+        const usePhaser = false;
+        if (usePhaser) {
+          this.bannerSprite.loadTexture('__default');
+          game.cache.addImageAsync('__song_banner', song.bannerUrl, () => {
+            if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
+            this.bannerSprite.loadTexture('__song_banner');
+            this.bannerSprite.width = 96;
+            this.bannerSprite.height = 32;
+            this.songCarousel.config.disableNavigation = false;
+          });
+        } else {
+          this.bannerSprite.loadTexture('__default');
+          FileTools.urlToDataURL(song.bannerUrl).then(url => {
+            this.bannerSprite.restoreCanvas();
+          
+            this.bannerImg.src = url;
+            this.bannerImg.onload = () => {
+              if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
+              
+              this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
+              this.bannerSprite.ctx.drawImage(this.bannerImg, 0, 0, 96, 32);
+              
+              this.bannerSprite.dirty();
+              
+              this.songCarousel.config.disableNavigation = false;
+            };
+            this.bannerImg.onerror = () => {
+              this.loadingDots.visible = false;
+              this.bannerSprite.loadTexture('ui_banner_no_image');
+              this.songCarousel.config.disableNavigation = false;
+            };
+          });
+        }
       } else {
         this.bannerSprite.restoreCanvas();
           
@@ -491,9 +516,12 @@ class SongSelect {
       animate: true
     });
     
+    const playlistManager = PlaylistManager.getInstance();
+    
     const hasPlaylistKey = !!playlistKey;
     const currentSong = this.songs[this.songCarousel.selectedIndex];
-    
+    const existingPlaylistKeys = playlistManager.getSongPlaylists(currentSong);
+
     // Add to playlist
     if (!hasPlaylistKey) {
       this.actionsMenu.addItem(__("Add to playlist||Agregar a playlist"), () => this.showAddToPlaylistMenu(currentSong));
@@ -504,7 +532,6 @@ class SongSelect {
     // Remove from playlist
     if (hasPlaylistKey) {
       this.actionsMenu.addItem(__("Remove from playlist||Quitar de playlist"), () => {
-        const playlistManager = PlaylistManager.getInstance();
         const playlist = playlistManager.getPlaylist(playlistKey);
         if (playlist) {
           const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
@@ -528,11 +555,32 @@ class SongSelect {
           }
         }
       });
+    } else if (existingPlaylistKeys.length) {
+      const addItem = key => {
+        const playlist = playlistManager.getPlaylist(key);
+        
+        if (playlist) {
+          this.actionsMenu.addItem(__(`Remove from "${playlist.name}"||Quitar de "${playlist.name}"`), () => {
+            const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
+            if (index !== -1) {
+              playlistManager.removeSong(key, index);
+              notifications.show(__("Removed from playlist!||¡Quitado de la playlist!"));
+              this.closeActionsMenu();
+            } else {
+              notifications.show(__("Song not in playlist!||¡Canción no está en la playlist!"));
+            }
+          });
+        }
+      };
+      
+      for (const key of existingPlaylistKeys) {
+        addItem(key); // TODO: Limit the amout of items 
+      }
     }
     
     // Move up/down
+    // TODO: Allow the top/bottom song of the list to move up/down 
     if (hasPlaylistKey) {
-      const playlistManager = PlaylistManager.getInstance();
       const playlist = playlistManager.getPlaylist(playlistKey);
       if (playlist) {
         const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
@@ -554,6 +602,9 @@ class SongSelect {
                 this.type, 
                 this.playlistKey
               );
+            } else {
+              notifications.show(__("The song is already at top||La canción ya está al principio"));
+              this.closeActionsMenu();
             }
           });
           this.actionsMenu.addItem(__("Move down||Bajar"), () => {
@@ -573,6 +624,9 @@ class SongSelect {
                 this.type, 
                 this.playlistKey
               );
+            } else {
+              notifications.show(__("The song is already at bottom||La canción ya está al final"));
+              this.closeActionsMenu();
             }
           });
         }

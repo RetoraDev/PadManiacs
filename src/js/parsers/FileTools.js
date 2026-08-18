@@ -1,5 +1,5 @@
 class FileTools {
-  static async urlToDataURL(url) {
+  static async urlToDataURL(url, type) {
     return new Promise((resolve, reject) => {
       if (typeof url !== "string") {
         resolve("");
@@ -13,29 +13,24 @@ class FileTools {
       }
       
       // Handle file:// URLs and blob URLs
-      if (url.startsWith('file://') || url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.responseType = 'blob';
-        
-        xhr.onload = function() {
-          if (this.status === 200) {
-            const reader = new FileReader();
-            reader.onload = function() {
-              resolve(reader.result);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(xhr.response);
-          } else {
-            resolve("");
-          }
-        };
-        xhr.onerror = reject;
-        xhr.send();
-        return;
-      }
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.responseType = 'blob';
       
-      resolve("");
+      xhr.onload = function() {
+        if (this.status === 200) {
+          const reader = new FileReader();
+          reader.onload = function() {
+            resolve(reader.result);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(xhr.response);
+        } else {
+          resolve("");
+        }
+      };
+      xhr.onerror = reject;
+      xhr.send();
     });
   }
   

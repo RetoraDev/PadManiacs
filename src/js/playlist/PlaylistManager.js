@@ -24,12 +24,67 @@ class PlaylistManager {
 
   addSong(playlistKey, song) {
     if (!this.playlists[playlistKey]) return false;
+    
+    // Store only minimal reference
+    const songRef = this.createSongRef(song);
     if (this.playlists[playlistKey].songs.find(s => s.audioUrl === song.audioUrl)) return false;
     
-    this.playlists[playlistKey].songs.push(song);
+    this.playlists[playlistKey].songs.push(songRef);
     this.playlists[playlistKey].updatedAt = Date.now();
     this.save();
     return true;
+  }
+
+  createSongRef(song) {
+    // Minimal data - only what's needed to find the song again
+    return {
+      audioUrl: song.audioUrl,
+      title: song.title,
+      titleTranslit: song.titleTranslit || null,
+      artist: song.artist,
+      artistTranslit: song.artistTranslit || null,
+      folderName: song.folderName || null,
+      isExternal: song.isExternal || false,
+      isLocal: song.isLocal || false,
+      // For local songs, store the index or folder name
+      localIndex: song.localIndex !== undefined ? song.localIndex : null
+    };
+  }
+
+  restoreFullSong(songRef) {
+    // First try to find in local songs
+    if (window.localSongs) {
+      const found = window.localSongs.find(s => s.audioUrl === songRef.audioUrl);
+      if (found) return found;
+    }
+    
+    // Then try external songs
+    if (window.externalSongs) {
+      const found = window.externalSongs.find(s => s.audioUrl === songRef.audioUrl);
+      if (found) return found;
+    }
+    
+    // If not found, return the minimal object with a flag
+    return {
+      ...songRef,
+      loaded: false,
+      missing: true
+    };
+  }
+
+  getPlaylistSongs(key) {
+    if (!this.playlists[key]) return [];
+    return this.playlists[key].songs.map(ref => this.restoreFullSong(ref));
+  }
+
+  getPlaylistRefs(key) {
+    if (!this.playlists[key]) return [];
+    return this.playlists[key].songs;
+  }
+
+  hasExternalSongs(key) {
+    if (!this.playlists[key]) return false;
+    return this.playlists[key].songs.some(s => s.isExternal);
   }
 
   removeSong(playlistKey, songIndex) {
@@ -53,11 +108,54 @@ class PlaylistManager {
   }
 
   getPlaylist(key) {
+    if (!this.playlists[key]) return null;
+    return {
+      ...this.playlists[key],
+      songs: this.getPlaylistSongs(key)
+    };
+  }
+
+  getPlaylistRef(key) {
     return this.playlists[key] || null;
   }
 
   getPlaylistNames() {
     return Object.keys(this.playlists);
+  }
+  
+  getSongPlaylist(song) {
+    const keys = Object.keys(this.playlists);
+    
+    for (const key of keys) {
+      const songs = this.getPlaylistSongs(key);
+      
+      for (const s of songs) {
+        if (s.audioUrl === song.audioUrl) {
+          return key;
+        }
+      }
+      
+    };
+    
+    return null;
+  }
+  
+  getSongPlaylists(song) {
+    const keys = Object.keys(this.playlists);
+    const playlists = [];
+    
+    for (const key of keys) {
+      const songs = this.getPlaylistSongs(key);
+      
+      for (const s of songs) {
+        if (s.audioUrl === song.audioUrl) {
+          playlists.push(key);
+        }
+      }
+      
+    };
+    
+    return playlists;
   }
 
   renamePlaylist(key, name) {

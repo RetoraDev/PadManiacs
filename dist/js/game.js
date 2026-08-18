@@ -5,8 +5,8 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.2.1
- * Build: 7/29/2026, 10:38:42 PM
- * Platform: Web
+ * Build: 8/18/2026, 2:59:26 PM
+ * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
  */
@@ -782,7 +782,7 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
 
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
 const NWJS_EXTERNAL_DIRECTORY = "data/";
@@ -7288,12 +7288,67 @@ class PlaylistManager {
 
   addSong(playlistKey, song) {
     if (!this.playlists[playlistKey]) return false;
+    
+    // Store only minimal reference
+    const songRef = this.createSongRef(song);
     if (this.playlists[playlistKey].songs.find(s => s.audioUrl === song.audioUrl)) return false;
     
-    this.playlists[playlistKey].songs.push(song);
+    this.playlists[playlistKey].songs.push(songRef);
     this.playlists[playlistKey].updatedAt = Date.now();
     this.save();
     return true;
+  }
+
+  createSongRef(song) {
+    // Minimal data - only what's needed to find the song again
+    return {
+      audioUrl: song.audioUrl,
+      title: song.title,
+      titleTranslit: song.titleTranslit || null,
+      artist: song.artist,
+      artistTranslit: song.artistTranslit || null,
+      folderName: song.folderName || null,
+      isExternal: song.isExternal || false,
+      isLocal: song.isLocal || false,
+      // For local songs, store the index or folder name
+      localIndex: song.localIndex !== undefined ? song.localIndex : null
+    };
+  }
+
+  restoreFullSong(songRef) {
+    // First try to find in local songs
+    if (window.localSongs) {
+      const found = window.localSongs.find(s => s.audioUrl === songRef.audioUrl);
+      if (found) return found;
+    }
+    
+    // Then try external songs
+    if (window.externalSongs) {
+      const found = window.externalSongs.find(s => s.audioUrl === songRef.audioUrl);
+      if (found) return found;
+    }
+    
+    // If not found, return the minimal object with a flag
+    return {
+      ...songRef,
+      loaded: false,
+      missing: true
+    };
+  }
+
+  getPlaylistSongs(key) {
+    if (!this.playlists[key]) return [];
+    return this.playlists[key].songs.map(ref => this.restoreFullSong(ref));
+  }
+
+  getPlaylistRefs(key) {
+    if (!this.playlists[key]) return [];
+    return this.playlists[key].songs;
+  }
+
+  hasExternalSongs(key) {
+    if (!this.playlists[key]) return false;
+    return this.playlists[key].songs.some(s => s.isExternal);
   }
 
   removeSong(playlistKey, songIndex) {
@@ -7317,11 +7372,54 @@ class PlaylistManager {
   }
 
   getPlaylist(key) {
+    if (!this.playlists[key]) return null;
+    return {
+      ...this.playlists[key],
+      songs: this.getPlaylistSongs(key)
+    };
+  }
+
+  getPlaylistRef(key) {
     return this.playlists[key] || null;
   }
 
   getPlaylistNames() {
     return Object.keys(this.playlists);
+  }
+  
+  getSongPlaylist(song) {
+    const keys = Object.keys(this.playlists);
+    
+    for (const key of keys) {
+      const songs = this.getPlaylistSongs(key);
+      
+      for (const s of songs) {
+        if (s.audioUrl === song.audioUrl) {
+          return key;
+        }
+      }
+      
+    };
+    
+    return null;
+  }
+  
+  getSongPlaylists(song) {
+    const keys = Object.keys(this.playlists);
+    const playlists = [];
+    
+    for (const key of keys) {
+      const songs = this.getPlaylistSongs(key);
+      
+      for (const s of songs) {
+        if (s.audioUrl === song.audioUrl) {
+          playlists.push(key);
+        }
+      }
+      
+    };
+    
+    return playlists;
   }
 
   renamePlaylist(key, name) {
@@ -7375,7 +7473,7 @@ class Text extends Phaser.Sprite {
     this.tint = this.config.tint;
     
     if (this.config.typewriter) {
-      this.typewriter(text);
+      this.typewrite(text);
     } else {
       this.write(text);
     }
@@ -15661,7 +15759,7 @@ class SMFile {
 }
 
 class FileTools {
-  static async urlToDataURL(url) {
+  static async urlToDataURL(url, type) {
     return new Promise((resolve, reject) => {
       if (typeof url !== "string") {
         resolve("");
@@ -15675,29 +15773,24 @@ class FileTools {
       }
       
       // Handle file:// URLs and blob URLs
-      if (url.startsWith('file://') || url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.responseType = 'blob';
-        
-        xhr.onload = function() {
-          if (this.status === 200) {
-            const reader = new FileReader();
-            reader.onload = function() {
-              resolve(reader.result);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(xhr.response);
-          } else {
-            resolve("");
-          }
-        };
-        xhr.onerror = reject;
-        xhr.send();
-        return;
-      }
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.responseType = 'blob';
       
-      resolve("");
+      xhr.onload = function() {
+        if (this.status === 200) {
+          const reader = new FileReader();
+          reader.onload = function() {
+            resolve(reader.result);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(xhr.response);
+        } else {
+          resolve("");
+        }
+      };
+      xhr.onerror = reject;
+      xhr.send();
     });
   }
   
@@ -21085,14 +21178,39 @@ class SongSelect {
       this.songCarousel.config.disableNavigation = true;
       
       if (Account.settings.imageRenderingCompatibility) {
-        this.bannerSprite.loadTexture('__default');
-        game.cache.addImageAsync('__song_banner', song.bannerUrl, () => {
-          if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
-          this.bannerSprite.loadTexture('__song_banner');
-          this.bannerSprite.width = 96;
-          this.bannerSprite.height = 32;
-          this.songCarousel.config.disableNavigation = false;
-        });
+        const usePhaser = false;
+        if (usePhaser) {
+          this.bannerSprite.loadTexture('__default');
+          game.cache.addImageAsync('__song_banner', song.bannerUrl, () => {
+            if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
+            this.bannerSprite.loadTexture('__song_banner');
+            this.bannerSprite.width = 96;
+            this.bannerSprite.height = 32;
+            this.songCarousel.config.disableNavigation = false;
+          });
+        } else {
+          this.bannerSprite.loadTexture('__default');
+          FileTools.urlToDataURL(song.bannerUrl).then(url => {
+            this.bannerSprite.restoreCanvas();
+          
+            this.bannerImg.src = url;
+            this.bannerImg.onload = () => {
+              if (index == this.songCarousel.selectedIndex) this.loadingDots.visible = false;
+              
+              this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
+              this.bannerSprite.ctx.drawImage(this.bannerImg, 0, 0, 96, 32);
+              
+              this.bannerSprite.dirty();
+              
+              this.songCarousel.config.disableNavigation = false;
+            };
+            this.bannerImg.onerror = () => {
+              this.loadingDots.visible = false;
+              this.bannerSprite.loadTexture('ui_banner_no_image');
+              this.songCarousel.config.disableNavigation = false;
+            };
+          });
+        }
       } else {
         this.bannerSprite.restoreCanvas();
           
@@ -21402,9 +21520,12 @@ class SongSelect {
       animate: true
     });
     
+    const playlistManager = PlaylistManager.getInstance();
+    
     const hasPlaylistKey = !!playlistKey;
     const currentSong = this.songs[this.songCarousel.selectedIndex];
-    
+    const existingPlaylistKeys = playlistManager.getSongPlaylists(currentSong);
+
     // Add to playlist
     if (!hasPlaylistKey) {
       this.actionsMenu.addItem(__("Add to playlist||Agregar a playlist"), () => this.showAddToPlaylistMenu(currentSong));
@@ -21415,7 +21536,6 @@ class SongSelect {
     // Remove from playlist
     if (hasPlaylistKey) {
       this.actionsMenu.addItem(__("Remove from playlist||Quitar de playlist"), () => {
-        const playlistManager = PlaylistManager.getInstance();
         const playlist = playlistManager.getPlaylist(playlistKey);
         if (playlist) {
           const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
@@ -21439,11 +21559,32 @@ class SongSelect {
           }
         }
       });
+    } else if (existingPlaylistKeys.length) {
+      const addItem = key => {
+        const playlist = playlistManager.getPlaylist(key);
+        
+        if (playlist) {
+          this.actionsMenu.addItem(__(`Remove from "${playlist.name}"||Quitar de "${playlist.name}"`), () => {
+            const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
+            if (index !== -1) {
+              playlistManager.removeSong(key, index);
+              notifications.show(__("Removed from playlist!||¡Quitado de la playlist!"));
+              this.closeActionsMenu();
+            } else {
+              notifications.show(__("Song not in playlist!||¡Canción no está en la playlist!"));
+            }
+          });
+        }
+      };
+      
+      for (const key of existingPlaylistKeys) {
+        addItem(key); // TODO: Limit the amout of items 
+      }
     }
     
     // Move up/down
+    // TODO: Allow the top/bottom song of the list to move up/down 
     if (hasPlaylistKey) {
-      const playlistManager = PlaylistManager.getInstance();
       const playlist = playlistManager.getPlaylist(playlistKey);
       if (playlist) {
         const index = playlist.songs.findIndex(s => s.audioUrl === currentSong.audioUrl);
@@ -21465,6 +21606,9 @@ class SongSelect {
                 this.type, 
                 this.playlistKey
               );
+            } else {
+              notifications.show(__("The song is already at top||La canción ya está al principio"));
+              this.closeActionsMenu();
             }
           });
           this.actionsMenu.addItem(__("Move down||Bajar"), () => {
@@ -21484,6 +21628,9 @@ class SongSelect {
                 this.type, 
                 this.playlistKey
               );
+            } else {
+              notifications.show(__("The song is already at bottom||La canción ya está al final"));
+              this.closeActionsMenu();
             }
           });
         }
@@ -26597,7 +26744,35 @@ class Playlists {
     this.detailText = new Text(8, 6, "", FONTS.default_shadow);
     this.detailText.tint = 0x989898;
     
+    // Check if external songs are loaded
+    if (this._pendingExternalLoad) {
+      this._pendingExternalLoad = false;
+      this.loadExternalSongsThenProceed();
+      return;
+    }
+    
     this.showPlaylistList();
+  }
+
+  loadExternalSongsThenProceed(callback) {
+    if (window.externalSongs && window.externalSongs.length > 0) {
+      callback?.();
+      this.showPlaylistList();
+      return;
+    }
+    
+    this.confirmDialog(
+      __("This playlist contains external songs. Load them now?||Esta playlist contiene canciones externas. ¿Cargarlas ahora?"),
+      () => {
+        // Save the state to return here after loading
+        this._pendingReturn = true;
+        game.state.start("LoadExternalSongs", true, false, "Playlists", []);
+      },
+      () => {
+        // User canceled, show playlists without external songs
+        this.showPlaylistList();
+      }
+    );
   }
 
   showPlaylistList() {
@@ -26613,9 +26788,11 @@ class Playlists {
     const keys = this.playlistManager.getPlaylistNames();
     
     for (const key of keys) {
-      const playlist = this.playlistManager.getPlaylist(key);
+      const playlist = this.playlistManager.getPlaylistRef(key);
       const count = playlist.songs.length;
-      this.carousel.addItem(`${playlist.name} (${count} songs)`, () => {
+      const hasExternal = this.playlistManager.hasExternalSongs(key);
+      const label = hasExternal ? `${playlist.name} (${count} songs) *` : `${playlist.name} (${count} songs)`;
+      this.carousel.addItem(label, () => {
         this.openPlaylist(key);
       }, { playlistKey: key });
     }
@@ -26658,7 +26835,31 @@ class Playlists {
   }
 
   openPlaylist(key) {
-    const playlist = this.playlistManager.getPlaylist(key);
+    const playlistRef = this.playlistManager.getPlaylistRef(key);
+    if (!playlistRef) return;
+    
+    // Check if external songs need to be loaded
+    if (this.playlistManager.hasExternalSongs(key) && (!window.externalSongs || window.externalSongs.length === 0)) {
+      this.confirmDialog(
+        __("This playlist contains external songs. Load them now?||Esta playlist contiene canciones externas. ¿Cargarlas ahora?"),
+        () => {
+          this._pendingPlaylistKey = key;
+          this._pendingReturn = true;
+          game.state.start("LoadExternalSongs", true, false, "Playlists", []);
+        },
+        () => {
+          // Still show playlist but with missing songs marked
+          this.openPlaylistWithRefs(key);
+        }
+      );
+      return;
+    }
+    
+    this.openPlaylistWithRefs(key);
+  }
+
+  openPlaylistWithRefs(key) {
+    const playlist = this.playlistManager.getPlaylistRef(key);
     if (!playlist) return;
     
     if (this.carousel) this.carousel.destroy();
@@ -26676,18 +26877,26 @@ class Playlists {
       itemHeight: 9
     });
     
-    const songs = playlist.songs;
+    const songRefs = playlist.songs;
     
-    for (let i = 0; i < songs.length; i++) {
-      const song = songs[i];
-      const title = song.titleTranslit || song.title || `Song ${i + 1}`;
+    for (let i = 0; i < songRefs.length; i++) {
+      const songRef = songRefs[i];
+      const fullSong = this.playlistManager.restoreFullSong(songRef);
+      const isMissing = fullSong.missing === true;
+      const title = isMissing ? `⚠ ${songRef.title || 'Missing song'}` : (songRef.titleTranslit || songRef.title || `Song ${i + 1}`);
+      
       this.carousel.addItem(`${i + 1}. ${title}`, () => {
-        this.startSongSelect(key, songs, i);
+        if (isMissing) {
+          notifications.show(__("Song not found! Load external songs first.||¡Canción no encontrada! Carga canciones externas primero."));
+          return;
+        }
+        this.startSongSelect(key, songRefs, i);
       }, { 
-        bgcolor: '#34495e', 
-        song: song, 
+        bgcolor: isMissing ? '#8e44ad' : '#34495e', 
+        songRef: songRef, 
         songIndex: i,
-        playlistKey: key
+        playlistKey: key,
+        isMissing: isMissing
       });
     }
     
@@ -26695,7 +26904,7 @@ class Playlists {
       this.renamePlaylist(key);
     }, { bgcolor: '#34495e' });
     
-    if (songs.length) {
+    if (songRefs.length) {
       this.carousel.addItem("(Clear|Limpiar) playlist", () => {
         this.clearPlaylist(key);
       }, { bgcolor: '#c0392b' });
@@ -26710,7 +26919,7 @@ class Playlists {
   }
   
   renamePlaylist(key) {
-    const playlist = this.playlistManager.getPlaylist(key);
+    const playlist = this.playlistManager.getPlaylistRef(key);
     
     if (!playlist) {
       this.showPlaylistList();
@@ -26732,11 +26941,11 @@ class Playlists {
           notifications.show(__("Name cannot be empty!||El nombre no puede ir vacio"));
         }
         keyboard.destroy();
-        this.openPlaylist(key);
+        this.openPlaylistWithRefs(key);
       },
       onCancel: () => {
         keyboard.destroy();
-        this.openPlaylist(key);
+        this.openPlaylistWithRefs(key);
       }
     });
   }
@@ -26749,14 +26958,22 @@ class Playlists {
         notifications.show(__("Playlist (deleted|borrada)!"));
         this.showPlaylistList();
       },
-      () => this.openPlaylist(key)
+      () => this.openPlaylistWithRefs(key)
     );
   }
 
-  startSongSelect(playlistKey, songs, songIndex) {
+  startSongSelect(playlistKey, songRefs, songIndex) {
+    // Only convert refs to full songs for the ones we need (just the current view)
+    const songs = songRefs.map(ref => this.playlistManager.restoreFullSong(ref));
+    // Filter out missing songs
+    const validSongs = songs.filter(s => !s.missing);
+    // Find the index of the selected song in the filtered list
+    const selectedSong = songs[songIndex];
+    const newIndex = validSongs.findIndex(s => s.audioUrl === selectedSong?.audioUrl);
+    
     game.state.start("SongSelect", true, false, 
-      songs, 
-      songIndex, 
+      validSongs, 
+      Math.max(0, newIndex), 
       false, 
       "auto",
       playlistKey
