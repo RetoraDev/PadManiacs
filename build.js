@@ -141,7 +141,7 @@ class BuildSystem {
       'js/game/states/Editor.js',
       'js/game/states/Credits.js',
       'js/game/states/ErrorScreen.js',
-      
+
       // Note Rendering and Player
       'js/game/player/ChartRenderer.js',
       'js/game/player/AudioTemperatureMeter.js',

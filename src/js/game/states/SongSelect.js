@@ -121,6 +121,7 @@ class SongSelect {
     // Add songs to carousel
     if (this.songs.length === 0) {
       this.songCarousel.addItem(__("No songs found||No se encontraron canciones"), null);
+      this.songCarousel.config.disableConfirm = true;
     } else {
       this.songs.forEach((song, index) => {
         const title = song.titleTranslit || song.title;

@@ -286,7 +286,14 @@ const NAVIGATION_HINT_PRESETS = {
     { position: "left", icon: "d-pad", text: __("NAVIGATE||NAVEGAR") },
     { position: "right", icon: "select", text: __("DIFFICULTY||DIFICULTAD") },
     { position: "right", icon: "b", text: __("BACK||VOLVER") }
-  ]
+  ],
+  multiplayer_room_list: [
+    { position: "left", icon: "d-pad", text: __("NAVIGATE||NAVEGAR") },
+    { position: "left", icon: "select", text: __("REFRESH||REFRESCAR") },
+    { position: "right", icon: "start", text: __("CREATE||CREAR") },
+    { position: "right", icon: "a", text: __("JOIN||UNIRSE") },
+    { position: "right", icon: "b", text: __("BACK||VOLVER") }
+  ],
 };
 
 const DEFAULT_SONG_FOLDERS = [

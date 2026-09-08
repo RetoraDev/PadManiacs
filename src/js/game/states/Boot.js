@@ -173,7 +173,7 @@ class Boot {
     game.state.add("Editor", Editor);
     game.state.add("Jukebox", Jukebox);
     game.state.add("Credits", Credits);
-
+    
     window.primaryAssets = this.keys;
 
     window.gameResources = [
