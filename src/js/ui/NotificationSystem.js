@@ -1,23 +1,57 @@
+/**
+ * @class NotificationSystem
+ * @category UI Classes
+ * @summary Global notification manager with achievement/exp support
+ * @constructor
+ * @features
+ * Queues and shows text, error, success, unlock, and achievement notifications
+ * Preserves and restores notifications across state changes
+ * Tinted windows with cycling color animation
+ * Restricted states where notifications stay hidden
+ * @description
+ * NotificationSystem is the global toast manager that displays queued
+ * notifications in a bordered window at the top of the screen. It supports
+ * regular text as well as achievement, error, success, and unlock types,
+ * each with its own color scheme and sound. Notifications survive state
+ * transitions and are restored once an allowed state loads.
+ * @example
+ * // Modding usage example
+ * notifications.show('Song downloaded!', 2000, 'success');
+ * notifications.showAchievement(
+ *   { name: 'First Steps', description: { achieved: 'Play 1 song' } }, 50
+ * );
+ */
 class NotificationSystem {
   constructor() {
+    /** @type {Array} Pending notifications waiting to be shown */
     this.queue = [];
+    /** @type {boolean} Whether a notification is currently on screen */
     this.isShowing = false;
+    /** @type {object} The notification currently being displayed */
     this.currentNotification = null;
+    /** @type {number} Default display duration in milliseconds */
     this.duration = 3000;
     this.lineHeight = 8;
     this.padding = 8;
     this.maxLineWidth = 160;
     this.charWidth = 4;
     
+    /** @type {Window|null} The window displaying the current notification */
     this.notificationWindow = null;
+    /** @type {Array} Cycling tint colors for the notification window */
     this.notificationTint = [0xffffff];
+    /** @type {Array|null} Text sprites inside the notification window */
     this.notificationTexts = null;
     
+    /** @type {Set} State names in which notifications are suppressed */
     this.restrictedStates = new Set(['Title', 'Play', 'Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
     
     this.setupStateChangeHandling();
   }
 
+  /**
+   * Patches game.state.start and subscribes to the state change signal.
+   */
   setupStateChangeHandling() {
     const originalStart = game.state.start;
     
@@ -32,6 +66,10 @@ class NotificationSystem {
     game.state.onStateChange.add(this.onStateChange, this);
   }
 
+  /**
+   * Processes pending notifications and restores preserved ones after a state change.
+   * @param {object} newState - The newly entered game state
+   */
   onStateChange(newState) {
     game.time.events.add(100, () => {
       const currentState = game.state.getCurrentState();
@@ -48,6 +86,12 @@ class NotificationSystem {
   }
 
   // Main show method for regular text notifications
+  /**
+   * Queues and shows a regular text notification of the given type.
+   * @param {string} text - The notification message text
+   * @param {number} [duration=2000] - How long to display it in milliseconds
+   * @param {string} [type="normal"] - Style type: normal, error, success, or unlock
+   */
   show(text, duration = 2000, type = "normal") {
     const currentState = game.state.getCurrentState();
     const stateName = currentState?.constructor?.name || '';
@@ -69,6 +113,11 @@ class NotificationSystem {
   }
 
   // Show achievement notification
+  /**
+   * Queues an achievement banner showing the unlocked achievement details.
+   * @param {object} achievement - Achievement with name and description fields
+   * @param {number} [expGain=0] - Experience points gained (reserved for display)
+   */
   showAchievement(achievement, expGain = 0) {
     const currentState = game.state.getCurrentState();
     const stateName = currentState?.constructor?.name || '';
@@ -86,12 +135,18 @@ class NotificationSystem {
     }
   }
 
+  /**
+   * Processes the next queued notification when none is currently showing.
+   */
   processPendingNotifications() {
     if (this.queue.length > 0 && !this.isShowing) {
       this.processNext();
     }
   }
 
+  /**
+   * Shows the next queued notification and schedules its hide.
+   */
   processNext() {
     const currentState = game.state.getCurrentState();
     const stateName = currentState?.constructor?.name || '';
@@ -126,6 +181,10 @@ class NotificationSystem {
     });
   }
   
+  /**
+   * Cycles the notification window tint through its configured colors.
+   * @param {object} notification - The notification whose colors are animated
+   */
   animateNotificationTint(notification) {
     let tintAnimationIndex = 0;
     this.tintAnimationLoop = game.time.events.loop(100, () => {
@@ -154,12 +213,19 @@ class NotificationSystem {
     });
   }
   
+  /**
+   * Stops the cycling tint animation loop.
+   */
   stopNotificationTintAnimation() {
     if (this.tintAnimationLoop) {
       game.time.events.remove(this.tintAnimationLoop);
     }
   }
   
+  /**
+   * Plays the sound corresponding to the notification type.
+   * @param {object} notification - The notification being shown
+   */
   playNotificationSound(notification) {
     const soundKey = {
       'normal': 'ui_notification',
@@ -172,6 +238,11 @@ class NotificationSystem {
     ENABLE_UI_SFX && Audio.play(soundKey);
   }
 
+  /**
+   * Builds the notification window and its text lines, fading it in.
+   * @param {string} text - Text to display, with newlines
+   * @param {string} [type="normal"] - Style type controlling tint and colors
+   */
   displayTextNotification(text, type = "normal") {
     const lines = text.split('\n');
     const lineCount = lines.length;
@@ -217,6 +288,11 @@ class NotificationSystem {
   }
 
   // Existing helper methods
+  /**
+   * Wraps text into lines that fit the maximum notification width.
+   * @param {string} text - The text to wrap
+   * @returns {string} Wrapped text, lines joined with newlines
+   */
   wrapText(text) {
     const lines = text.split('\n');
     const wrappedLines = [];
@@ -260,6 +336,11 @@ class NotificationSystem {
     return wrappedLines.join('\n');
   }
 
+  /**
+   * Breaks a word that is longer than the maximum line width into chunks.
+   * @param {string} word - The word to break apart
+   * @returns {Array} Array of chunks that fit the line width
+   */
   breakLongWord(word) {
     const chunks = [];
     let currentChunk = '';
@@ -279,10 +360,19 @@ class NotificationSystem {
     return chunks;
   }
 
+  /**
+   * Estimates the rendered width of a string at the configured char width.
+   * @param {string} text - The text to measure
+   * @returns {number} Width in pixels
+   */
   getTextWidth(text) {
     return text.length * this.charWidth;
   }
 
+  /**
+   * Saves the current notification with remaining time and clears the UI
+   * so it can be restored later, surviving a state change.
+   */
   preserveCurrentNotification() {
     if (this.currentNotification && this.notificationWindow) {
       this.preservedNotification = {
@@ -294,6 +384,9 @@ class NotificationSystem {
     }
   }
 
+  /**
+   * Re-displays a preserved notification for its remaining duration.
+   */
   restorePreservedNotification() {
     if (this.preservedNotification) {
       const currentState = game.state.getCurrentState();
@@ -335,6 +428,9 @@ class NotificationSystem {
     }
   }
 
+  /**
+   * Fades out and cleans up the current notification, then shows the next one.
+   */
   hideCurrent() {
     if (this.currentNotification && this.notificationWindow) {
       const tween = game.add.tween(this.notificationWindow).to({ alpha: 0 }, 300, "Linear", true);
@@ -352,6 +448,9 @@ class NotificationSystem {
     }
   }
 
+  /**
+   * Destroys the notification window and all of its text sprites.
+   */
   cleanupUI() {
     if (this.notificationWindow) {
       this.notificationWindow.destroy();
@@ -363,10 +462,18 @@ class NotificationSystem {
     }
   }
 
+  /**
+   * Returns whether notifications are allowed in the given state name.
+   * @param {string} stateName - Name of the current game state
+   * @returns {boolean} True when the state is not restricted
+   */
   isStateAllowed(stateName) {
     return !this.restrictedStates.has(stateName);
   }
 
+  /**
+   * Clears the queue, current notification, tint animation, and any preserved one.
+   */
   clear() {
     this.queue = [];
     if (this.currentNotification) {
@@ -376,6 +483,9 @@ class NotificationSystem {
     this.preservedNotification = null;
   }
 
+  /**
+   * Clears all notifications and unsubscribes from the state change signal.
+   */
   destroy() {
     this.clear();
     game.state.onStateChange.remove(this.onStateChange, this);

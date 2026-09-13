@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Addons - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Addons Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Addon Manager user interface</p>
+
+    [heading: "Description"]
+    <p>The Addons state is the user interface for the addon manager. Installed addons are shown in a carousel with a preview pane for icons and descriptions, and each can be enabled, disabled, hibernated, woken or uninstalled. Structural changes flag a reload that is confirmed when the player leaves the screen.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Browse installed addons in a carousel with previews
+* Enable, disable, hibernate, wake or uninstall addons
+* Prompt to reload when structural changes are made
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ leaving | boolean | Whether the state is navigating back to the menu. ]
+[ futuristicLines | FuturisticLines | Animated background line decoration. ]
+[ backgroundGradient | BackgroundGradient | Scrolling gradient background effect. ]
+[ navigationHint | NavigationHint | On-screen overlay hinting button usage. ]
+[ previewCanvas | HTMLCanvasElement | Offscreen canvas for addon icon previews. ]
+[ previewCtx | CanvasRenderingContext2D | 2D context for the preview canvas. ]
+[ previewImg | Image | Image element used to load addon icons. ]
+[ previewSprite | Phaser.Sprite | Sprite displaying the rendered preview canvas. ]
+[ windowManager | WindowManager | Manager for stacked dialog windows. ]
+[ descriptionText | Text | Description text widget for the selected addon. ]
+[ carousel | CarouselMenu | Carousel listing the installed addons. ]
+[ needsReload | boolean | Whether a reload is required after addon changes. ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ create | () | Sets up the addon carousel, preview panes, and loads the addon list. ]
+[ showNoAddonsDialog | () | Shows an explanation dialog when no addons are installed. ]
+[ loadAddons | () | Rebuilds the carousel from the installed addon list. ]
+[ previewAddon | (addon) | Renders an addon's icon and description into the preview pane. ]
+[ showAddonDetails | (addon) | Replaces the carousel with the actions menu for one addon. ]
+[ applyChanges | () | Confirms a reload when addon changes require it, else returns to menu. ]
+[ backToMainMenu | () | Flags the state as leaving and switches to the main menu. ]
+[ update | () | Updates gamepad input and windows each frame while not leaving. ]
+[ confirmDialog | (message, onConfirm, onCancel, confirmText, cancelText) | Shows a modal confirm/cancel dialog. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+// Transition into the addon manager screen
+game.state.start("Addons");
+
+// Addon authors react to this state starting via behaviors
+addonManager.executeStateBehaviors("Addons", this);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

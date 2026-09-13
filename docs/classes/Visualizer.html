@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Visualizer - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Visualizer Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Base class for gameplay visualizers</p>
+
+    [heading: "Description"]
+    <p>Abstract base class for gameplay visualizers such as accuracy graphs, audio analyzers, and BPM displays. Provides shared positioning, graphics context, and lifecycle management.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Provides graphics object for subclass rendering
+* Active state toggle for enabling and disabling updates
+* Clear and destroy lifecycle methods
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ scene | Object | The Phaser game state scene ]
+[ x | number | Horizontal position ]
+[ y | number | Vertical position ]
+[ width | number | Display width in pixels ]
+[ height | number | Display height in pixels ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ scene | Object | The owning Phaser game state scene ]
+[ x | number | Horizontal position in pixels ]
+[ y | number | Vertical position in pixels ]
+[ width | number | Display width in pixels ]
+[ height | number | Display height in pixels ]
+[ graphics | Phaser.Graphics | Graphics object used for all drawing operations ]
+[ active | boolean | Whether the visualizer is actively updating ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ update | () | Updates the visualizer each frame. Intended to be overridden by subclasses. ]
+[ destroy | () | Destroys the underlying graphics object and frees resources. ]
+[ clear | () | Clears all drawn content from the graphics object. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+class MyVisualizer extends Visualizer {
+  update() {
+    this.clear();
+    this.graphics.beginFill(0xFF0000);
+    this.graphics.drawRect(0, 0, this.width, this.height);
+    this.graphics.endFill();
+  }
+}
+const viz = new MyVisualizer(scene, 0, 0, 200, 50);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

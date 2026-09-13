@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>NumericTypeOnScreenKeyboard - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "NumericTypeOnScreenKeyboard Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Numeric touchscreen keyboard</p>
+
+    [heading: "Description"]
+    <p>NumericTypeOnScreenKeyboard is an OnScreenKeyboard variant that loads the 'ui_keyboard_numeric' texture and replaces the key layout with digits, a decimal point, and arithmetic action keys. It inherits all highlight, signal, and input routing behavior from its parent class.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Replaces the full keyboard with a compact numeric keypad
+* Adds add, subtract, enter, clear, and erase action keys
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ x | number | Declared horizontal position (the base constructor places the sprite at 80, 70) ]
+[ y | number | Declared vertical position (the base constructor places the sprite at 80, 70) ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ keys | Object[] | Numeric keypad definitions laid out on the numeric texture ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const numpad = new NumericTypeOnScreenKeyboard(80, 70);
+numpad.onDown.add((key, input) => {
+  console.log(`Numpad ${key.code} -> ${input}`);
+});
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

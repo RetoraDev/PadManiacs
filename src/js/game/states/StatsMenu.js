@@ -1,29 +1,65 @@
+/**
+ * @class StatsMenu
+ * @category Game States
+ * @summary Player statistics display
+ * @constructor
+ * @features
+ * Two-column career statistics layout
+ * Live refresh via a timed update loop
+ * Any key press returns to the main menu
+ * @description
+ * The StatsMenu state presents cumulative account statistics in two formatted
+ * columns covering games, scores, time, sessions, streaks and high scores. The
+ * text is refreshed on a short timer loop while visible. Any gamepad or mouse
+ * input returns the player to the main menu, and the timer is stopped on
+ * shutdown.
+ * @example
+ * // Modding usage example
+ * // Open the statistics screen
+ * game.state.start("StatsMenu");
+ *
+ * // Read raw stats for custom tooling
+ * Account.stats.totalGamesPlayed;
+ */
 class StatsMenu {
+  /**
+   * Creates the statistic text widgets and starts the refresh timer.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
     new FuturisticLines();
     new BackgroundGradient();
     
+    /** @type {Text} Title text for the statistics screen. */
     this.titleText = new Text(120, 10, __("PLAYER STATISTICS||ESTADÍSTICAS DE JUGADOR"));
     this.titleText.anchor.x = 0.5;
     
+    /** @type {Text} Left column of statistics text. */
     this.leftColumn = new Text(4, 70, "");
     this.leftColumn.anchor.y = 0.5;
     
+    /** @type {Text} Right column of statistics text. */
     this.rightColumn = new Text(120, 70, "");
     this.rightColumn.anchor.y = 0.5;
     
+    /** @type {Text} Instruction text for leaving the screen. */
     this.instructionText = new Text(120, 120, __("PRESS ANY KEY TO LEAVE||PRESIONA CUALQUIER TECLA PARA SALIR"));
     this.instructionText.anchor.x = 0.5;
     
     this.updateStatsText();
     
+    /** @type {Phaser.TimerEvent} Timer loop that refreshes the statistics. */
     this.updateTimer = game.time.events.loop(100, this.updateStatsText, this);
     
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
+  /**
+   * Formats a seconds count as an HH:MM:SS duration string.
+   * @param {number} seconds - Total seconds to format.
+   * @returns {string} Zero-padded time string.
+   */
   formatTime(seconds) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -32,6 +68,11 @@ class StatsMenu {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
+  /**
+   * Formats seconds as a compact legible duration such as "12m 5s".
+   * @param {number} seconds - Total seconds to format.
+   * @returns {string} Compact duration string.
+   */
   formatSessionTime(seconds) {
     if (seconds < 60) {
       return `${seconds}s`;
@@ -46,6 +87,9 @@ class StatsMenu {
     }
   }
 
+  /**
+   * Rebuilds the two statistic columns from the account stats object.
+   */
   updateStatsText() {
     if (!Account.stats) return;
     
@@ -80,6 +124,9 @@ class StatsMenu {
     this.rightColumn.write(rightColumnText);
   }
 
+  /**
+   * Returns to the main menu when any key or mouse button is pressed.
+   */
   update() {
     gamepad.update();
     
@@ -88,6 +135,9 @@ class StatsMenu {
     }
   }
   
+  /**
+   * Stops the statistics refresh timer when leaving the state.
+   */
   shutdown() {
     if (this.updateTimer) {
       game.time.events.remove(this.updateTimer);

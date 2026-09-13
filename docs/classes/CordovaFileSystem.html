@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>CordovaFileSystem - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "CordovaFileSystem Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>File system for Apache Cordova mobile apps</p>
+
+    [heading: "Description"]
+    <p>CordovaFileSystem implements the standard file system interface using the Apache Cordova File plugin. It selects the appropriate persistent storage directory based on the device operating system and wraps all callback-based Cordova file operations in Promises for consistent async usage.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Resolves directories via the Cordova file plugin
+* Adapts root storage location per OS (iOS, Android, Windows)
+* Wraps callback-based APIs in Promises
+[/list]
+
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ listDirectories | (dirEntry) | Lists immediate child directories within a directory entry. ]
+[ listAllDirectories | (startDir) | Recursively lists all subdirectories starting from a root directory. Uses a breadth-first traversal to discover the full directory tree. ]
+[ listFiles | (dirEntry) | Lists immediate child files within a directory entry. ]
+[ File | (fileEntry) | Retrieves the File object from a file entry. ]
+[ readFileContent | (file) | Reads the full text content of a File object. ]
+[ saveFile | (dirEntry, fileData, fileName) | Saves data to a file, creating it if it does not exist. ]
+[ createEmptyFile | (dirEntry, fileName, isAppend) | Creates an empty file or opens an existing file for appending. ]
+[ writeFile | (fileEntry, dataObj, isAppend) | Writes data to an existing file entry. ]
+[ createDirectory | (rootDirEntry, dirName) | Creates a new subdirectory inside a parent directory. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Reading a song file on a Cordova mobile device
+const fs = new CordovaFileSystem();
+const songsDir = await fs.getDirectory('Songs/MySong/');
+const files = await fs.listFiles(songsDir);
+for (const entry of files) {
+  const file = await fs.getFile(entry);
+  const text = await fs.readFileContent(file);
+  console.log(entry.name, text.length);
+}
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

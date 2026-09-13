@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>MainMenu - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "MainMenu Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Main Menu screen with navigation to all features</p>
+
+    [heading: "Description"]
+    <p>The Main Menu is the hub state shown when the game boots. It constructs the home carousel menu and routes the player to every major feature, while showing contextual feedback dialogs based on the saved account stats after a session.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Home carousel that links to Free Play, Character Select, Chart Editor, Settings and Extras
+* Priority dialogs for crash reports, ratings, feature requests and community invites
+* Extras hub with Jukebox, Offset Assistant, Achievements, Player Stats, Feedback and Credits
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ futuristicLines | FuturisticLines | Decorative animated background line effect ]
+[ backgroundGradient | BackgroundGradient | Ambient gradient overlay for the menu background ]
+[ navigationHint | NavigationHint | On-screen hint bar with contextual button labels ]
+[ keepBackgroundMusic | boolean | Whether to keep the background music alive when leaving this state ]
+[ windowManager | WindowManager | Manages windows and focus for the navigation menus ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ create | () | Phaser state hook that builds the menu visuals, plays the menu music if needed and triggers any dialog screens or the home menu. ]
+[ checkInitialDialogs | () | Checks account stats and shows the highest priority feedback dialog (bug report, rating, feature request, community) first. ]
+[ showBugReportDialog | () | Shows the crash report dialog when the last session ended in a crash. ]
+[ showRatingDialog | () | Shows the rating prompt dialog after enough playtime has accumulated. ]
+[ showFeatureRequestDialog | () | Shows the feature request dialog asking the player to share ideas. ]
+[ showCommunityDialog | () | Shows the community invite dialog linking to the project homepage. ]
+[ menu | () | Creates the WindowManager and displays the main menu home screen. ]
+[ showHomeMenu | () | Builds the home carousel with the primary navigation options. ]
+[ startGame | () | Opens the game sub-menu with Free Play, Extra Songs and Playlists. ]
+[ showExtraSongs | () | Shows the extra songs menu for loading or reloading external user songs. ]
+[ showExtras | () | Opens the extras hub with Jukebox, Offset Assistant and other tools. ]
+[ showFeedback | () | Shows the feedback menu linking to reviews, feature requests and bug reports. ]
+[ showCommunity | () | Opens the community homepage and records that the player visited it. ]
+[ showAddonManager | () | Starts the Addons state while keeping the background music playing. ]
+[ showSettings | () | Starts the Settings state while keeping the background music playing. ]
+[ confirmDialog | (message, onConfirm, onCancel, confirmText, cancelText) | Shows a modal confirmation dialog with the given message and buttons. ]
+[ confirmExit | () | Asks for confirmation and then exits the app on native shells. ]
+[ freePlay | () | Starts SongSelect for local songs in free play mode. ]
+[ startOffsetAssistant | () | Instantiates the Offset Assistant used to calibrate input latency. ]
+[ loadExternalSongs | () | Starts the LoadExternalSongs state for importing user songs. ]
+[ startFileSelect | () | Opens the native file picker for .sm/.zip files and loads the chosen song folder. ]
+[ loadSingleSong | () | Starts the LoadSongFolder state to load a single song. ]
+[ startJukebox | () | Starts the Jukebox, optionally prompting to load external songs first. ]
+[ openEditor | () | Opens the Chart Editor, disallowing background music from persisting. ]
+[ showAchievements | () | Starts the achievements menu. ]
+[ showStats | () | Starts the player statistics menu. ]
+[ showCredits | () | Starts the credits screen, which returns to the main menu afterwards. ]
+[ update | () | Phaser lifecycle hook called every frame to poll gamepad input. ]
+[ shutdown | () | Phaser lifecycle hook called when leaving the state; disposes the background music unless another state keeps it alive. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Launch the main menu from a modded state
+game.state.start("MainMenu");
+
+// Extend the home menu with a custom carousel item
+game.onMenuIn.add(function (id, carousel) {
+  if (id === "home") {
+    carousel.addItem("My Custom Option", function () {
+      console.log("Hello from my mod!");
+    });
+  }
+});
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

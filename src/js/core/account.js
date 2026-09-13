@@ -1,3 +1,4 @@
+/** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
   version: 1.2, // 1.2.0
   settings: {

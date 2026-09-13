@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width">
+    <meta charset="UTF-8">
+    <title>UI Modification Guide - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+  
+    [title: "UI Modification Guide"]
+    <a href="../">← Back to index</a>
+    
+    <p>Learn how to customize menus, interfaces, and user experience in PadManiaX.</p>
+    
+    [heading: "Understanding the UI System"]
+    <p>PadManiaX uses several UI systems that you can modify:</p>
+    [list]
+    * <strong>Window System</strong> - Modal dialogs and settings
+    * <strong>CarouselMenu</strong> - Vertical scrolling menus
+    * <strong>Text System</strong> - Retro font rendering
+    * <strong>Notification System</strong> - Temporary messages
+    * <strong>HUD Elements</strong> - Gameplay interface
+    [/list]
+    
+    [heading: "Basic UI Modification"]
+    
+    [subheading: "Modifying Menus with game.onMenuIn"]
+    <p>The most powerful way to modify UI is using the <code>game.onMenuIn</code> signal:</p>
+    [codeblock js]
+    // behaviors/menu.js
+    game.onMenuIn.add(function(menuName, menuInstance) {
+      console.log("Menu created:", menuName);
+      
+      // Different menus have different instances
+      switch(menuName) {
+        case 'home':
+          modifyHomeMenu(menuInstance);
+          break;
+        case 'settings':
+          modifySettings(menuInstance);
+          break;
+        case 'songList':
+          modifySongList(menuInstance);
+          break;
+      }
+    });
+    
+    function modifyHomeMenu(menu) {
+      // menu is a CarouselMenu instance
+      console.log("Home menu items:", menu.items);
+      
+      // Add custom menu item
+      menu.addItem("Custom Option", function() {
+        notifications.show("Custom option selected!");
+      });
+    }
+    [/codeblock]
+    
+    [subheading: "Available Menu Names"]
+    [table header]
+    [ Menu Name | Description | Instance Type ]
+    [ home | Main home menu | CarouselMenu ]
+    [ startGame | Game mode selection | CarouselMenu ]
+    [ extraSongs | Additional songs menu | CarouselMenu ]
+    [ settings | Settings window | Window ]
+    [ addons | Addon manager | CarouselMenu ]
+    [ addonDetails | Addon details | CarouselMenu ]
+    [ songList | Song selection | CarouselMenu ]
+    [ difficulty | Difficulty selection | CarouselMenu ]
+    [ results | Results screen | CarouselMenu ]
+    [ pause | Pause menu | CarouselMenu ]
+    [/table]
+    
+    [heading: "Working with CarouselMenu"]
+    
+    [subheading: "Adding Menu Items"]
+    [codeblock js]
+    game.onMenuIn.add(function(menuName, menu) {
+      if (menuName === 'home') {
+        // Add simple menu item
+        menu.addItem("My Feature", function() {
+          notifications.show("My feature activated!");
+        });
+        
+        // Add item with custom data
+        menu.addItem(
+          "Styled Item", 
+          function() { /* callback */ },
+          { 
+            bgcolor: "#ff0000",  // Red background
+            fgcolor: "#ffffff"   // White text
+          }
+        );
+      }
+    });
+    [/codeblock]
+    
+    [subheading: "Modifying Existing Items"]
+    [codeblock js]
+    game.onMenuIn.add(function(menuName, menu) {
+      if (menuName === 'home') {
+        // Wait for menu to be fully created
+        setTimeout(() => {
+          // Modify existing items
+          menu.items.forEach((item, index) => {
+            if (item.textContent === "Rhythm Game") {
+              item.setText("Let's Rock!"); // Customize text
+            }
+          });
+        }, 100);
+      }
+    });
+    [/codeblock]
+    
+    [heading: "Working with Window System"]
+    
+    [subheading: "Creating Custom Windows"]
+    [codeblock js]
+    function showCustomWindow() {
+      // Create window using WindowManager
+      const windowManager = new WindowManager();
+      const customWindow = windowManager.createWindow(5, 5, 10, 8, "1");
+      
+      // Add content to window
+      customWindow.addItem("Option 1", function() {
+        notifications.show("Option 1 selected");
+        windowManager.remove(customWindow, true);
+      });
+      
+      customWindow.addItem("Option 2", function() {
+        notifications.show("Option 2 selected");
+        windowManager.remove(customWindow, true);
+      });
+      
+      customWindow.addItem("Close", function() {
+        windowManager.remove(customWindow, true);
+      }, true); // true makes this a back button
+    }
+    [/codeblock]
+    
+    [subheading: "Adding Settings"]
+    [codeblock js]
+    game.onMenuIn.add(function(menuName, menu) {
+      if (menuName === 'settings' && menu.addSettingItem) {
+        // Add custom setting
+        menu.addSettingItem(
+          "My Custom Setting",      // Display name
+          ["Disabled", "Enabled"],  // Options
+          0,                        // Default index
+          function(index, value) {  // Callback
+            Account.settings.mySetting = index === 1;
+            saveAccount();
+            notifications.show("Setting saved: " + value);
+          }
+        );
+      }
+    });
+    [/codeblock]
+    
+    [heading: "Custom Text and Graphics"]
+    
+    [subheading: "Creating Text Elements"]
+    [codeblock js]
+    function addCustomText() {
+      // Create text with different fonts
+      const text1 = new Text(50, 30, "Welcome!", FONTS.default);
+      const text2 = new Text(50, 50, "Shaded Text", FONTS.shaded);
+      const text3 = new Text(50, 70, "Outlined", FONTS.stroke);
+      
+      // Customize text
+      text1.tint = 0xff0000; // Red color
+      text2.anchor.set(0.5); // Center anchor
+      
+      // Add to game world
+      game.world.add(text1);
+      game.world.add(text2);
+      game.world.add(text3);
+    }
+    [/codeblock]
+    
+    [subheading: "Creating Custom Graphics"]
+    [codeblock js]
+    function addCustomGraphics() {
+      // Create graphics object
+      const graphics = game.add.graphics(0, 0);
+      
+      // Draw rectangle
+      graphics.beginFill(0x00ff00, 0.5); // Green, 50% opacity
+      graphics.drawRect(50, 50, 100, 50);
+      graphics.endFill();
+      
+      // Draw line
+      graphics.lineStyle(2, 0xff0000, 1.0); // Red, 2px width
+      graphics.moveTo(0, 0);
+      graphics.lineTo(100, 100);
+    }
+    [/codeblock]
+    
+    [heading: "Advanced UI Techniques"]
+    
+    [subheading: "Modal Dialogs"]
+    [codeblock js]
+    function showConfirmationDialog(message, onConfirm, onCancel) {
+      const windowManager = new WindowManager();
+      const dialog = windowManager.createWindow(5, 5, 15, 6, "1");
+      
+      // Add message text
+      const text = new Text(8, 8, message, FONTS.default);
+      dialog.addChild(text);
+      
+      // Add buttons
+      dialog.addItem("Yes", function() {
+        windowManager.remove(dialog, true);
+        onConfirm && onConfirm();
+      });
+      
+      dialog.addItem("No", function() {
+        windowManager.remove(dialog, true);
+        onCancel && onCancel();
+      }, true);
+    }
+    
+    // Usage:
+    showConfirmationDialog(
+      "Are you sure?",
+      function() { notifications.show("Confirmed!"); },
+      function() { notifications.show("Cancelled!"); }
+    );
+    [/codeblock]
+    
+    [subheading: "Dynamic Menu Creation"]
+    [codeblock js]
+    function createDynamicMenu(items) {
+      const carousel = new CarouselMenu(0, 30, 100, 80, {
+        bgcolor: "#3498db",
+        fgcolor: "#ffffff",
+        align: 'left'
+      });
+      
+      // Add items dynamically
+      items.forEach(item => {
+        carousel.addItem(item.name, item.callback, item.data);
+      });
+      
+      // Handle selection
+      carousel.onSelect.add(function(index, item) {
+        console.log("Selected:", item.textContent);
+      });
+      
+      return carousel;
+    }
+    
+    // Usage:
+    const menuItems = [
+      { name: "Item 1", callback: () => console.log("1") },
+      { name: "Item 2", callback: () => console.log("2") },
+      { name: "Item 3", callback: () => console.log("3") }
+    ];
+    
+    const dynamicMenu = createDynamicMenu(menuItems);
+    [/codeblock]
+    
+    [heading: "Gameplay HUD Modification"]
+    
+    [subheading: "Modifying Play State UI"]
+    [codeblock js]
+    // behaviors/gameplay.js
+    if (state && state.createHud) {
+      // Store original method
+      const originalCreateHud = state.createHud;
+      
+      // Override with custom HUD
+      state.createHud = function() {
+        // Call original to create standard HUD
+        originalCreateHud.call(this);
+        
+        // Add custom HUD elements
+        this.customScoreText = new Text(10, 10, "Custom: 0", FONTS.default);
+        this.hud.addChild(this.customScoreText);
+      };
+    }
+    [/codeblock]
+    
+    [subheading: "Real-time HUD Updates"]
+    [codeblock js]
+    // behaviors/gameplay.js  
+    if (state && state.player) {
+      // Hook into player update
+      const originalUpdate = state.player.update;
+      state.player.update = function() {
+        // Call original update
+        originalUpdate.call(this);
+        
+        // Update custom HUD
+        if (state.customScoreText) {
+          state.customScoreText.write("Custom: " + this.score);
+        }
+      };
+    }
+    [/codeblock]
+    
+    [heading: "Best Practices"]
+    
+    [subheading: "UI Design Guidelines"]
+    [list]
+    * Maintain consistent styling with the game
+    * Use the retro pixel art aesthetic
+    * Keep text readable and concise
+    * Test on different screen sizes
+    * Consider mobile touch targets
+    [/list]
+    
+    [subheading: "Performance Considerations"]
+    [list]
+    * Avoid creating too many UI elements
+    * Clean up elements when not needed
+    * Use appropriate update frequencies
+    * Test on target devices
+    [/list]
+    
+    [subheading: "User Experience"]
+    [list]
+    * Provide clear feedback for user actions
+    * Use familiar interaction patterns
+    * Include accessibility considerations
+    * Test with actual users
+    [/list]
+    
+    [heading: "Debugging UI Modifications"]
+    
+    [subheading: "Enable Debug Console"]
+    [codeblock js]
+    eruda.init(); // Enable developer console
+    
+    // Log UI events
+    game.onMenuIn.add(function(menuName, menu) {
+      console.log("Menu created:", menuName, menu);
+    });
+    [/codeblock]
+    
+    [subheading: "Common Issues"]
+    [table header]
+    [ Issue | Cause | Solution ]
+    [ UI not appearing | Wrong menu name | Check game.onMenuIn logs ]
+    [ Elements misaligned | Wrong coordinates | Use game.width/game.height ]
+    [ Performance issues | Too many elements | Optimize or remove elements ]
+    [ Crashes | Invalid operations | Use try-catch blocks ]
+    [/table]
+    
+    [heading: "Example: Complete UI Mod"]
+    
+    [subheading: "Manifest"]
+    [codeblock json]
+    {
+      "id": "custom-ui-theme",
+      "name": "Custom UI Theme",
+      "version": "1.0.0",
+      "behaviors": {
+        "Global": "behaviors/global.js",
+        "MainMenu": "behaviors/menu.js"
+      },
+      "assets": {
+        "ui_window_1": "assets/custom_window.png"
+      }
+    }
+    [/codeblock]
+    
+    [subheading: "Menu Behavior"]
+    [codeblock js]
+    // behaviors/menu.js
+    game.onMenuIn.add(function(menuName, menu) {
+      console.log("Custom UI: Menu created -", menuName);
+      
+      if (menuName === 'home') {
+        // Add welcome message
+        const welcomeText = new Text(
+          game.width / 2,
+          20,
+          "Welcome to Custom UI!",
+          FONTS.shaded
+        );
+        welcomeText.anchor.set(0.5);
+        welcomeText.tint = 0x76fcde; // Cyan color
+        game.world.add(welcomeText);
+        
+        // Modify menu appearance
+        menu.config.bgcolor = "#9b59b6"; // Purple
+        menu.config.fgcolor = "#ffffff"; // White
+        
+        // Add custom menu item
+        menu.addItem("Custom Music Player", function() {
+          notifications.show("Music player launched!");
+        });
+      }
+    });
+    [/codeblock]
+    
+    [heading: "Next Steps"]
+    <p>Now that you've understood how to modify UI, check out these tutorials:</p>
+    [list]
+    * <a href="asset_replacement.html">Asset Replacement Tutorial</a>
+    * <a href="behavior_scripts.html">Creating Behavior Scripts</a>
+    [/list]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

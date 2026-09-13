@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>InputManager - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "InputManager Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Configures input system state and initializes listeners</p>
+
+    [heading: "Description"]
+    <p>InputManager bootstraps the whole input stack for the game. It instantiates the shared GamepadListener and KeyboardListener, builds one Gamepad per player, and wraps them in a single AllPads aggregator. The module-level globals it assigns are the standard way other systems access input from anywhere in the codebase.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Creates the gamepad and keyboard listeners
+* Wires up two per-player Gamepad controllers
+* Exposes global inputManager, gamepad1, gamepad2, and gamepad singletons
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ game | Phaser.Game | Phaser game instance ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ game | Phaser.Game | Phaser game instance ]
+[ gamepadListener | GamepadListener | Listener exposing gamepad connect/disconnect/button signals ]
+[ keyboardListener | KeyboardListener | Listener exposing global keyboard down/up signals ]
+[ gamepad1 | Gamepad | First player's Gamepad controller ]
+[ gamepad2 | Gamepad | Second player's Gamepad controller ]
+[ gamepad | AllPads | Aggregated AllPads controller for both players ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+// Access the global input manager and pads created in the constructor
+const mgr = inputManager;
+const pad = gamepad1;
+const pads = gamepad;
+mgr.gamepadListener.onDown.add((index, code) => {
+  console.log('Button down on pad', index);
+});
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

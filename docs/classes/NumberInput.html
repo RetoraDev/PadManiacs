@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>NumberInput - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "NumberInput Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Numeric value input dialog</p>
+
+    [heading: "Description"]
+    <p>NumberInput extends TextInput to edit numeric values instead of free text. The input is clamped to a min/max range, honors a decimal-place count, and restricts the permitted characters accordingly. Gamepad up/down increments or decrements the value, and confirm or cancel dispatch the numeric result.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Clamped numeric range with min and max enforcement
+* Decimal place support with fixed formatting
+* Increment and decrement on gamepad up/down
+* Dispatches the numeric value on confirm or cancel
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ config | object | ={}] - Config with min, max, decimals, and initial text ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ min | number | Minimum allowed value ]
+[ max | number | Maximum allowed value ]
+[ decimals | number | Number of decimal places to display ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ NumericValue | () | Parses the current text into a number clamped to the configured range. ]
+[ validateCharInput | (char) | Validates characters for numeric input, guarding minus and decimal signs. ]
+[ receiveInput | (key, input) | Handles input, mapping up/down to increment/decrement actions. ]
+[ increment | () | Increases the value by one step of the configured decimal precision. ]
+[ decrement | () | Decreases the value by one step of the configured decimal precision. ]
+[ setValue | (value) | Sets and displays a value, clamped to the configured range. ]
+[ clampAndUpdateDisplay | () | Reclamps the current text's value and refreshes its formatted display. ]
+[ confirm | () | Dispatches the clamped numeric value on onConfirm and destroys the input. ]
+[ cancel | () | Dispatches the clamped numeric value on onCancel and destroys the input. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const input = new NumberInput({
+  text: '7',
+  min: 0, max: 10, decimals: 0,
+  onConfirm: (value) => setSpeed(value)
+});
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width">
+    <meta charset="UTF-8">
+    <title>Asset Replacement Tutorial - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+  
+    [title: "Asset Replacement Tutorial"]
+    <a href="../">← Back to index</a>
+    
+    <p>Learn how to replace game graphics, sounds, and other assets with your custom creations.</p>
+    
+    [heading: "Understanding Asset Replacement"]
+    <p>Asset replacement allows you to modify the game's visual and audio elements without changing the game code. You can replace:</p>
+    [list]
+    * Images and spritesheets
+    * Sound effects
+    * UI elements
+    * Fonts and text graphics
+    [/list]
+    
+    [heading: "Basic Asset Replacement"]
+    
+    [subheading: "Step 1: Prepare Your Assets"]
+    <p>Create your custom assets with the same dimensions and format as the originals:</p>
+    [table header]
+    [ Asset Type | Format | Dimensions | Notes ]
+    [ Spritesheets | PNG | Varies | Maintain frame sizes ]
+    [ UI Elements | PNG | 8x8 multiples | Pixel art style ]
+    [ Audio | OGG | - | OGG format recommended ]
+    [/table]
+    
+    [subheading: "Step 2: Configure Manifest"]
+    <p>Add asset mappings to your <code>manifest.json</code>:</p>
+    [codeblock json]
+    {
+      "id": "custom-arrows",
+      "name": "Custom Arrows",
+      "version": "1.0.0",
+      "assets": {
+        "arrows": "assets/my_arrows.png",
+        "receptor": "assets/my_receptor.png"
+      }
+    }
+    [/codeblock]
+    
+    [subheading: "Step 3: File Structure"]
+    [codeblock plaintext]
+    CustomArrows/
+    ├── manifest.json
+    └── assets/
+        ├── my_arrows.png
+        └── my_receptor.png
+    [/codeblock]
+    
+    [heading: "Available Asset Keys"]
+    
+    [subheading: "Gameplay Assets"]
+    [table header]
+    [ Key | Description | Default File | Dimensions ]
+    [ arrows | Note arrows | chart/arrows.png | 16x16 per frame ]
+    [ receptor | Receptor graphics | chart/receptor.png | 16x16 per frame ]
+    [ explosion | Note explosion | chart/explosion.png | Single image ]
+    [ mine | Mine notes | chart/mine.png | 16x16 per frame ]
+    [ hold_body | Hold body | chart/hold_body.png | 16x112 ]
+    [ hold_end | Hold ends | chart/hold_end.png | 16x8 ]
+    [ roll_body | Roll body | chart/roll_body.png | 16x16 ]
+    [ roll_end | Roll ends | chart/roll_end.png | 16x8 ]
+    [/table]
+    
+    [subheading: "UI Assets"]
+    [table header]
+    [ Key | Description | Default File | Dimensions ]
+    [ ui_window_1 | Brown window | ui/window_1.png | 8x8 per frame ]
+    [ ui_background_gradient | Gradient bg | ui/background_gradient.png | Full screen ]
+    [ ui_logo_shape | Logo | ui/logo_shape.png | Logo dimensions ]
+    [ ui_loading_dots | Loading animation | ui/loading_dots.png | 26x6 per frame ]
+    [ ui_hud_background | HUD background | ui/hud_background.png | 192x112 ]
+    [ ui_difficulty_banner | Difficulty banner | ui/difficulty_banner.png | Small banner ]
+    [ ui_lifebar | Life bar | ui/lifebar.png | 1x5 per frame ]
+    [ ui_acurracy_bar | Accuracy bar | ui/acurracy_bar.png | Bar graphic ]
+    [/table]
+    
+    [subheading: "Font Assets"]
+    [table header]
+    [ Key | Description | Default File | Characters ]
+    [ font_tiny | Default font | fonts/tiny.png | A-Z, 0-9, symbols ]
+    [ font_shaded | Shaded font | fonts/shaded.png | With drop shadow ]
+    [ font_stroke | Outlined font | fonts/stroke.png | Better visibility ]
+    [ font_number | Number font | fonts/number.png | Optimized numbers ]
+    [ font_combo | Combo font | fonts/combo.png | Large combo display ]
+    [/table]
+    
+    [heading: "Advanced Asset Techniques"]
+    
+    [subheading: "Spritesheet Frame Order"]
+    <p>Arrows spritesheet has specific frame order for note colors:</p>
+    [codeblock plaintext]
+    Frame 0: Red (4th notes)
+    Frame 1: Blue (8th notes) 
+    Frame 2: Purple (12th notes)
+    Frame 3: Yellow (16th notes)
+    Frame 4: Pink (24th notes)
+    Frame 5: Orange (32nd notes)
+    Frame 6: Cyan (48th notes)
+    Frame 7: Green (64th notes)
+    Frame 8: White (96th notes)
+    Frame 9: Sky Blue (128th notes)
+    Frame 10: Olive (192nd notes)
+    Frame 11: Gray (Ultra-fast notes)
+    [/codeblock]
+    
+    [subheading: "Receptor Animation Frames"]
+    <p>Receptor spritesheet has 3 frames:</p>
+    [codeblock plaintext]
+    Frame 0: Pressed state
+    Frame 1: Transition frame  
+    Frame 2: Default state
+    [/codeblock]
+    
+    [subheading: "Window Frame System"]
+    <p>Window spritesheets use a 3x3 grid system:</p>
+    [codeblock]
+    [0] [1] [2]  - Top row (corners and top edge)
+    [3] [4] [5]  - Middle row (sides and fill)
+    [6] [7] [8]  - Bottom row (corners and bottom edge)
+    [/codeblock]
+    
+    [heading: "Creating Custom Assets"]
+    
+    [subheading: "Tools for Asset Creation"]
+    [list]
+    * <strong>Aseprite</strong> - Professional pixel art tool
+    * <strong>Piskel</strong> - Free online pixel art editor
+    * <strong>GIMP</strong> - Free image editor with pixel tools
+    * <strong>Acode</strong> - Mobile file management for testing
+    [/list]
+    
+    [subheading: "Color Palette"]
+    <p>PadManiaX uses a retro color palette. Recommended colors:</p>
+    [codeblock plaintext]
+    Primary colors:
+    - Brown: #8B4513 (UI windows)
+    - Cyan: #76FCFF (Text highlights)
+    - White: #FFFFFF (Text)
+    
+    Note colors (see frame order above)
+    Game uses various colors for different note speeds
+    [/codeblock]
+    
+    [heading: "Testing Your Assets"]
+    
+    [subheading: "Enable Debug Mode"]
+    <p>Use the developer console to verify asset loading:</p>
+    [codeblock js]
+    eruda.init(); // Enable console
+    console.log("Testing custom assets...");
+    [/codeblock]
+    
+    [subheading: "Common Issues"]
+    [table header]
+    [ Issue | Cause | Solution ]
+    [ Asset not loading | Wrong file path | Check manifest paths ]
+    [ Wrong colors | Incorrect frame order | Verify spritesheet order ]
+    [ Performance issues | Large file size | Optimize image size ]
+    [ Missing frames | Wrong dimensions | Match original dimensions ]
+    [/table]
+    
+    [heading: "Example: Custom Arrow Pack"]
+    
+    [subheading: "Manifest"]
+    [codeblock json]
+    {
+      "id": "neon-arrows",
+      "name": "Neon Arrow Pack", 
+      "version": "1.0.0",
+      "author": "Your Name",
+      "description": "Glowing neon-style arrows",
+      "assets": {
+        "arrows": "assets/neon_arrows.png",
+        "receptor": "assets/neon_receptor.png",
+        "explosion": "assets/neon_explosion.png",
+        "mine": "assets/neon_mine.png"
+      }
+    }
+    [/codeblock]
+    
+    [subheading: "File Structure"]
+    [codeblock plaintext]
+    NeonArrows/
+    ├── manifest.json
+    └── assets/
+        ├── neon_arrows.png     (16x192 - 12 frames of 16x16)
+        ├── neon_receptor.png   (16x48 - 3 frames of 16x16)
+        ├── neon_explosion.png  (Single image)
+        └── neon_mine.png       (16x128 - 8 frames of 16x16)
+    [/codeblock]
+    
+    [heading: "Best Practices"]
+    [list]
+    * Maintain original dimensions and frame counts
+    * Use PNG format for transparency
+    * Optimize file sizes for mobile performance
+    * Test on different devices and screen sizes
+    * Provide preview images for your addon
+    [/list]
+    
+    [heading: "Next Steps"]
+    <p>Now that you've understood how to replace game assets, check out these tutorials:</p>
+    [list]
+    * <a href="behavior_scripts.html">Creating Behavior Scripts</a>
+    * <a href="ui_modification.html">Modifying UI</a>
+    [/list]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

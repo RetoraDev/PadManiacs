@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Title - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Title Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Title Screen with animated logo</p>
+
+    [heading: "Description"]
+    <p>The game's title screen, shown after the local songs finish loading. It fades in the camera, shows the background effects, animated logo, credit, and version texts, plays the last heard song through the global background music controller, and waits for a key press to advance to the main menu. Holding several buttons during the logo intro triggers emergency keybinding or factory resets.</p>
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ background | BackgroundGradient | Animated gradient backdrop behind the title ]
+[ lines | FuturisticLines | Decorative moving lines behind the logo ]
+[ logo | Logo | The game's animated title logo ]
+[ inputInstructionText | Text | Pulsing &quot;press any key&quot; prompt shown beneath the logo ]
+[ text | Phaser.Sprite | Container sprite holding the credit and version texts ]
+[ creditText | Text | Copyright notice in the bottom left corner ]
+[ versionText | Text | Game version label in the bottom right corner ]
+[ introEnded | boolean | Whether the logo intro animation has finished ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ create | () | Builds the title screen visuals (background, logo, instruction and credit texts), starts background music, runs the logo intro animation, and lets addons inject their own state behaviors. ]
+[ resetKeybindings | () | Emergency fallback that restores the keyboard and gamepad mappings to their defaults when holding at least three buttons during the title animation, after confirmation. ]
+[ restoreDefaults | () | Emergency fallback that performs a full factory reset of all settings and reloads the page when holding at least six buttons during the title animation, if confirmed. ]
+[ update | () | Refreshes the gamepad each frame. Once the logo intro has finished, a mouse or gamepad press triggers the logo outro, checks held buttons for emergency resets, and advances to the main menu. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// The menu entry point reached after the loading chain finishes.
+game.state.add('Title', Title);
+game.state.start('Title');
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

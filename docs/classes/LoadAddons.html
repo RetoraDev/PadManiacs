@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>LoadAddons - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "LoadAddons Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Initializes the addon manager and loads addon resources</p>
+
+    [heading: "Description"]
+    <p>A startup state that enables the game's addon system before the rest of the game loads. It creates the global addon manager, runs any global addon behaviors, collects the resources contributed by addons, and hands them to the generic Load state.</p>
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ progressText | ProgressText | Bilingual progress text for the addon loading phase ]
+[ loadingDots | LoadingDots | Animated loading indicator dots ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ create | () | Shows the loading text and dots, then kicks off asynchronous addon initialization. ]
+[ initialize | () | Creates and initializes the global addon manager, executes global addon behaviors, gathers the resource list from mounted addons, and sends them to the Load state. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Part of the boot chain; addon resources end up in the Load state.
+game.state.add('LoadAddons', LoadAddons);
+game.state.start('LoadAddons');
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>LoadExternalSongFile - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "LoadExternalSongFile Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Loads a single external song file or ZIP archive</p>
+
+    [heading: "Description"]
+    <p>Loads one individually chosen song from external storage. Given a chart filename and its directory, it parses the .sm/.ssc chart directly, or unzips a .zip archive and imports its chart and associated assets before handoff.</p>
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ fileName | string | Name of the chart or .zip file to load ]
+[ filePath | string | Directory path that contains the file ]
+[ nextState | string | Game state key to start once the song is loaded ]
+[ nextStateParams | Array | Parameters forwarded to the next state ]
+[ loadingDots | LoadingDots | Animated loading indicator dots ]
+[ progressText | ProgressText | Bilingual progress text shown while the song loads ]
+[ fileSystem | FileSystemTools | Helper for reading directories and files ]
+[ parser | ExternalSMParser | Parser used to read external chart files ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ init | (fileName, filePath, nextState, nextStateParams) | Stores the target file name, its directory path, and the next state to start once the song has been loaded. ]
+[ create | () | Sets up the loading UI, file system access, and chart parser, then dispatches to ZIP or plain song loading depending on the file extension. ]
+[ loadSongData | () | Reads every file in the song directory, locates the requested chart file, and parses it, finishing the state on success or showing an error otherwise. ]
+[ loadZipFileData | () | Reads the requested .zip archive, decompresses it with JSZip, and imports the chart plus its assets using the shared ZIP processing routine from LoadSongFolder. ]
+[ showError | (message) | Writes an error message and returns to the main menu after a short delay. ]
+[ finish | (chart) | Starts the next state with the loaded chart (or a single-element array) and any stored parameters, or shows an error if no chart was produced. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Load an individual song file and jump straight to the song select screen.
+game.state.add('LoadExternalSongFile', LoadExternalSongFile);
+game.state.start('LoadExternalSongFile', true, false, 'down.sm', 'Songs/Folder');
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

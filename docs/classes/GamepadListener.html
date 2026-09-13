@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>GamepadListener - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "GamepadListener Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Browser gamepad API listener</p>
+
+    [heading: "Description"]
+    <p>GamepadListener wraps Phaser's raw gamepad callbacks and re-exposes them as Phaser signals. Phaser fires a single callback for any connected pad, so this listener forwards the pad index and button code through its signals.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Starts Phaser's gamepad polling
+* Exposes connect, disconnect, down, and up Phaser signals
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ game | Phaser.Game | Phaser game instance ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ game | Phaser.Game | Phaser game instance being listened to ]
+[ onConnect | Phaser.Signal | Dispatched with the pad index when a pad connects ]
+[ onDisconnect | Phaser.Signal | Dispatched with the pad index when a pad disconnects ]
+[ onDown | Phaser.Signal | Dispatched with pad index and button code on button press ]
+[ onUp | Phaser.Signal | Dispatched with pad index and button code on button release ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const listener = new GamepadListener(game);
+listener.onDown.add((index, code) => {
+  console.log(`Pad ${index} button ${code}`);
+});
+listener.onConnect.add((index) => {
+  console.log(`Pad ${index} connected`);
+});
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

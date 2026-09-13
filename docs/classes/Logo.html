@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Logo - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Logo Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Animated logo for title screen</p>
+
+    [heading: "Description"]
+    <p>The animated title-screen emblem centered on the screen. It builds its own layered shapes and runs intro, looping-pulse, flourish and outro choreography. The outro effect detonates the logo into expanding rings while the camera flashes and fades to white.</p>
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ mainShape | Phaser.Sprite | Main logo shape that can be tweaked ]
+[ logoTween | Phaser.Tween | Infinite yoyo pulse tween on the main shape ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ intro | (callback) | Plays the intro animation, fading the main shape in and then starting an infinite breathing pulse before invoking the callback. ]
+[ outro | (callback) | Plays the outro animation: spawns a flash shape, scales it up while fading, flashes the camera white and fades to white before calling the callback. ]
+[ effect | (amountLayers, time, invert) | Spawns several logo shapes that fade in and out in a staggered yoyo cascade for a shockwave flourish. ]
+[ addShape | (tint, x, y) | Creates a centered tinted logo shape child at the given local offset. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const logo = new Logo();
+game.add.existing(logo);
+logo.intro(() => {
+  logo.effect(5, 1000);
+});
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

@@ -1,5 +1,35 @@
+/**
+ * @class ExternalSMParser
+ * @category Parser Classes
+ * @summary Parses .SM and .SSC files for external songs
+ * @constructor
+ * @features
+ * Supports both .SM and .SSC StepMania file formats
+ * Resolves media URLs from an in-memory file map via object URLs
+ * Handles SSC multi-chart sections with per-chart difficulty metadata
+ * Converts beat-based note timing to seconds
+ * @description
+ * ExternalSMParser handles user-imported songs stored in an external
+ * directory. Unlike LocalSMParser it works entirely from an in-memory
+ * file map and creates blob/object URLs for media playback. It supports
+ * both the classic .SM format and the extended .SSC format which allows
+ * per-chart BPM overrides and additional metadata.
+ * @example
+ * // Parsing an externally imported .SM file
+ * const parser = new ExternalSMParser();
+ * const files = {}; // map of lowercase filenames to File objects
+ * const smText = await FileTools.readTextFile(smFileObject);
+ * const songData = await parser.parseSM(files, smText);
+ * console.log(songData.title, Object.keys(songData.notes).length, 'charts');
+ */
 class ExternalSMParser {
   // TODO: Make this class use SMFile
+  /**
+   * Parses raw .SM or .SSC content, delegating to parseSSC when appropriate.
+   * @param {Object} files - A map of lowercase filenames to File objects
+   * @param {string} smContent - The raw text content of the file
+   * @returns {Promise<Object>} The parsed song data object
+   */
   async parseSM(files, smContent) {
     let out = {};
     let isSSC = smContent.includes("#VERSION:");
@@ -270,10 +300,21 @@ class ExternalSMParser {
     return out;
   }
   
+  /**
+   * Reads a File object as text via FileTools.
+   * @param {File} file - The File object to read
+   * @returns {Promise<string>} The text content of the file
+   */
   readFileContent(file) {
     return FileTools.readTextFile(file);
   }
 
+  /**
+   * Parses .SSC format content with header and per-chart section support.
+   * @param {Object} files - A map of lowercase filenames to File objects
+   * @param {string} sscContent - The raw .SSC file text
+   * @returns {Object} The parsed song data object
+   */
   parseSSC(files, sscContent) {
     const sections = sscContent.split(/\/\/-+/);
     const headerSection = sections[0];
@@ -417,6 +458,13 @@ class ExternalSMParser {
     return out;
   }
 
+  /**
+   * Converts SSC note measure data into the internal note array format.
+   * @param {Array<string>} noteData - Array of measure strings from the SSC file
+   * @param {Array} bpmChanges - BPM change entries for timing conversion
+   * @param {Array} stops - Stop entries for timing conversion
+   * @returns {Array<Object>} The processed note array
+   */
   convertSSCNotes(noteData, bpmChanges, stops) {
     const notes = [];
     let measureIndex = 0;
@@ -449,10 +497,24 @@ class ExternalSMParser {
     return notes;
   }
 
+  /**
+   * Finds the BPM change entry active at a given time value.
+   * @param {Array} bpmChanges - Sorted array of BPM change objects
+   * @param {number} time - The beat or second value to search for
+   * @param {string} valueType - The property name to compare ('beat' or 'sec')
+   * @returns {Object} The BPM change entry active at the given time
+   */
   getLastBpm(bpmChanges, time, valueType) {
     return bpmChanges.find((e, i, a) => i + 1 == a.length || a[i + 1][valueType] >= time);
   }
 
+  /**
+   * Converts a beat position to seconds accounting for BPM changes and stops.
+   * @param {Array} bpmChanges - Sorted BPM change entries with sec values
+   * @param {Array} stops - Stop entries with beat and len values
+   * @param {number} beat - The beat position to convert
+   * @returns {number} The equivalent time in seconds
+   */
   beatToSec(bpmChanges, stops, beat) {
     if (!bpmChanges || bpmChanges.length === 0) return beat;
 

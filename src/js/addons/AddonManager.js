@@ -1,12 +1,50 @@
+/**
+ * @class AddonManager
+ * @category Addon System Classes
+ * @summary Manages addon loading, execution, hibernation, and safe mode
+ * @constructor
+ * @features
+ * Discovers and loads addons from the external storage directory
+ * Executes addon behaviours in sandboxed contexts per game state
+ * Supports enable, disable, hibernate, and wake lifecycle operations
+ * Manages addon assets for Phaser resource loading
+ * Provides safe mode to skip all addon loading on startup
+ * @description
+ * AddonManager handles the full lifecycle of game addons: loading manifests
+ * from disk, registering assets with Phaser, executing behaviour scripts
+ * at state transitions, and persisting enabled/disabled/hibernating state
+ * to the player account. Safe mode allows the game to start without running
+ * any addon code when a problematic addon is detected.
+ * @example
+ * // Listing all loaded addons and their status
+ * const mgr = new AddonManager();
+ * await mgr.initialize();
+ * mgr.getAddonList().forEach(addon => {
+ *   console.log(`${addon.name} v${addon.version}: ${addon.isEnabled ? 'enabled' : 'disabled'}`);
+ * });
+ *
+ * // Executing state behaviours when entering a game state
+ * mgr.executeStateBehaviors('Gameplay', gameState, { difficulty: 'Hard' });
+ */
 class AddonManager {
   constructor() {
+    /** @type {Map<string, Object>} Map of addon IDs to addon descriptor objects */
     this.addons = new Map();
+    /** @type {Set<string>} Set of enabled addon IDs */
     this.enabledAddons = new Set();
+    /** @type {Set<string>} Set of hibernating addon IDs */
     this.hibernatingAddons = new Set();
+    /** @type {boolean} Whether safe mode is active, preventing addon loading */
     this.safeMode = false;
+    /** @type {boolean} Whether the manager has finished initialising */
     this.isInitialized = false;
   }
 
+  /**
+   * Initialises the addon manager by loading saved settings and discovering addons.
+   * Skips loading entirely when safe mode is enabled.
+   * @returns {Promise<void>}
+   */
   async initialize() {
     if (this.isInitialized) return;
     
@@ -25,6 +63,10 @@ class AddonManager {
     this.isInitialized = true;
   }
 
+  /**
+   * Orchestrates addon discovery from storage and processing of enabled addons.
+   * @returns {Promise<void>}
+   */
   async loadAddons() {
     try {
       console.log("Loading addons...");
@@ -38,6 +80,10 @@ class AddonManager {
     }
   }
 
+  /**
+   * Scans the addons directory on the file system and loads each addon.
+   * @returns {Promise<void>}
+   */
   async loadAddonsFromStorage() {
     const fileSystem = new FileSystemTools();
     
@@ -59,6 +105,12 @@ class AddonManager {
     }
   }
 
+  /**
+   * Loads a single addon from its directory, reading its manifest and files.
+   * @param {Object} addonDir - The directory entry for the addon
+   * @param {FileSystemTools} fileSystem - The file system instance
+   * @returns {Promise<void>}
+   */
   async loadAddonFromDirectory(addonDir, fileSystem) {
     const files = await fileSystem.listFiles(addonDir);
     const fileMap = {};
@@ -113,6 +165,10 @@ class AddonManager {
     console.log(`Loaded addon: ${addon.name} v${addon.version} (${addon.isEnabled ? 'enabled' : 'disabled'})`);
   }
 
+  /**
+   * Processes assets and behaviours for all enabled addons.
+   * @returns {Promise<void>}
+   */
   async processAddons() {
     // Process assets and behaviors for enabled addons
     for (const [addonId, addon] of this.addons) {
@@ -126,6 +182,10 @@ class AddonManager {
     }
   }
 
+  /**
+   * Registers addon assets from the manifest into the addon's asset list.
+   * @param {Object} addon - The addon descriptor object
+   */
   processAddonAssets(addon) {
     const assetsManifest = addon.manifest.assets;
     if (!assetsManifest) return;
@@ -181,6 +241,11 @@ class AddonManager {
     }
   }
 
+  /**
+   * Loads behaviour script content for each state defined in the manifest.
+   * @param {Object} addon - The addon descriptor object
+   * @returns {Promise<void>}
+   */
   async processAddonBehaviors(addon) {
     const behaviorsManifest = addon.manifest.behaviors;
     if (!behaviorsManifest) return;
@@ -221,6 +286,13 @@ class AddonManager {
     });
   }
 
+  /**
+   * Executes a behaviour script for an addon in a sandboxed context.
+   * @param {Object} addon - The addon descriptor
+   * @param {string} stateName - The game state name the behaviour targets
+   * @param {Object} context - The execution context (global, state, etc.)
+   * @param {Object} [extraParams] - Additional parameters to inject
+   */
   executeBehavior(addon, stateName, context, extraParams) {
     const behavior = addon.behaviors[stateName];
     if (!behavior) return;
@@ -249,6 +321,9 @@ class AddonManager {
     }
   }
 
+  /**
+   * Runs the 'Global' behaviour for all active, non-hibernating addons.
+   */
   executeGlobalBehaviors() {
     for (const [addonId, addon] of this.addons) {
       if (addon.isHibernating || !addon.isEnabled) continue;
@@ -256,6 +331,12 @@ class AddonManager {
     }
   }
 
+  /**
+   * Runs behaviours for a specific game state across all active addons.
+   * @param {string} stateName - The game state name
+   * @param {Object} stateInstance - The Phaser state instance
+   * @param {Object} [extraParams] - Additional parameters to pass
+   */
   executeStateBehaviors(stateName, stateInstance, extraParams) {
     for (const [addonId, addon] of this.addons) {
       if (addon.isHibernating || !addon.isEnabled) continue;
@@ -269,12 +350,23 @@ class AddonManager {
     }
   }
 
+  /**
+   * Splits a version string into a three-element numeric array.
+   * @param {string} version - A semver-style version string
+   * @returns {Array<number>} Array of [major, minor, patch]
+   */
   parseVersion(version) {
     const parts = version.split('.').map(part => parseInt(part, 10) || 0);
     while (parts.length < 3) parts.push(0);
     return parts;
   }
 
+  /**
+   * Compares two parsed version arrays.
+   * @param {Array<number>} v1 - The first version array
+   * @param {Array<number>} v2 - The second version array
+   * @returns {number} 1 if v1 > v2, -1 if v1 < v2, 0 if equal
+   */
   compareVersions(v1, v2) {
     for (let i = 0; i < 3; i++) {
       if (v1[i] > v2[i]) return 1;
@@ -283,6 +375,11 @@ class AddonManager {
     return 0;
   }
 
+  /**
+   * Enables an addon and persists the setting.
+   * @param {string} addonId - The addon ID to enable
+   * @returns {boolean} True if the addon was found and enabled
+   */
   enableAddon(addonId) {
     const addon = this.addons.get(addonId);
     if (addon) {
@@ -295,6 +392,11 @@ class AddonManager {
     return false;
   }
 
+  /**
+   * Disables an addon and persists the setting.
+   * @param {string} addonId - The addon ID to disable
+   * @returns {boolean} True if the addon was found and disabled
+   */
   disableAddon(addonId) {
     const addon = this.addons.get(addonId);
     if (addon) {
@@ -306,6 +408,11 @@ class AddonManager {
     return false;
   }
   
+  /**
+   * Moves an addon into hibernation, disabling it until explicitly woken.
+   * @param {string} addonId - The addon ID to hibernate
+   * @returns {boolean} True if the addon was found and hibernated
+   */
   hibernateAddon(addonId) {
     const addon = this.addons.get(addonId);
     if (addon) {
@@ -319,6 +426,11 @@ class AddonManager {
     return false;
   }
   
+  /**
+   * Wakes a hibernating addon, re-enabling it.
+   * @param {string} addonId - The addon ID to wake
+   * @returns {boolean} True if the addon was found and woken
+   */
   wakeAddon(addonId) {
     const addon = this.addons.get(addonId);
     if (addon && addon.isHibernating) {
@@ -332,6 +444,11 @@ class AddonManager {
     return false;
   }
 
+  /**
+   * Permanently removes an addon by deleting its directory and registry entry.
+   * @param {string} addonId - The addon ID to uninstall
+   * @returns {boolean} True if the addon was found and removed
+   */
   uninstallAddon(addonId) {
     const addon = this.addons.get(addonId);
     if (addon) {
@@ -342,12 +459,20 @@ class AddonManager {
     return false;
   }
   
+  /**
+   * Enables or disables safe mode globally.
+   * @param {boolean} enabled - Whether safe mode should be active
+   */
   setSafeMode(enabled) {
     this.safeMode = enabled;
     Account.settings.safeMode = enabled;
     saveAccount();
   }
 
+  /**
+   * Returns a serialisable list of all loaded addons with their status.
+   * @returns {Array<Object>} Array of addon summary objects
+   */
   getAddonList() {
     return Array.from(this.addons.values()).map(addon => ({
       id: addon.id,
@@ -365,6 +490,10 @@ class AddonManager {
     }));
   }
   
+  /**
+   * Collects all assets from active, non-hibernating addons for Phaser loading.
+   * @returns {Array<Object>} Combined asset list
+   */
   getResourceList() {
     let resources = [];
     
@@ -382,6 +511,9 @@ class AddonManager {
     return resources;
   }
 
+  /**
+   * Persists the current enabled, hibernating, and safe mode state to the account.
+   */
   saveAddonSettings() {
     Account.settings.enabledAddons = Array.from(this.enabledAddons);
     Account.settings.hibernatingAddons = Array.from(this.hibernatingAddons);
@@ -389,6 +521,10 @@ class AddonManager {
     saveAccount();
   }
 
+  /**
+   * Checks whether the saved settings differ from the current in-memory state.
+   * @returns {boolean} True if a reload is required to apply changes
+   */
   needsReload() {
     // Check if any changes were made that require a reload
     const currentEnabled = new Set(Account.settings?.enabledAddons || []);
@@ -400,6 +536,12 @@ class AddonManager {
            currentSafeMode !== this.safeMode;
   }
 
+  /**
+   * Tests whether two Sets contain the same elements.
+   * @param {Set} set1 - The first set
+   * @param {Set} set2 - The second set
+   * @returns {boolean} True if both sets are equal
+   */
   setsEqual(set1, set2) {
     if (set1.size !== set2.size) return false;
     for (const item of set1) {

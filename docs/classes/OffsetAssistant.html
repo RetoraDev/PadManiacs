@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>OffsetAssistant - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "OffsetAssistant Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Audio-video synchronization calibration tool</p>
+
+    [heading: "Description"]
+    <p>OffsetAssistant is an in-game audio-video synchronization calibration tool. It plays a continuous tick sound and has the player tap along to the beat, then measures each tap against the expected tick timing. After enough consistent taps it averages the measured offsets, displays a confidence color (white/yellow/green), and saves the result as the user offset used to align note judgments with audio timing.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Guides the player to tap in rhythm with a steady audio tick
+* Computes a statistically confident average offset from the taps
+* Saves the calibrated offset to the account settings for judgment alignment
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ game | Phaser.Game | The game instance ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ taps | Array | Raw tap timestamps in milliseconds ]
+[ confidenceThreshold | number | Confidence required to consider the offset reliable ]
+[ maxTaps | number | Maximum number of taps kept for measurement ]
+[ requiredTaps | number | Taps required before trusting the result ]
+[ tickBPM | number | BPM of the calibration tick sound ]
+[ tickInterval | number | Milliseconds between tick sounds ]
+[ snapMs | number | Snap interval in milliseconds for rounding offsets ]
+[ wasMusicPlaying | boolean | Whether background music was playing before calibration ]
+[ originalMusicTime | number | Background music time to resume from after calibration ]
+[ background | Phaser.Graphics | Full-screen dark background ]
+[ instructionText | Text | Tap-along instruction label ]
+[ offsetText | Text | Live offset readout label ]
+[ tapCounter | Text | Tap counter label ]
+[ exitText | Text | Exit instruction label ]
+[ calculatedOffsets | Array | Recent averaged offset measurements ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ update | () | Handles per-frame input: A button records a tap, B button exits and saves. Also keeps the tick sound and tap counter up to date. ]
+[ pauseBackgroundMusic | () | Pauses the background music and remembers the position to resume from. ]
+[ resumeBackgroundMusic | () | Resumes the background music from the position it was paused at. ]
+[ startTickSound | () | Preloads the assist tick sound and plays the first tick immediately. ]
+[ updateTickSound | () | Plays the tick sound again when the current tick interval elapses. ]
+[ playTickSound | () | Plays the assist tick sound if it is loaded in the game cache. ]
+[ onTap | () | Records a tap timestamp and triggers offset calculation and feedback. ]
+[ calculateOffset | () | Measures each tap against the expected tick timing, averages the offsets, and updates the readout with a confidence color (white/yellow/green). ]
+[ calculateConfidence | (offsets) | Computes a confidence value from the standard deviation of tap offsets. ]
+[ roundToSnapMs | (num) | Rounds an offset value to the nearest snap interval. ]
+[ showTapFeedback | () | Gives brief visual feedback by scaling the instruction text. ]
+[ exit | () | Saves the final averaged offset to the account settings, resumes music, cleans up, and returns to the settings menu. ]
+[ parseOffsetText | () | Reads the current offset value from the displayed text. ]
+[ destroy | () | Ensures background music is resumed and destroys all created objects. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Opening the offset assistant when the player needs calibration
+const assistant = new OffsetAssistant(game);
+game.world.add(assistant);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>CanvasBackground - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "CanvasBackground Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Canvas-based background rendering for dynamic content</p>
+
+    [heading: "Description"]
+    <p>Wraps a 2D canvas in a PIXI texture so dynamic content can be drawn to it like a normal sprite. Canvas textures are exposed for direct painting, and a per-frame dirty flag forces them to refresh. Useful for effects that Phaser shapes cannot easily produce.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Backs the sprite with a live HTML canvas texture
+* Restores a replaced canvas texture
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ x | Number | =0] - X position of the background ]
+[ y | Number | =0] - Y position of the background ]
+[ canvas | HTMLCanvasElement | Existing canvas to render; created if omitted ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ canvas | HTMLCanvasElement | The canvas element backing the texture ]
+[ ctx | CanvasRenderingContext2D | 2D drawing context of the canvas ]
+[ baseTexture | PIXI.BaseTexture | Base texture built from the canvas ]
+[ texture | PIXI.Texture | Sprite texture mapping the game viewport into the base texture ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ restoreCanvas | () | Re-attaches the previously stored canvas, restoring its texture after the canvas was replaced. ]
+[ setCanvas | (canvas) | Wraps the given canvas in a fresh base texture and sprite texture sized to the game viewport. ]
+[ dirty | () | Marks the canvas as needing a refresh by re-rendering its texture next frame. ]
+[ render | () | Flags the base texture as dirty so the canvas contents are re-uploaded to the GPU. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const bg = new CanvasBackground(0, 0, document.createElement('canvas'));
+game.add.existing(bg);
+bg.render();
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

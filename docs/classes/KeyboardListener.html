@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>KeyboardListener - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "KeyboardListener Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Keyboard input listener</p>
+
+    [heading: "Description"]
+    <p>KeyboardListener forwards the browser keyboard events captured by Phaser into onDown and onUp Phaser signals that carry the key code and the original event.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Bridges Phaser's global keyboard callbacks to Phaser signals
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ game | Phaser.Game | Phaser game instance ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ game | Phaser.Game | Phaser game instance being listened to ]
+[ onDown | Phaser.Signal | Dispatched with key code and event when a key is pressed ]
+[ onUp | Phaser.Signal | Dispatched with key code and event when a key is released ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const listener = new KeyboardListener(game);
+listener.onDown.add((keyCode, event) => {
+  console.log(`Key down: ${keyCode}`);
+});
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

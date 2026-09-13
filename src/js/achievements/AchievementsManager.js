@@ -1,5 +1,32 @@
+/**
+ * @class AchievementsManager
+ * @category Achievements and Stats Classes
+ * @summary Achievement tracking, unlocking, and stats management
+ * @constructor
+ * @features
+ * Tracks play time with a high-frequency interval timer
+ * Evaluates achievement conditions against live player stats
+ * Manages daily play streaks and holiday detection
+ * Persists session state across page visibility changes
+ * Awards experience to the current character on unlock
+ * @description
+ * AchievementsManager maintains the player's statistics, play streak, and
+ * session timing throughout the game session. It periodically evaluates all
+ * achievement definitions against the current stats, unlocks any that are
+ * newly satisfied, awards experience, and triggers in-game notifications.
+ * It also handles page visibility events to pause and resume time tracking
+ * correctly.
+ * @example
+ * // Initialising and checking achievements after a song
+ * const mgr = new AchievementsManager();
+ * mgr.initialize();
+ * // After a gameplay result:
+ * const newAchievements = mgr.updateStats(gameResults);
+ * newAchievements.forEach(a => console.log('Unlocked:', a.name));
+ */
 class AchievementsManager {
   constructor() {
+    /** @type {Array<Object>} Achievements unlocked this session */
     this.newAchievements = [];
 
     // Time tracking properties
@@ -9,6 +36,9 @@ class AchievementsManager {
     this.isTracking = false;
   }
 
+  /**
+   * Initialises achievement progress, stats, holiday definitions, and session tracking.
+   */
   initialize() {
     // Initialize achievements progress if not exists
     if (!Account.achievements) {
@@ -70,6 +100,9 @@ class AchievementsManager {
     console.log("Achievements Manager initialized");
   }
 
+  /**
+   * Starts a new play session, incrementing session counters and updating the streak.
+   */
   startSession() {
     this.sessionStartTime = Date.now();
     this.lastUpdateTime = this.sessionStartTime;
@@ -86,6 +119,9 @@ class AchievementsManager {
     console.log("New play session started");
   }
 
+  /**
+   * Begins the periodic time tracking interval that updates play time stats.
+   */
   startTimeTracking() {
     if (this.timeUpdateInterval) {
       clearInterval(this.timeUpdateInterval);
@@ -98,6 +134,9 @@ class AchievementsManager {
     this.isTracking = true;
   }
 
+  /**
+   * Called on each timer tick to accumulate play time and check achievements periodically.
+   */
   updateTimeStats() {
     if (!this.isTracking || !this.sessionStartTime) return;
 
@@ -123,6 +162,9 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Updates the daily play streak based on the last played date.
+   */
   updatePlayStreak() {
     const now = new Date();
     const today = now.toDateString();
@@ -150,6 +192,9 @@ class AchievementsManager {
     Account.stats.lastPlayedDate = today;
   }
 
+  /**
+   * Evaluates time-of-day and holiday conditions for the current session.
+   */
   checkTimeBasedConditions() {
     const { now, currentHour, currentDay, month, date } = this.getDate();
         
@@ -175,6 +220,10 @@ class AchievementsManager {
     }
   }
   
+  /**
+   * Returns the current date breakdown needed for time-based achievement checks.
+   * @returns {Object} An object with now, currentHour, currentDay, month, and date
+   */
   getDate() {
     const now = new Date();
     const currentHour = now.getHours();
@@ -184,6 +233,10 @@ class AchievementsManager {
     return { now, currentHour, currentDay, month, date };
   }
 
+  /**
+   * Returns the full holiday calendar mapping months and dates to holiday names.
+   * @returns {Object} Nested object keyed by month (0-11) then date (1-31)
+   */
   getHolidays() {
     // Comprehensive holiday calendar
     return {
@@ -230,6 +283,12 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Returns the localised name of a holiday for a given month and date.
+   * @param {number} month - The month (0-11)
+   * @param {number} date - The day of the month (1-31)
+   * @returns {string|null} The holiday name or null if not a holiday
+   */
   getHolidayName(month, date) {
     const holidays = this.getHolidays();
     if (holidays[month]) {
@@ -244,11 +303,20 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Checks whether a given month and date corresponds to a known holiday.
+   * @param {number} month - The month (0-11)
+   * @param {number} date - The day of the month (1-31)
+   * @returns {boolean} True if the date is a holiday
+   */
   isHoliday(month, date) {
     const holidays = this.getHolidays();
     return holidays[month] && holidays[month][date] !== undefined;
   }
 
+  /**
+   * Attaches DOM event listeners for page visibility and unload to manage session state.
+   */
   setupWindowEvents() {
     // Handle page visibility changes
     document.addEventListener("visibilitychange", () => {
@@ -274,12 +342,18 @@ class AchievementsManager {
     });
   }
 
+  /**
+   * Pauses time tracking when the page becomes hidden.
+   */
   onPageHide() {
     // Page is being hidden - pause time tracking
     this.isTracking = false;
     console.log("Page hidden - time tracking paused");
   }
 
+  /**
+   * Resumes time tracking when the page becomes visible again.
+   */
   onPageShow() {
     // Page is visible again - resume time tracking
     if (!this.isTracking) {
@@ -289,6 +363,9 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Ends the current play session, finalising stats and saving to account.
+   */
   endSession() {
     // Final time update
     this.updateTimeStats();
@@ -315,6 +392,11 @@ class AchievementsManager {
     console.log("Play session ended");
   }
 
+  /**
+   * Updates stats with gameplay results and checks for newly unlocked achievements.
+   * @param {Object} [gameResults] - The results object from a completed song
+   * @returns {Array<Object>} Any achievements unlocked during this call
+   */
   updateStats(gameResults = null) {
     if (!Account.stats) return;
 
@@ -339,6 +421,10 @@ class AchievementsManager {
     return newAchievements;
   }
 
+  /**
+   * Records gameplay statistics from a completed song into Account.stats.
+   * @param {Object} gameResults - The results object with score, judgements, etc.
+   */
   updateGameStats(gameResults) {
     if (Account.settings.autoplay) return;
 
@@ -373,6 +459,10 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Evaluates all achievement definitions and unlocks any that are newly satisfied.
+   * @returns {Array<Object>} Array of achievement objects that were just unlocked
+   */
   checkAchievements() {
     const newlyUnlocked = [];
 
@@ -428,6 +518,10 @@ class AchievementsManager {
     return newlyUnlocked;
   }
 
+  /**
+   * Awards the achievement experience reward to the current character.
+   * @param {Object} achievement - The achievement definition with expReward
+   */
   awardAchievementExp(achievement) {
     if (achievement.expReward > 0) {
       const characterManager = new CharacterManager();
@@ -440,40 +534,78 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Returns all achievements that have been unlocked.
+   * @returns {Array<Object>} Filtered achievement definitions
+   */
   getUnlockedAchievements() {
     return ACHIEVEMENT_DEFINITIONS.filter(achievement => Account.achievements.unlocked[achievement.id]);
   }
 
+  /**
+   * Returns non-hidden achievements that have not yet been unlocked.
+   * @returns {Array<Object>} Filtered achievement definitions
+   */
   getLockedAchievements() {
     return ACHIEVEMENT_DEFINITIONS.filter(achievement => !Account.achievements.unlocked[achievement.id] && !achievement.hidden);
   }
 
+  /**
+   * Returns hidden achievements that have not yet been unlocked.
+   * @returns {Array<Object>} Filtered achievement definitions
+   */
   getHiddenAchievements() {
     return ACHIEVEMENT_DEFINITIONS.filter(achievement => achievement.hidden && !Account.achievements.unlocked[achievement.id]);
   }
 
+  /**
+   * Returns the stored progress value for a specific achievement.
+   * @param {string} achievementId - The achievement ID
+   * @returns {number} The progress value
+   */
   getAchievementProgress(achievementId) {
     return Account.achievements.progress[achievementId] || 0;
   }
 
+  /**
+   * Returns the total number of achievements that have been unlocked.
+   * @returns {number} The unlocked count
+   */
   getTotalUnlockedCount() {
     return Object.keys(Account.achievements.unlocked).length;
   }
 
+  /**
+   * Returns the total number of achievement definitions.
+   * @returns {number} The total count
+   */
   getTotalAchievementsCount() {
     return ACHIEVEMENT_DEFINITIONS.length;
   }
 
+  /**
+   * Calculates the achievement completion percentage as a whole number.
+   * @returns {number} The percentage from 0 to 100
+   */
   getCompletionPercentage() {
     const total = this.getTotalAchievementsCount();
     const unlocked = this.getTotalUnlockedCount();
     return total > 0 ? Math.floor((unlocked / total) * 100) : 0;
   }
 
+  /**
+   * Returns the total time played formatted as a human-readable string.
+   * @returns {string} Formatted time string (e.g. "2h 15m 30s")
+   */
   getTimePlayedFormatted() {
     return this.formatTime(Account.stats.totalTimePlayed);
   }
 
+  /**
+   * Converts a number of seconds into a human-readable time string.
+   * @param {number} seconds - The total seconds to format
+   * @returns {string} Formatted string (e.g. "1h 5m 3s" or "42s")
+   */
   formatTime(seconds) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -488,15 +620,25 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Returns the duration of the current session in seconds.
+   * @returns {number} Seconds elapsed since the session started
+   */
   getCurrentSessionTime() {
     if (!this.sessionStartTime) return 0;
     return Math.floor((Date.now() - this.sessionStartTime) / 1000);
   }
   
+  /**
+   * Forces an immediate save of the current session state to the account.
+   */
   forceSave() {
     this.saveSessionState();
   }
 
+  /**
+   * Ends the session and removes all DOM event listeners.
+   */
   destroy() {
     this.endSession();
 

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>AccuracyVisualizer - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "AccuracyVisualizer Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Displays timing accuracy history graph</p>
+
+    [heading: "Description"]
+    <p>Renders a scrolling line graph that visualizes the player's recent timing accuracy judgments. Each point represents one note's timing offset, drawn relative to a zero-accuracy baseline.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Real-time timing accuracy line graph
+* Automatic history trimming to fit display width
+* Green line rendering with zero-baseline reference
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ scene | Object | The Phaser game state scene ]
+[ x | number | Horizontal position ]
+[ y | number | Vertical position ]
+[ width | number | Display width in pixels ]
+[ height | number | Display height in pixels ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ accuracyHistory | Array | Timing accuracy history from the player ]
+[ maxHistoryLength | number | Maximum number of history points visible at once ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ update | () | Draws the accuracy history graph by reading timing data from the active player. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const accViz = new AccuracyVisualizer(scene, 0, 0, 300, 50);
+scene.update = function () {
+  accViz.update();
+};
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

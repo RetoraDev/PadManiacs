@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>CharacterManager - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "CharacterManager Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Manages multiple characters and persistence</p>
+
+    [heading: "Description"]
+    <p>Coordinates the character roster stored on the player's account, creating, deleting, selecting, and persisting characters while updating their stats after gameplay sessions.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Character creation, deletion, and selection
+* Load and save of characters to the account
+* Experience gain calculation from game results
+* Statistics and personality updates after each game
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ characters | Map | Character instances keyed by name ]
+[ currentCharacter | Object|null | Currently active character ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ loadFromAccount | () | Rebuilds the character roster and current selection from the stored account data. ]
+[ createCharacter | (name, appearance) | Creates and persists a new character if the name is free and within the length limit. ]
+[ deleteCharacter | (name) | Removes a character from the roster and updates the account and current selection. ]
+[ unsetCharacter | () | Clears the current character selection and persists the change to the account. ]
+[ setCurrentCharacter | (name) | Makes a character the active roster selection. ]
+[ updateCharacterStats | (gameResults) | Applies game results to the current character's stats, experience, and personality. ]
+[ calculateExperienceGain | (gameResults) | Computes experience awarded from game results based on accuracy, combo, and difficulty. ]
+[ unlockHair | (type, id) | Unlocks a hair style of the given type for the account if not already owned. ]
+[ unlockItem | (itemId) | Unlocks a clothing item for the account if not already owned. ]
+[ CharacterList | () | Returns all character instances in the roster. ]
+[ CurrentCharacter | () | Returns the currently selected character instance. ]
+[ saveToAccount | () | Writes the full roster and current selection back to the account. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const mgr = new CharacterManager();
+const hero = mgr.createCharacter('Hero', { skinTone: 0 });
+mgr.setCurrentCharacter('Hero');
+const exp = mgr.updateCharacterStats(gameResults);
+console.log(mgr.getCharacterList());
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

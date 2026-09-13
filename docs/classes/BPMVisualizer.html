@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>BPMVisualizer - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "BPMVisualizer Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Displays BPM changes and beat timing</p>
+
+    [heading: "Description"]
+    <p>Renders a timeline of upcoming BPM changes and stops alongside the current BPM readout. A pulsing beat indicator and tinted text help the player track beat timing during gameplay.</p>
+
+    [heading: "Key Features"]
+    [list]
+* On-screen text showing current BPM value
+* Yellow markers for BPM changes in the chart
+* Red markers for stops in the chart
+* Beat indicator dot that pulses each beat
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ scene | Object | The Phaser game state scene ]
+[ x | number | Horizontal position ]
+[ y | number | Vertical position ]
+[ width | number | Display width in pixels ]
+[ height | number | Display height in pixels ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ bpmChanges | Array | BPM change events from the song chart ]
+[ stops | Array | Stop events from the song chart ]
+[ text | Object | Text display showing the current BPM ]
+[ beatIndicatorAlpha | number | Current alpha of the beat indicator ]
+[ currentBeat | number | Current beat fraction from scene timing ]
+[ currentBeatInt | number | Integer part of the current beat ]
+[ previusBeatInt | number | Last integer beat value for change detection ]
+[ currentBpm | number | Current BPM value ]
+[ previusBpm | number | Last BPM value for change detection ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ update | () | Redraws BPM change markers, stops, and the beat indicator each frame. ]
+[ LastBpm | () | Returns the BPM active at the current beat from the chart's BPM changes. ]
+[ LastStop | () | Returns the stop active at the current beat from the chart's stop data. ]
+[ destroy | () | Frees the graphics and text display. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const bpmViz = new BPMVisualizer(scene, 0, 0, 250, 30);
+function update() {
+  bpmViz.update();
+}
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

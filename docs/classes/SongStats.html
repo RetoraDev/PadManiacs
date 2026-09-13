@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>SongStats - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "SongStats Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Per-song statistics, difficulties, scores and preview browser</p>
+
+    [heading: "Description"]
+    <p>The Song Stats state inspects a single chart in detail. It exposes tabs for general metadata, per-difficulty statistics with a density chart, saved high scores, and an interactive chart preview that renders notes against the song's audio.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Tabbed interface covering general info, difficulty breakdowns, high scores and previews
+* Note density chart plus counts of notes, mines, holds, rolls, jumps and hands
+* Interactive chart preview with a scrubbed playhead and explosion hit effects
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ song | Object | The song being inspected ]
+[ returnState | string | Name of the state to return to ]
+[ currentTab | number | Index of the currently active tab ]
+[ scrollDirection | string | Scroll direction used by the chart preview ]
+[ tabs | Object[] | The tab definitions with their builder callbacks ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ init | (song, returnState, returnParams) | Phaser state hook that stores the song and builds the tab definitions. ]
+[ create | () | Phaser state hook that sets up the header, background and first tab. ]
+[ updateDiffText | () | Refreshes the difficulty label shown in the header. ]
+[ startArrowIdle | () | Starts the looping idle animation on the tab navigation arrows. ]
+[ stopArrowIdle | () | Stops the idle arrow animations and clears their tweens. ]
+[ animateArrowPress | (direction) | Plays a quick press animation on the navigation arrow for a direction. ]
+[ showTab | (index) | Activates the tab at the given index and builds its content. ]
+[ clearTab | () | Destroys the current tab's content and stops its preview audio. ]
+[ Difficulties | () | Returns the chart's difficulty list. ]
+[ CurrentDifficulty | () | Returns the currently selected difficulty, clamped to the list. ]
+[ CurrentNotes | () | Returns the note list for the current difficulty. ]
+[ rotateDifficulty | () | Moves to the next difficulty and refreshes dependent tabs. ]
+[ ScrollDirection | (beat) | Returns the scroll direction multiplier used by the chart preview. ]
+[ CurrentTime | () | Computes the current preview time and beat accounting for the chart offset. ]
+[ createGeneralTab | () | Builds the general info tab with song metadata and play/editor actions. ]
+[ createDifficultiesTab | () | Builds the difficulties tab with a note density chart and stats. ]
+[ updateDifficultyStats | () | Refreshes the note statistics text and density chart for the current difficulty. ]
+[ createScoresTab | () | Builds the high scores tab listing saved scores for each difficulty. ]
+[ createPreviewTab | () | Builds the interactive chart preview tab for the current difficulty. ]
+[ updatePreview | () | Advances the chart preview render and triggers explosion hit effects. ]
+[ playExplosionEffect | (column) | Plays a brief explosion effect on the receptor of the given column. ]
+[ update | () | Phaser lifecycle hook called every frame; handles tab navigation input. ]
+[ cleanup | () | Releases the preview audio, renderer and event listeners used by this state. ]
+[ shutdown | () | Phaser lifecycle hook called when leaving the state; performs cleanup. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Open the stats window for a song and return to the caller afterwards
+game.state.start("SongStats", true, false, song, "SongSelect", [songs, index]);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

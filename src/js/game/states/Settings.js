@@ -1,26 +1,58 @@
+/**
+ * @class Settings
+ * @category Game States
+ * @summary Settings user interface
+ * @constructor
+ * @features
+ * Persistent settings window covering audio, gameplay, graphics and account options
+ * Keybindings, chart modifiers and backup import/export data management
+ * Restore, restart and high score erasure flows guarded by confirmation dialogs
+ * @description
+ * The Settings state hosts the game's configuration screen. Nearly every option is
+ * collected in a single settings window, with submenus for keybindings and chart
+ * modifiers plus tools to import, export or erase account data. Changes are persisted
+ * to the account and some options require a restart to take effect.
+ * @example
+ * // Open the settings screen from any other state
+ * game.state.start("Settings");
+ */
 class Settings {
+  /**
+   * Phaser state hook that sets up the background, window manager and settings UI.
+   */
   create() {
+    /** @type {FuturisticLines} Ambient background line decorations */
     this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Animated gradient behind the UI */
     this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} Button hints along the bottom of the screen */
     this.navigationHint = new NavigationHint('general');
     
+    /** @type {WindowManager} Manages the settings dialog windows */
     this.windowManager = new WindowManager();
     
     gamepad.releaseAll();
     
     this.showSettings();
     
+    /** @type {HTMLInputElement} Hidden file input used for backup import */
     this.fileInput = document.createElement("input");
     this.fileInput.type = "file";
     
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Phaser lifecycle hook called every frame; updates the window manager.
+   */
   update() {
     gamepad.update();
     this.windowManager.update();
   }
   
+  /**
+   * Shows a loading message, then builds the settings window shortly after.
+   */
   showSettings() {
     const loading = new Text(game.width / 2, game.height / 2, __("Please Wait...||Espera..."));
     loading.anchor.set(0.5);
@@ -31,10 +63,14 @@ class Settings {
     });
   }
   
+  /**
+   * Builds the settings window with every persistent gameplay and graphics option.
+   */
   createSettingsWindow() {
     const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
     
+    /** @type {Object} The settings window shown on screen */
     this.settingsWindow = settingsWindow;
     
     let restartNeeded = false;
@@ -493,6 +529,10 @@ class Settings {
     }, true);
   }
   
+  /**
+   * Prompts for a JSON backup file and imports it into the account with confirmation.
+   * @returns {Promise<void>} Resolves once the file dialog flow finishes
+   */
   async importBackupData() {
     this.fileInput.accept = "application/json";
   
@@ -564,6 +604,10 @@ class Settings {
     this.fileInput.click();
   }
   
+  /**
+   * Exports the current account data to a downloadable JSON backup file.
+   * @returns {Promise<void>} Resolves once the export completes
+   */
   async exportBackupData() {
     const backupData = {
       version: VERSION,
@@ -608,18 +652,36 @@ class Settings {
     }
   }
   
+  /**
+   * Returns to the main menu.
+   */
   showMainMenu() {
     game.state.start("MainMenu");
   }
   
+  /**
+   * Opens the keybindings configuration state.
+   */
   showKeybindingsMenu() {
     game.state.start("Keybindings");
   }
   
+  /**
+   * Opens the chart modifiers state.
+   */
   showChartModifiersMenu() {
     game.state.start("ChartModifiers", true, false, "MainMenu");
   }
 
+  /**
+   * Shows a confirmation dialog with custom confirm and cancel actions.
+   * @param {string} message - The message text to display
+   * @param {Function} [onConfirm] - Callback when the confirm button is pressed
+   * @param {Function} [onCancel] - Callback when the cancel button is pressed
+   * @param {string} [confirmText] - Label for the confirm button
+   * @param {string} [cancelText] - Label for the cancel button
+   * @returns {Object} The dialog window instance
+   */
   confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
@@ -642,6 +704,9 @@ class Settings {
     return dialog;
   }
 
+  /**
+   * Confirms and permanently erases all stored high scores.
+   */
   confirmEraseHighscores() {
     this.confirmDialog(
       __("This will permanently erase all your high scores.\nThis action cannot be undone!\n\nAre you sure?||Esto borrará permanentemente todas tus puntuaciones altas.\n¡Esta acción no se puede deshacer!\n\n¿Estás seguro?"),
@@ -657,6 +722,9 @@ class Settings {
     );
   }
 
+  /**
+   * Confirms and restores all settings to their default values.
+   */
   confirmRestoreDefaults() {
     this.windowManager.remove(this.settingsWindow, true);
     
@@ -673,6 +741,9 @@ class Settings {
     );
   }
 
+  /**
+   * Confirms a restart when settings changes require one.
+   */
   confirmRestart() {
     this.confirmDialog(
       __("Settings changed require a restart to take effect.\nRestart now?||Los cambios en la configuración requieren un reinicio para aplicar.\n¿Reiniciar ahora?"),

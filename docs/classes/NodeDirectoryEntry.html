@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>NodeDirectoryEntry - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "NodeDirectoryEntry Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Cordova DirectoryEntry equivalent for Node.js</p>
+
+    [heading: "Description"]
+    <p>NodeDirectoryEntry provides a Cordova-compatible DirectoryEntry interface on top of Node.js synchronous file system calls. It is used by NodeFileSystem so that addon and song code can interact with directories identically across Cordova and NW.js platforms.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Mimics the Cordova DirectoryEntry API for NW.js environments
+* Supports directory creation, recursive removal, and file listing
+* Bridges Node.js fs operations to Cordova-style callbacks
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ name | string | The directory name ]
+[ fullPath | string | The relative path from the filesystem root ]
+[ fileSystem | NodeFileSystem | The parent NodeFileSystem instance ]
+[ nativeURL | string | The native file:// URL for this directory ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Listing subdirectories through a NodeDirectoryEntry
+const fs = new NodeFileSystem();
+const root = await fs.getDirectory('Songs/');
+const reader = root.createReader();
+reader.readEntries((entries) => {
+  entries.filter(e => e.isDirectory).forEach(dir => {
+    console.log('Found directory:', dir.name);
+  });
+}, (err) => console.error(err));
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

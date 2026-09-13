@@ -1,10 +1,44 @@
+/**
+ * @class Gamepad
+ * @category Core Game Classes
+ * @summary Unified input system for keyboard, touchscreen, and gamepad
+ * @constructor
+ * @param {Phaser.Game} game - Phaser game instance
+ * @param {Object} keyboardMap - Mapping of action names to keyboard key codes
+ * @param {Object} gamepadMap - Mapping of action names to gamepad button codes
+ * @param {number} [playerIndex=0] - Player index this gamepad handles (0 or 1)
+ * @features
+ * Tracks held, pressed, and released state for every action every frame
+ * Accepts input from keyboard, on-screen touch buttons, and HTML5 gamepads
+ * Dispatches Phaser signals when keys are pressed or released
+ * Detects the active input source to show touch controls and drive vibration
+ * @description
+ * Gamepad is the per-player input controller that sits between raw hardware input
+ * and game logic. State objects (held, pressed, released, prevState) hold one boolean
+ * per tracked action and are refreshed by the update() loop. The class wires keyboard
+ * and gamepad listeners through InputManager and dispatches pressed/released Phaser
+ * signals plus a combined "any" signal, so game code never touches browser events.
+ * @example
+ * // Modding usage example
+ * const pad = new Gamepad(game, keyboardMap, gamepadMap, 0);
+ * pad.signals.pressed.up.add(() => {
+ *   console.log('Up pressed');
+ * });
+ * // Rebuild button mappings at runtime
+ * pad.updateMapping(newKeyboardMap, newGamepadMap);
+ * // Read raw state in your update loop
+ * if (pad.pressed.a) player.jump();
+ */
 class Gamepad {
   constructor(game, keyboardMap, gamepadMap, playerIndex = 0) {
+    /** @type {Phaser.Game} Phaser game instance this controller belongs to */
     this.game = game;
     
+    /** @type {number} Player index (0 for player 1, 1 for player 2) */
     this.playerIndex = playerIndex; // 0 for player 1, 1 for player 2
 
     // Define the control keys we want to track
+    /** @type {string[]} Names of the action keys this gamepad tracks */
     this.keys = [
       'up',
       'down',
@@ -17,9 +51,13 @@ class Gamepad {
     ];
 
     // Initialize state objects
+    /** @type {Object<string, boolean>} Current held state of every action key */
     this.held = {};
+    /** @type {Object<string, boolean>} Single-frame pressed edge state of every action key */
     this.pressed = {};
+    /** @type {Object<string, boolean>} Single-frame released edge state of every action key */
     this.released = {};
+    /** @type {Object<string, boolean>} Held state from the previous frame */
     this.prevState = {};
 
     // Initialize all keys
@@ -40,6 +78,7 @@ class Gamepad {
     this.updateMapping(keyboardMap, gamepadMap);
     
     // Phaser signals
+    /** @type {Object} Phaser signals dispatched when keys are pressed or released */
     this.signals = {
       pressed: {},
       released: {}
@@ -52,12 +91,17 @@ class Gamepad {
     this.signals.released.any = new Phaser.Signal();
 
     // Touch tracking
+    /** @type {Map<number, string>} Active touch identifiers mapped to their button key */
     this.activeTouches = new Map();
+    /** @type {number} Maximum number of simultaneous touches tracked */
     this.maxTouches = 4;
 
     // Input detection
+    /** @type {string} The most recently detected input source ('none', 'keyboard', 'touch' or 'gamepad') */
     this.lastInputSource = 'none';
+    /** @type {?number} Timeout ID that auto-hides touch controls after inactivity */
     this.inputDetectionTimeout = null;
+    /** @type {boolean} Whether the touch controls are currently shown */
     this.touchControlsVisible = false;
 
     // Set up all input methods
@@ -65,6 +109,12 @@ class Gamepad {
     this.setupTouch();
   }
   
+  /**
+   * Updates the keyboard and gamepad mappings and rebuilds the keyboard capture.
+   * Existing held state is released and the previous keyboard wiring is torn down.
+   * @param {Object} keyboardMap - Mapping of action names to keyboard key codes
+   * @param {Object} gamepadMap - Mapping of action names to gamepad button codes
+   */
   updateMapping(keyboardMap, gamepadMap) {
     this.keyboardMap = keyboardMap || DEFAULT_KEYBOARD_MAPPING;
     this.gamepadMap = gamepadMap || DEFAULT_GAMEPAD_MAPPING;
@@ -74,6 +124,10 @@ class Gamepad {
     this.setupKeyboard();
   }
 
+  /**
+   * Builds the reverse keycode lookup and captures the keys used by this player.
+   * Registers global keyboard handlers that update held state for mapped actions.
+   */
   setupKeyboard() {
     // Clear any existing keyboard state
     this.releaseAll();
@@ -121,7 +175,12 @@ class Gamepad {
     this.update();
   }
 
+  /**
+   * Registers gamepad connect, disconnect, press, and release handlers.
+   * Only events for this player's pad index are applied to this gamepad.
+   */
   setupGamepad() {
+    /** @type {Object} Current state of the physical gamepad including connection status */
     this.gamepadState = {
       isConnected: false
     };
@@ -170,10 +229,15 @@ class Gamepad {
     });
   }
 
+  /**
+   * Enables on-screen touch controls, but only for player 1.
+   * Fetches the DOM controller elements and wires their touch events.
+   */
   setupTouch() {
     if (this.playerIndex > 0) return; // Only Player 1 uses touch
     
     // Get controller elements
+    /** @type {?HTMLElement} Touch controller parent element */
     this.controllerElement = document.getElementById('controller_parent');
     
     if (!this.controllerElement) {
@@ -181,6 +245,7 @@ class Gamepad {
     }
 
     // Get all button elements
+    /** @type {Object<string, HTMLElement>} Directional pad button elements */
     this.dpadElements = {
       up: document.getElementById('controller_up'),
       down: document.getElementById('controller_down'),
@@ -188,6 +253,7 @@ class Gamepad {
       right: document.getElementById('controller_right')
     };
     
+    /** @type {Object<string, HTMLElement>} Action button elements */
     this.buttonElements = {
       a: document.getElementById('controller_a'),
       b: document.getElementById('controller_b'),
@@ -206,6 +272,10 @@ class Gamepad {
     this.updateTouchControlsVisibility();
   }
 
+  /**
+   * Records the source of the latest input and schedules touch control auto-hide.
+   * @param {string} source - The input source ('keyboard', 'touch', or 'gamepad')
+   */
   detectInputSource(source) {
     if (this.lastInputSource === source) return;
     
@@ -230,6 +300,9 @@ class Gamepad {
     }
   }
 
+  /**
+   * Shows or hides the touch controller based on device and input source.
+   */
   updateTouchControlsVisibility() {
     if (!this.controllerElement) return;
 
@@ -242,6 +315,9 @@ class Gamepad {
     }
   }
 
+  /**
+   * Attaches touch handlers to the controller DOM element.
+   */
   setupControllerTouchEvents() {
     const controller = this.controllerElement;
 
@@ -260,6 +336,10 @@ class Gamepad {
     controller.addEventListener('touchcancel', (e) => this.handleTouchEnd(e));
   }
 
+  /**
+   * Tracks a new touch and presses the button beneath its starting point.
+   * @param {TouchEvent} e - The touchstart event
+   */
   handleTouchStart(e) {
     const touches = e.changedTouches;
 
@@ -283,6 +363,10 @@ class Gamepad {
     }
   }
 
+  /**
+   * Re-evaluates which button a moving touch is over and switches held keys.
+   * @param {TouchEvent} e - The touchmove event
+   */
   handleTouchMove(e) {
     const touches = e.changedTouches;
 
@@ -315,6 +399,10 @@ class Gamepad {
     }
   }
 
+  /**
+   * Releases the key a touch was holding and stops tracking the touch.
+   * @param {TouchEvent} e - The touchend or touchcancel event
+   */
   handleTouchEnd(e) {
     const touches = e.changedTouches;
 
@@ -333,6 +421,11 @@ class Gamepad {
     }
   }
 
+  /**
+   * Resolves the controller button key under a given touch point.
+   * @param {Touch} touch - The touch being examined
+   * @returns {?string} The matching action key, 'rhythm_*' key, or null
+   */
   getButtonFromTouch(touch) {
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
     if (!element) return null;
@@ -346,6 +439,11 @@ class Gamepad {
     return this.keys.includes(key) || key.startsWith('rhythm_') ? key : null;
   }
   
+  /**
+   * Returns a display label for the gamepad button bound to an action.
+   * @param {string} action - The action key to look up
+   * @returns {?string} Button label (A, CROSS, DPAD_UP, etc.) or null if unknown
+   */
   getButtonForAction(action) {
     const buttonCode = this.gamepadMap[action];
     if (buttonCode === undefined) return null;
@@ -395,6 +493,10 @@ class Gamepad {
     return names[buttonCode] || null;
   }
 
+  /**
+   * Refreshes pressed/released edge states and dispatches Phaser signals.
+   * Call this once per frame from the game loop.
+   */
   update() {
     if (this.dontUpdateThisTime) {
       delete this.dontUpdateThisTime;
@@ -430,10 +532,18 @@ class Gamepad {
     this.prevState.any = this.held.any;
   }
 
+  /**
+   * Checks whether a key is currently being held by a touch input.
+   * @param {string} key - The action key to check
+   * @returns {boolean} True if the key is held by an active touch
+   */
   isTouchControlled(key) {
     return Array.from(this.activeTouches.values()).includes(key);
   }
 
+  /**
+   * Computes pressed and released edge states from held and previous state.
+   */
   updateButtonStates() {
     // Calculate pressed/released for individual keys
     let anyPressed = false;
@@ -455,6 +565,9 @@ class Gamepad {
     this.held.any = anyHeld;
   }
   
+  /**
+   * Clears held, pressed, and released state for every action key.
+   */
   releaseAll() {
     this.keys.forEach(key => {
       this.held[key] = false;
@@ -466,6 +579,10 @@ class Gamepad {
     this.released.any = false;
   }
   
+  /**
+   * Programmatically presses a key as a user input would.
+   * @param {string} key - The action key to press
+   */
   press(key) {
     this.dontUpdateThisTime = true;
     this.pressed[key] = true;
@@ -474,10 +591,18 @@ class Gamepad {
     this.held.any = true;
   }
   
+  /**
+   * Checks whether any direction action is currently held.
+   * @returns {boolean} True if up, down, left, or right is held
+   */
   isDirectionPressed() {
     return this.held.up || this.held.down || this.held.left || this.held.right;
   }
 
+  /**
+   * Computes a normalized direction vector from the held direction keys.
+   * @returns {{x: number, y: number}} Direction vector with diagonal normalization
+   */
   getDirection() {
     let x = 0, y = 0;
 
@@ -494,6 +619,11 @@ class Gamepad {
     return { x, y };
   }
   
+  /**
+   * Vibrates the device or gamepad based on the last detected input source.
+   * @param {number} [duration=100] - Vibration duration in milliseconds
+   * @returns {boolean} True if a vibration was actually executed
+   */
   vibrate(duration = 100) {
     // Do not vibrate if the last input source was keyboard
     if (this.lastInputSource === 'keyboard') {
@@ -579,6 +709,9 @@ class Gamepad {
     return vibrationExecuted;
   }
 
+  /**
+   * Releases all keys and clears active touches and button highlight states.
+   */
   reset() {
     this.releaseAll();
     this.activeTouches.clear();
@@ -588,6 +721,9 @@ class Gamepad {
     Object.values(this.buttonElements).forEach(el => el?.classList.remove('btnPressed'));
   }
   
+  /**
+   * Removes all listeners, signals, and DOM elements associated with this gamepad.
+   */
   destroy() {
     // Clean up everything
     if (this.inputDetectionTimeout) {

@@ -1,20 +1,51 @@
+/**
+ * @class NavigationHint
+ * @category UI Classes
+ * @summary Displays input prompts in menus (0-7 frames)
+ * @constructor
+ * @param {Array|string} hints - Hint definitions or a NAVIGATION_HINT_PRESETS key
+ * @param {boolean} [disableCache] - When true, rebuild hint sprites on every refresh
+ * @features
+ * Renders icon and description prompts grouped left, center, and right
+ * Keyboard, gamepad, mouse, and touch input source detection
+ * Cached sprite parents for instant input-source switching
+ * Alternate mode that cycles the active player periodically
+ * @description
+ * NavigationHint renders the contextual button prompts at the bottom of the
+ * screen. It watches the active input source and player, redrawing prompts
+ * with the correct key labels or gamepad button icons, and caches both player
+ * and input-source variants so switching is instant. Alternate mode cycles
+ * between player 1 and player 2 prompts on a timer.
+ * @example
+ * // Modding usage example
+ * const hints = new NavigationHint([
+ *   { icon: 'up', text: 'Move', position: 'left' },
+ *   { icon: 'a', text: 'Select', position: 'center' },
+ *   { icon: 'b', text: 'Back', position: 'right' }
+ * ]);
+ */
 class NavigationHint extends Phaser.Sprite {
   constructor(hints = [], disableCache) {
     super(game, 0, game.height - 6);
     
     if (typeof hints === 'string') hints = NAVIGATION_HINT_PRESETS[hints] || [];
     
+    /** @type {Array} Resolved list of hint definitions */
     this.hints = hints;
+    /** @type {Array} All hint sprites and groups currently created */
     this.items = [];
+    /** @type {object} Timer handle for the alternate-mode cycling */
     this.alternateTimer = null;
     this.currentAlternatePlayer = 1;
     this.ignorePlayerSwitch = false;
     this.disableCache = disableCache || false;
     this.alternateMode = Account.settings.alternateHintMode || false;
     
+    /** @type {Phaser.Signal} Dispatched with the player id when the active player changes */
     this.onPlayerSwitch = new Phaser.Signal();
     
     // Cache prompt elements to reuse them later
+    /** @type {object} Cached parents keyed by player id and input source */
     this.parents = {};
     
     this.sizes = {
@@ -40,6 +71,9 @@ class NavigationHint extends Phaser.Sprite {
     window.currentNavigationHint = this;
   }
   
+  /**
+   * Subscribes a refresh callback to the global gamepad press signal.
+   */
   setupInputTracking() {
     const updateCondition = () => {
       if (this.alternateMode) return;
@@ -62,10 +96,16 @@ class NavigationHint extends Phaser.Sprite {
     if (gamepad) gamepad.signals.pressed.any.add(this.updateCondition);
   }
   
+  /**
+   * Unsubscribes the input-tracking refresh callback from the gamepad signal.
+   */
   stopInputTracking() {
     if (gamepad) gamepad.signals.pressed.any.remove(this.updateCondition);
   }
   
+  /**
+   * Starts cycling the active player between 1 and 2 every two seconds.
+   */
   startAlternateMode() {
     if (this.alternateTimer) game.time.events.remove(this.alternateTimer);
     this.alternateTimer = game.time.events.loop(2000, () => {
@@ -74,6 +114,9 @@ class NavigationHint extends Phaser.Sprite {
     });
   }
   
+  /**
+   * Stops the alternate-mode cycling timer.
+   */
   stopAlternateMode() {
     if (this.alternateTimer) {
       game.time.events.remove(this.alternateTimer);
@@ -81,6 +124,10 @@ class NavigationHint extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Enables or disables alternate mode and refreshes the hint prompts.
+   * @param {boolean} enabled - Whether to enable alternate-mode cycling
+   */
   setAlternateMode(enabled) {
     this.alternateMode = enabled;
     Account.settings.alternateHintMode = enabled;
@@ -94,16 +141,27 @@ class NavigationHint extends Phaser.Sprite {
     this.refreshHints();
   }
   
+  /**
+   * Returns the active player id, honoring alternate mode when enabled.
+   * @returns {number} The active player id (1 or 2)
+   */
   getActivePlayer() {
     if (this.alternateMode) return this.currentAlternatePlayer;
     return gamepad?.lastPlayerId || 1;
   }
   
+  /**
+   * Returns the current input source, forcing gamepad in alternate mode.
+   * @returns {string} Input source (keyboard, gamepad, mouse, touch, or none)
+   */
   getInputSource() {
     if (this.alternateMode) return 'gamepad';
     return gamepad?.lastInputSource || 'keyboard';
   }
   
+  /**
+   * Rebuilds the visible hint prompts for the current player and input source.
+   */
   refreshHints() {
     // Update cached state
     this.lastState.inputSource = this.getInputSource();
@@ -136,6 +194,9 @@ class NavigationHint extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Destroys all hint items, groups, and sprites.
+   */
   destroyHints() {
     // Destroy all existing items
     this.items.forEach(item => {
@@ -150,6 +211,12 @@ class NavigationHint extends Phaser.Sprite {
     this.items = [];
   }
   
+  /**
+   * Creates hint prompts for the given player and input source.
+   * @param {number} [player] - Player id to render prompts for
+   * @param {string} [input] - Input source to render prompts for
+   * @param {boolean} [hide] - Whether to hide the created group afterwards
+   */
   createHints(player, input, hide) {
     const activePlayer = player || this.getActivePlayer();
     const inputSource = input || this.getInputSource();
@@ -165,6 +232,14 @@ class NavigationHint extends Phaser.Sprite {
     if (hide) this.parents[activePlayer][inputSource].visible = false;
   }
   
+  /**
+   * Creates and lays out the prompts for one position group (left/center/right).
+   * @param {string} position - Position group to build: left, center, or right
+   * @param {Array} hints - Hints belonging to this position
+   * @param {number} activePlayer - Player id the prompts are for
+   * @param {string} inputSource - Input source the prompts are for
+   * @param {string} buttonStyle - Button icon style (xbox or playstation)
+   */
   createPositionHints(position, hints, activePlayer, inputSource, buttonStyle) {
     if (hints.length === 0) return;
     
@@ -218,6 +293,15 @@ class NavigationHint extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Creates a key sprite or dedicated icon frame for a single hint icon.
+   * @param {object} hint - The hint to create an icon for
+   * @param {string} inputSource - Input source determining the icon look
+   * @param {string} buttonStyle - Button icon style (xbox or playstation)
+   * @param {number} activePlayer - Player id for key mapping
+   * @param {number} x - X position of the icon group
+   * @returns {object|null} Icon group with width, or null when nothing applies
+   */
   createIcon(hint, inputSource, buttonStyle, activePlayer, x) {
     const keyText = this.getKeyText(hint, inputSource, activePlayer);
     const useKeySprite = (inputSource === 'keyboard' && keyText !== null);
@@ -250,6 +334,13 @@ class NavigationHint extends Phaser.Sprite {
     return null;
   }
   
+  /**
+   * Builds a keyboard key sprite with caps, center slices, and a label.
+   * @param {string} keyText - The key label to render
+   * @param {number} x - X position of the key group
+   * @param {number} y - Y position of the key group
+   * @returns {Phaser.Group} The assembled key sprite group
+   */
   createKeySprite(keyText, x, y) {
     const group = game.add.group();
     group.x = x;
@@ -285,10 +376,23 @@ class NavigationHint extends Phaser.Sprite {
     return group;
   }
   
+  /**
+   * Computes the width of a key sprite built for the given label.
+   * @param {string} keyText - The key label
+   * @returns {number} Width in pixels
+   */
   calculateKeyWidth(keyText) {
     return 3 + (keyText.length * 4) + 3;
   }
   
+  /**
+   * Returns the width needed to render a hint's icon in the current style.
+   * @param {object} hint - The hint to measure
+   * @param {string} inputSource - Input source determining the icon look
+   * @param {string} buttonStyle - Button icon style (xbox or playstation)
+   * @param {number} activePlayer - Player id for key mapping
+   * @returns {number} Icon width in pixels
+   */
   getIconWidth(hint, inputSource, buttonStyle, activePlayer) {
     const keyText = this.getKeyText(hint, inputSource, activePlayer);
     const useKeySprite = (inputSource === 'keyboard' && keyText !== null);
@@ -309,6 +413,14 @@ class NavigationHint extends Phaser.Sprite {
     return 0;
   }
   
+  /**
+   * Maps a hint icon to a sprite frame for the current input source and style.
+   * @param {string} icon - The hint icon key (e.g. 'up', 'a', 'd-pad')
+   * @param {string} inputSource - Input source determining the icon look
+   * @param {string} buttonStyle - Button icon style (xbox or playstation)
+   * @param {number} activePlayer - Player id for key mapping
+   * @returns {number} Sprite frame index, or -1 to use a custom key sprite
+   */
   getIconFrame(icon, inputSource, buttonStyle, activePlayer) {
     // Keyboard mode: dedicated frames for special icons, others use -1 (custom key sprite)
     if (inputSource === 'keyboard') {
@@ -387,6 +499,12 @@ class NavigationHint extends Phaser.Sprite {
     return -1;
   }
   
+  /**
+   * Returns the gamepad button id mapped to an action for the given player.
+   * @param {string} icon - Action icon key (a, b, x, y, select, start)
+   * @param {number} playerId - Player id to look up
+   * @returns {number|null} Mapped gamepad button id or null
+   */
   getButtonMapping(icon, playerId) {
     const player = playerId === 1 ? 'player1' : 'player2';
     const actionMap = {
@@ -398,6 +516,13 @@ class NavigationHint extends Phaser.Sprite {
     return Account.mapping.gamepad[player][action];
   }
   
+  /**
+   * Resolves the key label to show for a hint in keyboard mode.
+   * @param {object} hint - The hint to resolve
+   * @param {string} inputSource - Input source determining the icon look
+   * @param {number} activePlayer - Player id for key mapping
+   * @returns {string|null} Key label or null when no label applies
+   */
   getKeyText(hint, inputSource, activePlayer) {
     if (inputSource !== 'keyboard') {
       const triggerIcons = ['lb', 'rb', 'lt', 'rt'];
@@ -437,6 +562,11 @@ class NavigationHint extends Phaser.Sprite {
     return fallbacks[hint.icon] || null;
   }  
 
+  /**
+   * Converts a key code into its human-readable name from KEYBOARD_KEY_CODES.
+   * @param {number} keyCode - The key code to convert
+   * @returns {string} Key name, or '???' when unknown
+   */
   keyCodeToString(keyCode) {
     for (const key of Object.keys(KEYBOARD_KEY_CODES)) {
       const keyName = key.replace('_', ' ');
@@ -447,12 +577,20 @@ class NavigationHint extends Phaser.Sprite {
     return '???';
   }
   
+  /**
+   * Sets the button icon style and refreshes the hint prompts.
+   * @param {string} style - Button style key (xbox or playstation)
+   */
   setButtonStyle(style) {
     Account.settings.buttonStyle = style;
     saveAccount();
     this.refreshHints();
   }
   
+  /**
+   * Replaces the current hints and rebuilds all prompt sprites.
+   * @param {Array|string} hints - Hint definitions or a NAVIGATION_HINT_PRESETS key
+   */
   updateHints(hints) {
     if (typeof hints === 'string') hints = NAVIGATION_HINT_PRESETS[hints] || [];
     this.hints = hints;
@@ -460,6 +598,9 @@ class NavigationHint extends Phaser.Sprite {
     this.refreshHints();
   }
   
+  /**
+   * Stops tracking and cycling, destroys all prompts, and destroys the sprite.
+   */
   destroy() {
     this.stopInputTracking();
     this.stopAlternateMode();

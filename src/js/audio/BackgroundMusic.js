@@ -1,17 +1,49 @@
+/**
+ * @class BackgroundMusic
+ * @category Core Game Classes
+ * @summary Manages background music playback with caching
+ * @constructor
+ * @features
+ * Random and last-song menu music playback
+ * Cached song list discovery with short TTL
+ * External URL accessibility checking
+ * Volume control from account settings
+ * @description
+ * Plays background music in menus using an HTML audio element. Discovers available
+ * songs from local, external, and current state listings, caching the result for a
+ * short window and falling back to a random song when playback fails.
+ * @example
+ * // Modding usage example
+ * const bgm = new BackgroundMusic();
+ * bgm.playRandomSong();
+ * bgm.setVolume(50);
+ * bgm.stop();
+ * bgm.destroy();
+ */
 class BackgroundMusic {
   constructor() {
+    /** @type {HTMLAudioElement} Audio element used for playback */
     this.audio = document.createElement("audio");
     this.audio.volume = Account.settings.volume / 100;
+    /** @type {boolean} Whether songs should be chosen at random */
     this.randomSong = Account.settings.randomSong;
     this.audio.loop = true;
+    /** @type {boolean} Whether music is currently playing */
     this.isPlaying = false;
+    /** @type {Object|null} Metadata of the currently playing song */
     this.currentSong = null;
+    /** @type {Array|null} Cached list of available songs */
     this.availableSongsCache = null; // Cache for available songs
+    /** @type {number} Timestamp of the last cache build */
     this.cacheTimestamp = 0;
+    /** @type {number} How long the song list cache stays valid in milliseconds */
     this.cacheDuration = 30000; // Cache for 30 seconds
     this.registerVisibilityChangeListener();
   }
   
+  /**
+   * Pauses or resumes playback when the browser tab visibility changes.
+   */
   registerVisibilityChangeListener() {
     this.visibilityChangeListener = () => {
       if (document.hidden) {
@@ -24,6 +56,9 @@ class BackgroundMusic {
     window.addEventListener('visibilitychange', this.visibilityChangeListener);
   }
 
+  /**
+   * Resumes the last played song, verifying external URLs, or picks a random song as fallback.
+   */
   async playLastSong() {
     if (this.isPlaying || !Account.settings.enableMenuMusic) return;
     
@@ -47,6 +82,9 @@ class BackgroundMusic {
     }
   }
 
+  /**
+   * Selects a random song from the cached available list and starts playback.
+   */
   playRandomSong() {
     // Get cached available songs (fast)
     const allSongs = this.getCachedAvailableSongs();
@@ -67,6 +105,10 @@ class BackgroundMusic {
     this.playSong(songData);
   }
 
+  /**
+   * Returns the cached song list, rebuilding it if the cache has expired.
+   * @returns {Array} List of available song objects
+   */
   getCachedAvailableSongs() {
     const now = Date.now();
     
@@ -82,6 +124,10 @@ class BackgroundMusic {
     return this.availableSongsCache;
   }
 
+  /**
+   * Collects unique songs from local, external, and current state sources without URL checks.
+   * @returns {Array} List of available song objects
+   */
   getAllAvailableSongsFast() {
     const allSongs = [];
     const seenUrls = new Set();
@@ -126,6 +172,11 @@ class BackgroundMusic {
     return allSongs;
   }
 
+  /**
+   * Performs quick validation that an audio URL is worth attempting playback.
+   * @param {string} url - The audio URL to validate
+   * @returns {boolean} Whether the URL appears playable
+   */
   isValidAudioUrl(url) {
     // Fast URL validation - exclude obviously invalid URLs
     if (!url) return false;
@@ -136,6 +187,11 @@ class BackgroundMusic {
     return true;
   }
 
+  /**
+   * Tests whether an external audio URL can load metadata, with a short timeout.
+   * @param {string} url - The audio URL to check
+   * @returns {Promise} Resolves when loadable, rejects when it fails or times out
+   */
   async checkUrlAccessible(url) {
     return new Promise((resolve, reject) => {
       if (!url) {
@@ -171,6 +227,10 @@ class BackgroundMusic {
     });
   }
 
+  /**
+   * Starts playback of a song, jumping to its sample start and handling load failures.
+   * @param {Object} songData - Song metadata including url, title, and sampleStart
+   */
   playSong(songData) {
     // Stop current audio if playing
     this.audio.pause();
@@ -199,6 +259,10 @@ class BackgroundMusic {
     });
   }
 
+  /**
+   * Removes a failed URL from the cached song list so it is not picked again.
+   * @param {string} failedUrl - The audio URL that failed to play
+   */
   removeSongFromCache(failedUrl) {
     if (this.availableSongsCache) {
       this.availableSongsCache = this.availableSongsCache.filter(
@@ -207,6 +271,9 @@ class BackgroundMusic {
     }
   }
 
+  /**
+   * Stops playback and resets playback state.
+   */
   stop() {
     this.audio.pause();
     this.audio.currentTime = 0;
@@ -214,16 +281,26 @@ class BackgroundMusic {
     this.currentSong = null;
   }
 
+  /**
+   * Sets the volume from the indexed account volume setting.
+   * @param {number} volume - Index into the volume presets [0,25,50,75,100]
+   */
   setVolume(volume) {
     this.audio.volume = [0,25,50,75,100][volume] / 100;
   }
 
   // Method to manually refresh the cache
+  /**
+   * Invalidates the cached song list so it is rebuilt on next use.
+   */
   refreshCache() {
     this.availableSongsCache = null;
     this.cacheTimestamp = 0;
   }
 
+  /**
+   * Stops playback, releases the audio element, and removes the visibility listener.
+   */
   destroy() {
     this.stop();
     this.audio.src = "";

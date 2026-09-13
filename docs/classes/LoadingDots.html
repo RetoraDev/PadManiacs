@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>LoadingDots - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "LoadingDots Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Animated loading indicator</p>
+
+    [heading: "Description"]
+    <p>A small animated sprite shown in the bottom-right corner while the game loads assets. It plays a looping animation cycling through several dot frames and is anchored at its bottom-right corner. No configuration or interaction is required once added to the world.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Looping 8-frame animation
+* Anchor pinned to the bottom-right corner
+[/list]
+
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const dots = new LoadingDots();
+game.add.existing(dots);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

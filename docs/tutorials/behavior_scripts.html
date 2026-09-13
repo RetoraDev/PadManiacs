@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width">
+    <meta charset="UTF-8">
+    <title>Creating Behavior Scripts - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+  
+    [title: "Creating Behavior Scripts"]
+    <a href="../">← Back to index</a>
+    
+    <p>Learn how to add custom gameplay logic and modify game behavior using JavaScript.</p>
+    
+    [heading: "What are Behavior Scripts?"]
+    <p>Behavior scripts are JavaScript files that run at specific times during the game. They allow you to:</p>
+    [list]
+    * Modify game mechanics
+    * Add new features
+    * Change UI behavior
+    * Create custom game modes
+    * Hook into game events
+    [/list]
+    
+    [heading: "JavaScript Requirements"]
+    <p>You should understand these JavaScript concepts:</p>
+    [list]
+    * Variables (<code>let</code>, <code>const</code>)
+    * Functions and arrow functions
+    * Objects and arrays
+    * Event listeners
+    * Basic DOM manipulation
+    [/list]
+    
+    <p>Recommended learning resources:</p>
+    [list]
+    * <a href="https://javascript.info/">Modern JavaScript Tutorial</a>
+    * <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript">MDN JavaScript Docs</a>
+    [/list]
+    
+    [heading: "Basic Behavior Script Structure"]
+    
+    [subheading: "Global Behavior"]
+    <p>Runs when your addon is loaded. Use for initialization:</p>
+    [codeblock js]
+    // behaviors/global.js
+    console.log("My addon loaded!");
+    
+    // Add global variables or functions
+    window.myAddon = {
+      version: "1.0.0",
+      sayHello: function() {
+        console.log("Hello from my addon!");
+      }
+    };
+    
+    // Modify global game settings
+    if (Account && Account.settings) {
+      Account.settings.myCustomSetting = true;
+    }
+    [/codeblock]
+    
+    [subheading: "State-Specific Behavior"]
+    <p>Runs when a specific game state is active:</p>
+    [codeblock js]
+    // behaviors/menu.js (for MainMenu state)
+    console.log("MainMenu state loaded!");
+    
+    // Access the state instance
+    if (state && state.menu) {
+      console.log("Menu function available:", state.menu);
+    }
+    
+    // Access the game instance
+    if (game) {
+      console.log("Game width:", game.width);
+    }
+    [/codeblock]
+    
+    [heading: "Available Context Variables"]
+    
+    [subheading: "Global Context"]
+    [table header]
+    [ Variable | Type | Description ]
+    [ game | Phaser.Game | Main game instance ]
+    [ gamepad | Gamepad | Input system ]
+    [ backgroundMusic | BackgroundMusic | Music player ]
+    [ notifications | NotificationSystem | Notification system ]
+    [ addonManager | AddonManager | Addon management ]
+    [ Account | Object | User account data ]
+    [/table]
+    
+    [subheading: "State Context"]
+    [table header]
+    [ Variable | Type | Description ]
+    [ state | Object | Current state instance ]
+    [ stateName | String | Name of current state ]
+    [ game | Phaser.Game | Game instance (also available globally) ]
+    [ global | Object | Global scope reference ]
+    [/table]
+    
+    [heading: "Common Use Cases"]
+    
+    [subheading: "Modifying Menus with game.onMenuIn"]
+    <p>The <code>game.onMenuIn</code> signal is fired when menus are created. You can use it to modify menu behavior:</p>
+    [codeblock js]
+    // behaviors/menu.js
+    game.onMenuIn.add(function(menuName, menuInstance) {
+      console.log("Menu created:", menuName);
+      
+      if (menuName === 'home') {
+        // Modify the home menu
+        console.log("Home menu instance:", menuInstance);
+        
+        // Add custom menu items
+        if (menuInstance.addItem) {
+          menuInstance.addItem("Custom Option", function() {
+            notifications.show("Custom option clicked!");
+          });
+        }
+      }
+    });
+    [/codeblock]
+    
+    [subheading: "Adding Custom Settings"]
+    [codeblock js]
+    // behaviors/menu.js
+    game.onMenuIn.add(function(menuName, menuInstance) {
+      if (menuName === 'settings') {
+        // Add custom setting to settings window
+        menuInstance.addSettingItem(
+          "My Custom Setting",
+          ["OFF", "ON"],
+          0, // Default index
+          function(index, value) {
+            // Save setting
+            Account.settings.myCustomSetting = index === 1;
+            saveAccount();
+            notifications.show("Custom setting saved!");
+          }
+        );
+      }
+    });
+    [/codeblock]
+    
+    [subheading: "Modifying Gameplay"]
+    [codeblock js]
+    // behaviors/gameplay.js (Play state)
+    if (state && state.player) {
+      console.log("Player instance:", state.player);
+      
+      // Modify scoring
+      const originalProcessJudgement = state.player.processJudgement;
+      state.player.processJudgement = function(note, judgement, column) {
+        // Double all scores
+        if (judgement !== "miss") {
+          this.score += 1000; // Bonus points
+        }
+        
+        // Call original function
+        originalProcessJudgement.call(this, note, judgement, column);
+      };
+    }
+    [/codeblock]
+    
+    [heading: "Advanced Techniques"]
+    
+    [subheading: "Event Hooking"]
+    <p>Hook into game events to add custom behavior:</p>
+    [codeblock js]
+    // behaviors/global.js
+    if (game && game.onMenuIn) {
+      // Store original signal
+      const originalOnMenuIn = game.onMenuIn;
+      
+      // Create new signal with custom behavior
+      game.onMenuIn = new Phaser.Signal();
+      game.onMenuIn.add(function(menuName, menuInstance) {
+        console.log("Custom menu handler:", menuName);
+        
+        // Call original handlers
+        originalOnMenuIn.dispatch(menuName, menuInstance);
+        
+        // Add custom behavior
+        if (menuName === 'songList') {
+          // Modify song list behavior
+        }
+      });
+    }
+    [/codeblock]
+    
+    [subheading: "Creating Custom UI Elements"]
+    [codeblock js]
+    // behaviors/menu.js
+    game.onMenuIn.add(function(menuName, menuInstance) {
+      if (menuName === 'home') {
+        // Create custom text element
+        const customText = new Text(
+          game.width / 2, 
+          20, 
+          "Welcome to my mod!",
+          FONTS.shaded
+        );
+        customText.anchor.set(0.5);
+        
+        // Add to game world
+        game.world.add(customText);
+      }
+    });
+    [/codeblock]
+    
+    [heading: "Debugging Behavior Scripts"]
+    
+    [subheading: "Enable Developer Console"]
+    <p>Use Eruda for mobile debugging:</p>
+    [codeblock js]
+    eruda.init(); // Enable console
+    console.log("Behavior script loaded");
+    console.log("Game state:", game.state.getCurrentState());
+    [/codeblock]
+    
+    [subheading: "Error Handling"]
+    [codeblock js]
+    try {
+      // Your behavior code here
+      if (someCondition) {
+        // Do something
+      }
+    } catch (error) {
+      console.error("Error in behavior script:", error);
+      notifications.show("Addon error occurred");
+    }
+    [/codeblock]
+    
+    [heading: "Example: Custom Game Mode"]
+    
+    [subheading: "Manifest Configuration"]
+    [codeblock json]
+    {
+      "id": "custom-game-mode",
+      "name": "Custom Game Mode",
+      "version": "1.0.0",
+      "behaviors": {
+        "Global": "behaviors/global.js",
+        "MainMenu": "behaviors/menu.js",
+        "Play": "behaviors/gameplay.js"
+      }
+    }
+    [/codeblock]
+    
+    [subheading: "Gameplay Behavior"]
+    [codeblock js]
+    // behaviors/gameplay.js
+    console.log("Custom game mode activated!");
+    
+    if (state && state.player) {
+      // Modify judgment windows
+      state.JUDGE_WINDOWS = {
+        marvelous: 0.10, // Tighter windows
+        perfect: 0.15,
+        great: 0.20,
+        good: 0.25,
+        boo: 0.35
+      };
+      
+      // Add custom scoring
+      state.player.customMultiplier = 2.0;
+      
+      const originalProcessJudgement = state.player.processJudgement;
+      state.player.processJudgement = function(note, judgement, column) {
+        // Apply custom multiplier
+        this.score = Math.floor(this.score * this.customMultiplier);
+        
+        // Call original function
+        originalProcessJudgement.call(this, note, judgement, column);
+      };
+    }
+    [/codeblock]
+    
+    [heading: "Best Practices"]
+    [list]
+    * Use try-catch blocks for error handling
+    * Check if objects exist before using them
+    * Clean up your modifications when possible
+    * Use console.log for debugging
+    * Test on different devices and game versions
+    * Document your behavior scripts
+    [/list]
+    
+    [heading: "Security Considerations"]
+    [list]
+    * Never modify core game files directly
+    * Use the provided API methods
+    * Be careful with user data and settings
+    * Test thoroughly before distribution
+    [/list]
+    
+    [heading: "Next Steps"]
+    <p>Now that you've understood how to make custom behaviors, check out these tutorials:</p>
+    [list]
+    * <a href="asset_replacement.html">Asset Replacement Tutorial</a>
+    * <a href="ui_modification.html">Modifying UI</a>
+    [/list]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

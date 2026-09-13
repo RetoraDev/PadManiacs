@@ -1,20 +1,59 @@
+/**
+ * @class CharacterDisplay
+ * @category Character System Classes
+ * @summary Visual character sprite with layered rendering
+ * @constructor
+ * @param {number} x - Horizontal position
+ * @param {number} y - Vertical position
+ * @param {Object} characterData - Character data model
+ * @features
+ * Layered sprite rendering for hair, base, eyes, and clothing
+ * Personality-based and generic eye blinking
+ * Particle aura effects for special items
+ * Alternate tint cycling on clothing layers
+ * @description
+ * A Phaser.Sprite subclass that renders a character from layered sprites representing
+ * back hair, base, front hair, eyes, and clothing items, applying tints and effects.
+ * Supports animated blinking, aura particles, and appearance updates at runtime.
+ * @example
+ * // Modding usage example
+ * const display = new CharacterDisplay(0, 0, characterData);
+ * game.world.addChild(display);
+ * display.updateAppearance({ frontHair: 2 });
+ * display.destroy();
+ */
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
+    /** @type {Object} Character data used for rendering */
     this.character = characterData;
+    /** @type {Object} Rendering sprites keyed by layer name */
     this.layers = {};
+    /** @type {Object} Active alternate tint timers keyed by layer */
     this.alternateTimers = {};
+    /** @type {boolean} Whether a special item hides the character */
     this.isSpecial = false;
+    /** @type {boolean} Whether a special item renders as an aura */
     this.isAura = false;
+    /** @type {Phaser.Group|null} Group holding aura particle sprites */
     this.auraParticleGroup = null;
+    /** @type {Array} Currently active aura particles */
     this.particles = [];
+    /** @type {Array} Pool of reusable aura particles */
     this.particlePool = [];
+    /** @type {Object} Rectangle defining the aura emission area */
     this.auraRect = { x: 25, y: 0, w: 50, h: 80 };
+    /** @type {Object|null} Loop timer that emits aura particles */
     this.particleTimer = null;
+    /** @type {Object|null} Configuration of the active aura effect */
     this.auraConfig = null;
+    /** @type {Object|null} Eye behavior config of the character's personality */
     this.personalityBehavior = null;
+    /** @type {Array} Queue of blink behaviors to follow */
     this.blinkQueue = [];
+    /** @type {number} Current position in the blink queue */
     this.currentBlinkIndex = 0;
+    /** @type {boolean} Whether a blink animation is in progress */
     this.isBlinking = false;
     
     if (characterData) {
@@ -24,6 +63,11 @@ class CharacterDisplay extends Phaser.Sprite {
     game.add.existing(this);
   }
 
+  /**
+   * Returns the special clothing item equipped by the character, if any.
+   * @param {Object} [appearanceObj] - Optional appearance object; defaults to the character's
+   * @returns {Object|null} The special item definition or null
+   */
   getSpecialItem(appearanceObj) {
     const appearance = appearanceObj || this.character.appearance;
     if (!appearance.clothing || !appearance.clothing.special) return null;
@@ -32,6 +76,9 @@ class CharacterDisplay extends Phaser.Sprite {
     return CHARACTER_ITEMS.find(item => item.id === specialId && item.type === 'special');
   }
 
+  /**
+   * Loads the personality's eye behavior and rebuilds the blink queue for the character.
+   */
   loadPersonalityBehavior() {
     if (!this.character || !this.character.personality) {
       this.personalityBehavior = null;
@@ -47,6 +94,10 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Builds a queue of blink behaviors from the personality's eye behavior config.
+   * @returns {Array} List of resolved blink behavior entries
+   */
   buildBlinkQueue() {
     if (!this.personalityBehavior) return [];
     const queue = [];
@@ -67,10 +118,18 @@ class CharacterDisplay extends Phaser.Sprite {
     return queue;
   }
 
+  /**
+   * Maps an eye distance value to a blink animation frame index.
+   * @param {number} distance - The eye distance value
+   * @returns {number} Clamped frame index between 0 and 3
+   */
   getBlinkFrame(distance) {
     return Math.min(3, Math.max(0, distance));
   }
 
+  /**
+   * Starts either personality-based or generic blinking depending on the character's behavior.
+   */
   setupBlinking() {
     if (this.personalityBehavior && this.blinkQueue.length > 0) {
       this.startPersonalityBlinking();
@@ -79,6 +138,9 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Starts the default blinking loop with randomly timed blink intervals.
+   */
   startGenericBlinking() {
     const blinkFrames = [0, 1, 2, 3, 2, 1, 0];
     this.layers.eyes?.animations.add('blink', blinkFrames, 16, false);
@@ -88,6 +150,9 @@ class CharacterDisplay extends Phaser.Sprite {
     });
   }
 
+  /**
+   * Starts the personality-driven blinking sequence that follows the character's blink queue.
+   */
   startPersonalityBlinking() {
     if (this.blinkQueue.length === 0) return;
     const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.character.personality);
@@ -118,6 +183,11 @@ class CharacterDisplay extends Phaser.Sprite {
     });
   }
 
+  /**
+   * Schedules a blink animation after a delay, then runs the completion callback.
+   * @param {number} time - Delay in milliseconds before blinking
+   * @param {Function} callback - Callback invoked after the blink completes
+   */
   blink(time, callback) {
     game.time.events.add(time, () => {
       if (this.layers.eyes && this.layers.eyes.visible) {
@@ -129,6 +199,10 @@ class CharacterDisplay extends Phaser.Sprite {
     });
   }
 
+  /**
+   * Builds all rendering layers from the character's appearance, including aura effects.
+   * @param {boolean} specialItemChanged - Whether the special item changed, requiring aura rebuild
+   */
   createLayers(specialItemChanged) {
     const appearance = this.character.appearance;
     const tints = appearance.tints || {};
@@ -163,6 +237,11 @@ class CharacterDisplay extends Phaser.Sprite {
     this.setupAlternateTints();
   }
 
+  /**
+   * Creates sprites for each clothing slot, applying tints and layering per item definition.
+   * @param {Object} appearance - The character's appearance config
+   * @param {Object} tints - Tint values per clothing slot
+   */
   createClothingLayers(appearance, tints) {
     const slots = ['shoes', 'bottom', 'top', 'accessory', 'special'];
     for (const slot of slots) {
@@ -225,6 +304,9 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Starts alternate tint cycling for any layers that define an alternate tint.
+   */
   setupAlternateTints() {
     for (const [key, layer] of Object.entries(this.layers)) {
       if (Array.isArray(layer)) {
@@ -239,6 +321,10 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Begins toggling a sprite's tint between its alternate and current colors on a loop.
+   * @param {Object} sprite - The sprite with alternate tint metadata
+   */
   startAlternateTint(sprite) {
     const frequency = sprite._alternateFrequency || 100;
     let toggle = false;
@@ -255,6 +341,11 @@ class CharacterDisplay extends Phaser.Sprite {
     });
   }
 
+  /**
+   * Creates the particle group and starts the emission loop for an aura item.
+   * @param {Object} item - The special item definition
+   * @param {Object} tints - Tint values including the special slot
+   */
   createAura(item, tints) {
     if (!item.particle) return;
     this.auraParticleGroup = game.add.group();
@@ -292,6 +383,12 @@ class CharacterDisplay extends Phaser.Sprite {
     });
   }
 
+  /**
+   * Pulls an inactive particle from the pool or creates a new sprite for the given texture.
+   * @param {string} key - Texture key for the particle
+   * @param {number} frame - Frame index within the texture
+   * @returns {Object} The prepared particle sprite
+   */
   getParticleFromPool(key, frame) {
     for (let i = 0; i < this.particlePool.length; i++) {
       const p = this.particlePool[i];
@@ -313,12 +410,19 @@ class CharacterDisplay extends Phaser.Sprite {
     return sprite;
   }
 
+  /**
+   * Marks a particle sprite as inactive and invisible for future reuse.
+   * @param {Object} sprite - The particle sprite to recycle
+   */
   recycleParticle(sprite) {
     sprite.active = false;
     sprite.visible = false;
     sprite.alpha = 0;
   }
 
+  /**
+   * Spawns one set of aura particles with randomized position, velocity, tint, and lifespan.
+   */
   emitParticle() {
     if (!this.auraParticleGroup || !this.auraConfig) return;
     const config = this.auraConfig;
@@ -432,6 +536,9 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Removes particles whose lifespan has expired from the active list.
+   */
   cleanParticles() {
     const now = game.time.now;
     for (let i = this.particles.length - 1; i >= 0; i--) {
@@ -443,6 +550,9 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Advances particle physics, fading, and tint cycling each frame.
+   */
   updateParticles() {
     const dt = game.time.elapsed / 1000;
     const rect = this.auraRect;
@@ -502,12 +612,21 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Per-frame update that advances active aura particles.
+   */
   update() {
     if (this.auraParticleGroup && this.particles.length > 0) {
       this.updateParticles();
     }
   }
 
+  /**
+   * Recursively merges a source object into a target, preserving nested object structure.
+   * @param {Object} target - The target object to merge into
+   * @param {Object} source - The source object providing values
+   * @returns {Object} The merged result object
+   */
   deepMerge(target, source) {
     const result = { ...target };
     for (const [key, value] of Object.entries(source)) {
@@ -520,6 +639,10 @@ class CharacterDisplay extends Phaser.Sprite {
     return result;
   }
 
+  /**
+   * Rebuilds all rendering layers to reflect a new appearance configuration.
+   * @param {Object} [newAppearance] - Partial appearance overrides to apply
+   */
   updateAppearance(newAppearance = {}) {
     const specialItemChanged = (this.character?.appearance?.clothing?.special ?? null) !== (newAppearance?.clothing?.special ?? null);
     
@@ -555,6 +678,9 @@ class CharacterDisplay extends Phaser.Sprite {
     this.createLayers(specialItemChanged);
   }
 
+  /**
+   * Cleans up timers, particles, and rendering layers before destroying the sprite.
+   */
   destroy() {
     if (this.particleTimer) {
       game.time.events.remove(this.particleTimer);

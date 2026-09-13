@@ -1,12 +1,48 @@
+/**
+ * @class Results
+ * @category Game States
+ * @summary Displays gameplay results and high scores
+ * @constructor
+ * @features
+ * Shows final score, accuracy, letter rating, max combo and judgement breakdown
+ * Saves high scores and celebrates a new record with a pulsing banner
+ * Character portrait with an animated experience and level-up progression
+ * Navigation menu to continue, retry or quit back to the main menu
+ * @description
+ * The Results state summarizes a completed playthrough. It shows the performance
+ * breakdown, persists high scores to the account and marks a new record, and can
+ * display the active character's experience gain with a level-up animation.
+ * @example
+ * // Open results for a finished playthrough
+ * game.state.start("Results", true, false, {
+ *   song: songData,
+ *   player: playerObj,
+ *   character: myCharacter,
+ *   autoplay: false,
+ *   expGain: 120
+ * });
+ */
 class Results {
+  /**
+   * Phaser state hook that stores the game data and resets the result fields.
+   * @param {Object} gameData - The results payload produced by the Play state
+   */
   init(gameData) {
+    /** @type {Object} The payload passed from the Play state */
     this.gameData = gameData;
+    /** @type {boolean} Whether the run set a new high score */
     this.isNewRecord = false;
+    /** @type {number} The final score to display */
     this.finalScore = 0;
+    /** @type {number} The final accuracy percentage to display */
     this.finalAccuracy = 0;
+    /** @type {string} The letter rating achieved for the run */
     this.scoreRating = "";
   }
 
+  /**
+   * Phaser state hook that saves the high score and builds the results screen.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -47,6 +83,13 @@ class Results {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
+  /**
+   * Saves the run's score to the account if it beats the current high score.
+   * @param {Object} song - The song that was played
+   * @param {Object} difficulty - The difficulty that was played
+   * @param {Object} player - The player object carrying the results
+   * @returns {boolean} Whether the run set a new high score
+   */
   saveHighScore(song, difficulty, player) {
     if (this.gameData.autoplay) {
       return false;
@@ -80,6 +123,11 @@ class Results {
     return isNewRecord;
   }
 
+  /**
+   * Hashes a string into a compact 32-bit base-36 identifier.
+   * @param {string} str - The string to hash
+   * @returns {string} The hashed identifier
+   */
   hashString(str) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -90,6 +138,9 @@ class Results {
     return hash.toString(36);
   }
 
+  /**
+   * Renders the banner, song info, score, accuracy, rating and combo texts.
+   */
   displayResults() {
     const { song, player } = this.gameData;
     const difficulty = song.chart.difficulties[song.difficultyIndex];
@@ -161,6 +212,9 @@ class Results {
     }
   }
   
+  /**
+   * Shows the character portrait and animates the experience gain.
+   */
   showCharacterExp() {
     const portrait = new CharacterPortrait(160, 41, this.gameData.character || null);
     
@@ -206,6 +260,9 @@ class Results {
     }
   }
   
+  /**
+   * Builds the results navigation menu with continue, retry and quit options.
+   */
   showMenu() {
     this.navigationHint = new NavigationHint('general_no_b');
     
@@ -233,6 +290,11 @@ class Results {
     game.onMenuIn.dispatch('results', menu);
   }
   
+  /**
+   * Formats the judgement counts into a multi-line summary.
+   * @param {Object} judgements - The judgement count object
+   * @returns {string} The formatted judgement text
+   */
   getJudgementsText(judgements) {
     return `Marvelous: ${judgements.marvelous}\n` +
            `Perfect: ${judgements.perfect}\n` +
@@ -242,6 +304,11 @@ class Results {
            `Miss: ${judgements.miss}`;
   }
 
+  /**
+   * Maps a letter rating to its display tint color.
+   * @param {string} rating - The letter rating achieved
+   * @returns {number} The RGB tint color for the rating
+   */
   getRatingColor(rating) {
     const colors = {
       "SSS+": 0xFFD700, // Gold
@@ -258,10 +325,16 @@ class Results {
     return colors[rating] || 0xFFFFFF;
   }
 
+  /**
+   * Phaser lifecycle hook called every frame to poll gamepad input.
+   */
   update() {
     gamepad.update();
   }
   
+  /**
+   * Phaser lifecycle hook called when leaving the state; stops the preview audio.
+   */
   shutdown() {
     this.previewAudio.pause();
     this.previewAudio.src = null;

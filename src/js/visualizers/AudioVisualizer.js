@@ -1,14 +1,46 @@
+/**
+ * @class AudioVisualizer
+ * @category Core Game Classes
+ * @summary Shows audio frequency spectrum
+ * @constructor
+ * @param {Object} scene - The Phaser game state scene
+ * @param {number} x - Horizontal position
+ * @param {number} y - Vertical position
+ * @param {number} width - Display width in pixels
+ * @param {number} height - Display height in pixels
+ * @features
+ * Real-time frequency spectrum bars
+ * Connects to game audio source through Web Audio API
+ * Graceful fallback when audio analysis is unsupported
+ * @description
+ * Draws vertical bars representing the frequency spectrum of the currently playing audio.
+ * Uses the Web Audio API to analyse the game audio element and render the data each frame.
+ * @example
+ * // Modding usage example
+ * const audioViz = new AudioVisualizer(scene, 0, 0, 200, 50);
+ * function update() {
+ *   audioViz.update();
+ * }
+ */
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
+    /** @type {AudioContext|null} Web Audio API context for analysis */
     this.audioContext = null;
+    /** @type {AnalyserNode|null} Analyser node providing frequency data */
     this.analyser = null;
+    /** @type {Uint8Array|null} Buffer holding raw frequency data */
     this.dataArray = null;
+    /** @type {number} Length of the frequency data buffer */
     this.bufferLength = 32;
+    /** @type {Array} Sprites or metadata for drawn bars */
     this.bars = [];
     this.setupAudioAnalysis();
   }
 
+  /**
+   * Creates the Web Audio API context and analyser, connecting it to the scene's audio element.
+   */
   setupAudioAnalysis() {
     try {
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -31,6 +63,9 @@ class AudioVisualizer extends Visualizer {
     }
   }
 
+  /**
+   * Fetches frequency data and redraws the spectrum bars each frame.
+   */
   update() {
     if (!this.active || !this.analyser) return;
 
@@ -56,6 +91,9 @@ class AudioVisualizer extends Visualizer {
     }
   }
 
+  /**
+   * Frees the graphics and closes the audio context.
+   */
   destroy() {
     super.destroy();
     if (this.audioContext) {

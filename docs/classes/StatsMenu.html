@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>StatsMenu - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "StatsMenu Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Player statistics display</p>
+
+    [heading: "Description"]
+    <p>The StatsMenu state presents cumulative account statistics in two formatted columns covering games, scores, time, sessions, streaks and high scores. The text is refreshed on a short timer loop while visible. Any gamepad or mouse input returns the player to the main menu, and the timer is stopped on shutdown.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Two-column career statistics layout
+* Live refresh via a timed update loop
+* Any key press returns to the main menu
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ titleText | Text | Title text for the statistics screen. ]
+[ leftColumn | Text | Left column of statistics text. ]
+[ rightColumn | Text | Right column of statistics text. ]
+[ instructionText | Text | Instruction text for leaving the screen. ]
+[ updateTimer | Phaser.TimerEvent | Timer loop that refreshes the statistics. ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ create | () | Creates the statistic text widgets and starts the refresh timer. ]
+[ formatTime | (seconds) | Formats a seconds count as an HH:MM:SS duration string. ]
+[ formatSessionTime | (seconds) | Formats seconds as a compact legible duration such as &quot;12m 5s&quot;. ]
+[ updateStatsText | () | Rebuilds the two statistic columns from the account stats object. ]
+[ update | () | Returns to the main menu when any key or mouse button is pressed. ]
+[ shutdown | () | Stops the statistics refresh timer when leaving the state. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+// Open the statistics screen
+game.state.start("StatsMenu");
+
+// Read raw stats for custom tooling
+Account.stats.totalGamesPlayed;
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

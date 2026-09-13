@@ -1,15 +1,42 @@
+/**
+ * @class AchievementsMenu
+ * @category Game States
+ * @summary Achievements viewing interface
+ * @constructor
+ * @features
+ * Carousel of unlocked or locked achievements
+ * Toggle between sections with the Select button
+ * Detail pane with unlock dates and experience rewards
+ * @description
+ * The AchievementsMenu state displays the player's achievement progress in a
+ * two-pane layout, listing names in a carousel and showing rich details for the
+ * selected achievement. The Select button toggles between the unlocked and
+ * locked sections, while canceling returns to the main menu.
+ * @example
+ * // Modding usage example
+ * game.state.start("AchievementsMenu");
+ *
+ * // Inspect unlock status for a custom achievement id
+ * Account.achievements.unlocked["custom_id"];
+ */
 class AchievementsMenu {
+  /**
+   * Sets up the carousel, detail text, and addon behaviors for the state.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
     new FuturisticLines();
     new BackgroundGradient();
     
+    /** @type {NavigationHint} On-screen overlay hinting button usage. */
     this.navigationHint = new NavigationHint('achievements');
     
+    /** @type {boolean} Whether the list is showing unlocked achievements. */
     this.showingUnlocked = true;
     
     // Initialize details text first
+    /** @type {Text} Details pane for the selected achievement. */
     this.detailsText = new Text(game.width / 2 + 8, 10, "");
     
     this.createMenu();
@@ -18,6 +45,9 @@ class AchievementsMenu {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
+  /**
+   * Builds the achievements carousel and toggling header text.
+   */
   createMenu() {
     const achievementsManager = new AchievementsManager();
     
@@ -25,6 +55,7 @@ class AchievementsMenu {
     const carouselWidth = game.width / 2;
     const carouselHeight = game.height - 12;
     
+    /** @type {CarouselMenu} Carousel listing achievement names. */
     this.carousel = new CarouselMenu(0, 8, carouselWidth, carouselHeight, {
       bgcolor: '#9b59b6',
       fgcolor: '#ffffff',
@@ -35,6 +66,7 @@ class AchievementsMenu {
     });
     
     // Toggle button
+    /** @type {Text} Header text showing the current achievements section. */
     this.toggleText = new Text(4, 3, __("Showing: Unlocked||Sección: Desbloqueados"));
     
     game.onMenuIn.dispatch('achievements', this.carousel);
@@ -42,6 +74,9 @@ class AchievementsMenu {
     this.updateAchievementsList();
   }
 
+  /**
+   * Rebuilds the carousel for the currently selected achievements section.
+   */
   updateAchievementsList() {
     const achievementsManager = new AchievementsManager();
     
@@ -97,6 +132,10 @@ class AchievementsMenu {
     });
   }
 
+  /**
+   * Writes the selected achievement's details into the detail pane.
+   * @param {Object} achievement - The achievement descriptor to describe.
+   */
   showAchievementDetails(achievement) {
     if (!this.detailsText) return;
     
@@ -124,6 +163,9 @@ class AchievementsMenu {
     this.detailsText.write(details).wrap(game.width / 2 - 16);
   }
 
+  /**
+   * Toggles between unlocked and locked sections with the Select button.
+   */
   update() {
     gamepad.update();
     

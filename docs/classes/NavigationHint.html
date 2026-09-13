@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>NavigationHint - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "NavigationHint Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Displays input prompts in menus (0-7 frames)</p>
+
+    [heading: "Description"]
+    <p>NavigationHint renders the contextual button prompts at the bottom of the screen. It watches the active input source and player, redrawing prompts with the correct key labels or gamepad button icons, and caches both player and input-source variants so switching is instant. Alternate mode cycles between player 1 and player 2 prompts on a timer.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Renders icon and description prompts grouped left, center, and right
+* Keyboard, gamepad, mouse, and touch input source detection
+* Cached sprite parents for instant input-source switching
+* Alternate mode that cycles the active player periodically
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ hints | Array|string | Hint definitions or a NAVIGATION_HINT_PRESETS key ]
+[ disableCache | boolean | When true, rebuild hint sprites on every refresh ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ hints | Array | Resolved list of hint definitions ]
+[ items | Array | All hint sprites and groups currently created ]
+[ alternateTimer | object | Timer handle for the alternate-mode cycling ]
+[ onPlayerSwitch | Phaser.Signal | Dispatched with the player id when the active player changes ]
+[ parents | object | Cached parents keyed by player id and input source ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ setupInputTracking | () | Subscribes a refresh callback to the global gamepad press signal. ]
+[ stopInputTracking | () | Unsubscribes the input-tracking refresh callback from the gamepad signal. ]
+[ startAlternateMode | () | Starts cycling the active player between 1 and 2 every two seconds. ]
+[ stopAlternateMode | () | Stops the alternate-mode cycling timer. ]
+[ setAlternateMode | (enabled) | Enables or disables alternate mode and refreshes the hint prompts. ]
+[ ActivePlayer | () | Returns the active player id, honoring alternate mode when enabled. ]
+[ InputSource | () | Returns the current input source, forcing gamepad in alternate mode. ]
+[ refreshHints | () | Rebuilds the visible hint prompts for the current player and input source. ]
+[ destroyHints | () | Destroys all hint items, groups, and sprites. ]
+[ createHints | (player, input, hide) | Creates hint prompts for the given player and input source. ]
+[ createPositionHints | (position, hints, activePlayer, inputSource, buttonStyle) | Creates and lays out the prompts for one position group (left/center/right). ]
+[ createIcon | (hint, inputSource, buttonStyle, activePlayer, x) | Creates a key sprite or dedicated icon frame for a single hint icon. ]
+[ createKeySprite | (keyText, x, y) | Builds a keyboard key sprite with caps, center slices, and a label. ]
+[ calculateKeyWidth | (keyText) | Computes the width of a key sprite built for the given label. ]
+[ IconWidth | (hint, inputSource, buttonStyle, activePlayer) | Returns the width needed to render a hint's icon in the current style. ]
+[ IconFrame | (icon, inputSource, buttonStyle, activePlayer) | Maps a hint icon to a sprite frame for the current input source and style. ]
+[ ButtonMapping | (icon, playerId) | Returns the gamepad button id mapped to an action for the given player. ]
+[ KeyText | (hint, inputSource, activePlayer) | Resolves the key label to show for a hint in keyboard mode. ]
+[ keyCodeToString | (keyCode) | Converts a key code into its human-readable name from KEYBOARD_KEY_CODES. ]
+[ setButtonStyle | (style) | Sets the button icon style and refreshes the hint prompts. ]
+[ updateHints | (hints) | Replaces the current hints and rebuilds all prompt sprites. ]
+[ destroy | () | Stops tracking and cycling, destroys all prompts, and destroys the sprite. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const hints = new NavigationHint([
+  { icon: 'up', text: 'Move', position: 'left' },
+  { icon: 'a', text: 'Select', position: 'center' },
+  { icon: 'b', text: 'Back', position: 'right' }
+]);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

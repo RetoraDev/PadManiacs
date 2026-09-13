@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>LineChart - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "LineChart Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Line chart for statistics display</p>
+
+    [heading: "Description"]
+    <p>A line chart sprite for plotting numeric series. Data points are normalized against the min/max of the series and connected with a stroked line, optionally with points and a filled area beneath. Appearance is configurable for both line and fill styling.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Optional area fill under the plotted line
+* Zero line drawn when the value range spans zero
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ x | Number | X position of the chart ]
+[ y | Number | Y position of the chart ]
+[ width | Number | Width of the chart area ]
+[ height | Number | Height of the chart area ]
+[ data | Array&lt;Number&gt; | Initial data points to plot ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ size | {{width: Number, height: Number}} Chart dimensions |  ]
+[ config | Object | Chart appearance settings ]
+[ data | Array&lt;Number&gt; | Data points to plot ]
+[ graphics | Phaser.Graphics | Drawing surface for the chart ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ drawChart | () | Rebuilds the entire chart on the graphics object. Clears prior drawing then redraws the background, border, zero line, optional filled area, main line and points from the current config and data. ]
+[ setData | (data) | Replaces the chart data and redraws the chart. ]
+[ setConfig | (config) | Merges the given settings into the chart config and redraws the chart. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const chart = new LineChart(50, 100, 200, 150, [5, 12, 8, 20]);
+game.add.existing(chart);
+chart.setConfig({ lineColor: 0x00e5ff, showPoints: true });
+chart.setData([1, 4, 3, 9, 7]);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

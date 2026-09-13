@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>BarChart - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "BarChart Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Bar chart for statistics display</p>
+
+    [heading: "Description"]
+    <p>A bar chart sprite for displaying statistics. Bars are scaled relative to the largest value in the data set and drawn below optional name labels. Appearance is fully configurable so modders can match the game's color scheme.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Customizable colors, labels and spacing via config
+* Optional value text shown above bars
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ x | Number | X position of the chart ]
+[ y | Number | Y position of the chart ]
+[ width | Number | Width of the chart area ]
+[ height | Number | Height of the chart area ]
+[  | Object | {Array&lt;{name: String, value: Number}&gt;} [data] - Initial bars to display ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ size | {{width: Number, height: Number}} Chart dimensions |  ]
+[ config | Object | Chart appearance settings ]
+[ data | {Array&lt;{name: String, value: Number}&gt;} Bars to display |  ]
+[ graphics | Phaser.Graphics | Drawing surface for the chart ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ drawChart | () | Rebuilds the entire chart on the graphics object. Clears prior drawing then redraws the background, border, bars, labels and optional value text from the current config and data. ]
+[ setData | () | Replaces the chart data and redraws the chart. ]
+[ setConfig | (config) | Merges the given settings into the chart config and redraws the chart. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const chart = new BarChart(50, 100, 200, 150, [
+  { name: 'A', value: 10 },
+  { name: 'B', value: 25 },
+  { name: 'C', value: 15 }
+]);
+game.add.existing(chart);
+chart.setConfig({ barColor: 0xff8800 });
+chart.setData([{ name: 'A', value: 5 }, { name: 'B', value: 20 }]);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>CarouselMenu - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "CarouselMenu Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Vertical scrolling menu with animations and scrollbar</p>
+
+    [heading: "Description"]
+    <p>CarouselMenu is a scrollable vertical menu that animates item selection with alpha and position tweens. Items can be added with text, icons, and callbacks, and the menu supports gamepad, mouse wheel, and hover input. Confirming plays a selection animation before dispatching onConfirm and destroying the menu.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Vertical scrolling list with page-based navigation
+* Gradient item backgrounds and alpha animations
+* Auto-hiding scroll bar with fade out
+* Signal-based select, confirm, and cancel events
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ x | number | X position of the menu sprite ]
+[ y | number | Y position of the menu sprite ]
+[ width | number | Viewport width in pixels ]
+[ height | number | Viewport height in pixels ]
+[ config | object | ={}] - Menu behavior and styling configuration ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ config | object | Merged behavior and styling configuration ]
+[ viewport | object | Menu viewport dimensions ({ width, height }) ]
+[ items | Array | Menu items added to the carousel ]
+[ selectedIndex | number | Index of the currently selected item ]
+[ hoveredIndex | number | Index of the mouse-hovered item ]
+[ scrollOffset | number | Index of the first visible item ]
+[ scrollBar | Phaser.Graphics | Auto-hiding scroll bar indicator ]
+[ onSelect | Phaser.Signal | Dispatched with the index when selection moves ]
+[ onConfirm | Phaser.Signal | Dispatched when a menu item is confirmed ]
+[ onCancel | Phaser.Signal | Dispatched when the menu is cancelled ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ setupInput | () | Creates the navigation signals and subscribes to the mouse wheel. ]
+[ addItem | (text, callback, data) | Adds a selectable menu item with an optional icon and callback. ]
+[ createItemVisuals | (item, isSelected) | Builds the sprites for an item: background, icon, and text. Also wires up its mouse over, out, and click handlers. ]
+[ removeItemVisuals | (item) | Destroys an item's parent sprite and clears its visual references. ]
+[ update | () | Runs the per-frame input and animation update. ]
+[ handleInput | () | Reads gamepad input and navigates, confirms, or cancels accordingly. Uses a dynamic cooldown so held directions repeat at increasing speed. ]
+[ navigate | (direction, page) | Moves the selection by the given direction, wrapping or paging. ]
+[ scroll | (delta) | Scrolls the viewport offset and hovered index by the given delta. ]
+[ selectIndex | (index) | Selects the item at the given index and dispatches the onSelect signal. ]
+[ updateSelection | () | Recomputes scroll offset, visibility, item positions, and the scroll bar. ]
+[ selectItem | (item) | Marks an item selected and starts its alpha pulse animation. ]
+[ deselectItem | (item) | Marks an item deselected and tweens it back to its inactive alpha. ]
+[ hoverItem | (item) | Marks an item hovered and tweens it to the hover alpha. ]
+[ houtItem | (item) | Clears the hover state and tweens an item back to its inactive alpha. ]
+[ adjustScroll | () | Clamps the scroll offset so the selected item stays visible. ]
+[ updateScrollBar | () | Redraws and reveals the scroll bar when items overflow the viewport. ]
+[ showScrollBar | () | Fades the scroll bar in and schedules an automatic fade out. ]
+[ hideScrollBar | () | Immediately hides and clears the scroll bar. ]
+[ updateItemVisibility | (targetIndex) | Creates or removes item visuals based on the current viewport visibility. ]
+[ updateItemPositions | () | Tweens or sets each visible item to its target viewport position. ]
+[ confirm | () | Confirms the selected item after its selection animation completes. Dispatches onConfirm, runs the item callback, then destroys the menu. ]
+[ animateSelection | (item, callback) | Plays the confirm animation: the chosen item glows while others fade out. ]
+[ animateCancel | (callback) | Plays the cancel animation, sliding items out before the callback runs. ]
+[ cancel | () | Cancels the menu, playing the cancel animation before dispatching onCancel. ]
+[ clear | () | Clears all items, tweens, scroll bar, and signals. ]
+[ replace | () | Destroys this menu and returns a fresh one with the same layout and config. ]
+[ destroy | (createNew) | Clears the menu state and destroys the sprite. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const menu = new CarouselMenu(4, 4, 140, 96, { bgcolor: '#222222' });
+menu.addItem('Easy', () => startSong(1));
+menu.addItem('Medium', () => startSong(2));
+menu.addItem('Hard', () => startSong(3));
+menu.onConfirm.add(() => {});
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

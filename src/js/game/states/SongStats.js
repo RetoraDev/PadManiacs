@@ -1,9 +1,35 @@
+/**
+ * @class SongStats
+ * @category Game States
+ * @summary Per-song statistics, difficulties, scores and preview browser
+ * @constructor
+ * @features
+ * Tabbed interface covering general info, difficulty breakdowns, high scores and previews
+ * Note density chart plus counts of notes, mines, holds, rolls, jumps and hands
+ * Interactive chart preview with a scrubbed playhead and explosion hit effects
+ * @description
+ * The Song Stats state inspects a single chart in detail. It exposes tabs for general
+ * metadata, per-difficulty statistics with a density chart, saved high scores, and
+ * an interactive chart preview that renders notes against the song's audio.
+ * @example
+ * // Open the stats window for a song and return to the caller afterwards
+ * game.state.start("SongStats", true, false, song, "SongSelect", [songs, index]);
+ */
 class SongStats {
+  /**
+   * Phaser state hook that stores the song and builds the tab definitions.
+   * @param {Object} song - The song whose stats are inspected, including playlist key
+   * @param {string} returnState - Name of the state to return to
+   * @param {Array} [returnParams] - Parameters to pass when returning
+   */
   init(song, returnState, returnParams = {}) {
+    /** @type {Object} The song being inspected */
     this.song = song;
     this.playlistKey = this.song.playlistKey || null;
+    /** @type {string} Name of the state to return to */
     this.returnState = returnState;
     this.returnParams = returnParams;
+    /** @type {number} Index of the currently active tab */
     this.currentTab = 0;
     this.currentDifficultyIndex = 0;
     this.tabContent = null;
@@ -13,8 +39,10 @@ class SongStats {
     this.previewBeat = 0;
     this.previewStartTime = 0;
     this.isDestroyed = false;
+    /** @type {string} Scroll direction used by the chart preview */
     this.scrollDirection = Account.settings.scrollDirection || 'falling';
     
+    /** @type {Object[]} The tab definitions with their builder callbacks */
     this.tabs = [
       { id: 'general', label: __("General||General"), create: this.createGeneralTab.bind(this) },
       { id: 'difficulties', label: __("Difficulties||Dificultades"), create: this.createDifficultiesTab.bind(this) },
@@ -35,6 +63,9 @@ class SongStats {
     window.addEventListener('visibilitychange', this.visibilityChangeListener);
   }
 
+  /**
+   * Phaser state hook that sets up the header, background and first tab.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -83,6 +114,9 @@ class SongStats {
     this.showTab(0);
   }
 
+  /**
+   * Refreshes the difficulty label shown in the header.
+   */
   updateDiffText() {
     const diff = this.getCurrentDifficulty();
     if (diff) {
@@ -94,6 +128,9 @@ class SongStats {
     this.diffText.visible = (this.currentTab === 1 || this.currentTab === 3);
   }
 
+  /**
+   * Starts the looping idle animation on the tab navigation arrows.
+   */
   startArrowIdle() {
     if (this.leftArrowTween) {
       this.leftArrowTween.start();
@@ -112,6 +149,9 @@ class SongStats {
     }
   }
 
+  /**
+   * Stops the idle arrow animations and clears their tweens.
+   */
   stopArrowIdle() {
     if (this.leftArrowTween) {
       this.leftArrowTween.stop();
@@ -123,6 +163,10 @@ class SongStats {
     }
   }
 
+  /**
+   * Plays a quick press animation on the navigation arrow for a direction.
+   * @param {number} direction - -1 for the left arrow, 1 for the right arrow
+   */
   animateArrowPress(direction) {
     const arrow = direction === -1 ? this.leftArrow : this.rightArrow;
     const targetX = arrow.x + (direction * 3);
@@ -133,6 +177,10 @@ class SongStats {
       .yoyo(true);
   }
 
+  /**
+   * Activates the tab at the given index and builds its content.
+   * @param {number} index - Index of the tab to show
+   */
   showTab(index) {
     if (this.isDestroyed) return;
     this.currentTab = index;
@@ -143,6 +191,9 @@ class SongStats {
     this.navigationHint.updateHints(index === 3 ? "song_stats_song_preview" : "song_stats");
   }
 
+  /**
+   * Destroys the current tab's content and stops its preview audio.
+   */
   clearTab() {
     if (this.tabContent) {
       this.tabContent.destroy();
@@ -159,10 +210,18 @@ class SongStats {
     this.previewPlaying = false;
   }
 
+  /**
+   * Returns the chart's difficulty list.
+   * @returns {Object[]} The difficulties defined for the song
+   */
   getDifficulties() {
     return this.song.chart.difficulties || [];
   }
 
+  /**
+   * Returns the currently selected difficulty, clamped to the list.
+   * @returns {Object|null} The current difficulty or null when none exist
+   */
   getCurrentDifficulty() {
     const diffs = this.getDifficulties();
     if (diffs.length === 0) return null;
@@ -172,6 +231,10 @@ class SongStats {
     return diffs[this.currentDifficultyIndex];
   }
 
+  /**
+   * Returns the note list for the current difficulty.
+   * @returns {Object[]} The notes of the current difficulty, or an empty array
+   */
   getCurrentNotes() {
     const diff = this.getCurrentDifficulty();
     if (!diff) return [];
@@ -179,6 +242,9 @@ class SongStats {
     return this.song.chart.notes[key] || [];
   }
 
+  /**
+   * Moves to the next difficulty and refreshes dependent tabs.
+   */
   rotateDifficulty() {
     const diffs = this.getDifficulties();
     if (diffs.length === 0) return;
@@ -194,10 +260,19 @@ class SongStats {
     }
   }
 
+  /**
+   * Returns the scroll direction multiplier used by the chart preview.
+   * @param {number} beat - The beat being scrolled (unused placeholder)
+   * @returns {number} -1 for falling scroll, 1 for rising scroll
+   */
   getScrollDirection(beat) {
     return this.scrollDirection === 'falling' ? -1 : 1;
   }
 
+  /**
+   * Computes the current preview time and beat accounting for the chart offset.
+   * @returns {Object} Object with numeric "now" and "beat" fields
+   */
   getCurrentTime() {
     const chartOffset = this.song.chart.offset || 0;
     const currentTime = ((game.time.now - this.previewStartTime + (chartOffset * 1000)) / 1000) + this.chartRenderer.beatToSec(this.previewBeat);
@@ -208,6 +283,9 @@ class SongStats {
     };
   }
 
+  /**
+   * Builds the general info tab with song metadata and play/editor actions.
+   */
   createGeneralTab() {
     this.tabContent = game.add.group();
     const banner = new CanvasBackground(4, 24);
@@ -300,6 +378,9 @@ class SongStats {
     mainMenu();
   }
 
+  /**
+   * Builds the difficulties tab with a note density chart and stats.
+   */
   createDifficultiesTab() {
     this.tabContent = game.add.group();
     const diffs = this.getDifficulties();
@@ -357,6 +438,9 @@ class SongStats {
     this.updateDifficultyStats();
   }
 
+  /**
+   * Refreshes the note statistics text and density chart for the current difficulty.
+   */
   updateDifficultyStats() {
     const diff = this.getCurrentDifficulty();
     if (!diff) return;
@@ -407,6 +491,9 @@ class SongStats {
     }
   }
 
+  /**
+   * Builds the high scores tab listing saved scores for each difficulty.
+   */
   createScoresTab() {
     this.tabContent = game.add.group();
     const songKey = window.getSongKey(this.song);
@@ -475,6 +562,9 @@ class SongStats {
     }
   }
 
+  /**
+   * Builds the interactive chart preview tab for the current difficulty.
+   */
   createPreviewTab() {
     this.tabContent = game.add.group();
     const diff = this.getCurrentDifficulty();
@@ -536,6 +626,9 @@ class SongStats {
     this.previewAudio.play();
   }
 
+  /**
+   * Advances the chart preview render and triggers explosion hit effects.
+   */
   updatePreview() {
     if (this.isDestroyed || !this.chartRenderer || this.currentTab !== 3 || !this.previewStartTime) return;
     
@@ -559,6 +652,10 @@ class SongStats {
     }
   }
 
+  /**
+   * Plays a brief explosion effect on the receptor of the given column.
+   * @param {number} column - The note column to flash
+   */
   playExplosionEffect(column) {
     if (!this.chartRenderer) return;
     const receptor = this.chartRenderer.receptors[column];
@@ -570,6 +667,9 @@ class SongStats {
     }
   }
 
+  /**
+   * Phaser lifecycle hook called every frame; handles tab navigation input.
+   */
   update() {
     if (this.isDestroyed) return;
     
@@ -605,6 +705,9 @@ class SongStats {
     }
   }
 
+  /**
+   * Releases the preview audio, renderer and event listeners used by this state.
+   */
   cleanup() {
     this.isDestroyed = true;
     this.stopArrowIdle();
@@ -627,6 +730,9 @@ class SongStats {
     }
   }
 
+  /**
+   * Phaser lifecycle hook called when leaving the state; performs cleanup.
+   */
   shutdown() {
     this.cleanup();
   }

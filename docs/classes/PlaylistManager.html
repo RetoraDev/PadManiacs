@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>PlaylistManager - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "PlaylistManager Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Manages song playlists with localStorage persistence</p>
+
+    [heading: "Description"]
+    <p>Handles creation and management of song playlists stored in localStorage. Playlists keep lightweight references to songs and resolve them to full song objects at runtime, marking missing songs appropriately.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Playlist creation, renaming, and deletion
+* Song add, remove, and reorder within playlists
+* Minified song references restored to full songs when available
+* Singleton access through getInstance
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ playlists | Object | All playlists keyed by generated identifier ]
+[ lastPlaylistKey | string|null | Identifier of the most recently used playlist ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ createPlaylist | (name) | Creates a new empty playlist with a generated unique key. ]
+[ generateKey | (name) | Builds a unique key from a playlist name and the current timestamp. ]
+[ addSong | (playlistKey, song) | Adds a song reference to a playlist, skipping duplicates by audio URL. ]
+[ createSongRef | (song) | Creates a minimal song reference containing only fields needed to find the song later. ]
+[ restoreFullSong | (songRef) | Attempts to resolve a stored reference to its full song object. ]
+[ PlaylistSongs | (key) | Returns the full song objects for a playlist. ]
+[ PlaylistRefs | (key) | Returns the raw stored references for a playlist. ]
+[ hasExternalSongs | (key) | Checks whether a playlist contains any external songs. ]
+[ removeSong | (playlistKey, songIndex) | Removes a song from a playlist by its index. ]
+[ moveSong | (playlistKey, fromIndex, toIndex) | Repositions a song within a playlist from one index to another. ]
+[ Playlist | (key) | Returns a playlist object with its songs resolved to full song data. ]
+[ PlaylistRef | (key) | Returns the raw playlist record without resolving songs. ]
+[ PlaylistNames | () | Returns all playlist keys. ]
+[ SongPlaylist | (song) | Returns the first playlist key containing a given song. ]
+[ SongPlaylists | (song) | Returns all playlist keys that contain a given song. ]
+[ renamePlaylist | (key, name) | Renames an existing playlist. ]
+[ deletePlaylist | (key) | Deletes a playlist by its key. ]
+[ save | () | Persists the current playlists to localStorage and exposes them on the window. ]
+[ Instance | () | Returns the shared singleton instance of the playlist manager. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const pm = PlaylistManager.getInstance();
+const key = pm.createPlaylist('My Favorites');
+pm.addSong(key, songObject);
+const songs = pm.getPlaylistSongs(key);
+pm.moveSong(key, 0, 1);
+pm.renamePlaylist(key, 'Best Songs');
+pm.deletePlaylist(key);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

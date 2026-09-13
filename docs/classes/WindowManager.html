@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>WindowManager - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "WindowManager Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Manages UI windows, focus, and navigation</p>
+
+    [heading: "Description"]
+    <p>WindowManager owns every open Window, keeps a single focused window, and forwards gamepad and mouse input to it. It applies a dynamic cooldown so held directional buttons repeat at increasing speed, moves the selection by mouse hover, and supports wheel scrolling and click confirmation. It is the hub that connects the menu windows together.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Tracks and focuses a stack of UI windows
+* Routes gamepad navigation, confirm, and cancel to the focused window
+* Mouse hover selection, wheel scrolling, and click confirmation
+* Dynamic repeat cooldown for held directional buttons
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ windows | Array | Stack of managed Window objects ]
+[ focusedWindow | Window | Window that currently receives navigation input ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ add | (window) | Registers a window and focuses it automatically when it is the first. ]
+[ show | (window) | Shows a managed window without changing focus. ]
+[ remove | (window, destroy) | Removes a window from the stack, optionally destroying it. The next available window receives focus when the focused one is removed. ]
+[ focus | (window, hide) | Focuses a window, hiding the previously focused one and showing its arrow. ]
+[ unfocus | () | Clears the focused window reference without modifying the stack. ]
+[ closeAll | () | Clears focus and hides every managed window. ]
+[ update | () | Processes mouse and gamepad input for the focused window each frame. ]
+[ handleGamepadNavigation | () | Routes gamepad presses and held buttons to the focused window. Uses a dynamic cooldown so held directions repeat at increasing speed. ]
+[ handleMouseNavigation | () | Handles mouse hover selection, wheel scrolling, and click confirmation. ]
+[ checkMouseBounds | (window, position) | Returns whether the given position lies inside the window bounds. ]
+[ MouseTarget | (window, position) | Returns the topmost visible item hovered by the given mouse position. ]
+[ createWindow | (x, y, width, height, skin, parent) | Creates a Window, registers it with the manager, and returns it. ]
+[ updatePressTiming | () | Records the first press time to seed the dynamic cooldown timing. ]
+[ resetPressTiming | () | Resets the first and last press timestamps after a fresh input. ]
+[ clearAll | (destroy) | Clears the window stack and focus, optionally destroying each window. ]
+[ bringToFront | (window) | Brings a window to the top visually and reorders the stack array. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const ui = new WindowManager();
+const menu = ui.createWindow(4, 3, 14, 8, "1");
+const modal = ui.createWindow(6, 5, 10, 4, "1");
+ui.focus(menu);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

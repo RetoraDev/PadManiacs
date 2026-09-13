@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>SecondPlayer - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "SecondPlayer Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Second player gameplay instance for multiplayer</p>
+
+    [heading: "Description"]
+    <p>Concrete Player subclass configured for the second player in multiplayer mode. Assigns gamepad2 for input, positions the chart on the right side of the screen, and binds P2-specific HUD elements for judgement, combo, score, and health display.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Uses gamepad2 for input
+* Right-side screen positioning
+* P2-specific HUD elements
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ scene | Phaser.Scene | The Phaser game scene ]
+[ settings | Object | Gameplay configuration overrides ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Creating a second player for head-to-head gameplay
+const p2 = new SecondPlayer(scene, { speedMod: "C-MOD" });
+p2.update();
+console.log(p2.score, p2.getScoreRating());
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

@@ -1,13 +1,51 @@
+/**
+ * @class Editor
+ * @category Game States
+ * @summary Chart editing mode
+ * @constructor
+ * @features
+ * Full 4-panel chart editor with cursor and snap grid
+ * Place, select, copy, mirror and delete notes
+ * BPM, stop, and background change editing
+ * Metadata editing, playtesting, and SM/zip import or export
+ * @description
+ * The Editor state is the in-game chart editor where players author and edit
+ * songs, from metadata and media files to the notes themselves. It offers a
+ * gamepad and mouse driven editing canvas with note placement, selection,
+ * area selection, freezes, mines, BPM changes, stops and background changes.
+ * Charts can be imported from StepMania packages or exported as zip files.
+ * @example
+ * // Modding usage example
+ * // Switch to the chart editor from another state
+ * game.state.start("Editor");
+ *
+ * // Export or inspect the in-memory chart object
+ * const chart = window.editorSongData.chart;
+ * window.e.song.chart.difficulties.forEach(d => console.log(d.type, d.rating));
+ */
 class Editor {
+  /**
+   * Initializes the editor with a song and resets all editing state.
+   * @param {Object} [song] - Song object to edit; a blank song is created when null.
+   */
   init(song = null) {
+    /** @type {Object} The song object currently being edited. */
     this.song = song || this.createNewSong();
+    /** @type {boolean} True when starting from a pre-existing song. */
     this.initializedWithSong = song ? true : false;
+    /** @type {string} Current editor screen ('metadata' or 'chartEdit'). */
     this.currentScreen = "metadata";
+    /** @type {number} Index of the difficulty currently being edited. */
     this.currentDifficultyIndex = 0;
+    /** @type {number} Snap division denominator (e.g. 8 = 1/8 beat). */
     this.snapDivision = 8;
+    /** @type {number} Cursor position measured in beats. */
     this.cursorBeat = 0;
+    /** @type {number} Cursor column (0 to 3). */
     this.cursorColumn = 0;
+    /** @type {Array} Notes currently selected in the chart. */
     this.selectedNotes = [];
+    /** @type {Array} Notes stored for copy and paste operations. */
     this.clipboard = [];
     this.story = [];
     this.isAreaSelecting = false;
@@ -28,6 +66,7 @@ class Editor {
     this.menuVisible = false;
     this.freezePreview = null;
     
+    /** @type {Object} Loaded media files keyed by purpose (audio, background, ...). */
     this.files = {
       audio: null,
       background: null,
@@ -42,21 +81,28 @@ class Editor {
     this.divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 192];
 
     // File input element
+    /** @type {HTMLInputElement} Hidden input element used for picking files. */
     this.fileInput = document.createElement("input");
     this.fileInput.type = "file";
   }
 
+  /**
+   * Builds the editor background, chart renderer, overlays, and info HUD.
+   */
   create() {
     game.camera.fadeIn(0x000000);
 
     this.backgroundGradient = new BackgroundGradient();
 
     // Background elements
+    /** @type {Phaser.Group} Layer containing background visual elements. */
     this.backgroundLayer = game.add.group();
+    /** @type {CanvasBackground} Canvas-drawn background image sprite. */
     this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 0.3;
     this.backgroundLayer.addChild(this.backgroundSprite);
     
+    /** @type {ChartRenderer} Renders the chart and manages note visuals. */
     this.chartRenderer = new ChartRenderer(this, this.song, this.currentDifficultyIndex, {
       enableGameplayLogic: false,
       enableJudgement: false,
@@ -73,6 +119,7 @@ class Editor {
       chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
     });
     
+    /** @type {Metronome} Metronome helper for note timing feedback. */
     this.metronome = new Metronome(this);
         
     this.homeOverlay = game.add.graphics(0, 0);
@@ -114,6 +161,7 @@ class Editor {
     this.updateInfoText();
     
     // Create play/pause audio
+    /** @type {HTMLAudioElement} Audio element used for playback and previews. */
     this.audio = document.createElement("audio");
     if (this.song.chart.audioUrl) {
       this.audio.src = this.song.chart.audioUrl;
@@ -124,6 +172,9 @@ class Editor {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Loads song media into memory and sets up mouse events and the home screen.
+   */
   async initalSetup() {
     if (this.initializedWithSong) {
       this.showLoadingScreen("Setting up");
@@ -146,6 +197,9 @@ class Editor {
     this.showHomeScreen();
   }
   
+  /**
+   * Registers the editor mouse handlers on the global mouse object.
+   */
   setupMouseEvents() {
     mouse.onDown.add(this.onMouseDown, this);
     mouse.onUp.add(this.onMouseUp, this);
@@ -153,6 +207,10 @@ class Editor {
     mouse.onWheel.add(this.onMouseWheel, this);
   }
 
+  /**
+   * Returns a fresh blank song object with default chart metadata and notes.
+   * @returns {Object} A new empty song descriptor.
+   */
   createNewSong() {
     return {
       chart: {
@@ -188,6 +246,9 @@ class Editor {
     };
   }
 
+  /**
+   * Displays the main editor menu with file, edit, playtest, and export options.
+   */
   showHomeScreen() {
     this.currentScreen = "metadata";
     this.clearUI();
@@ -223,6 +284,10 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Draws the song banner image onto the banner sprite canvas.
+   * @param {string} [url] - Image URL to render; a cleared canvas when null.
+   */
   updateBanner(url = null) {
     this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
     this.bannerSprite.dirty();
@@ -237,6 +302,10 @@ class Editor {
     }
   }
   
+  /**
+   * Draws the song background image onto the background sprite canvas.
+   * @param {string} [url] - Image URL to render; a cleared canvas when null.
+   */
   updateBackground(url = null) {
     this.backgroundSprite.ctx.clearRect(0, 0, game.width, game.height);
     this.backgroundSprite.dirty();
@@ -251,6 +320,9 @@ class Editor {
     }
   }
   
+  /**
+   * Re-parses the current LRC lyrics into a synchronizable Lyrics object.
+   */
   refreshLyrics() {
     this.lyrics = new Lyrics({
       textElement: this.lyricsText,
@@ -259,6 +331,9 @@ class Editor {
     });
   }
 
+  /**
+   * Shows the file menu for loading audio, images, lyrics, and songs.
+   */
   showFileMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -285,6 +360,12 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Opens a directory picker and routes the chosen files to a callback.
+   * @param {string} [accept] - Accepted file types filter.
+   * @param {Function} [onConfirm] - Called with the change event after selection.
+   * @param {Function} [onCancel] - Called when the picker is dismissed.
+   */
   pickFolder(accept = "*", onConfirm, onCancel) {
     this.fileInput.accept = accept;
     this.fileInput.webkitdirectory = true;
@@ -303,6 +384,12 @@ class Editor {
     this.fileInput.click();
   }
   
+  /**
+   * Opens a single-file picker and routes the chosen file to a callback.
+   * @param {string} [accept] - Accepted file types filter.
+   * @param {Function} [onConfirm] - Called with the change event after selection.
+   * @param {Function} [onCancel] - Called when the picker is dismissed.
+   */
   pickFile(accept = "*", onConfirm, onCancel) {
     this.fileInput.accept = accept;
     this.fileInput.webkitdirectory = false;
@@ -321,6 +408,10 @@ class Editor {
     this.fileInput.click();
   }
   
+  /**
+   * Overlays a full-screen loading mask with dots and progress text.
+   * @param {string} text - Label shown while loading.
+   */
   showLoadingScreen(text) {
     // Destroy any existing loading screen
     if (this.loadingScreen) {
@@ -341,16 +432,25 @@ class Editor {
     this.loadingScreen.addChild(this.progressText);
   }
   
+  /**
+   * Removes the full-screen loading overlay if one is present.
+   */
   hideLoadingScreen() {
     this.loadingScreen?.destroy();
   }
   
+  /**
+   * Opens a folder picker to import a song and increments the import stat.
+   */
   loadSong() {
     this.pickFolder("*", e => this.processFiles(e.target.files), e => this.showFileMenu());
     
     Account.stats.totalImportedSongs ++;
   }
 
+  /**
+   * Shows the edit menu with chart and metadata editing options.
+   */
   showEditMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -368,6 +468,9 @@ class Editor {
     carousel.onCancel.add(() => this.showHomeScreen());
   }
 
+  /**
+   * Shows the project export menu, including StepMania song export.
+   */
   showExportMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -384,6 +487,9 @@ class Editor {
     carousel.onCancel.add(() => this.showHomeScreen());
   }
 
+  /**
+   * Lists the song's difficulties with options to edit or add each one.
+   */
   showChartsMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -405,6 +511,10 @@ class Editor {
     carousel.onCancel.add(() => this.showEditMenu());
   }
 
+  /**
+   * Shows the per-difficulty options of edit, retype, rate, or delete.
+   * @param {number} difficultyIndex - Index of the difficulty to configure.
+   */
   showChartOptions(difficultyIndex) {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -424,6 +534,10 @@ class Editor {
     carousel.onCancel.add(() => this.showChartsMenu());
   }
 
+  /**
+   * Enters chart editing mode for the given difficulty.
+   * @param {number} difficultyIndex - Index of the difficulty to edit.
+   */
   editChart(difficultyIndex) {
     this.currentScreen = "chartEdit";
     this.currentDifficultyIndex = difficultyIndex;
@@ -440,6 +554,9 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Shows the playtest menu listing each difficulty to test.
+   */
   playtest() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -459,6 +576,10 @@ class Editor {
     carousel.onCancel.add(() => this.showHomeScreen());
   }
   
+  /**
+   * Launches the Play state with the chosen chart for a test run.
+   * @param {number} difficultyIndex - Index of the difficulty to playtest.
+   */
   startPlaytest(difficultyIndex) {
     // Clean up any note sprites before switching to play state
     this.getCurrentChartNotes().forEach(note => this.chartRenderer.killNote(note));
@@ -476,6 +597,9 @@ class Editor {
     );
   }
 
+  /**
+   * Refreshes the HUD text with cursor, beat, BPM, and note information.
+   */
   updateInfoText() {
     if (this.currentScreen === "chartEdit") {
       const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
@@ -517,6 +641,10 @@ class Editor {
     }
   }
   
+  /**
+   * Returns the background file name that applies at the current cursor beat.
+   * @returns {string} The active background file name.
+   */
   getCurrentBgFileName() {
     let filename = this.song.chart.background;
     
@@ -532,6 +660,9 @@ class Editor {
     return queue.pop() || filename;
   }
 
+  /**
+   * Redraws the cursor rectangle at the current column and judge line.
+   */
   updateCursorPosition() {
     this.cursorSprite.clear();
 
@@ -547,6 +678,9 @@ class Editor {
     }
   }
 
+  /**
+   * Redraws the selection rectangle for the active area selection.
+   */
   updateSelectionRect() {
     this.selectionRect.clear();
 
@@ -569,6 +703,9 @@ class Editor {
     }
   }
 
+  /**
+   * Redraws the hold drag preview while the hold key is held.
+   */
   updateFreezePreview() {
     this.freezePreviewSprite.clear();
 
@@ -596,15 +733,28 @@ class Editor {
     }
   }
 
+  /**
+   * Returns the grid division size used for snapping.
+   * @returns {number} Division size in beats.
+   */
   getDivisionSize() {
     return 4 / this.snapDivision;
   }
 
+  /**
+   * Snaps a beat value to the current grid division.
+   * @param {number} beat - Beat value to snap.
+   * @returns {number} The snapped beat value.
+   */
   getSnappedBeat(beat) {
     const snapped = Phaser.Math.snapToFloor(beat, this.getDivisionSize());
     return Math.max(0, snapped);
   }
 
+  /**
+   * Returns the current time and beat, from playback or the cursor position.
+   * @returns {Object} Object with now (seconds) and beat fields.
+   */
   getCurrentTime() {
     if (this.isPlaying) {
       const chartOffset = this.song.chart.offset || 0;
@@ -623,6 +773,9 @@ class Editor {
     }
   }
 
+  /**
+   * Processes gamepad input for editing: selecting, placing, and seeking.
+   */
   handleChartEditInput() {
     if (this.menuVisible) return;
 
@@ -722,6 +875,9 @@ class Editor {
     this.updateFreezePreview();
   }
 
+  /**
+   * Starts or stops chart playback depending on the current state.
+   */
   togglePlayback() {
     if (this.isPlaying) {
       this.stopPlayback();
@@ -731,6 +887,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Begins playback from the cursor position and starts the audio.
+   */
   startPlayback() {
     this.isPlaying = true;
     this.playStartTime = game.time.now;
@@ -748,6 +907,9 @@ class Editor {
     this.metronome.resetNoteMode();
   }
 
+  /**
+   * Halts playback and snaps the cursor back to the played position.
+   */
   stopPlayback() {
     this.isPlaying = false;
     this.navigationHint.visible = true;
@@ -764,6 +926,9 @@ class Editor {
     this.playStartTime = 0;
   }
 
+  /**
+   * Cancels an active preview and removes its end handler.
+   */
   abortPreview() {
     if (this.previewEndHandler && this.previewEndTimeoutId) {
       clearTimeout(this.previewEndTimeoutId);
@@ -773,6 +938,11 @@ class Editor {
     }
   }
 
+  /**
+   * Plays a short audio preview window from a start time.
+   * @param {number} start - Start time in seconds.
+   * @param {number} length - Preview duration in seconds.
+   */
   playPreview(start, length) {
     if (!this.isPlaying && this.audio && this.audio.src) {
       this.abortPreview();
@@ -790,10 +960,19 @@ class Editor {
     }
   }
 
+  /**
+   * Snaps the cursor beat to the nearest grid division.
+   * @param {number} [beat] - Beat to snap; defaults to the current cursor beat.
+   */
   snapCursor(beat) {
     this.cursorBeat = this.getSnappedBeat(beat || this.cursorBeat);
   }
 
+  /**
+   * Moves the editing cursor by a column and beat delta, clamped to the grid.
+   * @param {number} deltaX - Column change (-1, 0, or 1).
+   * @param {number} deltaBeat - Beat change; positive moves forward.
+   */
   moveCursor(deltaX, deltaBeat) {
     this.cursorColumn = Phaser.Math.clamp(this.cursorColumn + deltaX, 0, 3);
 
@@ -807,16 +986,25 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Clears any active area selection state.
+   */
   startSingleSelect() {
     this.isAreaSelecting = false;
   }
 
+  /**
+   * Begins an area selection anchored at the current cursor position.
+   */
   startAreaSelection() {
     this.isAreaSelecting = true;
     this.areaSelectStart.beat = this.cursorBeat;
     this.areaSelectStart.column = this.cursorColumn;
   }
 
+  /**
+   * Finishes the selection rectangle and collects the notes inside it.
+   */
   endAreaSelection() {
     this.isAreaSelecting = false;
     const areaSelectEnd = { beat: this.cursorBeat, column: this.cursorColumn };
@@ -835,6 +1023,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Toggles selection of the note at the current cursor; clears when none.
+   */
   toggleNoteSelection() {
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
     const notes = this.song.chart.notes[diff.type + diff.rating] || [];
@@ -855,6 +1046,10 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Plays an audio preview for the given note and its duration.
+   * @param {Object} note - Note object used to derive the preview window.
+   */
   previewNote(note) {
     const start = note.sec;
     const duration = note.secLength ? note.secLength : this.chartRenderer.beatToSec(this.getDivisionSize());
@@ -865,6 +1060,14 @@ class Editor {
     }
   }
 
+  /**
+   * Places a tap note at a column and beat, replacing an existing note when set.
+   * @param {number} column - Column (0 to 3) for the note.
+   * @param {number} beat - Beat position for the note.
+   * @param {boolean} [replace] - Replace an existing note at the same spot.
+   * @param {boolean} [mine] - Place a mine instead of a tap note.
+   * @param {boolean} [quick] - Skip preview effects and sort/refresh work.
+   */
   placeNote(column, beat, replace = false, mine = false, quick = false) {
     if (this.isPlaying) return;
 
@@ -924,6 +1127,14 @@ class Editor {
     }
   }
 
+  /**
+   * Places a hold or roll note spanning a beat duration.
+   * @param {number} column - Column (0 to 3) for the freeze.
+   * @param {number} startBeat - Starting beat of the freeze.
+   * @param {number} duration - Number of beats the freeze spans.
+   * @param {string} [type] - Note type ('2' for hold, '4' for roll).
+   * @param {boolean} [quick] - Skip preview effects and sort/refresh work.
+   */
   placeFreeze(column, startBeat, duration, type = "2", quick = false) {
     if (this.isPlaying) return;
 
@@ -964,6 +1175,9 @@ class Editor {
     }
   }
 
+  /**
+   * Sorts the current difficulty's notes by beat position.
+   */
   sortNotes() {
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
     const notes = this.song.chart.notes[diff.type + diff.rating];
@@ -972,10 +1186,20 @@ class Editor {
     }
   }
   
+  /**
+   * Re-synchronizes the metronome with the current chart notes.
+   */
   refreshMetronome() {
     this.metronome.initializeNotes();
   }
 
+  /**
+   * Places a mine note at the given column and beat.
+   * @param {number} column - Column (0 to 3) for the mine.
+   * @param {number} beat - Beat position for the mine.
+   * @param {boolean} replace - Replace an existing note at the same spot.
+   * @param {boolean} quick - Skip preview effects and sort/refresh work.
+   */
   placeMine(column, beat, replace, quick) {
     if (this.isPlaying) return;
     
@@ -984,10 +1208,19 @@ class Editor {
     Account.stats.totalPlacedMines ++;
   }
 
+  /**
+   * Places a quick one-beat hold at the cursor position.
+   */
   placeQuickHold() {
     this.placeFreeze(this.cursorColumn, this.cursorBeat, 1, "2");
   }
   
+  /**
+   * Handles left-button selection and right-button placement drags.
+   * @param {string} button - Button name ('left' or 'right').
+   * @param {number} x - Pointer X position.
+   * @param {number} y - Pointer Y position.
+   */
   onMouseDown(button, x, y) {
     if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
@@ -1021,6 +1254,11 @@ class Editor {
     }
   }
   
+  /**
+   * Updates active selection rectangles and freeze drags while the mouse moves.
+   * @param {number} x - Pointer X position.
+   * @param {number} y - Pointer Y position.
+   */
   onMouseMove(x, y) {
     if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
@@ -1057,6 +1295,12 @@ class Editor {
     }
   }
   
+  /**
+   * Completes selection or note placement when a mouse button is released.
+   * @param {string} button - Button name ('left' or 'right').
+   * @param {number} x - Pointer X position.
+   * @param {number} y - Pointer Y position.
+   */
   onMouseUp(button, x, y) {
     if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
@@ -1087,6 +1331,10 @@ class Editor {
     }
   }
   
+  /**
+   * Seeks the cursor in beat units when the mouse wheel is used.
+   * @param {string} direction - Wheel direction ('up' or 'down').
+   */
   onMouseWheel(direction) {
     if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
@@ -1097,11 +1345,22 @@ class Editor {
     }
   }
     
+  /**
+   * Returns the note at a given column and beat, if one exists.
+   * @param {number} column - Column to inspect (0 to 3).
+   * @param {number} beat - Exact beat position to match.
+   * @returns {Object|undefined} The matching note, if present.
+   */
   getNoteAt(column, beat) {
     const notes = this.getCurrentChartNotes();
     return notes.find(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
   }
   
+  /**
+   * Deletes the note at a given column and beat, if one exists.
+   * @param {number} column - Column to inspect (0 to 3).
+   * @param {number} beat - Exact beat position to match.
+   */
   deleteNoteAt(column, beat) {
     const notes = this.getCurrentChartNotes();
     const index = notes.findIndex(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
@@ -1113,6 +1372,11 @@ class Editor {
     this.refreshMetronome();
   }
   
+  /**
+   * Returns the note column under a given screen X position, or -1.
+   * @param {number} x - Screen X position to test.
+   * @returns {number} Column index (0 to 3), or -1 when outside the grid.
+   */
   getColumnAtPosition(x) {
     const leftOffset = this.chartRenderer.calculateLeftOffset();
     const colWidth = this.chartRenderer.COLUMN_SIZE + this.chartRenderer.COLUMN_SEPARATION;
@@ -1127,6 +1391,11 @@ class Editor {
     return -1;
   }
   
+  /**
+   * Converts a screen Y position into a beat position on the chart.
+   * @param {number} y - Screen Y position to test.
+   * @returns {number} Beat position under the pointer.
+   */
   getBeatAtPosition(y) {
     const { now, beat } = this.getCurrentTime();
     const yPos = y;
@@ -1145,11 +1414,20 @@ class Editor {
     }
   }
   
+  /**
+   * Converts a target beat into its screen Y position.
+   * @param {number} targetBeat - Beat to convert.
+   * @returns {number} Screen Y position of the beat.
+   */
   getYFromBeat(targetBeat) {
     const { now, beat } = this.getCurrentTime();
     return this.chartRenderer.getYPos(now, beat, targetBeat);
   }
 
+  /**
+   * Steps the snap division up or down through the supported denominators.
+   * @param {number} direction - Direction to step (-1 or 1).
+   */
   changeSnapDivision(direction) {
     const currentIndex = this.divisions.indexOf(this.snapDivision);
     let newIndex = currentIndex + direction;
@@ -1161,10 +1439,17 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Returns the user's audio offset in seconds.
+   * @returns {number} Offset in seconds.
+   */
   getAudioOffset() {
     return (Account.settings.userOffset || 0) / 1000;
   }
 
+  /**
+   * Opens a contextual edit menu for the current selection or cursor position.
+   */
   showContextMenu() {
     if (this.isPlaying || this.menuVisible) return;
   
@@ -1273,6 +1558,10 @@ class Editor {
     });
   }
   
+  /**
+   * Stores notes into the clipboard for later pasting.
+   * @param {Array} [notes] - Notes to copy.
+   */
   copyNotes(notes = []) {
     if (notes.length) {
       this.clipboard = notes;
@@ -1280,6 +1569,9 @@ class Editor {
     }
   }
   
+  /**
+   * Pastes the clipboard notes relative to the current cursor beat.
+   */
   pasteNotes() {
     if (this.clipboard.length) {
       const firstBeat = this.clipboard[0].beat;
@@ -1308,10 +1600,16 @@ class Editor {
     }
   }
   
+  /**
+   * Clears the copying clipboard.
+   */
   clearClipboard() {
     this.clipboard = [];
   }
   
+  /**
+   * Records an undo snapshot of the song and loaded files into the story.
+   */
   recordStoryEntry() {
     this.story.push({
       ...this.song,
@@ -1319,6 +1617,9 @@ class Editor {
     });
   }
   
+  /**
+   * Mirrors the selected notes horizontally across the note columns.
+   */
   mirrorNotes() {
     this.selectedNotes.forEach(note => {
       note.column = 3 - note.column;
@@ -1326,6 +1627,9 @@ class Editor {
     this.refreshSelectedNotes();
   }
   
+  /**
+   * Recalculates all note and timing sec values after BPM or stop changes.
+   */
   rearrangeNotes() {
     const bpmChanges = this.song.chart.bpmChanges;
     const stops = this.song.chart.stops;
@@ -1379,6 +1683,10 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Converts the currently selected notes to a new note type.
+   * @param {string} newType - New note type to apply.
+   */
   convertNoteType(newType) {
     if (this.selectedNotes.length === 1) {
       this.selectedNotes[0].type = newType;
@@ -1386,6 +1694,10 @@ class Editor {
     }
   }
 
+  /**
+   * Converts all selected notes at once to the new note type.
+   * @param {string} newType - New note type to apply.
+   */
   convertNotesType(newType) {
     this.selectedNotes.forEach(note => {
       note.type = newType;
@@ -1393,6 +1705,10 @@ class Editor {
     this.refreshSelectedNotes();
   }
 
+  /**
+   * Converts the selected freeze note to a different hold or roll type.
+   * @param {string} newType - New freeze type ('2' or '4').
+   */
   convertFreezeType(newType) {
     if (this.selectedNotes.length === 1 && (this.selectedNotes[0].type === "2" || this.selectedNotes[0].type === "4")) {
       this.selectedNotes[0].type = newType;
@@ -1400,6 +1716,10 @@ class Editor {
     }
   }
 
+  /**
+   * Converts all selected freezes to a different hold or roll type.
+   * @param {string} newType - New freeze type ('2' or '4').
+   */
   convertFreezesType(newType) {
     this.selectedNotes.forEach(note => {
       if (note.type === "2" || note.type === "4") {
@@ -1409,6 +1729,9 @@ class Editor {
     this.refreshSelectedNotes();
   }
 
+  /**
+   * Snaps the currently selected notes to the grid division.
+   */
   alignToBeatDivision() {
     if (this.selectedNotes.length === 1) {
       const note = this.selectedNotes[0];
@@ -1420,6 +1743,9 @@ class Editor {
     }
   }
 
+  /**
+   * Snaps all notes in the current chart to the grid division.
+   */
   alignAllToBeatDivision() {
     this.selectedNotes.forEach(note => {
       note.beat = this.getSnappedBeat(note.beat);
@@ -1430,10 +1756,16 @@ class Editor {
     this.sortNotes();
   }
   
+  /**
+   * Rebuilds the selected notes array and previews the resulting selection.
+   */
   refreshSelectedNotes() {
     this.selectedNotes.forEach(note => this.chartRenderer.killNote(note)); // the renderer will automatically recreate the note visuals
   }
   
+  /**
+   * Removes all selected notes from the current chart.
+   */
   deleteSelectedNotes() {
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
     const notes = this.song.chart.notes[diff.type + diff.rating] || [];
@@ -1452,6 +1784,10 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Returns the note array for the currently edited difficulty.
+   * @returns {Array} Notes of the current difficulty, or an empty array.
+   */
   getCurrentChartNotes() {
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
     
@@ -1460,6 +1796,10 @@ class Editor {
     return this.song.chart.notes[diff.type + diff.rating] || [];
   }
 
+  /**
+   * Builds the formatted song information summary shown on the home screen.
+   * @returns {string} Localized song info text.
+   */
   getSongInfoText() {
     const chart = this.song.chart;
     let totalNotes = 0;
@@ -1487,6 +1827,10 @@ class Editor {
     ).trim();
   }
 
+  /**
+   * Handles a file input selection event and forwards the first file.
+   * @param {Event} event - File input change event.
+   */
   handleFileSelect(event) {
     const file = event.target.files[0];
     if (file && this.currentFileCallback) {
@@ -1495,6 +1839,10 @@ class Editor {
     this.fileInput.value = "";
   }
   
+  /**
+   * Imports songs from a folder of files, supporting .sm charts and zips.
+   * @param {FileList|Array} files - Files selected by the user.
+   */
   async processFiles(files) {
     try {
       const fileMap = {};
@@ -1558,6 +1906,10 @@ class Editor {
     }
   }
 
+  /**
+   * Loads an audio file into the song and stores it as a blob.
+   * @param {File} file - Audio file to load.
+   */
   async loadAudioFile(file) {
     try {
       const url = URL.createObjectURL(file);
@@ -1580,6 +1932,10 @@ class Editor {
     }
   }
 
+  /**
+   * Loads a background image file into the song and stores it as a blob.
+   * @param {File} file - Background image file to load.
+   */
   async loadBackgroundFile(file) {
     try {
       const url = URL.createObjectURL(file);
@@ -1602,6 +1958,10 @@ class Editor {
     }
   }
 
+  /**
+   * Loads a banner image file into the song and stores it as a blob.
+   * @param {File} file - Banner image file to load.
+   */
   async loadBannerFile(file) {
     try {
       const url = URL.createObjectURL(file);
@@ -1625,6 +1985,10 @@ class Editor {
     }
   }
   
+  /**
+   * Loads a lyrics file into the song and stores it as a blob.
+   * @param {File} file - Lyrics file to load.
+   */
   async loadLyricsFile(file) {
     try {
       this.showLoadingScreen(__("Processing Lyrics||Procesando Letras"));
@@ -1645,6 +2009,10 @@ class Editor {
     }
   }
 
+  /**
+   * Imports a .pmz/.zip package containing a StepMania song.
+   * @param {File} file - Zip file to import.
+   */
   async importFromZip(file) {
     const JSZip = window.JSZip;
     if (!JSZip) {
@@ -1669,6 +2037,10 @@ class Editor {
     Account.stats.totalImportedSongs ++;
   }
 
+  /**
+   * Parses the .sm chart from a zip and loads all referenced media.
+   * @param {Object} zipContent - Unzipped song package data.
+   */
   async importStepManiaSong(zipContent) {
     // Find .sm file
     let smFile = null;
@@ -1780,6 +2152,10 @@ class Editor {
     notifications.show(__("StepMania song imported!||Canción importada"));
   }
 
+  /**
+   * Imports a standalone .sm chart file and loads its referenced media.
+   * @param {File} file - .sm file to import.
+   */
   async importSMFile(file) {
     const content = await FileTools.readTextFile(file);
     const chart = await new LocalSMParser().parseSM(content);
@@ -1801,6 +2177,9 @@ class Editor {
     notifications.show(__("SM file imported! Load audio/background files manually.||¡Archivo .SM importado! Carga el audio e imágenes manualmente"));
   }
 
+  /**
+   * Exports the current song as a StepMania .sm package in a zip file.
+   */
   async exportSong() {
     try {
       this.showLoadingScreen(__("Exporting song||Exportando canción"));
@@ -1861,6 +2240,9 @@ class Editor {
     }
   }
   
+  /**
+   * Ensures audio, background, banner, and lyrics files are loaded.
+   */
   async ensureFilesLoaded() {
     // Verificar y cargar audio si no está cargado
     if (!this.files.audio && this.song.chart.audioUrl) {
@@ -1905,10 +2287,20 @@ class Editor {
     }
   }
   
+  /**
+   * Fetches a file at a URL as a Blob.
+   * @param {string} url - File URL to fetch.
+   * @returns {Promise<Blob>} The fetched file as a Blob.
+   */
   async fetchFileAsBlob(url) {
     return await FileTools.fetchFileAsBlob(url);
   }
 
+  /**
+   * Adds the shared song media files to the export zip.
+   * @param {Object} songData - Song data being exported.
+   * @param {Object} zip - JSZip instance to add files to.
+   */
   async addSongResourcesToZip(songData, zip) {
     // Add main files
     if (songData.audio !== "no-media" && this.files.audio) {
@@ -1939,6 +2331,12 @@ class Editor {
     return zip;
   }
   
+  /**
+   * Adds a file with the given filename and data to the export zip.
+   * @param {Object} zip - JSZip instance to add the file to.
+   * @param {string} filename - File name inside the zip.
+   * @param {Blob|string} data - File content.
+   */
   async addFileToZip(zip, filename, data) {
     // Si es un Blob o File, leer como ArrayBuffer
     if (data instanceof Blob || data instanceof File) {
@@ -1983,6 +2381,11 @@ class Editor {
     console.warn(`Cannot add file to zip: ${filename} - unsupported data type`, typeof data);
   }
 
+  /**
+   * Saves a blob to the device or downloads it as a file.
+   * @param {Blob} blob - Blob to save.
+   * @param {string} filename - File name to save under.
+   */
   async saveFile(blob, filename) {
     if (CURRENT_ENVIRONMENT === ENVIRONMENT.WEB) {
       // Download in browser
@@ -1999,6 +2402,12 @@ class Editor {
     }
   }
   
+  /**
+   * Writes a blob to the filesystem and returns the stored file.
+   * @param {Blob} blob - Blob to write.
+   * @param {string} filename - File name to write.
+   * @returns {Promise<Object>} The stored file entry.
+   */
   async saveFileToFilesystem(blob, filename) {
     const fileSystem = new FileSystemTools();
     
@@ -2007,6 +2416,10 @@ class Editor {
     await fileSystem.saveFile(outputDir, blob, filename);
   }
   
+  /**
+   * Sets the note type for a difficulty.
+   * @param {number} difficultyIndex - Index of the difficulty to modify.
+   */
   setDifficultyType(difficultyIndex) {
     const types = ["Beginner", "Easy", "Medium", "Hard", "Challenge"];
     const currentType = this.song.chart.difficulties[difficultyIndex].type;
@@ -2039,6 +2452,10 @@ class Editor {
     carousel.onCancel.add(() => this.showChartOptions(difficultyIndex));
   }
 
+  /**
+   * Sets the difficulty level rating for a difficulty.
+   * @param {number} difficultyIndex - Index of the difficulty to modify.
+   */
   setDifficultyRating(difficultyIndex) {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -2066,6 +2483,10 @@ class Editor {
     carousel.onCancel.add(() => this.showChartOptions(difficultyIndex));
   }
 
+  /**
+   * Deletes a difficulty from the song chart.
+   * @param {number} difficultyIndex - Index of the difficulty to delete.
+   */
   deleteDifficulty(difficultyIndex) {
     const diff = this.song.chart.difficulties[difficultyIndex];
     const key = diff.type + diff.rating;
@@ -2077,6 +2498,9 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Adds a new empty difficulty to the song chart.
+   */
   addNewDifficulty() {
     const newDiff = {
       type: "Medium",
@@ -2088,6 +2512,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Opens the metadata editing screen for the current song.
+   */
   showMetadataEdit() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -2110,6 +2537,10 @@ class Editor {
     carousel.onCancel.add(() => this.showEditMenu());
   }
 
+  /**
+   * Edits a metadata field for the current song via text input.
+   * @param {string} field - Name of the metadata field to edit.
+   */
   editMetadataField(field) {
     const currentValue = this.song.chart[field] || "";
     
@@ -2138,6 +2569,9 @@ class Editor {
     });
   }
   
+  /**
+   * Opens a text input to change the song BPM.
+   */
   editSongBpm() {
     const bpm = this.song.chart.bpmChanges[0]?.bpm || 120;
     
@@ -2172,6 +2606,9 @@ class Editor {
     });
   }
 
+  /**
+   * Opens a text input to change the song offset.
+   */
   editSongOffset() {
     const offset = this.song.chart.offset || 0;
     
@@ -2201,6 +2638,9 @@ class Editor {
     });
   }
 
+  /**
+   * Opens a text input to change the sample start time.
+   */
   editSampleStart() {
     const sampleStart = this.song.chart.sampleStart || 0;
     
@@ -2236,6 +2676,9 @@ class Editor {
     });
   }
 
+  /**
+   * Opens a text input to change the sample length.
+   */
   editSampleLength() {
     const sampleLength = this.song.chart.sampleLength || 10;
     
@@ -2266,6 +2709,9 @@ class Editor {
     });
   }
 
+  /**
+   * Opens file loaders for the currently selected background change.
+   */
   editBGChangeFiles() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -2303,6 +2749,10 @@ class Editor {
     carousel.onCancel.add(() => this.showFileMenu());
   }
   
+  /**
+   * Opens the background change edit menu for a background entry.
+   * @param {number} bgIndex - Index of the background change to edit.
+   */
   showBGChangeMenu(bgIndex) {
     const bg =  this.song.chart.backgrounds[bgIndex];
     
@@ -2335,15 +2785,24 @@ class Editor {
     carousel.onCancel.add(() => this.editBGChangeFiles());
   }
 
+  /**
+   * Resets the editor and returns to the home screen.
+   */
   createNewSongAndReload() {
     this.song = this.createNewSong();
     game.state.start("Editor");
   }
 
+  /**
+   * Saves the current song to the filesystem and leaves the editor.
+   */
   saveAndExit() {
     this.showHomeScreen();
   }
 
+  /**
+   * Clears leftover editor UI elements and input listeners.
+   */
   clearUI() {
     if (this.mainCarousel) {
       this.mainCarousel.destroy();
@@ -2359,6 +2818,11 @@ class Editor {
   }
 
   // BPM/Stop/BG change methods
+  /**
+   * Estimates the BPM from a series of tapped beat times.
+   * @param {Array} beats - Tapped beat timestamps in seconds.
+   * @returns {number} Estimated BPM value.
+   */
   calculateBPM(beats) {
     if (beats.length < 3) {
       return 0;
@@ -2386,6 +2850,9 @@ class Editor {
     return bpm;
   }
 
+  /**
+   * Opens a tap-to-the-beat mode to estimate the BPM at the cursor.
+   */
   detectBPMHere() {
     const audioElement = document.createElement("audio");
     audioElement.src = this.audio.src;
@@ -2434,6 +2901,9 @@ class Editor {
     gamepad.signals.pressed.any.add(inputHandler);
   }
 
+  /**
+   * Adds a new BPM change at the current cursor beat.
+   */
   addBPMChange() {
     this.menuVisible = true;
     
@@ -2469,10 +2939,18 @@ class Editor {
     });
   }
 
+  /**
+   * Returns the BPM change at the current cursor beat, if any.
+   * @returns {Object|undefined} The matching BPM change.
+   */
   getBPMChange() {
     return this.song.chart.bpmChanges.find(bpm => Math.abs(bpm.beat - this.cursorBeat) < 0.001);
   }
 
+  /**
+   * Edits the BPM value of a BPM change entry.
+   * @param {Object} [target] - BPM change to edit; defaults to the one at the cursor.
+   */
   editBPMChange(target) {
     const bpmChange = target || this.getBPMChange();
     if (bpmChange) {
@@ -2507,6 +2985,9 @@ class Editor {
     }
   }
   
+  /**
+   * Removes the BPM change located at the cursor beat.
+   */
   removeBPMChange() {
     const bpmChange = this.getBPMChange();
     if (bpmChange) {
@@ -2518,6 +2999,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Adds a new stop duration at the current cursor beat.
+   */
   addStop() {
     this.menuVisible = true;
     
@@ -2553,10 +3037,17 @@ class Editor {
     });
   }  
 
+  /**
+   * Returns the stop at the current cursor beat, if any.
+   * @returns {Object|undefined} The matching stop entry.
+   */
   getStop() {
     return this.song.chart.stops.find(s => Math.abs(s.beat - this.cursorBeat) < 0.001);
   }
 
+  /**
+   * Edits the duration of the stop at the current cursor beat.
+   */
   editStop() {
     const stop = this.getStop();
     if (stop) {
@@ -2591,6 +3082,9 @@ class Editor {
     }
   }
 
+  /**
+   * Removes the stop located at the cursor beat.
+   */
   removeStop() {
     const stop = this.getStop();
     if (stop) {
@@ -2602,6 +3096,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Adds a background change at the cursor from a picked image or video file.
+   */
   addBGChange() {
     this.pickFile("image/*,video/*", async event => {
       const file = event.target.files[0];
@@ -2623,6 +3120,9 @@ class Editor {
     });
   }
   
+  /**
+   * Ensures a background change exists for songs that have no background entry.
+   */
   addNoSongBgChange() {
     this.song.chart.backgrounds.push({
       beat: this.cursorBeat,
@@ -2637,10 +3137,18 @@ class Editor {
     this.song.chart.backgrounds.sort((a, b) => a.beat - b.beat);
   }
 
+  /**
+   * Returns the background change at the current cursor beat, if any.
+   * @returns {Object|undefined} The matching background change.
+   */
   getBGChange() {
     return this.song.chart.backgrounds.find(bg => Math.abs(bg.beat - this.cursorBeat) < 0.001);
   }
   
+  /**
+   * Replaces the media file of an existing background change.
+   * @param {Object} [target] - Background change to edit; defaults to the one at the cursor.
+   */
   editBGChange(target) {
     const bgChange = target || this.getBGChange();
     if (bgChange) {
@@ -2658,6 +3166,9 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Removes the background change located at the cursor beat.
+   */
   removeBGChange() {
     const bgChange = this.getBGChange();
     if (bgChange) {
@@ -2669,6 +3180,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Renders the chart and handles per-screen editing input each frame.
+   */
   update() {
     gamepad.update();
     
@@ -2727,6 +3241,10 @@ class Editor {
     }
   }
   
+  /**
+   * Plays an explosion effect at a column when a mine is hit.
+   * @param {number} column - Column where the mine exploded.
+   */
   playExplosionEffect(column) {
     const receptor = this.chartRenderer.receptors[column];
     if (receptor && receptor.explosion) {
@@ -2744,6 +3262,11 @@ class Editor {
     }
   }
 
+  /**
+   * Shows hit effects for notes reaching the judge line during playback.
+   * @param {number} now - Current song time in seconds.
+   * @param {number} beat - Current beat position.
+   */
   showHitEffects(now, beat) {
     const notes = this.getCurrentChartNotes();
 
@@ -2755,10 +3278,16 @@ class Editor {
     });
   }
   
+  /**
+   * Leaves the editor and returns to the main menu.
+   */
   exitEditor() {
     game.state.start("MainMenu");
   }
 
+  /**
+   * Cleans up editor resources and stores the song for later access.
+   */
   shutdown() {
     if (this.fileInput) {
       this.fileInput.value = "";

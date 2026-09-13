@@ -1,29 +1,59 @@
+/**
+ * @class Title
+ * @category Game States
+ * @summary Title Screen with animated logo
+ * @constructor
+ * @description
+ * The game's title screen, shown after the local songs finish loading. It fades in the
+ * camera, shows the background effects, animated logo, credit, and version texts, plays
+ * the last heard song through the global background music controller, and waits for a
+ * key press to advance to the main menu. Holding several buttons during the logo intro
+ * triggers emergency keybinding or factory resets.
+ * @example
+ * // The menu entry point reached after the loading chain finishes.
+ * game.state.add('Title', Title);
+ * game.state.start('Title');
+ */
 class Title {
+  /**
+   * Builds the title screen visuals (background, logo, instruction and credit texts),
+   * starts background music, runs the logo intro animation, and lets addons inject
+   * their own state behaviors.
+   */
   create() {
     game.camera.fadeIn(0xffffff);
 
+    /** @type {BackgroundGradient} Animated gradient backdrop behind the title */
     this.background = new BackgroundGradient();
+    /** @type {FuturisticLines} Decorative moving lines behind the logo */
     this.lines = new FuturisticLines();
     
+    /** @type {Logo} The game's animated title logo */
     this.logo = new Logo();
 
+    /** @type {Text} Pulsing "press any key" prompt shown beneath the logo */
     this.inputInstructionText = new Text(game.width / 2, 100, __("PRESS ANY KEY||PULSA CUALQUIER TECLA"));
     this.inputInstructionText.anchor.x = 0.5;
     game.add.tween(this.inputInstructionText).to({ alpha: 0 }, 500, "Linear", true, 0, -1).yoyo(true);
 
+    /** @type {Phaser.Sprite} Container sprite holding the credit and version texts */
     this.text = game.add.sprite(0, 0);
 
+    /** @type {Text} Copyright notice in the bottom left corner */
     this.creditText = new Text(2, game.height, COPYRIGHT, FONTS.small, this.text);
     this.creditText.anchor.y = 1;
 
+    /** @type {Text} Game version label in the bottom right corner */
     this.versionText = new Text(game.width - 2, game.height, VERSION, FONTS.small, this.text);
     this.versionText.anchor.set(1);
 
     if (!backgroundMusic) {
+      /** @type {BackgroundMusic} Global background music controller */
       backgroundMusic = new BackgroundMusic();
     }
     backgroundMusic.playLastSong();
 
+    /** @type {boolean} Whether the logo intro animation has finished */
     this.introEnded = false;
 
     this.logo.intro(() => (this.introEnded = true));
@@ -31,6 +61,10 @@ class Title {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Emergency fallback that restores the keyboard and gamepad mappings to their defaults
+   * when holding at least three buttons during the title animation, after confirmation.
+   */
   resetKeybindings() {
     if (confirm(__(
       "!! EMERGENCY RESET TRIGGERED !!\n" +
@@ -53,6 +87,10 @@ class Title {
     }
   }
   
+  /**
+   * Emergency fallback that performs a full factory reset of all settings and reloads
+   * the page when holding at least six buttons during the title animation, if confirmed.
+   */
   restoreDefaults() {
     if (confirm(__(
       "!! EMERGENCY RESET TRIGGERED !!\n" +
@@ -71,6 +109,11 @@ class Title {
     }
   }
   
+  /**
+   * Refreshes the gamepad each frame. Once the logo intro has finished, a mouse or
+   * gamepad press triggers the logo outro, checks held buttons for emergency resets,
+   * and advances to the main menu.
+   */
   update() {
     gamepad.update();
 

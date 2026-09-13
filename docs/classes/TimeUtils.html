@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>TimeUtils - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "TimeUtils Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Static utility methods for time formatting and validation</p>
+
+    [heading: "Description"]
+    <p>Provides static helper methods for validating time values and formatting them into human-readable strings for display in the game UI.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Time value validation
+* Minutes and seconds formatting
+* Milliseconds to seconds display
+[/list]
+
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ isValidTime | (time) | Checks whether a time value is a valid finite number. ]
+[ formatTime | (time) | Formats a time value in seconds to a minutes:seconds display string. ]
+[ formatSeconds | (time) | Formats a millisecond value to a seconds display with two decimal places. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+TimeUtils.isValidTime(42.5);          // true
+TimeUtils.formatTime(125);            // "2:05"
+TimeUtils.formatSeconds(3500);        // "3.50s"
+TimeUtils.formatTime(NaN);            // "--:--"
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

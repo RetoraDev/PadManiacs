@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Settings - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Settings Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Settings user interface</p>
+
+    [heading: "Description"]
+    <p>The Settings state hosts the game's configuration screen. Nearly every option is collected in a single settings window, with submenus for keybindings and chart modifiers plus tools to import, export or erase account data. Changes are persisted to the account and some options require a restart to take effect.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Persistent settings window covering audio, gameplay, graphics and account options
+* Keybindings, chart modifiers and backup import/export data management
+* Restore, restart and high score erasure flows guarded by confirmation dialogs
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ futuristicLines | FuturisticLines | Ambient background line decorations ]
+[ backgroundGradient | BackgroundGradient | Animated gradient behind the UI ]
+[ navigationHint | NavigationHint | Button hints along the bottom of the screen ]
+[ windowManager | WindowManager | Manages the settings dialog windows ]
+[ fileInput | HTMLInputElement | Hidden file input used for backup import ]
+[ settingsWindow | Object | The settings window shown on screen ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ create | () | Phaser state hook that sets up the background, window manager and settings UI. ]
+[ update | () | Phaser lifecycle hook called every frame; updates the window manager. ]
+[ showSettings | () | Shows a loading message, then builds the settings window shortly after. ]
+[ createSettingsWindow | () | Builds the settings window with every persistent gameplay and graphics option. ]
+[ importBackupData | () | Prompts for a JSON backup file and imports it into the account with confirmation. ]
+[ exportBackupData | () | Exports the current account data to a downloadable JSON backup file. ]
+[ showMainMenu | () | Returns to the main menu. ]
+[ showKeybindingsMenu | () | Opens the keybindings configuration state. ]
+[ showChartModifiersMenu | () | Opens the chart modifiers state. ]
+[ confirmDialog | (message, onConfirm, onCancel, confirmText, cancelText) | Shows a confirmation dialog with custom confirm and cancel actions. ]
+[ confirmEraseHighscores | () | Confirms and permanently erases all stored high scores. ]
+[ confirmRestoreDefaults | () | Confirms and restores all settings to their default values. ]
+[ confirmRestart | () | Confirms a restart when settings changes require one. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Open the settings screen from any other state
+game.state.start("Settings");
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

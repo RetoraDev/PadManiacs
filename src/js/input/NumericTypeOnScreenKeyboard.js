@@ -1,9 +1,32 @@
+/**
+ * @class NumericTypeOnScreenKeyboard
+ * @category Core Game Classes
+ * @summary Numeric touchscreen keyboard
+ * @constructor
+ * @param {number} x - Declared horizontal position (the base constructor places the sprite at 80, 70)
+ * @param {number} y - Declared vertical position (the base constructor places the sprite at 80, 70)
+ * @features
+ * Replaces the full keyboard with a compact numeric keypad
+ * Adds add, subtract, enter, clear, and erase action keys
+ * @description
+ * NumericTypeOnScreenKeyboard is an OnScreenKeyboard variant that loads the
+ * 'ui_keyboard_numeric' texture and replaces the key layout with digits, a decimal
+ * point, and arithmetic action keys. It inherits all highlight, signal, and input
+ * routing behavior from its parent class.
+ * @example
+ * // Modding usage example
+ * const numpad = new NumericTypeOnScreenKeyboard(80, 70);
+ * numpad.onDown.add((key, input) => {
+ *   console.log(`Numpad ${key.code} -> ${input}`);
+ * });
+ */
 class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   constructor(x, y) {
     super(80, 70);
     
     this.loadTexture('ui_keyboard_numeric');
     
+    /** @type {Object[]} Numeric keypad definitions laid out on the numeric texture */
     this.keys = [
       { top: 4, left: 4, width: 7, height: 7, code: "7" }, 
       { top: 4, left: 14, width: 7, height: 7, code: "8" }, 

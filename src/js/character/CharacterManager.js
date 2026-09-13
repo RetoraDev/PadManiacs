@@ -1,10 +1,36 @@
+/**
+ * @class CharacterManager
+ * @category Character System Classes
+ * @summary Manages multiple characters and persistence
+ * @constructor
+ * @features
+ * Character creation, deletion, and selection
+ * Load and save of characters to the account
+ * Experience gain calculation from game results
+ * Statistics and personality updates after each game
+ * @description
+ * Coordinates the character roster stored on the player's account, creating, deleting,
+ * selecting, and persisting characters while updating their stats after gameplay sessions.
+ * @example
+ * // Modding usage example
+ * const mgr = new CharacterManager();
+ * const hero = mgr.createCharacter('Hero', { skinTone: 0 });
+ * mgr.setCurrentCharacter('Hero');
+ * const exp = mgr.updateCharacterStats(gameResults);
+ * console.log(mgr.getCharacterList());
+ */
 class CharacterManager {
   constructor() {
+    /** @type {Map} Character instances keyed by name */
     this.characters = new Map();
+    /** @type {Object|null} Currently active character */
     this.currentCharacter = null;
     this.loadFromAccount();
   }
 
+  /**
+   * Rebuilds the character roster and current selection from the stored account data.
+   */
   loadFromAccount() {
     if (!Account.characters) {
       Account.characters = JSON.parse(JSON.stringify(DEFAULT_ACCOUNT.characters));
@@ -23,6 +49,12 @@ class CharacterManager {
     }
   }
 
+  /**
+   * Creates and persists a new character if the name is free and within the length limit.
+   * @param {string} name - The new character's name
+   * @param {Object} [appearance] - Initial appearance settings
+   * @returns {Character|null} The created character or null on failure
+   */
   createCharacter(name, appearance = {}) {
     if (this.characters.has(name) || name.length > CHARACTER_SYSTEM.MAX_NAME_LENGTH) {
       return null;
@@ -40,6 +72,11 @@ class CharacterManager {
     return newCharacter;
   }
 
+  /**
+   * Removes a character from the roster and updates the account and current selection.
+   * @param {string} name - Name of the character to delete
+   * @returns {boolean} Whether the character was deleted
+   */
   deleteCharacter(name) {
     if (this.characters.size <= 1) this.unsetCharacter;
     
@@ -58,12 +95,20 @@ class CharacterManager {
     return deleted;
   }
   
+  /**
+   * Clears the current character selection and persists the change to the account.
+   */
   unsetCharacter() {
     this.currentCharacter = null;
     Account.characters.currentCharacter = null;
     saveAccount();
   }
 
+  /**
+   * Makes a character the active roster selection.
+   * @param {string} name - Name of the character to select
+   * @returns {boolean} Whether the selection succeeded
+   */
   setCurrentCharacter(name) {
     const character = this.characters.get(name);
     if (character) {
@@ -75,6 +120,11 @@ class CharacterManager {
     return false;
   }
 
+  /**
+   * Applies game results to the current character's stats, experience, and personality.
+   * @param {Object} gameResults - Results from a completed game session
+   * @returns {number} Experience gained during the update
+   */
   updateCharacterStats(gameResults) {
     if (!this.currentCharacter) return 0;
 
@@ -104,6 +154,11 @@ class CharacterManager {
     return expGain;
   }
 
+  /**
+   * Computes experience awarded from game results based on accuracy, combo, and difficulty.
+   * @param {Object} gameResults - Results from a completed game session
+   * @returns {number} The experience points earned
+   */
   calculateExperienceGain(gameResults) {
     let exp = 0;
     
@@ -181,6 +236,12 @@ class CharacterManager {
     return exp;
   }
 
+  /**
+   * Unlocks a hair style of the given type for the account if not already owned.
+   * @param {string} type - Hair type, either 'front' or 'back'
+   * @param {number} id - The hair style ID
+   * @returns {boolean} Whether the unlock was applied
+   */
   unlockHair(type, id) {
     if (!Account.characters.unlockedHairs[type].includes(id)) {
       Account.characters.unlockedHairs[type].push(id);
@@ -190,6 +251,11 @@ class CharacterManager {
     return false;
   }
 
+  /**
+   * Unlocks a clothing item for the account if not already owned.
+   * @param {string} itemId - The item identifier
+   * @returns {boolean} Whether the unlock was applied
+   */
   unlockItem(itemId) {
     if (!Account.characters.unlockedItems.includes(itemId)) {
       Account.characters.unlockedItems.push(itemId);
@@ -199,14 +265,25 @@ class CharacterManager {
     return false;
   }
 
+  /**
+   * Returns all character instances in the roster.
+   * @returns {Array} List of Character objects
+   */
   getCharacterList() {
     return Array.from(this.characters.values());
   }
 
+  /**
+   * Returns the currently selected character instance.
+   * @returns {Object|null} The active character or null
+   */
   getCurrentCharacter() {
     return this.currentCharacter;
   }
 
+  /**
+   * Writes the full roster and current selection back to the account.
+   */
   saveToAccount() {
     Account.characters.list = this.getCharacterList().map(char => char.toJSON());
     Account.characters.currentCharacter = this.currentCharacter ? this.currentCharacter.name : null;

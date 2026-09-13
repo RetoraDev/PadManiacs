@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>FileSystemTools - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "FileSystemTools Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Platform-agnostic file system access wrapper</p>
+
+    [heading: "Description"]
+    <p>FileSystemTools wraps platform-specific file system implementations behind a single consistent API. It detects the current runtime on construction and selects the appropriate backend (NodeFileSystem, CordovaFileSystem, or FallbackFileSystem) so that the rest of the application never needs to care about the environment.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Auto-detects runtime platform (NW.js, Cordova, or browser)
+* Delegates all operations to the platform-specific implementation
+* Provides uniform API for directory listing, file reading, and writing
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ platform | string | The detected runtime platform identifier ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ detectPlatform | () | Determines the current runtime platform by checking for NW.js, Cordova, or falling back to the browser environment. ]
+[ BasePath | () | Returns the base directory path for the current platform. Only meaningful on NW.js; returns empty string on other platforms. ]
+[ canExitApp | () | Checks whether the application can be programmatically closed on this platform. ]
+[ exitApp | () | Terminates the application. Only works on NW.js and Cordova platforms. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Accessing the file system from any platform
+const fs = new FileSystemTools();
+const rootDir = await fs.getDirectory('Songs/');
+const files = await fs.listFiles(rootDir);
+for (const fileEntry of files) {
+  const file = await fs.getFile(fileEntry);
+  const content = await fs.readFileContent(file);
+  console.log(file.name, content.substring(0, 100));
+}
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

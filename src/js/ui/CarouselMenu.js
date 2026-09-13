@@ -1,7 +1,37 @@
+/**
+ * @class CarouselMenu
+ * @category UI Classes
+ * @summary Vertical scrolling menu with animations and scrollbar
+ * @constructor
+ * @param {number} x - X position of the menu sprite
+ * @param {number} y - Y position of the menu sprite
+ * @param {number} width - Viewport width in pixels
+ * @param {number} height - Viewport height in pixels
+ * @param {object} [config={}] - Menu behavior and styling configuration
+ * @features
+ * Vertical scrolling list with page-based navigation
+ * Gradient item backgrounds and alpha animations
+ * Auto-hiding scroll bar with fade out
+ * Signal-based select, confirm, and cancel events
+ * @description
+ * CarouselMenu is a scrollable vertical menu that animates item selection
+ * with alpha and position tweens. Items can be added with text, icons, and
+ * callbacks, and the menu supports gamepad, mouse wheel, and hover input.
+ * Confirming plays a selection animation before dispatching onConfirm and
+ * destroying the menu.
+ * @example
+ * // Modding usage example
+ * const menu = new CarouselMenu(4, 4, 140, 96, { bgcolor: '#222222' });
+ * menu.addItem('Easy', () => startSong(1));
+ * menu.addItem('Medium', () => startSong(2));
+ * menu.addItem('Hard', () => startSong(3));
+ * menu.onConfirm.add(() => {});
+ */
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
     
+    /** @type {object} Merged behavior and styling configuration */
     this.config = {
       animate: true,
       align: 'left',
@@ -23,14 +53,19 @@ class CarouselMenu extends Phaser.Sprite {
       margin: { top: 4, bottom: 4, left: 4, right: 4, ...(config.margin || {}) },
     };
     
+    /** @type {object} Menu viewport dimensions ({ width, height }) */
     this.viewport = {
       width: width,
       height: height
     };
     
+    /** @type {Array} Menu items added to the carousel */
     this.items = [];
+    /** @type {number} Index of the currently selected item */
     this.selectedIndex = 0;
+    /** @type {number} Index of the mouse-hovered item */
     this.hoveredIndex = 0;
+    /** @type {number} Index of the first visible item */
     this.scrollOffset = 0;
     this.itemHeight = this.config.itemHeight;
     this.itemSpacing = this.config.itemSpacing;
@@ -44,6 +79,7 @@ class CarouselMenu extends Phaser.Sprite {
         
     // Scroll bar
     if (!this.config.disableScrollBar) {
+      /** @type {Phaser.Graphics} Auto-hiding scroll bar indicator */
       this.scrollBar = game.add.graphics(this.viewport.width - 3, this.config.margin.top);
       this.scrollBar.alpha = 0; // Start hidden
       this.addChild(this.scrollBar);
@@ -61,11 +97,17 @@ class CarouselMenu extends Phaser.Sprite {
     if (!this.config.silent) game.add.existing(this);
   }
   
+  /**
+   * Creates the navigation signals and subscribes to the mouse wheel.
+   */
   setupInput() {
     gamepad.releaseAll();
 
+    /** @type {Phaser.Signal} Dispatched with the index when selection moves */
     this.onSelect = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when a menu item is confirmed */
     this.onConfirm = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when the menu is cancelled */
     this.onCancel = new Phaser.Signal();
     
     mouse.onWheel.add(direction => {
@@ -73,6 +115,13 @@ class CarouselMenu extends Phaser.Sprite {
     });
   }
   
+  /**
+   * Adds a selectable menu item with an optional icon and callback.
+   * @param {string} text - Item label, localized unless already localized
+   * @param {Function} [callback] - Called with the item when confirmed
+   * @param {object} [data={}] - Custom data: icon, height, and bgcolor
+   * @returns {object} The created item object
+   */
   addItem(text, callback = null, data = {}) {
     const index = this.items.length;
     
@@ -98,6 +147,12 @@ class CarouselMenu extends Phaser.Sprite {
     return item;
   }
   
+  /**
+   * Builds the sprites for an item: background, icon, and text.
+   * Also wires up its mouse over, out, and click handlers.
+   * @param {object} item - The item to create visuals for
+   * @param {boolean} isSelected - Whether the item starts selected
+   */
   createItemVisuals(item, isSelected) {
     const index = item.index;
     let xPos = this.config.margin.left;
@@ -157,6 +212,10 @@ class CarouselMenu extends Phaser.Sprite {
     item.parent.events.onInputOut.add(() => this.houtItem(item));
   }
   
+  /**
+   * Destroys an item's parent sprite and clears its visual references.
+   * @param {object} item - The item whose visuals to remove
+   */
   removeItemVisuals(item) {
     item.parent?.destroy();
     item.parent = null;
@@ -192,6 +251,9 @@ class CarouselMenu extends Phaser.Sprite {
     return sprite;
   }
   
+  /**
+   * Runs the per-frame input and animation update.
+   */
   update() {
     if (!this.inputEnabled || game.time.now == this.lastUpdate) return;
     
@@ -201,6 +263,10 @@ class CarouselMenu extends Phaser.Sprite {
     this.updateAnimations();
   }
   
+  /**
+   * Reads gamepad input and navigates, confirms, or cancels accordingly.
+   * Uses a dynamic cooldown so held directions repeat at increasing speed.
+   */
   handleInput() {
     if (this.config.disableNavigation) return;
     
@@ -271,6 +337,11 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Moves the selection by the given direction, wrapping or paging.
+   * @param {number} direction - +1 for down, -1 for up
+   * @param {boolean} [page] - When true, jump by a full page instead
+   */
   navigate(direction, page) {
     if (this.items.length === 0 || this.isAnimating) return;
     
@@ -299,6 +370,10 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Scrolls the viewport offset and hovered index by the given delta.
+   * @param {number} [delta=0] - Amount to scroll by
+   */
   scroll(delta = 0) {
     this.scrollOffset += delta;
     this.hoveredIndex += delta;
@@ -322,12 +397,19 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Selects the item at the given index and dispatches the onSelect signal.
+   * @param {number} index - Item index to select
+   */
   selectIndex(index) {
     this.selectedIndex = index;
     this.updateSelection();
     this.onSelect.dispatch(index, this.items[index]);
   }
   
+  /**
+   * Recomputes scroll offset, visibility, item positions, and the scroll bar.
+   */
   updateSelection() {
     this.adjustScroll();
     
@@ -340,6 +422,10 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+/**
+   * Marks an item selected and starts its alpha pulse animation.
+   * @param {object} item - The item to select
+   */
   selectItem(item) {
     // Deselect previously selected item
     const previouslySelected = this.items.find(i => i.isSelected && i !== item);
@@ -369,6 +455,10 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Marks an item deselected and tweens it back to its inactive alpha.
+   * @param {object} item - The item to deselect
+   */
   deselectItem(item) {
     item.isSelected = false;
     
@@ -393,6 +483,10 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Marks an item hovered and tweens it to the hover alpha.
+   * @param {object} item - The item being hovered
+   */
   hoverItem(item) {
     if (this.config.disableNavigation) return;
     
@@ -427,6 +521,10 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Clears the hover state and tweens an item back to its inactive alpha.
+   * @param {object} item - The item no longer being hovered
+   */
   houtItem(item) {
     if (this.config.disableNavigation) return;
     if (item.isSelected || !item.isHovered) return;
@@ -454,6 +552,9 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Clamps the scroll offset so the selected item stays visible.
+   */
   adjustScroll() {
     if (this.selectedIndex < this.scrollOffset) {
       this.scrollOffset = this.selectedIndex;
@@ -468,6 +569,9 @@ class CarouselMenu extends Phaser.Sprite {
     );
   }
   
+  /**
+   * Redraws and reveals the scroll bar when items overflow the viewport.
+   */
   updateScrollBar() {
     if (this.config.disableScrollBar) return;
     
@@ -502,6 +606,9 @@ class CarouselMenu extends Phaser.Sprite {
     this.showScrollBar();
   }
 
+  /**
+   * Fades the scroll bar in and schedules an automatic fade out.
+   */
   showScrollBar() {
     if (this.config.disableScrollBar) return;
     
@@ -522,6 +629,9 @@ class CarouselMenu extends Phaser.Sprite {
       });
   }
 
+  /**
+   * Immediately hides and clears the scroll bar.
+   */
   hideScrollBar() {
     if (this.config.disableScrollBar) return;
     
@@ -536,6 +646,10 @@ class CarouselMenu extends Phaser.Sprite {
     this.scrollBar.clear();
   }
   
+  /**
+   * Creates or removes item visuals based on the current viewport visibility.
+   * @param {number} [targetIndex] - Index to treat as selected
+   */
   updateItemVisibility(targetIndex) {
     this.items.forEach((item, index) => {
       // TODO: Correcly place items based on their individual item.data.height and the space they take in viewport 
@@ -563,6 +677,9 @@ class CarouselMenu extends Phaser.Sprite {
     });
   }
   
+  /**
+   * Tweens or sets each visible item to its target viewport position.
+   */
   updateItemPositions() {
     this.items.forEach((item, index) => {
       // TODO: Correcly place items based on their individual item.data.height and the space they take in viewport 
@@ -598,6 +715,10 @@ class CarouselMenu extends Phaser.Sprite {
     this.lastPress = game.time.now;
   }
   
+  /**
+   * Confirms the selected item after its selection animation completes.
+   * Dispatches onConfirm, runs the item callback, then destroys the menu.
+   */
   confirm() {
     if (this.items.length === 0 || this.isAnimating || this.config.disableConfirm) return;
     
@@ -612,6 +733,11 @@ class CarouselMenu extends Phaser.Sprite {
     });
   }
   
+  /**
+   * Plays the confirm animation: the chosen item glows while others fade out.
+   * @param {object} item - The item being confirmed
+   * @param {Function} callback - Called after the animation completes
+   */
   animateSelection(item, callback) {
     this.isAnimating = true;
     
@@ -665,6 +791,10 @@ class CarouselMenu extends Phaser.Sprite {
     ENABLE_UI_SFX && Audio.play('ui_select');
   }
   
+  /**
+   * Plays the cancel animation, sliding items out before the callback runs.
+   * @param {Function} callback - Called after the animation completes
+   */
   animateCancel(callback) {
     this.isAnimating = true;
     
@@ -693,6 +823,9 @@ class CarouselMenu extends Phaser.Sprite {
     });
   }
   
+  /**
+   * Cancels the menu, playing the cancel animation before dispatching onCancel.
+   */
   cancel() {
     if (!this.isAnimating && this.onCancel.getNumListeners() > 0 || this.config.disableCancel) {
       ENABLE_UI_SFX && Audio.play('ui_cancel');
@@ -707,6 +840,9 @@ class CarouselMenu extends Phaser.Sprite {
     ENABLE_UI_SFX && Audio.play('ui_nav');
   }
   
+  /**
+   * Clears all items, tweens, scroll bar, and signals.
+   */
   clear() {
     // Stop all tweens before clearing
     this.items.forEach(item => {
@@ -734,11 +870,19 @@ class CarouselMenu extends Phaser.Sprite {
     this.onCancel.dispose();
   }
   
+  /**
+   * Destroys this menu and returns a fresh one with the same layout and config.
+   * @returns {CarouselMenu} The replacement menu
+   */
   replace() {
     this.destroy();
     return new CarouselMenu(this.x, this.y, this.viewport.width, this.viewport.height, this.config);
   }
   
+  /**
+   * Clears the menu state and destroys the sprite.
+   * @param {boolean} [createNew=false] - Unused; present for compatibility
+   */
   destroy(createNew = false) {
     this.clear();
     super.destroy();

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>CharacterPortrait - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "CharacterPortrait Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Cropped character portrait display (15x15)</p>
+
+    [heading: "Description"]
+    <p>A specialized cropped character display configured with the standard portrait crop dimensions. Used for character selection screens and profile displays.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Uses portrait crop area from CHARACTER_SYSTEM constants
+* Inherits all layered rendering from CharacterCroppedDisplay
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ x | number | Horizontal position ]
+[ y | number | Vertical position ]
+[ characterData | Object | Character data model ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const portrait = new CharacterPortrait(100, 50, characterData);
+game.world.addChild(portrait);
+portrait.updateAppearance({ top: 'top_seifuku_red' });
+portrait.destroy();
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

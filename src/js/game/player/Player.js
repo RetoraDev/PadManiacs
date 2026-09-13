@@ -1,3 +1,31 @@
+/**
+ * @class Player
+ * @category Core Game Classes
+ * @summary Handles all gameplay logic including note processing and scoring
+ * @constructor
+ * @param {Phaser.Scene} scene - The Phaser game scene this player belongs to
+ * @param {string} playerSide - Player position: "center", "left", or "right"
+ * @param {Object} settings - Gameplay configuration overrides
+ * @features
+ * Note input processing and judgement evaluation
+ * Score, combo, health, and accuracy tracking
+ * Hold and roll note management
+ * Skill system integration
+ * @description
+ * Core gameplay class that processes player input, evaluates timing judgements against chart notes,
+ * and manages all runtime game state including scoring, health, combo, and accuracy.
+ * Delegates visual rendering to ChartRenderer while handling the logic layer of gameplay.
+ * Serves as the base class for FirstPlayer and SecondPlayer.
+ * @example
+ * // Creating a Player instance directly
+ * const player = new Player(game.state.getCurrentState(), "left", {
+ *   speedMod: "C-MOD",
+ *   scrollDirection: "falling",
+ *   noteSpeedMult: 1.5
+ * });
+ * player.update();
+ * console.log(player.score, player.combo, player.accuracy);
+ */
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
     this.scene = scene;
@@ -8,6 +36,7 @@ class Player {
     this.hud = scene.hud;
     
     // Use ChartRenderer for rendering
+    /** @type {ChartRenderer} Handles all visual chart rendering */
     this.renderer = new ChartRenderer(scene, JSON.parse(JSON.stringify(scene.song)), scene.song.difficultyIndex || scene.difficultyIndex, {
       enableGameplayLogic: true,
       enableJudgement: true,
@@ -27,10 +56,14 @@ class Player {
     });
     
     // Copy references from renderer
+/** @type {Array} Chart note data for this difficulty */
     this.notes = this.renderer.notes;
+    /** @type {Array} BPM change markers from the chart */
     this.bpmChanges = this.renderer.bpmChanges;
+    /** @type {Array} Stop events from the chart */
     this.stops = this.renderer.stops;
-    
+
+    /** @type {boolean} Whether AI auto-play is active */
     this.autoplay = settings.autoplay || scene.autoplay;
     this.autoplayActiveHolds = new Set();
 
@@ -45,16 +78,25 @@ class Player {
     };
 
     // Game state
+    /** @type {Array<boolean>} Current press state for each column */
     this.inputStates = [false, false, false, false];
     this.lastInputStates = [false, false, false, false];
+    /** @type {Object} Active hold notes keyed by column index */
     this.activeHolds = {};
+    /** @type {Set} Columns currently being held */
     this.heldColumns = new Set();
+    /** @type {Array} History of all judgements received */
     this.judgementHistory = [];
     this.lastNoteCheckBeats = [null, null, null, null];
+    /** @type {number} Current accumulated score */
     this.score = 0;
+    /** @type {number} Current consecutive hit streak */
     this.combo = 0;
+    /** @type {number} Highest combo achieved this game */
     this.maxCombo = 0;
+    /** @type {number} Maximum health capacity */
     this.maxHealth = 100;
+    /** @type {number} Current player health */
     this.health = this.maxHealth;
     this.previousHealth = this.health;
     this.timingStory = [];
@@ -65,6 +107,7 @@ class Player {
     this.ROLL_REQUIRED_INTERVALS = 0.5;
     
     // Accuracy tracking
+    /** @type {Object} Count of each judgement type received */
     this.judgementCounts = {
       marvelous: 0,
       perfect: 0,
@@ -73,13 +116,19 @@ class Player {
       boo: 0,
       miss: 0
     };
+    /** @type {number} Total note count for accuracy calculation */
     this.totalNotes = 0;
+    /** @type {number} Current accuracy percentage (0-100) */
     this.accuracy = 0;
+    /** @type {boolean} Whether the game has ended */
     this.gameOver = false;
     
     // Skill system
+    /** @type {Object} Reference to the active skill system */
     this.skillSystem = this.scene.skillSystem;
+    /** @type {number} Consecutive marvelous/perfect hits */
     this.perfectStreak = 0;
+    /** @type {boolean} Whether the combo shield skill is active */
     this.comboShieldActive = false;
     this.skillSystem.onHealthRegen = amount => this.onSkillHpRegen(amount);
     this.skillSystem.onComboShield = () => this.onComboShield();
@@ -88,6 +137,7 @@ class Player {
     this.calculateTotalNotes();
     
     // Copy receptors from renderer
+    /** @type {Array} Receptor sprites for each column */
     this.receptors = this.renderer.receptors;
     
     // Initialize receptors touch interactivity
@@ -126,6 +176,10 @@ class Player {
     this.ACCURACY_BAR_WIDTH = 187;
   }
   
+  /**
+   * Counts the total number of hittable notes in the chart for accuracy calculation.
+   * Called once during initialization to set the baseline for accuracy scoring.
+   */
   calculateTotalNotes() {
     const noteValues = {
       "1": 1,
@@ -145,6 +199,15 @@ class Player {
     return (192 - totalWidth) / 2;
   }
   
+  /**
+   * Finds the nearest unhit note in a given column within a time range.
+   * Used by input handling and auto-play to identify which note to judge.
+   * @param {number} column - Column index (0-3)
+   * @param {number} beat - Current beat position
+   * @param {Array<string>} noteTypes - Note types to search for
+   * @param {number} searchRangeSeconds - Search window in seconds
+   * @returns {Object|null} Closest matching note or null
+   */
   findClosestNote(column, beat, noteTypes = ["1", "2"], searchRangeSeconds = 0.5) {
     const now = this.renderer.beatToSec(beat);
         
@@ -203,6 +266,15 @@ class Player {
     );
   }
 
+  /**
+   * Checks if a note falls within the judgement window and triggers the callback.
+   * Prevents double-judging the same note by tracking last checked beats per column.
+   * @param {Object} note - The note to check
+   * @param {number} currentTime - Current playback time in seconds
+   * @param {number} column - Column index
+   * @param {Function} callback - Called with (note, timeDelta) if within window
+   * @returns {boolean} Whether the note was processed
+   */
   processNoteIfInWindow(note, currentTime, column, callback) {
     // Calculate time delta in seconds
     const noteTime = note.sec;
@@ -220,6 +292,10 @@ class Player {
     return false;
   }
 
+  /**
+   * AI auto-play logic that simulates perfect inputs for all notes.
+   * Processes regular notes and holds automatically each frame when enabled.
+   */
   // AI autolay method
   autoPlay() {
     if (!this.scene.startTime || this.scene.isPaused) return;
@@ -273,6 +349,12 @@ class Player {
     }
   }
 
+  /**
+   * Core input handler that processes key press and release events.
+   * Routes to regular note checking, hold start/release, and roll tapping logic.
+   * @param {number} column - Column index (0-3)
+   * @param {boolean} isKeyDown - True for key press, false for release
+   */
   // Input handling
   handleInput(column, isKeyDown) {
     if (!this.scene.startTime || this.scene.isPaused) return;
@@ -323,6 +405,13 @@ class Player {
     }
   }
   
+  /**
+   * Checks if a regular tap note was hit within the judgement window.
+   * @param {number} column - Column index
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   * @returns {boolean} Whether a note was hit
+   */
   checkRegularNotes(column, now, beat) {
     const closestNote = this.findClosestNote(column, beat, ["1"]);
     
@@ -339,6 +428,14 @@ class Player {
     return false;
   }
 
+  /**
+   * Checks if the player is holding a column with a mine note at the judgement line.
+   * Mines damage the player when held at the same position.
+   * @param {number} column - Column index
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   * @returns {boolean} Whether a mine was triggered
+   */
   checkMines(column, now, beat) {
     // Find mine notes that are very close to the current beat (at judgment line)
     const mineNotes = this.notes.filter(n => 
@@ -364,6 +461,11 @@ class Player {
     return hitMine;
   }
   
+  /**
+   * Applies damage and breaks combo when a mine note is triggered.
+   * Respects mine damage multiplier from the skill system.
+   * @param {Object} mineNote - The mine note that was hit
+   */
   triggerMine(mineNote) {
     this.createExplosion(mineNote, "mine");
     mineNote.hit = true;
@@ -382,6 +484,13 @@ class Player {
     }
   }
 
+  /**
+   * Checks if a hold or roll note should begin based on current timing.
+   * Initializes the hold tracking state for the column.
+   * @param {number} column - Column index
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   checkHoldStart(column, now, beat) {
     const closestHold = this.findClosestNote(column, beat, ["2", "4"]);
     
@@ -412,6 +521,12 @@ class Player {
     }
   }
 
+  /**
+   * Handles key release during an active hold note.
+   * Applies forgiveness window before marking the hold as inactive.
+   * @param {number} column - Column index
+   * @param {number} now - Current time in seconds
+   */
   checkHoldRelease(column, now) {
     const hold = this.activeHolds[column];
     if (hold) {
@@ -441,6 +556,10 @@ class Player {
     Account.settings.hapticFeedback && this.this.gamepad.vibrate(duration);
   }
   
+  /**
+   * Returns judgement windows modified by skill system multipliers.
+   * @returns {Object} Judgement window thresholds in milliseconds
+   */
   getAdjustedJudgementWindows() {
     const baseWindows = { ...this.scene.JUDGE_WINDOWS };
     const multiplier = this.skillSystem ? this.skillSystem.getJudgementWindowMultiplier() : 1.0;
@@ -452,18 +571,32 @@ class Player {
     return baseWindows;
   }
 
+  /**
+   * Returns hold note forgiveness duration with skill system modifier.
+   * @returns {number} Forgiveness window in seconds
+   */
   getHoldForgiveness() {
     const baseForgiveness = this.HOLD_FORGIVENESS;
     const multiplier = this.skillSystem ? this.skillSystem.getHoldForgivenessMultiplier() : 1.0;
     return baseForgiveness * multiplier;
   }
 
+  /**
+   * Returns roll note tap forgiveness duration with skill system modifier.
+   * @returns {number} Forgiveness window in seconds
+   */
   getRollForgiveness() {
     const baseForgiveness = this.ROLL_FORGIVENESS;
     const multiplier = this.skillSystem ? this.skillSystem.getRollForgivenessMultiplier() : 1.0;
     return baseForgiveness * multiplier;
   }
 
+  /**
+   * Evaluates the timing delta against adjusted judgement windows.
+   * Updates the perfect streak counter and records to timing history.
+   * @param {number} timeDelta - Time difference in seconds (negative = early, positive = late)
+   * @returns {string} Judgement name: "marvelous", "perfect", "great", "good", "boo", or "miss"
+   */
   getJudgement(timeDelta) {
     this.timingStory.push(timeDelta);
     
@@ -486,6 +619,15 @@ class Player {
     return "miss";
   }
     
+  /**
+   * Processes a judgement result by updating score, combo, health, and accuracy.
+   * Applies skill system modifiers including score multipliers, health gains,
+   * combo shields, and judgement conversions.
+   * @param {Object} note - The note that was judged
+   * @param {string} judgement - The judgement result
+   * @param {number} column - Column index
+   * @param {string} type - Note type: "normal" or "freeze"
+   */
   processJudgement(note, judgement, column, type = "normal") {
     // Check for combo shield before processing miss
     if (judgement === "miss" && this.comboShieldActive) {
@@ -570,18 +712,30 @@ class Player {
     this.showJudgementText(judgement, column, type);
   }
   
+  /**
+   * Returns maximum health including skill system bonuses.
+   * @returns {number} Maximum health value
+   */
   getMaxHealth() {
     const baseHealth = this.maxHealth;
     const bonus = this.skillSystem ? this.skillSystem.getMaxHealthBonus() : 0;
     return baseHealth + bonus;
   }
   
+  /**
+   * Returns note speed multiplier combined with skill system modifiers.
+   * @returns {number} Combined speed multiplier
+   */
   getNoteSpeedMultiplier() {
     const baseMultiplier = this.renderer.NOTE_SPEED_MULTIPLIER;
     const skillMultiplier = this.skillSystem ? this.skillSystem.getNoteSpeedMultiplier() : 1.0;
     return baseMultiplier * skillMultiplier;
   }
   
+  /**
+   * Recalculates accuracy as a weighted percentage of achieved vs possible score.
+   * Updates the accuracy bar in the HUD.
+   */
   updateAccuracy() {
     if (this.gameOver) return;
     
@@ -623,6 +777,9 @@ class Player {
     }
   }
 
+  /**
+   * Updates the HUD display with current combo, score, and pulsing effects.
+   */
   updateUI() {
     this.comboText.write(this.combo.toString());
     this.comboText.tint = this.getComboColor(this.combo);
@@ -637,6 +794,10 @@ class Player {
     this.hud.alpha = this.gameOver ? 0.5 : 1;
   }
   
+  /**
+   * Returns a letter grade based on current accuracy.
+   * @returns {string} Grade from "SSS+" down to "F"
+   */
   getScoreRating() {
     const acc = this.accuracy;
     
@@ -652,6 +813,13 @@ class Player {
     return "F";
   }
 
+  /**
+   * Displays the judgement text with color, animation, and optional receptor pulse.
+   * Freeze judgements show as smaller floating text near the receptor.
+   * @param {string} judgement - The judgement to display
+   * @param {number} column - Column index for receptor pulsing
+   * @param {string} type - "normal" or "freeze" for different display styles
+   */
   showJudgementText(judgement, column, type) {
     const colors = {
       marvelous: 0x00ffff,
@@ -718,6 +886,11 @@ class Player {
     game.add.tween(sprite.scale).to({ x: 1.2, y: 1.2 }, 50, "Linear", true).yoyo(true);
   }
   
+  /**
+   * Returns a color that transitions from white to yellow as combo increases.
+   * @param {number} combo - Current combo count
+   * @returns {number} RGB color value
+   */
   getComboColor(combo) {
     const max = 100;
     const value = Math.min(max, combo);
@@ -727,12 +900,19 @@ class Player {
     return (r << 16) | (g << 8) | b;
   }
   
+  /**
+   * Callback for skill system health regeneration.
+   * @param {number} amount - Health to restore
+   */
   onSkillHpRegen(amount = 0) {
     if (!this.gameOver) {
       this.health = Math.min(this.getMaxHealth(), this.health + amount);
     }
   }
   
+  /**
+   * Activates the combo shield, converting the next miss into a non-combo-breaking boo.
+   */
   onComboShield() {
     this.comboShieldActive = true;
   }
@@ -753,6 +933,11 @@ class Player {
     return this.renderer.secToBeat(sec);
   }
   
+  /**
+   * Renders the chart by delegating to ChartRenderer with current active holds.
+   * Called each frame to update note positions and visual elements.
+   * @returns {Object} Current timing state {now, beat}
+   */
   render() {
     if (!this.scene.startTime || this.scene.isPaused) return;
 
@@ -764,6 +949,12 @@ class Player {
     return { now, beat };
   }
   
+  /**
+   * Main gameplay loop called each frame.
+   * Processes input, updates holds, checks skill activations, and manages health.
+   * Handles both manual input and auto-play modes.
+   * @returns {Object} Current timing state {now, beat}
+   */
   update() {
     const { now, beat } = this.scene.getCurrentTime();
 
@@ -899,6 +1090,9 @@ class Player {
     return { now, beat };
   }
 
+  /**
+   * Cleans up all renderer resources and sprite groups.
+   */
   destroy() {
     if (this.renderer) {
       this.renderer.destroy();

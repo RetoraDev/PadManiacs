@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>BackgroundGradient - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "BackgroundGradient Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Animated gradient background</p>
+
+    [heading: "Description"]
+    <p>A looping gradient backdrop used on title and loading screens. Extends Background and always configures its own looping alpha tween. It layers a soft animated color gradient behind menus without any further setup from the caller.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Loops the gradient alpha forever
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ min | Number | Minimum alpha value ]
+[ max | Number | Maximum alpha value ]
+[ time | Number | Full alpha cycle duration in milliseconds ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const bg = new BackgroundGradient(0.1, 0.5, 5000);
+game.add.existing(bg);
+bg.fadeIn();
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

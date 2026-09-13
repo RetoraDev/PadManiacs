@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>BackgroundMusic - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "BackgroundMusic Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Manages background music playback with caching</p>
+
+    [heading: "Description"]
+    <p>Plays background music in menus using an HTML audio element. Discovers available songs from local, external, and current state listings, caching the result for a short window and falling back to a random song when playback fails.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Random and last-song menu music playback
+* Cached song list discovery with short TTL
+* External URL accessibility checking
+* Volume control from account settings
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ audio | HTMLAudioElement | Audio element used for playback ]
+[ randomSong | boolean | Whether songs should be chosen at random ]
+[ isPlaying | boolean | Whether music is currently playing ]
+[ currentSong | Object|null | Metadata of the currently playing song ]
+[ availableSongsCache | Array|null | Cached list of available songs ]
+[ cacheTimestamp | number | Timestamp of the last cache build ]
+[ cacheDuration | number | How long the song list cache stays valid in milliseconds ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ registerVisibilityChangeListener | () | Pauses or resumes playback when the browser tab visibility changes. ]
+[ playLastSong | () | Resumes the last played song, verifying external URLs, or picks a random song as fallback. ]
+[ playRandomSong | () | Selects a random song from the cached available list and starts playback. ]
+[ CachedAvailableSongs | () | Returns the cached song list, rebuilding it if the cache has expired. ]
+[ AllAvailableSongsFast | () | Collects unique songs from local, external, and current state sources without URL checks. ]
+[ isValidAudioUrl | (url) | Performs quick validation that an audio URL is worth attempting playback. ]
+[ checkUrlAccessible | (url) | Tests whether an external audio URL can load metadata, with a short timeout. ]
+[ playSong | (songData) | Starts playback of a song, jumping to its sample start and handling load failures. ]
+[ removeSongFromCache | (failedUrl) | Removes a failed URL from the cached song list so it is not picked again. ]
+[ stop | () | Stops playback and resets playback state. ]
+[ setVolume | (volume) | Sets the volume from the indexed account volume setting. ]
+[ refreshCache | () | Invalidates the cached song list so it is rebuilt on next use. ]
+[ destroy | () | Stops playback, releases the audio element, and removes the visibility listener. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const bgm = new BackgroundMusic();
+bgm.playRandomSong();
+bgm.setVolume(50);
+bgm.stop();
+bgm.destroy();
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

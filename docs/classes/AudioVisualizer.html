@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>AudioVisualizer - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "AudioVisualizer Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Shows audio frequency spectrum</p>
+
+    [heading: "Description"]
+    <p>Draws vertical bars representing the frequency spectrum of the currently playing audio. Uses the Web Audio API to analyse the game audio element and render the data each frame.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Real-time frequency spectrum bars
+* Connects to game audio source through Web Audio API
+* Graceful fallback when audio analysis is unsupported
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ scene | Object | The Phaser game state scene ]
+[ x | number | Horizontal position ]
+[ y | number | Vertical position ]
+[ width | number | Display width in pixels ]
+[ height | number | Display height in pixels ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ audioContext | AudioContext|null | Web Audio API context for analysis ]
+[ analyser | AnalyserNode|null | Analyser node providing frequency data ]
+[ dataArray | Uint8Array|null | Buffer holding raw frequency data ]
+[ bufferLength | number | Length of the frequency data buffer ]
+[ bars | Array | Sprites or metadata for drawn bars ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ setupAudioAnalysis | () | Creates the Web Audio API context and analyser, connecting it to the scene's audio element. ]
+[ update | () | Fetches frequency data and redraws the spectrum bars each frame. ]
+[ destroy | () | Frees the graphics and closes the audio context. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const audioViz = new AudioVisualizer(scene, 0, 0, 200, 50);
+function update() {
+  audioViz.update();
+}
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

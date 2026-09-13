@@ -1,8 +1,35 @@
+/**
+ * @class Metronome
+ * @category Core Game Classes
+ * @summary Audio metronome system for timing assistance
+ * @constructor
+ * @param {Object} scene - The Phaser game state scene
+ * @features
+ * Quarter, eighth, sixteenth, and thirty-second beat divisions
+ * Note-triggered mode that ticks on actual note beats
+ * Toggle via scene select button binding
+ * @description
+ * Plays audible tick sounds synchronized to the song's beat to assist timing.
+ * Supports standard rhythmic subdivisions and a note mode that triggers on actual
+ * chart note beats for practice assistance.
+ * @example
+ * // Modding usage example
+ * const metro = new Metronome(scene);
+ * metro.setMode('Quarters');
+ * metro.toggle();
+ * function update() {
+ *   metro.update();
+ * }
+ */
 class Metronome {
   constructor(scene) {
+    /** @type {Object} The owning Phaser game state scene */
     this.scene = scene;
+    /** @type {string} Current metronome mode from account settings */
     this.mode = Account.settings.metronome;
+    /** @type {boolean} Whether the metronome ticks are active */
     this.enabled = false;
+    /** @type {Object} Map of mode names to beat division multipliers */
     this.beatDivisions = {
       'OFF': 0,
       'Quarters': 1,       // Every whole beat (1, 2, 3, 4...)
@@ -12,18 +39,26 @@ class Metronome {
       'Note': 'Note'       // Special mode - plays when notes reach their beat time
     };
     
+    /** @type {number} Last division value to detect beat crossings */
     this.lastDivisionValue = -1;
+    /** @type {number} Division multiplier of the current mode */
     this.currentDivision = this.beatDivisions[this.mode];
     
     // For NOTE mode
+    /** @type {number} Current note index to check */
     this.noteIndex = 0; // Current note index to check
+    /** @type {number} Last note beat that triggered a tick */
     this.lastNoteBeat = -1; // Last note beat that triggered a tick
+    /** @type {Array} Array of unique note beats */
     this.notes = []; // Array of unique note beats
     
     // Bind the toggle method to the scene
     this.scene.onSelectPressed = this.toggle.bind(this);
   }
 
+  /**
+   * Updates the metronome each frame, dispatching to the active mode's update logic.
+   */
   update() {
     if (!this.enabled) return;
     
@@ -34,6 +69,9 @@ class Metronome {
     }
   }
   
+  /**
+   * Plays a tick whenever the beat crosses into a new subdivision value.
+   */
   updateBeatMode() {
     if (this.currentDivision === 0) return;
     
@@ -47,6 +85,9 @@ class Metronome {
     }
   }
 
+  /**
+   * Triggers ticks as the song time reaches the beat of each chart note.
+   */
   updateNoteMode() {
     const { beat } = this.scene.getCurrentTime();
     const currentBeat = beat;
@@ -76,6 +117,9 @@ class Metronome {
     }
   }
 
+  /**
+   * Builds a sorted list of unique note beats from the current difficulty chart.
+   */
   initializeNotes() {
     // Get all notes from the current difficulty
     const difficulty = this.scene.song.chart.difficulties[this.scene.song.difficultyIndex];
@@ -105,6 +149,11 @@ class Metronome {
     this.lastNoteBeat = -1;
   }
 
+  /**
+   * Computes the current subdivision value by scaling the beat with the mode's multiplier.
+   * @param {number} beat - Current song beat
+   * @returns {number} The scaled division value, or -1 when disabled
+   */
   getCurrentDivisionValue(beat) {
     if (this.currentDivision === 0) return -1;
     
@@ -112,10 +161,16 @@ class Metronome {
     return Math.floor(beat * this.currentDivision);
   }
 
+  /**
+   * Plays the metronome tick sound effect.
+   */
   playTick() {
     Audio.play('assist_tick');
   }
 
+  /**
+   * Toggles the metronome enabled state when the mode is not OFF.
+   */
   toggle() {
     if (this.mode == 'OFF') return;
     
@@ -124,12 +179,19 @@ class Metronome {
     this.resetNoteMode(); // Reset note mode state
   }
 
+  /**
+   * Resets note mode state so ticks restart from the beginning of the chart.
+   */
   resetNoteMode() {
     this.noteIndex = 0;
     this.lastNoteBeat = -1;
     this.notes = [];
   }
 
+  /**
+   * Changes the metronome mode and reconfigures enabled state and tracking.
+   * @param {string} mode - One of the supported mode keys
+   */
   setMode(mode) {
     if (this.beatDivisions.hasOwnProperty(mode)) {
       this.mode = mode;
@@ -146,6 +208,9 @@ class Metronome {
     }
   }
 
+  /**
+   * Disables the metronome, resets state, and cleans up the status text display.
+   */
   destroy() {
     this.enabled = false;
     this.lastDivisionValue = -1;

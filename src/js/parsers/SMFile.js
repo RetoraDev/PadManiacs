@@ -1,4 +1,32 @@
+/**
+ * @class SMFile
+ * @category Parser Classes
+ * @summary StepMania file generation for chart export
+ * @constructor
+ * @features
+ * Generates complete .SM file content from internal song data
+ * Converts note data to measure-based SM notation with adaptive resolution
+ * Handles freeze/hold tail generation and beat subdivision snapping
+ * Supports custom resolutions beyond standard StepMania limits
+ * @description
+ * SMFile is a static utility class that serialises the internal song data
+ * format back into StepMania .SM file text. It handles metadata, BPM and
+ * stop timing, background events, and note-to-measure conversion with
+ * adaptive resolution selection so that exported charts preserve the
+ * original note placement accurately.
+ * @example
+ * // Exporting a song back to .SM format
+ * const smContent = SMFile.generateSM(songData);
+ * const blob = new Blob([smContent], { type: 'text/plain' });
+ * const url = URL.createObjectURL(blob);
+ * // Trigger download or save to file system
+ */
 class SMFile {
+  /**
+   * Generates the complete .SM file string from song data.
+   * @param {Object} songData - The internal song data object
+   * @returns {string} The full .SM file content
+   */
   static generateSM(songData) {
     let smContent = "";
     
@@ -58,6 +86,12 @@ class SMFile {
     return smContent;
   }
   
+  /**
+   * Generates the #NOTES section string for a single difficulty.
+   * @param {Object} difficulty - The difficulty descriptor (type and rating)
+   * @param {Array} notes - The note array for this difficulty
+   * @returns {string} The formatted #NOTES section text
+   */
   static generateNotesSection(difficulty, notes) {
     // First, process freeze notes to add their tail notes
     const processedNotes = this.processFreezeNotes(notes);
@@ -106,6 +140,11 @@ class SMFile {
     return notesContent;
   }
   
+  /**
+   * Processes freeze notes to generate their corresponding tail notes.
+   * @param {Array} notes - The original note array
+   * @returns {Array} A new sorted array with freeze tails appended
+   */
   static processFreezeNotes(notes) {
     const processedNotes = [...notes];
     const freezeTails = [];
@@ -135,6 +174,13 @@ class SMFile {
     return processedNotes;
   }
   
+  /**
+   * Converts a group of notes within a single measure to SM row notation.
+   * Selects the appropriate resolution automatically.
+   * @param {Array} notes - Notes normalised to the measure's beat range
+   * @param {number} measureNum - The measure number (0-indexed)
+   * @returns {string} The measure rows as a newline-separated string
+   */
   static convertMeasureToSM(notes, measureNum) {
     // First, normalize all beat positions to be within [0, 4) range
     const normalizedNotes = notes.map(note => {
@@ -235,6 +281,11 @@ class SMFile {
     return rowArray.join("\n");
   }
   
+  /**
+   * Determines the smallest beat subdivision that can represent a position.
+   * @param {number} beat - The beat position within a measure (0-4)
+   * @returns {number} The resolution as a fraction of a beat
+   */
   static getBeatResolution(beat) {
     const divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192];
     
@@ -247,12 +298,24 @@ class SMFile {
     return 4 / divisions[ divisions.length - 1 ]; // Snap to smallest division 
   }
   
+  /**
+   * Tests whether a beat position aligns to a given subdivision.
+   * @param {number} beat - The beat position to test
+   * @param {number} division - The subdivision count per measure
+   * @returns {boolean} True if the beat aligns to the subdivision
+   */
   static isBeatDivision(beat, division) {
     const epsilon = 0.0001;
     const remainder = (beat * division) % 4;
     return Math.abs(remainder) < epsilon || Math.abs(remainder - 4) < epsilon;
   }
   
+  /**
+   * Generates a measure with a custom row count beyond standard SM resolutions.
+   * @param {Array} notes - Notes normalised to the measure's beat range
+   * @param {number} totalRows - The total number of rows in the measure
+   * @returns {string} The measure rows as a newline-separated string
+   */
   static generateCustomResolutionMeasure(notes, totalRows) {
     // For resolutions beyond standard StepMania limits
     const rowsPerBeat = totalRows / 4;
@@ -277,6 +340,12 @@ class SMFile {
     return rowArray.join("\n");
   }
   
+  /**
+   * Resolves a filename to a full URL using a base path.
+   * @param {string} filename - The filename to resolve
+   * @param {string} baseUrl - The base URL for relative paths
+   * @returns {string} The resolved URL
+   */
   static resolveFileUrl(filename, baseUrl) {
     if (!filename) return "";
     if (filename.startsWith('http://') || filename.startsWith('https://') || filename.startsWith('//')) {

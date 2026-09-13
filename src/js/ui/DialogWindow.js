@@ -1,3 +1,31 @@
+/**
+ * @class DialogWindow
+ * @category UI Classes
+ * @summary Modal dialog windows for confirmations
+ * @constructor
+ * @param {string} text - Dialog message text
+ * @param {object} [options={}] - Dialog options (position, buttons, scrolling, etc.)
+ * @features
+ * Centered modal with an auto-sized window
+ * Word-wrapped text with optional scrolling
+ * Multiple selectable buttons with gamepad and mouse support
+ * Mouse wheel text scrolling and clickable buttons
+ * Dispatches onConfirm and onCancel signals
+ * @description
+ * DialogWindow shows a modal message with a set of buttons and dispatches the
+ * chosen button. The window auto-sizes to the wrapped text, can display a
+ * blinking scroll indicator when text overflows, and supports gamepad, mouse,
+ * and keyboard interaction. It is used for confirmation prompts across the UI.
+ * @example
+ * // Modding usage example
+ * const dialog = new DialogWindow('Delete save?', {
+ *   buttons: ['Cancel', 'Delete'],
+ *   defaultButton: 0
+ * });
+ * dialog.onConfirm.add((index, label) => {
+ *   if (index === 1) deleteSave();
+ * });
+ */
 class DialogWindow extends Phaser.Sprite {
   constructor(text, options = {}) {
     const {
@@ -18,8 +46,11 @@ class DialogWindow extends Phaser.Sprite {
     
     this.anchor.set(anchorX, anchorY);
 
+    /** @type {string} Raw dialog message text */
     this.text = text;
+    /** @type {Array} Button labels shown at the bottom of the dialog */
     this.buttons = buttons;
+    /** @type {number} Index of the currently selected button */
     this.selectedButton = defaultButton;
     this.enableTextScroll = enableTextScroll;
     this.disableMouse = disableMouse;
@@ -37,6 +68,9 @@ class DialogWindow extends Phaser.Sprite {
     this.createDialog();
   }
 
+  /**
+   * Builds the window frame, text content, buttons, and input handling.
+   */
   createDialog() {
     // Create window background using Window class
     const { width, height, wrappedText } = this.calculateWindowSize();
@@ -57,6 +91,10 @@ class DialogWindow extends Phaser.Sprite {
     this.setupInputHandling();
   }
 
+  /**
+   * Computes the window size needed for the wrapped text plus buttons.
+   * @returns {object} Width, height, and the wrapped text lines
+   */
   calculateWindowSize() {
     // Wrap the text
     const wrappedText = this.wrapText(this.text);
@@ -81,6 +119,11 @@ class DialogWindow extends Phaser.Sprite {
     };
   }
 
+  /**
+   * Wraps the dialog text into lines that fit the maximum line width.
+   * @param {string} text - The text to wrap
+   * @returns {Array} Array of wrapped lines
+   */
   wrapText(text) {
     const maxLineWidth = 160; // pixels
     const charWidth = 4;
@@ -128,6 +171,12 @@ class DialogWindow extends Phaser.Sprite {
     return wrappedLines;
   }
 
+  /**
+   * Splits a word longer than one line into fixed-size chunks.
+   * @param {string} word - The word to break apart
+   * @param {number} charsPerLine - Characters per chunk
+   * @returns {Array} Array of chunks
+   */
   breakLongWord(word, charsPerLine) {
     const chunks = [];
     let currentChunk = '';
@@ -143,10 +192,19 @@ class DialogWindow extends Phaser.Sprite {
     return chunks;
   }
 
+  /**
+   * Estimates the rendered width of a text string at 4px per character.
+   * @param {string} text - The text to measure
+   * @returns {number} Width in pixels
+   */
   getTextWidth(text) {
     return text.length * 4; // 4px per character
   }
 
+  /**
+   * Creates the visible text lines and the scroll indicator and scroll bar.
+   * @param {Array} wrappedText - Wrapped lines to display
+   */
   createTextContent(wrappedText) {
     this.textLines = [];
     this.allTextLines = wrappedText;
@@ -172,6 +230,9 @@ class DialogWindow extends Phaser.Sprite {
     this.updateScrollBar(); // Add scrollbar
   }
 
+  /**
+   * Creates the button texts, sizes them, and wires up mouse handlers.
+   */
   createButtonElements() {
     this.buttonTexts = [];
     const buttonAreaY = this.window.size.height * 8 - 12;
@@ -208,12 +269,18 @@ class DialogWindow extends Phaser.Sprite {
     this.updateButtonSelection();
   }
   
+  /**
+   * Marks the button matching the selected index as selected.
+   */
   updateButtonSelection() {
     this.buttonTexts.forEach((button, index) => {
       button.selected = index === this.selectedButton;
     });
   }
 
+  /**
+   * Creates or removes the blinking scroll indicator based on overflow.
+   */
   updateScrollIndicator() {
     // Remove existing scroll indicator
     if (this.scrollIndicator) {
@@ -237,6 +304,9 @@ class DialogWindow extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Draws the scroll bar sized to the visible-to-total text ratio.
+   */
   updateScrollBar() {
     // Remove existing scroll bar
     if (this.scrollBar) {
@@ -269,6 +339,9 @@ class DialogWindow extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Creates the dialog signals and wires up gamepad button handlers.
+   */
   setupInputHandling() {
     this.onConfirm = new Phaser.Signal();
     this.onCancel = new Phaser.Signal();
@@ -277,6 +350,9 @@ class DialogWindow extends Phaser.Sprite {
     this.setupGamepadSignals();
   }
 
+  /**
+   * Subscribes the per-dialog handlers to the global gamepad signals.
+   */
   setupGamepadSignals() {
     // Add signals for dialog navigation
     gamepad.signals.pressed.left.add(this.onLeftPressed, this);
@@ -287,6 +363,10 @@ class DialogWindow extends Phaser.Sprite {
     gamepad.signals.pressed.b.add(this.onBPressed, this);
   }
   
+  /**
+   * Selects the button at the given index and updates button visuals.
+   * @param {number} index - Button index to select
+   */
   selectIndex(index) {
     this.selectedButton = index;
     this.updateButtonSelection();
@@ -338,6 +418,9 @@ class DialogWindow extends Phaser.Sprite {
     this.cancel();
   }
 
+  /**
+   * Rebuilds the visible text lines and scroll bar for the current scroll.
+   */
   refreshTextContent() {
     // Remove existing text lines
     this.textLines.forEach(text => text.destroy());
@@ -367,6 +450,9 @@ class DialogWindow extends Phaser.Sprite {
     this.updateScrollBar(); // Update scrollbar position
   }
 
+  /**
+   * Confirms the selected button, dispatches onConfirm, then cleans up.
+   */
   confirm() {
     if (!this.isActive) return;
     
@@ -376,6 +462,9 @@ class DialogWindow extends Phaser.Sprite {
     this.cleanup();
   }
 
+  /**
+   * Cancels the dialog, confirming the cancel-ish button or dispatching onCancel.
+   */
   cancel() {
     if (!this.isActive) return;
     
@@ -399,6 +488,9 @@ class DialogWindow extends Phaser.Sprite {
     this.cleanup();
   }
   
+  /**
+   * Animates the selected button and handles mouse wheel text scrolling.
+   */
   update() {
     // Update button animations
     if (this.buttonTexts) {
@@ -423,11 +515,17 @@ class DialogWindow extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Removes the dialog's gamepad signal handlers after it closes.
+   */
   cleanup() {
     // Remove original gamepad signal handlers
     this.removeGamepadSignals();
   }
 
+  /**
+   * Unsubscribes all dialog handlers from the global gamepad signals.
+   */
   removeGamepadSignals() {
     gamepad.signals.pressed.left.remove(this.onLeftPressed, this);
     gamepad.signals.pressed.right.remove(this.onRightPressed, this);
@@ -439,6 +537,9 @@ class DialogWindow extends Phaser.Sprite {
     gamepad.pressed.b = false;
   }
 
+  /**
+   * Destroys the dialog, its window, and its gamepad subscriptions.
+   */
   destroy() {
     if (this.isActive) {
       this.cleanup();

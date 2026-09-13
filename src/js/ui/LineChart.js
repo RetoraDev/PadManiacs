@@ -1,7 +1,31 @@
+/**
+ * @class LineChart
+ * @category UI Classes
+ * @summary Line chart for statistics display
+ * @constructor
+ * @param {Number} x - X position of the chart
+ * @param {Number} y - Y position of the chart
+ * @param {Number} width - Width of the chart area
+ * @param {Number} height - Height of the chart area
+ * @param {Array<Number>} [data] - Initial data points to plot
+ * @features
+ * Optional area fill under the plotted line
+ * Zero line drawn when the value range spans zero
+ * @description
+ * A line chart sprite for plotting numeric series. Data points are normalized against the min/max of the series and connected with a stroked line, optionally with points and a filled area beneath. Appearance is configurable for both line and fill styling.
+ * @example
+ * // Modding usage example
+ * const chart = new LineChart(50, 100, 200, 150, [5, 12, 8, 20]);
+ * game.add.existing(chart);
+ * chart.setConfig({ lineColor: 0x00e5ff, showPoints: true });
+ * chart.setData([1, 4, 3, 9, 7]);
+ */
 class LineChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
+    /** @type {{width: Number, height: Number}} Chart dimensions */
     this.size = { width, height };
+    /** @type {Object} Chart appearance settings */
     this.config = {
       backgroundColor: 0x000000,
       backgroundAlpha: 0.5,
@@ -18,13 +42,18 @@ class LineChart extends Phaser.Sprite {
       pointRadius: 2,
       showPoints: false
     };
+    /** @type {Array<Number>} Data points to plot */
     this.data = data || [];
+    /** @type {Phaser.Graphics} Drawing surface for the chart */
     this.graphics = game.add.graphics(0, 0);
     this.addChild(this.graphics);
     this.drawChart();
     game.add.existing(this);
   }
   
+  /**
+   * Rebuilds the entire chart on the graphics object. Clears prior drawing then redraws the background, border, zero line, optional filled area, main line and points from the current config and data.
+   */
   drawChart() {
     this.graphics.clear();
     
@@ -100,11 +129,19 @@ class LineChart extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Replaces the chart data and redraws the chart.
+   * @param {Array<Number>} data - New data points to plot
+   */
   setData(data) {
     this.data = data;
     this.drawChart();
   }
   
+  /**
+   * Merges the given settings into the chart config and redraws the chart.
+   * @param {Object} config - Partial config object to merge in
+   */
   setConfig(config) {
     Object.assign(this.config, config);
     this.drawChart();

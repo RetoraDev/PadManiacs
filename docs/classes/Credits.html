@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Credits - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Credits Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Credits screen</p>
+
+    [heading: "Description"]
+    <p>The Credits state plays the end-of-game credits as a vertically scrolling banner paced by the tempo of a randomly selected background song. It cycles artwork from the local song library as a backdrop. Once the credits finish, the player can press any button to return to the configured state.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Scrollable credits paced by the background song tempo
+* Background slideshow of song artwork
+* Plays a random song from the music library
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ returnState | string | Game state to return to when credits finish. ]
+[ returnStateParams | Object | Params forwarded to the return state. ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ returnState | string | State to return to when credits finish. ]
+[ returnStateParams | Object | Params forwarded to the return state. ]
+[ isWaitingForInput | boolean | Whether input is being awaited after the finale. ]
+[ availableBackgrounds | Array | URLs of backgrounds available for the slideshow. ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ init | (returnState, returnStateParams) | Records the return state and initializes credits timing and background data. ]
+[ create | () | Builds the credits text container, background slideshow, and music. ]
+[ setupBackground | () | Creates the background sprite and starts the artwork slideshow timer. ]
+[ startBackgroundMusic | () | Picks a random song with audio and plays it behind the credits. ]
+[ SongCredits | () | Collects credit lines for every local song with chart credit metadata. ]
+[ beatToSec | (beat) | Converts a beat position to seconds using BPM changes and stops. ]
+[ secToBeat | (sec) | Converts a seconds position to beats using BPM changes and stops. ]
+[ update | () | Scrolls the credits, syncing speed to the current BPM each frame. ]
+[ onCreditsComplete | () | Shows the thank-you message and waits for input to leave the screen. ]
+[ returnToMenu | () | Fades the camera and transitions to the configured return state. ]
+[ shutdown | () | Removes input handlers and stops credits music and background timers. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+// Play the credits and return to a chosen state afterward
+game.state.start("Credits");
+
+// Or specify where to land once the credits complete
+game.state.start("Credits", true, false, "Title");
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

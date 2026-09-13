@@ -1,7 +1,35 @@
+/**
+ * @class OnScreenKeyboard
+ * @category Core Game Classes
+ * @summary Touchscreen on-screen keyboard overlay
+ * @constructor
+ * @param {number} [x=60] - Initial horizontal position of the keyboard sprite
+ * @param {number} [y=75] - Initial vertical position of the keyboard sprite
+ * @features
+ * Renders a texture-based keyboard with individually mapped keys
+ * Highlights the currently active key and shift state
+ * Supports symbol and shift toggle keys plus action keys
+ * Sends typed input to the window's focused element
+ * @description
+ * OnScreenKeyboard is a full character keyboard rendered as a Phaser sprite whose
+ * keys are defined as rectangles over the 'ui_keyboard' texture. It updates its
+ * highlight based on the active pointer or a mapped gamepad shortcut and routes
+ * typed characters through onDown/onUp signals to any focused element that exposes
+ * a receiveInput function.
+ * @example
+ * // Modding usage example
+ * const keyboard = new OnScreenKeyboard(60, 75);
+ * keyboard.onDown.add((key, input) => {
+ *   console.log(`Key ${key.code} produced "${input}"`);
+ * });
+ * // Simulate pressing the first key
+ * keyboard.onKeyDown(keyboard.keys[0]);
+ */
 class OnScreenKeyboard extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x || 60, y || 75, "ui_keyboard", 0);
     
+    /** @type {Object[]} Definitions of every key drawn on the keyboard texture */
     this.keys = [
       { top: 4, left: 4, width: 7, height: 7, code: "1", symbol: "1" }, 
       { top: 4, left: 14, width: 7, height: 7, code: "2", symbol: "2" },
@@ -58,22 +86,33 @@ class OnScreenKeyboard extends Phaser.Sprite {
       { top: 44, left: 108, width: 7, height: 7, code: "ArrowRight", action: "right", shortcut: "right" }
     ];
     
+    /** @type {Phaser.Graphics} Graphics object that draws the pressed key highlight */
     this.highlight = game.add.graphics(0, 0);
     this.addChild(this.highlight);
     
+    /** @type {boolean} Whether the keyboard sprite is visible */
     this.visible = true;
     
+    /** @type {?Object} The key currently being pressed or hovered */
     this.activeKey = null;
+    /** @type {?Object} The key pressed via the physical keyboard */
     this.keyboardKey = null;
+    /** @type {boolean} Shift state from the previous frame */
     this.previousShiftState = false;
+    /** @type {?Object} Active key from the previous frame */
     this.previousActiveKey = null;
     
+    /** @type {?string} Key code of the last pressed key */
     this.keycode = null;
     
+    /** @type {boolean} Whether the symbol key layer is active */
     this.symbol = false;
+    /** @type {boolean} Whether shift mode is active */
     this.shift = false;
     
+    /** @type {Phaser.Signal} Dispatched with the key and input value when a key is pressed */
     this.onDown = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched with the key when a key is released */
     this.onUp = new Phaser.Signal();
     
     this.addListeners();
@@ -81,6 +120,9 @@ class OnScreenKeyboard extends Phaser.Sprite {
     game.add.existing(this);
   }
   
+  /**
+   * Registers keyboard listeners that map physical key presses to keyboard keys.
+   */
   addListeners() {
     inputManager.keyboardListener.onDown.add((_, event) => {
       // Press the corresponding key
@@ -94,6 +136,11 @@ class OnScreenKeyboard extends Phaser.Sprite {
     inputManager.keyboardListener.onUp.add(() => this.keyboardKey = null);
   }
   
+  /**
+   * Finds the key whose rectangle contains the given pointer position.
+   * @param {Phaser.Pointer} pointer - The pointer to test
+   * @returns {?Object} The key at the pointer position, or null
+   */
   getKeyUnderPointer(pointer) {
     let { x, y } = pointer;
     
@@ -109,16 +156,27 @@ class OnScreenKeyboard extends Phaser.Sprite {
     return null;
   }
   
+  /**
+   * Toggles the symbol layer and switches the keyboard texture frame.
+   */
   toggleSymbol() {
     this.symbol = !this.symbol;
     
     this.frame = this.symbol ? 1 : 0;
   }
   
+  /**
+   * Toggles shift mode which uppercases typed input.
+   */
   toggleShift() {
     this.shift = !this.shift;
   }
   
+  /**
+   * Handles a key press, computing the shifted input and dispatching signals.
+   * Action keys toggle shift or symbol or emit a raw enter/erase input instead.
+   * @param {Object} key - The key definition that was pressed
+   */
   onKeyDown(key) {
     if (key.gamepad) {
       if (this.symbol && !key.symbol) {
@@ -153,19 +211,31 @@ class OnScreenKeyboard extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Sends the typed input to the window's focused element if it supports receiving input.
+   * @param {Object} [key={}] - The key definition that was pressed
+   * @param {string} [input=''] - The resolved character string to send
+   */
   sendInput(key = {}, input = '') {
     if (window.focusedElement && typeof window.focusedElement.receiveInput == 'function') {
       window.focusedElement.receiveInput(key, input);
     }
   }
   
+  /**
+   * Clears the active keycode and dispatches the key-up signal.
+   * @param {Object} key - The key definition that was released
+   */
   onKeyUp(key) {
     this.keycode = null;
     this.onUp.dispatch(key);
   }
   
+  /**
+   * Tracks the active key from the pointer or keyboard and redraws the highlight.
+   * Call every frame while the keyboard is on screen.
+   */
   update() {
-    const pointer = game.input.activePointer;
     
     
     if (pointer.isDown) {

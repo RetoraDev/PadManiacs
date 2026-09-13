@@ -1,15 +1,49 @@
+/**
+ * @class ScreenRecorder
+ * @category Core Game Classes
+ * @summary Video recording and screenshot functionality
+ * @constructor
+ * @param {Object} game - The Phaser game instance
+ * @features
+ * WebM video recording via MediaRecorder at scaled resolution
+ * Optional audio capture from the game audio element or microphone
+ * High-resolution PNG screenshot capture
+ * File saving for Cordova, NWjs, and browser environments
+ * @description
+ * Records video and captures screenshots of the Phaser game canvas. Uses a scaled
+ * offscreen canvas for higher quality output and merges audio from the game source
+ * or fallback microphone when available.
+ * @example
+ * // Modding usage example
+ * const recorder = new ScreenRecorder(game);
+ * await recorder.start(audioElement, 0);
+ * recorder.pause();
+ * recorder.resume();
+ * recorder.stop();
+ * recorder.screenshot();
+ */
 class ScreenRecorder {
   constructor(game) {
+    /** @type {Object} The Phaser game instance */
     this.game = game;
+    /** @type {MediaRecorder|null} Active MediaRecorder instance */
     this.mediaRecorder = null;
+    /** @type {Array} Blobs collected during the current recording */
     this.recordedBlobs = [];
+    /** @type {boolean} Whether recording is currently active */
     this.isRecording = false;
+    /** @type {MediaStream|null} The captured output stream */
     this.stream = null;
+    /** @type {number} Target bitrate for recorded video */
     this.videoBitsPerSecond = 1100000;
+    /** @type {number} Frame rate captured from the scaled canvas */
     this.videoFrameRate = 25;
+    /** @type {number} Scale factor for videos TODO: rename it to videoScale */
     this.scale = 1; // Scale factor for videos TODO: rename it to videoScale
+    /** @type {number} Scale factor applied to screenshots */
     this.imageScale = 7;
 
+    /** @type {HTMLCanvasElement} Phaser CE game canvas element */
     this.canvas = game.canvas;  // Phaser CE game canvas element
 
     // Check if canvas.captureStream is supported
@@ -19,6 +53,11 @@ class ScreenRecorder {
     }
   }
 
+  /**
+   * Starts recording the game canvas, optionally adding audio to the stream.
+   * @param {HTMLAudioElement} [audioElement] - Audio element to record along with the video
+   * @param {number} [audioDelay=0] - Delay in milliseconds applied to audio capture
+   */
   async start(audioElement = null, audioDelay = 0) {
     if (this.isRecording) {
       console.warn('Already recording');
@@ -103,6 +142,9 @@ class ScreenRecorder {
     }
   }
 
+  /**
+   * Continuously draws the game canvas onto the scaled recording canvas each frame.
+   */
   startRenderingLoop() {
     const renderFrame = () => {
       if (this.isRecording && this.scaledCanvas && this.scaledContext) {
@@ -126,6 +168,9 @@ class ScreenRecorder {
     renderFrame();
   }
 
+  /**
+   * Stops the active recording session and triggers saving and cleanup.
+   */
   stop() {
     if (!this.isRecording || !this.mediaRecorder) {
       console.warn('Not recording');
@@ -142,6 +187,9 @@ class ScreenRecorder {
     }
   }
 
+  /**
+   * Pauses the recording if one is in progress.
+   */
   pause() {
     if (this.isRecording && this.mediaRecorder && this.mediaRecorder.state === 'recording') {
       this.mediaRecorder.pause();
@@ -149,6 +197,9 @@ class ScreenRecorder {
     }
   }
 
+  /**
+   * Resumes a paused recording.
+   */
   resume() {
     if (this.isRecording && this.mediaRecorder && this.mediaRecorder.state === 'paused') {
       this.mediaRecorder.resume();
@@ -156,6 +207,9 @@ class ScreenRecorder {
     }
   }
   
+  /**
+   * Captures a scaled PNG screenshot of the current game world and saves it to a file.
+   */
   screenshot() {
     // Create a scaled canvas for high-resolution screenshot
     const scaledCanvas = document.createElement('canvas');
@@ -197,6 +251,10 @@ class ScreenRecorder {
     renderTexture.destroy();
   }
 
+  /**
+   * Bundles recorded blobs into a WebM file and saves it.
+   * @param {string} [filename] - Optional filename; defaults to a timestamped name
+   */
   async save(filename) {
     if (this.recordedBlobs.length === 0) {
       console.warn('No recording data available');
@@ -212,6 +270,11 @@ class ScreenRecorder {
     console.log('Recording saved as:', filename);
   }
   
+  /**
+   * Writes a blob to disk using the file system tools on Cordova/NWjs or a download link in browsers.
+   * @param {string} filename - Name of the output file
+   * @param {Blob} blob - Data blob to save
+   */
   async saveFile(filename, blob) {
     if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       const fileSystem = new FileSystemTools();
@@ -240,6 +303,12 @@ class ScreenRecorder {
   }
 
   // Add audio to the stream
+  /**
+   * Attaches audio tracks to the recording stream from the audio element or microphone.
+   * @param {HTMLAudioElement} [audioElement] - Audio element to capture
+   * @param {number} [audioDelay=0] - Delay in milliseconds applied before capture
+   * @returns {Promise<boolean>} Whether audio was successfully added
+   */
   async addAudioToStream(audioElement = null, audioDelay = 0) {
     try {
       if (audioElement && audioElement.src) {
@@ -304,6 +373,12 @@ class ScreenRecorder {
   }
 
   // Method to add audio after recording has started (experimental)
+  /**
+   * Adds audio tracks to an already-started recording by pausing, modifying, and resuming.
+   * @param {HTMLAudioElement} [audioElement] - Audio element to capture
+   * @param {number} [audioDelay=0] - Delay in milliseconds applied before capture
+   * @returns {Promise<boolean>} Whether audio was successfully added
+   */
   async addAudioAfterStart(audioElement = null, audioDelay = 0) {
     if (!this.isRecording || !this.mediaRecorder) {
       console.warn('Cannot add audio - recording not started');
@@ -327,6 +402,9 @@ class ScreenRecorder {
     }
   }
 
+  /**
+   * Stops stream tracks and releases the scaled canvas and recorder references.
+   */
   cleanup() {
     // Stop the rendering loop
     this.isRecording = false;
@@ -346,22 +424,38 @@ class ScreenRecorder {
   }
 
   // Check if recording is supported
+  /**
+   * Checks whether canvas capture streaming and MediaRecorder are supported by the browser.
+   * @returns {boolean} True if recording is supported
+   */
   static isSupported() {
     return !!(HTMLCanvasElement.prototype.captureStream && window.MediaRecorder);
   }
 
   // Get recording state
+  /**
+   * Returns the current MediaRecorder state.
+   * @returns {string} State like 'inactive', 'recording', or 'paused'
+   */
   getState() {
     return this.mediaRecorder ? this.mediaRecorder.state : 'inactive';
   }
   
   // Method to change scale factor
+  /**
+   * Changes the scale factor applied to recorded videos.
+   * @param {number} newScale - New scale factor
+   */
   setScale(newScale) {
     this.scale = newScale;
     console.log(`Scale factor set to: ${this.scale}`);
   }
   
   // Method to get current scale factor
+  /**
+   * Returns the current video scale factor.
+   * @returns {number} The active scale factor
+   */
   getScale() {
     return this.scale;
   }

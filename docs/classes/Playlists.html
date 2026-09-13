@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Playlists - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Playlists Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Playlist creation and management screen</p>
+
+    [heading: "Description"]
+    <p>The Playlists state is the playlist management screen where players create, rename, clear and delete playlists built from the song library. It prompts to preload external songs when a playlist references them, and starts song selection against a filtered snippet of the playlist when a song is chosen.</p>
+
+    [heading: "Key Features"]
+    [list]
+* List, create, rename, clear, and delete playlists
+* Song view with external song loading prompts
+* Launch SongSelect from within a playlist
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ playlistManager | PlaylistManager | Shared playlist manager instance. ]
+[ actionText | Text | Header text showing the current screen title. ]
+[ detailText | Text | Detail text under the header (e.g. song counts). ]
+[ carousel | CarouselMenu | Carousel listing playlists or songs. ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ create | () | Sets up the playlist UI and shows the list or continues a pending load. ]
+[ loadExternalSongsThenProceed | (callback) | Loads external songs first, or prompts the player when they are missing. ]
+[ showPlaylistList | () | Rebuilds the main carousel listing all playlists. ]
+[ addPlaylist | () | Opens an on-screen keyboard to create a new named playlist. ]
+[ openPlaylist | (key) | Opens a playlist, prompting to load external songs when required. ]
+[ openPlaylistWithRefs | (key) | Builds the song list view for a playlist, marking missing songs. ]
+[ renamePlaylist | (key) | Opens a rename dialog for an existing playlist. ]
+[ deletePlaylist | (key) | Confirms and deletes a playlist. ]
+[ startSongSelect | (playlistKey, songRefs, songIndex) | Starts song selection from the playable songs of a playlist. ]
+[ confirmDialog | (message, onConfirm, onCancel) | Shows a modal confirm/cancel dialog. ]
+[ update | () | Updates gamepad input each frame. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+// Open the playlist management screen
+game.state.start("Playlists");
+
+// Create a playlist programmatically first
+PlaylistManager.getInstance().createPlaylist("My Mix");
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

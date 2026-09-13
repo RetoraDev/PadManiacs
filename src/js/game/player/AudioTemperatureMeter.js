@@ -1,14 +1,45 @@
+/**
+ * @class AudioTemperatureMeter
+ * @category Core Game Classes
+ * @summary Audio-based tempo meter for dynamic background effects
+ * @constructor
+ * @param {Phaser.Scene} scene - The Phaser game scene
+ * @param {HTMLAudioElement} audioElement - The game audio element to analyze
+ * @features
+ * Volume-based silence detection
+ * BPM spike detection for intensity changes
+ * Stop event awareness
+ * Sample section highlighting
+ * @description
+ * Monitors audio playback and chart data to determine when the music is at a high or low
+ * intensity, dispatching signals that drive dynamic visual effects like background animations.
+ * Uses Web Audio API for volume analysis and chart metadata for BPM changes, stops,
+ * and sample section detection to make temperature state decisions.
+ * @example
+ * // Creating a temperature meter for background effects
+ * const meter = new AudioTemperatureMeter(scene, audioElement);
+ * meter.onHighTemperature.add(() => {
+ *   backgroundSprite.playAnimation("intense");
+ * });
+ * meter.onLowTemperature.add(() => {
+ *   backgroundSprite.playAnimation("calm");
+ * });
+ */
 class AudioTemperatureMeter {
   constructor(scene, audioElement) {
     this.scene = scene;
     this.audio = audioElement;
     
+    /** @type {Phaser.Signal} Dispatched when the temperature switches to high */
     this.onHighTemperature = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when the temperature switches to low */
     this.onLowTemperature = new Phaser.Signal();
     
+    /** @type {boolean} Whether the meter currently reports a high state */
     this.isHigh = false;
     this.sampleStartSec = 9999;
     this.sampleEndSec = 9999 + 1;
+    /** @type {number} Most recently measured BPM value */
     this.lastBPM = 120;
     this.bpmSpikeActive = false;
     this.bpmSpikeEndTime = 0;
@@ -17,6 +48,7 @@ class AudioTemperatureMeter {
     this.silenceEndTime = null;
     this.volumeHistory = [];
     
+    /** @type {Object} Tunable detection settings for the meter */
     this.config = {
       debug: false,
       ignoreFirstSeconds: 5,
@@ -33,6 +65,10 @@ class AudioTemperatureMeter {
     }
   }
   
+  /**
+   * Reads the song's sample start and length from the chart for temperature timing.
+   * Called once during construction to define the sample section window.
+   */
   init() {
     if (!this.scene || !this.scene.song) return;
     
@@ -46,6 +82,10 @@ class AudioTemperatureMeter {
     }
   }
   
+  /**
+   * Initializes the Web Audio API analyser for volume detection.
+   * Safe to call with no audio element; setup is skipped silently.
+   */
   setupVolumeDetection() {
     if (!this.audio) return;
     
@@ -64,6 +104,11 @@ class AudioTemperatureMeter {
     }
   }
   
+  /**
+   * Returns the current normalized loudness of the audio stream.
+   * Falls back to a neutral 0.5 when no analyser is available.
+   * @returns {number} Normalized volume from 0 to 1
+   */
   getVolume() {
     if (!this.analyser || !this.dataArray) return 0.5;
     
@@ -75,6 +120,12 @@ class AudioTemperatureMeter {
     return sum / this.bufferLength;
   }
   
+  /**
+   * Returns the BPM in effect at the given playback time from chart changes.
+   * Falls back to the last measured BPM when no chart is available.
+   * @param {number} nowSec - Current playback time in seconds
+   * @returns {number} BPM value
+   */
   getCurrentBPM(nowSec) {
     if (!this.scene || !this.scene.player || !this.scene.player.renderer) {
       return this.lastBPM;
@@ -97,6 +148,11 @@ class AudioTemperatureMeter {
     return currentBPM;
   }
   
+  /**
+   * Detects significant BPM increases and activates a spike section.
+   * A 16-measure (64 beat) high section is triggered on large jumps.
+   * @param {number} nowSec - Current playback time in seconds
+   */
   checkForBPMSpike(nowSec) {
     const currentBPM = this.getCurrentBPM(nowSec);
     
@@ -134,6 +190,12 @@ class AudioTemperatureMeter {
     this.lastBPM = currentBPM;
   }
   
+  /**
+   * Samples audio volume and tracks periods of silence.
+   * Returns whether the current moment is silent and for how long.
+   * @param {number} nowSec - Current playback time in seconds
+   * @returns {Object} {isSilent, silenceDuration}
+   */
   checkForSilence(nowSec) {
     const volume = this.getVolume();
     
@@ -160,6 +222,11 @@ class AudioTemperatureMeter {
     return { isSilent, silenceDuration: this.silenceStartTime !== null ? nowSec - this.silenceStartTime : 0 };
   }
   
+  /**
+   * Detects when playback passes through a chart stop event.
+   * Temporarily marks the meter as in a stop with a timed reset.
+   * @param {number} nowSec - Current playback time in seconds
+   */
   checkForStops(nowSec) {
     if (!this.scene || !this.scene.player || !this.scene.player.renderer) {
       return;
@@ -194,6 +261,12 @@ class AudioTemperatureMeter {
     }
   }
   
+  /**
+   * Main per-frame evaluation that decides high or low temperature state.
+   * Combines sample section, BPM spike, silence, and stop rules, then dispatches signals.
+   * @param {number} nowSec - Current playback time in seconds
+   * @param {number} beat - Current beat position
+   */
   update(nowSec, beat) {
     if (!this.audio || !this.scene) return;
     
@@ -301,6 +374,9 @@ class AudioTemperatureMeter {
     );
   }
   
+  /**
+   * Resets all detection state back to initial values.
+   */
   reset() {
     this.isHigh = false;
     this.bpmSpikeActive = false;
@@ -311,14 +387,25 @@ class AudioTemperatureMeter {
     this.volumeHistory = [];
   }
   
+  /**
+   * Returns the temperature as a numeric value.
+   * @returns {number} 100 when high, 0 when low
+   */
   getTemperature() {
     return this.isHigh ? 100 : 0;
   }
   
+  /**
+   * Returns whether the meter currently reports a high temperature state.
+   * @returns {boolean} True when high
+   */
   isTemperatureHigh() {
     return this.isHigh;
   }
     
+  /**
+   * Cleans up signals and debug text used by the meter.
+   */
   destroy() {
     // Detener todas las señales primero
     this.onHighTemperature.dispose();

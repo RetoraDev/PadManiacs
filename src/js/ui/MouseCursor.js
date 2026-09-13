@@ -1,25 +1,51 @@
+/**
+ * @class MouseCursor
+ * @category UI Classes
+ * @summary Custom mouse cursor
+ * @constructor
+ * @description
+ * Replaces the native OS cursor with a game sprite and exposes button/wheel signals for the rest of the UI. It tracks press, hold and release edge states for left, right and middle buttons, dispatches move signals, and hides itself after two seconds of inactivity. It automatically (re)initializes when the active state is allowed and disables all native mouse interactions.
+ * @example
+ * // Modding usage example
+ * const cursor = new MouseCursor();
+ * cursor.onMove.add((x, y) => {
+ *   console.log('cursor at', x, y);
+ * });
+ * cursor.show();
+ */
 class MouseCursor {
   constructor() {
+    /** @type {Phaser.Sprite} Cursor sprite rendered over the scene */
     this.sprite = null;
     
+    /** @type {Boolean} Whether the cursor sprite is visible */
     this.visible = true;
     
+    /** @type {Phaser.Signal} Fired when a mouse button is pressed */
     this.onDown = new Phaser.Signal();
+    /** @type {Phaser.Signal} Fired when the mouse moves */
     this.onMove = new Phaser.Signal();
+    /** @type {Phaser.Signal} Fired when a mouse button is released */
     this.onUp = new Phaser.Signal();
+    /** @type {Phaser.Signal} Fired when the mouse wheel scrolls */
     this.onWheel = new Phaser.Signal();
     
+    /** @type {Array<String>} Identifier strings for each tracked mouse button */
     this.keys = [];
     
     this.reset();
     
+    /** @type {Phaser.Pointer} The active mouse input pointer */
     this.pointer = game.input.mousePointer;
     
+    /** @type {{x: Number, y: Number}} Position reported on the last move */
     this.lastPosition = { x: 0, y: 0 };
+    /** @type {Number} Timestamp of the last input activity */
     this.lastUpdate = game.time.now;
     
     this.setupStateChangeHandling();
     
+    /** @type {Set} State names where the custom cursor is disabled */
     this.restrictedStates = new Set(['Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
     
     // Prevent all mouse interactions
@@ -28,6 +54,9 @@ class MouseCursor {
     game.canvas.parentNode.addEventListener('mouseup', (e) => e.preventDefault(), true);
     game.canvas.parentNode.addEventListener('contextmenu', (e) => e.preventDefault(), true);
   }
+  /**
+   * Recreates all signals and clears every input state container, resetting pressed, held, released and wheel flags.
+   */
   reset() {
     this.onDown.dispose();
     this.onMove.dispose();
@@ -48,9 +77,16 @@ class MouseCursor {
       down: false
     };
   }
+  /**
+   * Registers a state-change listener so the cursor reinitializes on every new state.
+   */
   setupStateChangeHandling() {
     game.state.onStateChange.add(this.onStateChange, this);
   }
+  /**
+   * Resets input state on state change and reinitializes the cursor when the new state is allowed.
+   * @param {Object} newState - The newly entered game state
+   */
   onStateChange(newState) {
     this.reset();
     
@@ -63,9 +99,17 @@ class MouseCursor {
       }
     });
   }
+  /**
+   * Whether a given state name is allowed to use the custom cursor.
+   * @param {String} stateName - Name of the game state to check
+   * @returns {Boolean} True unless the state is in the restricted set
+   */
   isStateAllowed(stateName) {
     return !this.restrictedStates.has(stateName);
   }
+  /**
+   * Builds the cursor sprite and wires up pointer button and wheel input callbacks. Any existing cursor sprite is destroyed first.
+   */
   initializeCursor() {
     if (this.sprite) {
       this.sprite.destroy();
@@ -94,6 +138,11 @@ class MouseCursor {
     };
     game.input.mouseWheel.callbackContext = this;
   }
+  /**
+   * Attaches press and release handlers for one mouse button, dispatching the corresponding signals and waking the cursor sprite.
+   * @param {Phaser.MouseButton} button - The pointer button to listen to
+   * @param {String} id - Identifier reported in the dispatched signals
+   */
   setupDeviceButton(button, id) {
     this.keys.push(id);
     button.onDown.add(() => {
@@ -109,6 +158,9 @@ class MouseCursor {
       this.sprite.alpha = 1;
     });
   }
+  /**
+   * Per-frame routine for the cursor sprite: tracks the pointer, switches to the hand frame over clickable targets, dispatches move signals and fades the sprite out after inactivity.
+   */
   updateCursor() {
     this.updateState();
     
@@ -139,6 +191,9 @@ class MouseCursor {
     
     this.onMove.dispatch(x, y);
   }
+  /**
+   * Computes pressed, released and held edge states for every tracked button and exposes them on the aggregate 'any' flags.
+   */
   updateState() {
     // Calculate pressed/released for individual keys
     let anyPressed = false;
@@ -175,12 +230,21 @@ class MouseCursor {
     });
     this.prevState.any = this.held.any;
   }
+  /**
+   * Hides the cursor sprite while keeping input tracking active.
+   */
   hide() {
     this.visible = false;
   }
+  /**
+   * Shows the cursor sprite again.
+   */
   show() {
     this.visible = true;
   }
+  /**
+   * Destroys the cursor sprite and disposes of all signals.
+   */
   destroy() {
     this.sprite?.destroy?.();
     this.onDown.dispose();

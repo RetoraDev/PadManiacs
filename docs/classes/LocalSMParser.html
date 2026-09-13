@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>LocalSMParser - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "LocalSMParser Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Parses StepMania .SM files for built-in songs</p>
+
+    [heading: "Description"]
+    <p>LocalSMParser reads StepMania .SM file content that ships with the game and converts it into the internal song data format. It handles BPM changes, stop timing, note parsing, and background event resolution for songs stored on the local file system.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Parses all standard .SM metadata tags (title, artist, BPMs, stops)
+* Resolves media file URLs relative to the song base directory
+* Converts beat positions to seconds accounting for BPM changes and stops
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ baseUrl | string | The base URL used for resolving relative file paths ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ parseSM | (smContent, baseUrl) | Parses raw .SM file content into the internal song data structure. Extracts metadata, BPM changes, stops, notes, and resolves media URLs. ]
+[ loadTextFile | (url) | Loads a text file from a URL via FileTools. ]
+[ resolveFileUrl | (filename, baseUrl) | Resolves a filename to a full URL using the base path. Handles absolute URLs and relative paths. ]
+[ LastBpm | (bpmChanges, time, valueType) | Finds the BPM change entry active at a given time value. ]
+[ beatToSec | (bpmChanges, stops, beat) | Converts a beat position to seconds accounting for BPM changes and stops. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Parsing a built-in song's .SM file
+const parser = new LocalSMParser();
+const smText = await FileTools.loadTextFile('Songs/MySong/song.sm');
+const songData = await parser.parseSM(smText, 'Songs/MySong/');
+console.log(songData.title, songData.difficulties.length, 'difficulties');
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

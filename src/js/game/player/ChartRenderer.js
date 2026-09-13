@@ -1,3 +1,34 @@
+/**
+ * @class ChartRenderer
+ * @category Core Game Classes
+ * @summary Renders notes, receptors, and chart elements
+ * @constructor
+ * @param {Phaser.Scene} scene - The Phaser game scene
+ * @param {Object} song - Song data containing chart and metadata
+ * @param {number} difficultyIndex - Index into the chart's difficulty array
+ * @param {Object} options - Rendering and gameplay configuration options
+ * @features
+ * Falling and rising scroll direction rendering
+ * Hold and roll note body rendering
+ * Mine note animation and display
+ * Beat line, speed change, and background change overlays
+ * Object pooling for sprite reuse
+ * @description
+ * Handles all visual rendering of the chart during gameplay, including notes, receptors,
+ * hold/roll bodies, mines, beat lines, and speed/background change indicators.
+ * Supports both falling and rising scroll directions with configurable speed modifiers.
+ * Manages sprite pooling and z-ordering for efficient rendering performance.
+ * @example
+ * // Creating a ChartRenderer for a song
+ * const renderer = new ChartRenderer(scene, songData, 0, {
+ *   scrollDirection: "falling",
+ *   speedMod: "X-MOD",
+ *   noteSpeedMultiplier: 1.5,
+ *   enableBeatLines: true
+ * });
+ * // Render at current time
+ * renderer.render(currentTime, currentBeat);
+ */
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -32,15 +63,22 @@ class ChartRenderer {
     
     this.player = this.options.player || this.scene.player;
 
+    /** @type {string} Scroll direction: "falling" or "rising" */
     this.scrollDirection = this.options.scrollDirection || "falling";
 
     // Visual constants
+    /** @type {number} Vertical pixel spacing between note rows */
     this.VERTICAL_SEPARATION = 1.25;
     this.SCREEN_CONSTANT = this.options.speedMod === "C-MOD" ? 240 / 60 : 1;
+    /** @type {number} Base note speed multiplier including screen constant */
     this.NOTE_SPEED_MULTIPLIER = this.options.noteSpeedMultiplier + this.SCREEN_CONSTANT;
+    /** @type {number} Y position of the judgement line */
     this.JUDGE_LINE = this.scrollDirection === "falling" ? this.options.judgeLineYFalling : this.options.judgeLineYRising;
+    /** @type {number} Render direction: -1 for falling, 1 for rising */
     this.DIRECTION = this.scrollDirection === "falling" ? -1 : 1;
+    /** @type {number} Width of each note column */
     this.COLUMN_SIZE = 20;
+    /** @type {number} Gap between note columns */
     this.COLUMN_SEPARATION = 4;
     this.INACTIVE_COLOR = 0x888888;
 
@@ -169,10 +207,17 @@ class ChartRenderer {
 
     this.tags = {};
     
+    /** @type {Array} Receptor sprites for each of the four columns */
     this.receptors = [];
     this.initialize();
   }
   
+  /**
+   * Loads a song's chart data for the given difficulty into the renderer.
+   * Cleans up any previously pooled note sprites before reloading.
+   * @param {Object} song - Song data containing chart and metadata
+   * @param {number} difficultyIndex - Index into the chart's difficulty array
+   */
   load(song, difficultyIndex) {
     if (this.notes) {
       this.notes.forEach(note => this.killNote(note, true));
@@ -181,19 +226,35 @@ class ChartRenderer {
     this.song = song;
     this.difficultyIndex = difficultyIndex;
     this.chart = song.chart;
+    /** @type {Object} The selected difficulty from the chart */
     this.difficulty = this.chart.difficulties[difficultyIndex];
+    /** @type {Array} Note data for the selected difficulty */
     this.notes = this.chart.notes[this.difficulty.type + this.difficulty.rating];
+    /** @type {Array} BPM change markers from the chart */
     this.bpmChanges = this.chart.bpmChanges;
+    /** @type {Array} Stop events from the chart */
     this.stops = this.chart.stops;
     this.backgrounds = this.chart.backgrounds || [];
   }
   
+  /**
+   * Destroys this renderer and returns a fresh instance for the given chart.
+   * Used to rebuild the renderer with different chart data or options.
+   * @param {Object} song - Song data to load
+   * @param {number} difficultyIndex - Index into the chart's difficulty array
+   * @param {Object} options - Rendering and gameplay configuration options
+   * @returns {ChartRenderer} A new ChartRenderer instance
+   */
   recreate(song, difficultyIndex, options) {
     this.destroy();
     
     return new ChartRenderer(this.scene, song || this.song, difficultyIndex || 0, options || this.options);
   }
 
+  /**
+   * Sets up receptor sprites, explosion effects, and the chart background.
+   * Called once during construction to build the initial visual layout.
+   */
   initialize() {
     const leftOffset = this.calculateLeftOffset();
 
@@ -286,6 +347,14 @@ class ChartRenderer {
     return Math.abs(remainder) < epsilon || Math.abs(remainder - 4) < epsilon;
   }
 
+  /**
+   * Computes the on-screen Y position of a note for the current scroll direction.
+   * Also returns the past-scroll distance and hold body height for freeze notes.
+   * @param {Object} note - The note to position
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   * @returns {Object} {pastSize, bodyHeight, yPos}
+   */
   calculateVerticalPosition(note, now, beat) {
     let pastSize;
     let bodyHeight = 0;
@@ -312,6 +381,11 @@ class ChartRenderer {
     return { pastSize, bodyHeight, yPos };
   }
 
+  /**
+   * Returns the BPM in effect at the given beat position.
+   * @param {number} beat - Beat position to look up
+   * @returns {number} Current BPM value
+   */
   getCurrentBPM(beat = 0) {
     if (!this.bpmChanges || this.bpmChanges.length === 0) return 120;
     
@@ -330,6 +404,11 @@ class ChartRenderer {
     return this.bpmChanges.find((e, i, a) => i + 1 == a.length || a[i + 1][valueType] >= time);
   }
 
+  /**
+   * Converts a beat position to seconds, accounting for BPM changes and stops.
+   * @param {number} beat - Beat position to convert
+   * @returns {number} Time in seconds
+   */
   beatToSec(beat) {
     if (!this.bpmChanges || this.bpmChanges.length === 0) return beat * 60 / 120;
     
@@ -340,6 +419,11 @@ class ChartRenderer {
     return x;
   }
 
+  /**
+   * Converts a time in seconds to a beat position, accounting for stops.
+   * @param {number} sec - Time in seconds to convert
+   * @returns {number} Beat position
+   */
   secToBeat(sec) {
     if (!this.bpmChanges || this.bpmChanges.length === 0) return sec * 120 / 60;
     
@@ -349,6 +433,12 @@ class ChartRenderer {
     return ((sec - b.sec) * b.bpm) / 60 + b.beat;
   }
   
+  /**
+   * Main render entry point called each frame.
+   * Dispatches to the falling or rising renderer and draws optional overlay elements.
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   render(now, beat) {
     if (this.paused) return;
     
@@ -370,6 +460,12 @@ class ChartRenderer {
     this.cleanupTags();
   }
 
+  /**
+   * Renders all notes in a falling scroll direction with miss checking and z-ordering.
+   * Called by render() when the scroll direction is set to "falling".
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   renderFalling(now, beat) {
     const leftOffset = this.calculateLeftOffset();
     const notesToRender = [];
@@ -428,6 +524,12 @@ class ChartRenderer {
     });
   }
 
+  /**
+   * Renders all notes in a rising scroll direction with miss checking and z-ordering.
+   * Called by render() when the scroll direction is set to "rising".
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   renderRising(now, beat) {
     const leftOffset = this.calculateLeftOffset();
     const notesToRender = [];
@@ -486,6 +588,13 @@ class ChartRenderer {
     });
   }
 
+  /**
+   * Positions and animates a mine note's sprite at the given coordinates.
+   * Reuses pooled sprites or creates new ones on demand.
+   * @param {Object} note - The mine note to render
+   * @param {number} x - X position
+   * @param {number} yPos - Y position
+   */
   renderMine(note, x, yPos) {
     if (!note.sprite) {
       note.sprite = this.minesGroup.getFirstDead() || (() => {
@@ -502,6 +611,13 @@ class ChartRenderer {
     note.sprite.y = yPos;
   }
 
+  /**
+   * Positions an arrow note's sprite, applying its color frame and column rotation.
+   * Reuses pooled sprites or creates new ones on demand.
+   * @param {Object} note - The arrow note to render
+   * @param {number} x - X position
+   * @param {number} yPos - Y position
+   */
   renderArrow(note, x, yPos) {
     if (!note.sprite) {
       note.sprite = this.notesGroup.getFirstDead() || (() => {
@@ -519,6 +635,18 @@ class ChartRenderer {
     note.sprite.y = yPos;
   }
 
+  /**
+   * Renders hold and roll note bodies and endpoints with active hold tracking.
+   * Handles miss checking, active-state trimming, and tinting for holds.
+   * @param {Object} note - The hold/roll note to render
+   * @param {number} x - X position
+   * @param {number} yPos - Base Y position
+   * @param {number} bodyHeight - Full height of the hold body
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   * @param {string} direction - "falling" or "rising"
+   * @returns {number} Adjusted Y position of the note arrow
+   */
   renderHoldNote(note, x, yPos, bodyHeight, now, beat, direction) {
     if (!note.holdParts) {
       const prefix = note.type === "2" ? "hold" : "roll";
@@ -644,6 +772,12 @@ class ChartRenderer {
     return yPos;
   }
 
+  /**
+   * Renders beat division lines for the visible measures on screen.
+   * Cleans up off-screen and stuck timeline sprite objects.
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   renderTimeLines(now, beat) {
     const beatsPerMeasure = Account.settings.beatsPerMeasure || 4;
     const startMeasure = Math.floor(beat / beatsPerMeasure);
@@ -667,6 +801,12 @@ class ChartRenderer {
     this.cleanupStuckLines();
   }
   
+  /**
+   * Draws BPM change and stop indicator lines with tags on the chart.
+   * Redraws the speed-mod overlay graphics each time it is called.
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   renderSpeedChanges(now, beat) {
     this.speedModGraphics.clear();
     
@@ -708,6 +848,12 @@ class ChartRenderer {
     });
   }
   
+  /**
+   * Draws background change indicator lines with tags on the chart.
+   * Redraws the background-change overlay graphics each time it is called.
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   renderBGChanges(now, beat) {
     this.bgChangeGraphics.clear();
     
@@ -887,6 +1033,12 @@ class ChartRenderer {
     return null;
   }
 
+  /**
+   * Spawns and animates an explosion effect at the matching receptor position.
+   * Uses normal or mine explosion textures depending on the type requested.
+   * @param {Object} note - The note that triggered the explosion
+   * @param {string} type - "normal" or "mine" explosion texture
+   */
   createExplosion(note, type = "normal") {
     const receptor = this.receptors[note.column];
 
@@ -913,6 +1065,11 @@ class ChartRenderer {
       .onComplete.add(() => explosion.kill());
   }
 
+  /**
+   * Shows or hides the active-hold explosion glow on a receptor.
+   * @param {number} column - Column index whose receptor glow to toggle
+   * @param {boolean} visible - Whether the glow should be visible
+   */
   toggleHoldExplosion(column, visible) {
     const explosion = this.receptors[column].explosion;
     explosion.visible = visible;
@@ -974,6 +1131,9 @@ class ChartRenderer {
     return line;
   }
 
+  /**
+   * Destroys all sprite groups and graphics used for rendering the chart.
+   */
   destroy() {
     this.linesGroup.destroy(true);
     this.receptorsGroup.destroy(true);

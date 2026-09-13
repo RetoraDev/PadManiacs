@@ -1,14 +1,22 @@
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
+/** @type {AccountData} User data with settings, characters, achievements, and progress */
 let Account = {
   ...DEFAULT_ACCOUNT,
   ...JSON.parse(localStorage.getItem("Account") || "{}")
 };
 
+/**
+ * Saves account data to localStorage
+ */
 const saveAccount = () => localStorage.setItem("Account", JSON.stringify(Account));
 
+/**
+ * Initializes and starts the Phaser game
+ */
 const bootGame = () => {
   if (game) game.destroy();
+  /** @type {Phaser.Game} Main Phaser game instance */
   game = new Phaser.Game({
     width: 240,
     height: 140,
@@ -48,6 +56,10 @@ const bootGame = () => {
 
 window.onload = bootGame;
 
+/**
+ * Displays a running FPS counter in the top-right corner of the screen
+ * @returns {Text} The FPS text object, updated every frame
+ */
 const addFpsText = () => {
   const text = new Text(238, 2, "");
   text.anchor.x = 1;
@@ -55,6 +67,10 @@ const addFpsText = () => {
   return text;
 };
 
+/**
+ * Opens URL in default browser
+ * @param {string} url - URL to open in the default browser
+ */
 window.openExternalUrl = url => {
   // Ensure URL is properly encoded
   const encodedUrl = encodeURI(url);
@@ -120,6 +136,7 @@ window.getDifficultyColor = (value, returnIntFormat = false) => {
 };
 
 // Audio pooling system
+/** @type {Object} Audio pool for Phaser Audio objects */
 const Audio = {
   pool: {},
   add: function (key) {
@@ -194,6 +211,7 @@ const createGradientBackground = (x, y, width, height, color) => {
 })();
 
 // Multiplayer settings
+/** @type {Object} Default multiplayer player settings derived from account settings */
 const DEFAULT_PLAYER_SETTINGS = {
   autoplay: Account.settings.autoplay,
   scrollDirection: Account.settings.scrollDirection,
@@ -202,6 +220,7 @@ const DEFAULT_PLAYER_SETTINGS = {
   speedMod: Account.settings.speedMod
 };
 
+/** @type {Object} Shared multiplayer match state */
 window.multiplayerState = {
   song: null,
   difficultyIndex: 0,

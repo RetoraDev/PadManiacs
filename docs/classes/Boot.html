@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Boot - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Boot Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Load critical assets, initialize input system, then start loading the game</p>
+
+    [heading: "Description"]
+    <p>The very first game state that runs on launch. It preloads essential spritesheets such as fonts and window panels, fixes account settings migrated from older versions, initializes global systems like notifications, input management, achievements, and the mouse cursor, then registers every subsequent game state and begins the asset loading pipeline.</p>
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ keys | Array&lt;string&gt; | Keys of the primary spritesheets loaded in this state ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ preload | () | Loads the essential spritesheets (fonts and window panels) and records their keys into this.keys, then checks whether the game crashed during the previous session. ]
+[ checkForCrashRecovery | () | Checks a local storage flag to detect whether the game crashed on the previous session and clears it while marking the account for a later bug report dialog. ]
+[ fixSettings | () | Migrates the saved account data into a compatible format for the current game version, fixing older keyboard mappings, character customization, and settings fields. ]
+[ create | () | Initializes global systems (notifications, input manager, achievements, mouse cursor), registers every game state, builds the full resource manifest, and transitions to the Load state. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Boot is the entry state set in the Phaser game config.
+// It transitions automatically to the Load state once setup is complete.
+game = new Phaser.Game(480, 270, Phaser.AUTO, 'game', null, null, false);
+game.state.add('Boot', Boot);
+game.state.start('Boot');
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

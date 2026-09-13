@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>ProgressText - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "ProgressText Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Progress text for loading screens</p>
+
+    [heading: "Description"]
+    <p>ProgressText is a Text subclass that displays loading progress messages at the bottom-left corner of the screen. It anchors its bottom edge so the text stays on-screen regardless of message length, inheriting all of the typewriter and wrapping behavior of Text.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Anchors to the bottom-left of the screen
+* Reuses Text rendering, typewriter, and wrapping effects
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ text | string | The text to display ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ anchor | PIXI.Point | Anchor pinned to the bottom so the text stays on-screen ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const progress = new ProgressText('Loading assets...');
+progress.write('Loading 50%...');
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>
