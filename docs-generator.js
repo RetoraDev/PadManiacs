@@ -6,6 +6,7 @@ const { BuildSystem } = require('./build.js');
 
 const DOCS_TITLE = 'PadManiaX Modding API Documentation';
 const GAME_NAME = 'PadManiaX';
+const GAME_VERSION = new BuildSystem().getPackageInfo().version;
 const FOOTER_TEXT = '&copy; Retora 2026';
 
 const CATEGORY_ORDER = [
@@ -926,7 +927,7 @@ function generateIndexPage(classes, globals) {
   const sections = [];
   sections.push(`[title: "${GAME_NAME} Modding API Documentation"]\n`);
 
-  sections.push(`<p>This website provides detailed information about all core classes in ${GAME_NAME}. Use this reference when creating addons to understand available APIs and modification points.</p>\n`);
+  sections.push(`<p>This website provides detailed information about all core classes in ${GAME_NAME} <strong>${GAME_VERSION}</strong>. Use this reference when creating addons to understand available APIs and modification points.</p>\n`);
 
   const staticLines = INDEX_STATIC.trim().split('\n');
   staticLines.forEach(line => sections.push(line));

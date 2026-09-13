@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.2.1 dev
- * Build: 9/13/2026, 3:12:04 AM
+ * Build: 9/13/2026, 6:36:55 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -79,19 +79,27 @@ window.__ = function(text) {
 
 const __ = window.__;
 
+/** @type {string} Copyright notice */
 const COPYRIGHT = "(C) RETORA 2026";
 
+/** @type {string} Current game version */
 const VERSION = "v1.2.1 dev";
 
+/** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
 
+/** @type {boolean} Whether to log personality study data during development */
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
 
+/** @type {boolean} Whether to unlock all clothing items for development */
 window.UNLOCK_ALL_CLOTHES = false;
 
+/** @type {string} Character map for the default font */
 const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★áéíóúüñÁÉÍÓÚÜÑ";
+/** @type {string} Character map for the tiny font */
 const TINY_FONT_MAP = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\" •<>=%∥▶";
 
+/** @type {Object} Predefined font configurations for text rendering */
 const FONTS = {
   default: {
     credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
@@ -183,8 +191,10 @@ const FONTS = {
   }
 };
 
+/** @type {array} Available UI window panels */
 const WINDOW_PANELS = ["1", "2", "3", "4", "5"];
 
+/** @type {Object} Predefined navigation hint presets for each screen */
 const NAVIGATION_HINT_PRESETS = {
   general: [
     {
@@ -377,6 +387,7 @@ const NAVIGATION_HINT_PRESETS = {
   ],
 };
 
+/** @type {array} Default built-in song folders */
 const DEFAULT_SONG_FOLDERS = [
   "MikiMikiRomanticNight",
   "ThousandCherryBlossoms",
@@ -396,6 +407,7 @@ const DEFAULT_SONG_FOLDERS = [
   "melody_2.exe"
 ];
 
+/** @type {Object} Delta limits in milliseconds for different judgments */
 const JUDGE_WINDOWS = {
   marvelous: 55,
   perfect: 75,
@@ -404,6 +416,7 @@ const JUDGE_WINDOWS = {
   boo: 180
 };
 
+/** @type {Object} Score values for different judgments */
 const SCORE_VALUES = {
   marvelous: 1000,
   perfect: 800,
@@ -413,16 +426,24 @@ const SCORE_VALUES = {
   miss: 0
 };
 
+/** @type {string} Community website home page URL */
 const COMMUNITY_HOMEPAGE_URL = "https://retora.itch.io/padmaniacs/community";
+/** @type {string} Rating survey URL */
 const FEEDBACK_REVIEW_URL = "https://retora.itch.io/padmaniacs/rate";
+/** @type {string} Feature requests forum URL */
 const FEEDBACK_FEATURE_REQUEST_URL = "https://itch.io/t/5585472/feature-requests";
+/** @type {string} Bug reports forum URL */
 const FEEDBACK_BUG_REPORT_URL = "https://itch.io/t/5585499/bug-reports";
 
+/** @type {number} Seconds to wait before displaying start-up community popup prompt */
 const COMMUNITY_PROMPT_MIN_PLAYTIME = 60 * 60;
+/** @type {number} Seconds to wait before displaying feedback dialog */
 const RATING_PROMPT_MIN_PLAYTIME = 15 * 60;
+/** @type {number} Seconds to wait before displaying feature request dialog */
 const FEATURE_REQUEST_MIN_PLAYTIME = 30 * 60;
 
 // Keyboard key names
+/** @type {Object} Keyboard key name map for UI */
 const KEYBOARD_KEY_NAMES = {
   "Unidentified": "???",
   "Alt": "ALT",
@@ -602,6 +623,7 @@ const KEYBOARD_KEY_NAMES = {
 };
 
 // Keyboard key codes
+/** @type {Object} Keyboard key code values for UI */
 const KEYBOARD_KEY_CODES = {
   A: 'A'.charCodeAt(0),
   B: 'B'.charCodeAt(0),
@@ -714,6 +736,7 @@ const KEYBOARD_KEY_CODES = {
 };
 
 // Gamepad key names
+/** @type {Object} Gamepad key name map for UI */
 const GAMEPAD_KEY_NAMES = {
   0: "BUTTON A",
   1: "BUTTON B",
@@ -732,6 +755,7 @@ const GAMEPAD_KEY_NAMES = {
 };
 
 // Keyboard button mapping
+/** @type {Object} Default key mappings for keyboard controls */
 const DEFAULT_KEYBOARD_MAPPING = {
   player1: {
     up: [Phaser.KeyCode.W,],
@@ -755,6 +779,7 @@ const DEFAULT_KEYBOARD_MAPPING = {
   }
 };
 
+/** @type {Object} Default key mappings for gamepad controls */
 const DEFAULT_GAMEPAD_MAPPING = {
   player1: {
     up: 12,
@@ -778,9 +803,11 @@ const DEFAULT_GAMEPAD_MAPPING = {
   }
 };
 
+/** @type {array} Supported video file extensions for external songs */
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg"];
 
 // Environment detection constants
+/** @type {Object} Environment type definitions (UNKNOWN, NWJS, CORDOVA, WEB) */
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
   NWJS: 'NWJS',
@@ -789,32 +816,50 @@ const ENVIRONMENT = {
 };
 
 // Build-time environment setting
+/** @type {string} Current runtime environment */
 const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
+/** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
+/** @type {string} External directory path for NW.js */
 const NWJS_EXTERNAL_DIRECTORY = "data/";
 
+/** @type {string} Current external directory path */
 const EXTERNAL_DIRECTORY = CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA ? CORDOVA_EXTERNAL_DIRECTORY : NWJS_EXTERNAL_DIRECTORY;
 
+/** @type {string} Addons directory name */
 const ADDONS_DIRECTORY = "Addons";
+/** @type {string} Screenshots directory name */
 const SCREENSHOTS_DIRECTORY = "Screenshots";
+/** @type {string} Songs directory name */
 const SONGS_DIRECTORY = "Songs";
+/** @type {string} Editor output directory name */
 const EDITOR_OUTPUT_DIRECTORY = "Edits";
+/** @type {string} Backups directory name */
 const BACKUPS_DIRECTORY = "Backups";
 
+/** @type {boolean} Enable parallel asset loading */
 const ENABLE_PARALLEL_LOADING = true;
+/** @type {number} Maximum parallel downloads */
 const MAX_PARALLEL_DOWNLOADS = 16;
 
+/** @type {number} Maximum parallel addon loads */
 const MAX_PARALLEL_ADDON_LOADS = 3;
 
+/** @type {boolean} Enable UI sound effects */
 const ENABLE_UI_SFX = true;
+/** @type {boolean} Enable experience sound effects */
 const ENABLE_EXP_SFX = true;
 
+/** @type {number} Vibration duration in MS for regular hits */
 const REGULAR_VIBRATION_INTENSITY = 75;
+/** @type {number} Vibration duration in MS for weak hits */
 const WEAK_VIBRATION_INTENSITY = 50;
+/** @type {number} Vibration duration in MS for strong hits */
 const STRONG_VIBRATION_INTENSITY = 50;
 
 // Character system constants
+/** @type {Object} Character system constants (max level, name length, etc.) */
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 12,
   DEFAULT_CHARACTER: "EIRI",
@@ -1669,6 +1714,7 @@ const CHARACTER_SYSTEM = {
   ]
 };
 
+/** @type {array} Clothing items unlocked by default */
 const DEFAULT_UNLOCKED_ITEMS = [
   "top_seifuku_default",
   "bottom_skirt_blue",
@@ -1676,6 +1722,7 @@ const DEFAULT_UNLOCKED_ITEMS = [
   "accessory_hair_ties"
 ];
 
+/** @type {Object} Default character used for new accounts */
 const DEFAULT_CHARACTER = {
   name: "EIRI",
   level: 1,
@@ -1714,6 +1761,7 @@ const DEFAULT_CHARACTER = {
 };
 
 // Character skills list
+/** @type {array} Skill definitions for characters */
 const CHARACTER_SKILLS = [
   {
     id: "safety_net",
@@ -2238,6 +2286,7 @@ const CHARACTER_SKILLS = [
 ];
 
 // Character items
+/** @type {Object} Clothing and accessory definitions */
 const CHARACTER_ITEMS = [
   // Top
   {
@@ -3243,6 +3292,7 @@ const CHARACTER_ITEMS = [
   }
 ];
 
+/** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
   version: 1.2, // 1.2.0
   settings: {
@@ -3390,6 +3440,7 @@ const DEFAULT_ACCOUNT = {
 };
 
 // Achievements system constants
+/** @type {Object} Achievements system constants */
 const ACHIEVEMENTS = {
   EXPERIENCE_VALUES: {
     COMMON: 5,
@@ -3401,6 +3452,7 @@ const ACHIEVEMENTS = {
 };
 
 // Achievement categories
+/** @type {Object} Achievement categories (Gameplay, Character, Progression, etc.) */
 const ACHIEVEMENT_CATEGORIES = {
   GAMEPLAY: __("Gameplay||Juego"),
   CHARACTER: __("Character||Personaje"),
@@ -3413,6 +3465,7 @@ const ACHIEVEMENT_CATEGORIES = {
 };
 
 // Achievement definitions
+/** @type {array} Achievement definitions */
 const ACHIEVEMENT_DEFINITIONS = [
   // Gameplay Achievements
   {
@@ -5027,14 +5080,50 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
+/**
+ * @class Character
+ * @category Character System Classes
+ * @summary Character data model with leveling and experience
+ * @constructor
+ * @param {Object} data - Initial character data
+ * @features
+ * Leveling and experience system
+ * Skill, hair, and item unlocking
+ * Appearance and clothing customization
+ * Personality development from gameplay history
+ * @description
+ * Core data model representing a playable character, including level, experience,
+ * unlocked skills, appearance, and developed personalities. Progress advances through
+ * gameplay and unlocks are granted at level milestones.
+ * @example
+ * // Modding usage example
+ * const char = new Character({
+ *   name: 'Hero',
+ *   level: 1,
+ *   experience: 0,
+ *   appearance: { skinTone: 0, frontHair: 1, backHair: 1 }
+ * });
+ * char.addExperience(120);
+ * console.log(char.level, char.getExperienceProgress());
+ * char.changeHairStyle('front', 2);
+ * char.changeClothing('top_seifuku_red');
+ * console.log(char.toJSON());
+ */
 class Character {
   constructor(data) {
+    /** @type {string} Character display name */
     this.name = data.name;
+    /** @type {number} Current character level */
     this.level = data.level || 1;
+    /** @type {number} Current experience points */
     this.experience = data.experience || 0;
+    /** @type {number} Skill proficiency level */
     this.skillLevel = data.skillLevel || 1;
+    /** @type {Array} List of unlocked skill IDs */
     this.unlockedSkills = data.unlockedSkills || [];
+    /** @type {string|null} Currently selected skill ID */
     this.selectedSkill = data.selectedSkill || null;
+    /** @type {Object} Character appearance configuration */
     this.appearance = data.appearance || {
       skinTone: 0,
       frontHair: 1,
@@ -5055,6 +5144,7 @@ class Character {
         special: null
       }
     };
+    /** @type {Object} Cumulative gameplay statistics */
     this.stats = data.stats || {
       gamesPlayed: 0,
       totalScore: 0,
@@ -5062,20 +5152,36 @@ class Character {
       perfectGames: 0,
       skillsUsed: 0
     };
+    /** @type {Array} History of experience gain events */
     this.experienceStory = [];
+    /** @type {number} Level at which the character last raised their skill level */
     this.lastSkillLevelUp = data.lastSkillLevelUp || 0;
+    /** @type {number} Level at which the character last unlocked a hair style */
     this.lastHairUnlockLevel = data.lastHairUnlockLevel || 0;
+    /** @type {number} Level at which the character last unlocked an item */
     this.lastItemUnlockLevel = data.lastItemUnlockLevel || 0;
+    /** @type {string|null} Active personality ID */
     this.personality = data.personality || null;
+    /** @type {Array} List of developed personality IDs */
     this.developedPersonalities = data.developedPersonalities || [];
+    /** @type {Array} History of personality study results */
     this.personalityStudyHistory = data.personalityStudyHistory || [];
+    /** @type {number} Index of the current personality in the developed list */
     this.currentPersonalityIndex = data.currentPersonalityIndex || 0;
   }
   
+  /**
+   * Returns the most recent experience story entry, or null when no history exists.
+   * @returns {Object|null} The last experience story entry
+   */
   getLastExperienceStoryEntry() {
     return this.experienceStory.length ? this.experienceStory[this.experienceStory.length - 1] : null;
   }
 
+  /**
+   * Adds experience points and triggers level ups whenever thresholds are crossed.
+   * @param {number} amount - Experience points to grant
+   */
   addExperience(amount) {
     const storyEntry = {
       levelBefore: this.level,
@@ -5097,6 +5203,9 @@ class Character {
     this.experienceStory.push(storyEntry);
   }
 
+  /**
+   * Increases the character level and rolls for skill, hair, item, and skill level unlocks.
+   */
   levelUp() {
     this.level++;
     
@@ -5142,6 +5251,10 @@ class Character {
     }
   }
 
+  /**
+   * Unlocks a random available skill, preferring ones matching the character's personality.
+   * @returns {Object|null} The unlocked skill object or null if none are available
+   */
   unlockRandomSkill() {
     const personality = this.personality ? CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.personality) : null;
     
@@ -5197,6 +5310,10 @@ class Character {
     return randomSkill;
   }
 
+  /**
+   * Unlocks a random front or back hair style not yet owned by the account.
+   * @returns {Object|null} Object with type and id of the unlocked hair, or null
+   */
   unlockRandomHairStyle() {
     const availableFrontHairs = [];
     const availableBackHairs = [];
@@ -5232,6 +5349,10 @@ class Character {
     return null;
   }
 
+  /**
+   * Unlocks a random clothing item not yet owned by the account.
+   * @returns {Object|null} The unlocked item object or null if none are available
+   */
   unlockRandomItem() {
     const defaultItems = ["top_seifuku_default", "bottom_skirt_blue", "shoes_common"];
     
@@ -5253,6 +5374,11 @@ class Character {
     return null;
   }
   
+  /**
+   * Evaluates finished game results and may develop a new personality from eligible candidates.
+   * @param {Object} gameResults - Results from a completed game session
+   * @returns {Object|null} The developed personality object or null
+   */
   studyPersonalities(gameResults) {
     if (!gameResults.complete || gameResults.autoplay) return null;
     
@@ -5323,6 +5449,12 @@ class Character {
     return null;
   }
   
+  /**
+   * Computes how well gameplay results satisfy a personality's development criteria.
+   * @param {Object} personality - The personality definition to score
+   * @param {Object} gameResults - Results from a completed game session
+   * @returns {number} Normalized score between 0 and 1
+   */
   calculatePersonalityScore(personality, gameResults) {
     const reasons = personality.reasons || {};
     let score = 0;
@@ -5392,6 +5524,10 @@ class Character {
     return totalChecks > 0 ? score / totalChecks : 0;
   }
 
+  /**
+   * Returns all unlocked hair style IDs organized by front and back types.
+   * @returns {Object} Object with front and back arrays of hair style IDs
+   */
   getAvailableHairStyles() {
     return {
       front: Account.characters.unlockedHairs.front,
@@ -5399,10 +5535,19 @@ class Character {
     };
   }
 
+  /**
+   * Returns all unlocked clothing item IDs for the account.
+   * @returns {Array} List of unlocked item IDs
+   */
   getAvailableItems() {
     return Account.characters.unlockedItems;
   }
   
+  /**
+   * Looks up a clothing item definition by its ID.
+   * @param {string} itemId - The item identifier
+   * @returns {Object|null} The matching item object or null
+   */
   static getItem(itemId) {
     for (const item of CHARACTER_ITEMS) {
       if (item.id === itemId) return item;
@@ -5410,6 +5555,11 @@ class Character {
     return null;
   }
 
+  /**
+   * Looks up a personality definition by its ID.
+   * @param {string} itemId - The personality identifier
+   * @returns {Object|null} The matching personality object or null
+   */
   static getPersonlity(itemId) {
     for (const item of CHARACTER_SYSTEM.PERSONALITIES) {
       if (item.id === itemId) return item;
@@ -5417,6 +5567,12 @@ class Character {
     return null;
   }
 
+  /**
+   * Applies a hair style if the character owns it.
+   * @param {string} type - Hair type, either 'front' or 'back'
+   * @param {number} hairId - The hair style ID to apply
+   * @returns {boolean} Whether the change succeeded
+   */
   changeHairStyle(type, hairId) {
     if (type === 'front' && Account.characters.unlockedHairs.front.includes(hairId)) {
       this.appearance.frontHair = hairId;
@@ -5428,11 +5584,21 @@ class Character {
     return false;
   }
   
+  /**
+   * Sets the hair tint color for the character's appearance.
+   * @param {number} tint - Hex color value for the hair tint
+   * @returns {boolean} Whether the change succeeded
+   */
   changeHairTint(tint) {
     this.appearance.tints.hair = tint;
     return true;
   }
 
+  /**
+   * Equips a clothing item if owned, handling tint layers and the special item slot.
+   * @param {string} itemId - The clothing item ID to equip
+   * @returns {boolean} Whether the change succeeded
+   */
   changeClothing(itemId) {
     if (Account.characters.unlockedItems.includes(itemId)) {
       const item = CHARACTER_ITEMS.clothing.find(i => i.id === itemId) || 
@@ -5467,19 +5633,35 @@ class Character {
     return false;
   }
 
+  /**
+   * Returns the experience points required to reach the next level.
+   * @returns {number} Required experience points
+   */
   getRequiredExperience() {
     return CHARACTER_SYSTEM.EXPERIENCE_CURVE(this.level);
   }
 
+  /**
+   * Returns the progress ratio toward the next level.
+   * @returns {number} Progress value between 0 and 1
+   */
   getExperienceProgress() {
     const required = this.getRequiredExperience();
     return this.experience / required;
   }
 
+  /**
+   * Checks whether the character has any unlocked skills to use.
+   * @returns {boolean} True if the character can use a skill
+   */
   canUseSkill() {
     return this.skillLevel > 0 && this.unlockedSkills.length > 0;
   }
 
+  /**
+   * Serializes the character into a plain object suitable for persistence.
+   * @returns {Object} Character data ready for JSON storage
+   */
   toJSON() {
     return {
       name: this.name,
@@ -5498,23 +5680,62 @@ class Character {
   }
 }
 
+/**
+ * @class CharacterDisplay
+ * @category Character System Classes
+ * @summary Visual character sprite with layered rendering
+ * @constructor
+ * @param {number} x - Horizontal position
+ * @param {number} y - Vertical position
+ * @param {Object} characterData - Character data model
+ * @features
+ * Layered sprite rendering for hair, base, eyes, and clothing
+ * Personality-based and generic eye blinking
+ * Particle aura effects for special items
+ * Alternate tint cycling on clothing layers
+ * @description
+ * A Phaser.Sprite subclass that renders a character from layered sprites representing
+ * back hair, base, front hair, eyes, and clothing items, applying tints and effects.
+ * Supports animated blinking, aura particles, and appearance updates at runtime.
+ * @example
+ * // Modding usage example
+ * const display = new CharacterDisplay(0, 0, characterData);
+ * game.world.addChild(display);
+ * display.updateAppearance({ frontHair: 2 });
+ * display.destroy();
+ */
 class CharacterDisplay extends Phaser.Sprite {
   constructor(x, y, characterData) {
     super(game, x, y);
+    /** @type {Object} Character data used for rendering */
     this.character = characterData;
+    /** @type {Object} Rendering sprites keyed by layer name */
     this.layers = {};
+    /** @type {Object} Active alternate tint timers keyed by layer */
     this.alternateTimers = {};
+    /** @type {boolean} Whether a special item hides the character */
     this.isSpecial = false;
+    /** @type {boolean} Whether a special item renders as an aura */
     this.isAura = false;
+    /** @type {Phaser.Group|null} Group holding aura particle sprites */
     this.auraParticleGroup = null;
+    /** @type {Array} Currently active aura particles */
     this.particles = [];
+    /** @type {Array} Pool of reusable aura particles */
     this.particlePool = [];
+    /** @type {Object} Rectangle defining the aura emission area */
     this.auraRect = { x: 25, y: 0, w: 50, h: 80 };
+    /** @type {Object|null} Loop timer that emits aura particles */
     this.particleTimer = null;
+    /** @type {Object|null} Configuration of the active aura effect */
     this.auraConfig = null;
+    /** @type {Object|null} Eye behavior config of the character's personality */
     this.personalityBehavior = null;
+    /** @type {Array} Queue of blink behaviors to follow */
     this.blinkQueue = [];
+    /** @type {number} Current position in the blink queue */
     this.currentBlinkIndex = 0;
+    /** @type {boolean} Whether a blink animation is in progress */
     this.isBlinking = false;
     
     if (characterData) {
@@ -5524,6 +5745,11 @@ class CharacterDisplay extends Phaser.Sprite {
     game.add.existing(this);
   }
 
+  /**
+   * Returns the special clothing item equipped by the character, if any.
+   * @param {Object} [appearanceObj] - Optional appearance object; defaults to the character's
+   * @returns {Object|null} The special item definition or null
+   */
   getSpecialItem(appearanceObj) {
     const appearance = appearanceObj || this.character.appearance;
     if (!appearance.clothing || !appearance.clothing.special) return null;
@@ -5532,6 +5758,9 @@ class CharacterDisplay extends Phaser.Sprite {
     return CHARACTER_ITEMS.find(item => item.id === specialId && item.type === 'special');
   }
 
+  /**
+   * Loads the personality's eye behavior and rebuilds the blink queue for the character.
+   */
   loadPersonalityBehavior() {
     if (!this.character || !this.character.personality) {
       this.personalityBehavior = null;
@@ -5547,6 +5776,10 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Builds a queue of blink behaviors from the personality's eye behavior config.
+   * @returns {Array} List of resolved blink behavior entries
+   */
   buildBlinkQueue() {
     if (!this.personalityBehavior) return [];
     const queue = [];
@@ -5567,10 +5800,18 @@ class CharacterDisplay extends Phaser.Sprite {
     return queue;
   }
 
+  /**
+   * Maps an eye distance value to a blink animation frame index.
+   * @param {number} distance - The eye distance value
+   * @returns {number} Clamped frame index between 0 and 3
+   */
   getBlinkFrame(distance) {
     return Math.min(3, Math.max(0, distance));
   }
 
+  /**
+   * Starts either personality-based or generic blinking depending on the character's behavior.
+   */
   setupBlinking() {
     if (this.personalityBehavior && this.blinkQueue.length > 0) {
       this.startPersonalityBlinking();
@@ -5579,6 +5820,9 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Starts the default blinking loop with randomly timed blink intervals.
+   */
   startGenericBlinking() {
     const blinkFrames = [0, 1, 2, 3, 2, 1, 0];
     this.layers.eyes?.animations.add('blink', blinkFrames, 16, false);
@@ -5588,6 +5832,9 @@ class CharacterDisplay extends Phaser.Sprite {
     });
   }
 
+  /**
+   * Starts the personality-driven blinking sequence that follows the character's blink queue.
+   */
   startPersonalityBlinking() {
     if (this.blinkQueue.length === 0) return;
     const personality = CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.character.personality);
@@ -5618,6 +5865,11 @@ class CharacterDisplay extends Phaser.Sprite {
     });
   }
 
+  /**
+   * Schedules a blink animation after a delay, then runs the completion callback.
+   * @param {number} time - Delay in milliseconds before blinking
+   * @param {Function} callback - Callback invoked after the blink completes
+   */
   blink(time, callback) {
     game.time.events.add(time, () => {
       if (this.layers.eyes && this.layers.eyes.visible) {
@@ -5629,6 +5881,10 @@ class CharacterDisplay extends Phaser.Sprite {
     });
   }
 
+  /**
+   * Builds all rendering layers from the character's appearance, including aura effects.
+   * @param {boolean} specialItemChanged - Whether the special item changed, requiring aura rebuild
+   */
   createLayers(specialItemChanged) {
     const appearance = this.character.appearance;
     const tints = appearance.tints || {};
@@ -5663,6 +5919,11 @@ class CharacterDisplay extends Phaser.Sprite {
     this.setupAlternateTints();
   }
 
+  /**
+   * Creates sprites for each clothing slot, applying tints and layering per item definition.
+   * @param {Object} appearance - The character's appearance config
+   * @param {Object} tints - Tint values per clothing slot
+   */
   createClothingLayers(appearance, tints) {
     const slots = ['shoes', 'bottom', 'top', 'accessory', 'special'];
     for (const slot of slots) {
@@ -5725,6 +5986,9 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Starts alternate tint cycling for any layers that define an alternate tint.
+   */
   setupAlternateTints() {
     for (const [key, layer] of Object.entries(this.layers)) {
       if (Array.isArray(layer)) {
@@ -5739,6 +6003,10 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Begins toggling a sprite's tint between its alternate and current colors on a loop.
+   * @param {Object} sprite - The sprite with alternate tint metadata
+   */
   startAlternateTint(sprite) {
     const frequency = sprite._alternateFrequency || 100;
     let toggle = false;
@@ -5755,6 +6023,11 @@ class CharacterDisplay extends Phaser.Sprite {
     });
   }
 
+  /**
+   * Creates the particle group and starts the emission loop for an aura item.
+   * @param {Object} item - The special item definition
+   * @param {Object} tints - Tint values including the special slot
+   */
   createAura(item, tints) {
     if (!item.particle) return;
     this.auraParticleGroup = game.add.group();
@@ -5792,6 +6065,12 @@ class CharacterDisplay extends Phaser.Sprite {
     });
   }
 
+  /**
+   * Pulls an inactive particle from the pool or creates a new sprite for the given texture.
+   * @param {string} key - Texture key for the particle
+   * @param {number} frame - Frame index within the texture
+   * @returns {Object} The prepared particle sprite
+   */
   getParticleFromPool(key, frame) {
     for (let i = 0; i < this.particlePool.length; i++) {
       const p = this.particlePool[i];
@@ -5813,12 +6092,19 @@ class CharacterDisplay extends Phaser.Sprite {
     return sprite;
   }
 
+  /**
+   * Marks a particle sprite as inactive and invisible for future reuse.
+   * @param {Object} sprite - The particle sprite to recycle
+   */
   recycleParticle(sprite) {
     sprite.active = false;
     sprite.visible = false;
     sprite.alpha = 0;
   }
 
+  /**
+   * Spawns one set of aura particles with randomized position, velocity, tint, and lifespan.
+   */
   emitParticle() {
     if (!this.auraParticleGroup || !this.auraConfig) return;
     const config = this.auraConfig;
@@ -5932,6 +6218,9 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Removes particles whose lifespan has expired from the active list.
+   */
   cleanParticles() {
     const now = game.time.now;
     for (let i = this.particles.length - 1; i >= 0; i--) {
@@ -5943,6 +6232,9 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Advances particle physics, fading, and tint cycling each frame.
+   */
   updateParticles() {
     const dt = game.time.elapsed / 1000;
     const rect = this.auraRect;
@@ -6002,12 +6294,21 @@ class CharacterDisplay extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Per-frame update that advances active aura particles.
+   */
   update() {
     if (this.auraParticleGroup && this.particles.length > 0) {
       this.updateParticles();
     }
   }
 
+  /**
+   * Recursively merges a source object into a target, preserving nested object structure.
+   * @param {Object} target - The target object to merge into
+   * @param {Object} source - The source object providing values
+   * @returns {Object} The merged result object
+   */
   deepMerge(target, source) {
     const result = { ...target };
     for (const [key, value] of Object.entries(source)) {
@@ -6020,6 +6321,10 @@ class CharacterDisplay extends Phaser.Sprite {
     return result;
   }
 
+  /**
+   * Rebuilds all rendering layers to reflect a new appearance configuration.
+   * @param {Object} [newAppearance] - Partial appearance overrides to apply
+   */
   updateAppearance(newAppearance = {}) {
     const specialItemChanged = (this.character?.appearance?.clothing?.special ?? null) !== (newAppearance?.clothing?.special ?? null);
     
@@ -6055,6 +6360,9 @@ class CharacterDisplay extends Phaser.Sprite {
     this.createLayers(specialItemChanged);
   }
 
+  /**
+   * Cleans up timers, particles, and rendering layers before destroying the sprite.
+   */
   destroy() {
     if (this.particleTimer) {
       game.time.events.remove(this.particleTimer);
@@ -6087,10 +6395,37 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class CharacterCroppedDisplay
+ * @category Character System Classes
+ * @summary Character display with cropping support
+ * @constructor
+ * @param {number} x - Horizontal position
+ * @param {number} y - Vertical position
+ * @param {Object} characterData - Character data model
+ * @param {Object} cropArea - Crop rectangle with x, y, w, and h
+ * @features
+ * Applies a crop rectangle to all rendering layers
+ * Adjusts the aura emission area to match the crop region
+ * Re-crops layers after appearance updates
+ * @description
+ * A character display subclass that crops every rendering layer to a configured rectangle,
+ * making it suitable for portraits and close-up views where only a region of the character
+ * should be visible.
+ * @example
+ * // Modding usage example
+ * const crop = { x: 10, y: 5, w: 40, h: 60 };
+ * const display = new CharacterCroppedDisplay(0, 0, characterData, crop);
+ * game.world.addChild(display);
+ * display.updateAppearance({ frontHair: 2 });
+ * display.destroy();
+ */
 class CharacterCroppedDisplay extends CharacterDisplay {
   constructor(x, y, characterData, cropArea) {
     super(0, 0, characterData);
+    /** @type {Object} Crop rectangle applied to all layers */
     this.cropArea = cropArea;
+    /** @type {Object} Aura emission area matching the crop region */
     this.auraRect = {
       x: cropArea.x,
       y: cropArea.y,
@@ -6102,6 +6437,9 @@ class CharacterCroppedDisplay extends CharacterDisplay {
     this.y = y;
   }
 
+  /**
+   * Applies the configured crop rectangle to every sprite layer and aura region.
+   */
   cropSprite() {
     // Crop all layers in the layers object
     for (const [key, layer] of Object.entries(this.layers)) {
@@ -6139,31 +6477,103 @@ class CharacterCroppedDisplay extends CharacterDisplay {
     };
   }
 
+  /**
+   * Rebuilds layers for new appearance data and re-applies the crop afterwards.
+   * @param {Object} newAppearance - Partial appearance overrides to apply
+   */
   updateAppearance(newAppearance) {
     super.updateAppearance(newAppearance);
     this.cropSprite();
   }
 }
 
+/**
+ * @class CharacterPortrait
+ * @category Character System Classes
+ * @summary Cropped character portrait display (15x15)
+ * @constructor
+ * @param {number} x - Horizontal position
+ * @param {number} y - Vertical position
+ * @param {Object} characterData - Character data model
+ * @features
+ * Uses portrait crop area from CHARACTER_SYSTEM constants
+ * Inherits all layered rendering from CharacterCroppedDisplay
+ * @description
+ * A specialized cropped character display configured with the standard portrait crop dimensions.
+ * Used for character selection screens and profile displays.
+ * @example
+ * // Modding usage example
+ * const portrait = new CharacterPortrait(100, 50, characterData);
+ * game.world.addChild(portrait);
+ * portrait.updateAppearance({ top: 'top_seifuku_red' });
+ * portrait.destroy();
+ */
 class CharacterPortrait extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.PORTRAIT_CROP);
   }
 }
 
+/**
+ * @class CharacterCloseShot
+ * @category Character System Classes
+ * @summary Close-up character display for skill effects (36x7)
+ * @constructor
+ * @param {number} x - Horizontal position
+ * @param {number} y - Vertical position
+ * @param {Object} characterData - Character data model
+ * @features
+ * Uses close shot crop area from CHARACTER_SYSTEM constants
+ * Displays cropped character view for skill activation feedback
+ * @description
+ * A specialized cropped character display configured with close-up crop dimensions.
+ * Shown briefly when skills activate to provide visual feedback during gameplay.
+ * @example
+ * // Modding usage example
+ * const closeShot = new CharacterCloseShot(200, 100, characterData);
+ * game.world.addChild(closeShot);
+ * closeShot.updateAppearance({ top: 'top_seifuku_red' });
+ * closeShot.destroy();
+ */
 class CharacterCloseShot extends CharacterCroppedDisplay {
   constructor(x, y, characterData) {
     super(x, y, characterData, CHARACTER_SYSTEM.CLOSE_SHOT_CROP);
   }
 }
 
+/**
+ * @class CharacterManager
+ * @category Character System Classes
+ * @summary Manages multiple characters and persistence
+ * @constructor
+ * @features
+ * Character creation, deletion, and selection
+ * Load and save of characters to the account
+ * Experience gain calculation from game results
+ * Statistics and personality updates after each game
+ * @description
+ * Coordinates the character roster stored on the player's account, creating, deleting,
+ * selecting, and persisting characters while updating their stats after gameplay sessions.
+ * @example
+ * // Modding usage example
+ * const mgr = new CharacterManager();
+ * const hero = mgr.createCharacter('Hero', { skinTone: 0 });
+ * mgr.setCurrentCharacter('Hero');
+ * const exp = mgr.updateCharacterStats(gameResults);
+ * console.log(mgr.getCharacterList());
+ */
 class CharacterManager {
   constructor() {
+    /** @type {Map} Character instances keyed by name */
     this.characters = new Map();
+    /** @type {Object|null} Currently active character */
     this.currentCharacter = null;
     this.loadFromAccount();
   }
 
+  /**
+   * Rebuilds the character roster and current selection from the stored account data.
+   */
   loadFromAccount() {
     if (!Account.characters) {
       Account.characters = JSON.parse(JSON.stringify(DEFAULT_ACCOUNT.characters));
@@ -6182,6 +6592,12 @@ class CharacterManager {
     }
   }
 
+  /**
+   * Creates and persists a new character if the name is free and within the length limit.
+   * @param {string} name - The new character's name
+   * @param {Object} [appearance] - Initial appearance settings
+   * @returns {Character|null} The created character or null on failure
+   */
   createCharacter(name, appearance = {}) {
     if (this.characters.has(name) || name.length > CHARACTER_SYSTEM.MAX_NAME_LENGTH) {
       return null;
@@ -6199,6 +6615,11 @@ class CharacterManager {
     return newCharacter;
   }
 
+  /**
+   * Removes a character from the roster and updates the account and current selection.
+   * @param {string} name - Name of the character to delete
+   * @returns {boolean} Whether the character was deleted
+   */
   deleteCharacter(name) {
     if (this.characters.size <= 1) this.unsetCharacter;
     
@@ -6217,12 +6638,20 @@ class CharacterManager {
     return deleted;
   }
   
+  /**
+   * Clears the current character selection and persists the change to the account.
+   */
   unsetCharacter() {
     this.currentCharacter = null;
     Account.characters.currentCharacter = null;
     saveAccount();
   }
 
+  /**
+   * Makes a character the active roster selection.
+   * @param {string} name - Name of the character to select
+   * @returns {boolean} Whether the selection succeeded
+   */
   setCurrentCharacter(name) {
     const character = this.characters.get(name);
     if (character) {
@@ -6234,6 +6663,11 @@ class CharacterManager {
     return false;
   }
 
+  /**
+   * Applies game results to the current character's stats, experience, and personality.
+   * @param {Object} gameResults - Results from a completed game session
+   * @returns {number} Experience gained during the update
+   */
   updateCharacterStats(gameResults) {
     if (!this.currentCharacter) return 0;
 
@@ -6263,6 +6697,11 @@ class CharacterManager {
     return expGain;
   }
 
+  /**
+   * Computes experience awarded from game results based on accuracy, combo, and difficulty.
+   * @param {Object} gameResults - Results from a completed game session
+   * @returns {number} The experience points earned
+   */
   calculateExperienceGain(gameResults) {
     let exp = 0;
     
@@ -6340,6 +6779,12 @@ class CharacterManager {
     return exp;
   }
 
+  /**
+   * Unlocks a hair style of the given type for the account if not already owned.
+   * @param {string} type - Hair type, either 'front' or 'back'
+   * @param {number} id - The hair style ID
+   * @returns {boolean} Whether the unlock was applied
+   */
   unlockHair(type, id) {
     if (!Account.characters.unlockedHairs[type].includes(id)) {
       Account.characters.unlockedHairs[type].push(id);
@@ -6349,6 +6794,11 @@ class CharacterManager {
     return false;
   }
 
+  /**
+   * Unlocks a clothing item for the account if not already owned.
+   * @param {string} itemId - The item identifier
+   * @returns {boolean} Whether the unlock was applied
+   */
   unlockItem(itemId) {
     if (!Account.characters.unlockedItems.includes(itemId)) {
       Account.characters.unlockedItems.push(itemId);
@@ -6358,14 +6808,25 @@ class CharacterManager {
     return false;
   }
 
+  /**
+   * Returns all character instances in the roster.
+   * @returns {Array} List of Character objects
+   */
   getCharacterList() {
     return Array.from(this.characters.values());
   }
 
+  /**
+   * Returns the currently selected character instance.
+   * @returns {Object|null} The active character or null
+   */
   getCurrentCharacter() {
     return this.currentCharacter;
   }
 
+  /**
+   * Writes the full roster and current selection back to the account.
+   */
   saveToAccount() {
     Account.characters.list = this.getCharacterList().map(char => char.toJSON());
     Account.characters.currentCharacter = this.currentCharacter ? this.currentCharacter.name : null;
@@ -6373,13 +6834,46 @@ class CharacterManager {
   }
 }
 
+/**
+ * @class CharacterSkillSystem
+ * @category Character System Classes
+ * @summary Skill activation and effect management
+ * @constructor
+ * @param {Object} scene - The Phaser game state scene
+ * @param {Object} [character] - Character data model; falls back to scene.character
+ * @features
+ * Condition-based skill activation during gameplay
+ * Cooldown and duration tracking for all skills
+ * Effect modifiers applied and reverted on deactivation
+ * Skill bar updates and on-screen activation feedback
+ * @description
+ * Manages the lifecycle of character skills during a gameplay session, checking activation
+ * conditions, applying temporary effect modifiers, tracking cooldowns and durations, and
+ * reverting effects when skills expire or the game resets.
+ * @example
+ * // Modding usage example
+ * const skills = new CharacterSkillSystem(scene, character);
+ * function onJudge(judgement) {
+ *   skills.checkSkillActivation('on_miss', { judgement });
+ * }
+ * function update() {
+ *   skills.update();
+ * }
+ * skills.resetGame();
+ */
 class CharacterSkillSystem {
   constructor(scene, character) {
+    /** @type {Object} The owning Phaser game state scene */
     this.scene = scene;
+    /** @type {Object} Character data model using skills */
     this.character = character || scene.character;
+    /** @type {Map} Skills currently active with their start and end times */
     this.activeSkills = new Map();
+    /** @type {Map} Skill IDs mapped to their cooldown end times */
     this.skillCooldowns = new Map();
+    /** @type {number} Number of skills used during the current game */
     this.skillsUsedThisGame = 0;
+    /** @type {Object} Aggregate effect modifiers applied by active skills */
     this.skillEffects = {
       judgementConversion: null,
       judgementWindowMultiplier: 1.0,
@@ -6397,6 +6891,11 @@ class CharacterSkillSystem {
   }
 
   // Main method to check and activate skills
+  /**
+   * Checks whether the selected skill should activate for the given gameplay condition.
+   * @param {string} condition - The activation condition that occurred
+   * @param {Object} [params] - Context values such as judgement, combo, or health
+   */
   checkSkillActivation(condition, params = {}) {
     if (!this.character || this.exhausted) return;
 
@@ -6411,6 +6910,12 @@ class CharacterSkillSystem {
     }
   }
 
+  /**
+   * Determines whether a skill can be activated given cooldown, autoplay, and condition checks.
+   * @param {Object} skill - The skill definition
+   * @param {Object} params - Context values for condition evaluation
+   * @returns {boolean} Whether activation is allowed
+   */
   canActivateSkill(skill, params) {
     if (this.exhausted) return false;
     if (this.skillCooldowns.has(skill.id)) return false;
@@ -6438,6 +6943,11 @@ class CharacterSkillSystem {
     }
   }
 
+  /**
+   * Applies a skill's effect, sets its cooldown, shows visual feedback, and triggers the notify event.
+   * @param {Object} skill - The skill definition to activate
+   * @param {Object} params - Context values passed through for activation
+   */
   activateSkill(skill, params) {
     // Apply skill effect
     this.applySkillEffect(skill);
@@ -6470,6 +6980,10 @@ class CharacterSkillSystem {
     this.notifySkillUsed(skill);
   }
   
+  /**
+   * Shows an on-screen banner announcing the skill that was just used.
+   * @param {Object} skill - The skill definition that was activated
+   */
   notifySkillUsed(skill) {
     // Notify what skill was used
     const x = 4;
@@ -6497,6 +7011,10 @@ class CharacterSkillSystem {
     game.add.tween(background).to({ alpha: 1, x }, 350, Phaser.Easing.Quadratic.Out, true).yoyo(true).yoyoDelay(1000);
   }
 
+  /**
+   * Applies a skill's effect to the active modifiers based on its effect type.
+   * @param {Object} skill - The skill definition whose effect is applied
+   */
   applySkillEffect(skill) {
     switch (skill.effect) {
       case 'convert_judgement':
@@ -6568,6 +7086,10 @@ class CharacterSkillSystem {
     }
   }
 
+  /**
+   * Reverts a skill's effect and removes it from the active skills list.
+   * @param {string} skillId - ID of the skill to deactivate
+   */
   deactivateSkill(skillId) {
     const skillData = this.activeSkills.get(skillId);
     if (!skillData) return;
@@ -6633,6 +7155,10 @@ class CharacterSkillSystem {
     this.activeSkills.delete(skillId);
   }
 
+  /**
+   * Begins periodic health regeneration using the skill's interval and amount.
+   * @param {Object} params - Regeneration interval and amount
+   */
   startHealthRegen(params) {
     this.stopHealthRegen(); // Stop any existing regen
     
@@ -6643,6 +7169,9 @@ class CharacterSkillSystem {
     });
   }
 
+  /**
+   * Stops any active health regeneration timer.
+   */
   stopHealthRegen() {
     if (this.healthRegenTimer) {
       game.time.events.remove(this.healthRegenTimer);
@@ -6651,6 +7180,10 @@ class CharacterSkillSystem {
   }
   
   // Getters for skill effects (used by Player class)
+  /**
+   * Getters for skill effects, consumed by the Player class during gameplay.
+   * @returns {Object|null} Current judgement conversion effect
+   */
   getJudgementConversion() {
     if (this.exhausted) {
       return null;
@@ -6659,42 +7192,74 @@ class CharacterSkillSystem {
     }
   }
 
+  /**
+   * @returns {number} Current judgement window multiplier
+   */
   getJudgementWindowMultiplier() {
     return this.skillEffects.judgementWindowMultiplier;
   }
 
+  /**
+   * @returns {number} Current maximum health bonus
+   */
   getMaxHealthBonus() {
     return this.skillEffects.maxHealthBonus;
   }
 
+  /**
+   * @returns {number} Current note speed multiplier
+   */
   getNoteSpeedMultiplier() {
     return this.skillEffects.noteSpeedMultiplier;
   }
 
+  /**
+   * @returns {number} Current hold forgiveness multiplier
+   */
   getHoldForgivenessMultiplier() {
     return this.skillEffects.holdForgivenessMultiplier;
   }
 
+  /**
+   * @returns {number} Current roll forgiveness multiplier
+   */
   getRollForgivenessMultiplier() {
     return this.skillEffects.rollForgivenessMultiplier;
   }
 
+  /**
+   * @returns {number} Current mine damage multiplier
+   */
   getMineDamageMultiplier() {
     return this.skillEffects.mineDamageMultiplier;
   }
 
+  /**
+   * Returns the score multiplier applied for a specific judgement type.
+   * @param {string} judgement - The judgement type
+   * @returns {number} The score multiplier, defaulting to 1.0
+   */
   getScoreMultiplier(judgement) {
     return this.skillEffects.scoreMultipliers[judgement] || 1.0;
   }
 
+  /**
+   * @returns {number} Current health gain multiplier
+   */
   getHealthGainMultiplier() {
     return this.skillEffects.healthGainMultiplier;
   }
 
+  /**
+   * @returns {number} Current input lag reduction
+   */
   getInputLagReduction() {
     return this.skillEffects.inputLagReduction;
   }
 
+/**
+   * Updates exhaustion state, expires finished skills, and refreshes the skill bar each frame.
+   */
   update() {
     const currentTime = game.time.now;
     
@@ -6724,6 +7289,9 @@ class CharacterSkillSystem {
     this.scene.skillBar.update();
   }
 
+  /**
+   * Clears all active skills, cooldowns, effects, and usage count for a fresh game.
+   */
   resetGame() {
     for (const skillId of this.activeSkills.keys()) {
       this.deactivateSkill(skillId);
@@ -6751,13 +7319,44 @@ class CharacterSkillSystem {
     this.stopHealthRegen();
   }
 
+  /**
+   * Returns how many skills have been used during the current game.
+   * @returns {number} Skills used count
+   */
   getSkillsUsed() {
     return this.skillsUsedThisGame;
   }
 }
 
+/**
+ * @class AchievementsManager
+ * @category Achievements and Stats Classes
+ * @summary Achievement tracking, unlocking, and stats management
+ * @constructor
+ * @features
+ * Tracks play time with a high-frequency interval timer
+ * Evaluates achievement conditions against live player stats
+ * Manages daily play streaks and holiday detection
+ * Persists session state across page visibility changes
+ * Awards experience to the current character on unlock
+ * @description
+ * AchievementsManager maintains the player's statistics, play streak, and
+ * session timing throughout the game session. It periodically evaluates all
+ * achievement definitions against the current stats, unlocks any that are
+ * newly satisfied, awards experience, and triggers in-game notifications.
+ * It also handles page visibility events to pause and resume time tracking
+ * correctly.
+ * @example
+ * // Initialising and checking achievements after a song
+ * const mgr = new AchievementsManager();
+ * mgr.initialize();
+ * // After a gameplay result:
+ * const newAchievements = mgr.updateStats(gameResults);
+ * newAchievements.forEach(a => console.log('Unlocked:', a.name));
+ */
 class AchievementsManager {
   constructor() {
+    /** @type {Array<Object>} Achievements unlocked this session */
     this.newAchievements = [];
 
     // Time tracking properties
@@ -6767,6 +7366,9 @@ class AchievementsManager {
     this.isTracking = false;
   }
 
+  /**
+   * Initialises achievement progress, stats, holiday definitions, and session tracking.
+   */
   initialize() {
     // Initialize achievements progress if not exists
     if (!Account.achievements) {
@@ -6828,6 +7430,9 @@ class AchievementsManager {
     console.log("Achievements Manager initialized");
   }
 
+  /**
+   * Starts a new play session, incrementing session counters and updating the streak.
+   */
   startSession() {
     this.sessionStartTime = Date.now();
     this.lastUpdateTime = this.sessionStartTime;
@@ -6844,6 +7449,9 @@ class AchievementsManager {
     console.log("New play session started");
   }
 
+  /**
+   * Begins the periodic time tracking interval that updates play time stats.
+   */
   startTimeTracking() {
     if (this.timeUpdateInterval) {
       clearInterval(this.timeUpdateInterval);
@@ -6856,6 +7464,9 @@ class AchievementsManager {
     this.isTracking = true;
   }
 
+  /**
+   * Called on each timer tick to accumulate play time and check achievements periodically.
+   */
   updateTimeStats() {
     if (!this.isTracking || !this.sessionStartTime) return;
 
@@ -6881,6 +7492,9 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Updates the daily play streak based on the last played date.
+   */
   updatePlayStreak() {
     const now = new Date();
     const today = now.toDateString();
@@ -6908,6 +7522,9 @@ class AchievementsManager {
     Account.stats.lastPlayedDate = today;
   }
 
+  /**
+   * Evaluates time-of-day and holiday conditions for the current session.
+   */
   checkTimeBasedConditions() {
     const { now, currentHour, currentDay, month, date } = this.getDate();
         
@@ -6933,6 +7550,10 @@ class AchievementsManager {
     }
   }
   
+  /**
+   * Returns the current date breakdown needed for time-based achievement checks.
+   * @returns {Object} An object with now, currentHour, currentDay, month, and date
+   */
   getDate() {
     const now = new Date();
     const currentHour = now.getHours();
@@ -6942,6 +7563,10 @@ class AchievementsManager {
     return { now, currentHour, currentDay, month, date };
   }
 
+  /**
+   * Returns the full holiday calendar mapping months and dates to holiday names.
+   * @returns {Object} Nested object keyed by month (0-11) then date (1-31)
+   */
   getHolidays() {
     // Comprehensive holiday calendar
     return {
@@ -6988,6 +7613,12 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Returns the localised name of a holiday for a given month and date.
+   * @param {number} month - The month (0-11)
+   * @param {number} date - The day of the month (1-31)
+   * @returns {string|null} The holiday name or null if not a holiday
+   */
   getHolidayName(month, date) {
     const holidays = this.getHolidays();
     if (holidays[month]) {
@@ -7002,11 +7633,20 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Checks whether a given month and date corresponds to a known holiday.
+   * @param {number} month - The month (0-11)
+   * @param {number} date - The day of the month (1-31)
+   * @returns {boolean} True if the date is a holiday
+   */
   isHoliday(month, date) {
     const holidays = this.getHolidays();
     return holidays[month] && holidays[month][date] !== undefined;
   }
 
+  /**
+   * Attaches DOM event listeners for page visibility and unload to manage session state.
+   */
   setupWindowEvents() {
     // Handle page visibility changes
     document.addEventListener("visibilitychange", () => {
@@ -7032,12 +7672,18 @@ class AchievementsManager {
     });
   }
 
+  /**
+   * Pauses time tracking when the page becomes hidden.
+   */
   onPageHide() {
     // Page is being hidden - pause time tracking
     this.isTracking = false;
     console.log("Page hidden - time tracking paused");
   }
 
+  /**
+   * Resumes time tracking when the page becomes visible again.
+   */
   onPageShow() {
     // Page is visible again - resume time tracking
     if (!this.isTracking) {
@@ -7047,6 +7693,9 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Ends the current play session, finalising stats and saving to account.
+   */
   endSession() {
     // Final time update
     this.updateTimeStats();
@@ -7073,6 +7722,11 @@ class AchievementsManager {
     console.log("Play session ended");
   }
 
+  /**
+   * Updates stats with gameplay results and checks for newly unlocked achievements.
+   * @param {Object} [gameResults] - The results object from a completed song
+   * @returns {Array<Object>} Any achievements unlocked during this call
+   */
   updateStats(gameResults = null) {
     if (!Account.stats) return;
 
@@ -7097,6 +7751,10 @@ class AchievementsManager {
     return newAchievements;
   }
 
+  /**
+   * Records gameplay statistics from a completed song into Account.stats.
+   * @param {Object} gameResults - The results object with score, judgements, etc.
+   */
   updateGameStats(gameResults) {
     if (Account.settings.autoplay) return;
 
@@ -7131,6 +7789,10 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Evaluates all achievement definitions and unlocks any that are newly satisfied.
+   * @returns {Array<Object>} Array of achievement objects that were just unlocked
+   */
   checkAchievements() {
     const newlyUnlocked = [];
 
@@ -7186,6 +7848,10 @@ class AchievementsManager {
     return newlyUnlocked;
   }
 
+  /**
+   * Awards the achievement experience reward to the current character.
+   * @param {Object} achievement - The achievement definition with expReward
+   */
   awardAchievementExp(achievement) {
     if (achievement.expReward > 0) {
       const characterManager = new CharacterManager();
@@ -7198,40 +7864,78 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Returns all achievements that have been unlocked.
+   * @returns {Array<Object>} Filtered achievement definitions
+   */
   getUnlockedAchievements() {
     return ACHIEVEMENT_DEFINITIONS.filter(achievement => Account.achievements.unlocked[achievement.id]);
   }
 
+  /**
+   * Returns non-hidden achievements that have not yet been unlocked.
+   * @returns {Array<Object>} Filtered achievement definitions
+   */
   getLockedAchievements() {
     return ACHIEVEMENT_DEFINITIONS.filter(achievement => !Account.achievements.unlocked[achievement.id] && !achievement.hidden);
   }
 
+  /**
+   * Returns hidden achievements that have not yet been unlocked.
+   * @returns {Array<Object>} Filtered achievement definitions
+   */
   getHiddenAchievements() {
     return ACHIEVEMENT_DEFINITIONS.filter(achievement => achievement.hidden && !Account.achievements.unlocked[achievement.id]);
   }
 
+  /**
+   * Returns the stored progress value for a specific achievement.
+   * @param {string} achievementId - The achievement ID
+   * @returns {number} The progress value
+   */
   getAchievementProgress(achievementId) {
     return Account.achievements.progress[achievementId] || 0;
   }
 
+  /**
+   * Returns the total number of achievements that have been unlocked.
+   * @returns {number} The unlocked count
+   */
   getTotalUnlockedCount() {
     return Object.keys(Account.achievements.unlocked).length;
   }
 
+  /**
+   * Returns the total number of achievement definitions.
+   * @returns {number} The total count
+   */
   getTotalAchievementsCount() {
     return ACHIEVEMENT_DEFINITIONS.length;
   }
 
+  /**
+   * Calculates the achievement completion percentage as a whole number.
+   * @returns {number} The percentage from 0 to 100
+   */
   getCompletionPercentage() {
     const total = this.getTotalAchievementsCount();
     const unlocked = this.getTotalUnlockedCount();
     return total > 0 ? Math.floor((unlocked / total) * 100) : 0;
   }
 
+  /**
+   * Returns the total time played formatted as a human-readable string.
+   * @returns {string} Formatted time string (e.g. "2h 15m 30s")
+   */
   getTimePlayedFormatted() {
     return this.formatTime(Account.stats.totalTimePlayed);
   }
 
+  /**
+   * Converts a number of seconds into a human-readable time string.
+   * @param {number} seconds - The total seconds to format
+   * @returns {string} Formatted string (e.g. "1h 5m 3s" or "42s")
+   */
   formatTime(seconds) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -7246,15 +7950,25 @@ class AchievementsManager {
     }
   }
 
+  /**
+   * Returns the duration of the current session in seconds.
+   * @returns {number} Seconds elapsed since the session started
+   */
   getCurrentSessionTime() {
     if (!this.sessionStartTime) return 0;
     return Math.floor((Date.now() - this.sessionStartTime) / 1000);
   }
   
+  /**
+   * Forces an immediate save of the current session state to the account.
+   */
   forceSave() {
     this.saveSessionState();
   }
 
+  /**
+   * Ends the session and removes all DOM event listeners.
+   */
   destroy() {
     this.endSession();
 
@@ -7269,12 +7983,43 @@ class AchievementsManager {
   }
 }
 
+/**
+ * @class PlaylistManager
+ * @category Playlist System Classes
+ * @summary Manages song playlists with localStorage persistence
+ * @constructor
+ * @features
+ * Playlist creation, renaming, and deletion
+ * Song add, remove, and reorder within playlists
+ * Minified song references restored to full songs when available
+ * Singleton access through getInstance
+ * @description
+ * Handles creation and management of song playlists stored in localStorage.
+ * Playlists keep lightweight references to songs and resolve them to full song
+ * objects at runtime, marking missing songs appropriately.
+ * @example
+ * // Modding usage example
+ * const pm = PlaylistManager.getInstance();
+ * const key = pm.createPlaylist('My Favorites');
+ * pm.addSong(key, songObject);
+ * const songs = pm.getPlaylistSongs(key);
+ * pm.moveSong(key, 0, 1);
+ * pm.renamePlaylist(key, 'Best Songs');
+ * pm.deletePlaylist(key);
+ */
 class PlaylistManager {
   constructor() {
+    /** @type {Object} All playlists keyed by generated identifier */
     this.playlists = JSON.parse(localStorage.getItem('Playlists') || "{}");
+    /** @type {string|null} Identifier of the most recently used playlist */
     this.lastPlaylistKey = null;
   }
 
+  /**
+   * Creates a new empty playlist with a generated unique key.
+   * @param {string} name - Display name of the playlist
+   * @returns {string|null} The playlist key, or null if it already exists
+   */
   createPlaylist(name) {
     const key = this.generateKey(name);
     if (this.playlists[key]) return null;
@@ -7289,10 +8034,21 @@ class PlaylistManager {
     return key;
   }
 
+  /**
+   * Builds a unique key from a playlist name and the current timestamp.
+   * @param {string} name - Playlist name to slugify
+   * @returns {string} Generated playlist key
+   */
   generateKey(name) {
     return name.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now().toString(36);
   }
 
+  /**
+   * Adds a song reference to a playlist, skipping duplicates by audio URL.
+   * @param {string} playlistKey - Identifier of the target playlist
+   * @param {Object} song - Full song object to reference
+   * @returns {boolean} Whether the song was added
+   */
   addSong(playlistKey, song) {
     if (!this.playlists[playlistKey]) return false;
     
@@ -7306,6 +8062,11 @@ class PlaylistManager {
     return true;
   }
 
+  /**
+   * Creates a minimal song reference containing only fields needed to find the song later.
+   * @param {Object} song - Full song object
+   * @returns {Object} Minified song reference
+   */
   createSongRef(song) {
     // Minimal data - only what's needed to find the song again
     return {
@@ -7322,6 +8083,11 @@ class PlaylistManager {
     };
   }
 
+  /**
+   * Attempts to resolve a stored reference to its full song object.
+   * @param {Object} songRef - Stored song reference
+   * @returns {Object} The full song, or the reference flagged as missing
+   */
   restoreFullSong(songRef) {
     // First try to find in local songs
     if (window.localSongs) {
@@ -7343,21 +8109,42 @@ class PlaylistManager {
     };
   }
 
+  /**
+   * Returns the full song objects for a playlist.
+   * @param {string} key - Playlist identifier
+   * @returns {Array} List of restored song objects
+   */
   getPlaylistSongs(key) {
     if (!this.playlists[key]) return [];
     return this.playlists[key].songs.map(ref => this.restoreFullSong(ref));
   }
 
+  /**
+   * Returns the raw stored references for a playlist.
+   * @param {string} key - Playlist identifier
+   * @returns {Array} List of stored song references
+   */
   getPlaylistRefs(key) {
     if (!this.playlists[key]) return [];
     return this.playlists[key].songs;
   }
 
+  /**
+   * Checks whether a playlist contains any external songs.
+   * @param {string} key - Playlist identifier
+   * @returns {boolean} True if any stored reference is external
+   */
   hasExternalSongs(key) {
     if (!this.playlists[key]) return false;
     return this.playlists[key].songs.some(s => s.isExternal);
   }
 
+  /**
+   * Removes a song from a playlist by its index.
+   * @param {string} playlistKey - Playlist identifier
+   * @param {number} songIndex - Index of the song to remove
+   * @returns {boolean} Whether the song was removed
+   */
   removeSong(playlistKey, songIndex) {
     if (!this.playlists[playlistKey]) return false;
     this.playlists[playlistKey].songs.splice(songIndex, 1);
@@ -7366,6 +8153,13 @@ class PlaylistManager {
     return true;
   }
 
+  /**
+   * Repositions a song within a playlist from one index to another.
+   * @param {string} playlistKey - Playlist identifier
+   * @param {number} fromIndex - Current index of the song
+   * @param {number} toIndex - Target index for the song
+   * @returns {boolean} Whether the move succeeded
+   */
   moveSong(playlistKey, fromIndex, toIndex) {
     if (!this.playlists[playlistKey]) return false;
     const songs = this.playlists[playlistKey].songs;
@@ -7378,6 +8172,11 @@ class PlaylistManager {
     return true;
   }
 
+  /**
+   * Returns a playlist object with its songs resolved to full song data.
+   * @param {string} key - Playlist identifier
+   * @returns {Object|null} The playlist object or null if not found
+   */
   getPlaylist(key) {
     if (!this.playlists[key]) return null;
     return {
@@ -7386,14 +8185,28 @@ class PlaylistManager {
     };
   }
 
+  /**
+   * Returns the raw playlist record without resolving songs.
+   * @param {string} key - Playlist identifier
+   * @returns {Object|null} The raw playlist record or null
+   */
   getPlaylistRef(key) {
     return this.playlists[key] || null;
   }
 
+  /**
+   * Returns all playlist keys.
+   * @returns {Array} List of playlist identifiers
+   */
   getPlaylistNames() {
     return Object.keys(this.playlists);
   }
   
+  /**
+   * Returns the first playlist key containing a given song.
+   * @param {Object} song - Song object to search for
+   * @returns {string|null} The playlist key or null if not found
+   */
   getSongPlaylist(song) {
     const keys = Object.keys(this.playlists);
     
@@ -7411,6 +8224,11 @@ class PlaylistManager {
     return null;
   }
   
+  /**
+   * Returns all playlist keys that contain a given song.
+   * @param {Object} song - Song object to search for
+   * @returns {Array} List of playlist keys
+   */
   getSongPlaylists(song) {
     const keys = Object.keys(this.playlists);
     const playlists = [];
@@ -7429,6 +8247,12 @@ class PlaylistManager {
     return playlists;
   }
 
+  /**
+   * Renames an existing playlist.
+   * @param {string} key - Playlist identifier
+   * @param {string} name - New display name
+   * @returns {boolean} Whether the rename succeeded
+   */
   renamePlaylist(key, name) {
     if (!this.playlists[key]) return false;
     this.playlists[key].name = name;
@@ -7436,6 +8260,11 @@ class PlaylistManager {
     return true;
   }
   
+  /**
+   * Deletes a playlist by its key.
+   * @param {string} key - Playlist identifier
+   * @returns {boolean} Whether the deletion succeeded
+   */
   deletePlaylist(key) {
     if (!this.playlists[key]) return false;
     delete this.playlists[key];
@@ -7443,11 +8272,18 @@ class PlaylistManager {
     return true;
   }
 
+  /**
+   * Persists the current playlists to localStorage and exposes them on the window.
+   */
   save() {
     window.playlists = this.playlists;
     localStorage.setItem('Playlists', JSON.stringify(this.playlists));
   }
 
+  /**
+   * Returns the shared singleton instance of the playlist manager.
+   * @returns {PlaylistManager} The singleton instance
+   */
   static getInstance() {
     if (!PlaylistManager._instance) {
       PlaylistManager._instance = new PlaylistManager();
@@ -7456,10 +8292,41 @@ class PlaylistManager {
   }
 }
 
+/**
+ * @class Text
+ * @category UI Classes
+ * @summary Retro pixel text with typewriter and scrolling effects
+ * @constructor
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {string} [text=""] - Initial text content
+ * @param {object} [config={}] - Overrides for FONTS.default, tint, and typewriter options
+ * @param {object} [parent] - Optional Phaser.Group or PIXI container to add this text sprite to
+ * @features
+ * Typewriter reveal effect with configurable interval
+ * Scrolling marquee mode for overflowing text
+ * Word wrapping helpers for multi-line layout
+ * Renders with a Phaser.RetroFont pixel glyph set
+ * @description
+ * Text is a sprite-based retro text label that renders pixel fonts through a
+ * Phaser.RetroFont texture. It supports normal display, typewriter reveal,
+ * and a looping marquee scroll for text that overflows its window, and it
+ * provides word wrapping helpers for multi-line layout.
+ * @example
+ * // Modding usage example
+ * const title = new Text(8, 8, 'Select Song', FONTS.default);
+ * title.tint = 0x76fcde;
+ *
+ * const typed = new Text(8, 16, 'Loading...', { typewriter: true });
+ *
+ * const ticker = new Text(8, 24, 'Queue', FONTS.small);
+ * ticker.scrollwrite('A very long scrolling message', 12, 150);
+ */
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config = {}, parent) {
     super(game, x, y, null);
     
+    /** @type {object} Merged font, tint, and effect configuration */
     this.config = {
       ...FONTS.default,
       tint: 0xffffff,
@@ -7468,13 +8335,17 @@ class Text extends Phaser.Sprite {
       ...config
     };
     
+    // Create the retro font texture
+    /** @type {Phaser.RetroFont} Retro font texture that renders the glyphs */
     this.texture = new Phaser.RetroFont(game, this.config.font, this.config.fontWidth, this.config.fontHeight, this.config.fontMap);
 
     this.texture.multiLine = true;
     this.texture.autoUpperCase = this.config.autoUpperCase;
 
+    /** @type {Phaser.Timer} Timer driving typewriter and scroll effects */
     this.timer = game.time.create(false);
 
+    /** @type {number} Milliseconds between typewriter characters */
     this.typewriterInterval = this.config.typewriterInterval;
 
     this.tint = this.config.tint;
@@ -7493,6 +8364,13 @@ class Text extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Sets the displayed text, capping it to a max visible length when given.
+   * Longer text switches to the scrolling marquee mode instead.
+   * @param {string} text - The text to display
+   * @param {number} [max] - Maximum visible length; longer text scrolls
+   * @returns {Text} This text sprite for chaining
+   */
   write(text, max) {
     if (typeof text != "string") return this;
     if (max && text.length > max) {
@@ -7504,6 +8382,12 @@ class Text extends Phaser.Sprite {
     return this;
   }
 
+  /**
+   * Reveals the text one character at a time using the typewriter timer.
+   * @param {string} text - The text to type out
+   * @param {Function} [callback] - Called once typing completes
+   * @returns {Text} This text sprite for chaining
+   */
   typewrite(text, callback) {
     if (this.timer.running) this.timer.stop();
 
@@ -7526,6 +8410,14 @@ class Text extends Phaser.Sprite {
     return this;
   }
 
+  /**
+   * Starts a looping marquee scroll of the given text and returns controls.
+   * @param {string} text - The full text to scroll
+   * @param {number} [visibleLength=5] - How many characters are visible at once
+   * @param {number} [scrollSpeed=200] - Milliseconds between scroll steps
+   * @param {number} [separation=5] - Spaces appended between repetitions
+   * @returns {object} Controls with stop, pause, resume, and setSpeed methods
+   */
   scrollwrite(text, visibleLength = 5, scrollSpeed = 200, separation = 5) {
     if (this.timer.running) this.timer.stop();
     
@@ -7574,16 +8466,29 @@ class Text extends Phaser.Sprite {
     };
   }
 
+  /**
+   * Stops any running typewriter or scroll timer, halting effect updates.
+   */
   stopScrolling() {
     if (this.timer.running) {
       this.timer.stop();
     }
   }
 
+  /**
+   * Returns whether a scrolling or typewriter effect is currently running.
+   * @returns {boolean} True while the effect timer is active
+   */
   isScrolling() {
     return this.timer.running;
   }
   
+  /**
+   * Wraps the current text to a maximum pixel width, breaking long words.
+   * @param {number} maxWidth - Maximum line width in pixels
+   * @param {number} [lineSpacing=1] - Unused legacy spacing parameter
+   * @returns {Text} This text sprite for chaining
+   */
   wrapOld(maxWidth, lineSpacing = 1) {
     if (!this.texture.text) return this;
     
@@ -7642,11 +8547,21 @@ class Text extends Phaser.Sprite {
     return this;
   }
   
+  /**
+   * Computes how many characters fit on a line at the given pixel width.
+   * @param {number} maxWidth - Available width in pixels
+   * @returns {number} Maximum characters per line
+   */
   getMaxCharsPerLine(maxWidth = 1) {
     const charWidth = this.config.fontWidth || 4;
     return Math.floor(maxWidth / charWidth);
   }
   
+  /**
+   * Returns the current text wrapped into lines for a given pixel width.
+   * @param {number} maxWidth - Maximum line width in pixels
+   * @returns {string} The wrapped text, lines joined with newlines
+   */
   getWrappedText(maxWidth = 1) {
     if (!this.texture.text) return this.texture.text;
     
@@ -7709,31 +8624,72 @@ class Text extends Phaser.Sprite {
     return wrappedLines.join('\n');
   }
   
+  /**
+   * Wraps and rewrites the current text to a maximum pixel width.
+   * @param {number} maxWidth - Maximum line width in pixels
+   * @returns {Text} This text sprite for chaining
+   */
   wrap(maxWidth) {
     this.write(this.getWrappedText(maxWidth));
     return this;
   }
 }
 
+/**
+ * @class Window
+ * @category UI Classes
+ * @summary Customizable UI window with menu items and scrollbar
+ * @constructor
+ * @param {number} x - X position in 8px grid cells
+ * @param {number} y - Y position in 8px grid cells
+ * @param {number} width - Window width in 8px cells
+ * @param {number} height - Window height in 8px cells
+ * @param {string} [skin="1"] - Window skin key used for frame sprites
+ * @param {object} [parent] - Optional parent to add the window sprite to
+ * @features
+ * Grid-aligned frame built from tiled sprite parts
+ * Plain, setting, and range menu items
+ * Blinking selector arrow and pulsing highlight
+ * Auto-hiding scroll bar and signal-based events
+ * @description
+ * Window is a sprite-based UI window that renders a frame from tiled sprite
+ * parts on an 8px grid. It hosts menu items (plain, setting, and range
+ * types) and handles selection, navigation, highlighting, scrolling, and an
+ * optional scroll bar. Its signals let mods react to selection, confirmation,
+ * and cancellation without touching window internals.
+ * @example
+ * // Modding usage example
+ * const win = new Window(4, 4, 12, 6, "1");
+ * win.addItem('Play', '', () => game.state.start('Play'), true);
+ * win.addSettingItem('Volume', ['Low', 'Med', 'High'], 1);
+ * win.addRangeItem('Speed', 0, 200, 10, 100, '%');
+ * win.onConfirm.add(() => {});
+ */
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
 
+    /** @type {object} Window dimensions in grid cells ({ width, height }) */
     this.size = {
       width,
       height
     };
     
+    /** @type {object} Pixel offset applied to item content ({ x, y }) */
     this.offset = {
       x: 0,
       y: 0
     };
     
+    /** @type {number} Index of the first visible item */
     this.scrollOffset = 0;
     this.itemOffset = 1;
     this.visibleItems = height;
+    /** @type {number} Index of the currently selected item */
     this.selectedIndex = 0;
+    /** @type {boolean} Whether this window is focused for navigation */
     this.focus = false;
+    /** @type {string} Window skin key used for frame sprites */
     this.skin = skin;
     this.font = "default";
     this.fontTint = 0x76fcde;
@@ -7751,6 +8707,7 @@ class Window extends Phaser.Sprite {
     this.createWindowFrame();
 
     // Selection arrow
+    /** @type {Phaser.Sprite} Blinking selection arrow sprite */
     this.selector = game.add.sprite(3, 0, `ui_window_${skin}`, 9);
     this.selector.visible = false;
     this.selector.animations.add('blink', [9, 10], 4, true);
@@ -7758,6 +8715,7 @@ class Window extends Phaser.Sprite {
     this.addChild(this.selector);
     
     // Highlight rectangle
+    /** @type {Phaser.Graphics} Animated highlight rectangle behind the selection */
     this.highlight = game.add.graphics(0, 0);
     this.highlight.alpha = 0; // Start hidden
     this.highlight.beginFill(this.fontTint, 0.8);
@@ -7766,6 +8724,7 @@ class Window extends Phaser.Sprite {
     this.addChild(this.highlight);
     
     // Scroll bar
+    /** @type {Phaser.Graphics} Auto-hiding scroll bar indicator */
     this.scrollBar = game.add.graphics(this.size.width * 8 - 3, 8);
     this.scrollBar.alpha = 0; // Start hidden
     this.addChild(this.scrollBar);
@@ -7773,11 +8732,15 @@ class Window extends Phaser.Sprite {
     this.scrollBarTween = null;
 
     // Signals
+    /** @type {Phaser.Signal} Dispatched with the new index when selection moves */
     this.onSelect = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when the window is confirmed */
     this.onConfirm = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when the window is cancelled */
     this.onCancel = new Phaser.Signal();
 
     // Items array
+    /** @type {Array} Array of menu items managed by this window */
     this.items = [];
     this.updateSelector();
   }
@@ -7813,6 +8776,14 @@ class Window extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Adds a plain menu item with an optional value text on the right side.
+   * @param {string} text - Item label, localized unless already localized
+   * @param {string} valueText - Value text aligned to the right edge
+   * @param {Function} [callback] - Called with the item when confirmed
+   * @param {boolean} [backButton=false] - Whether this item acts as a back/cancel button
+   * @returns {object} The created item object
+   */
   addItem(text, valueText, callback = null, backButton = false) {
     text = text._localized ? text : __(text);
     
@@ -7850,6 +8821,14 @@ class Window extends Phaser.Sprite {
     return item;
   }
 
+  /**
+   * Adds a setting item that cycles through options with left/right input.
+   * @param {string} text - Item label, localized unless already localized
+   * @param {Array} options - List of option values to cycle through
+   * @param {number} currentIndex - Index of the initially selected option
+   * @param {Function} [callback] - Called with the new index and value when changed
+   * @returns {object} The created item object
+   */
   addSettingItem(text, options, currentIndex, callback = null) {
     text = text._localized ? text : __(text);
     
@@ -7882,6 +8861,17 @@ class Window extends Phaser.Sprite {
     return item;
   }
   
+  /**
+   * Adds a numeric range item adjusted by a step on left/right input.
+   * @param {string} text - Item label, localized unless already localized
+   * @param {number} [min=0] - Minimum allowed value
+   * @param {number} [max=100] - Maximum allowed value
+   * @param {number} [step=1] - Increment/decrement step
+   * @param {number} [value=0] - Initial value
+   * @param {string} [suffix=""] - Text rendered after the value
+   * @param {Function} [callback] - Called with the new value when changed
+   * @returns {object} The created item object
+   */
   addRangeItem(text, min = 0, max = 100, step = 1, value = 0, suffix = "", callback = null) {
     text = text._localized ? text : __(text);
     
@@ -7913,10 +8903,19 @@ class Window extends Phaser.Sprite {
     return item;
   }
   
+  /**
+   * Returns the usable content height in pixels below the window padding.
+   * @param {number} [excluding=0] - Extra pixels to exclude from the height
+   * @returns {number} Usable height in pixels
+   */
   getVisibleHeight(excluding = 0) {
     return (this.size.height * 8) - (10 + this.offset.y);
   }
 
+  /**
+   * Recomputes visible items, scroll bounds, and item positions.
+   * Called automatically after items are added or the window is resized.
+   */
   update() {
     // Calculate visible items based on window height and item spacing
     const availableHeight = this.getVisibleHeight(); // Subtract padding
@@ -7952,6 +8951,9 @@ class Window extends Phaser.Sprite {
     this.updateSelector();
   }
   
+  /**
+   * Positions the selector arrow and highlight on the selected item.
+   */
   updateSelector() {
     // Position selector arrow
     if (this.focus && this.items.length > 0 && this.selectedIndex >= this.scrollOffset && this.selectedIndex < this.scrollOffset + this.visibleItems) {
@@ -7970,6 +8972,9 @@ class Window extends Phaser.Sprite {
     this.updateHighlight();
   }
   
+  /**
+   * Animates the highlight rectangle alpha and positions it on the selection.
+   */
   updateHighlight() {
     if (this.forcedHighlightY || this.selector.visible && !this.disableHighlight) {
       // Position with selector arrow
@@ -7982,10 +8987,17 @@ class Window extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Pins the highlight rectangle to a fixed Y position within the window.
+   * @param {number} y - Y position for the highlight
+   */
   forceHighlight(y) {
     this.forcedHighlightY = y;
   }
   
+  /**
+   * Redraws and reveals the scroll bar when items overflow the window.
+   */
   updateScrollBar() {
     if (this.disableScrollBar) return;
     
@@ -8019,6 +9031,9 @@ class Window extends Phaser.Sprite {
     this.showScrollBar();
   }
   
+  /**
+   * Fades the scroll bar in and schedules an automatic fade out.
+   */
   showScrollBar() {
     // Cancel any existing fade out tween
     if (this.scrollBarTween) {
@@ -8037,6 +9052,9 @@ class Window extends Phaser.Sprite {
       });
   }
 
+  /**
+   * Immediately hides and clears the scroll bar.
+   */
   hideScrollBar() {
     // Cancel any existing tween
     if (this.scrollBarTween) {
@@ -8058,6 +9076,10 @@ class Window extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Moves selection by the given direction and plays the navigation sound.
+   * @param {string} direction - One of 'up', 'down', 'left', or 'right'
+   */
   navigate(direction) {
     if (this.items.length === 0) return;
 
@@ -8123,6 +9145,10 @@ class Window extends Phaser.Sprite {
     this.playNavSound();
   }
   
+  /**
+   * Selects the item at the given index and adjusts scrolling to show it.
+   * @param {number} index - Item index to select
+   */
   selectIndex(index) {
     this.selectedIndex = index;
     this.adjustScroll();
@@ -8133,10 +9159,18 @@ class Window extends Phaser.Sprite {
     ENABLE_UI_SFX && Audio.play('ui_nav');
   }
   
+  /**
+   * Applies a tint to every window frame part.
+   * @param {number} tint - RGB tint value
+   */
   setTint(tint) {
     this.frameParts.forEach(part => part.tint = tint);
   }
 
+  /**
+   * Confirms the selected item's callback or dispatches the onConfirm signal.
+   * @returns {boolean} True when an item handled the confirmation
+   */
   confirm() {
     if (this.items.length > 0) {
       const item = this.items[this.selectedIndex];
@@ -8156,6 +9190,9 @@ class Window extends Phaser.Sprite {
     return false;
   }
 
+  /**
+   * Runs back-button callbacks and dispatches the onCancel signal.
+   */
   cancel() {
     this.items.forEach(item => {
       if (item.backButton) {
@@ -8166,6 +9203,10 @@ class Window extends Phaser.Sprite {
     this.onCancel.dispatch(this.selectedIndex);
   }
   
+  /**
+   * Scrolls the selection by the given delta, clamping it to the item list.
+   * @param {number} [delta=0] - Amount to scroll the selection by
+   */
   scroll(delta = 0) {
     this.scrollOffset += delta;
     this.selectedIndex += delta;
@@ -8177,6 +9218,9 @@ class Window extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Destroys all item texts and resets the item list and selection.
+   */
   removeAll() {
     this.items.forEach(item => {
       item.text.destroy();
@@ -8187,6 +9231,9 @@ class Window extends Phaser.Sprite {
     this.selectedIndex = 0;
   }
 
+  /**
+   * Removes all items, disposes signals, and no-ops navigation handlers.
+   */
   clear() {
     this.removeAll();
     if (this.scrollBarTween) {
@@ -8205,14 +9252,23 @@ class Window extends Phaser.Sprite {
     this.scrollOffset = 0;
   }
 
+  /**
+   * Makes the window sprite visible.
+   */
   show() {
     this.visible = true;
   }
 
+  /**
+   * Hides the window sprite.
+   */
   hide() {
     this.visible = false;
   }
 
+  /**
+   * Clears the window, marks it disposed, and destroys the sprite.
+   */
   destroy() {
     this.clear();
     this.disposed = true;
@@ -8220,9 +9276,34 @@ class Window extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class WindowManager
+ * @category UI Classes
+ * @summary Manages UI windows, focus, and navigation
+ * @constructor
+ * @features
+ * Tracks and focuses a stack of UI windows
+ * Routes gamepad navigation, confirm, and cancel to the focused window
+ * Mouse hover selection, wheel scrolling, and click confirmation
+ * Dynamic repeat cooldown for held directional buttons
+ * @description
+ * WindowManager owns every open Window, keeps a single focused window, and
+ * forwards gamepad and mouse input to it. It applies a dynamic cooldown so
+ * held directional buttons repeat at increasing speed, moves the selection by
+ * mouse hover, and supports wheel scrolling and click confirmation. It is the
+ * hub that connects the menu windows together.
+ * @example
+ * // Modding usage example
+ * const ui = new WindowManager();
+ * const menu = ui.createWindow(4, 3, 14, 8, "1");
+ * const modal = ui.createWindow(6, 5, 10, 4, "1");
+ * ui.focus(menu);
+ */
 class WindowManager {
   constructor() {
+    /** @type {Array} Stack of managed Window objects */
     this.windows = [];
+    /** @type {Window} Window that currently receives navigation input */
     this.focusedWindow = null;
     
     this.gamepad = gamepad;
@@ -8237,6 +9318,11 @@ class WindowManager {
     this.mouseTarget = null;
   }
 
+  /**
+   * Registers a window and focuses it automatically when it is the first.
+   * @param {Window} window - The window to manage
+   * @returns {Window} The added window
+   */
   add(window) {
     if (!this.windows.includes(window)) {
       this.windows.push(window);
@@ -8250,10 +9336,21 @@ class WindowManager {
     return window;
   }
 
+  /**
+   * Shows a managed window without changing focus.
+   * @param {Window} window - The window to show
+   */
   show(window) {
     window.show();
   }
 
+  /**
+   * Removes a window from the stack, optionally destroying it.
+   * The next available window receives focus when the focused one is removed.
+   * @param {Window} window - The window to remove
+   * @param {boolean} [destroy=true] - Whether to destroy the window
+   * @returns {boolean} True when the window was removed
+   */
   remove(window, destroy = true) {
     const index = this.windows.indexOf(window);
     if (index !== -1) {
@@ -8280,6 +9377,12 @@ class WindowManager {
     return false;
   }
 
+  /**
+   * Focuses a window, hiding the previously focused one and showing its arrow.
+   * @param {Window} window - The window to focus
+   * @param {boolean} [hide=true] - Whether to hide the previously focused window
+   * @returns {boolean} True when the window was focused
+   */
   focus(window, hide = true) {
     if (window && this.windows.includes(window)) {
       // Hide selector for previously focused window
@@ -8300,10 +9403,16 @@ class WindowManager {
     return false;
   }
 
+  /**
+   * Clears the focused window reference without modifying the stack.
+   */
   unfocus() {
     this.focusedWindow = null;
   }
 
+  /**
+   * Clears focus and hides every managed window.
+   */
   closeAll() {
     if (this.focusedWindow) {
       this.focusedWindow.focus = false;
@@ -8312,6 +9421,9 @@ class WindowManager {
     this.windows.forEach(window => window.hide());
   }
 
+  /**
+   * Processes mouse and gamepad input for the focused window each frame.
+   */
   update() {
     // Only process input if we have a focused window
     if (this.focusedWindow && !this.focusedWindow.disposed) {
@@ -8321,6 +9433,10 @@ class WindowManager {
     }
   }
   
+  /**
+   * Routes gamepad presses and held buttons to the focused window.
+   * Uses a dynamic cooldown so held directions repeat at increasing speed.
+   */
   handleGamepadNavigation() {
     // Handle gamepad navigation
     const { up, down, left, right, a, b } = this.gamepad.held;
@@ -8398,6 +9514,9 @@ class WindowManager {
     }
   }
   
+  /**
+   * Handles mouse hover selection, wheel scrolling, and click confirmation.
+   */
   handleMouseNavigation() {
     const position = mouse.pointer.position;
     
@@ -8427,6 +9546,12 @@ class WindowManager {
     this.previousMouseTarget = this.mouseTarget;
   }
   
+  /**
+   * Returns whether the given position lies inside the window bounds.
+   * @param {Window} window - The window to test against
+   * @param {object} position - Position with x and y properties
+   * @returns {boolean} True when the position is inside the window
+   */
   checkMouseBounds(window, position) {
     const { x, y } = position;
 
@@ -8441,6 +9566,12 @@ class WindowManager {
     return true;
   }
   
+  /**
+   * Returns the topmost visible item hovered by the given mouse position.
+   * @param {Window} window - The window whose items are tested
+   * @param {object} position - Position with x and y properties
+   * @returns {object|null} The hovered item or null
+   */
   getMouseTarget(window, position) {
     const { x, y } = position;
     
@@ -8458,12 +9589,25 @@ class WindowManager {
   }
 
   // Helper methods for common operations
+  /**
+   * Creates a Window, registers it with the manager, and returns it.
+   * @param {number} x - Window X position in grid cells
+   * @param {number} y - Window Y position in grid cells
+   * @param {number} width - Window width in grid cells
+   * @param {number} height - Window height in grid cells
+   * @param {string} [skin="1"] - Window skin key
+   * @param {object} [parent] - Optional parent for the new window
+   * @returns {Window} The created window
+   */
   createWindow(x, y, width, height, skin = "1", parent = null) {
     const window = new Window(x, y, width, height, skin, parent);
     this.add(window);
     return window;
   }
 
+  /**
+   * Records the first press time to seed the dynamic cooldown timing.
+   */
   updatePressTiming() {
     // Track first press time
     if (this.firstPressTime === undefined) {
@@ -8474,11 +9618,18 @@ class WindowManager {
     this.lastPress = game.time.now;
   }
 
+  /**
+   * Resets the first and last press timestamps after a fresh input.
+   */
   resetPressTiming() {
     this.firstPressTime = game.time.now;
     this.lastPress = game.time.now;
   }
 
+  /**
+   * Clears the window stack and focus, optionally destroying each window.
+   * @param {boolean} [destroy=false] - Whether to destroy the removed windows
+   */
   clearAll(destroy = false) {
     if (destroy) {
       this.windows.forEach(window => window.destroy());
@@ -8488,6 +9639,11 @@ class WindowManager {
   }
 
   // Bring window to front (visually) without necessarily focusing it
+  /**
+   * Brings a window to the top visually and reorders the stack array.
+   * @param {Window} window - The window to bring to the front
+   * @returns {boolean} True when the window was reordered
+   */
   bringToFront(window) {
     if (this.windows.includes(window)) {
       window.bringToTop();
@@ -8500,6 +9656,34 @@ class WindowManager {
   }
 }
 
+/**
+ * @class DialogWindow
+ * @category UI Classes
+ * @summary Modal dialog windows for confirmations
+ * @constructor
+ * @param {string} text - Dialog message text
+ * @param {object} [options={}] - Dialog options (position, buttons, scrolling, etc.)
+ * @features
+ * Centered modal with an auto-sized window
+ * Word-wrapped text with optional scrolling
+ * Multiple selectable buttons with gamepad and mouse support
+ * Mouse wheel text scrolling and clickable buttons
+ * Dispatches onConfirm and onCancel signals
+ * @description
+ * DialogWindow shows a modal message with a set of buttons and dispatches the
+ * chosen button. The window auto-sizes to the wrapped text, can display a
+ * blinking scroll indicator when text overflows, and supports gamepad, mouse,
+ * and keyboard interaction. It is used for confirmation prompts across the UI.
+ * @example
+ * // Modding usage example
+ * const dialog = new DialogWindow('Delete save?', {
+ *   buttons: ['Cancel', 'Delete'],
+ *   defaultButton: 0
+ * });
+ * dialog.onConfirm.add((index, label) => {
+ *   if (index === 1) deleteSave();
+ * });
+ */
 class DialogWindow extends Phaser.Sprite {
   constructor(text, options = {}) {
     const {
@@ -8520,8 +9704,11 @@ class DialogWindow extends Phaser.Sprite {
     
     this.anchor.set(anchorX, anchorY);
 
+    /** @type {string} Raw dialog message text */
     this.text = text;
+    /** @type {Array} Button labels shown at the bottom of the dialog */
     this.buttons = buttons;
+    /** @type {number} Index of the currently selected button */
     this.selectedButton = defaultButton;
     this.enableTextScroll = enableTextScroll;
     this.disableMouse = disableMouse;
@@ -8539,6 +9726,9 @@ class DialogWindow extends Phaser.Sprite {
     this.createDialog();
   }
 
+  /**
+   * Builds the window frame, text content, buttons, and input handling.
+   */
   createDialog() {
     // Create window background using Window class
     const { width, height, wrappedText } = this.calculateWindowSize();
@@ -8559,6 +9749,10 @@ class DialogWindow extends Phaser.Sprite {
     this.setupInputHandling();
   }
 
+  /**
+   * Computes the window size needed for the wrapped text plus buttons.
+   * @returns {object} Width, height, and the wrapped text lines
+   */
   calculateWindowSize() {
     // Wrap the text
     const wrappedText = this.wrapText(this.text);
@@ -8583,6 +9777,11 @@ class DialogWindow extends Phaser.Sprite {
     };
   }
 
+  /**
+   * Wraps the dialog text into lines that fit the maximum line width.
+   * @param {string} text - The text to wrap
+   * @returns {Array} Array of wrapped lines
+   */
   wrapText(text) {
     const maxLineWidth = 160; // pixels
     const charWidth = 4;
@@ -8630,6 +9829,12 @@ class DialogWindow extends Phaser.Sprite {
     return wrappedLines;
   }
 
+  /**
+   * Splits a word longer than one line into fixed-size chunks.
+   * @param {string} word - The word to break apart
+   * @param {number} charsPerLine - Characters per chunk
+   * @returns {Array} Array of chunks
+   */
   breakLongWord(word, charsPerLine) {
     const chunks = [];
     let currentChunk = '';
@@ -8645,10 +9850,19 @@ class DialogWindow extends Phaser.Sprite {
     return chunks;
   }
 
+  /**
+   * Estimates the rendered width of a text string at 4px per character.
+   * @param {string} text - The text to measure
+   * @returns {number} Width in pixels
+   */
   getTextWidth(text) {
     return text.length * 4; // 4px per character
   }
 
+  /**
+   * Creates the visible text lines and the scroll indicator and scroll bar.
+   * @param {Array} wrappedText - Wrapped lines to display
+   */
   createTextContent(wrappedText) {
     this.textLines = [];
     this.allTextLines = wrappedText;
@@ -8674,6 +9888,9 @@ class DialogWindow extends Phaser.Sprite {
     this.updateScrollBar(); // Add scrollbar
   }
 
+  /**
+   * Creates the button texts, sizes them, and wires up mouse handlers.
+   */
   createButtonElements() {
     this.buttonTexts = [];
     const buttonAreaY = this.window.size.height * 8 - 12;
@@ -8710,12 +9927,18 @@ class DialogWindow extends Phaser.Sprite {
     this.updateButtonSelection();
   }
   
+  /**
+   * Marks the button matching the selected index as selected.
+   */
   updateButtonSelection() {
     this.buttonTexts.forEach((button, index) => {
       button.selected = index === this.selectedButton;
     });
   }
 
+  /**
+   * Creates or removes the blinking scroll indicator based on overflow.
+   */
   updateScrollIndicator() {
     // Remove existing scroll indicator
     if (this.scrollIndicator) {
@@ -8739,6 +9962,9 @@ class DialogWindow extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Draws the scroll bar sized to the visible-to-total text ratio.
+   */
   updateScrollBar() {
     // Remove existing scroll bar
     if (this.scrollBar) {
@@ -8771,6 +9997,9 @@ class DialogWindow extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Creates the dialog signals and wires up gamepad button handlers.
+   */
   setupInputHandling() {
     this.onConfirm = new Phaser.Signal();
     this.onCancel = new Phaser.Signal();
@@ -8779,6 +10008,9 @@ class DialogWindow extends Phaser.Sprite {
     this.setupGamepadSignals();
   }
 
+  /**
+   * Subscribes the per-dialog handlers to the global gamepad signals.
+   */
   setupGamepadSignals() {
     // Add signals for dialog navigation
     gamepad.signals.pressed.left.add(this.onLeftPressed, this);
@@ -8789,6 +10021,10 @@ class DialogWindow extends Phaser.Sprite {
     gamepad.signals.pressed.b.add(this.onBPressed, this);
   }
   
+  /**
+   * Selects the button at the given index and updates button visuals.
+   * @param {number} index - Button index to select
+   */
   selectIndex(index) {
     this.selectedButton = index;
     this.updateButtonSelection();
@@ -8840,6 +10076,9 @@ class DialogWindow extends Phaser.Sprite {
     this.cancel();
   }
 
+  /**
+   * Rebuilds the visible text lines and scroll bar for the current scroll.
+   */
   refreshTextContent() {
     // Remove existing text lines
     this.textLines.forEach(text => text.destroy());
@@ -8869,6 +10108,9 @@ class DialogWindow extends Phaser.Sprite {
     this.updateScrollBar(); // Update scrollbar position
   }
 
+  /**
+   * Confirms the selected button, dispatches onConfirm, then cleans up.
+   */
   confirm() {
     if (!this.isActive) return;
     
@@ -8878,6 +10120,9 @@ class DialogWindow extends Phaser.Sprite {
     this.cleanup();
   }
 
+  /**
+   * Cancels the dialog, confirming the cancel-ish button or dispatching onCancel.
+   */
   cancel() {
     if (!this.isActive) return;
     
@@ -8901,6 +10146,9 @@ class DialogWindow extends Phaser.Sprite {
     this.cleanup();
   }
   
+  /**
+   * Animates the selected button and handles mouse wheel text scrolling.
+   */
   update() {
     // Update button animations
     if (this.buttonTexts) {
@@ -8925,11 +10173,17 @@ class DialogWindow extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Removes the dialog's gamepad signal handlers after it closes.
+   */
   cleanup() {
     // Remove original gamepad signal handlers
     this.removeGamepadSignals();
   }
 
+  /**
+   * Unsubscribes all dialog handlers from the global gamepad signals.
+   */
   removeGamepadSignals() {
     gamepad.signals.pressed.left.remove(this.onLeftPressed, this);
     gamepad.signals.pressed.right.remove(this.onRightPressed, this);
@@ -8941,6 +10195,9 @@ class DialogWindow extends Phaser.Sprite {
     gamepad.pressed.b = false;
   }
 
+  /**
+   * Destroys the dialog, its window, and its gamepad subscriptions.
+   */
   destroy() {
     if (this.isActive) {
       this.cleanup();
@@ -8952,10 +10209,40 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class CarouselMenu
+ * @category UI Classes
+ * @summary Vertical scrolling menu with animations and scrollbar
+ * @constructor
+ * @param {number} x - X position of the menu sprite
+ * @param {number} y - Y position of the menu sprite
+ * @param {number} width - Viewport width in pixels
+ * @param {number} height - Viewport height in pixels
+ * @param {object} [config={}] - Menu behavior and styling configuration
+ * @features
+ * Vertical scrolling list with page-based navigation
+ * Gradient item backgrounds and alpha animations
+ * Auto-hiding scroll bar with fade out
+ * Signal-based select, confirm, and cancel events
+ * @description
+ * CarouselMenu is a scrollable vertical menu that animates item selection
+ * with alpha and position tweens. Items can be added with text, icons, and
+ * callbacks, and the menu supports gamepad, mouse wheel, and hover input.
+ * Confirming plays a selection animation before dispatching onConfirm and
+ * destroying the menu.
+ * @example
+ * // Modding usage example
+ * const menu = new CarouselMenu(4, 4, 140, 96, { bgcolor: '#222222' });
+ * menu.addItem('Easy', () => startSong(1));
+ * menu.addItem('Medium', () => startSong(2));
+ * menu.addItem('Hard', () => startSong(3));
+ * menu.onConfirm.add(() => {});
+ */
 class CarouselMenu extends Phaser.Sprite {
   constructor(x, y, width, height, config = {}) {
     super(game, x, y);
     
+    /** @type {object} Merged behavior and styling configuration */
     this.config = {
       animate: true,
       align: 'left',
@@ -8977,14 +10264,19 @@ class CarouselMenu extends Phaser.Sprite {
       margin: { top: 4, bottom: 4, left: 4, right: 4, ...(config.margin || {}) },
     };
     
+    /** @type {object} Menu viewport dimensions ({ width, height }) */
     this.viewport = {
       width: width,
       height: height
     };
     
+    /** @type {Array} Menu items added to the carousel */
     this.items = [];
+    /** @type {number} Index of the currently selected item */
     this.selectedIndex = 0;
+    /** @type {number} Index of the mouse-hovered item */
     this.hoveredIndex = 0;
+    /** @type {number} Index of the first visible item */
     this.scrollOffset = 0;
     this.itemHeight = this.config.itemHeight;
     this.itemSpacing = this.config.itemSpacing;
@@ -8998,6 +10290,7 @@ class CarouselMenu extends Phaser.Sprite {
         
     // Scroll bar
     if (!this.config.disableScrollBar) {
+      /** @type {Phaser.Graphics} Auto-hiding scroll bar indicator */
       this.scrollBar = game.add.graphics(this.viewport.width - 3, this.config.margin.top);
       this.scrollBar.alpha = 0; // Start hidden
       this.addChild(this.scrollBar);
@@ -9015,11 +10308,17 @@ class CarouselMenu extends Phaser.Sprite {
     if (!this.config.silent) game.add.existing(this);
   }
   
+  /**
+   * Creates the navigation signals and subscribes to the mouse wheel.
+   */
   setupInput() {
     gamepad.releaseAll();
 
+    /** @type {Phaser.Signal} Dispatched with the index when selection moves */
     this.onSelect = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when a menu item is confirmed */
     this.onConfirm = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when the menu is cancelled */
     this.onCancel = new Phaser.Signal();
     
     mouse.onWheel.add(direction => {
@@ -9027,6 +10326,13 @@ class CarouselMenu extends Phaser.Sprite {
     });
   }
   
+  /**
+   * Adds a selectable menu item with an optional icon and callback.
+   * @param {string} text - Item label, localized unless already localized
+   * @param {Function} [callback] - Called with the item when confirmed
+   * @param {object} [data={}] - Custom data: icon, height, and bgcolor
+   * @returns {object} The created item object
+   */
   addItem(text, callback = null, data = {}) {
     const index = this.items.length;
     
@@ -9052,6 +10358,12 @@ class CarouselMenu extends Phaser.Sprite {
     return item;
   }
   
+  /**
+   * Builds the sprites for an item: background, icon, and text.
+   * Also wires up its mouse over, out, and click handlers.
+   * @param {object} item - The item to create visuals for
+   * @param {boolean} isSelected - Whether the item starts selected
+   */
   createItemVisuals(item, isSelected) {
     const index = item.index;
     let xPos = this.config.margin.left;
@@ -9111,6 +10423,10 @@ class CarouselMenu extends Phaser.Sprite {
     item.parent.events.onInputOut.add(() => this.houtItem(item));
   }
   
+  /**
+   * Destroys an item's parent sprite and clears its visual references.
+   * @param {object} item - The item whose visuals to remove
+   */
   removeItemVisuals(item) {
     item.parent?.destroy();
     item.parent = null;
@@ -9146,6 +10462,9 @@ class CarouselMenu extends Phaser.Sprite {
     return sprite;
   }
   
+  /**
+   * Runs the per-frame input and animation update.
+   */
   update() {
     if (!this.inputEnabled || game.time.now == this.lastUpdate) return;
     
@@ -9155,6 +10474,10 @@ class CarouselMenu extends Phaser.Sprite {
     this.updateAnimations();
   }
   
+  /**
+   * Reads gamepad input and navigates, confirms, or cancels accordingly.
+   * Uses a dynamic cooldown so held directions repeat at increasing speed.
+   */
   handleInput() {
     if (this.config.disableNavigation) return;
     
@@ -9225,6 +10548,11 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Moves the selection by the given direction, wrapping or paging.
+   * @param {number} direction - +1 for down, -1 for up
+   * @param {boolean} [page] - When true, jump by a full page instead
+   */
   navigate(direction, page) {
     if (this.items.length === 0 || this.isAnimating) return;
     
@@ -9253,6 +10581,10 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Scrolls the viewport offset and hovered index by the given delta.
+   * @param {number} [delta=0] - Amount to scroll by
+   */
   scroll(delta = 0) {
     this.scrollOffset += delta;
     this.hoveredIndex += delta;
@@ -9276,12 +10608,19 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Selects the item at the given index and dispatches the onSelect signal.
+   * @param {number} index - Item index to select
+   */
   selectIndex(index) {
     this.selectedIndex = index;
     this.updateSelection();
     this.onSelect.dispatch(index, this.items[index]);
   }
   
+  /**
+   * Recomputes scroll offset, visibility, item positions, and the scroll bar.
+   */
   updateSelection() {
     this.adjustScroll();
     
@@ -9294,6 +10633,10 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+/**
+   * Marks an item selected and starts its alpha pulse animation.
+   * @param {object} item - The item to select
+   */
   selectItem(item) {
     // Deselect previously selected item
     const previouslySelected = this.items.find(i => i.isSelected && i !== item);
@@ -9323,6 +10666,10 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Marks an item deselected and tweens it back to its inactive alpha.
+   * @param {object} item - The item to deselect
+   */
   deselectItem(item) {
     item.isSelected = false;
     
@@ -9347,6 +10694,10 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Marks an item hovered and tweens it to the hover alpha.
+   * @param {object} item - The item being hovered
+   */
   hoverItem(item) {
     if (this.config.disableNavigation) return;
     
@@ -9381,6 +10732,10 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Clears the hover state and tweens an item back to its inactive alpha.
+   * @param {object} item - The item no longer being hovered
+   */
   houtItem(item) {
     if (this.config.disableNavigation) return;
     if (item.isSelected || !item.isHovered) return;
@@ -9408,6 +10763,9 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Clamps the scroll offset so the selected item stays visible.
+   */
   adjustScroll() {
     if (this.selectedIndex < this.scrollOffset) {
       this.scrollOffset = this.selectedIndex;
@@ -9422,6 +10780,9 @@ class CarouselMenu extends Phaser.Sprite {
     );
   }
   
+  /**
+   * Redraws and reveals the scroll bar when items overflow the viewport.
+   */
   updateScrollBar() {
     if (this.config.disableScrollBar) return;
     
@@ -9456,6 +10817,9 @@ class CarouselMenu extends Phaser.Sprite {
     this.showScrollBar();
   }
 
+  /**
+   * Fades the scroll bar in and schedules an automatic fade out.
+   */
   showScrollBar() {
     if (this.config.disableScrollBar) return;
     
@@ -9476,6 +10840,9 @@ class CarouselMenu extends Phaser.Sprite {
       });
   }
 
+  /**
+   * Immediately hides and clears the scroll bar.
+   */
   hideScrollBar() {
     if (this.config.disableScrollBar) return;
     
@@ -9490,6 +10857,10 @@ class CarouselMenu extends Phaser.Sprite {
     this.scrollBar.clear();
   }
   
+  /**
+   * Creates or removes item visuals based on the current viewport visibility.
+   * @param {number} [targetIndex] - Index to treat as selected
+   */
   updateItemVisibility(targetIndex) {
     this.items.forEach((item, index) => {
       // TODO: Correcly place items based on their individual item.data.height and the space they take in viewport 
@@ -9517,6 +10888,9 @@ class CarouselMenu extends Phaser.Sprite {
     });
   }
   
+  /**
+   * Tweens or sets each visible item to its target viewport position.
+   */
   updateItemPositions() {
     this.items.forEach((item, index) => {
       // TODO: Correcly place items based on their individual item.data.height and the space they take in viewport 
@@ -9552,6 +10926,10 @@ class CarouselMenu extends Phaser.Sprite {
     this.lastPress = game.time.now;
   }
   
+  /**
+   * Confirms the selected item after its selection animation completes.
+   * Dispatches onConfirm, runs the item callback, then destroys the menu.
+   */
   confirm() {
     if (this.items.length === 0 || this.isAnimating || this.config.disableConfirm) return;
     
@@ -9566,6 +10944,11 @@ class CarouselMenu extends Phaser.Sprite {
     });
   }
   
+  /**
+   * Plays the confirm animation: the chosen item glows while others fade out.
+   * @param {object} item - The item being confirmed
+   * @param {Function} callback - Called after the animation completes
+   */
   animateSelection(item, callback) {
     this.isAnimating = true;
     
@@ -9619,6 +11002,10 @@ class CarouselMenu extends Phaser.Sprite {
     ENABLE_UI_SFX && Audio.play('ui_select');
   }
   
+  /**
+   * Plays the cancel animation, sliding items out before the callback runs.
+   * @param {Function} callback - Called after the animation completes
+   */
   animateCancel(callback) {
     this.isAnimating = true;
     
@@ -9647,6 +11034,9 @@ class CarouselMenu extends Phaser.Sprite {
     });
   }
   
+  /**
+   * Cancels the menu, playing the cancel animation before dispatching onCancel.
+   */
   cancel() {
     if (!this.isAnimating && this.onCancel.getNumListeners() > 0 || this.config.disableCancel) {
       ENABLE_UI_SFX && Audio.play('ui_cancel');
@@ -9661,6 +11051,9 @@ class CarouselMenu extends Phaser.Sprite {
     ENABLE_UI_SFX && Audio.play('ui_nav');
   }
   
+  /**
+   * Clears all items, tweens, scroll bar, and signals.
+   */
   clear() {
     // Stop all tweens before clearing
     this.items.forEach(item => {
@@ -9688,45 +11081,122 @@ class CarouselMenu extends Phaser.Sprite {
     this.onCancel.dispose();
   }
   
+  /**
+   * Destroys this menu and returns a fresh one with the same layout and config.
+   * @returns {CarouselMenu} The replacement menu
+   */
   replace() {
     this.destroy();
     return new CarouselMenu(this.x, this.y, this.viewport.width, this.viewport.height, this.config);
   }
   
+  /**
+   * Clears the menu state and destroys the sprite.
+   * @param {boolean} [createNew=false] - Unused; present for compatibility
+   */
   destroy(createNew = false) {
     this.clear();
     super.destroy();
   }
 }
 
+/**
+ * @class Background
+ * @category UI Classes
+ * @summary Generic background sprite with alpha tween
+ * @constructor
+ * @param {String} key - Texture key of the background image
+ * @param {Boolean} tween - Whether to automatically oscillate alpha
+ * @param {Number} min - Minimum alpha value
+ * @param {Number} max - Maximum alpha value
+ * @param {Number} time - Duration of the alpha tween in milliseconds
+ * @features
+ * Optional looping alpha pulsation
+ * Manual fade in/out helpers
+ * @description
+ * A full-screen sprite anchored at the top-left that sits behind the gameplay scene. The sprite starts at the minimum alpha and, when tween is enabled, drifts between min and max with an infinite yoyo tween. Fade methods let individual states animate the background in and out on demand.
+ * @example
+ * // Modding usage example
+ * const bg = new Background('my_background', true, 0.1, 0.5, 1000);
+ * game.add.existing(bg);
+ * bg.fadeIn();
+ * bg.fadeOut();
+ */
 class Background extends Phaser.Sprite {
   constructor(key, tween, min = 0.1, max = 0.5, time = 1000) {
     super(game, 0, 0, key);
     
+    /** @type {Number} Current alpha value */
     this.alpha = min;
     
+    /** @type {Number} Minimum alpha value */
     this.minAlpha = min;
+    /** @type {Number} Maximum alpha value */
     this.maxAlpha = max;
+    /** @type {Number} Alpha tween duration in milliseconds */
     this.tweenTime = time;
     
     if (tween) game.add.tween(this).to({ alpha: max }, time, Phaser.Easing.Quadratic.InOut, true).yoyo(true).repeat(-1);
     
     game.add.existing(this);
   }
+  /**
+   * Fades the background sprite up to its maximum alpha using a linear tween.
+   */
   fadeIn() {
     game.add.tween(this).to({ alpha: this.maxAlpha }, this.tweenTime, "Linear", true);
   }
+  /**
+   * Fades the background sprite down to its minimum alpha using a linear tween.
+   */
   fadeOut() {
     game.add.tween(this).to({ alpha: this.minAlpha }, this.tweenTime, "Linear", true);
   }
 }
 
+/**
+ * @class BackgroundGradient
+ * @category UI Classes
+ * @summary Animated gradient background
+ * @constructor
+ * @param {Number} min - Minimum alpha value
+ * @param {Number} max - Maximum alpha value
+ * @param {Number} time - Full alpha cycle duration in milliseconds
+ * @features
+ * Loops the gradient alpha forever
+ * @description
+ * A looping gradient backdrop used on title and loading screens. Extends Background and always configures its own looping alpha tween. It layers a soft animated color gradient behind menus without any further setup from the caller.
+ * @example
+ * // Modding usage example
+ * const bg = new BackgroundGradient(0.1, 0.5, 5000);
+ * game.add.existing(bg);
+ * bg.fadeIn();
+ */
 class BackgroundGradient extends Background {
   constructor(min = 0.1, max = 0.5, time = 5000) {
     super("ui_background_gradient", true, min, max, time);
   }
 } 
 
+/**
+ * @class CanvasBackground
+ * @category UI Classes
+ * @summary Canvas-based background rendering for dynamic content
+ * @constructor
+ * @param {Number} [x=0] - X position of the background
+ * @param {Number} [y=0] - Y position of the background
+ * @param {HTMLCanvasElement} [canvas] - Existing canvas to render; created if omitted
+ * @features
+ * Backs the sprite with a live HTML canvas texture
+ * Restores a replaced canvas texture
+ * @description
+ * Wraps a 2D canvas in a PIXI texture so dynamic content can be drawn to it like a normal sprite. Canvas textures are exposed for direct painting, and a per-frame dirty flag forces them to refresh. Useful for effects that Phaser shapes cannot easily produce.
+ * @example
+ * // Modding usage example
+ * const bg = new CanvasBackground(0, 0, document.createElement('canvas'));
+ * game.add.existing(bg);
+ * bg.render();
+ */
 class CanvasBackground extends Phaser.Sprite {
   constructor(x = 0, y = 0, canvas) {
     super(game, x, y);
@@ -9735,51 +11205,96 @@ class CanvasBackground extends Phaser.Sprite {
     
     game.add.existing(this);
   }
+  /**
+   * Re-attaches the previously stored canvas, restoring its texture after the canvas was replaced.
+   */
   restoreCanvas() {
     if (this.canvas && this.canvas instanceof HTMLCanvasElement) {
       this.setCanvas(this.canvas);
     }
   }
+  /**
+   * Wraps the given canvas in a fresh base texture and sprite texture sized to the game viewport.
+   * @param {HTMLCanvasElement} [canvas] - Canvas element to render; created if omitted
+   */
   setCanvas(canvas) {
+    /** @type {HTMLCanvasElement} The canvas element backing the texture */
     this.canvas = canvas ? canvas : document.createElement("canvas");
+    /** @type {CanvasRenderingContext2D} 2D drawing context of the canvas */
     this.ctx = this.canvas.getContext("2d");
     
+    /** @type {PIXI.BaseTexture} Base texture built from the canvas */
     this.baseTexture = new PIXI.BaseTexture(this.canvas);
     
+    /** @type {PIXI.Texture} Sprite texture mapping the game viewport into the base texture */
     this.texture = new PIXI.Texture(
       this.baseTexture,
       new PIXI.Rectangle(0, 0, game.width, game.height),
       new PIXI.Rectangle(0, 0, game.width, game.height)
     );
   }
+  /**
+   * Marks the canvas as needing a refresh by re-rendering its texture next frame.
+   */
   dirty() {
     this.render();
   }
+  /**
+   * Flags the base texture as dirty so the canvas contents are re-uploaded to the GPU.
+   */
   render() {
     this.baseTexture.dirty();
   }
 }
 
+/**
+ * @class FuturisticLines
+ * @category UI Classes
+ * @summary Animated futuristic line effects
+ * @constructor
+ * @description
+ * Spawns animated glowing lines that drift horizontally across the screen for a sci-fi ambience. Each line moves in straight or angled bursts, traces a fading tail and fades out when it leaves the viewport. Density, speed, tail length, colors and alpha can be tuned at runtime.
+ * @example
+ * // Modding usage example
+ * const lines = new FuturisticLines();
+ * game.add.existing(lines);
+ * lines.setDensity(8);
+ * lines.setSpeed(1.5);
+ * lines.setColors([0x76FCFF, 0x00B8D4]);
+ * lines.clearLines();
+ */
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
     
+    /** @type {Array<Object>} Active line objects being animated */
     this.lines = [];
+    /** @type {Number} Maximum number of concurrent lines */
     this.maxLines = 12;
+    /** @type {Number} Base movement speed of the lines */
     this.lineSpeed = 1.2;
+    /** @type {Number} Length of the fading tail in pixels */
     this.tailLength = 100;
+    /** @type {Number} Milliseconds between line spawns */
     this.spawnRate = 150;
+    /** @type {Number} Timestamp of the last line spawn */
     this.lastSpawnTime = 0;
     
+    /** @type {Array<Number>} Palette of hex colors used for new lines */
     this.lineColors = [0x76FCFF, 0x4AFCFE, 0x00E5FF, 0x00B8D4];
+    /** @type {Number} Base alpha of the drawn lines */
     this.lineAlpha = 0.3;
     
+    /** @type {Phaser.Graphics} Graphics object that draws all lines */
     this.graphics = game.add.graphics(0, 0);
     this.addChild(this.graphics);
     
     game.add.existing(this);
   }
 
+  /**
+   * Phaser lifecycle hook called every frame. Spawns new lines when the pool is not full and the spawn timer elapses, then advances and redraws all existing lines.
+   */
   update() {
     const currentTime = game.time.now;
     
@@ -9915,31 +11430,57 @@ class FuturisticLines extends Phaser.Sprite {
     this.graphics.endFill();
   }
 
+  /**
+   * Cap the number of concurrent lines.
+   * @param {Number} density - Line count clamped to 1-15
+   */
   setDensity(density) {
     this.maxLines = Phaser.Math.clamp(density, 1, 15);
   }
 
+  /**
+   * Sets the base movement speed of the lines.
+   * @param {Number} speed - Base speed clamped to 0.5-3
+   */
   setSpeed(speed) {
     this.lineSpeed = Phaser.Math.clamp(speed, 0.5, 3);
   }
 
+  /**
+   * Sets the length of the fading tail trailing each line.
+   * @param {Number} length - Tail length in pixels clamped to 20-100
+   */
   setTailLength(length) {
     this.tailLength = Phaser.Math.clamp(length, 20, 100);
   }
 
+  /**
+   * Removes every active line and clears the drawing surface.
+   */
   clearLines() {
     this.lines = [];
     this.graphics.clear();
   }
 
+  /**
+   * Replaces the color palette used for newly spawned lines.
+   * @param {Array<Number>} colors - Array of hex color values
+   */
   setColors(colors) {
     this.lineColors = colors;
   }
 
+  /**
+   * Sets the base alpha of the drawn lines.
+   * @param {Number} alpha - Alpha value clamped to 0.1-0.8
+   */
   setAlpha(alpha) {
     this.lineAlpha = Phaser.Math.clamp(alpha, 0.1, 0.8);
   }
 
+  /**
+   * Clears all lines and destroys the graphics object and sprite.
+   */
   destroy() {
     this.clearLines();
     this.graphics.destroy();
@@ -9947,6 +11488,21 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class LoadingDots
+ * @category UI Classes
+ * @summary Animated loading indicator
+ * @constructor
+ * @features
+ * Looping 8-frame animation
+ * Anchor pinned to the bottom-right corner
+ * @description
+ * A small animated sprite shown in the bottom-right corner while the game loads assets. It plays a looping animation cycling through several dot frames and is anchored at its bottom-right corner. No configuration or interaction is required once added to the world.
+ * @example
+ * // Modding usage example
+ * const dots = new LoadingDots();
+ * game.add.existing(dots);
+ */
 class LoadingDots extends Phaser.Sprite {
   constructor() {
     super(game, game.width - 2, game.height - 2, "ui_loading_dots");
@@ -9960,24 +11516,49 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class Logo
+ * @category UI Classes
+ * @summary Animated logo for title screen
+ * @constructor
+ * @description
+ * The animated title-screen emblem centered on the screen. It builds its own layered shapes and runs intro, looping-pulse, flourish and outro choreography. The outro effect detonates the logo into expanding rings while the camera flashes and fades to white.
+ * @example
+ * // Modding usage example
+ * const logo = new Logo();
+ * game.add.existing(logo);
+ * logo.intro(() => {
+ *   logo.effect(5, 1000);
+ * });
+ */
 class Logo extends Phaser.Sprite {
   constructor() {
     super(game, game.width / 2, game.height / 2, null);
     
     this.anchor.set(0.5);
     
+    /** @type {Phaser.Sprite} Main logo shape that can be tweaked */
     this.mainShape = this.addShape();
     
     game.add.existing(this);
   }
+  /**
+   * Plays the intro animation, fading the main shape in and then starting an infinite breathing pulse before invoking the callback.
+   * @param {Function} [callback] - Called once the intro animation finishes
+   */
   intro(callback) {
     this.mainShape.alpha = 0;
     
     game.add.tween(this.mainShape).to({ alpha: 1 }, 1000, "Linear", true).onComplete.addOnce(() => {
+      /** @type {Phaser.Tween} Infinite yoyo pulse tween on the main shape */
       this.logoTween = game.add.tween(this.mainShape).to({ alpha: 0.8 }, 500, "Linear", true).repeat(-1).yoyo(true);
       callback && callback();
     });
   }
+  /**
+   * Plays the outro animation: spawns a flash shape, scales it up while fading, flashes the camera white and fades to white before calling the callback.
+   * @param {Function} [callback] - Called once the fade-out completes
+   */
   outro(callback) {
     this.effect(32, 1000);
       
@@ -9990,6 +11571,12 @@ class Logo extends Phaser.Sprite {
     game.time.events.add(350, () => game.camera.fade(0xffffff, 1000));
     game.camera.onFadeComplete.addOnce(() => callback && callback());
   }
+  /**
+   * Spawns several logo shapes that fade in and out in a staggered yoyo cascade for a shockwave flourish.
+   * @param {Number} [amountLayers=5] - Number of layered shapes to spawn
+   * @param {Number} [time=1000] - Fade tween duration in milliseconds
+   * @param {Boolean} [invert=false] - Whether layer delays cascade downward instead of upward
+   */
   effect(amountLayers = 5, time = 1000, invert = false) {
     let layers = [];
     for (let i = 0; i < amountLayers; i ++) {
@@ -10000,6 +11587,13 @@ class Logo extends Phaser.Sprite {
       game.add.tween(shape).to({ alpha: 1 }, time, "Linear", true, (invert ? - amountLayers * 100 : 0) + i * 100).yoyo(true);
     }
   }
+  /**
+   * Creates a centered tinted logo shape child at the given local offset.
+   * @param {Number} [tint=0xffffff] - Hex color to tint the shape with
+   * @param {Number} [x=0] - Local X offset
+   * @param {Number} [y=0] - Local Y offset
+   * @returns {Phaser.Sprite} The newly created logo shape child
+   */
   addShape(tint = 0xffffff, x = 0, y = 0) {
     const shape = game.add.sprite(x, y, "ui_logo_shape");
     shape.anchor.set(0.5);
@@ -10009,23 +11603,54 @@ class Logo extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class NavigationHint
+ * @category UI Classes
+ * @summary Displays input prompts in menus (0-7 frames)
+ * @constructor
+ * @param {Array|string} hints - Hint definitions or a NAVIGATION_HINT_PRESETS key
+ * @param {boolean} [disableCache] - When true, rebuild hint sprites on every refresh
+ * @features
+ * Renders icon and description prompts grouped left, center, and right
+ * Keyboard, gamepad, mouse, and touch input source detection
+ * Cached sprite parents for instant input-source switching
+ * Alternate mode that cycles the active player periodically
+ * @description
+ * NavigationHint renders the contextual button prompts at the bottom of the
+ * screen. It watches the active input source and player, redrawing prompts
+ * with the correct key labels or gamepad button icons, and caches both player
+ * and input-source variants so switching is instant. Alternate mode cycles
+ * between player 1 and player 2 prompts on a timer.
+ * @example
+ * // Modding usage example
+ * const hints = new NavigationHint([
+ *   { icon: 'up', text: 'Move', position: 'left' },
+ *   { icon: 'a', text: 'Select', position: 'center' },
+ *   { icon: 'b', text: 'Back', position: 'right' }
+ * ]);
+ */
 class NavigationHint extends Phaser.Sprite {
   constructor(hints = [], disableCache) {
     super(game, 0, game.height - 6);
     
     if (typeof hints === 'string') hints = NAVIGATION_HINT_PRESETS[hints] || [];
     
+    /** @type {Array} Resolved list of hint definitions */
     this.hints = hints;
+    /** @type {Array} All hint sprites and groups currently created */
     this.items = [];
+    /** @type {object} Timer handle for the alternate-mode cycling */
     this.alternateTimer = null;
     this.currentAlternatePlayer = 1;
     this.ignorePlayerSwitch = false;
     this.disableCache = disableCache || false;
     this.alternateMode = Account.settings.alternateHintMode || false;
     
+    /** @type {Phaser.Signal} Dispatched with the player id when the active player changes */
     this.onPlayerSwitch = new Phaser.Signal();
     
     // Cache prompt elements to reuse them later
+    /** @type {object} Cached parents keyed by player id and input source */
     this.parents = {};
     
     this.sizes = {
@@ -10051,6 +11676,9 @@ class NavigationHint extends Phaser.Sprite {
     window.currentNavigationHint = this;
   }
   
+  /**
+   * Subscribes a refresh callback to the global gamepad press signal.
+   */
   setupInputTracking() {
     const updateCondition = () => {
       if (this.alternateMode) return;
@@ -10073,10 +11701,16 @@ class NavigationHint extends Phaser.Sprite {
     if (gamepad) gamepad.signals.pressed.any.add(this.updateCondition);
   }
   
+  /**
+   * Unsubscribes the input-tracking refresh callback from the gamepad signal.
+   */
   stopInputTracking() {
     if (gamepad) gamepad.signals.pressed.any.remove(this.updateCondition);
   }
   
+  /**
+   * Starts cycling the active player between 1 and 2 every two seconds.
+   */
   startAlternateMode() {
     if (this.alternateTimer) game.time.events.remove(this.alternateTimer);
     this.alternateTimer = game.time.events.loop(2000, () => {
@@ -10085,6 +11719,9 @@ class NavigationHint extends Phaser.Sprite {
     });
   }
   
+  /**
+   * Stops the alternate-mode cycling timer.
+   */
   stopAlternateMode() {
     if (this.alternateTimer) {
       game.time.events.remove(this.alternateTimer);
@@ -10092,6 +11729,10 @@ class NavigationHint extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Enables or disables alternate mode and refreshes the hint prompts.
+   * @param {boolean} enabled - Whether to enable alternate-mode cycling
+   */
   setAlternateMode(enabled) {
     this.alternateMode = enabled;
     Account.settings.alternateHintMode = enabled;
@@ -10105,16 +11746,27 @@ class NavigationHint extends Phaser.Sprite {
     this.refreshHints();
   }
   
+  /**
+   * Returns the active player id, honoring alternate mode when enabled.
+   * @returns {number} The active player id (1 or 2)
+   */
   getActivePlayer() {
     if (this.alternateMode) return this.currentAlternatePlayer;
     return gamepad?.lastPlayerId || 1;
   }
   
+  /**
+   * Returns the current input source, forcing gamepad in alternate mode.
+   * @returns {string} Input source (keyboard, gamepad, mouse, touch, or none)
+   */
   getInputSource() {
     if (this.alternateMode) return 'gamepad';
     return gamepad?.lastInputSource || 'keyboard';
   }
   
+  /**
+   * Rebuilds the visible hint prompts for the current player and input source.
+   */
   refreshHints() {
     // Update cached state
     this.lastState.inputSource = this.getInputSource();
@@ -10147,6 +11799,9 @@ class NavigationHint extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Destroys all hint items, groups, and sprites.
+   */
   destroyHints() {
     // Destroy all existing items
     this.items.forEach(item => {
@@ -10161,6 +11816,12 @@ class NavigationHint extends Phaser.Sprite {
     this.items = [];
   }
   
+  /**
+   * Creates hint prompts for the given player and input source.
+   * @param {number} [player] - Player id to render prompts for
+   * @param {string} [input] - Input source to render prompts for
+   * @param {boolean} [hide] - Whether to hide the created group afterwards
+   */
   createHints(player, input, hide) {
     const activePlayer = player || this.getActivePlayer();
     const inputSource = input || this.getInputSource();
@@ -10176,6 +11837,14 @@ class NavigationHint extends Phaser.Sprite {
     if (hide) this.parents[activePlayer][inputSource].visible = false;
   }
   
+  /**
+   * Creates and lays out the prompts for one position group (left/center/right).
+   * @param {string} position - Position group to build: left, center, or right
+   * @param {Array} hints - Hints belonging to this position
+   * @param {number} activePlayer - Player id the prompts are for
+   * @param {string} inputSource - Input source the prompts are for
+   * @param {string} buttonStyle - Button icon style (xbox or playstation)
+   */
   createPositionHints(position, hints, activePlayer, inputSource, buttonStyle) {
     if (hints.length === 0) return;
     
@@ -10229,6 +11898,15 @@ class NavigationHint extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Creates a key sprite or dedicated icon frame for a single hint icon.
+   * @param {object} hint - The hint to create an icon for
+   * @param {string} inputSource - Input source determining the icon look
+   * @param {string} buttonStyle - Button icon style (xbox or playstation)
+   * @param {number} activePlayer - Player id for key mapping
+   * @param {number} x - X position of the icon group
+   * @returns {object|null} Icon group with width, or null when nothing applies
+   */
   createIcon(hint, inputSource, buttonStyle, activePlayer, x) {
     const keyText = this.getKeyText(hint, inputSource, activePlayer);
     const useKeySprite = (inputSource === 'keyboard' && keyText !== null);
@@ -10261,6 +11939,13 @@ class NavigationHint extends Phaser.Sprite {
     return null;
   }
   
+  /**
+   * Builds a keyboard key sprite with caps, center slices, and a label.
+   * @param {string} keyText - The key label to render
+   * @param {number} x - X position of the key group
+   * @param {number} y - Y position of the key group
+   * @returns {Phaser.Group} The assembled key sprite group
+   */
   createKeySprite(keyText, x, y) {
     const group = game.add.group();
     group.x = x;
@@ -10296,10 +11981,23 @@ class NavigationHint extends Phaser.Sprite {
     return group;
   }
   
+  /**
+   * Computes the width of a key sprite built for the given label.
+   * @param {string} keyText - The key label
+   * @returns {number} Width in pixels
+   */
   calculateKeyWidth(keyText) {
     return 3 + (keyText.length * 4) + 3;
   }
   
+  /**
+   * Returns the width needed to render a hint's icon in the current style.
+   * @param {object} hint - The hint to measure
+   * @param {string} inputSource - Input source determining the icon look
+   * @param {string} buttonStyle - Button icon style (xbox or playstation)
+   * @param {number} activePlayer - Player id for key mapping
+   * @returns {number} Icon width in pixels
+   */
   getIconWidth(hint, inputSource, buttonStyle, activePlayer) {
     const keyText = this.getKeyText(hint, inputSource, activePlayer);
     const useKeySprite = (inputSource === 'keyboard' && keyText !== null);
@@ -10320,6 +12018,14 @@ class NavigationHint extends Phaser.Sprite {
     return 0;
   }
   
+  /**
+   * Maps a hint icon to a sprite frame for the current input source and style.
+   * @param {string} icon - The hint icon key (e.g. 'up', 'a', 'd-pad')
+   * @param {string} inputSource - Input source determining the icon look
+   * @param {string} buttonStyle - Button icon style (xbox or playstation)
+   * @param {number} activePlayer - Player id for key mapping
+   * @returns {number} Sprite frame index, or -1 to use a custom key sprite
+   */
   getIconFrame(icon, inputSource, buttonStyle, activePlayer) {
     // Keyboard mode: dedicated frames for special icons, others use -1 (custom key sprite)
     if (inputSource === 'keyboard') {
@@ -10398,6 +12104,12 @@ class NavigationHint extends Phaser.Sprite {
     return -1;
   }
   
+  /**
+   * Returns the gamepad button id mapped to an action for the given player.
+   * @param {string} icon - Action icon key (a, b, x, y, select, start)
+   * @param {number} playerId - Player id to look up
+   * @returns {number|null} Mapped gamepad button id or null
+   */
   getButtonMapping(icon, playerId) {
     const player = playerId === 1 ? 'player1' : 'player2';
     const actionMap = {
@@ -10409,6 +12121,13 @@ class NavigationHint extends Phaser.Sprite {
     return Account.mapping.gamepad[player][action];
   }
   
+  /**
+   * Resolves the key label to show for a hint in keyboard mode.
+   * @param {object} hint - The hint to resolve
+   * @param {string} inputSource - Input source determining the icon look
+   * @param {number} activePlayer - Player id for key mapping
+   * @returns {string|null} Key label or null when no label applies
+   */
   getKeyText(hint, inputSource, activePlayer) {
     if (inputSource !== 'keyboard') {
       const triggerIcons = ['lb', 'rb', 'lt', 'rt'];
@@ -10448,6 +12167,11 @@ class NavigationHint extends Phaser.Sprite {
     return fallbacks[hint.icon] || null;
   }  
 
+  /**
+   * Converts a key code into its human-readable name from KEYBOARD_KEY_CODES.
+   * @param {number} keyCode - The key code to convert
+   * @returns {string} Key name, or '???' when unknown
+   */
   keyCodeToString(keyCode) {
     for (const key of Object.keys(KEYBOARD_KEY_CODES)) {
       const keyName = key.replace('_', ' ');
@@ -10458,12 +12182,20 @@ class NavigationHint extends Phaser.Sprite {
     return '???';
   }
   
+  /**
+   * Sets the button icon style and refreshes the hint prompts.
+   * @param {string} style - Button style key (xbox or playstation)
+   */
   setButtonStyle(style) {
     Account.settings.buttonStyle = style;
     saveAccount();
     this.refreshHints();
   }
   
+  /**
+   * Replaces the current hints and rebuilds all prompt sprites.
+   * @param {Array|string} hints - Hint definitions or a NAVIGATION_HINT_PRESETS key
+   */
   updateHints(hints) {
     if (typeof hints === 'string') hints = NAVIGATION_HINT_PRESETS[hints] || [];
     this.hints = hints;
@@ -10471,6 +12203,9 @@ class NavigationHint extends Phaser.Sprite {
     this.refreshHints();
   }
   
+  /**
+   * Stops tracking and cycling, destroys all prompts, and destroys the sprite.
+   */
   destroy() {
     this.stopInputTracking();
     this.stopAlternateMode();
@@ -10486,30 +12221,76 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class ProgressText
+ * @category UI Classes
+ * @summary Progress text for loading screens
+ * @constructor
+ * @param {string} text - The text to display
+ * @features
+ * Anchors to the bottom-left of the screen
+ * Reuses Text rendering, typewriter, and wrapping effects
+ * @description
+ * ProgressText is a Text subclass that displays loading progress messages at
+ * the bottom-left corner of the screen. It anchors its bottom edge so the
+ * text stays on-screen regardless of message length, inheriting all of the
+ * typewriter and wrapping behavior of Text.
+ * @example
+ * // Modding usage example
+ * const progress = new ProgressText('Loading assets...');
+ * progress.write('Loading 50%...');
+ */
 class ProgressText extends Text {
   constructor(text) {
     super(4, game.height - 2, text, FONTS.default);
     
+    /** @type {PIXI.Point} Anchor pinned to the bottom so the text stays on-screen */
     this.anchor.y = 1;
   }
 }
 
+/**
+ * @class ExperienceBar
+ * @category UI Classes
+ * @summary Visual experience progress bar
+ * @constructor
+ * @param {Number} x - X position of the bar
+ * @param {Number} y - Y position of the bar
+ * @param {Number} width - Width of the bar
+ * @param {Number} height - Height of the bar
+ * @features
+ * Clamped 0-1 progress updates
+ * Built-in background, fill and border graphics
+ * @description
+ * A progress bar showing experience or ANY / similar 0-to-1 value. It is drawn from three stacked graphics objects: a dark track, a teal fill scaled by progress, and a white border. Updating progress redraws the fill to match the current value.
+ * @example
+ * // Modding usage example
+ * const bar = new ExperienceBar(10, 10, 300, 20);
+ * game.add.existing(bar);
+ * bar.setProgress(0.75);
+ */
 class ExperienceBar extends Phaser.Sprite {
   constructor(x, y, width, height) {
     super(game, x, y);
+    /** @type {Number} Width of the bar */
     this.barWidth = width;
+    /** @type {Number} Height of the bar */
     this.barHeight = height;
+    /** @type {Number} Current progress between 0 and 1 */
     this.progress = 0;
     
+    /** @type {Phaser.Graphics} Dark track behind the fill */
     this.background = game.add.graphics(0, 0);
     this.background.beginFill(0x333333);
     this.background.drawRect(0, 0, width, height);
     this.background.endFill();
     this.addChild(this.background);
     
+    /** @type {Phaser.Graphics} Teal fill scaled by progress */
     this.bar = game.add.graphics(0, 0);
     this.addChild(this.bar);
     
+    /** @type {Phaser.Graphics} White border around the bar */
     this.border = game.add.graphics(0, 0);
     this.border.lineStyle(1, 0xFFFFFF, 1);
     this.border.drawRect(0, 0, width, height);
@@ -10521,11 +12302,18 @@ class ExperienceBar extends Phaser.Sprite {
     game.add.existing(this);
   }
   
+  /**
+   * Sets the progress value clamped to 0-1 and redraws the fill.
+   * @param {Number} progress - Progress value between 0 and 1
+   */
   setProgress(progress) {
     this.progress = Phaser.Math.clamp(progress, 0, 1);
     this.updateBar();
   }
   
+  /**
+   * Redraws the fill graphics to match the current progress.
+   */
   updateBar() {
     this.bar.clear();
     this.bar.beginFill(0x76fcde);
@@ -10533,6 +12321,9 @@ class ExperienceBar extends Phaser.Sprite {
     this.bar.endFill();
   }
   
+  /**
+   * Destroys the track, fill, border and the bar sprite itself.
+   */
   destroy() {
     this.background.destroy();
     this.bar.destroy();
@@ -10541,13 +12332,34 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class SkillBar
+ * @category UI Classes
+ * @summary Visual skill level indicator (1-5 segments)
+ * @constructor
+ * @param {Number} x - X position of the bar
+ * @param {Number} y - Y position of the bar
+ * @features
+ * Five segment sprites toggled individually
+ * Update hooks from value and visibleParts
+ * @description
+ * A row of up to five segment sprites representing a 1-5 skill rating. Each segment shows a filled or empty frame depending on whether its index is below the current value. Fewer segments can be shown by lowering visibleParts.
+ * @example
+ * // Modding usage example
+ * const bar = new SkillBar(100, 200);
+ * game.add.existing(bar);
+ * bar.value = 3;
+ */
 class SkillBar extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x, y);
     
+    /** @type {Array<Phaser.Sprite>} Segment sprites making up the bar */
     this.parts = [];
     
+    /** @type {Number} How many of the five segments are shown */
     this.visibleParts = 5;
+    /** @type {Number} Current rating 1-5 that fills segments */
     this.value = 5;
     
     for (let i = 0, x = 0; i < 5; i++, x += 3) {
@@ -10558,6 +12370,9 @@ class SkillBar extends Phaser.Sprite {
     
     game.add.existing(this);
   }
+  /**
+   * Phaser lifecycle hook called every frame. Toggles each segment's visibility and frame based on visibleParts and value.
+   */
   update() {
     for (let i = 1; i <= 5; i++) {
       const part = this.parts[i - 1];
@@ -10568,6 +12383,32 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class TextInput
+ * @category UI Classes
+ * @summary Text input dialog for character naming
+ * @constructor
+ * @param {object} [config={}] - Input configuration (text, limits, callbacks, etc.)
+ * @features
+ * Character-by-character input with a blinking cursor
+ * Charset whitelists and limited-character usage counts
+ * Move, insert, and erase editing with multi-line support
+ * Dispatches onConfirm and onCancel signals
+ * @description
+ * TextInput is a modal text editor backed by a Window for entering names or
+ * other short strings. It supports moving the cursor, inserting and erasing
+ * characters, optional newlines, character whitelists, and per-character
+ * usage limits. It is used by naming screens and dispatches the final text
+ * through its onConfirm signal.
+ * @example
+ * // Modding usage example
+ * const input = new TextInput({
+ *   text: 'Player',
+ *   maxLength: 12,
+ *   x: 120, y: 35, width: 14, height: 2,
+ *   onConfirm: (name) => setName(name)
+ * });
+ */
 class TextInput extends Phaser.Sprite {
   constructor(config = {}) {
     config = {
@@ -10590,8 +12431,10 @@ class TextInput extends Phaser.Sprite {
     super(game, x, y);
     this.anchor.x = 0.5;
     
+    /** @type {object} Merged input configuration */
     this.config = config;
     
+    /** @type {object} Window and cell dimensions ({ cells, width, height }) */
     this.size = {
       cells: {
         x: width,
@@ -10601,17 +12444,23 @@ class TextInput extends Phaser.Sprite {
       height: height * 8
     };
 
+    /** @type {Window} Background window hosting the input text */
     this.window = new Window(0, 0, width, height, "1", this);
     this.window.x -= (this.window.size.width / 2) * 8;
     
+    /** @type {number} Maximum number of characters allowed */
     this.maxLength = config.maxLength;
+    /** @type {string} Current text being edited */
     this.text = config.text.slice(0, this.maxLength);
+    /** @type {number} Cursor position within the text */
     this.currentIndex = this.text.length;
     
+    /** @type {Text} Text layer that renders and wraps the input text */
     this.textLayer = new Text(3, 5, "");
     this.textLayer.tint = this.window.fontTint;
     this.window.addChild(this.textLayer);
 
+    /** @type {Phaser.Graphics} Blinking cursor rectangle */
     this.cursor = game.add.graphics(0, 0);
     this.cursor.beginFill(this.window.fontTint, 1);
     this.cursor.drawRect(0, 0, 2, 5);
@@ -10621,7 +12470,9 @@ class TextInput extends Phaser.Sprite {
     this.lastCursorBlinkTime = 0;
     this.cursorVisible = false;
     
+    /** @type {Phaser.Signal} Dispatched with the final text when confirmed */
     this.onConfirm = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched with the current text when cancelled */
     this.onCancel = new Phaser.Signal();
     
     this.updateCursor();
@@ -10636,6 +12487,11 @@ class TextInput extends Phaser.Sprite {
     game.add.existing(this);
   }
   
+  /**
+   * Returns whether a character passes charset and usage-limit checks.
+   * @param {string} char - The single character to validate
+   * @returns {boolean} True when the character may be inserted
+   */
   validateCharInput(char) {
     const isValidChar = typeof char == 'string' && char.length == 1;
     const isCharAllowed = this.config.charset ? this.config.charset.includes(char) : true;
@@ -10644,6 +12500,11 @@ class TextInput extends Phaser.Sprite {
     return isValidChar && isCharAllowed && !isCharExhausted;
   }
   
+  /**
+   * Counts how many times a character appears in the current text.
+   * @param {string} char - The character to count
+   * @returns {number} Occurrence count
+   */
   countCharacter(char) {
     let count = 0;
     
@@ -10654,6 +12515,11 @@ class TextInput extends Phaser.Sprite {
     return count;
   }
 
+  /**
+   * Handles an incoming key event, inserting glyphs or running actions.
+   * @param {object} key - Key event with an optional action string
+   * @param {string} input - The character to insert (ignored for actions)
+   */
   receiveInput(key, input) {
     const isAtMaxLength = this.isAtMaxLength();
     
@@ -10694,6 +12560,10 @@ class TextInput extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Inserts a validated character at the cursor position.
+   * @param {string} input - The single character to insert
+   */
   insertCharacter(input) {
     const left = this.text.slice(0, this.currentIndex);
     const right = this.text.slice(this.currentIndex);
@@ -10705,6 +12575,9 @@ class TextInput extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Erases the character just before the cursor position.
+   */
   erase() {
     const left = this.text.slice(0, this.currentIndex);
     const right = this.text.slice(this.currentIndex);
@@ -10716,6 +12589,10 @@ class TextInput extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Moves the cursor in the given direction across lines and wraps.
+   * @param {string} dir - One of 'left', 'right', 'up', or 'down'
+   */
   moveCursor(dir) {
     switch (dir) {
       case 'left':
@@ -10739,14 +12616,26 @@ class TextInput extends Phaser.Sprite {
     this.updateCursor();
   }
   
+  /**
+   * Returns the number of characters that fit on one input line.
+   * @returns {number} Maximum characters per line
+   */
   getMaxCharsPerLine() {
     return this.textLayer.getMaxCharsPerLine(this.size.width);
   }
   
+  /**
+   * Returns whether the text has reached its maximum length.
+   * @returns {boolean} True at the character limit
+   */
   isAtMaxLength() {
     return this.text.length >= this.maxLength;
   }
   
+  /**
+   * Computes the cursor's cell position accounting for word wrapping.
+   * @returns {object} Cursor cell position ({ x, y })
+   */
   getLocalCursorPosition() {
     const maxChars = this.getMaxCharsPerLine();
     
@@ -10772,6 +12661,9 @@ class TextInput extends Phaser.Sprite {
     return { x, y };
   }
   
+  /**
+   * Rewrites the wrapped text layer and repositions the cursor sprite.
+   */
   updateCursor() {
     const isAtMaxLength = this.isAtMaxLength();
 
@@ -10784,6 +12676,9 @@ class TextInput extends Phaser.Sprite {
     this.cursor.y = y * 7;
   }
 
+  /**
+   * Blinks the cursor and refreshes its visibility each frame.
+   */
   update() {
     this.cursor.visible = !this.isAtMaxLength() && this.cursorVisible;
 
@@ -10794,16 +12689,25 @@ class TextInput extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Dispatches the current text on onConfirm and destroys the input.
+   */
   confirm() {
     this.onConfirm.dispatch(this.text);
     this.destroy();
   }
   
+  /**
+   * Dispatches the current text on onCancel and destroys the input.
+   */
   cancel() {
     this.onCancel.dispatch(this.text);
     this.destroy();
   }
   
+  /**
+   * Destroys the sprite and disposes the input signals.
+   */
   destroy() {
     super.destroy();
     this.onConfirm.dispose();
@@ -10814,6 +12718,30 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class NumberInput
+ * @category UI Classes
+ * @summary Numeric value input dialog
+ * @constructor
+ * @param {object} [config={}] - Config with min, max, decimals, and initial text
+ * @features
+ * Clamped numeric range with min and max enforcement
+ * Decimal place support with fixed formatting
+ * Increment and decrement on gamepad up/down
+ * Dispatches the numeric value on confirm or cancel
+ * @description
+ * NumberInput extends TextInput to edit numeric values instead of free text.
+ * The input is clamped to a min/max range, honors a decimal-place count, and
+ * restricts the permitted characters accordingly. Gamepad up/down increments
+ * or decrements the value, and confirm or cancel dispatch the numeric result.
+ * @example
+ * // Modding usage example
+ * const input = new NumberInput({
+ *   text: '7',
+ *   min: 0, max: 10, decimals: 0,
+ *   onConfirm: (value) => setSpeed(value)
+ * });
+ */
 class NumberInput extends TextInput {
   constructor(config = {}) {
     config = {
@@ -10848,17 +12776,29 @@ class NumberInput extends TextInput {
       onCancel: config.onCancel
     });
     
+    /** @type {number} Minimum allowed value */
     this.min = config.min;
+    /** @type {number} Maximum allowed value */
     this.max = config.max;
+    /** @type {number} Number of decimal places to display */
     this.decimals = config.decimals;
   }
   
+  /**
+   * Parses the current text into a number clamped to the configured range.
+   * @returns {number} The clamped numeric value
+   */
   getNumericValue() {
     let value = parseFloat(this.text);
     if (isNaN(value)) value = this.min;
     return Math.min(this.max, Math.max(this.min, value));
   }
   
+  /**
+   * Validates characters for numeric input, guarding minus and decimal signs.
+   * @param {string} char - The single character to validate
+   * @returns {boolean} True when the character may be inserted
+   */
   validateCharInput(char) {
     if (char === '-') {
       return this.text.length === 0;
@@ -10871,6 +12811,11 @@ class NumberInput extends TextInput {
     return super.validateCharInput(char);
   }
   
+  /**
+   * Handles input, mapping up/down to increment/decrement actions.
+   * @param {object} key - Key event with an optional action string
+   * @param {string} input - The character to insert (ignored for actions)
+   */
   receiveInput(key, input) {
     const oldValue = this.getNumericValue();
     
@@ -10908,6 +12853,9 @@ class NumberInput extends TextInput {
     }
   }
   
+  /**
+   * Increases the value by one step of the configured decimal precision.
+   */
   increment() {
     let step = Math.pow(10, -this.decimals);
     let newValue = this.getNumericValue() + step;
@@ -10915,6 +12863,9 @@ class NumberInput extends TextInput {
     this.setValue(newValue);
   }
   
+  /**
+   * Decreases the value by one step of the configured decimal precision.
+   */
   decrement() {
     let step = Math.pow(10, -this.decimals);
     let newValue = this.getNumericValue() - step;
@@ -10922,6 +12873,10 @@ class NumberInput extends TextInput {
     this.setValue(newValue);
   }
   
+  /**
+   * Sets and displays a value, clamped to the configured range.
+   * @param {number} value - The value to set
+   */
   setValue(value) {
     value = Math.min(this.max, Math.max(this.min, value));
     let displayValue;
@@ -10935,6 +12890,9 @@ class NumberInput extends TextInput {
     this.updateCursor();
   }
   
+  /**
+   * Reclamps the current text's value and refreshes its formatted display.
+   */
   clampAndUpdateDisplay() {
     let value = this.getNumericValue();
     let newDisplay;
@@ -10952,12 +12910,18 @@ class NumberInput extends TextInput {
     }
   }
   
+  /**
+   * Dispatches the clamped numeric value on onConfirm and destroys the input.
+   */
   confirm() {
     const numericValue = this.getNumericValue();
     this.onConfirm.dispatch(numericValue);
     this.destroy();
   }
   
+  /**
+   * Dispatches the clamped numeric value on onCancel and destroys the input.
+   */
   cancel() {
     const numericValue = this.getNumericValue();
     this.onCancel.dispatch(numericValue);
@@ -10965,26 +12929,60 @@ class NumberInput extends TextInput {
   }
 }
 
+/**
+ * @class NotificationSystem
+ * @category UI Classes
+ * @summary Global notification manager with achievement/exp support
+ * @constructor
+ * @features
+ * Queues and shows text, error, success, unlock, and achievement notifications
+ * Preserves and restores notifications across state changes
+ * Tinted windows with cycling color animation
+ * Restricted states where notifications stay hidden
+ * @description
+ * NotificationSystem is the global toast manager that displays queued
+ * notifications in a bordered window at the top of the screen. It supports
+ * regular text as well as achievement, error, success, and unlock types,
+ * each with its own color scheme and sound. Notifications survive state
+ * transitions and are restored once an allowed state loads.
+ * @example
+ * // Modding usage example
+ * notifications.show('Song downloaded!', 2000, 'success');
+ * notifications.showAchievement(
+ *   { name: 'First Steps', description: { achieved: 'Play 1 song' } }, 50
+ * );
+ */
 class NotificationSystem {
   constructor() {
+    /** @type {Array} Pending notifications waiting to be shown */
     this.queue = [];
+    /** @type {boolean} Whether a notification is currently on screen */
     this.isShowing = false;
+    /** @type {object} The notification currently being displayed */
     this.currentNotification = null;
+    /** @type {number} Default display duration in milliseconds */
     this.duration = 3000;
     this.lineHeight = 8;
     this.padding = 8;
     this.maxLineWidth = 160;
     this.charWidth = 4;
     
+    /** @type {Window|null} The window displaying the current notification */
     this.notificationWindow = null;
+    /** @type {Array} Cycling tint colors for the notification window */
     this.notificationTint = [0xffffff];
+    /** @type {Array|null} Text sprites inside the notification window */
     this.notificationTexts = null;
     
+    /** @type {Set} State names in which notifications are suppressed */
     this.restrictedStates = new Set(['Title', 'Play', 'Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
     
     this.setupStateChangeHandling();
   }
 
+  /**
+   * Patches game.state.start and subscribes to the state change signal.
+   */
   setupStateChangeHandling() {
     const originalStart = game.state.start;
     
@@ -10999,6 +12997,10 @@ class NotificationSystem {
     game.state.onStateChange.add(this.onStateChange, this);
   }
 
+  /**
+   * Processes pending notifications and restores preserved ones after a state change.
+   * @param {object} newState - The newly entered game state
+   */
   onStateChange(newState) {
     game.time.events.add(100, () => {
       const currentState = game.state.getCurrentState();
@@ -11015,6 +13017,12 @@ class NotificationSystem {
   }
 
   // Main show method for regular text notifications
+  /**
+   * Queues and shows a regular text notification of the given type.
+   * @param {string} text - The notification message text
+   * @param {number} [duration=2000] - How long to display it in milliseconds
+   * @param {string} [type="normal"] - Style type: normal, error, success, or unlock
+   */
   show(text, duration = 2000, type = "normal") {
     const currentState = game.state.getCurrentState();
     const stateName = currentState?.constructor?.name || '';
@@ -11036,6 +13044,11 @@ class NotificationSystem {
   }
 
   // Show achievement notification
+  /**
+   * Queues an achievement banner showing the unlocked achievement details.
+   * @param {object} achievement - Achievement with name and description fields
+   * @param {number} [expGain=0] - Experience points gained (reserved for display)
+   */
   showAchievement(achievement, expGain = 0) {
     const currentState = game.state.getCurrentState();
     const stateName = currentState?.constructor?.name || '';
@@ -11053,12 +13066,18 @@ class NotificationSystem {
     }
   }
 
+  /**
+   * Processes the next queued notification when none is currently showing.
+   */
   processPendingNotifications() {
     if (this.queue.length > 0 && !this.isShowing) {
       this.processNext();
     }
   }
 
+  /**
+   * Shows the next queued notification and schedules its hide.
+   */
   processNext() {
     const currentState = game.state.getCurrentState();
     const stateName = currentState?.constructor?.name || '';
@@ -11093,6 +13112,10 @@ class NotificationSystem {
     });
   }
   
+  /**
+   * Cycles the notification window tint through its configured colors.
+   * @param {object} notification - The notification whose colors are animated
+   */
   animateNotificationTint(notification) {
     let tintAnimationIndex = 0;
     this.tintAnimationLoop = game.time.events.loop(100, () => {
@@ -11121,12 +13144,19 @@ class NotificationSystem {
     });
   }
   
+  /**
+   * Stops the cycling tint animation loop.
+   */
   stopNotificationTintAnimation() {
     if (this.tintAnimationLoop) {
       game.time.events.remove(this.tintAnimationLoop);
     }
   }
   
+  /**
+   * Plays the sound corresponding to the notification type.
+   * @param {object} notification - The notification being shown
+   */
   playNotificationSound(notification) {
     const soundKey = {
       'normal': 'ui_notification',
@@ -11139,6 +13169,11 @@ class NotificationSystem {
     ENABLE_UI_SFX && Audio.play(soundKey);
   }
 
+  /**
+   * Builds the notification window and its text lines, fading it in.
+   * @param {string} text - Text to display, with newlines
+   * @param {string} [type="normal"] - Style type controlling tint and colors
+   */
   displayTextNotification(text, type = "normal") {
     const lines = text.split('\n');
     const lineCount = lines.length;
@@ -11184,6 +13219,11 @@ class NotificationSystem {
   }
 
   // Existing helper methods
+  /**
+   * Wraps text into lines that fit the maximum notification width.
+   * @param {string} text - The text to wrap
+   * @returns {string} Wrapped text, lines joined with newlines
+   */
   wrapText(text) {
     const lines = text.split('\n');
     const wrappedLines = [];
@@ -11227,6 +13267,11 @@ class NotificationSystem {
     return wrappedLines.join('\n');
   }
 
+  /**
+   * Breaks a word that is longer than the maximum line width into chunks.
+   * @param {string} word - The word to break apart
+   * @returns {Array} Array of chunks that fit the line width
+   */
   breakLongWord(word) {
     const chunks = [];
     let currentChunk = '';
@@ -11246,10 +13291,19 @@ class NotificationSystem {
     return chunks;
   }
 
+  /**
+   * Estimates the rendered width of a string at the configured char width.
+   * @param {string} text - The text to measure
+   * @returns {number} Width in pixels
+   */
   getTextWidth(text) {
     return text.length * this.charWidth;
   }
 
+  /**
+   * Saves the current notification with remaining time and clears the UI
+   * so it can be restored later, surviving a state change.
+   */
   preserveCurrentNotification() {
     if (this.currentNotification && this.notificationWindow) {
       this.preservedNotification = {
@@ -11261,6 +13315,9 @@ class NotificationSystem {
     }
   }
 
+  /**
+   * Re-displays a preserved notification for its remaining duration.
+   */
   restorePreservedNotification() {
     if (this.preservedNotification) {
       const currentState = game.state.getCurrentState();
@@ -11302,6 +13359,9 @@ class NotificationSystem {
     }
   }
 
+  /**
+   * Fades out and cleans up the current notification, then shows the next one.
+   */
   hideCurrent() {
     if (this.currentNotification && this.notificationWindow) {
       const tween = game.add.tween(this.notificationWindow).to({ alpha: 0 }, 300, "Linear", true);
@@ -11319,6 +13379,9 @@ class NotificationSystem {
     }
   }
 
+  /**
+   * Destroys the notification window and all of its text sprites.
+   */
   cleanupUI() {
     if (this.notificationWindow) {
       this.notificationWindow.destroy();
@@ -11330,10 +13393,18 @@ class NotificationSystem {
     }
   }
 
+  /**
+   * Returns whether notifications are allowed in the given state name.
+   * @param {string} stateName - Name of the current game state
+   * @returns {boolean} True when the state is not restricted
+   */
   isStateAllowed(stateName) {
     return !this.restrictedStates.has(stateName);
   }
 
+  /**
+   * Clears the queue, current notification, tint animation, and any preserved one.
+   */
   clear() {
     this.queue = [];
     if (this.currentNotification) {
@@ -11343,20 +13414,54 @@ class NotificationSystem {
     this.preservedNotification = null;
   }
 
+  /**
+   * Clears all notifications and unsubscribes from the state change signal.
+   */
   destroy() {
     this.clear();
     game.state.onStateChange.remove(this.onStateChange, this);
   }
 }
 
+/**
+ * @class Lyrics
+ * @category Core Game Classes
+ * @summary LRC lyrics synchronization system with color support
+ * @constructor
+ * @param {Object} options - Configuration object (textElement, maxLineLength, lrc)
+ * @features
+ * Parses LRC lyrics including [COLOUR] color tags and [tag] metadata lines
+ * Builds time-range intervals for efficient current-line lookup
+ * Auto-wraps long lines and stops text scrolling between lines
+ * @description
+ * Lyrics is an LRC lyrics synchronization system. It parses .lrc text, builds sorted
+ * time-to-line ranges, and writes the current lyric line into a Text element as the
+ * song progresses. It supports per-line colors, metadata tags (artist, title, etc.),
+ * and text wrapping for lines longer than the configured maximum.
+ * @example
+ * // Displaying synchronized lyrics during gameplay
+ * const lyrics = new Lyrics({
+ *   textElement: new Text(2, 2, "", FONTS.default),
+ *   maxLineLength: 40,
+ *   lrc: "[00:12.00][COLOUR]0x76FCFF" + "Here is a lyric line"
+ * });
+ * lyrics.move(currentSongTime);
+ */
 class Lyrics {
   constructor(options = {}) {
+    /** @type {Text} Text instance to display lyrics */
     this.textElement = options.textElement || null; // Text instance to display lyrics
+    /** @type {number} Maximum characters per line */
     this.maxLineLength = options.maxLineLength || 40; // Maximum characters per line
+    /** @type {number} Current playback time in seconds */
     this.currentTime = 0;
+    /** @type {Array} Parsed lyric entries with timestamps */
     this.lrcData = [];
+    /** @type {Array} Time-range lyric entries for current-line lookup */
     this.rangeLrc = [];
+    /** @type {number} Index of the currently displayed lyric line */
     this.currentLineIndex = -1;
+    /** @type {number} Current line color as hex value */
     this.currentColor = 0xffffff; // Default white color
     
     // Parse LRC data
@@ -11365,6 +13470,11 @@ class Lyrics {
     }
   }
 
+  /**
+   * Parses raw LRC text into timestamped lyrics and builds time-range intervals.
+   * Handles [COLOUR] color changes, metadata tags, and repeated timestamps per line.
+   * @param {string} rawLrc - Raw LRC file contents
+   */
   setLrc(rawLrc) {
     this.tags = {};
     this.lrcData = [];
@@ -11445,6 +13555,10 @@ class Lyrics {
     });
   }
 
+  /**
+   * Advances the lyrics clock to a given time and displays the matching line.
+   * @param {number} time - Current playback time in seconds
+   */
   move(time) {
     this.currentTime = time;
     
@@ -11466,6 +13580,10 @@ class Lyrics {
     }
   }
 
+  /**
+   * Writes the current lyric line into the text element with its stored color.
+   * Stops any active text scrolling and wraps lines that exceed the maximum length.
+   */
   displayCurrentLine() {
     if (!this.textElement || this.currentLineIndex < 0) return;
 
@@ -11493,6 +13611,10 @@ class Lyrics {
   }
 
   // Get current line text
+  /**
+   * Returns the text of the currently displayed lyric line.
+   * @returns {string} The current lyric line text, or empty string if none
+   */
   getCurrentLine() {
     if (this.currentLineIndex >= 0 && this.currentLineIndex < this.rangeLrc.length) {
       return this.rangeLrc[this.currentLineIndex].line;
@@ -11501,6 +13623,10 @@ class Lyrics {
   }
 
   // Get current line color
+  /**
+   * Returns the hex color of the currently displayed lyric line.
+   * @returns {number} Color as 0xRRGGBB (defaults to 0xffffff)
+   */
   getCurrentColor() {
     if (this.currentLineIndex >= 0 && this.currentLineIndex < this.rangeLrc.length) {
       return this.rangeLrc[this.currentLineIndex].color;
@@ -11509,6 +13635,10 @@ class Lyrics {
   }
 
   // Get next line text (for preview)
+  /**
+   * Returns the text of the line that follows the current one.
+   * @returns {string} The next lyric line text, or empty string if none
+   */
   getNextLine() {
     const nextIndex = this.currentLineIndex + 1;
     if (nextIndex < this.rangeLrc.length) {
@@ -11518,11 +13648,18 @@ class Lyrics {
   }
 
   // Check if lyrics are loaded
+  /**
+   * Checks whether any lyrics have been loaded.
+   * @returns {boolean} True if at least one lyric entry is loaded
+   */
   hasLyrics() {
     return this.lrcData.length > 0;
   }
 
   // Clear lyrics display
+  /**
+   * Clears the lyrics display and resets all parsed data.
+   */
   clear() {
     if (this.textElement) {
       this.textElement.write("");
@@ -11534,26 +13671,59 @@ class Lyrics {
   }
 
   // Destroy and cleanup
+  /**
+   * Clears all lyrics and releases the text element reference.
+   */
   destroy() {
     this.clear();
     this.textElement = null;
   }
 }
 
+/**
+ * @class OffsetAssistant
+ * @category Core Game Classes
+ * @summary Audio-video synchronization calibration tool
+ * @constructor
+ * @param {Phaser.Game} game - The game instance
+ * @features
+ * Guides the player to tap in rhythm with a steady audio tick
+ * Computes a statistically confident average offset from the taps
+ * Saves the calibrated offset to the account settings for judgment alignment
+ * @description
+ * OffsetAssistant is an in-game audio-video synchronization calibration tool. It plays a
+ * continuous tick sound and has the player tap along to the beat, then measures each tap
+ * against the expected tick timing. After enough consistent taps it averages the measured
+ * offsets, displays a confidence color (white/yellow/green), and saves the result as the
+ * user offset used to align note judgments with audio timing.
+ * @example
+ * // Opening the offset assistant when the player needs calibration
+ * const assistant = new OffsetAssistant(game);
+ * game.world.add(assistant);
+ */
 class OffsetAssistant extends Phaser.Sprite {
   constructor(game) {
     super(game, 0, 0);
     
+    /** @type {Array} Raw tap timestamps in milliseconds */
     this.taps = [];
+    /** @type {number} Confidence required to consider the offset reliable */
     this.confidenceThreshold = 0.8;
+    /** @type {number} Maximum number of taps kept for measurement */
     this.maxTaps = 60;
+    /** @type {number} Taps required before trusting the result */
     this.requiredTaps = 16;
+    /** @type {number} BPM of the calibration tick sound */
     this.tickBPM = 120;
+    /** @type {number} Milliseconds between tick sounds */
     this.tickInterval = 60000 / this.tickBPM; // 500ms per tick
+    /** @type {number} Snap interval in milliseconds for rounding offsets */
     this.snapMs = 1;
     
     // Store background music state
+    /** @type {boolean} Whether background music was playing before calibration */
     this.wasMusicPlaying = backgroundMusic && backgroundMusic.isPlaying;
+    /** @type {number} Background music time to resume from after calibration */
     this.originalMusicTime = 0;
     
     // Pause background music
@@ -11563,6 +13733,7 @@ class OffsetAssistant extends Phaser.Sprite {
     this.startTickSound();
     
     // Create background
+    /** @type {Phaser.Graphics} Full-screen dark background */
     this.background = game.add.graphics(0, 0);
     this.background.beginFill(0x000000, 0.8);
     this.background.drawRect(0, 0, game.width, game.height);
@@ -11570,22 +13741,26 @@ class OffsetAssistant extends Phaser.Sprite {
     this.addChild(this.background);
     
     // Create instruction text
+    /** @type {Text} Tap-along instruction label */
     this.instructionText = new Text(game.width / 2, game.height / 2 - 20, "TAP A TO THE TICK", FONTS.shaded);
     this.instructionText.anchor.set(0.5);
     this.addChild(this.instructionText);
     
     // Create offset display text
+    /** @type {Text} Live offset readout label */
     this.offsetText = new Text(game.width / 2, game.height / 2 + 10, "Offset: 0ms", FONTS.default);
     this.offsetText.anchor.set(0.5);
     this.addChild(this.offsetText);
     
     // Create tap counter
+    /** @type {Text} Tap counter label */
     this.tapCounter = new Text(game.width / 2, game.height / 2 + 30, "Taps: 0", FONTS.default);
     this.tapCounter.anchor.set(0.5);
     this.tapCounter.alpha = 0.7;
     this.addChild(this.tapCounter);
     
     // Create exit hint
+    /** @type {Text} Exit instruction label */
     this.exitText = new Text(game.width / 2, game.height - 10, "Press B to exit and save", FONTS.default);
     this.exitText.anchor.set(0.5);
     this.exitText.alpha = 0.5;
@@ -11600,9 +13775,14 @@ class OffsetAssistant extends Phaser.Sprite {
     this.nextTickTime = this.game.time.now;
     
     // Store calculated offsets for averaging
+    /** @type {Array} Recent averaged offset measurements */
     this.calculatedOffsets = [];
   }
 
+  /**
+   * Handles per-frame input: A button records a tap, B button exits and saves.
+   * Also keeps the tick sound and tap counter up to date.
+   */
   update() {
     // Handle A button for tapping
     if (gamepad.pressed.a || mouse.pressed.left) {
@@ -11621,6 +13801,9 @@ class OffsetAssistant extends Phaser.Sprite {
     this.tapCounter.write(`Taps: ${this.taps.length}`);
   }
 
+  /**
+   * Pauses the background music and remembers the position to resume from.
+   */
   pauseBackgroundMusic() {
     if (backgroundMusic) {
       this.originalMusicTime = backgroundMusic.audio.currentTime;
@@ -11628,6 +13811,9 @@ class OffsetAssistant extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Resumes the background music from the position it was paused at.
+   */
   resumeBackgroundMusic() {
     if (backgroundMusic) {
       // Try to resume from where we left off
@@ -11636,6 +13822,9 @@ class OffsetAssistant extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Preloads the assist tick sound and plays the first tick immediately.
+   */
   startTickSound() {
     // Preload the tick sound if not already loaded
     if (!game.cache.checkSoundKey('assist_tick')) {
@@ -11649,6 +13838,9 @@ class OffsetAssistant extends Phaser.Sprite {
     this.nextTickTime = this.lastTickTime;
   }
 
+  /**
+   * Plays the tick sound again when the current tick interval elapses.
+   */
   updateTickSound() {
     if (this.destroyed) return;
     
@@ -11662,12 +13854,18 @@ class OffsetAssistant extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Plays the assist tick sound if it is loaded in the game cache.
+   */
   playTickSound() {
     if (game.cache.checkSoundKey('assist_tick')) {
       Audio.play('assist_tick');
     }
   }
 
+  /**
+   * Records a tap timestamp and triggers offset calculation and feedback.
+   */
   onTap() {
     const currentTime = this.game.time.now;
     
@@ -11686,6 +13884,10 @@ class OffsetAssistant extends Phaser.Sprite {
     this.showTapFeedback();
   }
 
+  /**
+   * Measures each tap against the expected tick timing, averages the offsets,
+   * and updates the readout with a confidence color (white/yellow/green).
+   */
   calculateOffset() {
     if (this.taps.length < 2) {
       this.offsetText.write("Offset: 0ms");
@@ -11744,6 +13946,11 @@ class OffsetAssistant extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Computes a confidence value from the standard deviation of tap offsets.
+   * @param {Array} offsets - Tap offset measurements in milliseconds
+   * @returns {number} Confidence between 0 and 1, where 1 means perfectly consistent
+   */
   calculateConfidence(offsets) {
     if (offsets.length < 3) return 0;
     
@@ -11763,11 +13970,19 @@ class OffsetAssistant extends Phaser.Sprite {
     return Math.min(1, confidence);
   }
   
+  /**
+   * Rounds an offset value to the nearest snap interval.
+   * @param {number} num - Offset value in milliseconds
+   * @returns {number} The offset rounded to the snap interval
+   */
   roundToSnapMs(num) {
     const rounded = Math.round(num / this.snapMs);
     return rounded >= 0 ? rounded * this.snapMs : (rounded + 1) * this.snapMs;
   }
 
+  /**
+   * Gives brief visual feedback by scaling the instruction text.
+   */
   showTapFeedback() {
     // Flash the instruction text briefly
     this.game.add.tween(this.instructionText.scale)
@@ -11775,6 +13990,10 @@ class OffsetAssistant extends Phaser.Sprite {
       .yoyo(true);
   }
 
+  /**
+   * Saves the final averaged offset to the account settings, resumes music,
+   * cleans up, and returns to the settings menu.
+   */
   exit() {
     // Calculate final offset average
     let finalOffset = 0;
@@ -11806,6 +14025,10 @@ class OffsetAssistant extends Phaser.Sprite {
     game.state.getCurrentState().menu();
   }
 
+  /**
+   * Reads the current offset value from the displayed text.
+   * @returns {number|null} The parsed offset in milliseconds, or null if unreadable
+   */
   parseOffsetText() {
     const text = this.offsetText.text;
     const match = text.match(/Offset: (-?\d+)ms/);
@@ -11815,6 +14038,9 @@ class OffsetAssistant extends Phaser.Sprite {
     return null;
   }
 
+  /**
+   * Ensures background music is resumed and destroys all created objects.
+   */
   destroy() {
     // Make sure music is resumed even if destroyed unexpectedly
     this.resumeBackgroundMusic();
@@ -11832,28 +14058,54 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class MouseCursor
+ * @category UI Classes
+ * @summary Custom mouse cursor
+ * @constructor
+ * @description
+ * Replaces the native OS cursor with a game sprite and exposes button/wheel signals for the rest of the UI. It tracks press, hold and release edge states for left, right and middle buttons, dispatches move signals, and hides itself after two seconds of inactivity. It automatically (re)initializes when the active state is allowed and disables all native mouse interactions.
+ * @example
+ * // Modding usage example
+ * const cursor = new MouseCursor();
+ * cursor.onMove.add((x, y) => {
+ *   console.log('cursor at', x, y);
+ * });
+ * cursor.show();
+ */
 class MouseCursor {
   constructor() {
+    /** @type {Phaser.Sprite} Cursor sprite rendered over the scene */
     this.sprite = null;
     
+    /** @type {Boolean} Whether the cursor sprite is visible */
     this.visible = true;
     
+    /** @type {Phaser.Signal} Fired when a mouse button is pressed */
     this.onDown = new Phaser.Signal();
+    /** @type {Phaser.Signal} Fired when the mouse moves */
     this.onMove = new Phaser.Signal();
+    /** @type {Phaser.Signal} Fired when a mouse button is released */
     this.onUp = new Phaser.Signal();
+    /** @type {Phaser.Signal} Fired when the mouse wheel scrolls */
     this.onWheel = new Phaser.Signal();
     
+    /** @type {Array<String>} Identifier strings for each tracked mouse button */
     this.keys = [];
     
     this.reset();
     
+    /** @type {Phaser.Pointer} The active mouse input pointer */
     this.pointer = game.input.mousePointer;
     
+    /** @type {{x: Number, y: Number}} Position reported on the last move */
     this.lastPosition = { x: 0, y: 0 };
+    /** @type {Number} Timestamp of the last input activity */
     this.lastUpdate = game.time.now;
     
     this.setupStateChangeHandling();
     
+    /** @type {Set} State names where the custom cursor is disabled */
     this.restrictedStates = new Set(['Load', 'LoadLocalSongs', 'LoadExternalSongs', 'LoadSongFolder', 'Boot']);
     
     // Prevent all mouse interactions
@@ -11862,6 +14114,9 @@ class MouseCursor {
     game.canvas.parentNode.addEventListener('mouseup', (e) => e.preventDefault(), true);
     game.canvas.parentNode.addEventListener('contextmenu', (e) => e.preventDefault(), true);
   }
+  /**
+   * Recreates all signals and clears every input state container, resetting pressed, held, released and wheel flags.
+   */
   reset() {
     this.onDown.dispose();
     this.onMove.dispose();
@@ -11882,9 +14137,16 @@ class MouseCursor {
       down: false
     };
   }
+  /**
+   * Registers a state-change listener so the cursor reinitializes on every new state.
+   */
   setupStateChangeHandling() {
     game.state.onStateChange.add(this.onStateChange, this);
   }
+  /**
+   * Resets input state on state change and reinitializes the cursor when the new state is allowed.
+   * @param {Object} newState - The newly entered game state
+   */
   onStateChange(newState) {
     this.reset();
     
@@ -11897,9 +14159,17 @@ class MouseCursor {
       }
     });
   }
+  /**
+   * Whether a given state name is allowed to use the custom cursor.
+   * @param {String} stateName - Name of the game state to check
+   * @returns {Boolean} True unless the state is in the restricted set
+   */
   isStateAllowed(stateName) {
     return !this.restrictedStates.has(stateName);
   }
+  /**
+   * Builds the cursor sprite and wires up pointer button and wheel input callbacks. Any existing cursor sprite is destroyed first.
+   */
   initializeCursor() {
     if (this.sprite) {
       this.sprite.destroy();
@@ -11928,6 +14198,11 @@ class MouseCursor {
     };
     game.input.mouseWheel.callbackContext = this;
   }
+  /**
+   * Attaches press and release handlers for one mouse button, dispatching the corresponding signals and waking the cursor sprite.
+   * @param {Phaser.MouseButton} button - The pointer button to listen to
+   * @param {String} id - Identifier reported in the dispatched signals
+   */
   setupDeviceButton(button, id) {
     this.keys.push(id);
     button.onDown.add(() => {
@@ -11943,6 +14218,9 @@ class MouseCursor {
       this.sprite.alpha = 1;
     });
   }
+  /**
+   * Per-frame routine for the cursor sprite: tracks the pointer, switches to the hand frame over clickable targets, dispatches move signals and fades the sprite out after inactivity.
+   */
   updateCursor() {
     this.updateState();
     
@@ -11973,6 +14251,9 @@ class MouseCursor {
     
     this.onMove.dispatch(x, y);
   }
+  /**
+   * Computes pressed, released and held edge states for every tracked button and exposes them on the aggregate 'any' flags.
+   */
   updateState() {
     // Calculate pressed/released for individual keys
     let anyPressed = false;
@@ -12009,12 +14290,21 @@ class MouseCursor {
     });
     this.prevState.any = this.held.any;
   }
+  /**
+   * Hides the cursor sprite while keeping input tracking active.
+   */
   hide() {
     this.visible = false;
   }
+  /**
+   * Shows the cursor sprite again.
+   */
   show() {
     this.visible = true;
   }
+  /**
+   * Destroys the cursor sprite and disposes of all signals.
+   */
   destroy() {
     this.sprite?.destroy?.();
     this.onDown.dispose();
@@ -12024,10 +14314,38 @@ class MouseCursor {
   }
 }
 
+/**
+ * @class BarChart
+ * @category UI Classes
+ * @summary Bar chart for statistics display
+ * @constructor
+ * @param {Number} x - X position of the chart
+ * @param {Number} y - Y position of the chart
+ * @param {Number} width - Width of the chart area
+ * @param {Number} height - Height of the chart area
+ * @param {Array<{name: String, value: Number}>} [data] - Initial bars to display
+ * @features
+ * Customizable colors, labels and spacing via config
+ * Optional value text shown above bars
+ * @description
+ * A bar chart sprite for displaying statistics. Bars are scaled relative to the largest value in the data set and drawn below optional name labels. Appearance is fully configurable so modders can match the game's color scheme.
+ * @example
+ * // Modding usage example
+ * const chart = new BarChart(50, 100, 200, 150, [
+ *   { name: 'A', value: 10 },
+ *   { name: 'B', value: 25 },
+ *   { name: 'C', value: 15 }
+ * ]);
+ * game.add.existing(chart);
+ * chart.setConfig({ barColor: 0xff8800 });
+ * chart.setData([{ name: 'A', value: 5 }, { name: 'B', value: 20 }]);
+ */
 class BarChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
+    /** @type {{width: Number, height: Number}} Chart dimensions */
     this.size = { width, height };
+    /** @type {Object} Chart appearance settings */
     this.config = {
       backgroundColor: 0x000000,
       backgroundAlpha: 0.5,
@@ -12041,13 +14359,18 @@ class BarChart extends Phaser.Sprite {
       showValues: false,
       valueColor: 0xffffff
     };
+    /** @type {Array<{name: String, value: Number}>} Bars to display */
     this.data = data || [];
+    /** @type {Phaser.Graphics} Drawing surface for the chart */
     this.graphics = game.add.graphics(0, 0);
     this.addChild(this.graphics);
     this.drawChart();
     game.add.existing(this);
   }
   
+  /**
+   * Rebuilds the entire chart on the graphics object. Clears prior drawing then redraws the background, border, bars, labels and optional value text from the current config and data.
+   */
   drawChart() {
     // Clear graphics
     this.graphics.clear();
@@ -12108,21 +14431,53 @@ class BarChart extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Replaces the chart data and redraws the chart.
+   * @param {Array<{name: String, value: Number}>} data - New bars to display
+   */
   setData(data) {
     this.data = data;
     this.drawChart();
   }
   
+  /**
+   * Merges the given settings into the chart config and redraws the chart.
+   * @param {Object} config - Partial config object to merge in
+   */
   setConfig(config) {
     Object.assign(this.config, config);
     this.drawChart();
   }
 }
 
+/**
+ * @class LineChart
+ * @category UI Classes
+ * @summary Line chart for statistics display
+ * @constructor
+ * @param {Number} x - X position of the chart
+ * @param {Number} y - Y position of the chart
+ * @param {Number} width - Width of the chart area
+ * @param {Number} height - Height of the chart area
+ * @param {Array<Number>} [data] - Initial data points to plot
+ * @features
+ * Optional area fill under the plotted line
+ * Zero line drawn when the value range spans zero
+ * @description
+ * A line chart sprite for plotting numeric series. Data points are normalized against the min/max of the series and connected with a stroked line, optionally with points and a filled area beneath. Appearance is configurable for both line and fill styling.
+ * @example
+ * // Modding usage example
+ * const chart = new LineChart(50, 100, 200, 150, [5, 12, 8, 20]);
+ * game.add.existing(chart);
+ * chart.setConfig({ lineColor: 0x00e5ff, showPoints: true });
+ * chart.setData([1, 4, 3, 9, 7]);
+ */
 class LineChart extends Phaser.Sprite {
   constructor(x, y, width, height, data) {
     super(game, x, y);
+    /** @type {{width: Number, height: Number}} Chart dimensions */
     this.size = { width, height };
+    /** @type {Object} Chart appearance settings */
     this.config = {
       backgroundColor: 0x000000,
       backgroundAlpha: 0.5,
@@ -12139,13 +14494,18 @@ class LineChart extends Phaser.Sprite {
       pointRadius: 2,
       showPoints: false
     };
+    /** @type {Array<Number>} Data points to plot */
     this.data = data || [];
+    /** @type {Phaser.Graphics} Drawing surface for the chart */
     this.graphics = game.add.graphics(0, 0);
     this.addChild(this.graphics);
     this.drawChart();
     game.add.existing(this);
   }
   
+  /**
+   * Rebuilds the entire chart on the graphics object. Clears prior drawing then redraws the background, border, zero line, optional filled area, main line and points from the current config and data.
+   */
   drawChart() {
     this.graphics.clear();
     
@@ -12221,19 +14581,53 @@ class LineChart extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Replaces the chart data and redraws the chart.
+   * @param {Array<Number>} data - New data points to plot
+   */
   setData(data) {
     this.data = data;
     this.drawChart();
   }
   
+  /**
+   * Merges the given settings into the chart config and redraws the chart.
+   * @param {Object} config - Partial config object to merge in
+   */
   setConfig(config) {
     Object.assign(this.config, config);
     this.drawChart();
   }
 }
 
+/**
+ * @class FileSystemTools
+ * @category File System Classes
+ * @summary Platform-agnostic file system access wrapper
+ * @constructor
+ * @features
+ * Auto-detects runtime platform (NW.js, Cordova, or browser)
+ * Delegates all operations to the platform-specific implementation
+ * Provides uniform API for directory listing, file reading, and writing
+ * @description
+ * FileSystemTools wraps platform-specific file system implementations behind a single
+ * consistent API. It detects the current runtime on construction and selects the
+ * appropriate backend (NodeFileSystem, CordovaFileSystem, or FallbackFileSystem) so
+ * that the rest of the application never needs to care about the environment.
+ * @example
+ * // Accessing the file system from any platform
+ * const fs = new FileSystemTools();
+ * const rootDir = await fs.getDirectory('Songs/');
+ * const files = await fs.listFiles(rootDir);
+ * for (const fileEntry of files) {
+ *   const file = await fs.getFile(fileEntry);
+ *   const content = await fs.readFileContent(file);
+ *   console.log(file.name, content.substring(0, 100));
+ * }
+ */
 class FileSystemTools {
   constructor() {
+    /** @type {string} The detected runtime platform identifier */
     this.platform = this.detectPlatform();
     
     if (this.platform === 'nwjs') {
@@ -12247,6 +14641,11 @@ class FileSystemTools {
     console.log(`FileSystem: Using ${this.platform} implementation`);
   }
 
+  /**
+   * Determines the current runtime platform by checking for NW.js, Cordova,
+   * or falling back to the browser environment.
+   * @returns {string} One of 'nwjs', 'cordova', or 'fallback'
+   */
   detectPlatform() {
     // Check for NW.js
     if (typeof nw !== 'undefined' && nw.process) {
@@ -12303,6 +14702,11 @@ class FileSystemTools {
   }
   
   // Additional utility methods
+  /**
+   * Returns the base directory path for the current platform.
+   * Only meaningful on NW.js; returns empty string on other platforms.
+   * @returns {string} The base path or an empty string
+   */
   getBasePath() {
     if (this.platform === 'nwjs' && this.fileSystem.getBasePath) {
       return this.fileSystem.getBasePath();
@@ -12310,10 +14714,17 @@ class FileSystemTools {
     return '';
   }
 
+  /**
+   * Checks whether the application can be programmatically closed on this platform.
+   * @returns {boolean} True if the platform supports app exit
+   */
   canExitApp() {
     return this.platform === 'nwjs' || this.platform === 'cordova';
   }
 
+  /**
+   * Terminates the application. Only works on NW.js and Cordova platforms.
+   */
   exitApp() {
     if (this.platform === 'nwjs') {
       if (typeof nw !== 'undefined' && nw.App) {
@@ -12327,6 +14738,35 @@ class FileSystemTools {
   }
 }
 
+/**
+ * @class NodeDirectoryEntry
+ * @category File System Classes
+ * @summary Cordova DirectoryEntry equivalent for Node.js
+ * @constructor
+ * @param {string} name - The directory name
+ * @param {string} fullPath - The relative path from the filesystem root
+ * @param {NodeFileSystem} fileSystem - The parent NodeFileSystem instance
+ * @param {string} [nativeURL] - The native file:// URL for this directory
+ * @features
+ * Mimics the Cordova DirectoryEntry API for NW.js environments
+ * Supports directory creation, recursive removal, and file listing
+ * Bridges Node.js fs operations to Cordova-style callbacks
+ * @description
+ * NodeDirectoryEntry provides a Cordova-compatible DirectoryEntry interface on
+ * top of Node.js synchronous file system calls. It is used by NodeFileSystem so
+ * that addon and song code can interact with directories identically across
+ * Cordova and NW.js platforms.
+ * @example
+ * // Listing subdirectories through a NodeDirectoryEntry
+ * const fs = new NodeFileSystem();
+ * const root = await fs.getDirectory('Songs/');
+ * const reader = root.createReader();
+ * reader.readEntries((entries) => {
+ *   entries.filter(e => e.isDirectory).forEach(dir => {
+ *     console.log('Found directory:', dir.name);
+ *   });
+ * }, (err) => console.error(err));
+ */
 // Node.js DirectoryEntry equivalent
 class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -12475,6 +14915,36 @@ class NodeDirectoryEntry {
   }
 }
 
+/**
+ * @class NodeFileEntry
+ * @category File System Classes
+ * @summary Cordova FileEntry equivalent for Node.js
+ * @constructor
+ * @param {string} name - The file name
+ * @param {string} fullPath - The relative path from the filesystem root
+ * @param {NodeFileSystem} fileSystem - The parent NodeFileSystem instance
+ * @param {string} [nativeURL] - The native file:// URL for this file
+ * @features
+ * Mimics the Cordova FileEntry API for NW.js environments
+ * Provides createWriter and file callbacks compatible with Cordova patterns
+ * Detects MIME types from file extensions
+ * @description
+ * NodeFileEntry wraps a single file on disk behind the same interface that
+ * Cordova FileEntry exposes. It supports reading file metadata, creating a
+ * writer for output, and resolving a file descriptor so that higher-level code
+ * can operate uniformly across platforms.
+ * @example
+ * // Reading a file via NodeFileEntry
+ * const fs = new NodeFileSystem();
+ * const dir = await fs.getDirectory('Songs/MySong/');
+ * const reader = dir.createReader();
+ * reader.readEntries((entries) => {
+ *   const fileEntry = entries.find(e => e.isFile && e.name === 'song.sm');
+ *   fileEntry.file((file) => {
+ *     console.log('File size:', file.size, 'Type:', file.type);
+ *   }, (err) => console.error(err));
+ * }, (err) => console.error(err));
+ */
 // Node.js FileEntry equivalent
 class NodeFileEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
@@ -12574,11 +15044,43 @@ class NodeFileEntry {
   }
 }
 
+/**
+ * @class NodeFileSystem
+ * @category File System Classes
+ * @summary File system for NW.js desktop apps
+ * @constructor
+ * @features
+ * Uses Node.js fs and path modules for native file access
+ * Auto-detects NW.js and plain Node.js working directories
+ * Provides a Promise-based API consistent with CordovaFileSystem
+ * @description
+ * NodeFileSystem implements the full file system interface for NW.js desktop
+ * builds using Node.js native modules. It resolves the application base
+ * directory on construction and exposes Promise-based methods for directory
+ * listing, file reading, writing, and creation that mirror the Cordova file
+ * system API used elsewhere in the application.
+ * @example
+ * // Reading song data from the file system in an NW.js build
+ * const fs = new NodeFileSystem();
+ * const songsDir = await fs.getDirectory('Songs/');
+ * const subDirs = await fs.listDirectories(songsDir);
+ * for (const dir of subDirs) {
+ *   const files = await fs.listFiles(dir);
+ *   for (const fileEntry of files) {
+ *     const file = await fs.getFile(fileEntry);
+ *     const content = await fs.readFileContent(file);
+ *     console.log(`${dir.name}/${fileEntry.name}: ${content.length} bytes`);
+ *   }
+ * }
+ */
 class NodeFileSystem {
   constructor() {
     try {
+      /** @type {Object} The Node.js fs module reference */
       this.fs = require('fs');
+      /** @type {Object} The Node.js path module reference */
       this.path = require('path');
+      /** @type {string} The resolved base directory path */
       this.basePath = this.getBasePath();
       
       // Create file system object for DirectoryEntry
@@ -12593,6 +15095,10 @@ class NodeFileSystem {
     }
   }
 
+  /**
+   * Resolves the base directory path for NW.js or Node.js environments.
+   * @returns {string} The working directory path
+   */
   getBasePath() {
     if (typeof nw !== 'undefined' && nw.process) {
       // NW.js - use the directory where the executable is located
@@ -12604,6 +15110,11 @@ class NodeFileSystem {
     return '.';
   }
 
+  /**
+   * Resolves a directory path and returns a NodeDirectoryEntry.
+   * @param {string} path - Relative path to the directory
+   * @returns {Promise<NodeDirectoryEntry>} Resolves with the directory entry
+   */
   getDirectory(path) {
     return new Promise((resolve, reject) => {
       const fullPath = this.path.join(this.basePath, path);
@@ -12631,6 +15142,11 @@ class NodeFileSystem {
     });
   }
 
+  /**
+   * Lists immediate child directories within a NodeDirectoryEntry.
+   * @param {NodeDirectoryEntry} dirEntry - The directory entry to list
+   * @returns {Promise<Array>} Resolves with an array of directory entries
+   */
   listDirectories(dirEntry) {
     return new Promise((resolve, reject) => {
       dirEntry.createReader().readEntries(
@@ -12640,6 +15156,11 @@ class NodeFileSystem {
     });
   }
 
+  /**
+   * Recursively lists all subdirectories under a root directory.
+   * @param {NodeDirectoryEntry} startDir - The root directory to traverse
+   * @returns {Promise<Array>} Resolves with all descendant directory entries
+   */
   listAllDirectories(startDir) {
     return new Promise(async (resolve) => {
       const dirs = [];
@@ -12660,6 +15181,11 @@ class NodeFileSystem {
     });
   }
 
+  /**
+   * Lists immediate child files within a directory entry.
+   * @param {NodeDirectoryEntry} dirEntry - The directory entry to list
+   * @returns {Promise<Array>} Resolves with an array of file entries
+   */
   listFiles(dirEntry) {
     return new Promise((resolve, reject) => {
       dirEntry.createReader().readEntries(
@@ -12669,6 +15195,11 @@ class NodeFileSystem {
     });
   }
 
+  /**
+   * Retrieves the file object from a file entry.
+   * @param {NodeFileEntry} fileEntry - The file entry to read
+   * @returns {Promise<Object>} Resolves with the file descriptor object
+   */
   getFile(fileEntry) {
     return new Promise((resolve, reject) => {
       fileEntry.file(
@@ -12678,6 +15209,11 @@ class NodeFileSystem {
     });
   }
 
+  /**
+   * Reads the full text content of a file object.
+   * @param {Object} file - The file descriptor object
+   * @returns {Promise<string>} Resolves with the file content as text
+   */
   readFileContent(file) {
     return new Promise((resolve, reject) => {
       // If file has _path (from NodeFileEntry), use it directly
@@ -12696,6 +15232,12 @@ class NodeFileSystem {
     });
   }
   
+  /**
+   * Creates or opens a file for saving data.
+   * @param {NodeDirectoryEntry} dirEntry - The parent directory
+   * @param {string} fileName - The file name to save
+   * @returns {Promise<NodeFileEntry>} Resolves with the file entry
+   */
   saveFile(dirEntry, fileData, fileName) {
     return new Promise((resolve, reject) => {
       dirEntry.getFile(fileName, { create: true, exclusive: false }, 
@@ -12705,6 +15247,13 @@ class NodeFileSystem {
     });
   }
   
+  /**
+   * Creates an empty file or opens an existing one for appending.
+   * @param {NodeDirectoryEntry} dirEntry - The parent directory
+   * @param {string} fileName - The file name to create
+   * @param {boolean} isAppend - Whether to append to existing content
+   * @returns {Promise<NodeFileEntry>} Resolves with the file entry
+   */
   createEmptyFile(dirEntry, fileName, isAppend) {
     return new Promise((resolve, reject) => {
       dirEntry.getFile(fileName, {create: true, exclusive: false}, 
@@ -12714,6 +15263,13 @@ class NodeFileSystem {
     });
   }
   
+  /**
+   * Writes data to an existing file entry.
+   * @param {NodeFileEntry} fileEntry - The file entry to write to
+   * @param {string|Blob|ArrayBuffer} dataObj - The data to write
+   * @param {boolean} isAppend - Whether to append instead of overwrite
+   * @returns {Promise<Object>} Resolves with the writer
+   */
   writeFile(fileEntry, dataObj, isAppend) {
     return new Promise((resolve, reject) => {
       fileEntry.createWriter(
@@ -12726,6 +15282,12 @@ class NodeFileSystem {
     });
   }
   
+  /**
+   * Creates a new subdirectory inside a parent directory.
+   * @param {NodeDirectoryEntry} rootDirEntry - The parent directory
+   * @param {string} dirName - The directory name to create
+   * @returns {Promise<NodeDirectoryEntry>} Resolves with the new directory entry
+   */
   createDirectory(rootDirEntry, dirName) {
     return new Promise((resolve, reject) => {
       rootDirEntry.getDirectory(dirName, { create: true }, 
@@ -12736,6 +15298,31 @@ class NodeFileSystem {
   }
 }
 
+/**
+ * @class CordovaFileSystem
+ * @category File System Classes
+ * @summary File system for Apache Cordova mobile apps
+ * @constructor
+ * @features
+ * Resolves directories via the Cordova file plugin
+ * Adapts root storage location per OS (iOS, Android, Windows)
+ * Wraps callback-based APIs in Promises
+ * @description
+ * CordovaFileSystem implements the standard file system interface using the
+ * Apache Cordova File plugin. It selects the appropriate persistent storage
+ * directory based on the device operating system and wraps all callback-based
+ * Cordova file operations in Promises for consistent async usage.
+ * @example
+ * // Reading a song file on a Cordova mobile device
+ * const fs = new CordovaFileSystem();
+ * const songsDir = await fs.getDirectory('Songs/MySong/');
+ * const files = await fs.listFiles(songsDir);
+ * for (const entry of files) {
+ *   const file = await fs.getFile(entry);
+ *   const text = await fs.readFileContent(file);
+ *   console.log(entry.name, text.length);
+ * }
+ */
 class CordovaFileSystem {
   getDirectory(path) {
     return new Promise((resolve, reject) => {
@@ -12755,6 +15342,11 @@ class CordovaFileSystem {
     });
   }
 
+  /**
+   * Lists immediate child directories within a directory entry.
+   * @param {Object} dirEntry - The Cordova directory entry to list
+   * @returns {Promise<Array>} Resolves with an array of directory entries
+   */
   listDirectories(dirEntry) {
     return new Promise((resolve, reject) => {
       dirEntry.createReader().readEntries(
@@ -12764,6 +15356,12 @@ class CordovaFileSystem {
     });
   }
 
+  /**
+   * Recursively lists all subdirectories starting from a root directory.
+   * Uses a breadth-first traversal to discover the full directory tree.
+   * @param {Object} startDir - The root directory entry to traverse
+   * @returns {Promise<Array>} Resolves with all descendant directory entries
+   */
   listAllDirectories(startDir) {
     return new Promise(async resolve => {
       const dirs = [];
@@ -12784,6 +15382,11 @@ class CordovaFileSystem {
     });
   }
 
+  /**
+   * Lists immediate child files within a directory entry.
+   * @param {Object} dirEntry - The Cordova directory entry to list
+   * @returns {Promise<Array>} Resolves with an array of file entries
+   */
   listFiles(dirEntry) {
     return new Promise((resolve, reject) => {
       dirEntry.createReader().readEntries(
@@ -12793,6 +15396,11 @@ class CordovaFileSystem {
     });
   }
 
+  /**
+   * Retrieves the File object from a file entry.
+   * @param {Object} fileEntry - The Cordova file entry
+   * @returns {Promise<File>} Resolves with the File object
+   */
   getFile(fileEntry) {
     return new Promise((resolve, reject) => {
       fileEntry.file(
@@ -12802,6 +15410,11 @@ class CordovaFileSystem {
     });
   }
 
+  /**
+   * Reads the full text content of a File object.
+   * @param {File} file - The File object to read
+   * @returns {Promise<string>} Resolves with the file content as text
+   */
   readFileContent(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -12811,6 +15424,13 @@ class CordovaFileSystem {
     });
   }
   
+  /**
+   * Saves data to a file, creating it if it does not exist.
+   * @param {Object} dirEntry - The parent directory entry
+   * @param {string|Blob} fileData - The data to write
+   * @param {string} fileName - The name of the file to save
+   * @returns {Promise<Object>} Resolves with the created file entry
+   */
   saveFile(dirEntry, fileData, fileName) {
     return new Promise((resolve, reject) => {
       dirEntry.getFile(fileName, { create: true, exclusive: false }, fileEntry => {
@@ -12821,6 +15441,13 @@ class CordovaFileSystem {
     });
   }
   
+  /**
+   * Creates an empty file or opens an existing file for appending.
+   * @param {Object} dirEntry - The parent directory entry
+   * @param {string} fileName - The name of the file to create
+   * @param {boolean} isAppend - Whether to append to existing content
+   * @returns {Promise<Object>} Resolves with the file entry
+   */
   createEmptyFile(dirEntry, fileName, isAppend) {
     return new Promise((resolve, reject) => {
       dirEntry.getFile(fileName, {create: true, exclusive: false}, fileEntry => {
@@ -12831,6 +15458,13 @@ class CordovaFileSystem {
     });
   }
   
+  /**
+   * Writes data to an existing file entry.
+   * @param {Object} fileEntry - The file entry to write to
+   * @param {string|Blob} dataObj - The data to write
+   * @param {boolean} isAppend - Whether to append instead of overwrite
+   * @returns {Promise<Object>} Resolves with the file writer
+   */
   writeFile(fileEntry, dataObj, isAppend) {
     return new Promise((resolve, reject) => {
       fileEntry.createWriter(fileWriter => {
@@ -12842,6 +15476,12 @@ class CordovaFileSystem {
     });
   }
   
+  /**
+   * Creates a new subdirectory inside a parent directory.
+   * @param {Object} rootDirEntry - The parent directory entry
+   * @param {string} dirName - The name of the directory to create
+   * @returns {Promise<Object>} Resolves with the new directory entry
+   */
   createDirectory(rootDirEntry, dirName) {
     return new Promise((resolve, reject) => {
       rootDirEntry.getDirectory(dirName, { create: true }, dirEntry => {
@@ -12851,6 +15491,30 @@ class CordovaFileSystem {
   }
 }
 
+/**
+ * @class FallbackFileSystem
+ * @category File System Classes
+ * @summary Stub for web environments without file access
+ * @constructor
+ * @features
+ * Rejects every operation with a clear error message
+ * Satisfies the same interface as real filesystem implementations
+ * Prevents runtime crashes when file access is unavailable
+ * @description
+ * FallbackFileSystem is a no-op implementation used when no native file system
+ * API is available (standard web browsers). Every method returns a rejected
+ * Promise so callers receive a consistent error without needing environment
+ * checks of their own.
+ * @example
+ * // The fallback is selected automatically when neither NW.js nor Cordova is detected
+ * const fs = new FileSystemTools();
+ * // fs.fileSystem will be a FallbackFileSystem instance in a browser
+ * try {
+ *   await fs.getDirectory('Songs/');
+ * } catch (e) {
+ *   console.warn('File system not supported:', e.message);
+ * }
+ */
 class FallbackFileSystem {
   // Fallback implementation for browsers without file system access
   getDirectory(path) {
@@ -12896,15 +15560,23 @@ class FallbackFileSystem {
 
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
+/** @type {AccountData} User data with settings, characters, achievements, and progress */
 let Account = {
   ...DEFAULT_ACCOUNT,
   ...JSON.parse(localStorage.getItem("Account") || "{}")
 };
 
+/**
+ * Saves account data to localStorage
+ */
 const saveAccount = () => localStorage.setItem("Account", JSON.stringify(Account));
 
+/**
+ * Initializes and starts the Phaser game
+ */
 const bootGame = () => {
   if (game) game.destroy();
+  /** @type {Phaser.Game} Main Phaser game instance */
   game = new Phaser.Game({
     width: 240,
     height: 140,
@@ -12944,6 +15616,10 @@ const bootGame = () => {
 
 window.onload = bootGame;
 
+/**
+ * Displays a running FPS counter in the top-right corner of the screen
+ * @returns {Text} The FPS text object, updated every frame
+ */
 const addFpsText = () => {
   const text = new Text(238, 2, "");
   text.anchor.x = 1;
@@ -12951,6 +15627,10 @@ const addFpsText = () => {
   return text;
 };
 
+/**
+ * Opens URL in default browser
+ * @param {string} url - URL to open in the default browser
+ */
 window.openExternalUrl = url => {
   // Ensure URL is properly encoded
   const encodedUrl = encodeURI(url);
@@ -13016,6 +15696,7 @@ window.getDifficultyColor = (value, returnIntFormat = false) => {
 };
 
 // Audio pooling system
+/** @type {Object} Audio pool for Phaser Audio objects */
 const Audio = {
   pool: {},
   add: function (key) {
@@ -13090,6 +15771,7 @@ const createGradientBackground = (x, y, width, height, color) => {
 })();
 
 // Multiplayer settings
+/** @type {Object} Default multiplayer player settings derived from account settings */
 const DEFAULT_PLAYER_SETTINGS = {
   autoplay: Account.settings.autoplay,
   scrollDirection: Account.settings.scrollDirection,
@@ -13098,6 +15780,7 @@ const DEFAULT_PLAYER_SETTINGS = {
   speedMod: Account.settings.speedMod
 };
 
+/** @type {Object} Shared multiplayer match state */
 window.multiplayerState = {
   song: null,
   difficultyIndex: 0,
@@ -13117,18 +15800,52 @@ window.multiplayerState = {
   }
 };
 
+/**
+ * @class ScreenRecorder
+ * @category Core Game Classes
+ * @summary Video recording and screenshot functionality
+ * @constructor
+ * @param {Object} game - The Phaser game instance
+ * @features
+ * WebM video recording via MediaRecorder at scaled resolution
+ * Optional audio capture from the game audio element or microphone
+ * High-resolution PNG screenshot capture
+ * File saving for Cordova, NWjs, and browser environments
+ * @description
+ * Records video and captures screenshots of the Phaser game canvas. Uses a scaled
+ * offscreen canvas for higher quality output and merges audio from the game source
+ * or fallback microphone when available.
+ * @example
+ * // Modding usage example
+ * const recorder = new ScreenRecorder(game);
+ * await recorder.start(audioElement, 0);
+ * recorder.pause();
+ * recorder.resume();
+ * recorder.stop();
+ * recorder.screenshot();
+ */
 class ScreenRecorder {
   constructor(game) {
+    /** @type {Object} The Phaser game instance */
     this.game = game;
+    /** @type {MediaRecorder|null} Active MediaRecorder instance */
     this.mediaRecorder = null;
+    /** @type {Array} Blobs collected during the current recording */
     this.recordedBlobs = [];
+    /** @type {boolean} Whether recording is currently active */
     this.isRecording = false;
+    /** @type {MediaStream|null} The captured output stream */
     this.stream = null;
+    /** @type {number} Target bitrate for recorded video */
     this.videoBitsPerSecond = 1100000;
+    /** @type {number} Frame rate captured from the scaled canvas */
     this.videoFrameRate = 25;
+    /** @type {number} Scale factor for videos TODO: rename it to videoScale */
     this.scale = 1; // Scale factor for videos TODO: rename it to videoScale
+    /** @type {number} Scale factor applied to screenshots */
     this.imageScale = 7;
 
+    /** @type {HTMLCanvasElement} Phaser CE game canvas element */
     this.canvas = game.canvas;  // Phaser CE game canvas element
 
     // Check if canvas.captureStream is supported
@@ -13138,6 +15855,11 @@ class ScreenRecorder {
     }
   }
 
+  /**
+   * Starts recording the game canvas, optionally adding audio to the stream.
+   * @param {HTMLAudioElement} [audioElement] - Audio element to record along with the video
+   * @param {number} [audioDelay=0] - Delay in milliseconds applied to audio capture
+   */
   async start(audioElement = null, audioDelay = 0) {
     if (this.isRecording) {
       console.warn('Already recording');
@@ -13222,6 +15944,9 @@ class ScreenRecorder {
     }
   }
 
+  /**
+   * Continuously draws the game canvas onto the scaled recording canvas each frame.
+   */
   startRenderingLoop() {
     const renderFrame = () => {
       if (this.isRecording && this.scaledCanvas && this.scaledContext) {
@@ -13245,6 +15970,9 @@ class ScreenRecorder {
     renderFrame();
   }
 
+  /**
+   * Stops the active recording session and triggers saving and cleanup.
+   */
   stop() {
     if (!this.isRecording || !this.mediaRecorder) {
       console.warn('Not recording');
@@ -13261,6 +15989,9 @@ class ScreenRecorder {
     }
   }
 
+  /**
+   * Pauses the recording if one is in progress.
+   */
   pause() {
     if (this.isRecording && this.mediaRecorder && this.mediaRecorder.state === 'recording') {
       this.mediaRecorder.pause();
@@ -13268,6 +15999,9 @@ class ScreenRecorder {
     }
   }
 
+  /**
+   * Resumes a paused recording.
+   */
   resume() {
     if (this.isRecording && this.mediaRecorder && this.mediaRecorder.state === 'paused') {
       this.mediaRecorder.resume();
@@ -13275,6 +16009,9 @@ class ScreenRecorder {
     }
   }
   
+  /**
+   * Captures a scaled PNG screenshot of the current game world and saves it to a file.
+   */
   screenshot() {
     // Create a scaled canvas for high-resolution screenshot
     const scaledCanvas = document.createElement('canvas');
@@ -13316,6 +16053,10 @@ class ScreenRecorder {
     renderTexture.destroy();
   }
 
+  /**
+   * Bundles recorded blobs into a WebM file and saves it.
+   * @param {string} [filename] - Optional filename; defaults to a timestamped name
+   */
   async save(filename) {
     if (this.recordedBlobs.length === 0) {
       console.warn('No recording data available');
@@ -13331,6 +16072,11 @@ class ScreenRecorder {
     console.log('Recording saved as:', filename);
   }
   
+  /**
+   * Writes a blob to disk using the file system tools on Cordova/NWjs or a download link in browsers.
+   * @param {string} filename - Name of the output file
+   * @param {Blob} blob - Data blob to save
+   */
   async saveFile(filename, blob) {
     if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       const fileSystem = new FileSystemTools();
@@ -13359,6 +16105,12 @@ class ScreenRecorder {
   }
 
   // Add audio to the stream
+  /**
+   * Attaches audio tracks to the recording stream from the audio element or microphone.
+   * @param {HTMLAudioElement} [audioElement] - Audio element to capture
+   * @param {number} [audioDelay=0] - Delay in milliseconds applied before capture
+   * @returns {Promise<boolean>} Whether audio was successfully added
+   */
   async addAudioToStream(audioElement = null, audioDelay = 0) {
     try {
       if (audioElement && audioElement.src) {
@@ -13423,6 +16175,12 @@ class ScreenRecorder {
   }
 
   // Method to add audio after recording has started (experimental)
+  /**
+   * Adds audio tracks to an already-started recording by pausing, modifying, and resuming.
+   * @param {HTMLAudioElement} [audioElement] - Audio element to capture
+   * @param {number} [audioDelay=0] - Delay in milliseconds applied before capture
+   * @returns {Promise<boolean>} Whether audio was successfully added
+   */
   async addAudioAfterStart(audioElement = null, audioDelay = 0) {
     if (!this.isRecording || !this.mediaRecorder) {
       console.warn('Cannot add audio - recording not started');
@@ -13446,6 +16204,9 @@ class ScreenRecorder {
     }
   }
 
+  /**
+   * Stops stream tracks and releases the scaled canvas and recorder references.
+   */
   cleanup() {
     // Stop the rendering loop
     this.isRecording = false;
@@ -13465,32 +16226,75 @@ class ScreenRecorder {
   }
 
   // Check if recording is supported
+  /**
+   * Checks whether canvas capture streaming and MediaRecorder are supported by the browser.
+   * @returns {boolean} True if recording is supported
+   */
   static isSupported() {
     return !!(HTMLCanvasElement.prototype.captureStream && window.MediaRecorder);
   }
 
   // Get recording state
+  /**
+   * Returns the current MediaRecorder state.
+   * @returns {string} State like 'inactive', 'recording', or 'paused'
+   */
   getState() {
     return this.mediaRecorder ? this.mediaRecorder.state : 'inactive';
   }
   
   // Method to change scale factor
+  /**
+   * Changes the scale factor applied to recorded videos.
+   * @param {number} newScale - New scale factor
+   */
   setScale(newScale) {
     this.scale = newScale;
     console.log(`Scale factor set to: ${this.scale}`);
   }
   
   // Method to get current scale factor
+  /**
+   * Returns the current video scale factor.
+   * @returns {number} The active scale factor
+   */
   getScale() {
     return this.scale;
   }
 }
 
+/**
+ * @class Metronome
+ * @category Core Game Classes
+ * @summary Audio metronome system for timing assistance
+ * @constructor
+ * @param {Object} scene - The Phaser game state scene
+ * @features
+ * Quarter, eighth, sixteenth, and thirty-second beat divisions
+ * Note-triggered mode that ticks on actual note beats
+ * Toggle via scene select button binding
+ * @description
+ * Plays audible tick sounds synchronized to the song's beat to assist timing.
+ * Supports standard rhythmic subdivisions and a note mode that triggers on actual
+ * chart note beats for practice assistance.
+ * @example
+ * // Modding usage example
+ * const metro = new Metronome(scene);
+ * metro.setMode('Quarters');
+ * metro.toggle();
+ * function update() {
+ *   metro.update();
+ * }
+ */
 class Metronome {
   constructor(scene) {
+    /** @type {Object} The owning Phaser game state scene */
     this.scene = scene;
+    /** @type {string} Current metronome mode from account settings */
     this.mode = Account.settings.metronome;
+    /** @type {boolean} Whether the metronome ticks are active */
     this.enabled = false;
+    /** @type {Object} Map of mode names to beat division multipliers */
     this.beatDivisions = {
       'OFF': 0,
       'Quarters': 1,       // Every whole beat (1, 2, 3, 4...)
@@ -13500,18 +16304,26 @@ class Metronome {
       'Note': 'Note'       // Special mode - plays when notes reach their beat time
     };
     
+    /** @type {number} Last division value to detect beat crossings */
     this.lastDivisionValue = -1;
+    /** @type {number} Division multiplier of the current mode */
     this.currentDivision = this.beatDivisions[this.mode];
     
     // For NOTE mode
+    /** @type {number} Current note index to check */
     this.noteIndex = 0; // Current note index to check
+    /** @type {number} Last note beat that triggered a tick */
     this.lastNoteBeat = -1; // Last note beat that triggered a tick
+    /** @type {Array} Array of unique note beats */
     this.notes = []; // Array of unique note beats
     
     // Bind the toggle method to the scene
     this.scene.onSelectPressed = this.toggle.bind(this);
   }
 
+  /**
+   * Updates the metronome each frame, dispatching to the active mode's update logic.
+   */
   update() {
     if (!this.enabled) return;
     
@@ -13522,6 +16334,9 @@ class Metronome {
     }
   }
   
+  /**
+   * Plays a tick whenever the beat crosses into a new subdivision value.
+   */
   updateBeatMode() {
     if (this.currentDivision === 0) return;
     
@@ -13535,6 +16350,9 @@ class Metronome {
     }
   }
 
+  /**
+   * Triggers ticks as the song time reaches the beat of each chart note.
+   */
   updateNoteMode() {
     const { beat } = this.scene.getCurrentTime();
     const currentBeat = beat;
@@ -13564,6 +16382,9 @@ class Metronome {
     }
   }
 
+  /**
+   * Builds a sorted list of unique note beats from the current difficulty chart.
+   */
   initializeNotes() {
     // Get all notes from the current difficulty
     const difficulty = this.scene.song.chart.difficulties[this.scene.song.difficultyIndex];
@@ -13593,6 +16414,11 @@ class Metronome {
     this.lastNoteBeat = -1;
   }
 
+  /**
+   * Computes the current subdivision value by scaling the beat with the mode's multiplier.
+   * @param {number} beat - Current song beat
+   * @returns {number} The scaled division value, or -1 when disabled
+   */
   getCurrentDivisionValue(beat) {
     if (this.currentDivision === 0) return -1;
     
@@ -13600,10 +16426,16 @@ class Metronome {
     return Math.floor(beat * this.currentDivision);
   }
 
+  /**
+   * Plays the metronome tick sound effect.
+   */
   playTick() {
     Audio.play('assist_tick');
   }
 
+  /**
+   * Toggles the metronome enabled state when the mode is not OFF.
+   */
   toggle() {
     if (this.mode == 'OFF') return;
     
@@ -13612,12 +16444,19 @@ class Metronome {
     this.resetNoteMode(); // Reset note mode state
   }
 
+  /**
+   * Resets note mode state so ticks restart from the beginning of the chart.
+   */
   resetNoteMode() {
     this.noteIndex = 0;
     this.lastNoteBeat = -1;
     this.notes = [];
   }
 
+  /**
+   * Changes the metronome mode and reconfigures enabled state and tracking.
+   * @param {string} mode - One of the supported mode keys
+   */
   setMode(mode) {
     if (this.beatDivisions.hasOwnProperty(mode)) {
       this.mode = mode;
@@ -13634,6 +16473,9 @@ class Metronome {
     }
   }
 
+  /**
+   * Disables the metronome, resets state, and cleans up the status text display.
+   */
   destroy() {
     this.enabled = false;
     this.lastDivisionValue = -1;
@@ -13647,10 +16489,39 @@ class Metronome {
   }
 }
 
+/**
+ * @class TimeUtils
+ * @category Utility Classes
+ * @summary Static utility methods for time formatting and validation
+ * @constructor
+ * @features
+ * Time value validation
+ * Minutes and seconds formatting
+ * Milliseconds to seconds display
+ * @description
+ * Provides static helper methods for validating time values and formatting them
+ * into human-readable strings for display in the game UI.
+ * @example
+ * // Modding usage example
+ * TimeUtils.isValidTime(42.5);          // true
+ * TimeUtils.formatTime(125);            // "2:05"
+ * TimeUtils.formatSeconds(3500);        // "3.50s"
+ * TimeUtils.formatTime(NaN);            // "--:--"
+ */
 class TimeUtils {
+  /**
+   * Checks whether a time value is a valid finite number.
+   * @param {number} time - The value to validate
+   * @returns {boolean} True if the value is a valid finite number
+   */
   static isValidTime(time) {
     return typeof time != undefined && typeof time != null && !isNaN(time) && time != Infinity;
   }
+  /**
+   * Formats a time value in seconds to a minutes:seconds display string.
+   * @param {number} time - Time in seconds
+   * @returns {string} Formatted time string like "2:05" or "--:--" if invalid
+   */
   static formatTime(time) {
     if (!TimeUtils.isValidTime(time)) return "--:--";
 
@@ -13658,6 +16529,11 @@ class TimeUtils {
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }
+  /**
+   * Formats a millisecond value to a seconds display with two decimal places.
+   * @param {number} time - Time in milliseconds
+   * @returns {string} Formatted string like "3.50s" or "0.00s" if invalid
+   */
   static formatSeconds(time) {
     if (!TimeUtils.isValidTime(time)) return "0.00s";
     
@@ -13666,15 +16542,43 @@ class TimeUtils {
   }
 }
 
+/**
+ * @class GamepadListener
+ * @category Core Game Classes
+ * @summary Browser gamepad API listener
+ * @constructor
+ * @param {Phaser.Game} game - Phaser game instance
+ * @features
+ * Starts Phaser's gamepad polling
+ * Exposes connect, disconnect, down, and up Phaser signals
+ * @description
+ * GamepadListener wraps Phaser's raw gamepad callbacks and re-exposes them as
+ * Phaser signals. Phaser fires a single callback for any connected pad, so this
+ * listener forwards the pad index and button code through its signals.
+ * @example
+ * // Modding usage example
+ * const listener = new GamepadListener(game);
+ * listener.onDown.add((index, code) => {
+ *   console.log(`Pad ${index} button ${code}`);
+ * });
+ * listener.onConnect.add((index) => {
+ *   console.log(`Pad ${index} connected`);
+ * });
+ */
 class GamepadListener {
   constructor(game) {
+    /** @type {Phaser.Game} Phaser game instance being listened to */
     this.game = game;
     
     this.game.input.gamepad.start();
     
+    /** @type {Phaser.Signal} Dispatched with the pad index when a pad connects */
     this.onConnect = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched with the pad index when a pad disconnects */
     this.onDisconnect = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched with pad index and button code on button press */
     this.onDown = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched with pad index and button code on button release */
     this.onUp = new Phaser.Signal();
     
     this.game.input.gamepad.onConnectCallback = (index) => this.onConnect.dispatch(index);
@@ -13684,11 +16588,32 @@ class GamepadListener {
   }
 }
 
+/**
+ * @class KeyboardListener
+ * @category Core Game Classes
+ * @summary Keyboard input listener
+ * @constructor
+ * @param {Phaser.Game} game - Phaser game instance
+ * @features
+ * Bridges Phaser's global keyboard callbacks to Phaser signals
+ * @description
+ * KeyboardListener forwards the browser keyboard events captured by Phaser into
+ * onDown and onUp Phaser signals that carry the key code and the original event.
+ * @example
+ * // Modding usage example
+ * const listener = new KeyboardListener(game);
+ * listener.onDown.add((keyCode, event) => {
+ *   console.log(`Key down: ${keyCode}`);
+ * });
+ */
 class KeyboardListener {
   constructor(game) {
+    /** @type {Phaser.Game} Phaser game instance being listened to */
     this.game = game;
     
+    /** @type {Phaser.Signal} Dispatched with key code and event when a key is pressed */
     this.onDown = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched with key code and event when a key is released */
     this.onUp = new Phaser.Signal();
     
     // Global keyboard listeners
@@ -13704,38 +16629,107 @@ class KeyboardListener {
 
 let inputManager, gamepad, gamepad1, gamepad2;
 
+/**
+ * @class InputManager
+ * @category Core Game Classes
+ * @summary Configures input system state and initializes listeners
+ * @constructor
+ * @param {Phaser.Game} game - Phaser game instance
+ * @features
+ * Creates the gamepad and keyboard listeners
+ * Wires up two per-player Gamepad controllers
+ * Exposes global inputManager, gamepad1, gamepad2, and gamepad singletons
+ * @description
+ * InputManager bootstraps the whole input stack for the game. It instantiates the
+ * shared GamepadListener and KeyboardListener, builds one Gamepad per player, and
+ * wraps them in a single AllPads aggregator. The module-level globals it assigns are
+ * the standard way other systems access input from anywhere in the codebase.
+ * @example
+ * // Modding usage example
+ * // Access the global input manager and pads created in the constructor
+ * const mgr = inputManager;
+ * const pad = gamepad1;
+ * const pads = gamepad;
+ * mgr.gamepadListener.onDown.add((index, code) => {
+ *   console.log('Button down on pad', index);
+ * });
+ */
 class InputManager {
   constructor(game) {
+    /** @type {Phaser.Game} Phaser game instance */
     this.game = game;
     
+    /** @type {InputManager} Global input manager instance */
     inputManager = this;
     
+    /** @type {GamepadListener} Listener exposing gamepad connect/disconnect/button signals */
     this.gamepadListener = new GamepadListener(game);
+    /** @type {KeyboardListener} Listener exposing global keyboard down/up signals */
     this.keyboardListener = new KeyboardListener(game);
     
     window.gamepadListener = this.gamepadListener;
     window.keyboardListener = this.keyboardListener;
     
     // Create both input managers
+    /** @type {Gamepad} First player's Gamepad controller */
     this.gamepad1 = new Gamepad(game, Account.mapping.keyboard.player1, Account.mapping.gamepad.player1, 0);
+    /** @type {Gamepad} Second player's Gamepad controller */
     this.gamepad2 = new Gamepad(game, Account.mapping.keyboard.player2, Account.mapping.gamepad.player2, 1);
 
+    /** @type {Gamepad} First gamepad instance */
     gamepad1 = this.gamepad1;
+    /** @type {Gamepad} Second gamepad instance */
     gamepad2 = this.gamepad2;
 
+    /** @type {AllPads} Unified input system instance */
     gamepad = new AllPads(game, [gamepad1, gamepad2]);
     
+    /** @type {AllPads} Aggregated AllPads controller for both players */
     this.gamepad = gamepad;
   }
 }
 
+/**
+ * @class Gamepad
+ * @category Core Game Classes
+ * @summary Unified input system for keyboard, touchscreen, and gamepad
+ * @constructor
+ * @param {Phaser.Game} game - Phaser game instance
+ * @param {Object} keyboardMap - Mapping of action names to keyboard key codes
+ * @param {Object} gamepadMap - Mapping of action names to gamepad button codes
+ * @param {number} [playerIndex=0] - Player index this gamepad handles (0 or 1)
+ * @features
+ * Tracks held, pressed, and released state for every action every frame
+ * Accepts input from keyboard, on-screen touch buttons, and HTML5 gamepads
+ * Dispatches Phaser signals when keys are pressed or released
+ * Detects the active input source to show touch controls and drive vibration
+ * @description
+ * Gamepad is the per-player input controller that sits between raw hardware input
+ * and game logic. State objects (held, pressed, released, prevState) hold one boolean
+ * per tracked action and are refreshed by the update() loop. The class wires keyboard
+ * and gamepad listeners through InputManager and dispatches pressed/released Phaser
+ * signals plus a combined "any" signal, so game code never touches browser events.
+ * @example
+ * // Modding usage example
+ * const pad = new Gamepad(game, keyboardMap, gamepadMap, 0);
+ * pad.signals.pressed.up.add(() => {
+ *   console.log('Up pressed');
+ * });
+ * // Rebuild button mappings at runtime
+ * pad.updateMapping(newKeyboardMap, newGamepadMap);
+ * // Read raw state in your update loop
+ * if (pad.pressed.a) player.jump();
+ */
 class Gamepad {
   constructor(game, keyboardMap, gamepadMap, playerIndex = 0) {
+    /** @type {Phaser.Game} Phaser game instance this controller belongs to */
     this.game = game;
     
+    /** @type {number} Player index (0 for player 1, 1 for player 2) */
     this.playerIndex = playerIndex; // 0 for player 1, 1 for player 2
 
     // Define the control keys we want to track
+    /** @type {string[]} Names of the action keys this gamepad tracks */
     this.keys = [
       'up',
       'down',
@@ -13748,9 +16742,13 @@ class Gamepad {
     ];
 
     // Initialize state objects
+    /** @type {Object<string, boolean>} Current held state of every action key */
     this.held = {};
+    /** @type {Object<string, boolean>} Single-frame pressed edge state of every action key */
     this.pressed = {};
+    /** @type {Object<string, boolean>} Single-frame released edge state of every action key */
     this.released = {};
+    /** @type {Object<string, boolean>} Held state from the previous frame */
     this.prevState = {};
 
     // Initialize all keys
@@ -13771,6 +16769,7 @@ class Gamepad {
     this.updateMapping(keyboardMap, gamepadMap);
     
     // Phaser signals
+    /** @type {Object} Phaser signals dispatched when keys are pressed or released */
     this.signals = {
       pressed: {},
       released: {}
@@ -13783,12 +16782,17 @@ class Gamepad {
     this.signals.released.any = new Phaser.Signal();
 
     // Touch tracking
+    /** @type {Map<number, string>} Active touch identifiers mapped to their button key */
     this.activeTouches = new Map();
+    /** @type {number} Maximum number of simultaneous touches tracked */
     this.maxTouches = 4;
 
     // Input detection
+    /** @type {string} The most recently detected input source ('none', 'keyboard', 'touch' or 'gamepad') */
     this.lastInputSource = 'none';
+    /** @type {?number} Timeout ID that auto-hides touch controls after inactivity */
     this.inputDetectionTimeout = null;
+    /** @type {boolean} Whether the touch controls are currently shown */
     this.touchControlsVisible = false;
 
     // Set up all input methods
@@ -13796,6 +16800,12 @@ class Gamepad {
     this.setupTouch();
   }
   
+  /**
+   * Updates the keyboard and gamepad mappings and rebuilds the keyboard capture.
+   * Existing held state is released and the previous keyboard wiring is torn down.
+   * @param {Object} keyboardMap - Mapping of action names to keyboard key codes
+   * @param {Object} gamepadMap - Mapping of action names to gamepad button codes
+   */
   updateMapping(keyboardMap, gamepadMap) {
     this.keyboardMap = keyboardMap || DEFAULT_KEYBOARD_MAPPING;
     this.gamepadMap = gamepadMap || DEFAULT_GAMEPAD_MAPPING;
@@ -13805,6 +16815,10 @@ class Gamepad {
     this.setupKeyboard();
   }
 
+  /**
+   * Builds the reverse keycode lookup and captures the keys used by this player.
+   * Registers global keyboard handlers that update held state for mapped actions.
+   */
   setupKeyboard() {
     // Clear any existing keyboard state
     this.releaseAll();
@@ -13852,7 +16866,12 @@ class Gamepad {
     this.update();
   }
 
+  /**
+   * Registers gamepad connect, disconnect, press, and release handlers.
+   * Only events for this player's pad index are applied to this gamepad.
+   */
   setupGamepad() {
+    /** @type {Object} Current state of the physical gamepad including connection status */
     this.gamepadState = {
       isConnected: false
     };
@@ -13901,10 +16920,15 @@ class Gamepad {
     });
   }
 
+  /**
+   * Enables on-screen touch controls, but only for player 1.
+   * Fetches the DOM controller elements and wires their touch events.
+   */
   setupTouch() {
     if (this.playerIndex > 0) return; // Only Player 1 uses touch
     
     // Get controller elements
+    /** @type {?HTMLElement} Touch controller parent element */
     this.controllerElement = document.getElementById('controller_parent');
     
     if (!this.controllerElement) {
@@ -13912,6 +16936,7 @@ class Gamepad {
     }
 
     // Get all button elements
+    /** @type {Object<string, HTMLElement>} Directional pad button elements */
     this.dpadElements = {
       up: document.getElementById('controller_up'),
       down: document.getElementById('controller_down'),
@@ -13919,6 +16944,7 @@ class Gamepad {
       right: document.getElementById('controller_right')
     };
     
+    /** @type {Object<string, HTMLElement>} Action button elements */
     this.buttonElements = {
       a: document.getElementById('controller_a'),
       b: document.getElementById('controller_b'),
@@ -13937,6 +16963,10 @@ class Gamepad {
     this.updateTouchControlsVisibility();
   }
 
+  /**
+   * Records the source of the latest input and schedules touch control auto-hide.
+   * @param {string} source - The input source ('keyboard', 'touch', or 'gamepad')
+   */
   detectInputSource(source) {
     if (this.lastInputSource === source) return;
     
@@ -13961,6 +16991,9 @@ class Gamepad {
     }
   }
 
+  /**
+   * Shows or hides the touch controller based on device and input source.
+   */
   updateTouchControlsVisibility() {
     if (!this.controllerElement) return;
 
@@ -13973,6 +17006,9 @@ class Gamepad {
     }
   }
 
+  /**
+   * Attaches touch handlers to the controller DOM element.
+   */
   setupControllerTouchEvents() {
     const controller = this.controllerElement;
 
@@ -13991,6 +17027,10 @@ class Gamepad {
     controller.addEventListener('touchcancel', (e) => this.handleTouchEnd(e));
   }
 
+  /**
+   * Tracks a new touch and presses the button beneath its starting point.
+   * @param {TouchEvent} e - The touchstart event
+   */
   handleTouchStart(e) {
     const touches = e.changedTouches;
 
@@ -14014,6 +17054,10 @@ class Gamepad {
     }
   }
 
+  /**
+   * Re-evaluates which button a moving touch is over and switches held keys.
+   * @param {TouchEvent} e - The touchmove event
+   */
   handleTouchMove(e) {
     const touches = e.changedTouches;
 
@@ -14046,6 +17090,10 @@ class Gamepad {
     }
   }
 
+  /**
+   * Releases the key a touch was holding and stops tracking the touch.
+   * @param {TouchEvent} e - The touchend or touchcancel event
+   */
   handleTouchEnd(e) {
     const touches = e.changedTouches;
 
@@ -14064,6 +17112,11 @@ class Gamepad {
     }
   }
 
+  /**
+   * Resolves the controller button key under a given touch point.
+   * @param {Touch} touch - The touch being examined
+   * @returns {?string} The matching action key, 'rhythm_*' key, or null
+   */
   getButtonFromTouch(touch) {
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
     if (!element) return null;
@@ -14077,6 +17130,11 @@ class Gamepad {
     return this.keys.includes(key) || key.startsWith('rhythm_') ? key : null;
   }
   
+  /**
+   * Returns a display label for the gamepad button bound to an action.
+   * @param {string} action - The action key to look up
+   * @returns {?string} Button label (A, CROSS, DPAD_UP, etc.) or null if unknown
+   */
   getButtonForAction(action) {
     const buttonCode = this.gamepadMap[action];
     if (buttonCode === undefined) return null;
@@ -14126,6 +17184,10 @@ class Gamepad {
     return names[buttonCode] || null;
   }
 
+  /**
+   * Refreshes pressed/released edge states and dispatches Phaser signals.
+   * Call this once per frame from the game loop.
+   */
   update() {
     if (this.dontUpdateThisTime) {
       delete this.dontUpdateThisTime;
@@ -14161,10 +17223,18 @@ class Gamepad {
     this.prevState.any = this.held.any;
   }
 
+  /**
+   * Checks whether a key is currently being held by a touch input.
+   * @param {string} key - The action key to check
+   * @returns {boolean} True if the key is held by an active touch
+   */
   isTouchControlled(key) {
     return Array.from(this.activeTouches.values()).includes(key);
   }
 
+  /**
+   * Computes pressed and released edge states from held and previous state.
+   */
   updateButtonStates() {
     // Calculate pressed/released for individual keys
     let anyPressed = false;
@@ -14186,6 +17256,9 @@ class Gamepad {
     this.held.any = anyHeld;
   }
   
+  /**
+   * Clears held, pressed, and released state for every action key.
+   */
   releaseAll() {
     this.keys.forEach(key => {
       this.held[key] = false;
@@ -14197,6 +17270,10 @@ class Gamepad {
     this.released.any = false;
   }
   
+  /**
+   * Programmatically presses a key as a user input would.
+   * @param {string} key - The action key to press
+   */
   press(key) {
     this.dontUpdateThisTime = true;
     this.pressed[key] = true;
@@ -14205,10 +17282,18 @@ class Gamepad {
     this.held.any = true;
   }
   
+  /**
+   * Checks whether any direction action is currently held.
+   * @returns {boolean} True if up, down, left, or right is held
+   */
   isDirectionPressed() {
     return this.held.up || this.held.down || this.held.left || this.held.right;
   }
 
+  /**
+   * Computes a normalized direction vector from the held direction keys.
+   * @returns {{x: number, y: number}} Direction vector with diagonal normalization
+   */
   getDirection() {
     let x = 0, y = 0;
 
@@ -14225,6 +17310,11 @@ class Gamepad {
     return { x, y };
   }
   
+  /**
+   * Vibrates the device or gamepad based on the last detected input source.
+   * @param {number} [duration=100] - Vibration duration in milliseconds
+   * @returns {boolean} True if a vibration was actually executed
+   */
   vibrate(duration = 100) {
     // Do not vibrate if the last input source was keyboard
     if (this.lastInputSource === 'keyboard') {
@@ -14310,6 +17400,9 @@ class Gamepad {
     return vibrationExecuted;
   }
 
+  /**
+   * Releases all keys and clears active touches and button highlight states.
+   */
   reset() {
     this.releaseAll();
     this.activeTouches.clear();
@@ -14319,6 +17412,9 @@ class Gamepad {
     Object.values(this.buttonElements).forEach(el => el?.classList.remove('btnPressed'));
   }
   
+  /**
+   * Removes all listeners, signals, and DOM elements associated with this gamepad.
+   */
   destroy() {
     // Clean up everything
     if (this.inputDetectionTimeout) {
@@ -14356,14 +17452,48 @@ class Gamepad {
   }
 }
 
+/**
+ * @class AllPads
+ * @category Core Game Classes
+ * @summary Handles multiple gamepads and distributes input
+ * @constructor
+ * @param {Phaser.Game} game - Phaser game instance
+ * @param {Gamepad[]} [gamepads] - Array of Gamepad instances to aggregate
+ * @features
+ * Polls every managed Gamepad and merges their input states
+ * Tracks which player last provided input
+ * Supports restricting aggregation to a single player
+ * @description
+ * AllPads behaves like a single virtual gamepad that mirrors the input of every
+ * managed Gamepad instance. When any of its pads presses a key, the combined state
+ * and signals reflect that press, so gameplay code can watch one object instead of
+ * each player individually. Passing a singlePlayerId limits polling to one player.
+ * @example
+ * // Modding usage example
+ * const pads = new AllPads(game, [gamepad1, gamepad2]);
+ * pads.signals.pressed.a.add(() => {
+ *   console.log('A pressed by any player');
+ * });
+ * // Restrict input to player 2 only
+ * pads.singlePlayerId = 2;
+ * // Read the merged state each frame
+ * if (pads.held.start) startGame();
+ */
 class AllPads extends Gamepad {
   constructor(game, gamepads) {
     super(game, undefined, undefined, 0);
     
+    /** @type {Gamepad[]} The Gamepad instances whose input is aggregated */
     this.gamepads = gamepads || [];
+    /** @type {number} Player index of the last pad that pressed a key */
     this.lastPlayerId = 1;
+    /** @type {number} Restrict polling to this player, or -1 for all pads */
     this.singlePlayerId = -1; // All pads enabled
   }
+  /**
+   * Polls every managed Gamepad and merges their states into this controller.
+   * Call once per frame instead of the base Gamepad update.
+   */
   update() {
     this.keys.forEach(key => {
       this.held[key] = false;
@@ -14433,28 +17563,56 @@ class AllPads extends Gamepad {
     this.held.any = anyHeld;
   }
   
+  /** Disabled: remapping is handled by the underlying Gamepad instances. */
   updateMapping() {}
+  /** Disabled: keyboard events are handled by the underlying Gamepad instances. */
   setupKeyboard() {}
+  /** Disabled: gamepad events are handled by the underlying Gamepad instances. */
   setupGamepad() {}
+  /** Disabled: touch controls belong to the individual Gamepad instances. */
   setupTouch() {}
+  /** Disabled: input detection is handled by the individual pads. */
   setupInputDetection() {}
+  /** Disabled: input detection is handled by the individual pads. */
   detectInputSource() {}
+  /** Disabled: touch control visibility is managed by the individual pads. */
   updateTouchControlsVisibility() {}
+  /** Disabled: touch events are wired by the individual pads. */
   setupControllerTouchEvents() {}
+  /** Disabled: touch handling is done by the individual pads. */
   handleTouchStart() {}
+  /** Disabled: touch handling is done by the individual pads. */
   handleTouchMove() {}
+  /** Disabled: touch handling is done by the individual pads. */
   handleTouchEnd() {}
+  /** Disabled: touch handling is done by the individual pads. */
   getButtonFromTouch() {}
+  /**
+   * Always returns false since AllPads itself does not handle touches.
+   * @returns {boolean} Always false
+   */
   isTouchControlled() { return false }
+  /** Disabled: edge states are merged from the individual pads. */
   updateButtonStates() {}
   
+  /**
+   * Releases every key on every managed pad and on this controller.
+   */
   releaseAll() {
     this.gamepads.forEach(pad => pad.releaseAll());
     super.releaseAll();
   }
+  /**
+   * Programmatically presses a key on the first managed gamepad.
+   * @param {string} key - The action key to press
+   */
   press(key) {
     this.gamepads[0]?.press(key);
   }
+  /**
+   * Checks whether any managed pad is holding a direction key.
+   * @returns {boolean} True if any pad holds up, down, left, or right
+   */
   isDirectionPressed() {
     for (const pad of this.gamepads) {
       if (pad.held.up || pad.held.down || pad.held.left || pad.held.right) {
@@ -14464,23 +17622,63 @@ class AllPads extends Gamepad {
     
     return false;
   }
+  /**
+   * Returns the direction vector of the first managed gamepad.
+   * @returns {?{x: number, y: number}} Direction vector, or undefined when no pads exist
+   */
   getDirection() {
     return this.gamepads[0]?.getDirection();
   }
+  /**
+   * Triggers vibration on every managed gamepad.
+   * @param {number} duration - Vibration duration in milliseconds
+   */
   vibrate(duration) {
     this.gamepads.forEach(pad => pad.vibrate(duration));
   }
+  /**
+   * Resets the state of all managed gamepads.
+   */
   reset() {
     this.gamepads.forEach(pad => pad.reset());
   }
   
+  /** No-op: AllPads does not own listeners or DOM elements to clean up. */
   destroy() {}
 }
 
+/**
+ * @class OnScreenKeyboard
+ * @category Core Game Classes
+ * @summary Touchscreen on-screen keyboard overlay
+ * @constructor
+ * @param {number} [x=60] - Initial horizontal position of the keyboard sprite
+ * @param {number} [y=75] - Initial vertical position of the keyboard sprite
+ * @features
+ * Renders a texture-based keyboard with individually mapped keys
+ * Highlights the currently active key and shift state
+ * Supports symbol and shift toggle keys plus action keys
+ * Sends typed input to the window's focused element
+ * @description
+ * OnScreenKeyboard is a full character keyboard rendered as a Phaser sprite whose
+ * keys are defined as rectangles over the 'ui_keyboard' texture. It updates its
+ * highlight based on the active pointer or a mapped gamepad shortcut and routes
+ * typed characters through onDown/onUp signals to any focused element that exposes
+ * a receiveInput function.
+ * @example
+ * // Modding usage example
+ * const keyboard = new OnScreenKeyboard(60, 75);
+ * keyboard.onDown.add((key, input) => {
+ *   console.log(`Key ${key.code} produced "${input}"`);
+ * });
+ * // Simulate pressing the first key
+ * keyboard.onKeyDown(keyboard.keys[0]);
+ */
 class OnScreenKeyboard extends Phaser.Sprite {
   constructor(x, y) {
     super(game, x || 60, y || 75, "ui_keyboard", 0);
     
+    /** @type {Object[]} Definitions of every key drawn on the keyboard texture */
     this.keys = [
       { top: 4, left: 4, width: 7, height: 7, code: "1", symbol: "1" }, 
       { top: 4, left: 14, width: 7, height: 7, code: "2", symbol: "2" },
@@ -14537,22 +17735,33 @@ class OnScreenKeyboard extends Phaser.Sprite {
       { top: 44, left: 108, width: 7, height: 7, code: "ArrowRight", action: "right", shortcut: "right" }
     ];
     
+    /** @type {Phaser.Graphics} Graphics object that draws the pressed key highlight */
     this.highlight = game.add.graphics(0, 0);
     this.addChild(this.highlight);
     
+    /** @type {boolean} Whether the keyboard sprite is visible */
     this.visible = true;
     
+    /** @type {?Object} The key currently being pressed or hovered */
     this.activeKey = null;
+    /** @type {?Object} The key pressed via the physical keyboard */
     this.keyboardKey = null;
+    /** @type {boolean} Shift state from the previous frame */
     this.previousShiftState = false;
+    /** @type {?Object} Active key from the previous frame */
     this.previousActiveKey = null;
     
+    /** @type {?string} Key code of the last pressed key */
     this.keycode = null;
     
+    /** @type {boolean} Whether the symbol key layer is active */
     this.symbol = false;
+    /** @type {boolean} Whether shift mode is active */
     this.shift = false;
     
+    /** @type {Phaser.Signal} Dispatched with the key and input value when a key is pressed */
     this.onDown = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched with the key when a key is released */
     this.onUp = new Phaser.Signal();
     
     this.addListeners();
@@ -14560,6 +17769,9 @@ class OnScreenKeyboard extends Phaser.Sprite {
     game.add.existing(this);
   }
   
+  /**
+   * Registers keyboard listeners that map physical key presses to keyboard keys.
+   */
   addListeners() {
     inputManager.keyboardListener.onDown.add((_, event) => {
       // Press the corresponding key
@@ -14573,6 +17785,11 @@ class OnScreenKeyboard extends Phaser.Sprite {
     inputManager.keyboardListener.onUp.add(() => this.keyboardKey = null);
   }
   
+  /**
+   * Finds the key whose rectangle contains the given pointer position.
+   * @param {Phaser.Pointer} pointer - The pointer to test
+   * @returns {?Object} The key at the pointer position, or null
+   */
   getKeyUnderPointer(pointer) {
     let { x, y } = pointer;
     
@@ -14588,16 +17805,27 @@ class OnScreenKeyboard extends Phaser.Sprite {
     return null;
   }
   
+  /**
+   * Toggles the symbol layer and switches the keyboard texture frame.
+   */
   toggleSymbol() {
     this.symbol = !this.symbol;
     
     this.frame = this.symbol ? 1 : 0;
   }
   
+  /**
+   * Toggles shift mode which uppercases typed input.
+   */
   toggleShift() {
     this.shift = !this.shift;
   }
   
+  /**
+   * Handles a key press, computing the shifted input and dispatching signals.
+   * Action keys toggle shift or symbol or emit a raw enter/erase input instead.
+   * @param {Object} key - The key definition that was pressed
+   */
   onKeyDown(key) {
     if (key.gamepad) {
       if (this.symbol && !key.symbol) {
@@ -14632,19 +17860,31 @@ class OnScreenKeyboard extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Sends the typed input to the window's focused element if it supports receiving input.
+   * @param {Object} [key={}] - The key definition that was pressed
+   * @param {string} [input=''] - The resolved character string to send
+   */
   sendInput(key = {}, input = '') {
     if (window.focusedElement && typeof window.focusedElement.receiveInput == 'function') {
       window.focusedElement.receiveInput(key, input);
     }
   }
   
+  /**
+   * Clears the active keycode and dispatches the key-up signal.
+   * @param {Object} key - The key definition that was released
+   */
   onKeyUp(key) {
     this.keycode = null;
     this.onUp.dispatch(key);
   }
   
+  /**
+   * Tracks the active key from the pointer or keyboard and redraws the highlight.
+   * Call every frame while the keyboard is on screen.
+   */
   update() {
-    const pointer = game.input.activePointer;
     
     
     if (pointer.isDown) {
@@ -14689,12 +17929,35 @@ class OnScreenKeyboard extends Phaser.Sprite {
   }
 }
 
+/**
+ * @class NumericTypeOnScreenKeyboard
+ * @category Core Game Classes
+ * @summary Numeric touchscreen keyboard
+ * @constructor
+ * @param {number} x - Declared horizontal position (the base constructor places the sprite at 80, 70)
+ * @param {number} y - Declared vertical position (the base constructor places the sprite at 80, 70)
+ * @features
+ * Replaces the full keyboard with a compact numeric keypad
+ * Adds add, subtract, enter, clear, and erase action keys
+ * @description
+ * NumericTypeOnScreenKeyboard is an OnScreenKeyboard variant that loads the
+ * 'ui_keyboard_numeric' texture and replaces the key layout with digits, a decimal
+ * point, and arithmetic action keys. It inherits all highlight, signal, and input
+ * routing behavior from its parent class.
+ * @example
+ * // Modding usage example
+ * const numpad = new NumericTypeOnScreenKeyboard(80, 70);
+ * numpad.onDown.add((key, input) => {
+ *   console.log(`Numpad ${key.code} -> ${input}`);
+ * });
+ */
 class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   constructor(x, y) {
     super(80, 70);
     
     this.loadTexture('ui_keyboard_numeric');
     
+    /** @type {Object[]} Numeric keypad definitions laid out on the numeric texture */
     this.keys = [
       { top: 4, left: 4, width: 7, height: 7, code: "7" }, 
       { top: 4, left: 14, width: 7, height: 7, code: "8" }, 
@@ -14716,20 +17979,52 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   }
 }
 
+/**
+ * @class BackgroundMusic
+ * @category Core Game Classes
+ * @summary Manages background music playback with caching
+ * @constructor
+ * @features
+ * Random and last-song menu music playback
+ * Cached song list discovery with short TTL
+ * External URL accessibility checking
+ * Volume control from account settings
+ * @description
+ * Plays background music in menus using an HTML audio element. Discovers available
+ * songs from local, external, and current state listings, caching the result for a
+ * short window and falling back to a random song when playback fails.
+ * @example
+ * // Modding usage example
+ * const bgm = new BackgroundMusic();
+ * bgm.playRandomSong();
+ * bgm.setVolume(50);
+ * bgm.stop();
+ * bgm.destroy();
+ */
 class BackgroundMusic {
   constructor() {
+    /** @type {HTMLAudioElement} Audio element used for playback */
     this.audio = document.createElement("audio");
     this.audio.volume = Account.settings.volume / 100;
+    /** @type {boolean} Whether songs should be chosen at random */
     this.randomSong = Account.settings.randomSong;
     this.audio.loop = true;
+    /** @type {boolean} Whether music is currently playing */
     this.isPlaying = false;
+    /** @type {Object|null} Metadata of the currently playing song */
     this.currentSong = null;
+    /** @type {Array|null} Cached list of available songs */
     this.availableSongsCache = null; // Cache for available songs
+    /** @type {number} Timestamp of the last cache build */
     this.cacheTimestamp = 0;
+    /** @type {number} How long the song list cache stays valid in milliseconds */
     this.cacheDuration = 30000; // Cache for 30 seconds
     this.registerVisibilityChangeListener();
   }
   
+  /**
+   * Pauses or resumes playback when the browser tab visibility changes.
+   */
   registerVisibilityChangeListener() {
     this.visibilityChangeListener = () => {
       if (document.hidden) {
@@ -14742,6 +18037,9 @@ class BackgroundMusic {
     window.addEventListener('visibilitychange', this.visibilityChangeListener);
   }
 
+  /**
+   * Resumes the last played song, verifying external URLs, or picks a random song as fallback.
+   */
   async playLastSong() {
     if (this.isPlaying || !Account.settings.enableMenuMusic) return;
     
@@ -14765,6 +18063,9 @@ class BackgroundMusic {
     }
   }
 
+  /**
+   * Selects a random song from the cached available list and starts playback.
+   */
   playRandomSong() {
     // Get cached available songs (fast)
     const allSongs = this.getCachedAvailableSongs();
@@ -14785,6 +18086,10 @@ class BackgroundMusic {
     this.playSong(songData);
   }
 
+  /**
+   * Returns the cached song list, rebuilding it if the cache has expired.
+   * @returns {Array} List of available song objects
+   */
   getCachedAvailableSongs() {
     const now = Date.now();
     
@@ -14800,6 +18105,10 @@ class BackgroundMusic {
     return this.availableSongsCache;
   }
 
+  /**
+   * Collects unique songs from local, external, and current state sources without URL checks.
+   * @returns {Array} List of available song objects
+   */
   getAllAvailableSongsFast() {
     const allSongs = [];
     const seenUrls = new Set();
@@ -14844,6 +18153,11 @@ class BackgroundMusic {
     return allSongs;
   }
 
+  /**
+   * Performs quick validation that an audio URL is worth attempting playback.
+   * @param {string} url - The audio URL to validate
+   * @returns {boolean} Whether the URL appears playable
+   */
   isValidAudioUrl(url) {
     // Fast URL validation - exclude obviously invalid URLs
     if (!url) return false;
@@ -14854,6 +18168,11 @@ class BackgroundMusic {
     return true;
   }
 
+  /**
+   * Tests whether an external audio URL can load metadata, with a short timeout.
+   * @param {string} url - The audio URL to check
+   * @returns {Promise} Resolves when loadable, rejects when it fails or times out
+   */
   async checkUrlAccessible(url) {
     return new Promise((resolve, reject) => {
       if (!url) {
@@ -14889,6 +18208,10 @@ class BackgroundMusic {
     });
   }
 
+  /**
+   * Starts playback of a song, jumping to its sample start and handling load failures.
+   * @param {Object} songData - Song metadata including url, title, and sampleStart
+   */
   playSong(songData) {
     // Stop current audio if playing
     this.audio.pause();
@@ -14917,6 +18240,10 @@ class BackgroundMusic {
     });
   }
 
+  /**
+   * Removes a failed URL from the cached song list so it is not picked again.
+   * @param {string} failedUrl - The audio URL that failed to play
+   */
   removeSongFromCache(failedUrl) {
     if (this.availableSongsCache) {
       this.availableSongsCache = this.availableSongsCache.filter(
@@ -14925,6 +18252,9 @@ class BackgroundMusic {
     }
   }
 
+  /**
+   * Stops playback and resets playback state.
+   */
   stop() {
     this.audio.pause();
     this.audio.currentTime = 0;
@@ -14932,16 +18262,26 @@ class BackgroundMusic {
     this.currentSong = null;
   }
 
+  /**
+   * Sets the volume from the indexed account volume setting.
+   * @param {number} volume - Index into the volume presets [0,25,50,75,100]
+   */
   setVolume(volume) {
     this.audio.volume = [0,25,50,75,100][volume] / 100;
   }
 
   // Method to manually refresh the cache
+  /**
+   * Invalidates the cached song list so it is rebuilt on next use.
+   */
   refreshCache() {
     this.availableSongsCache = null;
     this.cacheTimestamp = 0;
   }
 
+  /**
+   * Stops playback, releases the audio element, and removes the visibility listener.
+   */
   destroy() {
     this.stop();
     this.audio.src = "";
@@ -14951,37 +18291,111 @@ class BackgroundMusic {
   }
 }
 
+/**
+ * @class Visualizer
+ * @category Core Game Classes
+ * @summary Base class for gameplay visualizers
+ * @constructor
+ * @param {Object} scene - The Phaser game state scene
+ * @param {number} x - Horizontal position
+ * @param {number} y - Vertical position
+ * @param {number} width - Display width in pixels
+ * @param {number} height - Display height in pixels
+ * @features
+ * Provides graphics object for subclass rendering
+ * Active state toggle for enabling and disabling updates
+ * Clear and destroy lifecycle methods
+ * @description
+ * Abstract base class for gameplay visualizers such as accuracy graphs, audio analyzers,
+ * and BPM displays. Provides shared positioning, graphics context, and lifecycle management.
+ * @example
+ * // Modding usage example
+ * class MyVisualizer extends Visualizer {
+ *   update() {
+ *     this.clear();
+ *     this.graphics.beginFill(0xFF0000);
+ *     this.graphics.drawRect(0, 0, this.width, this.height);
+ *     this.graphics.endFill();
+ *   }
+ * }
+ * const viz = new MyVisualizer(scene, 0, 0, 200, 50);
+ */
 class Visualizer {
   constructor(scene, x, y, width, height) {
+    /** @type {Object} The owning Phaser game state scene */
     this.scene = scene;
+    /** @type {number} Horizontal position in pixels */
     this.x = x;
+    /** @type {number} Vertical position in pixels */
     this.y = y;
+    /** @type {number} Display width in pixels */
     this.width = width;
+    /** @type {number} Display height in pixels */
     this.height = height;
+    /** @type {Phaser.Graphics} Graphics object used for all drawing operations */
     this.graphics = scene.add.graphics(x, y);
+    /** @type {boolean} Whether the visualizer is actively updating */
     this.active = true;
   }
 
+  /**
+   * Updates the visualizer each frame. Intended to be overridden by subclasses.
+   */
   update() {
     // To be implemented by subclasses
   }
 
+  /**
+   * Destroys the underlying graphics object and frees resources.
+   */
   destroy() {
     this.graphics.destroy();
   }
 
+  /**
+   * Clears all drawn content from the graphics object.
+   */
   clear() {
     this.graphics.clear();
   }
 }
 
+/**
+ * @class AccuracyVisualizer
+ * @category Core Game Classes
+ * @summary Displays timing accuracy history graph
+ * @constructor
+ * @param {Object} scene - The Phaser game state scene
+ * @param {number} x - Horizontal position
+ * @param {number} y - Vertical position
+ * @param {number} width - Display width in pixels
+ * @param {number} height - Display height in pixels
+ * @features
+ * Real-time timing accuracy line graph
+ * Automatic history trimming to fit display width
+ * Green line rendering with zero-baseline reference
+ * @description
+ * Renders a scrolling line graph that visualizes the player's recent timing accuracy judgments.
+ * Each point represents one note's timing offset, drawn relative to a zero-accuracy baseline.
+ * @example
+ * // Modding usage example
+ * const accViz = new AccuracyVisualizer(scene, 0, 0, 300, 50);
+ * scene.update = function () {
+ *   accViz.update();
+ * };
+ */
 class AccuracyVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
+    /** @type {Array} Timing accuracy history from the player */
     this.accuracyHistory = [];
+    /** @type {number} Maximum number of history points visible at once */
     this.maxHistoryLength = this.width / 4;
   }
 
+  /**
+   * Draws the accuracy history graph by reading timing data from the active player.
+   */
   update() {
     if (!this.active || !this.scene.player) return;
 
@@ -15015,17 +18429,49 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
+/**
+ * @class AudioVisualizer
+ * @category Core Game Classes
+ * @summary Shows audio frequency spectrum
+ * @constructor
+ * @param {Object} scene - The Phaser game state scene
+ * @param {number} x - Horizontal position
+ * @param {number} y - Vertical position
+ * @param {number} width - Display width in pixels
+ * @param {number} height - Display height in pixels
+ * @features
+ * Real-time frequency spectrum bars
+ * Connects to game audio source through Web Audio API
+ * Graceful fallback when audio analysis is unsupported
+ * @description
+ * Draws vertical bars representing the frequency spectrum of the currently playing audio.
+ * Uses the Web Audio API to analyse the game audio element and render the data each frame.
+ * @example
+ * // Modding usage example
+ * const audioViz = new AudioVisualizer(scene, 0, 0, 200, 50);
+ * function update() {
+ *   audioViz.update();
+ * }
+ */
 class AudioVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
+    /** @type {AudioContext|null} Web Audio API context for analysis */
     this.audioContext = null;
+    /** @type {AnalyserNode|null} Analyser node providing frequency data */
     this.analyser = null;
+    /** @type {Uint8Array|null} Buffer holding raw frequency data */
     this.dataArray = null;
+    /** @type {number} Length of the frequency data buffer */
     this.bufferLength = 32;
+    /** @type {Array} Sprites or metadata for drawn bars */
     this.bars = [];
     this.setupAudioAnalysis();
   }
 
+  /**
+   * Creates the Web Audio API context and analyser, connecting it to the scene's audio element.
+   */
   setupAudioAnalysis() {
     try {
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -15048,6 +18494,9 @@ class AudioVisualizer extends Visualizer {
     }
   }
 
+  /**
+   * Fetches frequency data and redraws the spectrum bars each frame.
+   */
   update() {
     if (!this.active || !this.analyser) return;
 
@@ -15073,6 +18522,9 @@ class AudioVisualizer extends Visualizer {
     }
   }
 
+  /**
+   * Frees the graphics and closes the audio context.
+   */
   destroy() {
     super.destroy();
     if (this.audioContext) {
@@ -15081,23 +18533,60 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
+/**
+ * @class BPMVisualizer
+ * @category Core Game Classes
+ * @summary Displays BPM changes and beat timing
+ * @constructor
+ * @param {Object} scene - The Phaser game state scene
+ * @param {number} x - Horizontal position
+ * @param {number} y - Vertical position
+ * @param {number} width - Display width in pixels
+ * @param {number} height - Display height in pixels
+ * @features
+ * On-screen text showing current BPM value
+ * Yellow markers for BPM changes in the chart
+ * Red markers for stops in the chart
+ * Beat indicator dot that pulses each beat
+ * @description
+ * Renders a timeline of upcoming BPM changes and stops alongside the current BPM readout.
+ * A pulsing beat indicator and tinted text help the player track beat timing during gameplay.
+ * @example
+ * // Modding usage example
+ * const bpmViz = new BPMVisualizer(scene, 0, 0, 250, 30);
+ * function update() {
+ *   bpmViz.update();
+ * }
+ */
 class BPMVisualizer extends Visualizer {
   constructor(scene, x, y, width, height) {
     super(scene, x, y, width, height);
+    /** @type {Array} BPM change events from the song chart */
     this.bpmChanges = scene.song?.chart?.bpmChanges || [];
+    /** @type {Array} Stop events from the song chart */
     this.stops = scene.song?.chart?.stops || [];
+    /** @type {Object} Text display showing the current BPM */
     this.text = new Text(width - 1, 1, "");
     this.text.anchor.x = 1;
     this.text.alpha = 0.5;
     this.graphics.addChild(this.text);
+    /** @type {number} Current alpha of the beat indicator */
     this.beatIndicatorAlpha = 1;
+    /** @type {number} Current beat fraction from scene timing */
     this.currentBeat = 0;
+    /** @type {number} Integer part of the current beat */
     this.currentBeatInt = 0;
+    /** @type {number} Last integer beat value for change detection */
     this.previusBeatInt = 1;
+    /** @type {number} Current BPM value */
     this.currentBpm = 0;
+    /** @type {number} Last BPM value for change detection */
     this.previusBpm = 1;
   }
 
+  /**
+   * Redraws BPM change markers, stops, and the beat indicator each frame.
+   */
   update() {
     if (!this.active) return;
     
@@ -15159,23 +18648,61 @@ class BPMVisualizer extends Visualizer {
     this.beatIndicatorAlpha -= speed;
   }
   
+  /**
+   * Returns the BPM active at the current beat from the chart's BPM changes.
+   * @returns {number} Current BPM value, or 0 if no changes exist
+   */
   getLastBpm() {
     return this.bpmChanges.length ? this.bpmChanges.find((e, i, a) => i + 1 == a.length || a[i + 1].beat >= this.currentBeat).bpm : 0;
   }
   
+  /**
+   * Returns the stop active at the current beat from the chart's stop data.
+   * @returns {Object|null} The active stop event or null if none exist
+   */
   getLastStop() {
     return this.stops.length ? this.stops.find((e, i, a) => i + 1 == a.length || a[i + 1].beat >= this.currentBeat) : null;
   }
 
+  /**
+   * Frees the graphics and text display.
+   */
   destroy() {
     super.destroy();
     this.text.destroy();
   }
 }
 
+/**
+ * @class FullScreenAudioVisualizer
+ * @category Core Game Classes
+ * @summary Advanced audio visualization for Jukebox
+ * @constructor
+ * @param {HTMLAudioElement} audioElement - Audio element to analyze
+ * @param {Object} [options] - Configuration options
+ * @features
+ * Multiple visualization types: bars, waveform, circular, symmetrical
+ * Configurable bar colors, sizes, smoothing, and alpha
+ * Static factory and browser support detection helpers
+ * @description
+ * Full-screen audio visualizer that renders a configurable frequency spectrum visualization.
+ * Supports four visualization styles and smooths frequency data for a fluid visual response.
+ * @example
+ * // Modding usage example
+ * const viz = FullScreenAudioVisualizer.create(audioElement, {
+ *   barColor: 0xFF00FF,
+ *   visualizationType: 'circular',
+ *   fftSize: 512
+ * });
+ * function update() {
+ *   viz.update();
+ * }
+ */
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
+    /** @type {HTMLAudioElement} The audio element being analyzed */
     this.audioElement = audioElement;
+    /** @type {Object} Visualization configuration options */
     this.options = {
       barColor: 0x76fcde,
       barWidth: 4,
@@ -15189,16 +18716,25 @@ class FullScreenAudioVisualizer {
       ...options
     };
     
+    /** @type {Phaser.Graphics} Graphics object used for all drawing */
     this.graphics = game.add.graphics(0, 0);
+    /** @type {AnalyserNode|null} Analyser node providing audio data */
     this.analyser = null;
+    /** @type {Uint8Array|null} Raw frequency data buffer */
     this.dataArray = null;
+    /** @type {number} Length of the frequency buffer */
     this.bufferLength = 0;
+    /** @type {Uint8Array|null} Smoothed frequency data buffer */
     this.frequencyData = null;
+    /** @type {boolean} Whether the visualizer is active and analyzing */
     this.isActive = false;
     
     this.setupAudioAnalysis();
   }
 
+  /**
+   * Creates the audio context and analyser, then connects the audio element source.
+   */
   setupAudioAnalysis() {
     try {
       // Create audio context if not already created
@@ -15229,6 +18765,9 @@ class FullScreenAudioVisualizer {
     }
   }
 
+  /**
+   * Connects or reconnects the audio element to the analyser node.
+   */
   connectAudioSource() {
     if (!this.audioElement || !this.analyser) return;
     
@@ -15248,6 +18787,10 @@ class FullScreenAudioVisualizer {
     }
   }
 
+  /**
+   * Swaps in a new audio element and reconnects it to the analyser.
+   * @param {HTMLAudioElement} audioElement - The new audio element
+   */
   setAudioSource(audioElement) {
     this.audioElement = audioElement;
     if (this.isActive) {
@@ -15255,6 +18798,9 @@ class FullScreenAudioVisualizer {
     }
   }
 
+/**
+   * Fetches audio data, applies smoothing, and renders the configured visualization each frame.
+   */
   update() {
     if (!this.isActive || !this.analyser) return;
     
@@ -15427,6 +18973,10 @@ class FullScreenAudioVisualizer {
   }
 
   // Method to change visualization type
+  /**
+   * Changes the visualization style to one of the supported types.
+   * @param {string} type - Visualization type ('bars', 'waveform', 'circular', 'symmetrical')
+   */
   setVisualizationType(type) {
     const validTypes = ['bars', 'waveform', 'circular', 'symmetrical'];
     if (validTypes.includes(type)) {
@@ -15437,14 +18987,26 @@ class FullScreenAudioVisualizer {
     }
   }
 
+  /**
+   * Sets the bar color used by the visualization.
+   * @param {number} color - Hex color value as a number
+   */
   setBarColor(color) {
     this.options.barColor = color;
   }
 
+  /**
+   * Sets the rendering alpha of the visualization.
+   * @param {number} alpha - Alpha value clamped between 0 and 1
+   */
   setAlpha(alpha) {
     this.options.alpha = Phaser.Math.clamp(alpha, 0, 1);
   }
 
+  /**
+   * Merges new configuration options and re-applies analyser settings when present.
+   * @param {Object} newOptions - Partial configuration options to apply
+   */
   setOptions(newOptions) {
     this.options = { ...this.options, ...newOptions };
     
@@ -15469,24 +19031,41 @@ class FullScreenAudioVisualizer {
   }
 
   // Get current visualization settings
+  /**
+   * Returns a copy of the current visualization settings.
+   * @returns {Object} Copy of the options object
+   */
   getSettings() {
     return { ...this.options };
   }
 
   // Check if visualizer is ready and active
+  /**
+   * Returns whether the visualizer is active and ready for analysis.
+   * @returns {boolean} True if active and the analyser exists
+   */
   isReady() {
     return this.isActive && this.analyser !== null;
   }
 
   // Pause/Resume functionality
+  /**
+   * Pauses visualization updates.
+   */
   pause() {
     this.isActive = false;
   }
 
+  /**
+   * Resumes visualization updates.
+   */
   resume() {
     this.isActive = true;
   }
 
+  /**
+   * Stops analysis, disconnects audio nodes, closes the context, and frees resources.
+   */
   destroy() {
     this.isActive = false;
     
@@ -15521,17 +19100,55 @@ class FullScreenAudioVisualizer {
   }
 
   // Static method to create visualizer with default settings
+  /**
+   * Factory method to create a FullScreenAudioVisualizer with default settings.
+   * @param {HTMLAudioElement} audioElement - Audio element to analyze
+   * @param {Object} [options] - Configuration options
+   * @returns {FullScreenAudioVisualizer} The created visualizer instance
+   */
   static create(audioElement, options = {}) {
     return new FullScreenAudioVisualizer(audioElement, options);
   }
 
   // Static method to check if browser supports audio analysis
+  /**
+   * Checks whether the browser supports Web Audio analysis.
+   * @returns {boolean} True if an AudioContext is available
+   */
   static isSupported() {
     return !!(window.AudioContext || window.webkitAudioContext);
   }
 }
 
+/**
+ * @class SMFile
+ * @category Parser Classes
+ * @summary StepMania file generation for chart export
+ * @constructor
+ * @features
+ * Generates complete .SM file content from internal song data
+ * Converts note data to measure-based SM notation with adaptive resolution
+ * Handles freeze/hold tail generation and beat subdivision snapping
+ * Supports custom resolutions beyond standard StepMania limits
+ * @description
+ * SMFile is a static utility class that serialises the internal song data
+ * format back into StepMania .SM file text. It handles metadata, BPM and
+ * stop timing, background events, and note-to-measure conversion with
+ * adaptive resolution selection so that exported charts preserve the
+ * original note placement accurately.
+ * @example
+ * // Exporting a song back to .SM format
+ * const smContent = SMFile.generateSM(songData);
+ * const blob = new Blob([smContent], { type: 'text/plain' });
+ * const url = URL.createObjectURL(blob);
+ * // Trigger download or save to file system
+ */
 class SMFile {
+  /**
+   * Generates the complete .SM file string from song data.
+   * @param {Object} songData - The internal song data object
+   * @returns {string} The full .SM file content
+   */
   static generateSM(songData) {
     let smContent = "";
     
@@ -15591,6 +19208,12 @@ class SMFile {
     return smContent;
   }
   
+  /**
+   * Generates the #NOTES section string for a single difficulty.
+   * @param {Object} difficulty - The difficulty descriptor (type and rating)
+   * @param {Array} notes - The note array for this difficulty
+   * @returns {string} The formatted #NOTES section text
+   */
   static generateNotesSection(difficulty, notes) {
     // First, process freeze notes to add their tail notes
     const processedNotes = this.processFreezeNotes(notes);
@@ -15639,6 +19262,11 @@ class SMFile {
     return notesContent;
   }
   
+  /**
+   * Processes freeze notes to generate their corresponding tail notes.
+   * @param {Array} notes - The original note array
+   * @returns {Array} A new sorted array with freeze tails appended
+   */
   static processFreezeNotes(notes) {
     const processedNotes = [...notes];
     const freezeTails = [];
@@ -15668,6 +19296,13 @@ class SMFile {
     return processedNotes;
   }
   
+  /**
+   * Converts a group of notes within a single measure to SM row notation.
+   * Selects the appropriate resolution automatically.
+   * @param {Array} notes - Notes normalised to the measure's beat range
+   * @param {number} measureNum - The measure number (0-indexed)
+   * @returns {string} The measure rows as a newline-separated string
+   */
   static convertMeasureToSM(notes, measureNum) {
     // First, normalize all beat positions to be within [0, 4) range
     const normalizedNotes = notes.map(note => {
@@ -15768,6 +19403,11 @@ class SMFile {
     return rowArray.join("\n");
   }
   
+  /**
+   * Determines the smallest beat subdivision that can represent a position.
+   * @param {number} beat - The beat position within a measure (0-4)
+   * @returns {number} The resolution as a fraction of a beat
+   */
   static getBeatResolution(beat) {
     const divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192];
     
@@ -15780,12 +19420,24 @@ class SMFile {
     return 4 / divisions[ divisions.length - 1 ]; // Snap to smallest division 
   }
   
+  /**
+   * Tests whether a beat position aligns to a given subdivision.
+   * @param {number} beat - The beat position to test
+   * @param {number} division - The subdivision count per measure
+   * @returns {boolean} True if the beat aligns to the subdivision
+   */
   static isBeatDivision(beat, division) {
     const epsilon = 0.0001;
     const remainder = (beat * division) % 4;
     return Math.abs(remainder) < epsilon || Math.abs(remainder - 4) < epsilon;
   }
   
+  /**
+   * Generates a measure with a custom row count beyond standard SM resolutions.
+   * @param {Array} notes - Notes normalised to the measure's beat range
+   * @param {number} totalRows - The total number of rows in the measure
+   * @returns {string} The measure rows as a newline-separated string
+   */
   static generateCustomResolutionMeasure(notes, totalRows) {
     // For resolutions beyond standard StepMania limits
     const rowsPerBeat = totalRows / 4;
@@ -15810,6 +19462,12 @@ class SMFile {
     return rowArray.join("\n");
   }
   
+  /**
+   * Resolves a filename to a full URL using a base path.
+   * @param {string} filename - The filename to resolve
+   * @param {string} baseUrl - The base URL for relative paths
+   * @returns {string} The resolved URL
+   */
   static resolveFileUrl(filename, baseUrl) {
     if (!filename) return "";
     if (filename.startsWith('http://') || filename.startsWith('https://') || filename.startsWith('//')) {
@@ -15822,7 +19480,41 @@ class SMFile {
   }
 }
 
+/**
+ * @class FileTools
+ * @category File System Classes
+ * @summary File utilities for Base64 conversion and export
+ * @constructor
+ * @features
+ * Converts URLs to Base64 data URIs
+ * Strips data URI prefixes to extract raw Base64 strings
+ * Parses song data for chart export
+ * Resolves file paths, names, and extensions
+ * @description
+ * FileTools is a static utility class that provides methods for Base64
+ * conversion, file path manipulation, and song data preparation for chart
+ * export. It centralises common file-related operations so that parsers,
+ * the file system layer, and the export pipeline share a single
+ * implementation.
+ * @example
+ * // Converting a remote image URL to a Base64 string
+ * const base64 = await FileTools.urlToBase64('https://example.com/banner.png');
+ * if (base64) {
+ *   const img = new Image();
+ *   img.src = 'data:image/png;base64,' + base64;
+ * }
+ *
+ * // Extracting a filename from a full path
+ * const name = FileTools.getFilename('Songs/MySong/audio.mp3');
+ * console.log(name); // "audio.mp3"
+ */
 class FileTools {
+  /**
+   * Converts a URL (http, file, blob, or data) into a Base64 data URI string.
+   * @param {string} url - The URL to convert
+   * @param {string} [type] - The MIME type hint
+   * @returns {Promise<string>} Resolves with the data URI or empty string on failure
+   */
   static async urlToDataURL(url, type) {
     return new Promise((resolve, reject) => {
       if (typeof url !== "string") {
@@ -15858,6 +19550,11 @@ class FileTools {
     });
   }
   
+  /**
+   * Strips the data URI prefix from a data URI string, returning raw Base64.
+   * @param {string} dataUrl - The data URI or plain Base64 string
+   * @returns {string|null} The raw Base64 content, or null if input is not a string
+   */
   static extractBase64(dataUrl) {
     if (typeof dataUrl === "string") {
       if (!dataUrl.startsWith('data:')) {
@@ -15870,6 +19567,11 @@ class FileTools {
     }
   }
   
+  /**
+   * Converts a URL directly to a raw Base64 string.
+   * @param {string} url - The URL to convert
+   * @returns {Promise<string|null>} Resolves with raw Base64 or null on error
+   */
   static async urlToBase64(url) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -15883,6 +19585,12 @@ class FileTools {
     });
   }
   
+  /**
+   * Prepares a song object for export by stripping sprite and runtime references.
+   * @param {Object} song - The song object containing a chart property
+   * @param {Object} files - The associated file map
+   * @returns {Promise<Object>} A deep copy of the chart data without sprite references
+   */
   static async prepareSongForExport(song, files) {
     // Create a deep copy without sprite references
     const songCopy = { ...song.chart };
@@ -15908,12 +19616,22 @@ class FileTools {
     return songCopy;
   }
   
+  /**
+   * Extracts the filename portion from a URL or file path.
+   * @param {string} url - The full URL or file path
+   * @returns {string} The filename, or empty string if invalid
+   */
   static getFilename(url) {
     if (!url || url === "no-media") return "";
     const parts = url.split(/[\\/]/);
     return parts[parts.length - 1] || "";
   }
   
+  /**
+   * Extracts the directory portion from a URL or file path.
+   * @param {string} url - The full URL or file path
+   * @returns {string} The directory path, or empty string if invalid
+   */
   static getDirectory(url) {
     if (!url || url === "no-media") return "";
     const parts = url.split('/');
@@ -15921,12 +19639,23 @@ class FileTools {
     return parts.join('/');
   }
   
+  /**
+   * Extracts the file extension from a URL or file path.
+   * @param {string} url - The full URL or file path
+   * @returns {string} The extension without the dot, or empty string if invalid
+   */
   static getExtension(url) {
     if (!url || url === "no-media") return "";
     const parts = url.split('.');
     return parts[parts.length - 1] || "";
   }
   
+  /**
+   * Retrieves raw Base64 data for a named file from a file map.
+   * @param {string} filename - The filename to look up
+   * @param {Object} files - A map of filenames to data URIs or URLs
+   * @returns {Promise<string|null>} Resolves with raw Base64 or null if not found
+   */
   static async getFileData(filename, files) {
     if (!files[filename]) {
       return null;
@@ -15947,6 +19676,11 @@ class FileTools {
     }
   }
   
+  /**
+   * Fetches a text file from a URL using XMLHttpRequest.
+   * @param {string} url - The URL to fetch
+   * @returns {Promise<string|null>} Resolves with the text content or null on failure
+   */
   static loadTextFile(url) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -15963,6 +19697,11 @@ class FileTools {
     });
   }
   
+  /**
+   * Reads a File object as text using FileReader.
+   * @param {File} file - The File object to read
+   * @returns {Promise<string>} Resolves with the text content
+   */
   static readTextFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -15972,6 +19711,11 @@ class FileTools {
     });
   }
   
+  /**
+   * Reads a File object as a binary string using FileReader.
+   * @param {File} file - The File object to read
+   * @returns {Promise<string>} Resolves with the binary string content
+   */
   static readBinaryFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -15981,6 +19725,11 @@ class FileTools {
     });
   }
   
+  /**
+   * Fetches a resource as a Blob, supporting http, data, blob, and local file URLs.
+   * @param {string} url - The URL to fetch
+   * @returns {Promise<Blob>} Resolves with the Blob data
+   */
   static async fetchFileAsBlob(url) {
     // Si es una URL de objeto (blob:) o data URL, fetch directamente
     if (url.startsWith('blob:') || url.startsWith('data:')) {
@@ -16014,11 +19763,40 @@ class FileTools {
   }
 }
 
+/**
+ * @class LocalSMParser
+ * @category Parser Classes
+ * @summary Parses StepMania .SM files for built-in songs
+ * @constructor
+ * @features
+ * Parses all standard .SM metadata tags (title, artist, BPMs, stops)
+ * Resolves media file URLs relative to the song base directory
+ * Converts beat positions to seconds accounting for BPM changes and stops
+ * @description
+ * LocalSMParser reads StepMania .SM file content that ships with the game and
+ * converts it into the internal song data format. It handles BPM changes, stop
+ * timing, note parsing, and background event resolution for songs stored on the
+ * local file system.
+ * @example
+ * // Parsing a built-in song's .SM file
+ * const parser = new LocalSMParser();
+ * const smText = await FileTools.loadTextFile('Songs/MySong/song.sm');
+ * const songData = await parser.parseSM(smText, 'Songs/MySong/');
+ * console.log(songData.title, songData.difficulties.length, 'difficulties');
+ */
 class LocalSMParser {
   constructor() {
+    /** @type {string} The base URL used for resolving relative file paths */
     this.baseUrl = "";
   }
 
+  /**
+   * Parses raw .SM file content into the internal song data structure.
+   * Extracts metadata, BPM changes, stops, notes, and resolves media URLs.
+   * @param {string} smContent - The raw text content of the .SM file
+   * @param {string} baseUrl - The base path for resolving relative file URLs
+   * @returns {Promise<Object>} The parsed song data object
+   */
   async parseSM(smContent, baseUrl) {
     this.baseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
     
@@ -16257,10 +20035,22 @@ class LocalSMParser {
     return out;
   }
   
+  /**
+   * Loads a text file from a URL via FileTools.
+   * @param {string} url - The URL to fetch
+   * @returns {Promise<string|null>} The text content or null
+   */
   async loadTextFile(url) {
     return FileTools.loadTextFile(url);
   }
   
+  /**
+   * Resolves a filename to a full URL using the base path.
+   * Handles absolute URLs and relative paths.
+   * @param {string} filename - The filename to resolve
+   * @param {string} baseUrl - The base URL for relative paths
+   * @returns {string} The resolved full URL
+   */
   resolveFileUrl(filename, baseUrl) {
     if (!filename) return "";
     // Handle absolute URLs and relative paths
@@ -16272,10 +20062,24 @@ class LocalSMParser {
     return baseUrl + filename;
   }
 
+  /**
+   * Finds the BPM change entry active at a given time value.
+   * @param {Array} bpmChanges - Sorted array of BPM change objects
+   * @param {number} time - The beat or second value to search for
+   * @param {string} valueType - The property name to compare ('beat' or 'sec')
+   * @returns {Object} The BPM change entry active at the given time
+   */
   getLastBpm(bpmChanges, time, valueType) {
     return bpmChanges.find((e, i, a) => i + 1 == a.length || a[i + 1][valueType] >= time);
   }
 
+  /**
+   * Converts a beat position to seconds accounting for BPM changes and stops.
+   * @param {Array} bpmChanges - Sorted BPM change entries with sec values
+   * @param {Array} stops - Stop entries with beat and len values
+   * @param {number} beat - The beat position to convert
+   * @returns {number} The equivalent time in seconds
+   */
   beatToSec(bpmChanges, stops, beat) {
     let b = this.getLastBpm(bpmChanges, beat, "beat");
     let x = ((beat - b.beat) / b.bpm) * 60 + b.sec;
@@ -16285,8 +20089,38 @@ class LocalSMParser {
   }
 }
 
+/**
+ * @class ExternalSMParser
+ * @category Parser Classes
+ * @summary Parses .SM and .SSC files for external songs
+ * @constructor
+ * @features
+ * Supports both .SM and .SSC StepMania file formats
+ * Resolves media URLs from an in-memory file map via object URLs
+ * Handles SSC multi-chart sections with per-chart difficulty metadata
+ * Converts beat-based note timing to seconds
+ * @description
+ * ExternalSMParser handles user-imported songs stored in an external
+ * directory. Unlike LocalSMParser it works entirely from an in-memory
+ * file map and creates blob/object URLs for media playback. It supports
+ * both the classic .SM format and the extended .SSC format which allows
+ * per-chart BPM overrides and additional metadata.
+ * @example
+ * // Parsing an externally imported .SM file
+ * const parser = new ExternalSMParser();
+ * const files = {}; // map of lowercase filenames to File objects
+ * const smText = await FileTools.readTextFile(smFileObject);
+ * const songData = await parser.parseSM(files, smText);
+ * console.log(songData.title, Object.keys(songData.notes).length, 'charts');
+ */
 class ExternalSMParser {
   // TODO: Make this class use SMFile
+  /**
+   * Parses raw .SM or .SSC content, delegating to parseSSC when appropriate.
+   * @param {Object} files - A map of lowercase filenames to File objects
+   * @param {string} smContent - The raw text content of the file
+   * @returns {Promise<Object>} The parsed song data object
+   */
   async parseSM(files, smContent) {
     let out = {};
     let isSSC = smContent.includes("#VERSION:");
@@ -16557,10 +20391,21 @@ class ExternalSMParser {
     return out;
   }
   
+  /**
+   * Reads a File object as text via FileTools.
+   * @param {File} file - The File object to read
+   * @returns {Promise<string>} The text content of the file
+   */
   readFileContent(file) {
     return FileTools.readTextFile(file);
   }
 
+  /**
+   * Parses .SSC format content with header and per-chart section support.
+   * @param {Object} files - A map of lowercase filenames to File objects
+   * @param {string} sscContent - The raw .SSC file text
+   * @returns {Object} The parsed song data object
+   */
   parseSSC(files, sscContent) {
     const sections = sscContent.split(/\/\/-+/);
     const headerSection = sections[0];
@@ -16704,6 +20549,13 @@ class ExternalSMParser {
     return out;
   }
 
+  /**
+   * Converts SSC note measure data into the internal note array format.
+   * @param {Array<string>} noteData - Array of measure strings from the SSC file
+   * @param {Array} bpmChanges - BPM change entries for timing conversion
+   * @param {Array} stops - Stop entries for timing conversion
+   * @returns {Array<Object>} The processed note array
+   */
   convertSSCNotes(noteData, bpmChanges, stops) {
     const notes = [];
     let measureIndex = 0;
@@ -16736,10 +20588,24 @@ class ExternalSMParser {
     return notes;
   }
 
+  /**
+   * Finds the BPM change entry active at a given time value.
+   * @param {Array} bpmChanges - Sorted array of BPM change objects
+   * @param {number} time - The beat or second value to search for
+   * @param {string} valueType - The property name to compare ('beat' or 'sec')
+   * @returns {Object} The BPM change entry active at the given time
+   */
   getLastBpm(bpmChanges, time, valueType) {
     return bpmChanges.find((e, i, a) => i + 1 == a.length || a[i + 1][valueType] >= time);
   }
 
+  /**
+   * Converts a beat position to seconds accounting for BPM changes and stops.
+   * @param {Array} bpmChanges - Sorted BPM change entries with sec values
+   * @param {Array} stops - Stop entries with beat and len values
+   * @param {number} beat - The beat position to convert
+   * @returns {number} The equivalent time in seconds
+   */
   beatToSec(bpmChanges, stops, beat) {
     if (!bpmChanges || bpmChanges.length === 0) return beat;
 
@@ -16751,15 +20617,53 @@ class ExternalSMParser {
   }
 }
 
+/**
+ * @class AddonManager
+ * @category Addon System Classes
+ * @summary Manages addon loading, execution, hibernation, and safe mode
+ * @constructor
+ * @features
+ * Discovers and loads addons from the external storage directory
+ * Executes addon behaviours in sandboxed contexts per game state
+ * Supports enable, disable, hibernate, and wake lifecycle operations
+ * Manages addon assets for Phaser resource loading
+ * Provides safe mode to skip all addon loading on startup
+ * @description
+ * AddonManager handles the full lifecycle of game addons: loading manifests
+ * from disk, registering assets with Phaser, executing behaviour scripts
+ * at state transitions, and persisting enabled/disabled/hibernating state
+ * to the player account. Safe mode allows the game to start without running
+ * any addon code when a problematic addon is detected.
+ * @example
+ * // Listing all loaded addons and their status
+ * const mgr = new AddonManager();
+ * await mgr.initialize();
+ * mgr.getAddonList().forEach(addon => {
+ *   console.log(`${addon.name} v${addon.version}: ${addon.isEnabled ? 'enabled' : 'disabled'}`);
+ * });
+ *
+ * // Executing state behaviours when entering a game state
+ * mgr.executeStateBehaviors('Gameplay', gameState, { difficulty: 'Hard' });
+ */
 class AddonManager {
   constructor() {
+    /** @type {Map<string, Object>} Map of addon IDs to addon descriptor objects */
     this.addons = new Map();
+    /** @type {Set<string>} Set of enabled addon IDs */
     this.enabledAddons = new Set();
+    /** @type {Set<string>} Set of hibernating addon IDs */
     this.hibernatingAddons = new Set();
+    /** @type {boolean} Whether safe mode is active, preventing addon loading */
     this.safeMode = false;
+    /** @type {boolean} Whether the manager has finished initialising */
     this.isInitialized = false;
   }
 
+  /**
+   * Initialises the addon manager by loading saved settings and discovering addons.
+   * Skips loading entirely when safe mode is enabled.
+   * @returns {Promise<void>}
+   */
   async initialize() {
     if (this.isInitialized) return;
     
@@ -16778,6 +20682,10 @@ class AddonManager {
     this.isInitialized = true;
   }
 
+  /**
+   * Orchestrates addon discovery from storage and processing of enabled addons.
+   * @returns {Promise<void>}
+   */
   async loadAddons() {
     try {
       console.log("Loading addons...");
@@ -16791,6 +20699,10 @@ class AddonManager {
     }
   }
 
+  /**
+   * Scans the addons directory on the file system and loads each addon.
+   * @returns {Promise<void>}
+   */
   async loadAddonsFromStorage() {
     const fileSystem = new FileSystemTools();
     
@@ -16812,6 +20724,12 @@ class AddonManager {
     }
   }
 
+  /**
+   * Loads a single addon from its directory, reading its manifest and files.
+   * @param {Object} addonDir - The directory entry for the addon
+   * @param {FileSystemTools} fileSystem - The file system instance
+   * @returns {Promise<void>}
+   */
   async loadAddonFromDirectory(addonDir, fileSystem) {
     const files = await fileSystem.listFiles(addonDir);
     const fileMap = {};
@@ -16866,6 +20784,10 @@ class AddonManager {
     console.log(`Loaded addon: ${addon.name} v${addon.version} (${addon.isEnabled ? 'enabled' : 'disabled'})`);
   }
 
+  /**
+   * Processes assets and behaviours for all enabled addons.
+   * @returns {Promise<void>}
+   */
   async processAddons() {
     // Process assets and behaviors for enabled addons
     for (const [addonId, addon] of this.addons) {
@@ -16879,6 +20801,10 @@ class AddonManager {
     }
   }
 
+  /**
+   * Registers addon assets from the manifest into the addon's asset list.
+   * @param {Object} addon - The addon descriptor object
+   */
   processAddonAssets(addon) {
     const assetsManifest = addon.manifest.assets;
     if (!assetsManifest) return;
@@ -16934,6 +20860,11 @@ class AddonManager {
     }
   }
 
+  /**
+   * Loads behaviour script content for each state defined in the manifest.
+   * @param {Object} addon - The addon descriptor object
+   * @returns {Promise<void>}
+   */
   async processAddonBehaviors(addon) {
     const behaviorsManifest = addon.manifest.behaviors;
     if (!behaviorsManifest) return;
@@ -16974,6 +20905,13 @@ class AddonManager {
     });
   }
 
+  /**
+   * Executes a behaviour script for an addon in a sandboxed context.
+   * @param {Object} addon - The addon descriptor
+   * @param {string} stateName - The game state name the behaviour targets
+   * @param {Object} context - The execution context (global, state, etc.)
+   * @param {Object} [extraParams] - Additional parameters to inject
+   */
   executeBehavior(addon, stateName, context, extraParams) {
     const behavior = addon.behaviors[stateName];
     if (!behavior) return;
@@ -17002,6 +20940,9 @@ class AddonManager {
     }
   }
 
+  /**
+   * Runs the 'Global' behaviour for all active, non-hibernating addons.
+   */
   executeGlobalBehaviors() {
     for (const [addonId, addon] of this.addons) {
       if (addon.isHibernating || !addon.isEnabled) continue;
@@ -17009,6 +20950,12 @@ class AddonManager {
     }
   }
 
+  /**
+   * Runs behaviours for a specific game state across all active addons.
+   * @param {string} stateName - The game state name
+   * @param {Object} stateInstance - The Phaser state instance
+   * @param {Object} [extraParams] - Additional parameters to pass
+   */
   executeStateBehaviors(stateName, stateInstance, extraParams) {
     for (const [addonId, addon] of this.addons) {
       if (addon.isHibernating || !addon.isEnabled) continue;
@@ -17022,12 +20969,23 @@ class AddonManager {
     }
   }
 
+  /**
+   * Splits a version string into a three-element numeric array.
+   * @param {string} version - A semver-style version string
+   * @returns {Array<number>} Array of [major, minor, patch]
+   */
   parseVersion(version) {
     const parts = version.split('.').map(part => parseInt(part, 10) || 0);
     while (parts.length < 3) parts.push(0);
     return parts;
   }
 
+  /**
+   * Compares two parsed version arrays.
+   * @param {Array<number>} v1 - The first version array
+   * @param {Array<number>} v2 - The second version array
+   * @returns {number} 1 if v1 > v2, -1 if v1 < v2, 0 if equal
+   */
   compareVersions(v1, v2) {
     for (let i = 0; i < 3; i++) {
       if (v1[i] > v2[i]) return 1;
@@ -17036,6 +20994,11 @@ class AddonManager {
     return 0;
   }
 
+  /**
+   * Enables an addon and persists the setting.
+   * @param {string} addonId - The addon ID to enable
+   * @returns {boolean} True if the addon was found and enabled
+   */
   enableAddon(addonId) {
     const addon = this.addons.get(addonId);
     if (addon) {
@@ -17048,6 +21011,11 @@ class AddonManager {
     return false;
   }
 
+  /**
+   * Disables an addon and persists the setting.
+   * @param {string} addonId - The addon ID to disable
+   * @returns {boolean} True if the addon was found and disabled
+   */
   disableAddon(addonId) {
     const addon = this.addons.get(addonId);
     if (addon) {
@@ -17059,6 +21027,11 @@ class AddonManager {
     return false;
   }
   
+  /**
+   * Moves an addon into hibernation, disabling it until explicitly woken.
+   * @param {string} addonId - The addon ID to hibernate
+   * @returns {boolean} True if the addon was found and hibernated
+   */
   hibernateAddon(addonId) {
     const addon = this.addons.get(addonId);
     if (addon) {
@@ -17072,6 +21045,11 @@ class AddonManager {
     return false;
   }
   
+  /**
+   * Wakes a hibernating addon, re-enabling it.
+   * @param {string} addonId - The addon ID to wake
+   * @returns {boolean} True if the addon was found and woken
+   */
   wakeAddon(addonId) {
     const addon = this.addons.get(addonId);
     if (addon && addon.isHibernating) {
@@ -17085,6 +21063,11 @@ class AddonManager {
     return false;
   }
 
+  /**
+   * Permanently removes an addon by deleting its directory and registry entry.
+   * @param {string} addonId - The addon ID to uninstall
+   * @returns {boolean} True if the addon was found and removed
+   */
   uninstallAddon(addonId) {
     const addon = this.addons.get(addonId);
     if (addon) {
@@ -17095,12 +21078,20 @@ class AddonManager {
     return false;
   }
   
+  /**
+   * Enables or disables safe mode globally.
+   * @param {boolean} enabled - Whether safe mode should be active
+   */
   setSafeMode(enabled) {
     this.safeMode = enabled;
     Account.settings.safeMode = enabled;
     saveAccount();
   }
 
+  /**
+   * Returns a serialisable list of all loaded addons with their status.
+   * @returns {Array<Object>} Array of addon summary objects
+   */
   getAddonList() {
     return Array.from(this.addons.values()).map(addon => ({
       id: addon.id,
@@ -17118,6 +21109,10 @@ class AddonManager {
     }));
   }
   
+  /**
+   * Collects all assets from active, non-hibernating addons for Phaser loading.
+   * @returns {Array<Object>} Combined asset list
+   */
   getResourceList() {
     let resources = [];
     
@@ -17135,6 +21130,9 @@ class AddonManager {
     return resources;
   }
 
+  /**
+   * Persists the current enabled, hibernating, and safe mode state to the account.
+   */
   saveAddonSettings() {
     Account.settings.enabledAddons = Array.from(this.enabledAddons);
     Account.settings.hibernatingAddons = Array.from(this.hibernatingAddons);
@@ -17142,6 +21140,10 @@ class AddonManager {
     saveAccount();
   }
 
+  /**
+   * Checks whether the saved settings differ from the current in-memory state.
+   * @returns {boolean} True if a reload is required to apply changes
+   */
   needsReload() {
     // Check if any changes were made that require a reload
     const currentEnabled = new Set(Account.settings?.enabledAddons || []);
@@ -17153,6 +21155,12 @@ class AddonManager {
            currentSafeMode !== this.safeMode;
   }
 
+  /**
+   * Tests whether two Sets contain the same elements.
+   * @param {Set} set1 - The first set
+   * @param {Set} set2 - The second set
+   * @returns {boolean} True if both sets are equal
+   */
   setsEqual(set1, set2) {
     if (set1.size !== set2.size) return false;
     for (const item of set1) {
@@ -17162,10 +21170,32 @@ class AddonManager {
   }
 }
 
+/**
+ * @class Boot
+ * @category Game States
+ * @summary Load critical assets, initialize input system, then start loading the game
+ * @constructor
+ * @description
+ * The very first game state that runs on launch. It preloads essential spritesheets such as
+ * fonts and window panels, fixes account settings migrated from older versions, initializes
+ * global systems like notifications, input management, achievements, and the mouse cursor,
+ * then registers every subsequent game state and begins the asset loading pipeline.
+ * @example
+ * // Boot is the entry state set in the Phaser game config.
+ * // It transitions automatically to the Load state once setup is complete.
+ * game = new Phaser.Game(480, 270, Phaser.AUTO, 'game', null, null, false);
+ * game.state.add('Boot', Boot);
+ * game.state.start('Boot');
+ */
 class Boot {
+  /**
+   * Loads the essential spritesheets (fonts and window panels) and records their keys
+   * into this.keys, then checks whether the game crashed during the previous session.
+   */
   preload() {
     this.load.baseURL = "assets/";
 
+    /** @type {Array<string>} Keys of the primary spritesheets loaded in this state */
     this.keys = [];
 
     Object.keys(FONTS).forEach(key => {
@@ -17181,6 +21211,10 @@ class Boot {
     // Check if game crashed last time
     this.checkForCrashRecovery();
   }
+  /**
+   * Checks a local storage flag to detect whether the game crashed on the previous
+   * session and clears it while marking the account for a later bug report dialog.
+   */
   checkForCrashRecovery() {
     const lastCrashed = localStorage.getItem('gameLastCrashed');
     if (lastCrashed === 'true') {
@@ -17192,6 +21226,10 @@ class Boot {
       saveAccount();
     }
   }
+  /**
+   * Migrates the saved account data into a compatible format for the current game
+   * version, fixing older keyboard mappings, character customization, and settings fields.
+   */
   fixSettings() {
     const currentVersion = DEFAULT_ACCOUNT.version;
     const oldVersion = Account.version;
@@ -17292,16 +21330,24 @@ class Boot {
     Account.version = currentVersion;
     saveAccount();
   }
+  /**
+   * Initializes global systems (notifications, input manager, achievements, mouse cursor),
+   * registers every game state, builds the full resource manifest, and transitions to the Load state.
+   */
   create() {
+    /** @type {NotificationSystem} Global notification system instance */
     notifications = new NotificationSystem();
     
     this.fixSettings();
 
+    /** @type {InputManager} Global input manager handling input system definitions */
     window.inputManager = new InputManager(game);
     
+    /** @type {AchievementsManager} Global achievements and stats system instance */
     achievementsManager = new AchievementsManager();
     achievementsManager.initialize();
     
+    /** @type {MouseCursor} Global mouse cursor instance */
     mouse = new MouseCursor();
 
     game.time.advancedTiming = true;
@@ -17741,15 +21787,49 @@ class Boot {
   }
 }
 
+/**
+ * @class Load
+ * @category Game States
+ * @summary Dynamic asset loading with progress tracking
+ * @constructor
+ * @description
+ * A generic loading state that receives a list of resources and loads them for the
+ * game cache according to their declared type (image, spritesheet, audio, video, JSON,
+ * or text). It displays a bilingual progress text overlay while assets are retrieved
+ * and, once every resource has been queued, transitions into the state that was
+ * requested after loading completes.
+ * @example
+ * // Kicking off a load of arbitrary assets, then jumping to the Title state.
+ * const resources = [
+ *   { key: 'ui_logo_shape', url: 'ui/logo_shape.png', type: 'image' }
+ * ];
+ * game.state.start('Load', true, false, resources, 'Title');
+ */
 class Load {
+  /**
+   * Stores the resource list, the state to start once loading finishes, and any
+   * parameters that should be passed along to that next state.
+   * @param {Array<Object>} resources - Descriptors of assets to load (key, url, type, etc.)
+   * @param {string} nextState - Key of the game state to start after loading completes
+   * @param {Object} nextStateParams - Parameters to forward to the next state
+   */
   init(resources, nextState, nextStateParams) {
+    /** @type {Array<Object>} Pending resource manifest to load */
     this.resources = resources || [];
+    /** @type {string} Game state key to start once loading finishes */
     this.nextState = nextState || 'Title';
+    /** @type {Object} Parameters forwarded to the next state */
     this.nextStateParams = nextStateParams || {};
+    /** @type {number} Number of resources queued so far */
     this.loadedCount = 0;
+    /** @type {number} Total number of resources to load */
     this.totalCount = this.resources.length;
   }
 
+  /**
+   * Registers every resource from the manifest with the Phaser loader using its
+   * declared type, and shows the bilingual loading progress text while assets load.
+   */
   preload() {
     // Load all resources from the provided list
     this.resources.forEach(resource => {
@@ -17781,13 +21861,36 @@ class Load {
     this.progressText = new ProgressText(__("Loading assets...||Cargando recursos..."));
   }
 
+  /**
+   * Runs after all resources have been loaded and starts the requested next state,
+   * forwarding along any stored parameters.
+   */
   create() {
     // All resources loaded, start next state
     game.state.start(this.nextState, true, false, this.nextStateParams);
   }
 }
 
+/**
+ * @class LoadCordova
+ * @category Game States
+ * @summary Initialize Cordova on mobile devices, initialize file system
+ * @constructor
+ * @description
+ * A conditional startup state that runs before any external storage is accessed. When
+ * the game is running inside a Cordova environment the Cordova script is injected and
+ * the filesystem is created once the device is ready; on other platforms the game
+ * proceeds straight to building the required directory structure.
+ * @example
+ * // Added to the boot chain so storage directories exist before song loading.
+ * game.state.add('LoadCordova', LoadCordova);
+ * game.state.start('LoadCordova');
+ */
 class LoadCordova {
+  /**
+   * Detects the current environment: on Cordova it injects cordova.js and waits for
+   * the device to be ready, otherwise it builds the folder structure immediately.
+   */
   create() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
       this.loadScript();
@@ -17795,6 +21898,10 @@ class LoadCordova {
       this.createFolderStructure();
     }
   }
+  /**
+   * Shows the loading dots, injects the cordova.js script into the page, and registers
+   * a back button handler for mobile devices once the Cordova device is ready.
+   */
   loadScript() {
     this.loadingDots = new LoadingDots();
     
@@ -17814,6 +21921,11 @@ class LoadCordova {
       });
     });
   }
+  /**
+   * Creates the main storage directory along with its addons, screenshots, songs, and
+   * editor output subdirectories, then continues to the next startup state.
+   * @returns {Promise<void>} Resolves once the folders have been created
+   */
   async createFolderStructure() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       const fileSystem = new FileSystemTools();
@@ -17829,19 +21941,47 @@ class LoadCordova {
     }
     this.continue();
   }
+  /**
+   * Advances to the LoadAddons state to continue the startup sequence.
+   */
   continue() {
     game.state.start("LoadAddons");
   }
 }
 
+/**
+ * @class LoadAddons
+ * @category Game States
+ * @summary Initializes the addon manager and loads addon resources
+ * @constructor
+ * @description
+ * A startup state that enables the game's addon system before the rest of the game
+ * loads. It creates the global addon manager, runs any global addon behaviors, collects
+ * the resources contributed by addons, and hands them to the generic Load state.
+ * @example
+ * // Part of the boot chain; addon resources end up in the Load state.
+ * game.state.add('LoadAddons', LoadAddons);
+ * game.state.start('LoadAddons');
+ */
 class LoadAddons {
+  /**
+   * Shows the loading text and dots, then kicks off asynchronous addon initialization.
+   */
   create() {
+    /** @type {ProgressText} Bilingual progress text for the addon loading phase */
     this.progressText = new ProgressText(__("Loading Add-ons...||Cargando Add-ons..."));
+    /** @type {LoadingDots} Animated loading indicator dots */
     this.loadingDots = new LoadingDots();
     this.initialize();
   }
+  /**
+   * Creates and initializes the global addon manager, executes global addon behaviors,
+   * gathers the resource list from mounted addons, and sends them to the Load state.
+   * @returns {Promise<void>} Resolves once addons are ready and loading has been started
+   */
   async initialize() {
     // Initialize addon manager
+    /** @type {AddonManager} Global addon management system */
     addonManager = new AddonManager();
     await addonManager.initialize();
     
@@ -17856,14 +21996,40 @@ class LoadAddons {
   }
 }
 
+/**
+ * @class LoadLocalSongs
+ * @category Game States
+ * @summary Loads built-in default songs
+ * @constructor
+ * @description
+ * Startup state that discovers the songs shipped with the game. It walks through the
+ * list of default song folders, locates and parses each .sm chart file, and exposes the
+ * resulting charts globally before advancing to the Title screen.
+ * @example
+ * // Runs during the boot chain and populates window.localSongs for the menu.
+ * game.state.add('LoadLocalSongs', LoadLocalSongs);
+ * game.state.start('LoadLocalSongs');
+ */
 class LoadLocalSongs {
+  /**
+   * Sets up the loading UI, song collection, and parser, then starts loading the songs.
+   */
   create() {
+    /** @type {ProgressText} Bilingual progress text shown while songs load */
     this.progressText = new ProgressText(__("Loading Songs...||Cargando canciones..."));
+    /** @type {Array<Object>} Collection of parsed local song charts */
     this.songs = [];
+    /** @type {LocalSMParser} Parser used to read bundled .sm chart files */
     this.parser = new LocalSMParser();
     this.loadSongs();
+    /** @type {LoadingDots} Animated loading indicator dots */
     this.loadingDots = new LoadingDots();
   }
+  /**
+   * Iterates over the default song folders, loads each one into the songs collection,
+   * and finishes the state once all of them have been attempted.
+   * @returns {Promise<void>} Resolves after every default folder has been handled
+   */
   async loadSongs() {
     
     try {
@@ -17889,6 +22055,12 @@ class LoadLocalSongs {
       console.error("Error loading songs:", error);
     }
   }
+  /**
+   * Loads a single bundled song from a folder by reading and parsing its .sm chart file,
+   * falling back to common alternative filenames if the folder does not share its name.
+   * @param {string} folderName - Name of the song folder under assets/songs
+   * @returns {Promise<Object|null>} Parsed chart object, or null if the song could not be loaded
+   */
   async loadSong(folderName) {
     const baseUrl = `assets/songs/${folderName}/`;
     
@@ -17923,37 +22095,78 @@ class LoadLocalSongs {
       return null;
     }
   }
+  /**
+   * Publishes the collected songs to window.localSongs and advances to the Title state.
+   */
   finish() {
     window.localSongs = this.songs;
     game.state.start("Title");
   }
 }
 
+/**
+ * @class LoadExternalSongs
+ * @category Game States
+ * @summary Loads user-added songs from external storage
+ * @constructor
+ * @description
+ * A loading state that scans external storage (or, on non-mobile platforms, lets the
+ * user pick a directory) for StepMania songs, parsing every .sm or .ssc chart file found.
+ * It supports sequential and batched parallel loading with progress feedback, caches the
+ * results in window.externalSongs for the rest of the game, and then transitions into
+ * the requested next state.
+ * @example
+ * // Load all user songs, then drop the player into the song select screen.
+ * game.state.add('LoadExternalSongs', LoadExternalSongs);
+ * game.state.start('LoadExternalSongs', true, false, undefined);
+ */
 class LoadExternalSongs {
+  /**
+   * Stores the target state and the parameters to hand to it once loading completes.
+   * @param {string} nextState - Key of the game state to start after loading finishes
+   * @param {Array} nextStateParams - Parameters forwarded to the next state
+   */
   init(nextState, nextStateParams) {
+    /** @type {string} Game state key to start once external songs are loaded */
     this.nextState = nextState || 'SongSelect';
+    /** @type {Array} Parameters forwarded to the next state */
     this.nextStateParams = nextStateParams || [];
   }
   
+  /**
+   * Sets up loading UI, state tracking fields, and file system access, then either
+   * loads songs from external storage or falls back to a file input picker.
+   */
   create() {
+    /** @type {LoadingDots} Animated loading indicator dots */
     this.loadingDots = new LoadingDots();
     
+    /** @type {ProgressText} Bilingual progress text shown while songs load */
     this.progressText = new ProgressText(__("Loading External Songs...||Cargando canciones externas..."));
     
+    /** @type {FileSystemTools} Helper for reading directories and files */
     this.fileSystem = new FileSystemTools();
     
     if (window.externalSongs) {
+      /** @type {Array<Object>} Parsed external song charts */
       this.songs = window.externalSongs;
       this.finish(window.lastExternalSongIndex || 0);
       return;
     }
     
+    /** @type {Array<Object>} Parsed external song charts collected so far */
     this.songs = [];
+    /** @type {ExternalSMParser} Parser used to read external chart files */
     this.parser = new ExternalSMParser();
+    /** @type {number} Running index used to keep load order stable */
     this.currentIndex = 0;
+    /** @type {number} Count of songs loaded successfully */
     this.loadedCount = 0;
+    /** @type {number} Count of directories that failed to load */
     this.failedCount = 0;
+    /** @type {number} Total number of song directories to process */
     this.totalCount = 0;
+    /** @type {Set<string>} Names of directories currently being loaded */
     this.currentlyLoading = new Set();
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
@@ -17963,6 +22176,11 @@ class LoadExternalSongs {
     }
   }
 
+  /**
+   * Lists every directory under the external songs path and loads each one, either in
+   * parallel batches or sequentially depending on the ENABLE_PARALLEL_LOADING flag.
+   * @returns {Promise<void>} Resolves once all directories have been processed
+   */
   async loadSongsFromStorage() {
     try {
       const rootDir = await this.fileSystem.getDirectory(EXTERNAL_DIRECTORY + SONGS_DIRECTORY);
@@ -17986,6 +22204,12 @@ class LoadExternalSongs {
     }
   }
 
+  /**
+   * Splits the directory list into batches no larger than MAX_PARALLEL_DOWNLOADS and
+   * processes each batch concurrently to bound resource usage.
+   * @param {Array<Object>} directories - Directory entries to load
+   * @returns {Promise<void>} Resolves once every batch has been processed
+   */
   async loadDirectoriesParallel(directories) {
     const batches = [];
     
@@ -17998,17 +22222,34 @@ class LoadExternalSongs {
     }
   }
 
+  /**
+   * Loads every directory in a batch concurrently, tolerating individual failures.
+   * @param {Array<Object>} batch - Directory entries to process in parallel
+   * @returns {Promise<void>} Resolves once the whole batch has been attempted
+   */
   async processDirectoryBatch(batch) {
     const promises = batch.map(dir => this.processSongDirectoryWithTracking(dir));
     await Promise.allSettled(promises);
   }
 
+  /**
+   * Loads the given directories one at a time, ensuring only a single song is parsed
+   * at any moment.
+   * @param {Array<Object>} directories - Directory entries to load
+   * @returns {Promise<void>} Resolves once all directories have been processed
+   */
   async loadDirectoriesSequential(directories) {
     for (const dir of directories) {
       await this.processSongDirectoryWithTracking(dir);
     }
   }
 
+  /**
+   * Loads one directory while tracking its progress: it waits for a free parallel slot,
+   * parses the folder, records success or failure, and refreshes the progress display.
+   * @param {Object} dirEntry - Directory entry to process
+   * @returns {Promise<void>} Resolves once the directory has been processed
+   */
   async processSongDirectoryWithTracking(dirEntry) {
     const index = this.currentIndex;
     this.currentIndex ++;
@@ -18054,6 +22295,12 @@ class LoadExternalSongs {
     }
   }
 
+  /**
+   * Reads all files inside a directory, finds its .sm/.ssc chart files, and returns the
+   * first chart that parses successfully, or null if the folder is not a chart folder.
+   * @param {Object} dirEntry - Directory entry to scan for chart files
+   * @returns {Promise<Object|null>} The parsed chart, or null if none could be loaded
+   */
   async processSongDirectory(dirEntry) {
     try {
       const files = await this.fileSystem.listFiles(dirEntry);
@@ -18103,6 +22350,10 @@ class LoadExternalSongs {
     }
   }
 
+  /**
+   * Writes the current load progress percentage and loaded/failed counts to the
+   * progress text overlay.
+   */
   updateProgress() {
     const processed = this.loadedCount + this.failedCount;
     const progress = this.totalCount > 0 ? Math.round(processed / this.totalCount * 100) : 0;
@@ -18111,6 +22362,10 @@ class LoadExternalSongs {
     this.progressText.write(loadingText);
   }
 
+  /**
+   * Opens a native webkitdirectory file picker and forwards the chosen files to the
+   * processing pipeline on selection.
+   */
   showFileInput() {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -18124,6 +22379,12 @@ class LoadExternalSongs {
     fileInput.click();
   }
 
+  /**
+   * Groups the files picked by the user into per-directory maps and processes them,
+   * either in parallel batches or sequentially.
+   * @param {FileList} files - Files selected from the directory picker
+   * @returns {Promise<void>} Resolves once all file groups have been processed
+   */
   async processFileInput(files) {
     try {
       const fileMap = {};
@@ -18159,6 +22420,12 @@ class LoadExternalSongs {
     }
   }
 
+  /**
+   * Splits the directory names into parallel-safe batches and processes each batch.
+   * @param {Object} directories - Maps directory names to their file maps
+   * @param {Array<string>} dirNames - Names of the directories to process
+   * @returns {Promise<void>} Resolves once every batch has been processed
+   */
   async processFileDirectoriesParallel(directories, dirNames) {
     const batches = [];
     
@@ -18171,17 +22438,36 @@ class LoadExternalSongs {
     }
   }
 
+  /**
+   * Processes a single batch of picked directories concurrently, tolerating failures.
+   * @param {Object} directories - Maps directory names to their file maps
+   * @param {Array<string>} batch - Names of the directories in this batch
+   * @returns {Promise<void>} Resolves once the batch has been attempted
+   */
   async processFileDirectoryBatch(directories, batch) {
     const promises = batch.map(dirName => this.processSongFilesWithTracking(directories[dirName], dirName));
     await Promise.allSettled(promises);
   }
 
+  /**
+   * Processes every picked directory sequentially, one at a time.
+   * @param {Object} directories - Maps directory names to their file maps
+   * @param {Array<string>} dirNames - Names of the directories to process
+   * @returns {Promise<void>} Resolves once all directories have been processed
+   */
   async processFileDirectoriesSequential(directories, dirNames) {
     for (const dirName of dirNames) {
       await this.processSongFilesWithTracking(directories[dirName], dirName);
     }
   }
 
+  /**
+   * Parses the files of one picked folder while tracking progress and refresh the
+   * progress display once the folder has been processed.
+   * @param {Object} files - Map of lowercased filenames to picked File objects
+   * @param {string} folderName - Name of the folder being processed
+   * @returns {Promise<void>} Resolves once the folder has been processed
+   */
   async processSongFilesWithTracking(files, folderName) {
     const index = this.currentIndex;
     this.currentIndex ++;
@@ -18217,6 +22503,13 @@ class LoadExternalSongs {
     }
   }
 
+  /**
+   * Finds the .sm/.ssc files within a picked folder and returns the first chart that
+   * parses successfully, or null if the folder holds no loadable chart.
+   * @param {Object} files - Map of lowercased filenames to picked File objects
+   * @param {string} folderName - Name of the folder being processed
+   * @returns {Promise<Object|null>} The parsed chart, or null if none could be loaded
+   */
   async processSongFiles(files, folderName) {
     const chartFileNames = Object.keys(files).filter(name => 
       name.endsWith(".sm") || name.endsWith(".ssc")
@@ -18245,6 +22538,11 @@ class LoadExternalSongs {
     return null;
   }
   
+  /**
+   * Displays an error message on the progress text and returns to the main menu after
+   * a short delay.
+   * @param {string} message - Error message to display
+   */
   showError(message) {
     this.progressText.write(message);
     game.time.events.add(3000, () => {
@@ -18252,6 +22550,11 @@ class LoadExternalSongs {
     });
   }
   
+  /**
+   * Sorts the loaded songs, caches them in window.externalSongs, and starts the next
+   * state, defaulting to the song select screen, or shows an error if nothing loaded.
+   * @param {number} [resetIndex] - Optional starting song index to remember for next time
+   */
   finish(resetIndex = 0) {
     if (this.songs.length === 0) {
       this.showError(__("No external songs found||No se encontraron canciones"));
@@ -18272,14 +22575,39 @@ class LoadExternalSongs {
   }
 }
 
+/**
+ * @class LoadSongFolder
+ * @category Game States
+ * @summary Loads a single song via file input
+ * @constructor
+ * @description
+ * Lets the user select a song folder (or a .zip archive) through a native file picker
+ * and plays the resulting chart immediately. It locates and parses a .sm chart from the
+ * chosen files, extracting audio, background, banner, lyrics, and BG change assets from
+ * the ZIP when applicable, and starts SongSelect with the single chart.
+ * @example
+ * // Opens a file picker so the player can select a folder or ZIP to play.
+ * game.state.add('LoadSongFolder', LoadSongFolder);
+ * game.state.start('LoadSongFolder');
+ */
 class LoadSongFolder {
+  /**
+   * Shows the folder selection progress text, prepares the parser, and opens the
+   * native directory picker.
+   */
   create() {
+    /** @type {ProgressText} Bilingual progress text shown while a folder is selected */
     this.progressText = new ProgressText(__("Select Song Folder...||Seleccionar carpeta..."));
     
+    /** @type {ExternalSMParser} Parser used to read the selected chart files */
     this.parser = new ExternalSMParser();
     this.showFileInput();
   }
 
+  /**
+   * Creates and opens a webkitdirectory file input, wiring up selection to processFiles
+   * and cancellation to an error message, with a fallback hint for non-webkit browsers.
+   */
   showFileInput() {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -18303,6 +22631,12 @@ class LoadSongFolder {
     fileInput.click();
   }
 
+  /**
+   * Handles the picked files: dispatches a .zip to the ZIP processor, otherwise locates
+   * and parses the first .sm chart and starts SongSelect with that single song.
+   * @param {FileList} files - Files chosen from the directory picker
+   * @returns {Promise<void>} Resolves once the song has been parsed or rejected
+   */
   async processFiles(files) {
     try {
       this.progressText.write(__("Loading Song...||Cargando canción..."));
@@ -18347,6 +22681,12 @@ class LoadSongFolder {
     }
   }
   
+  /**
+   * Decompresses the selected .zip with JSZip and imports its contents, starting
+   * SongSelect with the first chart that is produced.
+   * @param {File} file - The .zip archive chosen by the user
+   * @returns {Promise<void>} Resolves once the ZIP has been processed or rejected
+   */
   async processZipFile(file) {
     const JSZip = window.JSZip;
     if (!JSZip) {
@@ -18369,6 +22709,14 @@ class LoadSongFolder {
     });
   }
 
+  /**
+   * Extracts the first .sm chart found in a decompressed ZIP, loads its audio, background,
+   * banner, lyrics, and BG change assets as object URLs, and invokes the callback with
+   * the finished chart.
+   * @param {Object} zipContent - JSZip archive object containing the song files
+   * @param {Function} callback - Invoked with the fully loaded chart object
+   * @returns {Promise<void>} Resolves once the chart and its assets have been loaded
+   */
   async processZipContent(zipContent, callback) {
     // Find .sm file
     let smFile = null;
@@ -18464,6 +22812,10 @@ class LoadSongFolder {
     callback(chart);
   }  
   
+  /**
+   * Displays an error on the progress text and returns to the main menu after a delay.
+   * @param {string} message - Error message to display
+   */
   showError(message) {
     this.progressText.write(message);
     game.time.events.add(3000, () => {
@@ -18472,20 +22824,54 @@ class LoadSongFolder {
   }
 }
 
+/**
+ * @class LoadExternalSongFile
+ * @category Game States
+ * @summary Loads a single external song file or ZIP archive
+ * @constructor
+ * @description
+ * Loads one individually chosen song from external storage. Given a chart filename and
+ * its directory, it parses the .sm/.ssc chart directly, or unzips a .zip archive and
+ * imports its chart and associated assets before handoff.
+ * @example
+ * // Load an individual song file and jump straight to the song select screen.
+ * game.state.add('LoadExternalSongFile', LoadExternalSongFile);
+ * game.state.start('LoadExternalSongFile', true, false, 'down.sm', 'Songs/Folder');
+ */
 class LoadExternalSongFile {
+  /**
+   * Stores the target file name, its directory path, and the next state to start once
+   * the song has been loaded.
+   * @param {string} fileName - Name of the chart or .zip file to load
+   * @param {string} filePath - Directory path that contains the file
+   * @param {string} [nextState] - Game state key to start after loading finishes
+   * @param {Array} [nextStateParams] - Parameters forwarded to the next state
+   */
   init(fileName, filePath, nextState, nextStateParams) {
+    /** @type {string} Name of the chart or .zip file to load */
     this.fileName = fileName;
+    /** @type {string} Directory path that contains the file */
     this.filePath = filePath;
+    /** @type {string} Game state key to start once the song is loaded */
     this.nextState = nextState || 'SongSelect';
+    /** @type {Array} Parameters forwarded to the next state */
     this.nextStateParams = nextStateParams || [];
   }
   
+  /**
+   * Sets up the loading UI, file system access, and chart parser, then dispatches to
+   * ZIP or plain song loading depending on the file extension.
+   */
   create() {
+    /** @type {LoadingDots} Animated loading indicator dots */
     this.loadingDots = new LoadingDots();
     
+    /** @type {ProgressText} Bilingual progress text shown while the song loads */
     this.progressText = new ProgressText(__("Loading Song...||Cargando canción..."));
 
+    /** @type {FileSystemTools} Helper for reading directories and files */
     this.fileSystem = new FileSystemTools();
+    /** @type {ExternalSMParser} Parser used to read external chart files */
     this.parser = new ExternalSMParser();
     
     if (this.fileName.endsWith('.zip')) {
@@ -18495,6 +22881,11 @@ class LoadExternalSongFile {
     }
   }
   
+  /**
+   * Reads every file in the song directory, locates the requested chart file, and parses
+   * it, finishing the state on success or showing an error otherwise.
+   * @returns {Promise<void>} Resolves once the chart has been parsed or rejected
+   */
   async loadSongData() {
     const dirEntry = await this.fileSystem.getDirectory(this.filePath);
           
@@ -18531,6 +22922,11 @@ class LoadExternalSongFile {
     this.showError(__(`(Failed to parse|Error al analizar): ${this.fileName}`));
   }
   
+  /**
+   * Reads the requested .zip archive, decompresses it with JSZip, and imports the chart
+   * plus its assets using the shared ZIP processing routine from LoadSongFolder.
+   * @returns {Promise<void>} Resolves once the ZIP has been processed or rejected
+   */
   async loadZipFileData() {
     const dirEntry = await this.fileSystem.getDirectory(this.filePath);
           
@@ -18567,6 +22963,10 @@ class LoadExternalSongFile {
     await LoadSongFolder.prototype.processZipContent.call(this, zipContent, chart => this.finish(chart));
   }
   
+  /**
+   * Writes an error message and returns to the main menu after a short delay.
+   * @param {string} message - Error message to display
+   */
   showError(message) {
     this.progressText.write(message);
     game.time.events.add(3000, () => {
@@ -18574,6 +22974,11 @@ class LoadExternalSongFile {
     });
   }
   
+  /**
+   * Starts the next state with the loaded chart (or a single-element array) and any
+   * stored parameters, or shows an error if no chart was produced.
+   * @param {Object|null} [chart] - The parsed chart to hand to the next state
+   */
   finish(chart = null) {
     if (!chart) {
       this.showError(__("Couldn't load song||No se pudo cargar la canción"));
@@ -18588,32 +22993,62 @@ class LoadExternalSongFile {
   }
 }
 
+/**
+ * @class Title
+ * @category Game States
+ * @summary Title Screen with animated logo
+ * @constructor
+ * @description
+ * The game's title screen, shown after the local songs finish loading. It fades in the
+ * camera, shows the background effects, animated logo, credit, and version texts, plays
+ * the last heard song through the global background music controller, and waits for a
+ * key press to advance to the main menu. Holding several buttons during the logo intro
+ * triggers emergency keybinding or factory resets.
+ * @example
+ * // The menu entry point reached after the loading chain finishes.
+ * game.state.add('Title', Title);
+ * game.state.start('Title');
+ */
 class Title {
+  /**
+   * Builds the title screen visuals (background, logo, instruction and credit texts),
+   * starts background music, runs the logo intro animation, and lets addons inject
+   * their own state behaviors.
+   */
   create() {
     game.camera.fadeIn(0xffffff);
 
+    /** @type {BackgroundGradient} Animated gradient backdrop behind the title */
     this.background = new BackgroundGradient();
+    /** @type {FuturisticLines} Decorative moving lines behind the logo */
     this.lines = new FuturisticLines();
     
+    /** @type {Logo} The game's animated title logo */
     this.logo = new Logo();
 
+    /** @type {Text} Pulsing "press any key" prompt shown beneath the logo */
     this.inputInstructionText = new Text(game.width / 2, 100, __("PRESS ANY KEY||PULSA CUALQUIER TECLA"));
     this.inputInstructionText.anchor.x = 0.5;
     game.add.tween(this.inputInstructionText).to({ alpha: 0 }, 500, "Linear", true, 0, -1).yoyo(true);
 
+    /** @type {Phaser.Sprite} Container sprite holding the credit and version texts */
     this.text = game.add.sprite(0, 0);
 
+    /** @type {Text} Copyright notice in the bottom left corner */
     this.creditText = new Text(2, game.height, COPYRIGHT, FONTS.small, this.text);
     this.creditText.anchor.y = 1;
 
+    /** @type {Text} Game version label in the bottom right corner */
     this.versionText = new Text(game.width - 2, game.height, VERSION, FONTS.small, this.text);
     this.versionText.anchor.set(1);
 
     if (!backgroundMusic) {
+      /** @type {BackgroundMusic} Global background music controller */
       backgroundMusic = new BackgroundMusic();
     }
     backgroundMusic.playLastSong();
 
+    /** @type {boolean} Whether the logo intro animation has finished */
     this.introEnded = false;
 
     this.logo.intro(() => (this.introEnded = true));
@@ -18621,6 +23056,10 @@ class Title {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Emergency fallback that restores the keyboard and gamepad mappings to their defaults
+   * when holding at least three buttons during the title animation, after confirmation.
+   */
   resetKeybindings() {
     if (confirm(__(
       "!! EMERGENCY RESET TRIGGERED !!\n" +
@@ -18643,6 +23082,10 @@ class Title {
     }
   }
   
+  /**
+   * Emergency fallback that performs a full factory reset of all settings and reloads
+   * the page when holding at least six buttons during the title animation, if confirmed.
+   */
   restoreDefaults() {
     if (confirm(__(
       "!! EMERGENCY RESET TRIGGERED !!\n" +
@@ -18661,6 +23104,11 @@ class Title {
     }
   }
   
+  /**
+   * Refreshes the gamepad each frame. Once the logo intro has finished, a mouse or
+   * gamepad press triggers the logo outro, checks held buttons for emergency resets,
+   * and advances to the main menu.
+   */
   update() {
     gamepad.update();
 
@@ -18684,12 +23132,45 @@ class Title {
   }
 }
 
+/**
+ * @class MainMenu
+ * @category Game States
+ * @summary Main Menu screen with navigation to all features
+ * @constructor
+ * @features
+ * Home carousel that links to Free Play, Character Select, Chart Editor, Settings and Extras
+ * Priority dialogs for crash reports, ratings, feature requests and community invites
+ * Extras hub with Jukebox, Offset Assistant, Achievements, Player Stats, Feedback and Credits
+ * @description
+ * The Main Menu is the hub state shown when the game boots. It constructs the home
+ * carousel menu and routes the player to every major feature, while showing contextual
+ * feedback dialogs based on the saved account stats after a session.
+ * @example
+ * // Launch the main menu from a modded state
+ * game.state.start("MainMenu");
+ *
+ * // Extend the home menu with a custom carousel item
+ * game.onMenuIn.add(function (id, carousel) {
+ *   if (id === "home") {
+ *     carousel.addItem("My Custom Option", function () {
+ *       console.log("Hello from my mod!");
+ *     });
+ *   }
+ * });
+ */
 class MainMenu {
+  /**
+   * Phaser state hook that builds the menu visuals, plays the menu
+   * music if needed and triggers any dialog screens or the home menu.
+   */
   create() {
     game.camera.fadeIn(0xffffff);
     
+    /** @type {FuturisticLines} Decorative animated background line effect */
     this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Ambient gradient overlay for the menu background */
     this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} On-screen hint bar with contextual button labels */
     this.navigationHint = new NavigationHint('general');
     
     // Check for feedback dialogs before showing menu
@@ -18704,12 +23185,17 @@ class MainMenu {
     }
     
     // Dispose background music when player leaves 
+    /** @type {boolean} Whether to keep the background music alive when leaving this state */
     this.keepBackgroundMusic = false;
     
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Checks account stats and shows the highest priority feedback
+   * dialog (bug report, rating, feature request, community) first.
+   */
   checkInitialDialogs() {
     // Check for bug report first (highest priority)
     if (!window.DEBUG && Account.stats.lastCrashed) {
@@ -18739,6 +23225,9 @@ class MainMenu {
     this.menu();
   }
 
+  /**
+   * Shows the crash report dialog when the last session ended in a crash.
+   */
   showBugReportDialog() {
     this.confirmDialog(
       __("Seems like the game crashed last time.\n" +
@@ -18773,6 +23262,9 @@ class MainMenu {
     );
   }
 
+  /**
+   * Shows the rating prompt dialog after enough playtime has accumulated.
+   */
   showRatingDialog() {
     this.confirmDialog(
       __("Hey! You've been playing a while!\n\n" +
@@ -18801,6 +23293,9 @@ class MainMenu {
     );
   }
 
+  /**
+   * Shows the feature request dialog asking the player to share ideas.
+   */
   showFeatureRequestDialog() {
     this.confirmDialog(
       __("Thank you for playing!\n\n" +
@@ -18833,6 +23328,9 @@ class MainMenu {
     );
   }
   
+  /**
+   * Shows the community invite dialog linking to the project homepage.
+   */
   showCommunityDialog() {
     this.confirmDialog(
       __("Enjoying the game?\n" +
@@ -18859,12 +23357,19 @@ class MainMenu {
     );
   }
 
+  /**
+   * Creates the WindowManager and displays the main menu home screen.
+   */
   menu() {
+    /** @type {WindowManager} Manages windows and focus for the navigation menus */
     this.windowManager = new WindowManager();
     
     this.showHomeMenu();
   }
 
+  /**
+   * Builds the home carousel with the primary navigation options.
+   */
   showHomeMenu() {
     const carousel = new CarouselMenu(0, game.height / 2 - 16, 112, 64, {
       align: 'left',
@@ -18891,6 +23396,9 @@ class MainMenu {
     }
   }
 
+  /**
+   * Opens the game sub-menu with Free Play, Extra Songs and Playlists.
+   */
   startGame() {
     const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
@@ -18911,6 +23419,9 @@ class MainMenu {
     carousel.onCancel.add(() => this.showHomeMenu());
   }
 
+  /**
+   * Shows the extra songs menu for loading or reloading external user songs.
+   */
   showExtraSongs() {
     const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
@@ -18939,6 +23450,9 @@ class MainMenu {
     carousel.onCancel.add(() => this.startGame());
   }
 
+  /**
+   * Opens the extras hub with Jukebox, Offset Assistant and other tools.
+   */
   showExtras() {
     const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
@@ -18964,6 +23478,9 @@ class MainMenu {
     carousel.onCancel.add(() => this.showHomeMenu());
   }
 
+  /**
+   * Shows the feedback menu linking to reviews, feature requests and bug reports.
+   */
   showFeedback() {
     const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
@@ -18987,6 +23504,9 @@ class MainMenu {
     carousel.onCancel.add(() => this.showExtras());
   }
   
+  /**
+   * Opens the community homepage and records that the player visited it.
+   */
   showCommunity() {
     window.openExternalUrl(COMMUNITY_HOMEPAGE_URL);
     
@@ -18996,16 +23516,31 @@ class MainMenu {
     this.menu();
   }
   
+  /**
+   * Starts the Addons state while keeping the background music playing.
+   */
   showAddonManager() {
     this.keepBackgroundMusic = true;
     game.state.start("Addons");
   }
   
+  /**
+   * Starts the Settings state while keeping the background music playing.
+   */
   showSettings() {
     this.keepBackgroundMusic = true;
     game.state.start("Settings");
   }
   
+  /**
+   * Shows a modal confirmation dialog with the given message and buttons.
+   * @param {string} message - Text to display inside the dialog
+   * @param {Function} onConfirm - Callback invoked when the confirm button is chosen
+   * @param {Function} onCancel - Callback invoked when the dialog is cancelled
+   * @param {string} [confirmText] - Label for the confirm button
+   * @param {string} [cancelText] - Label for the cancel button
+   * @returns {DialogWindow} The created dialog
+   */
   confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
@@ -19028,6 +23563,9 @@ class MainMenu {
     return dialog;
   }
 
+  /**
+   * Asks for confirmation and then exits the app on native shells.
+   */
   confirmExit() {
     this.confirmDialog(
       __("Are you sure you want to exit the game?||¿Estás seguro de que quieres salir del juego?"),
@@ -19047,19 +23585,31 @@ class MainMenu {
     );
   }
 
+  /**
+   * Starts SongSelect for local songs in free play mode.
+   */
   freePlay() {
     game.state.start("SongSelect", true, false, window.localSongs, null, false, "local");
   }
 
+  /**
+   * Instantiates the Offset Assistant used to calibrate input latency.
+   */
   startOffsetAssistant() {
     const offsetAssistant = new OffsetAssistant(game);
     game.add.existing(offsetAssistant);
   }
 
+  /**
+   * Starts the LoadExternalSongs state for importing user songs.
+   */
   loadExternalSongs() {
     game.state.start("LoadExternalSongs");
   }
   
+  /**
+   * Opens the native file picker for .sm/.zip files and loads the chosen song folder.
+   */
   startFileSelect() {
     game.state.start('FileSelect', true, false, ['sm', 'zip'], (entry) => {
       const fileName = entry.name;
@@ -19069,10 +23619,16 @@ class MainMenu {
     });
   }
 
+  /**
+   * Starts the LoadSongFolder state to load a single song.
+   */
   loadSingleSong() {
     game.state.start("LoadSongFolder");
   }
 
+  /**
+   * Starts the Jukebox, optionally prompting to load external songs first.
+   */
   startJukebox() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       if (!window.externalSongs) {
@@ -19095,28 +23651,47 @@ class MainMenu {
     }
   }
   
+  /**
+   * Opens the Chart Editor, disallowing background music from persisting.
+   */
   openEditor() {
     this.keepBackgroundMusic = false;
     game.state.start("Editor", true, false, window.editorSongData || null);
   }
 
+  /**
+   * Starts the achievements menu.
+   */
   showAchievements() {
     game.state.start("AchievementsMenu");
   }
 
+  /**
+   * Starts the player statistics menu.
+   */
   showStats() {
     game.state.start("StatsMenu");
   }
 
+  /**
+   * Starts the credits screen, which returns to the main menu afterwards.
+   */
   showCredits() {
     game.state.start("Credits", true, false, "MainMenu");
   }
 
+  /**
+   * Phaser lifecycle hook called every frame to poll gamepad input.
+   */
   update() {
     gamepad.update();
     this.windowManager?.update();
   }
 
+  /**
+   * Phaser lifecycle hook called when leaving the state;
+   * disposes the background music unless another state keeps it alive.
+   */
   shutdown() {
     if (backgroundMusic && !this.keepBackgroundMusic) {
       backgroundMusic.destroy();
@@ -19125,27 +23700,63 @@ class MainMenu {
   }
 }
 
+/**
+ * @class Addons
+ * @category Game States
+ * @summary Addon Manager user interface
+ * @constructor
+ * @features
+ * Browse installed addons in a carousel with previews
+ * Enable, disable, hibernate, wake or uninstall addons
+ * Prompt to reload when structural changes are made
+ * @description
+ * The Addons state is the user interface for the addon manager. Installed
+ * addons are shown in a carousel with a preview pane for icons and
+ * descriptions, and each can be enabled, disabled, hibernated, woken or
+ * uninstalled. Structural changes flag a reload that is confirmed when the
+ * player leaves the screen.
+ * @example
+ * // Modding usage example
+ * // Transition into the addon manager screen
+ * game.state.start("Addons");
+ *
+ * // Addon authors react to this state starting via behaviors
+ * addonManager.executeStateBehaviors("Addons", this);
+ */
 class Addons {
+  /**
+   * Sets up the addon carousel, preview panes, and loads the addon list.
+   */
   create() {
+    /** @type {boolean} Whether the state is navigating back to the menu. */
     this.leaving = false;
     
     game.camera.fadeIn(0x000000);
     gamepad.releaseAll();
 
+    /** @type {FuturisticLines} Animated background line decoration. */
     this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Scrolling gradient background effect. */
     this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} On-screen overlay hinting button usage. */
     this.navigationHint = new NavigationHint('general');
-    
+    /** @type {HTMLCanvasElement} Offscreen canvas for addon icon previews. */
     this.previewCanvas = document.createElement("canvas");
+    /** @type {CanvasRenderingContext2D} 2D context for the preview canvas. */
     this.previewCtx = this.previewCanvas.getContext("2d");
+    /** @type {Image} Image element used to load addon icons. */
     this.previewImg = new Image();
     
+    /** @type {Phaser.Sprite} Sprite displaying the rendered preview canvas. */
     this.previewSprite = game.add.sprite(8, 4, null);
     
+    /** @type {WindowManager} Manager for stacked dialog windows. */
     this.windowManager = new WindowManager();
     
+    /** @type {Text} Description text widget for the selected addon. */
     this.descriptionText = new Text(110, 4, "");
     
+    /** @type {CarouselMenu} Carousel listing the installed addons. */
     this.carousel = new CarouselMenu(0, 56, 100, 70, {
       align: 'left',
       bgcolor: '#9b59b6',
@@ -19154,11 +23765,15 @@ class Addons {
       crop: false
     });
     
+    /** @type {boolean} Whether a reload is required after addon changes. */
     this.needsReload = false;
     
     this.loadAddons();
   }
   
+  /**
+   * Shows an explanation dialog when no addons are installed.
+   */
   showNoAddonsDialog() {
     this.confirmDialog(
       __("NO ADDONS INSTALLED\n\nAddons extend the game with new features,\nvisual effects, and gameplay modifications.\n\nVisit the community page to download addons,\nor place addons in the 'Addons' folder.||NO HAY ADDONS INSTALADOS\n\nLos addons expanden el juego con nuevas funciones,\nefectos visuales y modificaciones de gameplay.\n\nVisita la página de la comunidad para descargar addons,\no coloca addons en la carpeta 'Addons'."),
@@ -19174,6 +23789,9 @@ class Addons {
     );
   }
   
+  /**
+   * Rebuilds the carousel from the installed addon list.
+   */
   loadAddons() {
     this.carousel = this.carousel.replace();
 
@@ -19205,6 +23823,10 @@ class Addons {
     this.carousel.onCancel.add(() => this.applyChanges());
   }
   
+  /**
+   * Renders an addon's icon and description into the preview pane.
+   * @param {Object} addon - The addon descriptor to preview.
+   */
   previewAddon(addon) {
    this.descriptionText.write(
       `${addon.name}\n\n` +
@@ -19234,6 +23856,10 @@ class Addons {
     }
   }
   
+  /**
+   * Replaces the carousel with the actions menu for one addon.
+   * @param {Object} addon - The addon whose actions are displayed.
+   */
   showAddonDetails(addon) {
     this.carousel = this.carousel.replace();
     
@@ -19277,6 +23903,9 @@ class Addons {
     this.carousel.onCancel.add(() => this.loadAddons());
   }
   
+  /**
+   * Confirms a reload when addon changes require it, else returns to menu.
+   */
   applyChanges() {
     if (this.needsReload || addonManager.needsReload()) {
       this.confirmDialog(
@@ -19293,17 +23922,32 @@ class Addons {
     }
   };
   
+  /**
+   * Flags the state as leaving and switches to the main menu.
+   */
   backToMainMenu() {
     this.leaving = true;
     game.state.start("MainMenu");
   }
   
+  /**
+   * Updates gamepad input and windows each frame while not leaving.
+   */
   update() {
     if (this.leaving) return;
     gamepad.update();
     this.windowManager.update();
   }
   
+  /**
+   * Shows a modal confirm/cancel dialog.
+   * @param {string} message - Localized dialog message.
+   * @param {Function} [onConfirm] - Called when the confirm button is chosen.
+   * @param {Function} [onCancel] - Called when the cancel button is chosen.
+   * @param {string} [confirmText] - Confirm button label.
+   * @param {string} [cancelText] - Cancel button label.
+   * @returns {DialogWindow} The created dialog instance.
+   */
   confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
@@ -19327,29 +23971,61 @@ class Addons {
   }
 }
 
+/**
+ * @class Settings
+ * @category Game States
+ * @summary Settings user interface
+ * @constructor
+ * @features
+ * Persistent settings window covering audio, gameplay, graphics and account options
+ * Keybindings, chart modifiers and backup import/export data management
+ * Restore, restart and high score erasure flows guarded by confirmation dialogs
+ * @description
+ * The Settings state hosts the game's configuration screen. Nearly every option is
+ * collected in a single settings window, with submenus for keybindings and chart
+ * modifiers plus tools to import, export or erase account data. Changes are persisted
+ * to the account and some options require a restart to take effect.
+ * @example
+ * // Open the settings screen from any other state
+ * game.state.start("Settings");
+ */
 class Settings {
+  /**
+   * Phaser state hook that sets up the background, window manager and settings UI.
+   */
   create() {
+    /** @type {FuturisticLines} Ambient background line decorations */
     this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Animated gradient behind the UI */
     this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} Button hints along the bottom of the screen */
     this.navigationHint = new NavigationHint('general');
     
+    /** @type {WindowManager} Manages the settings dialog windows */
     this.windowManager = new WindowManager();
     
     gamepad.releaseAll();
     
     this.showSettings();
     
+    /** @type {HTMLInputElement} Hidden file input used for backup import */
     this.fileInput = document.createElement("input");
     this.fileInput.type = "file";
     
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Phaser lifecycle hook called every frame; updates the window manager.
+   */
   update() {
     gamepad.update();
     this.windowManager.update();
   }
   
+  /**
+   * Shows a loading message, then builds the settings window shortly after.
+   */
   showSettings() {
     const loading = new Text(game.width / 2, game.height / 2, __("Please Wait...||Espera..."));
     loading.anchor.set(0.5);
@@ -19360,10 +24036,14 @@ class Settings {
     });
   }
   
+  /**
+   * Builds the settings window with every persistent gameplay and graphics option.
+   */
   createSettingsWindow() {
     const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
     
+    /** @type {Object} The settings window shown on screen */
     this.settingsWindow = settingsWindow;
     
     let restartNeeded = false;
@@ -19822,6 +24502,10 @@ class Settings {
     }, true);
   }
   
+  /**
+   * Prompts for a JSON backup file and imports it into the account with confirmation.
+   * @returns {Promise<void>} Resolves once the file dialog flow finishes
+   */
   async importBackupData() {
     this.fileInput.accept = "application/json";
   
@@ -19893,6 +24577,10 @@ class Settings {
     this.fileInput.click();
   }
   
+  /**
+   * Exports the current account data to a downloadable JSON backup file.
+   * @returns {Promise<void>} Resolves once the export completes
+   */
   async exportBackupData() {
     const backupData = {
       version: VERSION,
@@ -19937,18 +24625,36 @@ class Settings {
     }
   }
   
+  /**
+   * Returns to the main menu.
+   */
   showMainMenu() {
     game.state.start("MainMenu");
   }
   
+  /**
+   * Opens the keybindings configuration state.
+   */
   showKeybindingsMenu() {
     game.state.start("Keybindings");
   }
   
+  /**
+   * Opens the chart modifiers state.
+   */
   showChartModifiersMenu() {
     game.state.start("ChartModifiers", true, false, "MainMenu");
   }
 
+  /**
+   * Shows a confirmation dialog with custom confirm and cancel actions.
+   * @param {string} message - The message text to display
+   * @param {Function} [onConfirm] - Callback when the confirm button is pressed
+   * @param {Function} [onCancel] - Callback when the cancel button is pressed
+   * @param {string} [confirmText] - Label for the confirm button
+   * @param {string} [cancelText] - Label for the cancel button
+   * @returns {Object} The dialog window instance
+   */
   confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
@@ -19971,6 +24677,9 @@ class Settings {
     return dialog;
   }
 
+  /**
+   * Confirms and permanently erases all stored high scores.
+   */
   confirmEraseHighscores() {
     this.confirmDialog(
       __("This will permanently erase all your high scores.\nThis action cannot be undone!\n\nAre you sure?||Esto borrará permanentemente todas tus puntuaciones altas.\n¡Esta acción no se puede deshacer!\n\n¿Estás seguro?"),
@@ -19986,6 +24695,9 @@ class Settings {
     );
   }
 
+  /**
+   * Confirms and restores all settings to their default values.
+   */
   confirmRestoreDefaults() {
     this.windowManager.remove(this.settingsWindow, true);
     
@@ -20002,6 +24714,9 @@ class Settings {
     );
   }
 
+  /**
+   * Confirms a restart when settings changes require one.
+   */
   confirmRestart() {
     this.confirmDialog(
       __("Settings changed require a restart to take effect.\nRestart now?||Los cambios en la configuración requieren un reinicio para aplicar.\n¿Reiniciar ahora?"),
@@ -20013,21 +24728,54 @@ class Settings {
   }
 }
 
+/**
+ * @class ChartModifiers
+ * @category Game States
+ * @summary Chart modifier and note rendering settings screen
+ * @constructor
+ * @features
+ * Toggle switches for No Jumps, No Hands, No Freezes, No Mines, Mirrored and Randomized
+ * Inline note colors, note speed and speed mod options when opened outside of Settings
+ * Applies and saves the modifiers to the account before returning to the calling state
+ * @description
+ * The Chart Modifiers state is a compact settings overlay reachable from the pause menu
+ * or from Settings. It edits note rendering options and toggles the chart modifier flags,
+ * saving them to the account and returning control to the state that requested them.
+ * @example
+ * // Launch chart modifiers and resume gameplay afterwards
+ * game.state.start("ChartModifiers", true, false, "Play", song, 0);
+ *
+ * // Read the active chart modifiers
+ * console.log(Account.settings.chartModifiers);
+ */
 class ChartModifiers {
+  /**
+   * Phaser state hook that stores the state to return to after applying.
+   * @param {string} returnState - Name of the state to return to after applying
+   * @param {...*} returnParams - Params to forward when restarting the return state
+   */
   init(returnState = "Settings", ...returnParams) {
     this.returnState = returnState;
     this.returnParams = returnParams;
   }
   
+  /**
+   * Phaser state hook that sets up the background and builds the settings window.
+   */
   create() {
     game.camera.fadeIn(0x000000);
 
+    /** @type {FuturisticLines} Decorative animated background line effect */
     this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Ambient gradient overlay for the menu background */
     this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} On-screen hint bar with contextual button labels */
     this.navigationHint = new NavigationHint("general");
     
+    /** @type {Object} The current chart modifier flags being edited */
     this.modifiers = Account.settings.chartModifiers || DEFAULT_ACCOUNT.settings.chartModifiers;
     
+    /** @type {WindowManager} Manages the settings window and its focus */
     this.windowManager = new WindowManager();
     
     gamepad.releaseAll();
@@ -20037,11 +24785,17 @@ class ChartModifiers {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Phaser lifecycle hook called every frame to poll gamepad input.
+   */
   update() {
     gamepad.update();
     this.windowManager.update();
   }
   
+  /**
+   * Builds the settings window with the modifier and rendering options.
+   */
   showMenu() {
     const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
@@ -20140,6 +24894,15 @@ class ChartModifiers {
     }, true);
   }
 
+  /**
+   * Shows a modal confirmation dialog with the given message and buttons.
+   * @param {string} message - Text to display inside the dialog
+   * @param {Function} onConfirm - Callback invoked when the confirm button is chosen
+   * @param {Function} onCancel - Callback invoked when the dialog is cancelled
+   * @param {string} [confirmText] - Label for the confirm button
+   * @param {string} [cancelText] - Label for the cancel button
+   * @returns {DialogWindow} The created dialog
+   */
   confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
@@ -20163,12 +24926,40 @@ class ChartModifiers {
   }
 }
 
+/**
+ * @class Keybindings
+ * @category Game States
+ * @summary Gamepad and keyboard keybindings UI
+ * @constructor
+ * @features
+ * Remap keyboard and gamepad controls per player
+ * Swaps conflicting bindings automatically
+ * Unmaps or resets bindings to defaults
+ * @description
+ * The Keybindings state is the settings screen where players review and edit
+ * keyboard and gamepad mappings for both players. Edits are staged in
+ * pendingChanges and only committed on shutdown, so backing out never applies
+ * partial changes. A modal wait overlay captures the next key or button press.
+ * @example
+ * // Modding usage example
+ * // Launch the keybindings screen from any state
+ * game.state.start("Keybindings");
+ *
+ * // Read a binding elsewhere, e.g. when the modal captures a key
+ * const upKeys = Account.mapping.keyboard.player1.up;
+ */
 class Keybindings {
+  /**
+   * Sets up the keybindings menu UI, background effects, and input listeners.
+   */
   create() {
     game.camera.fadeIn(0x000000);
 
+    /** @type {FuturisticLines} Animated background line decoration. */
     this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Scrolling gradient background effect. */
     this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} On-screen overlay hinting button usage. */
     this.navigationHint = new NavigationHint([
       {
         position: "right",
@@ -20187,16 +24978,21 @@ class Keybindings {
       }
     ]);
     
+    /** @type {WindowManager} Manager for stacked dialog windows. */
     this.windowManager = new WindowManager();
     
+    /** @type {boolean} Whether the key wait overlay is currently active. */
     this.waitOverlayActive = false;
+    /** @type {Object} Staged keyboard and gamepad mapping edits. */
     this.pendingChanges = {
       keyboard: JSON.parse(JSON.stringify(Account.mapping.keyboard)),
       gamepad: JSON.parse(JSON.stringify(Account.mapping.gamepad))
     };
     
     // Notification system
+    /** @type {Array} Notifications currently queued for display. */
     this.notifications = [];
+    /** @type {Phaser.Group} Container holding notification sprites. */
     this.notificationContainer = game.add.group();
     
     gamepad.releaseAll();
@@ -20206,12 +25002,18 @@ class Keybindings {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Advances gamepad input, window management, and notifications each frame.
+   */
   update() {
     gamepad.update();
     this.windowManager.update();
     this.updateNotifications();
   }
   
+  /**
+   * Commits staged binding changes, persists the account, and cleans up UI.
+   */
   shutdown() {
     this.cleanupWaitOverlay();
     // Apply pending changes
@@ -20228,6 +25030,11 @@ class Keybindings {
     if (this.notificationContainer) this.notificationContainer.destroy();
   }
   
+  /**
+   * Shows a transient notification banner that fades out after a duration.
+   * @param {string} text - Localized message to display.
+   * @param {number} [duration] - Milliseconds before the notification fades.
+   */
   showNotification(text, duration = 2500) {
     const entry = {
       text: new Text(4, 140, text, FONTS.default_stroke),
@@ -20255,6 +25062,9 @@ class Keybindings {
     }
   }
   
+  /**
+   * Ages notifications each frame and removes those whose time has elapsed.
+   */
   updateNotifications() {
     const now = game.time.now;
     for (let i = this.notifications.length - 1; i >= 0; i--) {
@@ -20274,6 +25084,9 @@ class Keybindings {
     }
   }
   
+  /**
+   * Builds the main keybindings window with per-player edit and reset options.
+   */
   showKeybindingsMenu() {
     const settingsWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     settingsWindow.fontTint = 0x76fcde;
@@ -20325,6 +25138,12 @@ class Keybindings {
     game.onMenuIn.dispatch('keybindings', settingsWindow);
   }
   
+  /**
+   * Opens the keyboard remapping window for one player.
+   * @param {number} [playerNum] - Player number, 1 or 2.
+   * @param {number} [selectedIndex] - Initial carousel index (forced to 0).
+   * @param {number} [returnIndex] - Carousel index to restore when returning.
+   */
   showKeyboardCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
     this.cleanupWaitOverlay();
     
@@ -20373,6 +25192,12 @@ class Keybindings {
     }, true);
   }
   
+  /**
+   * Opens the gamepad remapping window for one player.
+   * @param {number} [playerNum] - Player number, 1 or 2.
+   * @param {number} [selectedIndex] - Initial carousel index (forced to 0).
+   * @param {number} [returnIndex] - Carousel index to restore when returning.
+   */
   showGamepadCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
     this.cleanupWaitOverlay();
     
@@ -20421,6 +25246,14 @@ class Keybindings {
     }, true);
   }
   
+  /**
+   * Shows a modal overlay that waits for the next key or button press.
+   * @param {string} message - Instruction text for the control being mapped.
+   * @param {boolean} [listenKeyboard] - Accept keyboard key presses.
+   * @param {boolean} [listenGamepad] - Accept gamepad button presses.
+   * @param {Function} [onSubmit] - Callback receiving the captured key/button code.
+   * @param {Function} [onCancel] - Callback invoked when mapping is abandoned.
+   */
   showKeyWaitOverlay(message, listenKeyboard = true, listenGamepad = true, onSubmit, onCancel) {
     this.cleanupWaitOverlay();
     
@@ -20599,6 +25432,9 @@ class Keybindings {
     };
   }
   
+  /**
+   * Destroys the active wait overlay and restores the navigation hint.
+   */
   cleanupWaitOverlay() {
     if (this.waitOverlayElements) {
       this.waitOverlayElements.cleanup?.();
@@ -20608,6 +25444,13 @@ class Keybindings {
     this.navigationHint.visible = true;
   }
   
+  /**
+   * Assigns a key code to a keyboard slot, resolving conflicts by swapping.
+   * @param {number} playerNum - Player number, 1 or 2.
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   * @param {number} index - Alternate binding index for the control.
+   * @param {number} keyCode - Phaser key code being mapped.
+   */
   mapKeyboardKey(playerNum, mappingKey, index, keyCode) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
     const mapping = this.pendingChanges.keyboard;
@@ -20652,6 +25495,12 @@ class Keybindings {
     this.showNotification(__(`Mapped: ${this.getKeyName(keyCode)}||Asignado: ${this.getKeyName(keyCode)}`));
   }
   
+  /**
+   * Assigns a button code to a gamepad slot, resolving conflicts by swapping.
+   * @param {number} playerNum - Player number, 1 or 2.
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   * @param {number} buttonCode - Gamepad button code being mapped.
+   */
   mapGamepadKey(playerNum, mappingKey, buttonCode) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
     const mapping = this.pendingChanges.gamepad;
@@ -20676,6 +25525,14 @@ class Keybindings {
     this.showNotification(__(`Mapped: ${GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`}||Asignado: ${GAMEPAD_KEY_NAMES[buttonCode] || `BOTÓN ${buttonCode}`}`));
   }
   
+  /**
+   * Searches pending keyboard mappings for a conflicting key code.
+   * @param {string} [playerKey] - Player key being assigned ('player1'/'player2').
+   * @param {string} [mappingKey] - Control identifier being assigned.
+   * @param {number} [index] - Alternate binding index being assigned.
+   * @param {number} [keyCode] - Key code to search for.
+   * @returns {Object|null} Conflict details, or null when no conflict exists.
+   */
   findKeyboardKeyConflict(playerKey, mappingKey, index, keyCode) {
     if (!playerKey || !mappingKey) return null;
     
@@ -20712,6 +25569,13 @@ class Keybindings {
     return null;
   }
   
+  /**
+   * Searches pending gamepad mappings for a conflicting button code.
+   * @param {string} [playerKey] - Player key being assigned.
+   * @param {string} [mappingKey] - Control identifier being assigned.
+   * @param {number} [buttonCode] - Button code to search for.
+   * @returns {Object|null} Conflict details, or null when no conflict exists.
+   */
   findGamepadKeyConflict(playerKey, mappingKey, buttonCode) {
     // Don't search for null conflicts
     if (buttonCode === null || buttonCode === undefined) return null;
@@ -20744,6 +25608,12 @@ class Keybindings {
     return null;
   }
 
+  /**
+   * Clears a keyboard binding slot and trims trailing null entries.
+   * @param {number} playerNum - Player number, 1 or 2.
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   * @param {number} index - Alternate binding index to clear.
+   */
   unmapKeyboardKey(playerNum, mappingKey, index) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
     const mapping = this.pendingChanges.keyboard;
@@ -20759,6 +25629,11 @@ class Keybindings {
     }
   }
   
+  /**
+   * Clears a gamepad binding slot.
+   * @param {number} playerNum - Player number, 1 or 2.
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   */
   unmapGamepadKey(playerNum, mappingKey) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
     const mapping = this.pendingChanges.gamepad;
@@ -20768,6 +25643,13 @@ class Keybindings {
     this.showNotification(__("BUTTON UNMAPPED!||¡BOTÓN DESASIGNADO!"));
   }
   
+  /**
+   * Resolves the display label for a keyboard binding slot.
+   * @param {string} playerKey - Player key ('player1' or 'player2').
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   * @param {number} index - Alternate binding index to inspect.
+   * @returns {string} Formatted key name, or '???' when unmapped.
+   */
   getKeyboardKeyDisplay(playerKey, mappingKey, index) {
     const mapping = this.pendingChanges.keyboard[playerKey][mappingKey];
     
@@ -20778,6 +25660,12 @@ class Keybindings {
     return this.getKeyName(mapping[index]);
   }
   
+  /**
+   * Resolves the display label for a gamepad binding slot.
+   * @param {string} playerKey - Player key ('player1' or 'player2').
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   * @returns {string} Button name, or '???' when unmapped.
+   */
   getGamepadButtonDisplay(playerKey, mappingKey) {
     const buttonCode = this.pendingChanges.gamepad[playerKey][mappingKey];
     
@@ -20788,6 +25676,11 @@ class Keybindings {
     return GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`;
   }
   
+  /**
+   * Converts a Phaser key code into its display name using the key tables.
+   * @param {number} keyCode - Phaser key code to look up.
+   * @returns {string} Formatted key name.
+   */
   getKeyName(keyCode) {
     for (const [name, code] of Object.entries(KEYBOARD_KEY_CODES)) {
       if (code === keyCode) {
@@ -20797,6 +25690,11 @@ class Keybindings {
     return `KEY ${keyCode}`;
   }
   
+  /**
+   * Formats a raw key table name into a human-friendly label.
+   * @param {string} name - Raw key identifier from KEYBOARD_KEY_CODES.
+   * @returns {string} Human-friendly key label.
+   */
   formatKeyName(name) {
     const nameMap = KEYBOARD_KEY_NAMES;
     if (nameMap[name]) return nameMap[name];
@@ -20804,6 +25702,15 @@ class Keybindings {
     return name.replace(/_/g, ' ');
   }
   
+  /**
+   * Shows a modal dialog with confirm and cancel buttons.
+   * @param {string} message - Localized dialog message.
+   * @param {Function} [onConfirm] - Called when the confirm button is chosen.
+   * @param {Function} [onCancel] - Called when the cancel button is chosen.
+   * @param {string} [confirmText] - Confirm button label.
+   * @param {string} [cancelText] - Cancel button label.
+   * @returns {DialogWindow} The created dialog instance.
+   */
   confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
@@ -20827,15 +25734,47 @@ class Keybindings {
   }
 }
 
+/**
+ * @class FileSelect
+ * @category Game States
+ * @summary File system browser with navigation history and extension filtering
+ * @constructor
+ * @description
+ * A navigable file and directory browser presented as a carousel menu. It lets the
+ * caller open, rename, or pick files by providing extension filters and selection and
+ * cancel callbacks, keeps a navigation history to go back to parent folders, and
+ * persists its current position so the state can be restored after navigating away.
+ * @example
+ * // Open the browser to a folder of screenshots (.png) and act on selection.
+ * game.state.add('FileSelect', FileSelect);
+ * game.state.start('FileSelect', true, false, ['png'],
+ *   entry => console.log('Selected', entry), () => console.log('Cancelled'));
+ */
 class FileSelect {
+  /**
+   * Stores the extension filter, selection/cancel callbacks, and navigation defaults,
+   * restoring a previously saved file browser state if present.
+   * @param {Array<string>|null} [extensions] - Allowed file extensions, or null to show all files
+   * @param {Function|null} [onSelect] - Callback invoked when a file is selected
+   * @param {Function|null} [onCancel] - Callback invoked when browsing is cancelled
+   * @param {boolean} [allowCancel] - Whether the back/cancel action completes the state
+   */
   init(extensions = null, onSelect = null, onCancel = null, allowCancel = true) {
+    /** @type {Array<string>|null} Allowed file extensions, or null for any file */
     this.extensions = extensions;
+    /** @type {Function|null} Callback invoked when a file is selected */
     this.onSelect = onSelect;
+    /** @type {Function|null} Callback invoked when browsing is cancelled */
     this.onCancel = onCancel;
+    /** @type {boolean} Whether the back/cancel action completes the state */
     this.allowCancel = allowCancel;
+    /** @type {string} Full path of the directory currently being browsed */
     this.currentPath = '';
+    /** @type {Object|null} File entry for the current directory */
     this.currentDir = null;
+    /** @type {Array<Object>} Stack of previously visited directories */
     this.history = [];
+    /** @type {FileSystemTools} Helper for listing and reading directories */
     this.fileSystem = new FileSystemTools();
     
     if (window.fileSelectState) {
@@ -20843,6 +25782,11 @@ class FileSelect {
     }
   }
 
+  /**
+   * Builds the file browser UI: fades in the camera, adds the background layers and
+   * navigation hint, creates the path and empty-folder texts, and loads the current
+   * directory into the carousel.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -20864,6 +25808,10 @@ class FileSelect {
     this.loadDirectory();
   }
 
+  /**
+   * Persists the browser position (current path, selection, scroll offset, filters, and
+   * history) to window.fileSelectState so the state can be restored later.
+   */
   saveState() {
     window.fileSelectState = {
       currentPath: this.currentDir ? this.currentDir.fullPath : '/',
@@ -20874,6 +25822,11 @@ class FileSelect {
     };
   }
 
+  /**
+   * Applies a previously saved file browser state to this instance, restoring the path,
+   * history, selection index, and scroll offset for the next load.
+   * @param {Object} state - Saved state object previously written by saveState
+   */
   restoreState(state) {
     if (state.extensions) {
       this.extensions = state.extensions;
@@ -20892,6 +25845,13 @@ class FileSelect {
     }
   }
 
+  /**
+   * Lists the entries of the given (or root/file-system default) directory, filters them
+   * by the extension whitelist, builds a sorted carousel menu with parent navigation,
+   * restores any saved selection, and refreshes the path display.
+   * @param {Object|null} [dirEntry] - Directory to browse, or null to browse the default path
+   * @returns {Promise<void>} Resolves once the directory has been loaded into the carousel
+   */
   async loadDirectory(dirEntry = null) {
     this.emptyFolderText.visible = false;
     
@@ -21041,6 +26001,11 @@ class FileSelect {
     this.saveState();
   }
   
+  /**
+   * Handles a carousel selection: directories are pushed into history and opened, while
+   * files are selected through the onSelect callback or advance to the main menu.
+   * @param {Object} entry - File or directory entry that was selected
+   */
   onEntrySelected(entry) {
     if (entry.isDirectory) {
       this.history.push(this.currentDir);
@@ -21055,6 +26020,11 @@ class FileSelect {
     }
   }
   
+  /**
+   * Navigates up one level, either to the previously visited directory from history or
+   * to the parent of the current path.
+   * @returns {Promise<void>} Resolves once the parent directory has been loaded
+   */
   async goToParent() {
     if (this.history.length > 0) {
       const parent = this.history.pop();
@@ -21070,6 +26040,9 @@ class FileSelect {
     }
   }
   
+  /**
+   * Pops the most recent directory from history and reloads it.
+   */
   goBack() {
     if (this.history.length > 0) {
       const previous = this.history.pop();
@@ -21077,6 +26050,10 @@ class FileSelect {
     }
   }
   
+  /**
+   * Rewrites the path label with the current directory's full path, wrapping the text
+   * to fit the screen width.
+   */
   updatePathDisplay() {
     let path = this.currentDir ? this.currentDir.fullPath : '/';
     if (path === '') path = '/';
@@ -21084,6 +26061,11 @@ class FileSelect {
     this.pathText.wrap(240 - 10);
   }
   
+  /**
+   * Cleans up the browser UI and shows an error message, returning to the main menu
+   * after a short delay.
+   * @param {string} message - Error message to display
+   */
   showError(message) {
     this.loadingDots?.destroy();
     this.carousel?.destroy();
@@ -21097,10 +26079,17 @@ class FileSelect {
     });
   }
   
+  /**
+   * Called each frame; refreshes the gamepad state so carousel navigation stays responsive.
+   */
   update() {
     gamepad.update();
   }
   
+  /**
+   * Runs when the state is shut down: saves the browser position and destroys the
+   * loading dots and carousel widgets.
+   */
   shutdown() {
     this.saveState();
     
@@ -21109,14 +26098,48 @@ class FileSelect {
   }
 }
 
+/**
+ * @class SongSelect
+ * @category Game States
+ * @summary Song selection with previews and difficulty selection
+ * @constructor
+ * @features
+ * Carousel listing of songs with audio and banner previews
+ * High score display per song and a difficulty selection overlay
+ * Single player and two-player multiplayer setup with per-player settings
+ * Playlist actions for adding, removing and reordering songs
+ * @description
+ * The Song Select state lets players browse the loaded song list, preview audio and
+ * banners, inspect high scores and pick a difficulty. From here the player can start
+ * a single player game, configure a local multiplayer match, or manage songs and
+ * playlists through the actions menu.
+ * @example
+ * // Launch song select for the local song library
+ * game.state.start("SongSelect", true, false, window.localSongs, 0, false, "local");
+ *
+ * // Start a game directly for a chosen song and difficulty
+ * game.state.start("Play", true, false, { chart: song, difficultyIndex: 0 });
+ */
 class SongSelect {
+  /**
+   * Phaser state hook that stores the song list, starting index and type.
+   * @param {Object[]} songs - The song list to present
+   * @param {number} index - Song index to start the carousel at
+   * @param {boolean} autoSelect - Whether to auto-start the initially selected song
+   * @param {string} [type] - Source type of the songs ("auto", "local" or "external")
+   * @param {string} [playlistKey] - Optional playlist key the songs belong to
+   */
   init(songs, index, autoSelect, type = "auto", playlistKey = null) {
+    /** @type {string} Source type of the song list being browsed */
     this.type = type;
+    /** @type {string|null} Optional playlist key for the current song list */
     this.playlistKey = playlistKey;
     
     this.isActionMenuOpen = false;
     this.actionsMenuBlocked = false;
     
+    /** @type {Object[]} The song list presented in this state */
+    /** @type {number} Carousel index to start the song list at */
     switch (type) {
       case "local":
         this.songs = songs || window.localSongs || [];
@@ -21135,6 +26158,7 @@ class SongSelect {
     
     window.selectedSongs = this.songs;
     
+    /** @type {boolean} Whether the initially selected song should start automatically */
     this.autoSelect = autoSelect || false;
     
     if (!window.multiplayerState) window.multiplayerState = {
@@ -21152,6 +26176,9 @@ class SongSelect {
     }
   }
   
+  /**
+   * Phaser state hook that builds the selection UI and wires up previews.
+   */
   create() {
     //gamepad.singlePlayerId = gamepad.lastPlayerId;
     
@@ -21161,7 +26188,9 @@ class SongSelect {
     
     new BackgroundGradient();
     
+    /** @type {Object|null} The currently selected song */
     this.selectedSong = null;
+    /** @type {number} Index of the selected difficulty within the song */
     this.selectedDifficulty = 0;
     
     // Stop any background music when entering song selection
@@ -21169,6 +26198,7 @@ class SongSelect {
       backgroundMusic.stop();
     }
     
+    /** @type {HTMLAudioElement} Audio element used for song previews */
     this.previewAudio = this.previewAudio || document.createElement("audio");
     this.previewAudio.volume = Account.settings.volume / 100;
     
@@ -21189,7 +26219,9 @@ class SongSelect {
     this.loadingDots.y -= 8;
     this.loadingDots.visible = false;
     
+    /** @type {WindowManager} Window manager dedicated to player 1 */
     this.windowManager1 = new WindowManager(); // For Player 1
+    /** @type {WindowManager} Window manager dedicated to player 2 */
     this.windowManager2 = new WindowManager(); // For Player 2
     
     this.windowManager1.gamepad = gamepad1;
@@ -21217,6 +26249,9 @@ class SongSelect {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
+  /**
+   * Builds the song carousel menu, restores the starting index and previews.
+   */
   createSongSelectionMenu() {
     const x = 0;
     const y = 35;
@@ -21274,6 +26309,10 @@ class SongSelect {
     }
   }
 
+  /**
+   * Plays the audio preview and renders the banner and metadata for a song.
+   * @param {Object} song - The song being previewed
+   */
   previewSong(song) {
     let index = this.songCarousel.selectedIndex;
     
@@ -21362,6 +26401,10 @@ class SongSelect {
     }
   }
   
+  /**
+   * Displays the saved high scores for each difficulty of the given song.
+   * @param {Object} song - The song whose high scores are shown
+   */
   displayHighScores(song) {
     const songKey = this.getSongKey(song);
     const highScores = Account.highScores[songKey];
@@ -21390,6 +26433,11 @@ class SongSelect {
     this.highScoreText.write(highScoreText);
   }
   
+  /**
+   * Builds a stable storage key for a song based on its source.
+   * @param {Object} song - The song to identify
+   * @returns {string} The song's high score storage key
+   */
   getSongKey(song) {
     if (song.folderName) {
       return `local_${song.folderName}`;
@@ -21405,6 +26453,11 @@ class SongSelect {
     return `unknown_${Date.now()}`;
   }
   
+  /**
+   * Builds the metadata text block displayed for a song.
+   * @param {Object} data - The song data to describe
+   * @returns {string} The formatted metadata text
+   */
   getMetadataText(data) {
     const title = data.titleTranslit || data.title;
     const subtitle = data.subtitleTranslit || data.subtitle;
@@ -21423,6 +26476,11 @@ class SongSelect {
     return text;
   }
 
+  /**
+   * Sets the selected song and shows its difficulty selection overlay.
+   * @param {Object} song - The song the player chose
+   * @param {number} index - Index of the song in the carousel
+   */
   selectSong(song, index) {
     this.selectedSong = song;
     this.selectedDifficulty = 0;
@@ -21431,6 +26489,10 @@ class SongSelect {
     this.showDifficultySelection(song);
   }
 
+  /**
+   * Shows the carousel of difficulties available for the selected song.
+   * @param {Object} song - The song whose difficulties are listed
+   */
   showDifficultySelection(song) {
     const x = 0;
     const y = 37;
@@ -21477,6 +26539,11 @@ class SongSelect {
     });
   }
   
+  /**
+   * Shows the game mode carousel offering single player or multiplayer.
+   * @param {Object} song - The selected song
+   * @param {number} difficultyIndex - Index of the chosen difficulty
+   */
   showGameModeSelection(song, difficultyIndex) {
     const x = 0;
     const y = 37;
@@ -21508,6 +26575,11 @@ class SongSelect {
     });
   }
 
+  /**
+   * Builds the two-player setup windows with per-player match settings.
+   * @param {Object} song - The selected song
+   * @param {number} difficultyIndex - Index of the chosen difficulty
+   */
   showMultiplayerScreen(song, difficultyIndex) {
     this.multiplayerScreen = game.add.group();
     
@@ -21552,6 +26624,9 @@ class SongSelect {
     this.multiplayerState.difficultyIndex = difficultyIndex;
   }
   
+  /**
+   * Starts the multiplayer gameplay state with the configured settings.
+   */
   startMultiplayer() {
     this.multiplayerScreen.destroy();
     this.multiplayerScreen = null;
@@ -21560,6 +26635,11 @@ class SongSelect {
     game.state.start("PlayMulti", true, false, this.multiplayerState);
   }
   
+  /**
+   * Populates a player's setup window with autoplay, scroll, note and speed settings.
+   * @param {Object} window - The player's setup window to fill
+   * @param {number} playerNumber - The player number (1 or 2)
+   */
   populatePlayerFrame(window, playerNumber) {
     const settings = this.multiplayerState["player" + playerNumber].settings;
     
@@ -21611,6 +26691,12 @@ class SongSelect {
     );
   }
 
+  /**
+   * Starts the gameplay state for a song in single player or multiplayer.
+   * @param {Object} song - The selected song
+   * @param {number} difficultyIndex - Index of the chosen difficulty
+   * @param {boolean} singlePlayer - Whether to launch single player or multiplayer
+   */
   startGame(song, difficultyIndex, singlePlayer = true) {
     // Start gameplay with selected song
     game.state.start(singlePlayer ? "Play" : "PlayMulti", true, false, {
@@ -21619,6 +26705,10 @@ class SongSelect {
     }, difficultyIndex, undefined, undefined, this.playlistKey);
   }
 
+  /**
+   * Opens the actions menu for the current song (playlists, move, stats, editor).
+   * @param {string} [playlistKey] - Key of the playlist the song belongs to, if any
+   */
   showActionsMenu(playlistKey) {
     this.isActionMenuOpen = true;
     this.songCarousel.visible = false;
@@ -21767,6 +26857,11 @@ class SongSelect {
     this.actionsMenu.onCancel.add(() => this.closeActionsMenu());
   }
   
+  /**
+   * Shows the playlist picker for adding a song, excluding one optional playlist.
+   * @param {Object} song - The song to add to a playlist
+   * @param {string} [omitKey] - Playlist key to skip in the list
+   */
   showAddToPlaylistMenu(song, omitKey) {
     if (this.actionsMenu) this.actionsMenu.destroy();
     
@@ -21809,6 +26904,10 @@ class SongSelect {
     this.actionsMenu.onCancel.add(() => this.showActionsMenu(omitKey));
   }
   
+  /**
+   * Prompts the player to name and create a new playlist for the song.
+   * @param {Object} song - The song to assign to the new playlist
+   */
   createPlaylistForSong(song) {
     const keyboard = new OnScreenKeyboard(undefined, 68);
     
@@ -21845,6 +26944,9 @@ class SongSelect {
     });
   }
   
+  /**
+   * Closes the actions menu and restores the song carousel input.
+   */
   closeActionsMenu() {
     this.isActionMenuOpen = false;
     this.songCarousel.inputEnabled = true;
@@ -21855,6 +26957,9 @@ class SongSelect {
     }
   }
 
+  /**
+   * Phaser lifecycle hook called every frame; handles multiplayer readiness.
+   */
   update() {
     gamepad.update();
     
@@ -21953,6 +27058,9 @@ class SongSelect {
     }
   }
   
+  /**
+   * Phaser lifecycle hook called when leaving the state; stops previews.
+   */
   shutdown() {
     if (this.previewAudio && typeof this.previewAudio.pause == 'function') {
       this.previewAudio.pause();
@@ -21971,12 +27079,38 @@ class SongSelect {
   }
 }
 
+/**
+ * @class SongStats
+ * @category Game States
+ * @summary Per-song statistics, difficulties, scores and preview browser
+ * @constructor
+ * @features
+ * Tabbed interface covering general info, difficulty breakdowns, high scores and previews
+ * Note density chart plus counts of notes, mines, holds, rolls, jumps and hands
+ * Interactive chart preview with a scrubbed playhead and explosion hit effects
+ * @description
+ * The Song Stats state inspects a single chart in detail. It exposes tabs for general
+ * metadata, per-difficulty statistics with a density chart, saved high scores, and
+ * an interactive chart preview that renders notes against the song's audio.
+ * @example
+ * // Open the stats window for a song and return to the caller afterwards
+ * game.state.start("SongStats", true, false, song, "SongSelect", [songs, index]);
+ */
 class SongStats {
+  /**
+   * Phaser state hook that stores the song and builds the tab definitions.
+   * @param {Object} song - The song whose stats are inspected, including playlist key
+   * @param {string} returnState - Name of the state to return to
+   * @param {Array} [returnParams] - Parameters to pass when returning
+   */
   init(song, returnState, returnParams = {}) {
+    /** @type {Object} The song being inspected */
     this.song = song;
     this.playlistKey = this.song.playlistKey || null;
+    /** @type {string} Name of the state to return to */
     this.returnState = returnState;
     this.returnParams = returnParams;
+    /** @type {number} Index of the currently active tab */
     this.currentTab = 0;
     this.currentDifficultyIndex = 0;
     this.tabContent = null;
@@ -21986,8 +27120,10 @@ class SongStats {
     this.previewBeat = 0;
     this.previewStartTime = 0;
     this.isDestroyed = false;
+    /** @type {string} Scroll direction used by the chart preview */
     this.scrollDirection = Account.settings.scrollDirection || 'falling';
     
+    /** @type {Object[]} The tab definitions with their builder callbacks */
     this.tabs = [
       { id: 'general', label: __("General||General"), create: this.createGeneralTab.bind(this) },
       { id: 'difficulties', label: __("Difficulties||Dificultades"), create: this.createDifficultiesTab.bind(this) },
@@ -22008,6 +27144,9 @@ class SongStats {
     window.addEventListener('visibilitychange', this.visibilityChangeListener);
   }
 
+  /**
+   * Phaser state hook that sets up the header, background and first tab.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -22056,6 +27195,9 @@ class SongStats {
     this.showTab(0);
   }
 
+  /**
+   * Refreshes the difficulty label shown in the header.
+   */
   updateDiffText() {
     const diff = this.getCurrentDifficulty();
     if (diff) {
@@ -22067,6 +27209,9 @@ class SongStats {
     this.diffText.visible = (this.currentTab === 1 || this.currentTab === 3);
   }
 
+  /**
+   * Starts the looping idle animation on the tab navigation arrows.
+   */
   startArrowIdle() {
     if (this.leftArrowTween) {
       this.leftArrowTween.start();
@@ -22085,6 +27230,9 @@ class SongStats {
     }
   }
 
+  /**
+   * Stops the idle arrow animations and clears their tweens.
+   */
   stopArrowIdle() {
     if (this.leftArrowTween) {
       this.leftArrowTween.stop();
@@ -22096,6 +27244,10 @@ class SongStats {
     }
   }
 
+  /**
+   * Plays a quick press animation on the navigation arrow for a direction.
+   * @param {number} direction - -1 for the left arrow, 1 for the right arrow
+   */
   animateArrowPress(direction) {
     const arrow = direction === -1 ? this.leftArrow : this.rightArrow;
     const targetX = arrow.x + (direction * 3);
@@ -22106,6 +27258,10 @@ class SongStats {
       .yoyo(true);
   }
 
+  /**
+   * Activates the tab at the given index and builds its content.
+   * @param {number} index - Index of the tab to show
+   */
   showTab(index) {
     if (this.isDestroyed) return;
     this.currentTab = index;
@@ -22116,6 +27272,9 @@ class SongStats {
     this.navigationHint.updateHints(index === 3 ? "song_stats_song_preview" : "song_stats");
   }
 
+  /**
+   * Destroys the current tab's content and stops its preview audio.
+   */
   clearTab() {
     if (this.tabContent) {
       this.tabContent.destroy();
@@ -22132,10 +27291,18 @@ class SongStats {
     this.previewPlaying = false;
   }
 
+  /**
+   * Returns the chart's difficulty list.
+   * @returns {Object[]} The difficulties defined for the song
+   */
   getDifficulties() {
     return this.song.chart.difficulties || [];
   }
 
+  /**
+   * Returns the currently selected difficulty, clamped to the list.
+   * @returns {Object|null} The current difficulty or null when none exist
+   */
   getCurrentDifficulty() {
     const diffs = this.getDifficulties();
     if (diffs.length === 0) return null;
@@ -22145,6 +27312,10 @@ class SongStats {
     return diffs[this.currentDifficultyIndex];
   }
 
+  /**
+   * Returns the note list for the current difficulty.
+   * @returns {Object[]} The notes of the current difficulty, or an empty array
+   */
   getCurrentNotes() {
     const diff = this.getCurrentDifficulty();
     if (!diff) return [];
@@ -22152,6 +27323,9 @@ class SongStats {
     return this.song.chart.notes[key] || [];
   }
 
+  /**
+   * Moves to the next difficulty and refreshes dependent tabs.
+   */
   rotateDifficulty() {
     const diffs = this.getDifficulties();
     if (diffs.length === 0) return;
@@ -22167,10 +27341,19 @@ class SongStats {
     }
   }
 
+  /**
+   * Returns the scroll direction multiplier used by the chart preview.
+   * @param {number} beat - The beat being scrolled (unused placeholder)
+   * @returns {number} -1 for falling scroll, 1 for rising scroll
+   */
   getScrollDirection(beat) {
     return this.scrollDirection === 'falling' ? -1 : 1;
   }
 
+  /**
+   * Computes the current preview time and beat accounting for the chart offset.
+   * @returns {Object} Object with numeric "now" and "beat" fields
+   */
   getCurrentTime() {
     const chartOffset = this.song.chart.offset || 0;
     const currentTime = ((game.time.now - this.previewStartTime + (chartOffset * 1000)) / 1000) + this.chartRenderer.beatToSec(this.previewBeat);
@@ -22181,6 +27364,9 @@ class SongStats {
     };
   }
 
+  /**
+   * Builds the general info tab with song metadata and play/editor actions.
+   */
   createGeneralTab() {
     this.tabContent = game.add.group();
     const banner = new CanvasBackground(4, 24);
@@ -22273,6 +27459,9 @@ class SongStats {
     mainMenu();
   }
 
+  /**
+   * Builds the difficulties tab with a note density chart and stats.
+   */
   createDifficultiesTab() {
     this.tabContent = game.add.group();
     const diffs = this.getDifficulties();
@@ -22330,6 +27519,9 @@ class SongStats {
     this.updateDifficultyStats();
   }
 
+  /**
+   * Refreshes the note statistics text and density chart for the current difficulty.
+   */
   updateDifficultyStats() {
     const diff = this.getCurrentDifficulty();
     if (!diff) return;
@@ -22380,6 +27572,9 @@ class SongStats {
     }
   }
 
+  /**
+   * Builds the high scores tab listing saved scores for each difficulty.
+   */
   createScoresTab() {
     this.tabContent = game.add.group();
     const songKey = window.getSongKey(this.song);
@@ -22448,6 +27643,9 @@ class SongStats {
     }
   }
 
+  /**
+   * Builds the interactive chart preview tab for the current difficulty.
+   */
   createPreviewTab() {
     this.tabContent = game.add.group();
     const diff = this.getCurrentDifficulty();
@@ -22509,6 +27707,9 @@ class SongStats {
     this.previewAudio.play();
   }
 
+  /**
+   * Advances the chart preview render and triggers explosion hit effects.
+   */
   updatePreview() {
     if (this.isDestroyed || !this.chartRenderer || this.currentTab !== 3 || !this.previewStartTime) return;
     
@@ -22532,6 +27733,10 @@ class SongStats {
     }
   }
 
+  /**
+   * Plays a brief explosion effect on the receptor of the given column.
+   * @param {number} column - The note column to flash
+   */
   playExplosionEffect(column) {
     if (!this.chartRenderer) return;
     const receptor = this.chartRenderer.receptors[column];
@@ -22543,6 +27748,9 @@ class SongStats {
     }
   }
 
+  /**
+   * Phaser lifecycle hook called every frame; handles tab navigation input.
+   */
   update() {
     if (this.isDestroyed) return;
     
@@ -22578,6 +27786,9 @@ class SongStats {
     }
   }
 
+  /**
+   * Releases the preview audio, renderer and event listeners used by this state.
+   */
   cleanup() {
     this.isDestroyed = true;
     this.stopArrowIdle();
@@ -22600,29 +27811,65 @@ class SongStats {
     }
   }
 
+  /**
+   * Phaser lifecycle hook called when leaving the state; performs cleanup.
+   */
   shutdown() {
     this.cleanup();
   }
 }
 
+/**
+ * @class CharacterSelect
+ * @category Game States
+ * @summary Character selection, creation, and customization
+ * @constructor
+ * @features
+ * Carousel roster of the player's characters with select, skill, customize and delete actions
+ * Guided creation wizard covering skin, hair, clothing and a final name step
+ * RGB color picker for tinting hair and per-layer item colors with named color output
+ * @description
+ * The Character Select state manages the player-owned characters. It shows the current
+ * roster, lets the player equip unlocked skills and customize appearance down to
+ * per-layer colors, and supports a guided wizard for creating brand new characters.
+ * @example
+ * // Launch the character select screen from a modded state
+ * game.state.start("CharacterSelect");
+ *
+ * // Read the currently active character
+ * const charManager = new CharacterManager();
+ * const active = charManager.getCurrentCharacter();
+ * console.log("Active character:", active && active.name);
+ */
 class CharacterSelect {
+  /**
+   * Phaser state hook that sets up the lobby background, the character
+   * manager and the main interface elements, then refreshes the display.
+   */
   create() {
     game.camera.fadeIn(0x000000);
 
+    /** @type {CharacterManager} Manages the saved characters and their persistence */
     this.characterManager = new CharacterManager();
+    /** @type {Object} The character currently selected in the menu */
     this.selectedCharacter = this.characterManager.getCurrentCharacter();
 
     new Background('ui_lobby_background', false, 1);
     new Background('ui_lobby_overlay', true, 0.3, 0.5);
     new FuturisticLines();
 
+    /** @type {NavigationHint} Contextual hint bar with button labels */
     this.navigationHint = new NavigationHint('general');
 
     this.createUI();
     this.updateDisplay();
   }
 
+  /**
+   * Creates the initial interface objects and resets transient menu references.
+   */
   createUI() {
+    /** @type {CharacterDisplay} The rendered character sprite shown on screen */
     this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
     this.createDetailsText();
 
@@ -22643,6 +27890,9 @@ class CharacterSelect {
     this.showHomeUI();
   }
 
+  /**
+   * Creates the text elements and bars used to display character information.
+   */
   createDetailsText() {
     this.nameText = new Text(144, 10, "", FONTS.shaded);
     this.levelText = new Text(175, 10, "", FONTS.default);
@@ -22653,6 +27903,9 @@ class CharacterSelect {
     this.skillBar = new SkillBar(146, 18);
   }
 
+  /**
+   * Returns to the home screen, clearing menus and listing all characters.
+   */
   showHomeUI() {
     gamepad.releaseAll();
     this.clearAllMenus();
@@ -22660,6 +27913,9 @@ class CharacterSelect {
     this.updateDisplay();
   }
 
+  /**
+   * Destroys all open menus and resets the transient UI references.
+   */
   clearAllMenus() {
     if (this.characterCarousel) {
       this.characterCarousel.destroy();
@@ -22697,6 +27953,9 @@ class CharacterSelect {
     gamepad.signals.pressed.any.removeAll();
   }
 
+  /**
+   * Writes the selected character's name, level, experience, skill and details.
+   */
   writeCharacterInformation() {
     const char = this.selectedCharacter;
     this.nameText.write(char ? char.name : "");
@@ -22743,6 +28002,12 @@ class CharacterSelect {
     this.updateDetails("", text, !!char);
   }
 
+  /**
+   * Updates the shared details panel with the given title and description text.
+   * @param {string} title - Title text for the panel
+   * @param {string} description - Body text for the panel
+   * @param {boolean} [showCharacterInfo] - Whether to reveal the character info UI
+   */
   updateDetails(title, description, showCharacterInfo = false) {
     this.itemNameText.write(title);
     this.itemDescriptionText.write(description);
@@ -22759,11 +28024,18 @@ class CharacterSelect {
     this.itemDescriptionText.y = showCharacterInfo ? 42 : 18;
   }
 
+  /**
+   * Selects the given character and refreshes the display.
+   * @param {Object} character - The character to select
+   */
   selectCharacter(character) {
     this.selectedCharacter = character;
     this.updateDisplay();
   }
 
+  /**
+   * Rebuilds the character display sprite and refreshes the information text.
+   */
   updateDisplay() {
     if (this.characterDisplay) {
       this.characterDisplay.destroy();
@@ -22777,6 +28049,9 @@ class CharacterSelect {
     this.writeCharacterInformation();
   }
 
+  /**
+   * Builds the carousel listing all characters plus add/remove options.
+   */
   showCharacterList() {
     this.characterCarousel = new CarouselMenu(0, 8, 100, 130, {
       bgcolor: "#9b59b6",
@@ -22822,6 +28097,9 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Shows the per-character action menu: select, skill, customize or delete.
+   */
   showActionMenu() {
     gamepad.releaseAll();
     this.clearAllMenus();
@@ -22848,11 +28126,17 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Persists the current character as the active playable character.
+   */
   confirmSelection() {
     this.characterManager.setCurrentCharacter(this.selectedCharacter.name);
     this.showCharacterList();
   }
 
+  /**
+   * Shows the skill selection carousel for the selected character.
+   */
   setSkill() {
     this.updateDetails("", "", false);
 
@@ -22902,6 +28186,10 @@ class CharacterSelect {
     }
   }
 
+  /**
+   * Builds and displays a preview text describing the given skill.
+   * @param {string} skillId - The identifier of the skill to preview
+   */
   updateSkillPreview(skillId) {
     const skill = CHARACTER_SKILLS.find(s => s.id === skillId);
     if (!skill) return;
@@ -23002,6 +28290,9 @@ class CharacterSelect {
     this.updateDetails(skill.name, previewText, false);
   }
 
+  /**
+   * Opens the customization menu listing the appearance slots to edit.
+   */
   customizeCharacter() {
     gamepad.releaseAll();
     this.clearAllMenus();
@@ -23051,6 +28342,10 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Updates the details panel describing the item equipped in the given slot.
+   * @param {string} slotId - The appearance slot identifier
+   */
   updateEquipmentText(slotId) {
     const slots = {
       'front_hair': __("Front hair||Pelo frontal"),
@@ -23090,6 +28385,12 @@ class CharacterSelect {
     this.updateDetails(titleText, '\n\n\n' + (labelText || __("< ??? >||< ??? >")) + '\n\n' + (desc || ''));
   }
   
+  /**
+   * Converts a numeric color to the closest named or descriptive color string.
+   * @param {number} color - RGB color value (0xRRGGBB)
+   * @param {number} [step] - Color quantization step used for matching
+   * @returns {string} The localized name of the color
+   */
   colorToName(color, step = 32) {
     const r = (color >> 16) & 0xFF;
     const g = (color >> 8) & 0xFF;
@@ -23284,6 +28585,11 @@ class CharacterSelect {
     return closest.name;
   }
 
+  /**
+   * Returns the item data currently equipped in the given appearance slot.
+   * @param {string} slotId - The appearance slot identifier
+   * @returns {Object|null} The slot item data, or null if none is equipped
+   */
   getCurrentSlotItem(slotId) {
     const appearance = this.selectedCharacter?.appearance;
     if (!appearance) return null;
@@ -23319,6 +28625,10 @@ class CharacterSelect {
     return { name: __("None||Ninguno"), id: null, description: '' };
   }
   
+  /**
+   * Lists the unlocked items available for the given appearance slot.
+   * @param {string} slotId - The appearance slot identifier
+   */
   showSlotItems(slotId) {
     gamepad.releaseAll();
     this.clearAllMenus();
@@ -23491,6 +28801,11 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Temporarily previews an item on the character display without saving.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {Object} item - The item to preview
+   */
   previewSlotItem(slotId, item) {
     if (!this.selectedCharacter) return;
 
@@ -23516,6 +28831,11 @@ class CharacterSelect {
     this.refreshCharacter(newAppearance);
   }
   
+  /**
+   * Re-renders the character display using the given appearance overrides.
+   * @param {Object} [appearance] - Partial appearance overrides to apply
+   * @param {boolean} [hardReset] - Whether to fully recreate the display sprite
+   */
   refreshCharacter(appearance = {}, hardReset = false) {
     const tempChar = {
       ...this.selectedCharacter,
@@ -23538,6 +28858,11 @@ class CharacterSelect {
     }
   }
 
+  /**
+   * Equips the chosen item on the character and persists it to the account.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {Object} item - The item to equip
+   */
   equipSlotItem(slotId, item) {
     if (!this.selectedCharacter) return;
 
@@ -23568,6 +28893,11 @@ class CharacterSelect {
     this.updateDisplay();
   }
 
+  /**
+   * Lists the layers of a multi-layer item so each one can be tinted.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {Object} item - The item whose layers are being colored
+   */
   showLayerColorMenu(slotId, item) {
     if (!item || !item.layers || item.layers.length < 2) return;
 
@@ -23628,6 +28958,13 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Opens the color input for tinting a single layer of an item.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {Object} item - The item being tinted
+   * @param {number} layerIndex - Index of the layer to tint
+   * @param {number} defaultColor - Starting color value
+   */
   customizeLayerColor(slotId, item, layerIndex, defaultColor) {
     const layerName = item.layers[layerIndex].name || __(`Layer ${layerIndex + 1}||Capa ${layerIndex + 1}`);
     const colorKey = slotId + '_layer' + layerIndex;
@@ -23652,6 +28989,11 @@ class CharacterSelect {
     );
   }
 
+  /**
+   * Applies the new layer tint to the character and re-renders the display.
+   * @param {string} colorKey - The storage key for the layer tint
+   * @param {number} color - RGB tint value to apply
+   */
   applyLayerColorToCharacter(colorKey, color) {
     if (!this.selectedCharacter) return;
     const appearance = this.selectedCharacter.appearance;
@@ -23664,6 +29006,11 @@ class CharacterSelect {
     }
   }
 
+  /**
+   * Opens the color input for tinting a single-slot clothing item.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {Object} item - The item being tinted
+   */
   customizeItemColor(slotId, item) {
     const currentColor = this.selectedCharacter?.appearance?.tints?.[slotId] || item?.tint || 0xffffff;
     
@@ -23687,6 +29034,11 @@ class CharacterSelect {
     );
   }
   
+  /**
+   * Applies a new tint to a clothing slot and re-renders the character.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {number} color - RGB tint value to apply
+   */
   applyItemColorToCharacter(slotId, color) {
     if (!this.selectedCharacter) return;
     const appearance = this.selectedCharacter.appearance;
@@ -23699,6 +29051,11 @@ class CharacterSelect {
     }
   }
   
+  /**
+   * Opens the color input for tinting an aura/special effect item.
+   * @param {string} slotId - The clothing slot identifier
+   * @param {Object} item - The aura item being tinted
+   */
   customizeAuraColor(slotId, item) {
     const currentColor = this.selectedCharacter?.appearance?.tints?.special || item?.tint || 0xffffff;
     
@@ -23733,6 +29090,9 @@ class CharacterSelect {
     );
   }
 
+  /**
+   * Opens the color input for tinting the character's hair.
+   */
   customizeHairColor() {
     const currentColor = this.selectedCharacter.appearance.tints?.hair || 0xa8705a;
     
@@ -23769,6 +29129,14 @@ class CharacterSelect {
     );
   }
 
+  /**
+   * Shows an RGB color picker driven by the gamepad, calling back on every change.
+   * @param {string} title - Title shown above the picker
+   * @param {number} defaultColor - Starting RGB color value
+   * @param {Function} onColorChange - Called while adjusting the color
+   * @param {Function} onConfirm - Called when the picker is confirmed
+   * @param {Function} onCancel - Called when the picker is cancelled
+   */
   showColorInput(title, defaultColor, onColorChange, onConfirm, onCancel) {
     let color = defaultColor || 0xffffff;
     let r = (color >> 16) & 0xff;
@@ -23842,6 +29210,9 @@ class CharacterSelect {
     this.colorUI = { background, titleText, rgbText };
   }
   
+  /**
+   * Destroys the active color input UI and restores the general hints.
+   */
   cleanupColorUI() {
     if (this.colorUI) {
       if (this.colorUI.background) this.colorUI.background.destroy();
@@ -23853,6 +29224,9 @@ class CharacterSelect {
     this.navigationHint.updateHints('general');
   }
 
+  /**
+   * Confirms and deletes the selected character, then returns to the list.
+   */
   deleteCharacter() {
     this.confirm(
       __("Delete character?||¿Eliminar personaje?"),
@@ -23874,6 +29248,13 @@ class CharacterSelect {
     );
   }
 
+  /**
+   * Shows a Yes/No dialog for the given message and routes the result.
+   * @param {string} message - Text to display in the dialog
+   * @param {Function} onConfirm - Callback invoked for the yes button
+   * @param {Function} onCancel - Callback invoked for the no button
+   * @param {string} [recommended] - Default highlighted button selection
+   */
   confirm(message, onConfirm, onCancel, recommended = 'none') {
     this.clearAllMenus();
 
@@ -23897,8 +29278,13 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Resets the creation state and starts the new character creation wizard.
+   */
   startCharacterCreation() {
+    /** @type {number} Index of the current step in the creation wizard */
     this.creationStep = 0;
+    /** @type {Object} Appearance object being edited during creation */
     this.newCharacterAppearance = {
       skinTone: 0,
       hairColor: 0xFFFFFF,
@@ -23933,6 +29319,9 @@ class CharacterSelect {
     this.showCreationStep();
   }
 
+  /**
+   * Renders the current creation step UI and wires up its input handler.
+   */
   showCreationStep() {
     if (this.creationMenu) {
       this.creationMenu.destroy();
@@ -23979,6 +29368,9 @@ class CharacterSelect {
     }
   }
 
+  /**
+   * Shows the Next/Previous/Cancel navigation options for the wizard.
+   */
   showCreationNavigationMenu() {
     gamepad.releaseAll();
     this.creationWindow.forcedHighlightY = null;
@@ -24002,6 +29394,10 @@ class CharacterSelect {
     this.creationWindowManager.focus(this.creationWindow);
   }
   
+  /**
+   * Step handler letting the player cycle through the available skin tones.
+   * @param {Function} callback - Invoked when the step is completed
+   */
   creationCustomizeSkinTone(callback) {
     const skinOptions = [
       __("Lighter||Clarito"),
@@ -24040,6 +29436,10 @@ class CharacterSelect {
     gamepad.signals.pressed.any.add(skinHandler);
   }
 
+  /**
+   * Step handler with an RGB picker for choosing the new character hair color.
+   * @param {Function} callback - Invoked when the step is completed
+   */
   creationCustomizeHairColor(callback) {
     let color = this.newCharacterAppearance.tints.hair;
     let r = Math.max(0x88, (color >> 16) & 0xff);
@@ -24099,6 +29499,11 @@ class CharacterSelect {
     gamepad.signals.pressed.any.add(colorHandler);
   }
 
+  /**
+   * Step handler letting the player choose a front or back hair style.
+   * @param {string} type - Either "frontHair" or "backHair"
+   * @param {Function} callback - Invoked when the step is completed
+   */
   creationCustomizeHairStyle(type, callback) {
     const isDev = VERSION.includes('dev');
     const unlockAll = window.UNLOCK_ALL_CLOTHES === true && isDev;
@@ -24151,6 +29556,11 @@ class CharacterSelect {
     gamepad.signals.pressed.any.add(hairHandler);
   }
 
+  /**
+   * Step handler listing the unlocked clothing items for picking a slot.
+   * @param {string} slotId - The clothing slot being customized
+   * @param {Function} callback - Invoked when the step is completed
+   */
   creationCustomizeSlot(slotId, callback) {
     const items = CHARACTER_ITEMS.filter(item => item.type === slotId);
     const slotTypesWithNone = ['shoes', 'accessory', 'special'];
@@ -24221,6 +29631,10 @@ class CharacterSelect {
     gamepad.signals.pressed.any.add(itemHandler);
   }
 
+  /**
+   * Step handler that shows the on-screen keyboard to name the character.
+   * @param {Function} callback - Invoked when the step is completed
+   */
   creationNameCharacter(callback) {
     if (this.creationMenu) {
       this.creationMenu.destroy();
@@ -24275,6 +29689,10 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Generates a random default name from the character name syllables.
+   * @returns {string} The generated character name
+   */
   generateName() {
     const syllables = CHARACTER_SYSTEM.NAME_SYLLABLES;
     const firstSyllabe = game.rnd.pick(syllables);
@@ -24282,6 +29700,9 @@ class CharacterSelect {
     return firstSyllabe + secondSyllabe;
   }
 
+  /**
+   * Cleans up the creation objects and returns to the character list.
+   */
   cancelCharacterCreation() {
     if (this.tempCharacterDisplay) {
       this.tempCharacterDisplay.destroy();
@@ -24302,6 +29723,9 @@ class CharacterSelect {
     this.showHomeUI();
   }
 
+  /**
+   * Cleans up the creation color-picker UI and restores the general hints.
+   */
   cleanupColorUI() {
     if (this.colorUI) {
       if (this.colorUI.background) this.colorUI.background.destroy();
@@ -24314,6 +29738,9 @@ class CharacterSelect {
     this.navigationHint.updateHints('general');
   }
 
+  /**
+   * Phaser lifecycle hook called every frame to poll input and update windows.
+   */
   update() {
     gamepad.update();
 
@@ -24326,23 +29753,53 @@ class CharacterSelect {
     }
   }
 
+  /**
+   * Phaser lifecycle hook called when leaving the state; persists characters.
+   */
   shutdown() {
     this.characterManager.saveToAccount();
   }
 }
 
+/**
+ * @class AchievementsMenu
+ * @category Game States
+ * @summary Achievements viewing interface
+ * @constructor
+ * @features
+ * Carousel of unlocked or locked achievements
+ * Toggle between sections with the Select button
+ * Detail pane with unlock dates and experience rewards
+ * @description
+ * The AchievementsMenu state displays the player's achievement progress in a
+ * two-pane layout, listing names in a carousel and showing rich details for the
+ * selected achievement. The Select button toggles between the unlocked and
+ * locked sections, while canceling returns to the main menu.
+ * @example
+ * // Modding usage example
+ * game.state.start("AchievementsMenu");
+ *
+ * // Inspect unlock status for a custom achievement id
+ * Account.achievements.unlocked["custom_id"];
+ */
 class AchievementsMenu {
+  /**
+   * Sets up the carousel, detail text, and addon behaviors for the state.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
     new FuturisticLines();
     new BackgroundGradient();
     
+    /** @type {NavigationHint} On-screen overlay hinting button usage. */
     this.navigationHint = new NavigationHint('achievements');
     
+    /** @type {boolean} Whether the list is showing unlocked achievements. */
     this.showingUnlocked = true;
     
     // Initialize details text first
+    /** @type {Text} Details pane for the selected achievement. */
     this.detailsText = new Text(game.width / 2 + 8, 10, "");
     
     this.createMenu();
@@ -24351,6 +29808,9 @@ class AchievementsMenu {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
+  /**
+   * Builds the achievements carousel and toggling header text.
+   */
   createMenu() {
     const achievementsManager = new AchievementsManager();
     
@@ -24358,6 +29818,7 @@ class AchievementsMenu {
     const carouselWidth = game.width / 2;
     const carouselHeight = game.height - 12;
     
+    /** @type {CarouselMenu} Carousel listing achievement names. */
     this.carousel = new CarouselMenu(0, 8, carouselWidth, carouselHeight, {
       bgcolor: '#9b59b6',
       fgcolor: '#ffffff',
@@ -24368,6 +29829,7 @@ class AchievementsMenu {
     });
     
     // Toggle button
+    /** @type {Text} Header text showing the current achievements section. */
     this.toggleText = new Text(4, 3, __("Showing: Unlocked||Sección: Desbloqueados"));
     
     game.onMenuIn.dispatch('achievements', this.carousel);
@@ -24375,6 +29837,9 @@ class AchievementsMenu {
     this.updateAchievementsList();
   }
 
+  /**
+   * Rebuilds the carousel for the currently selected achievements section.
+   */
   updateAchievementsList() {
     const achievementsManager = new AchievementsManager();
     
@@ -24430,6 +29895,10 @@ class AchievementsMenu {
     });
   }
 
+  /**
+   * Writes the selected achievement's details into the detail pane.
+   * @param {Object} achievement - The achievement descriptor to describe.
+   */
   showAchievementDetails(achievement) {
     if (!this.detailsText) return;
     
@@ -24457,6 +29926,9 @@ class AchievementsMenu {
     this.detailsText.write(details).wrap(game.width / 2 - 16);
   }
 
+  /**
+   * Toggles between unlocked and locked sections with the Select button.
+   */
   update() {
     gamepad.update();
     
@@ -24469,32 +29941,68 @@ class AchievementsMenu {
   }
 }
 
+/**
+ * @class StatsMenu
+ * @category Game States
+ * @summary Player statistics display
+ * @constructor
+ * @features
+ * Two-column career statistics layout
+ * Live refresh via a timed update loop
+ * Any key press returns to the main menu
+ * @description
+ * The StatsMenu state presents cumulative account statistics in two formatted
+ * columns covering games, scores, time, sessions, streaks and high scores. The
+ * text is refreshed on a short timer loop while visible. Any gamepad or mouse
+ * input returns the player to the main menu, and the timer is stopped on
+ * shutdown.
+ * @example
+ * // Modding usage example
+ * // Open the statistics screen
+ * game.state.start("StatsMenu");
+ *
+ * // Read raw stats for custom tooling
+ * Account.stats.totalGamesPlayed;
+ */
 class StatsMenu {
+  /**
+   * Creates the statistic text widgets and starts the refresh timer.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
     new FuturisticLines();
     new BackgroundGradient();
     
+    /** @type {Text} Title text for the statistics screen. */
     this.titleText = new Text(120, 10, __("PLAYER STATISTICS||ESTADÍSTICAS DE JUGADOR"));
     this.titleText.anchor.x = 0.5;
     
+    /** @type {Text} Left column of statistics text. */
     this.leftColumn = new Text(4, 70, "");
     this.leftColumn.anchor.y = 0.5;
     
+    /** @type {Text} Right column of statistics text. */
     this.rightColumn = new Text(120, 70, "");
     this.rightColumn.anchor.y = 0.5;
     
+    /** @type {Text} Instruction text for leaving the screen. */
     this.instructionText = new Text(120, 120, __("PRESS ANY KEY TO LEAVE||PRESIONA CUALQUIER TECLA PARA SALIR"));
     this.instructionText.anchor.x = 0.5;
     
     this.updateStatsText();
     
+    /** @type {Phaser.TimerEvent} Timer loop that refreshes the statistics. */
     this.updateTimer = game.time.events.loop(100, this.updateStatsText, this);
     
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
+  /**
+   * Formats a seconds count as an HH:MM:SS duration string.
+   * @param {number} seconds - Total seconds to format.
+   * @returns {string} Zero-padded time string.
+   */
   formatTime(seconds) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -24503,6 +30011,11 @@ class StatsMenu {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
+  /**
+   * Formats seconds as a compact legible duration such as "12m 5s".
+   * @param {number} seconds - Total seconds to format.
+   * @returns {string} Compact duration string.
+   */
   formatSessionTime(seconds) {
     if (seconds < 60) {
       return `${seconds}s`;
@@ -24517,6 +30030,9 @@ class StatsMenu {
     }
   }
 
+  /**
+   * Rebuilds the two statistic columns from the account stats object.
+   */
   updateStatsText() {
     if (!Account.stats) return;
     
@@ -24551,6 +30067,9 @@ class StatsMenu {
     this.rightColumn.write(rightColumnText);
   }
 
+  /**
+   * Returns to the main menu when any key or mouse button is pressed.
+   */
   update() {
     gamepad.update();
     
@@ -24559,6 +30078,9 @@ class StatsMenu {
     }
   }
   
+  /**
+   * Stops the statistics refresh timer when leaving the state.
+   */
   shutdown() {
     if (this.updateTimer) {
       game.time.events.remove(this.updateTimer);
@@ -24566,14 +30088,48 @@ class StatsMenu {
   }
 }
 
+/**
+ * @class Play
+ * @category Game States
+ * @summary Main gameplay state
+ * @constructor
+ * @features
+ * Full playthrough flow from audio setup through judgement and results
+ * HUD with score, combo, lifebar, accuracy, visualizers and character closeups
+ * Background pipeline supporting images, videos, fades and animated effects
+ * Chart modifiers, character skills, lyrics, metronome and pause menu support
+ * @description
+ * The Play state runs a single song from start to finish. It clones the chart, loads
+ * the audio and backgrounds, spawns the player renderer and advances the rhythm
+ * gameplay loop producing judgement counts, combo, accuracy and a final score. When
+ * the song ends it collates the results and hands them to the Results state.
+ * @example
+ * // Start a normal playthrough for a song and difficulty
+ * game.state.start("Play", true, false, { chart: song, difficultyIndex: 2 });
+ *
+ * // Launch in playtest mode with autoplay from the editor
+ * game.state.start("Play", true, false, song, 0, true, true);
+ */
 class Play {
+  /**
+   * Phaser state hook that clones the chart, initializes the gameplay objects
+   * and saves the last played song to the account.
+   * @param {Object} song - Object containing the chart and song data
+   * @param {number} difficultyIndex - Index of the selected difficulty
+   * @param {boolean} playtestMode - Whether this is an editor playtest run
+   * @param {boolean} autoplay - Whether the run is played by the computer
+   * @param {string} playlistKey - Optional playlist key this song belongs to
+   */
   init(song, difficultyIndex, playtestMode, autoplay, playlistKey) {
     if (typeof song.difficultyIndex != undefined && typeof difficultyIndex != undefined) {
       song.difficultyIndex = difficultyIndex;
     }
     this.originalSong = song;
+    /** @type {Object} A deep clone of the chart used for gameplay */
     this.song = structuredClone(song);
+    /** @type {number} Index of the selected difficulty */
     this.difficultyIndex = typeof difficultyIndex != undefined ? difficultyIndex : song.difficultyIndex;
+    /** @type {Object|null} The player renderer and judgement objects */
     this.player = null;
     this.backgroundQueue = [];
     this.preloadedBackgroundElements = {};
@@ -24585,8 +30141,11 @@ class Play {
     this.audioEndListener = null;
     this.started = false;
     this.startTime = 0;
+    /** @type {boolean} Whether the note roadmap is being played by the computer */
     this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
+    /** @type {string} Optional playlist key the current song belongs to */
     this.playlistKey = playlistKey;
+    /** @type {number} The user's global timing offset in milliseconds */
     this.userOffset = Account.settings.userOffset || 0;
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
@@ -24601,7 +30160,9 @@ class Play {
     this.shootingDown = false;
     
     // Initialize character system
+    /** @type {CharacterManager} Manages the player's characters and persistence */
     this.characterManager = new CharacterManager();
+    /** @type {Object|null} The character active for this playthrough */
     this.currentCharacter = this.characterManager.getCurrentCharacter();
     this.skillSystem = new CharacterSkillSystem(this, this.currentCharacter);
     
@@ -24644,6 +30205,10 @@ class Play {
     this.FIXED_DELAY = 2000; 
   }
   
+  /**
+   * Phaser state hook that builds the HUD, applies chart modifiers and
+   * starts the asynchronous background and audio setup.
+   */
   create() {
     // Ensure background music is stopped during gameplay
     if (backgroundMusic) {
@@ -24684,6 +30249,10 @@ class Play {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Preloads all chart backgrounds, sets up the audio and starts the song.
+   * @returns {Promise<void>} Resolves once the audio is ready and the song starts
+   */
   async initialSetup() {
     const dots = new LoadingDots();
     dots.x -= 4;
@@ -24699,6 +30268,10 @@ class Play {
     this.songStart();
   }
   
+  /**
+   * Applies the enabled chart modifiers (mines, freezes, jumps, mirror, randomize)
+   * to a working copy of the current difficulty's notes.
+   */
   applyChartModifiers() {
     const modifiers = Account.settings.chartModifiers || {};
     
@@ -24823,6 +30396,10 @@ class Play {
     }
   }
   
+  /**
+   * Creates and loads the audio element, then builds the audio visualizer.
+   * @returns {Promise<string|undefined>} Resolves when the audio can play
+   */
   setupAudio() {
     return new Promise(resolve => {
       // Create audio element and wait for it to load
@@ -24847,6 +30424,11 @@ class Play {
     });
   }
   
+  /**
+   * Loads a single background image or video element for later drawing.
+   * @param {Object} background - Descriptor with url and type fields
+   * @returns {Promise<HTMLImageElement|HTMLVideoElement>} The loaded background element
+   */
   preloadBackground(background) {
     return new Promise((resolve, reject) => {
       const { url, type } = background;
@@ -24890,6 +30472,9 @@ class Play {
     });
   }
   
+  /**
+   * Builds the heads-up display with lifebar, score, combo, accuracy and text.
+   */
   createHud() {
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
@@ -24962,6 +30547,13 @@ class Play {
     this.comboText.anchor.set(1);
   }
   
+  /**
+   * Recreates the visualizer matching the current setting, or removes it.
+   * @param {number} visualizerX - X position of the visualizer
+   * @param {number} visualizerY - Y position of the visualizer
+   * @param {number} visualizerWidth - Width of the visualizer area
+   * @param {number} visualizerHeight - Height of the visualizer area
+   */
   createVisualizer(visualizerX = 2, visualizerY = 131, visualizerWidth = 46, visualizerHeight = 7) {
     // Remove existing visualizer
     if (this.visualizer) {
@@ -24989,6 +30581,9 @@ class Play {
     }
   }
   
+  /**
+   * Wires the audio temperature meter to the HUD flash effects.
+   */
   setupSongTemperature() {
     const meter = new AudioTemperatureMeter(this, this.audio, this.song.chart);
     
@@ -25003,10 +30598,16 @@ class Play {
     this.temperature = meter;
   }
   
+  /**
+   * Instantiates the center-lane Player used for gameplay.
+   */
   setupPlayer() {
     this.player = new Player(this, "center");
   }
   
+  /**
+   * Creates the lyrics text element and controller when a lyrics file exists.
+   */
   setupLyrics() {
     if (this.hasLyricsFile) {
       const lrcContent = this.song.chart.lyricsContent; 
@@ -25026,6 +30627,9 @@ class Play {
     }
   }
   
+  /**
+   * Sets the initial chart background or clears it when none is present.
+   */
   setInitialBackground() {
     // Set initial background
     if (this.song.chart.backgroundUrl && this.song.chart.backgroundUrl !== "no-media") {
@@ -25035,6 +30639,9 @@ class Play {
     }
   }
   
+  /**
+   * Begins playback: shows the song info, schedules the audio start and HUD reveal.
+   */
   songStart() {
     this.setInitialBackground();
     
@@ -25060,12 +30667,18 @@ class Play {
     this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
   }
   
+  /**
+   * Opens the Chart Modifiers state while the start button is held at kickoff.
+   */
   checkModifiersScreenButton() {
     if (gamepad.held.start) {
       game.state.start("ChartModifiers", true, false, "Play", this.originalSong, this.difficultyIndex, this.playtestMode, this.autoplay);
     }
   }
   
+  /**
+   * Animates an intro banner with the song's title, subtitle, artist and credit.
+   */
   showSongInfo() {
     const texts = [
       {
@@ -25156,6 +30769,9 @@ class Play {
     });
   }
   
+  /**
+   * Starts the pulsing HUD flash effect synced to the song's beat.
+   */
   startHudFlash() {
     this.hudFlashShape.alpha = 1;
     
@@ -25165,24 +30781,43 @@ class Play {
     game.add.tween(this.hudFlashShape.scale).to({ x: 0.9, y: 0.9 }, interval, Phaser.Easing.Quadratic.Out, true).repeat(-1);
   }
   
+  /**
+   * Stops the HUD flash effect and fades the flash shape away.
+   */
   stopHudFlash() {
     game.tweens.removeFrom(this.hudFlashShape);
     game.add.tween(this.hudFlashShape).to({ alpha: 0 }, 100, Phaser.Easing.Quadratic.Out, true);
     game.add.tween(this.hudFlashShape.scale).to({ x: 1, y: 1 }, 100, Phaser.Easing.Quadratic.Out, true).repeat(-1);
   }
   
+  /**
+   * Slides the HUD panels, background and receptors into view.
+   * @param {number} duration - Tween duration in milliseconds
+   * @param {number} backgroundAlpha - Target background opacity
+   * @param {number} receptorsAlpha - Receptors alpha to restore during the reveal
+   */
   showHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
     game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.Out, true);
     game.add.tween(this.hudTop).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
     game.add.tween(this.hudBottom).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
   }
   
+  /**
+   * Slides the HUD panels and background out of view.
+   * @param {number} duration - Tween duration in milliseconds
+   * @param {number} backgroundAlpha - Target background opacity while hidden
+   * @param {number} receptorsAlpha - Receptors alpha to restore during the hide
+   */
   hideHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
     game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.In, true);
     game.add.tween(this.hudTop).to({ y: -40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
     game.add.tween(this.hudBottom).to({ y: 40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
   }
   
+  /**
+   * Plays the character close shot sequence with a countdown timer.
+   * @param {number} duration - Total duration of the close shot in milliseconds
+   */
   showCharacterCloseShot(duration) {
     const displayTime = Math.max(500, duration - 400);
     const closeShot = new CharacterCloseShot(2, 131, this.currentCharacter);
@@ -25237,6 +30872,10 @@ class Play {
     });
   }
   
+  /**
+   * Plays a full-screen glitch animation layered over the HUD.
+   * @param {number} duration - Lifespan of the glitch effect in milliseconds
+   */
   showGlitchAnimation(duration = 1000) {
     const glitch = game.add.sprite(0, 0, 'ui_glitch_animation');
     glitch.animations.add('glitch', [0, 1, 2, 3, 4, 5, 6], 12, true);
@@ -25246,6 +30885,9 @@ class Play {
     this.overHud.addChild(glitch);
   }
   
+  /**
+   * Plays the full combo (or flawless) celebration overlay when reached.
+   */
   showFullCombo() {
     if (this.fullComboAnimationStarted) {
       return;
@@ -25322,6 +30964,10 @@ class Play {
     Audio.play("full_combo", 1);
   }
   
+  /**
+   * Draws a background element onto the background canvas, handling errors.
+   * @param {HTMLImageElement|HTMLVideoElement} element - The element to draw
+   */
   drawBackground(element) {
     // Check if element is errored
     if (element && element.__errored) {
@@ -25348,6 +30994,9 @@ class Play {
     }
   }
   
+  /**
+   * Draws the default chart background as a fallback when one fails to load.
+   */
   drawFallbackBackground() {
     if (this.shootingDown) return;
     
@@ -25361,6 +31010,9 @@ class Play {
     }
   }
   
+  /**
+   * Clears the background canvas to black and reveals the gradient overlay.
+   */
   clearBackground() {
     this.backgroundSprite.ctx.fillStyle = "#000000";
     this.backgroundSprite.ctx.fillRect(0, 0, game.width, game.height);
@@ -25368,6 +31020,11 @@ class Play {
     this.backgroundGradient.visible = true;
   }  
   
+  /**
+   * Loads or reuses a background image and draws it onto the canvas.
+   * @param {string} filename - Chart identifier for the background
+   * @param {string} url - URL of the background image
+   */
   loadBackgroundImage(filename, url) {
     if (filename == 'undefined' || !filename || !url) return;
     
@@ -25417,6 +31074,13 @@ class Play {
     this.backgroundGradient.visible = true;
   }
   
+  /**
+   * Loads or reuses a background video and begins playback.
+   * @param {string} filename - Chart identifier for the background
+   * @param {string} url - URL of the background video
+   * @param {Function} [onloadCallback] - Called when the video is ready
+   * @param {Function} [onerrorCallback] - Called if the video fails to load
+   */
   loadBackgroundVideo(filename, url, onloadCallback, onerrorCallback) {
     if (filename == 'undefined' || !filename || !url) {
       onerrorCallback?.();
@@ -25493,6 +31157,10 @@ class Play {
     }
   }
   
+  /**
+   * Starts playback of the given video and hides the gradient overlay.
+   * @param {HTMLVideoElement} video - The video element to play
+   */
   playVideo(video) {
     this.video = video || this.video;
     this.video.play();
@@ -25500,6 +31168,10 @@ class Play {
     this.backgroundGradient.visible = false;
   }
   
+  /**
+   * Applies a chart background at its scheduled beat, honoring fade options.
+   * @param {Object} bg - The background descriptor from the chart
+   */
   applyBackground(bg) {
     if (bg.file == '-nosongbg-') {
       this.clearBackground();
@@ -25532,6 +31204,10 @@ class Play {
     this.currentBackground = bg;
   }
   
+  /**
+   * Handles fade-in, scheduled fade-out and opacity for a background.
+   * @param {Object} bg - The background descriptor being applied
+   */
   applyBgEffects(bg) {
     const alpha = bg.type == 'video' ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
     const targetAlpha = parseFloat(bg.opacity) * alpha;
@@ -25572,6 +31248,10 @@ class Play {
     }
   }
   
+  /**
+   * Applies the StepMania-style background effect loop (stretch, scroll or pulse).
+   * @param {Object} bg - The background descriptor carrying an effect id
+   */
   applyBgEffect(bg) {
     // Cancel existing effect
     if (this._bgEffectTimer) {
@@ -25623,6 +31303,9 @@ class Play {
     }
   }
   
+  /**
+   * Fades out the previous background when a fade-out was scheduled for it.
+   */
   handlePreviousBgFadeOut() {
     // If there's a pending fade out for the current background
     if (this._pendingFadeOut && this.currentBackground) {
@@ -25641,6 +31324,11 @@ class Play {
     }
   }
   
+  /**
+   * Collects the game results from a player into a plain result object.
+   * @param {Object} [player] - The player whose results are gathered
+   * @returns {Object} The game results summary
+   */
   getGameResults(player = this.player) {
     return {
       score: player.score,
@@ -25656,10 +31344,16 @@ class Play {
     };
   }
   
+  /**
+   * Restarts the current song with the same settings.
+   */
   restartSong() {
     game.state.start("Play", true, false, this.originalSong, this.difficultyIndex, this.playtestMode, this.autoplay, this.playlistKey);
   }
   
+  /**
+   * Finalizes the run: updates stats, experience and records, then opens Results.
+   */
   songEnd() {
     // Forget preloaded backgrounds
     setTimeout(() => {
@@ -25751,6 +31445,10 @@ class Play {
     game.state.start("Results", true, false, gameData);
   }
   
+  /**
+   * Accumulates the account statistics from the completed game.
+   * @param {Object} gameResults - The game results to tally
+   */
   updateUserStats(gameResults) {
     if (!Account.stats) {
       Account.stats = { ...DEFAULT_ACCOUNT.stats };
@@ -25793,6 +31491,9 @@ class Play {
     achievementsManager.updateStats(gameResults);
   }
   
+  /**
+   * Toggles between the paused and running states of the song.
+   */
   togglePause() {
     if (this.isAnimating) return;
     
@@ -25803,6 +31504,9 @@ class Play {
     }
   }
   
+  /**
+   * Pauses gameplay and playback, then shows the pause menu.
+   */
   pause() {
     if (!this.started) return;
     this.isPaused = true;
@@ -25812,6 +31516,9 @@ class Play {
     this.showPauseMenu();
   }
   
+  /**
+   * Resumes gameplay and playback, then hides the pause menu.
+   */
   resume() {
     this.isPaused = false;
     this.totalPausedDuration += game.time.now - this.pauseStartTime;
@@ -25820,10 +31527,17 @@ class Play {
     this.hidePauseMenu();
   }
   
+  /**
+   * Builds a text block listing the current judgement counts.
+   * @returns {string} The judgement text used in the pause menu
+   */
   getStatsContent() {
     return Object.entries(this.player.judgementCounts).map(entry => `${entry[0]}: ${entry[1]}`.toUpperCase()).join('\n');
   }
   
+  /**
+   * Shows the pause menu with continue, autoplay, restart, retry and quit options.
+   */
   showPauseMenu() {
     this.pauseBg = game.add.graphics(0, 0);
     
@@ -25872,6 +31586,9 @@ class Play {
     this.pauseCarousel.onCancel.add(() => this.resume());
   }
   
+  /**
+   * Removes the pause menu objects from the scene.
+   */
   hidePauseMenu() {
     if (this.pauseCarousel) {
       this.pauseBg.destroy();
@@ -25881,6 +31598,10 @@ class Play {
     }
   }
   
+  /**
+   * Returns the current play time in seconds and beats, accounting for pauses.
+   * @returns {Object} Object with numeric "now" and "beat" fields
+   */
   getCurrentTime() {
     if (this.isPaused) {
       const elapsed = this.pauseStartTime - this.startTime - this.totalPausedDuration + this.userOffset;
@@ -25897,10 +31618,18 @@ class Play {
     }
   }
   
+  /**
+   * Converts a time in seconds to beats using the player's timing.
+   * @param {number} sec - Time in seconds
+   * @returns {number} The equivalent beat
+   */
   secToBeat(sec) {
     return this.player ? this.player.secToBeat(sec) : 0;
   }
   
+  /**
+   * Enqueues and applies chart backgrounds as their beats arrive, then updates video.
+   */
   updateBackgrounds() {
     const { beat } = this.getCurrentTime();
     
@@ -25922,6 +31651,9 @@ class Play {
     this.updateVideo();
   }
   
+  /**
+   * Redraws the current video frame at the configured frame rate.
+   */
   updateVideo() {
     if (this.video && 
         !this.video.__errored &&
@@ -25944,6 +31676,9 @@ class Play {
     }
   }
   
+  /**
+   * Phaser lifecycle hook called every frame; drives the main gameplay loop.
+   */
   update() {
     gamepad.update();
         
@@ -26022,12 +31757,18 @@ class Play {
     }
   }
   
+  /**
+   * Phaser render hook that renders the player's note objects.
+   */
   render() {
     if (this.player) {
       this.player.render();
     }
   }
   
+  /**
+   * Phaser lifecycle hook called when leaving the state; tears down playback.
+   */
   shutdown() {
     this.shootingDown = true;
     
@@ -26074,16 +31815,48 @@ class Play {
   }
 }
 
+/**
+ * @class PlayMulti
+ * @category Game States
+ * @summary Two-player local multiplayer gameplay state
+ * @constructor
+ * @features
+ * Two independent players sharing one chart with separate scores, lifebars and combos
+ * Split-layout HUD with per-player score, accuracy, combo and judgement text
+ * Per-player autoplay flags plus a shared metronome assist tick display
+ * @description
+ * The multiplayer gameplay state extends the single player Play state to run two
+ * simultaneous players on a shared chart. Each player keeps an independent combo,
+ * score, lifebar, accuracy and autoplay flag, and the state resolves to a combined
+ * results object consumed by the ResultsMulti screen.
+ * @example
+ * // Launch a local multiplayer game for two configured players
+ * game.state.start("PlayMulti", true, false, {
+ *   song: song,
+ *   difficultyIndex: 0,
+ *   player1: { settings: { autoplay: false } },
+ *   player2: { settings: { autoplay: true } }
+ * });
+ */
 class PlayMulti extends Play {
   constructor() {
     super();
   }
   
+  /**
+   * Phaser state hook that forwards the shared chart to Play.init and stores the config.
+   * @param {Object} config - Multiplayer config with song, difficultyIndex and player settings
+   * @param {number} _ - Unused difficulty placeholder
+   * @param {boolean} __ - Unused playtest mode placeholder
+   * @param {boolean} ___ - Unused autoplay placeholder
+   * @param {string} playlistKey - Optional playlist key for the song
+   */
   init(config, _, __, ___, playlistKey) {
     const { song, difficultyIndex } = config;
     
     super.init({ chart: song, difficultyIndex }, difficultyIndex, undefined, undefined, playlistKey);
     
+    /** @type {Object} The multiplayer configuration with per-player settings */
     this.config = config;
     
     // Disable character system
@@ -26091,10 +31864,16 @@ class PlayMulti extends Play {
     this.skillSystem.character = null;
   }
   
+  /**
+   * Phaser state hook that builds the shared HUD and player layout.
+   */
   create() {
     super.create();
   }
   
+  /**
+   * Builds the split multiplayer HUD with per-player score, lifebar and combo.
+   */
   createHud() {
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
@@ -26113,9 +31892,11 @@ class PlayMulti extends Play {
     this.hudBottom.alpha = 0;
     this.hud.addChild(this.hudBottom);
     
+    /** @type {Phaser.Sprite} HUD container for player 1 */
     this.p1Hud = game.add.sprite(0, 0, "ui_hud_player_parent_multi", 0);
     this.hudTop.addChild(this.p1Hud);
     
+    /** @type {Phaser.Sprite} HUD container for player 2 */
     this.p2Hud = game.add.sprite(0, 0, "ui_hud_player_parent_multi", 1);
     this.hudTop.addChild(this.p2Hud);
     
@@ -26214,10 +31995,16 @@ class PlayMulti extends Play {
     this.p2AutoplayText.anchor.x = 1;
   }
   
+  /**
+   * Creates the shared center visualizer in the multiplayer HUD layout.
+   */
   createVisualizer() {
     super.createVisualizer(97, 131, 46, 7);
   }
   
+  /**
+   * Spawns the FirstPlayer and SecondPlayer with their own input settings.
+   */
   setupPlayer() {
     this.player1 = new FirstPlayer(this, this.config.player1.settings);
     this.player2 = new SecondPlayer(this, this.config.player2.settings);
@@ -26225,10 +32012,18 @@ class PlayMulti extends Play {
     this.player = this.player1;
   }
   
+  /**
+   * Overrides the pause stats block for the multiplayer layout.
+   * @returns {string} An empty string (stats are shown via separate player texts)
+   */
   getStatsContent() {
     return "";
   }
   
+  /**
+   * Collects both players' results into a combined multiplayer result object.
+   * @returns {Object} The multiplayer game results
+   */
   getGameResults() {
     return {
       song: this.song,
@@ -26243,10 +32038,16 @@ class PlayMulti extends Play {
     };
   }
   
+  /**
+   * Restarts the multiplayer game with the same configuration.
+   */
   restartSong() {
     game.state.start("PlayMulti", true, false, this.config);
   }
   
+  /**
+   * Finalizes the multiplayer run and opens the ResultsMulti state.
+   */
   songEnd() {
     // Forget preloaded backgrounds
     Object.entries(this.preloadedBackgroundElements).map(entry => entry[1] || null).forEach(element => {
@@ -26273,6 +32074,10 @@ class PlayMulti extends Play {
     game.state.start("ResultsMulti", true, false, gameResults, this.config);
   }
   
+  /**
+   * Shows the full combo or flawless banner for a player when achieved.
+   * @param {Object} player - The player to check for a full combo
+   */
   checkFullCombo(player) {
     if (player && !this.started && player.fullComboStarted) return;
     
@@ -26306,6 +32111,9 @@ class PlayMulti extends Play {
     }
   }
   
+  /**
+   * Phaser lifecycle hook called every frame; updates both players.
+   */
   update() {
     gamepad.update();
         
@@ -26362,6 +32170,9 @@ class PlayMulti extends Play {
     this.checkFullCombo(this.player2);
   }
   
+  /**
+   * Phaser render hook that renders both players' note objects.
+   */
   render() {
     if (this.player1 && this.player2) {
       this.player1.render();
@@ -26370,15 +32181,51 @@ class PlayMulti extends Play {
   }
 }
 
+/**
+ * @class Results
+ * @category Game States
+ * @summary Displays gameplay results and high scores
+ * @constructor
+ * @features
+ * Shows final score, accuracy, letter rating, max combo and judgement breakdown
+ * Saves high scores and celebrates a new record with a pulsing banner
+ * Character portrait with an animated experience and level-up progression
+ * Navigation menu to continue, retry or quit back to the main menu
+ * @description
+ * The Results state summarizes a completed playthrough. It shows the performance
+ * breakdown, persists high scores to the account and marks a new record, and can
+ * display the active character's experience gain with a level-up animation.
+ * @example
+ * // Open results for a finished playthrough
+ * game.state.start("Results", true, false, {
+ *   song: songData,
+ *   player: playerObj,
+ *   character: myCharacter,
+ *   autoplay: false,
+ *   expGain: 120
+ * });
+ */
 class Results {
+  /**
+   * Phaser state hook that stores the game data and resets the result fields.
+   * @param {Object} gameData - The results payload produced by the Play state
+   */
   init(gameData) {
+    /** @type {Object} The payload passed from the Play state */
     this.gameData = gameData;
+    /** @type {boolean} Whether the run set a new high score */
     this.isNewRecord = false;
+    /** @type {number} The final score to display */
     this.finalScore = 0;
+    /** @type {number} The final accuracy percentage to display */
     this.finalAccuracy = 0;
+    /** @type {string} The letter rating achieved for the run */
     this.scoreRating = "";
   }
 
+  /**
+   * Phaser state hook that saves the high score and builds the results screen.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -26419,6 +32266,13 @@ class Results {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
+  /**
+   * Saves the run's score to the account if it beats the current high score.
+   * @param {Object} song - The song that was played
+   * @param {Object} difficulty - The difficulty that was played
+   * @param {Object} player - The player object carrying the results
+   * @returns {boolean} Whether the run set a new high score
+   */
   saveHighScore(song, difficulty, player) {
     if (this.gameData.autoplay) {
       return false;
@@ -26452,6 +32306,11 @@ class Results {
     return isNewRecord;
   }
 
+  /**
+   * Hashes a string into a compact 32-bit base-36 identifier.
+   * @param {string} str - The string to hash
+   * @returns {string} The hashed identifier
+   */
   hashString(str) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -26462,6 +32321,9 @@ class Results {
     return hash.toString(36);
   }
 
+  /**
+   * Renders the banner, song info, score, accuracy, rating and combo texts.
+   */
   displayResults() {
     const { song, player } = this.gameData;
     const difficulty = song.chart.difficulties[song.difficultyIndex];
@@ -26533,6 +32395,9 @@ class Results {
     }
   }
   
+  /**
+   * Shows the character portrait and animates the experience gain.
+   */
   showCharacterExp() {
     const portrait = new CharacterPortrait(160, 41, this.gameData.character || null);
     
@@ -26578,6 +32443,9 @@ class Results {
     }
   }
   
+  /**
+   * Builds the results navigation menu with continue, retry and quit options.
+   */
   showMenu() {
     this.navigationHint = new NavigationHint('general_no_b');
     
@@ -26605,6 +32473,11 @@ class Results {
     game.onMenuIn.dispatch('results', menu);
   }
   
+  /**
+   * Formats the judgement counts into a multi-line summary.
+   * @param {Object} judgements - The judgement count object
+   * @returns {string} The formatted judgement text
+   */
   getJudgementsText(judgements) {
     return `Marvelous: ${judgements.marvelous}\n` +
            `Perfect: ${judgements.perfect}\n` +
@@ -26614,6 +32487,11 @@ class Results {
            `Miss: ${judgements.miss}`;
   }
 
+  /**
+   * Maps a letter rating to its display tint color.
+   * @param {string} rating - The letter rating achieved
+   * @returns {number} The RGB tint color for the rating
+   */
   getRatingColor(rating) {
     const colors = {
       "SSS+": 0xFFD700, // Gold
@@ -26630,10 +32508,16 @@ class Results {
     return colors[rating] || 0xFFFFFF;
   }
 
+  /**
+   * Phaser lifecycle hook called every frame to poll gamepad input.
+   */
   update() {
     gamepad.update();
   }
   
+  /**
+   * Phaser lifecycle hook called when leaving the state; stops the preview audio.
+   */
   shutdown() {
     this.previewAudio.pause();
     this.previewAudio.src = null;
@@ -26648,18 +32532,47 @@ class Results {
   }
 }
 
+/**
+ * @class ResultsMulti
+ * @category Game States
+ * @summary Multiplayer results screen with winner declaration
+ * @constructor
+ * @features
+ * Side-by-side score, accuracy, rating, combo and judgement breakdown for both players
+ * Winner determination driven by score, then accuracy, combo and judgement quality
+ * Records win counters and declares a DRAW or PLAYER N victory with a pulsing banner
+ * @description
+ * The multiplayer results state extends Results to summarize a local two-player match.
+ * It lays out both players' performance side by side, computes the winner with a
+ * tie-breaker chain and updates the persistent win/loss counters on the account.
+ * @example
+ * // Open the multiplayer results for a finished match
+ * game.state.start("ResultsMulti", true, false, gameResults, config);
+ */
 class ResultsMulti extends Results {
   constructor() {
     super();
   }
   
+  /**
+   * Phaser state hook that stores the game results and match configuration.
+   * @param {Object} gameResults - Combined results for both players from PlayMulti
+   * @param {Object} config - The multiplayer configuration used for the match
+   */
   init(gameResults, config) {
+    /** @type {Object} Combined results for both players */
     this.gameResults = gameResults;
+    /** @type {Object} The multiplayer configuration used for the match */
     this.config = config;
+    /** @type {Object} The song that was played */
     this.song = gameResults.song;
+    /** @type {number} Index of the difficulty that was played */
     this.difficultyIndex = gameResults.difficultyIndex;
   }
   
+  /**
+   * Phaser state hook that builds the multiplayer results screen.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -26670,6 +32583,9 @@ class ResultsMulti extends Results {
     this.displayResults();
   }
   
+  /**
+   * Renders the match summary, previews the audio and declares the winner.
+   */
   displayResults() {
     // Banner
     this.bannerImg = document.createElement("img");
@@ -26741,6 +32657,10 @@ class ResultsMulti extends Results {
     this.showMenu();
   }
   
+  /**
+   * Determines the match winner by comparing score, accuracy, combo and judgements.
+   * @returns {number} 1, 2 or 0 for player 1, player 2 or a draw
+   */
   getWinner() {
     const { player1, player2 } = this.gameResults.results;
     
@@ -26780,6 +32700,10 @@ class ResultsMulti extends Results {
     return 0;
   }
   
+  /**
+   * Renders a single player's results panel on the appropriate side of the screen.
+   * @param {number} playerNumber - The player number (1 or 2)
+   */
   showPlayerResults(playerNumber) {
     const player = this.gameResults["player" + playerNumber];
     
@@ -26824,6 +32748,9 @@ class ResultsMulti extends Results {
     }
   }
   
+  /**
+   * Builds the multiplayer results navigation menu.
+   */
   showMenu() {
     const menu = new CarouselMenu(game.width / 2 - 25, 50, 50, 80, {
       gradient: false,
@@ -26843,7 +32770,32 @@ class ResultsMulti extends Results {
   }
 }
 
+/**
+ * @class Playlists
+ * @category Game States
+ * @summary Playlist creation and management screen
+ * @constructor
+ * @features
+ * List, create, rename, clear, and delete playlists
+ * Song view with external song loading prompts
+ * Launch SongSelect from within a playlist
+ * @description
+ * The Playlists state is the playlist management screen where players create,
+ * rename, clear and delete playlists built from the song library. It prompts
+ * to preload external songs when a playlist references them, and starts song
+ * selection against a filtered snippet of the playlist when a song is chosen.
+ * @example
+ * // Modding usage example
+ * // Open the playlist management screen
+ * game.state.start("Playlists");
+ *
+ * // Create a playlist programmatically first
+ * PlaylistManager.getInstance().createPlaylist("My Mix");
+ */
 class Playlists {
+  /**
+   * Sets up the playlist UI and shows the list or continues a pending load.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -26851,9 +32803,12 @@ class Playlists {
     new FuturisticLines();
     this.navigationHint = new NavigationHint('general');
     
+    /** @type {PlaylistManager} Shared playlist manager instance. */
     this.playlistManager = PlaylistManager.getInstance();
     
+    /** @type {Text} Header text showing the current screen title. */
     this.actionText = new Text(8, 6, "PLAYLISTS", FONTS.bold_shadow);
+    /** @type {Text} Detail text under the header (e.g. song counts). */
     this.detailText = new Text(8, 6, "", FONTS.default_shadow);
     this.detailText.tint = 0x989898;
     
@@ -26867,6 +32822,10 @@ class Playlists {
     this.showPlaylistList();
   }
 
+  /**
+   * Loads external songs first, or prompts the player when they are missing.
+   * @param {Function} [callback] - Optional callback run after external songs exist.
+   */
   loadExternalSongsThenProceed(callback) {
     if (window.externalSongs && window.externalSongs.length > 0) {
       callback?.();
@@ -26888,9 +32847,13 @@ class Playlists {
     );
   }
 
+  /**
+   * Rebuilds the main carousel listing all playlists.
+   */
   showPlaylistList() {
     if (this.carousel) this.carousel.destroy();
     
+    /** @type {CarouselMenu} Carousel listing playlists or songs. */
     this.carousel = new CarouselMenu(0, 16, game.width - 8, game.height - 24, {
       bgcolor: '#9b59b6',
       fgcolor: '#ffffff',
@@ -26918,6 +32881,9 @@ class Playlists {
     this.detailText.write("");
   }
 
+  /**
+   * Opens an on-screen keyboard to create a new named playlist.
+   */
   addPlaylist() {
     const keyboard = new OnScreenKeyboard(undefined, 55);
     
@@ -26947,6 +32913,10 @@ class Playlists {
     });
   }
 
+  /**
+   * Opens a playlist, prompting to load external songs when required.
+   * @param {string} key - Playlist key to open.
+   */
   openPlaylist(key) {
     const playlistRef = this.playlistManager.getPlaylistRef(key);
     if (!playlistRef) return;
@@ -26971,6 +32941,10 @@ class Playlists {
     this.openPlaylistWithRefs(key);
   }
 
+  /**
+   * Builds the song list view for a playlist, marking missing songs.
+   * @param {string} key - Playlist key to display.
+   */
   openPlaylistWithRefs(key) {
     const playlist = this.playlistManager.getPlaylistRef(key);
     if (!playlist) return;
@@ -27031,6 +33005,10 @@ class Playlists {
     this.carousel.onCancel.add(() => this.showPlaylistList());
   }
   
+  /**
+   * Opens a rename dialog for an existing playlist.
+   * @param {string} key - Playlist key to rename.
+   */
   renamePlaylist(key) {
     const playlist = this.playlistManager.getPlaylistRef(key);
     
@@ -27063,6 +33041,10 @@ class Playlists {
     });
   }
 
+  /**
+   * Confirms and deletes a playlist.
+   * @param {string} key - Playlist key to delete.
+   */
   deletePlaylist(key) {
     this.confirmDialog(
       __("Delete this playlist permanently?||¿Borrar playlist para siempre?"),
@@ -27075,6 +33057,12 @@ class Playlists {
     );
   }
 
+  /**
+   * Starts song selection from the playable songs of a playlist.
+   * @param {string} playlistKey - Key of the originating playlist.
+   * @param {Array} songRefs - Song references stored in the playlist.
+   * @param {number} songIndex - Index of the selected song within the refs.
+   */
   startSongSelect(playlistKey, songRefs, songIndex) {
     // Only convert refs to full songs for the ones we need (just the current view)
     const songs = songRefs.map(ref => this.playlistManager.restoreFullSong(ref));
@@ -27093,6 +33081,12 @@ class Playlists {
     );
   }
 
+  /**
+   * Shows a modal confirm/cancel dialog.
+   * @param {string} message - Localized dialog message.
+   * @param {Function} onConfirm - Called when the confirm button is chosen.
+   * @param {Function} onCancel - Called when the cancel button is chosen.
+   */
   confirmDialog(message, onConfirm, onCancel) {
     const dialog = new DialogWindow(message, {
       buttons: [__("Yes||Sí"), "No"],
@@ -27109,21 +33103,60 @@ class Playlists {
     });
   }
 
+  /**
+   * Updates gamepad input each frame.
+   */
   update() {
     gamepad.update();
   }
 }
 
+/**
+ * @class Jukebox
+ * @category Game States
+ * @summary Music player mode with visualizers
+ * @constructor
+ * @param {Array} [songs] - Song list to play; defaults to local plus external songs.
+ * @param {number} [startIndex] - Index of the first song to load.
+ * @features
+ * Playback controls, seek, skip and volume adjustment
+ * Multiple audio visualizer modes
+ * Fullscreen mode and per-song lyrics
+ * @description
+ * The Jukebox state is a full music player that cycles through the game's song
+ * library with play, pause, seek, skip, shuffle and volume controls. It renders
+ * animated audio visualizers, synchronized lyrics, and per-song background art,
+ * and remembers the playback position of each song. Input is handled through
+ * the gamepad, mouse and keyboard.
+ * @example
+ * // Modding usage example
+ * // Start playback of every local and external song
+ * game.state.start("Jukebox");
+ *
+ * // Or pass a custom song list and starting index
+ * game.state.start("Jukebox", true, false, [songA, songB], 1);
+ */
 class Jukebox {
+  /**
+   * Initializes the song list, playback state, and visualizer settings.
+   * @param {Array} [songs] - Song list to play when the state starts.
+   * @param {number} [startIndex] - Index of the first song to load.
+   */
   init(songs = null, startIndex = 0) {
+    /** @type {Array} Song list managed by the jukebox. */
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
+    /** @type {number} Index of the currently loaded song. */
     this.currentIndex = startIndex || 0;
+    /** @type {Object} The song object currently loaded. */
     this.currentSong = this.songs[this.currentIndex];
+    /** @type {boolean} Whether audio is currently playing. */
     this.isPlaying = false;
+    /** @type {boolean} Whether shuffle mode is active. */
     this.isShuffled = false;
     this.menuVisible = false;
     this.songListMenuVisible = false;
     this.originalSongOrder = [...this.songs];
+    /** @type {string} Active visualizer type ('bars', 'symmetrical', etc.). */
     this.visualizerMode = 'symmetrical';
     this.seekSpeed = 1; // seconds per key press
     this.lastSeekTime = 0;
@@ -27157,9 +33190,13 @@ class Jukebox {
     this.isMouseSeeking = false;
     
     // Remember playback position
+    /** @type {Object} Remembered playback positions keyed by song. */
     this.playbackPositions = {};
   }
 
+  /**
+   * Sets up background, audio player, UI, visualizer, lyrics, and first song.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -27206,6 +33243,7 @@ class Jukebox {
       backgroundMusic.stop();
     }
     
+    /** @type {HTMLAudioElement} Audio element driving all playback. */
     this.audioElement = document.createElement("audio");
     this.audioElement.volume = Account.settings.volume / 100;
     
@@ -27437,6 +33475,10 @@ class Jukebox {
     }
   }
 
+  /**
+   * Parses an LRC string into a synchronized lyrics object.
+   * @param {string} lrcContent - LRC lyric content for the current song.
+   */
   loadLyrics(lrcContent) {
     if (lrcContent && lrcContent != "") {
       this.lyrics = new Lyrics({
@@ -27493,6 +33535,11 @@ class Jukebox {
     return 0;
   }
 
+  /**
+   * Loads the song at the given index and begins playback.
+   * @param {number} index - Song index in the playlist.
+   * @param {boolean} [reset] - When true, restart from position zero.
+   */
   loadSong(index, reset) {
     if (index < 0 || index >= this.songs.length) return;
     
@@ -27688,6 +33735,10 @@ class Jukebox {
     this.buttonActiveTimers[buttonName] = game.time.now + duration;
   }
 
+  /**
+   * Steps the master volume by a delta and persists the account setting.
+   * @param {number} delta - Volume change in percentage points.
+   */
   changeVolume(delta) {
     let currentVolume = Account.settings.volume;
     let newVolume = currentVolume + delta;
@@ -27708,6 +33759,9 @@ class Jukebox {
     }
   }
 
+/**
+   * Starts playback of the audio element and flips the isPlaying flag.
+   */
   play() {
     this.audioElement.play().then(() => {
       this.isPlaying = true;
@@ -27720,11 +33774,17 @@ class Jukebox {
     });
   }
 
+  /**
+   * Pauses the audio element and clears the isPlaying flag.
+   */
   pause() {
     this.audioElement.pause();
     this.isPlaying = false;
   }
 
+  /**
+   * Toggles between play and pause, flashing the pause button frame.
+   */
   togglePlayback() {
     if (this.isPlaying) {
       this.pause();
@@ -27737,6 +33797,10 @@ class Jukebox {
     this.setButtonActive('pause', 100);
   }
 
+  /**
+   * Advances to the next song, looping to the start of the playlist.
+   * @param {boolean} [reset] - When true, discard the remembered position.
+   */
   nextSong(reset) {
     let nextIndex = this.currentIndex + 1;
     if (nextIndex >= this.songs.length) {
@@ -27745,6 +33809,9 @@ class Jukebox {
     this.loadSong(nextIndex, reset);
   }
 
+  /**
+   * Moves to the previous song, looping to the end of the playlist.
+   */
   previousSong() {
     let prevIndex = this.currentIndex - 1;
     if (prevIndex < 0) {
@@ -27753,6 +33820,9 @@ class Jukebox {
     this.loadSong(prevIndex);
   }
 
+  /**
+   * Toggles shuffle mode, randomizing or restoring the song order.
+   */
   toggleShuffle() {
     this.isShuffled = !this.isShuffled;
     
@@ -27780,12 +33850,18 @@ class Jukebox {
     game.time.events.add(1500, () => this.shuffleLabel.visible = false);
   }
 
+  /**
+   * Seeks forward in the current song by one seek step.
+   */
   seekForward() {
     const currentTime = this.audioElement.currentTime;
     const newTime = Math.min(currentTime + this.seekSpeed, this.audioElement.duration || Infinity);
     this.audioElement.currentTime = newTime;
   }
 
+  /**
+   * Seeks backward in the current song by one seek step.
+   */
   seekBackward() {
     const currentTime = this.audioElement.currentTime;
     const newTime = Math.max(currentTime - this.seekSpeed, 0);
@@ -27818,6 +33894,9 @@ class Jukebox {
     this.audioElement.currentTime = newTime;
   }
   
+  /**
+   * Cycles to the next visualizer type and applies it to the display.
+   */
   changeVisualizerMode() {
     const modes = ['bars', 'symmetrical', 'waveform', 'circular'];
     const currentIndex = modes.indexOf(this.visualizerMode);
@@ -27830,6 +33909,9 @@ class Jukebox {
     this.setButtonActive('visualization', 100);
   }
 
+  /**
+   * Opens the playlist window listing every song with its title.
+   */
   showSongList() {
     this.songListMenuVisible = true;
 
@@ -27880,6 +33962,9 @@ class Jukebox {
     this.windowManager.focus(menu);
   }
 
+  /**
+   * Opens the jukebox menu with song list, shuffle, and exit options.
+   */
   showMenu() {
     this.menuVisible = true;
     
@@ -27920,6 +34005,9 @@ class Jukebox {
     this.windowManager.focus(menu);
   }
 
+  /**
+   * Saves the playback position, cleans up audio/visualizer resources, and exits.
+   */
   exitJukebox() {
     // Save current playback position before exiting
     this.savePlaybackPosition();
@@ -27945,6 +34033,9 @@ class Jukebox {
     game.state.start("MainMenu");
   }
 
+  /**
+   * Updates the visualizer, displays, video background, and input each frame.
+   */
   update() {
     // Update visualizer
     if (this.visualizer) {
@@ -27969,6 +34060,9 @@ class Jukebox {
     this.handleInput();
   }
 
+  /**
+   * Advances the lyrics display to the current audio time.
+   */
   updateLyrics() {
     if (this.hasLyrics && this.lyrics && this.audioElement) {
       const currentTime = this.audioElement.currentTime;
@@ -27978,6 +34072,9 @@ class Jukebox {
     }
   }
 
+  /**
+   * Processes gamepad and mouse input for playback, volume, seek and menus.
+   */
   handleInput() {
     const currentTime = game.time.now;
     
@@ -28079,6 +34176,9 @@ class Jukebox {
     }
   }
 
+  /**
+   * Saves position and cleans up audio, visualizer, and lyrics resources.
+   */
   shutdown() {
     // Save current playback position before shutting down
     this.savePlaybackPosition();
@@ -28102,16 +34202,54 @@ class Jukebox {
   }
 }
 
+/**
+ * @class Editor
+ * @category Game States
+ * @summary Chart editing mode
+ * @constructor
+ * @features
+ * Full 4-panel chart editor with cursor and snap grid
+ * Place, select, copy, mirror and delete notes
+ * BPM, stop, and background change editing
+ * Metadata editing, playtesting, and SM/zip import or export
+ * @description
+ * The Editor state is the in-game chart editor where players author and edit
+ * songs, from metadata and media files to the notes themselves. It offers a
+ * gamepad and mouse driven editing canvas with note placement, selection,
+ * area selection, freezes, mines, BPM changes, stops and background changes.
+ * Charts can be imported from StepMania packages or exported as zip files.
+ * @example
+ * // Modding usage example
+ * // Switch to the chart editor from another state
+ * game.state.start("Editor");
+ *
+ * // Export or inspect the in-memory chart object
+ * const chart = window.editorSongData.chart;
+ * window.e.song.chart.difficulties.forEach(d => console.log(d.type, d.rating));
+ */
 class Editor {
+  /**
+   * Initializes the editor with a song and resets all editing state.
+   * @param {Object} [song] - Song object to edit; a blank song is created when null.
+   */
   init(song = null) {
+    /** @type {Object} The song object currently being edited. */
     this.song = song || this.createNewSong();
+    /** @type {boolean} True when starting from a pre-existing song. */
     this.initializedWithSong = song ? true : false;
+    /** @type {string} Current editor screen ('metadata' or 'chartEdit'). */
     this.currentScreen = "metadata";
+    /** @type {number} Index of the difficulty currently being edited. */
     this.currentDifficultyIndex = 0;
+    /** @type {number} Snap division denominator (e.g. 8 = 1/8 beat). */
     this.snapDivision = 8;
+    /** @type {number} Cursor position measured in beats. */
     this.cursorBeat = 0;
+    /** @type {number} Cursor column (0 to 3). */
     this.cursorColumn = 0;
+    /** @type {Array} Notes currently selected in the chart. */
     this.selectedNotes = [];
+    /** @type {Array} Notes stored for copy and paste operations. */
     this.clipboard = [];
     this.story = [];
     this.isAreaSelecting = false;
@@ -28132,6 +34270,7 @@ class Editor {
     this.menuVisible = false;
     this.freezePreview = null;
     
+    /** @type {Object} Loaded media files keyed by purpose (audio, background, ...). */
     this.files = {
       audio: null,
       background: null,
@@ -28146,21 +34285,28 @@ class Editor {
     this.divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 192];
 
     // File input element
+    /** @type {HTMLInputElement} Hidden input element used for picking files. */
     this.fileInput = document.createElement("input");
     this.fileInput.type = "file";
   }
 
+  /**
+   * Builds the editor background, chart renderer, overlays, and info HUD.
+   */
   create() {
     game.camera.fadeIn(0x000000);
 
     this.backgroundGradient = new BackgroundGradient();
 
     // Background elements
+    /** @type {Phaser.Group} Layer containing background visual elements. */
     this.backgroundLayer = game.add.group();
+    /** @type {CanvasBackground} Canvas-drawn background image sprite. */
     this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 0.3;
     this.backgroundLayer.addChild(this.backgroundSprite);
     
+    /** @type {ChartRenderer} Renders the chart and manages note visuals. */
     this.chartRenderer = new ChartRenderer(this, this.song, this.currentDifficultyIndex, {
       enableGameplayLogic: false,
       enableJudgement: false,
@@ -28177,6 +34323,7 @@ class Editor {
       chartBackgroundOpacity: Account.settings.chartBackgroundOpacity || 0.3
     });
     
+    /** @type {Metronome} Metronome helper for note timing feedback. */
     this.metronome = new Metronome(this);
         
     this.homeOverlay = game.add.graphics(0, 0);
@@ -28218,6 +34365,7 @@ class Editor {
     this.updateInfoText();
     
     // Create play/pause audio
+    /** @type {HTMLAudioElement} Audio element used for playback and previews. */
     this.audio = document.createElement("audio");
     if (this.song.chart.audioUrl) {
       this.audio.src = this.song.chart.audioUrl;
@@ -28228,6 +34376,9 @@ class Editor {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Loads song media into memory and sets up mouse events and the home screen.
+   */
   async initalSetup() {
     if (this.initializedWithSong) {
       this.showLoadingScreen("Setting up");
@@ -28250,6 +34401,9 @@ class Editor {
     this.showHomeScreen();
   }
   
+  /**
+   * Registers the editor mouse handlers on the global mouse object.
+   */
   setupMouseEvents() {
     mouse.onDown.add(this.onMouseDown, this);
     mouse.onUp.add(this.onMouseUp, this);
@@ -28257,6 +34411,10 @@ class Editor {
     mouse.onWheel.add(this.onMouseWheel, this);
   }
 
+  /**
+   * Returns a fresh blank song object with default chart metadata and notes.
+   * @returns {Object} A new empty song descriptor.
+   */
   createNewSong() {
     return {
       chart: {
@@ -28292,6 +34450,9 @@ class Editor {
     };
   }
 
+  /**
+   * Displays the main editor menu with file, edit, playtest, and export options.
+   */
   showHomeScreen() {
     this.currentScreen = "metadata";
     this.clearUI();
@@ -28327,6 +34488,10 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Draws the song banner image onto the banner sprite canvas.
+   * @param {string} [url] - Image URL to render; a cleared canvas when null.
+   */
   updateBanner(url = null) {
     this.bannerSprite.ctx.clearRect(0, 0, 96, 32);
     this.bannerSprite.dirty();
@@ -28341,6 +34506,10 @@ class Editor {
     }
   }
   
+  /**
+   * Draws the song background image onto the background sprite canvas.
+   * @param {string} [url] - Image URL to render; a cleared canvas when null.
+   */
   updateBackground(url = null) {
     this.backgroundSprite.ctx.clearRect(0, 0, game.width, game.height);
     this.backgroundSprite.dirty();
@@ -28355,6 +34524,9 @@ class Editor {
     }
   }
   
+  /**
+   * Re-parses the current LRC lyrics into a synchronizable Lyrics object.
+   */
   refreshLyrics() {
     this.lyrics = new Lyrics({
       textElement: this.lyricsText,
@@ -28363,6 +34535,9 @@ class Editor {
     });
   }
 
+  /**
+   * Shows the file menu for loading audio, images, lyrics, and songs.
+   */
   showFileMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -28389,6 +34564,12 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Opens a directory picker and routes the chosen files to a callback.
+   * @param {string} [accept] - Accepted file types filter.
+   * @param {Function} [onConfirm] - Called with the change event after selection.
+   * @param {Function} [onCancel] - Called when the picker is dismissed.
+   */
   pickFolder(accept = "*", onConfirm, onCancel) {
     this.fileInput.accept = accept;
     this.fileInput.webkitdirectory = true;
@@ -28407,6 +34588,12 @@ class Editor {
     this.fileInput.click();
   }
   
+  /**
+   * Opens a single-file picker and routes the chosen file to a callback.
+   * @param {string} [accept] - Accepted file types filter.
+   * @param {Function} [onConfirm] - Called with the change event after selection.
+   * @param {Function} [onCancel] - Called when the picker is dismissed.
+   */
   pickFile(accept = "*", onConfirm, onCancel) {
     this.fileInput.accept = accept;
     this.fileInput.webkitdirectory = false;
@@ -28425,6 +34612,10 @@ class Editor {
     this.fileInput.click();
   }
   
+  /**
+   * Overlays a full-screen loading mask with dots and progress text.
+   * @param {string} text - Label shown while loading.
+   */
   showLoadingScreen(text) {
     // Destroy any existing loading screen
     if (this.loadingScreen) {
@@ -28445,16 +34636,25 @@ class Editor {
     this.loadingScreen.addChild(this.progressText);
   }
   
+  /**
+   * Removes the full-screen loading overlay if one is present.
+   */
   hideLoadingScreen() {
     this.loadingScreen?.destroy();
   }
   
+  /**
+   * Opens a folder picker to import a song and increments the import stat.
+   */
   loadSong() {
     this.pickFolder("*", e => this.processFiles(e.target.files), e => this.showFileMenu());
     
     Account.stats.totalImportedSongs ++;
   }
 
+  /**
+   * Shows the edit menu with chart and metadata editing options.
+   */
   showEditMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -28472,6 +34672,9 @@ class Editor {
     carousel.onCancel.add(() => this.showHomeScreen());
   }
 
+  /**
+   * Shows the project export menu, including StepMania song export.
+   */
   showExportMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -28488,6 +34691,9 @@ class Editor {
     carousel.onCancel.add(() => this.showHomeScreen());
   }
 
+  /**
+   * Lists the song's difficulties with options to edit or add each one.
+   */
   showChartsMenu() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -28509,6 +34715,10 @@ class Editor {
     carousel.onCancel.add(() => this.showEditMenu());
   }
 
+  /**
+   * Shows the per-difficulty options of edit, retype, rate, or delete.
+   * @param {number} difficultyIndex - Index of the difficulty to configure.
+   */
   showChartOptions(difficultyIndex) {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -28528,6 +34738,10 @@ class Editor {
     carousel.onCancel.add(() => this.showChartsMenu());
   }
 
+  /**
+   * Enters chart editing mode for the given difficulty.
+   * @param {number} difficultyIndex - Index of the difficulty to edit.
+   */
   editChart(difficultyIndex) {
     this.currentScreen = "chartEdit";
     this.currentDifficultyIndex = difficultyIndex;
@@ -28544,6 +34758,9 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Shows the playtest menu listing each difficulty to test.
+   */
   playtest() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -28563,6 +34780,10 @@ class Editor {
     carousel.onCancel.add(() => this.showHomeScreen());
   }
   
+  /**
+   * Launches the Play state with the chosen chart for a test run.
+   * @param {number} difficultyIndex - Index of the difficulty to playtest.
+   */
   startPlaytest(difficultyIndex) {
     // Clean up any note sprites before switching to play state
     this.getCurrentChartNotes().forEach(note => this.chartRenderer.killNote(note));
@@ -28580,6 +34801,9 @@ class Editor {
     );
   }
 
+  /**
+   * Refreshes the HUD text with cursor, beat, BPM, and note information.
+   */
   updateInfoText() {
     if (this.currentScreen === "chartEdit") {
       const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
@@ -28621,6 +34845,10 @@ class Editor {
     }
   }
   
+  /**
+   * Returns the background file name that applies at the current cursor beat.
+   * @returns {string} The active background file name.
+   */
   getCurrentBgFileName() {
     let filename = this.song.chart.background;
     
@@ -28636,6 +34864,9 @@ class Editor {
     return queue.pop() || filename;
   }
 
+  /**
+   * Redraws the cursor rectangle at the current column and judge line.
+   */
   updateCursorPosition() {
     this.cursorSprite.clear();
 
@@ -28651,6 +34882,9 @@ class Editor {
     }
   }
 
+  /**
+   * Redraws the selection rectangle for the active area selection.
+   */
   updateSelectionRect() {
     this.selectionRect.clear();
 
@@ -28673,6 +34907,9 @@ class Editor {
     }
   }
 
+  /**
+   * Redraws the hold drag preview while the hold key is held.
+   */
   updateFreezePreview() {
     this.freezePreviewSprite.clear();
 
@@ -28700,15 +34937,28 @@ class Editor {
     }
   }
 
+  /**
+   * Returns the grid division size used for snapping.
+   * @returns {number} Division size in beats.
+   */
   getDivisionSize() {
     return 4 / this.snapDivision;
   }
 
+  /**
+   * Snaps a beat value to the current grid division.
+   * @param {number} beat - Beat value to snap.
+   * @returns {number} The snapped beat value.
+   */
   getSnappedBeat(beat) {
     const snapped = Phaser.Math.snapToFloor(beat, this.getDivisionSize());
     return Math.max(0, snapped);
   }
 
+  /**
+   * Returns the current time and beat, from playback or the cursor position.
+   * @returns {Object} Object with now (seconds) and beat fields.
+   */
   getCurrentTime() {
     if (this.isPlaying) {
       const chartOffset = this.song.chart.offset || 0;
@@ -28727,6 +34977,9 @@ class Editor {
     }
   }
 
+  /**
+   * Processes gamepad input for editing: selecting, placing, and seeking.
+   */
   handleChartEditInput() {
     if (this.menuVisible) return;
 
@@ -28826,6 +35079,9 @@ class Editor {
     this.updateFreezePreview();
   }
 
+  /**
+   * Starts or stops chart playback depending on the current state.
+   */
   togglePlayback() {
     if (this.isPlaying) {
       this.stopPlayback();
@@ -28835,6 +35091,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Begins playback from the cursor position and starts the audio.
+   */
   startPlayback() {
     this.isPlaying = true;
     this.playStartTime = game.time.now;
@@ -28852,6 +35111,9 @@ class Editor {
     this.metronome.resetNoteMode();
   }
 
+  /**
+   * Halts playback and snaps the cursor back to the played position.
+   */
   stopPlayback() {
     this.isPlaying = false;
     this.navigationHint.visible = true;
@@ -28868,6 +35130,9 @@ class Editor {
     this.playStartTime = 0;
   }
 
+  /**
+   * Cancels an active preview and removes its end handler.
+   */
   abortPreview() {
     if (this.previewEndHandler && this.previewEndTimeoutId) {
       clearTimeout(this.previewEndTimeoutId);
@@ -28877,6 +35142,11 @@ class Editor {
     }
   }
 
+  /**
+   * Plays a short audio preview window from a start time.
+   * @param {number} start - Start time in seconds.
+   * @param {number} length - Preview duration in seconds.
+   */
   playPreview(start, length) {
     if (!this.isPlaying && this.audio && this.audio.src) {
       this.abortPreview();
@@ -28894,10 +35164,19 @@ class Editor {
     }
   }
 
+  /**
+   * Snaps the cursor beat to the nearest grid division.
+   * @param {number} [beat] - Beat to snap; defaults to the current cursor beat.
+   */
   snapCursor(beat) {
     this.cursorBeat = this.getSnappedBeat(beat || this.cursorBeat);
   }
 
+  /**
+   * Moves the editing cursor by a column and beat delta, clamped to the grid.
+   * @param {number} deltaX - Column change (-1, 0, or 1).
+   * @param {number} deltaBeat - Beat change; positive moves forward.
+   */
   moveCursor(deltaX, deltaBeat) {
     this.cursorColumn = Phaser.Math.clamp(this.cursorColumn + deltaX, 0, 3);
 
@@ -28911,16 +35190,25 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Clears any active area selection state.
+   */
   startSingleSelect() {
     this.isAreaSelecting = false;
   }
 
+  /**
+   * Begins an area selection anchored at the current cursor position.
+   */
   startAreaSelection() {
     this.isAreaSelecting = true;
     this.areaSelectStart.beat = this.cursorBeat;
     this.areaSelectStart.column = this.cursorColumn;
   }
 
+  /**
+   * Finishes the selection rectangle and collects the notes inside it.
+   */
   endAreaSelection() {
     this.isAreaSelecting = false;
     const areaSelectEnd = { beat: this.cursorBeat, column: this.cursorColumn };
@@ -28939,6 +35227,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Toggles selection of the note at the current cursor; clears when none.
+   */
   toggleNoteSelection() {
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
     const notes = this.song.chart.notes[diff.type + diff.rating] || [];
@@ -28959,6 +35250,10 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Plays an audio preview for the given note and its duration.
+   * @param {Object} note - Note object used to derive the preview window.
+   */
   previewNote(note) {
     const start = note.sec;
     const duration = note.secLength ? note.secLength : this.chartRenderer.beatToSec(this.getDivisionSize());
@@ -28969,6 +35264,14 @@ class Editor {
     }
   }
 
+  /**
+   * Places a tap note at a column and beat, replacing an existing note when set.
+   * @param {number} column - Column (0 to 3) for the note.
+   * @param {number} beat - Beat position for the note.
+   * @param {boolean} [replace] - Replace an existing note at the same spot.
+   * @param {boolean} [mine] - Place a mine instead of a tap note.
+   * @param {boolean} [quick] - Skip preview effects and sort/refresh work.
+   */
   placeNote(column, beat, replace = false, mine = false, quick = false) {
     if (this.isPlaying) return;
 
@@ -29028,6 +35331,14 @@ class Editor {
     }
   }
 
+  /**
+   * Places a hold or roll note spanning a beat duration.
+   * @param {number} column - Column (0 to 3) for the freeze.
+   * @param {number} startBeat - Starting beat of the freeze.
+   * @param {number} duration - Number of beats the freeze spans.
+   * @param {string} [type] - Note type ('2' for hold, '4' for roll).
+   * @param {boolean} [quick] - Skip preview effects and sort/refresh work.
+   */
   placeFreeze(column, startBeat, duration, type = "2", quick = false) {
     if (this.isPlaying) return;
 
@@ -29068,6 +35379,9 @@ class Editor {
     }
   }
 
+  /**
+   * Sorts the current difficulty's notes by beat position.
+   */
   sortNotes() {
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
     const notes = this.song.chart.notes[diff.type + diff.rating];
@@ -29076,10 +35390,20 @@ class Editor {
     }
   }
   
+  /**
+   * Re-synchronizes the metronome with the current chart notes.
+   */
   refreshMetronome() {
     this.metronome.initializeNotes();
   }
 
+  /**
+   * Places a mine note at the given column and beat.
+   * @param {number} column - Column (0 to 3) for the mine.
+   * @param {number} beat - Beat position for the mine.
+   * @param {boolean} replace - Replace an existing note at the same spot.
+   * @param {boolean} quick - Skip preview effects and sort/refresh work.
+   */
   placeMine(column, beat, replace, quick) {
     if (this.isPlaying) return;
     
@@ -29088,10 +35412,19 @@ class Editor {
     Account.stats.totalPlacedMines ++;
   }
 
+  /**
+   * Places a quick one-beat hold at the cursor position.
+   */
   placeQuickHold() {
     this.placeFreeze(this.cursorColumn, this.cursorBeat, 1, "2");
   }
   
+  /**
+   * Handles left-button selection and right-button placement drags.
+   * @param {string} button - Button name ('left' or 'right').
+   * @param {number} x - Pointer X position.
+   * @param {number} y - Pointer Y position.
+   */
   onMouseDown(button, x, y) {
     if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
@@ -29125,6 +35458,11 @@ class Editor {
     }
   }
   
+  /**
+   * Updates active selection rectangles and freeze drags while the mouse moves.
+   * @param {number} x - Pointer X position.
+   * @param {number} y - Pointer Y position.
+   */
   onMouseMove(x, y) {
     if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
@@ -29161,6 +35499,12 @@ class Editor {
     }
   }
   
+  /**
+   * Completes selection or note placement when a mouse button is released.
+   * @param {string} button - Button name ('left' or 'right').
+   * @param {number} x - Pointer X position.
+   * @param {number} y - Pointer Y position.
+   */
   onMouseUp(button, x, y) {
     if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
@@ -29191,6 +35535,10 @@ class Editor {
     }
   }
   
+  /**
+   * Seeks the cursor in beat units when the mouse wheel is used.
+   * @param {string} direction - Wheel direction ('up' or 'down').
+   */
   onMouseWheel(direction) {
     if (this.menuVisible || this.currentScreen !== "chartEdit") return;
     
@@ -29201,11 +35549,22 @@ class Editor {
     }
   }
     
+  /**
+   * Returns the note at a given column and beat, if one exists.
+   * @param {number} column - Column to inspect (0 to 3).
+   * @param {number} beat - Exact beat position to match.
+   * @returns {Object|undefined} The matching note, if present.
+   */
   getNoteAt(column, beat) {
     const notes = this.getCurrentChartNotes();
     return notes.find(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
   }
   
+  /**
+   * Deletes the note at a given column and beat, if one exists.
+   * @param {number} column - Column to inspect (0 to 3).
+   * @param {number} beat - Exact beat position to match.
+   */
   deleteNoteAt(column, beat) {
     const notes = this.getCurrentChartNotes();
     const index = notes.findIndex(n => n.column === column && Math.abs(n.beat - beat) < 0.001);
@@ -29217,6 +35576,11 @@ class Editor {
     this.refreshMetronome();
   }
   
+  /**
+   * Returns the note column under a given screen X position, or -1.
+   * @param {number} x - Screen X position to test.
+   * @returns {number} Column index (0 to 3), or -1 when outside the grid.
+   */
   getColumnAtPosition(x) {
     const leftOffset = this.chartRenderer.calculateLeftOffset();
     const colWidth = this.chartRenderer.COLUMN_SIZE + this.chartRenderer.COLUMN_SEPARATION;
@@ -29231,6 +35595,11 @@ class Editor {
     return -1;
   }
   
+  /**
+   * Converts a screen Y position into a beat position on the chart.
+   * @param {number} y - Screen Y position to test.
+   * @returns {number} Beat position under the pointer.
+   */
   getBeatAtPosition(y) {
     const { now, beat } = this.getCurrentTime();
     const yPos = y;
@@ -29249,11 +35618,20 @@ class Editor {
     }
   }
   
+  /**
+   * Converts a target beat into its screen Y position.
+   * @param {number} targetBeat - Beat to convert.
+   * @returns {number} Screen Y position of the beat.
+   */
   getYFromBeat(targetBeat) {
     const { now, beat } = this.getCurrentTime();
     return this.chartRenderer.getYPos(now, beat, targetBeat);
   }
 
+  /**
+   * Steps the snap division up or down through the supported denominators.
+   * @param {number} direction - Direction to step (-1 or 1).
+   */
   changeSnapDivision(direction) {
     const currentIndex = this.divisions.indexOf(this.snapDivision);
     let newIndex = currentIndex + direction;
@@ -29265,10 +35643,17 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Returns the user's audio offset in seconds.
+   * @returns {number} Offset in seconds.
+   */
   getAudioOffset() {
     return (Account.settings.userOffset || 0) / 1000;
   }
 
+  /**
+   * Opens a contextual edit menu for the current selection or cursor position.
+   */
   showContextMenu() {
     if (this.isPlaying || this.menuVisible) return;
   
@@ -29377,6 +35762,10 @@ class Editor {
     });
   }
   
+  /**
+   * Stores notes into the clipboard for later pasting.
+   * @param {Array} [notes] - Notes to copy.
+   */
   copyNotes(notes = []) {
     if (notes.length) {
       this.clipboard = notes;
@@ -29384,6 +35773,9 @@ class Editor {
     }
   }
   
+  /**
+   * Pastes the clipboard notes relative to the current cursor beat.
+   */
   pasteNotes() {
     if (this.clipboard.length) {
       const firstBeat = this.clipboard[0].beat;
@@ -29412,10 +35804,16 @@ class Editor {
     }
   }
   
+  /**
+   * Clears the copying clipboard.
+   */
   clearClipboard() {
     this.clipboard = [];
   }
   
+  /**
+   * Records an undo snapshot of the song and loaded files into the story.
+   */
   recordStoryEntry() {
     this.story.push({
       ...this.song,
@@ -29423,6 +35821,9 @@ class Editor {
     });
   }
   
+  /**
+   * Mirrors the selected notes horizontally across the note columns.
+   */
   mirrorNotes() {
     this.selectedNotes.forEach(note => {
       note.column = 3 - note.column;
@@ -29430,6 +35831,9 @@ class Editor {
     this.refreshSelectedNotes();
   }
   
+  /**
+   * Recalculates all note and timing sec values after BPM or stop changes.
+   */
   rearrangeNotes() {
     const bpmChanges = this.song.chart.bpmChanges;
     const stops = this.song.chart.stops;
@@ -29483,6 +35887,10 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Converts the currently selected notes to a new note type.
+   * @param {string} newType - New note type to apply.
+   */
   convertNoteType(newType) {
     if (this.selectedNotes.length === 1) {
       this.selectedNotes[0].type = newType;
@@ -29490,6 +35898,10 @@ class Editor {
     }
   }
 
+  /**
+   * Converts all selected notes at once to the new note type.
+   * @param {string} newType - New note type to apply.
+   */
   convertNotesType(newType) {
     this.selectedNotes.forEach(note => {
       note.type = newType;
@@ -29497,6 +35909,10 @@ class Editor {
     this.refreshSelectedNotes();
   }
 
+  /**
+   * Converts the selected freeze note to a different hold or roll type.
+   * @param {string} newType - New freeze type ('2' or '4').
+   */
   convertFreezeType(newType) {
     if (this.selectedNotes.length === 1 && (this.selectedNotes[0].type === "2" || this.selectedNotes[0].type === "4")) {
       this.selectedNotes[0].type = newType;
@@ -29504,6 +35920,10 @@ class Editor {
     }
   }
 
+  /**
+   * Converts all selected freezes to a different hold or roll type.
+   * @param {string} newType - New freeze type ('2' or '4').
+   */
   convertFreezesType(newType) {
     this.selectedNotes.forEach(note => {
       if (note.type === "2" || note.type === "4") {
@@ -29513,6 +35933,9 @@ class Editor {
     this.refreshSelectedNotes();
   }
 
+  /**
+   * Snaps the currently selected notes to the grid division.
+   */
   alignToBeatDivision() {
     if (this.selectedNotes.length === 1) {
       const note = this.selectedNotes[0];
@@ -29524,6 +35947,9 @@ class Editor {
     }
   }
 
+  /**
+   * Snaps all notes in the current chart to the grid division.
+   */
   alignAllToBeatDivision() {
     this.selectedNotes.forEach(note => {
       note.beat = this.getSnappedBeat(note.beat);
@@ -29534,10 +35960,16 @@ class Editor {
     this.sortNotes();
   }
   
+  /**
+   * Rebuilds the selected notes array and previews the resulting selection.
+   */
   refreshSelectedNotes() {
     this.selectedNotes.forEach(note => this.chartRenderer.killNote(note)); // the renderer will automatically recreate the note visuals
   }
   
+  /**
+   * Removes all selected notes from the current chart.
+   */
   deleteSelectedNotes() {
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
     const notes = this.song.chart.notes[diff.type + diff.rating] || [];
@@ -29556,6 +35988,10 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Returns the note array for the currently edited difficulty.
+   * @returns {Array} Notes of the current difficulty, or an empty array.
+   */
   getCurrentChartNotes() {
     const diff = this.song.chart.difficulties[this.currentDifficultyIndex];
     
@@ -29564,6 +36000,10 @@ class Editor {
     return this.song.chart.notes[diff.type + diff.rating] || [];
   }
 
+  /**
+   * Builds the formatted song information summary shown on the home screen.
+   * @returns {string} Localized song info text.
+   */
   getSongInfoText() {
     const chart = this.song.chart;
     let totalNotes = 0;
@@ -29591,6 +36031,10 @@ class Editor {
     ).trim();
   }
 
+  /**
+   * Handles a file input selection event and forwards the first file.
+   * @param {Event} event - File input change event.
+   */
   handleFileSelect(event) {
     const file = event.target.files[0];
     if (file && this.currentFileCallback) {
@@ -29599,6 +36043,10 @@ class Editor {
     this.fileInput.value = "";
   }
   
+  /**
+   * Imports songs from a folder of files, supporting .sm charts and zips.
+   * @param {FileList|Array} files - Files selected by the user.
+   */
   async processFiles(files) {
     try {
       const fileMap = {};
@@ -29662,6 +36110,10 @@ class Editor {
     }
   }
 
+  /**
+   * Loads an audio file into the song and stores it as a blob.
+   * @param {File} file - Audio file to load.
+   */
   async loadAudioFile(file) {
     try {
       const url = URL.createObjectURL(file);
@@ -29684,6 +36136,10 @@ class Editor {
     }
   }
 
+  /**
+   * Loads a background image file into the song and stores it as a blob.
+   * @param {File} file - Background image file to load.
+   */
   async loadBackgroundFile(file) {
     try {
       const url = URL.createObjectURL(file);
@@ -29706,6 +36162,10 @@ class Editor {
     }
   }
 
+  /**
+   * Loads a banner image file into the song and stores it as a blob.
+   * @param {File} file - Banner image file to load.
+   */
   async loadBannerFile(file) {
     try {
       const url = URL.createObjectURL(file);
@@ -29729,6 +36189,10 @@ class Editor {
     }
   }
   
+  /**
+   * Loads a lyrics file into the song and stores it as a blob.
+   * @param {File} file - Lyrics file to load.
+   */
   async loadLyricsFile(file) {
     try {
       this.showLoadingScreen(__("Processing Lyrics||Procesando Letras"));
@@ -29749,6 +36213,10 @@ class Editor {
     }
   }
 
+  /**
+   * Imports a .pmz/.zip package containing a StepMania song.
+   * @param {File} file - Zip file to import.
+   */
   async importFromZip(file) {
     const JSZip = window.JSZip;
     if (!JSZip) {
@@ -29773,6 +36241,10 @@ class Editor {
     Account.stats.totalImportedSongs ++;
   }
 
+  /**
+   * Parses the .sm chart from a zip and loads all referenced media.
+   * @param {Object} zipContent - Unzipped song package data.
+   */
   async importStepManiaSong(zipContent) {
     // Find .sm file
     let smFile = null;
@@ -29884,6 +36356,10 @@ class Editor {
     notifications.show(__("StepMania song imported!||Canción importada"));
   }
 
+  /**
+   * Imports a standalone .sm chart file and loads its referenced media.
+   * @param {File} file - .sm file to import.
+   */
   async importSMFile(file) {
     const content = await FileTools.readTextFile(file);
     const chart = await new LocalSMParser().parseSM(content);
@@ -29905,6 +36381,9 @@ class Editor {
     notifications.show(__("SM file imported! Load audio/background files manually.||¡Archivo .SM importado! Carga el audio e imágenes manualmente"));
   }
 
+  /**
+   * Exports the current song as a StepMania .sm package in a zip file.
+   */
   async exportSong() {
     try {
       this.showLoadingScreen(__("Exporting song||Exportando canción"));
@@ -29965,6 +36444,9 @@ class Editor {
     }
   }
   
+  /**
+   * Ensures audio, background, banner, and lyrics files are loaded.
+   */
   async ensureFilesLoaded() {
     // Verificar y cargar audio si no está cargado
     if (!this.files.audio && this.song.chart.audioUrl) {
@@ -30009,10 +36491,20 @@ class Editor {
     }
   }
   
+  /**
+   * Fetches a file at a URL as a Blob.
+   * @param {string} url - File URL to fetch.
+   * @returns {Promise<Blob>} The fetched file as a Blob.
+   */
   async fetchFileAsBlob(url) {
     return await FileTools.fetchFileAsBlob(url);
   }
 
+  /**
+   * Adds the shared song media files to the export zip.
+   * @param {Object} songData - Song data being exported.
+   * @param {Object} zip - JSZip instance to add files to.
+   */
   async addSongResourcesToZip(songData, zip) {
     // Add main files
     if (songData.audio !== "no-media" && this.files.audio) {
@@ -30043,6 +36535,12 @@ class Editor {
     return zip;
   }
   
+  /**
+   * Adds a file with the given filename and data to the export zip.
+   * @param {Object} zip - JSZip instance to add the file to.
+   * @param {string} filename - File name inside the zip.
+   * @param {Blob|string} data - File content.
+   */
   async addFileToZip(zip, filename, data) {
     // Si es un Blob o File, leer como ArrayBuffer
     if (data instanceof Blob || data instanceof File) {
@@ -30087,6 +36585,11 @@ class Editor {
     console.warn(`Cannot add file to zip: ${filename} - unsupported data type`, typeof data);
   }
 
+  /**
+   * Saves a blob to the device or downloads it as a file.
+   * @param {Blob} blob - Blob to save.
+   * @param {string} filename - File name to save under.
+   */
   async saveFile(blob, filename) {
     if (CURRENT_ENVIRONMENT === ENVIRONMENT.WEB) {
       // Download in browser
@@ -30103,6 +36606,12 @@ class Editor {
     }
   }
   
+  /**
+   * Writes a blob to the filesystem and returns the stored file.
+   * @param {Blob} blob - Blob to write.
+   * @param {string} filename - File name to write.
+   * @returns {Promise<Object>} The stored file entry.
+   */
   async saveFileToFilesystem(blob, filename) {
     const fileSystem = new FileSystemTools();
     
@@ -30111,6 +36620,10 @@ class Editor {
     await fileSystem.saveFile(outputDir, blob, filename);
   }
   
+  /**
+   * Sets the note type for a difficulty.
+   * @param {number} difficultyIndex - Index of the difficulty to modify.
+   */
   setDifficultyType(difficultyIndex) {
     const types = ["Beginner", "Easy", "Medium", "Hard", "Challenge"];
     const currentType = this.song.chart.difficulties[difficultyIndex].type;
@@ -30143,6 +36656,10 @@ class Editor {
     carousel.onCancel.add(() => this.showChartOptions(difficultyIndex));
   }
 
+  /**
+   * Sets the difficulty level rating for a difficulty.
+   * @param {number} difficultyIndex - Index of the difficulty to modify.
+   */
   setDifficultyRating(difficultyIndex) {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -30170,6 +36687,10 @@ class Editor {
     carousel.onCancel.add(() => this.showChartOptions(difficultyIndex));
   }
 
+  /**
+   * Deletes a difficulty from the song chart.
+   * @param {number} difficultyIndex - Index of the difficulty to delete.
+   */
   deleteDifficulty(difficultyIndex) {
     const diff = this.song.chart.difficulties[difficultyIndex];
     const key = diff.type + diff.rating;
@@ -30181,6 +36702,9 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Adds a new empty difficulty to the song chart.
+   */
   addNewDifficulty() {
     const newDiff = {
       type: "Medium",
@@ -30192,6 +36716,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Opens the metadata editing screen for the current song.
+   */
   showMetadataEdit() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -30214,6 +36741,10 @@ class Editor {
     carousel.onCancel.add(() => this.showEditMenu());
   }
 
+  /**
+   * Edits a metadata field for the current song via text input.
+   * @param {string} field - Name of the metadata field to edit.
+   */
   editMetadataField(field) {
     const currentValue = this.song.chart[field] || "";
     
@@ -30242,6 +36773,9 @@ class Editor {
     });
   }
   
+  /**
+   * Opens a text input to change the song BPM.
+   */
   editSongBpm() {
     const bpm = this.song.chart.bpmChanges[0]?.bpm || 120;
     
@@ -30276,6 +36810,9 @@ class Editor {
     });
   }
 
+  /**
+   * Opens a text input to change the song offset.
+   */
   editSongOffset() {
     const offset = this.song.chart.offset || 0;
     
@@ -30305,6 +36842,9 @@ class Editor {
     });
   }
 
+  /**
+   * Opens a text input to change the sample start time.
+   */
   editSampleStart() {
     const sampleStart = this.song.chart.sampleStart || 0;
     
@@ -30340,6 +36880,9 @@ class Editor {
     });
   }
 
+  /**
+   * Opens a text input to change the sample length.
+   */
   editSampleLength() {
     const sampleLength = this.song.chart.sampleLength || 10;
     
@@ -30370,6 +36913,9 @@ class Editor {
     });
   }
 
+  /**
+   * Opens file loaders for the currently selected background change.
+   */
   editBGChangeFiles() {
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
@@ -30407,6 +36953,10 @@ class Editor {
     carousel.onCancel.add(() => this.showFileMenu());
   }
   
+  /**
+   * Opens the background change edit menu for a background entry.
+   * @param {number} bgIndex - Index of the background change to edit.
+   */
   showBGChangeMenu(bgIndex) {
     const bg =  this.song.chart.backgrounds[bgIndex];
     
@@ -30439,15 +36989,24 @@ class Editor {
     carousel.onCancel.add(() => this.editBGChangeFiles());
   }
 
+  /**
+   * Resets the editor and returns to the home screen.
+   */
   createNewSongAndReload() {
     this.song = this.createNewSong();
     game.state.start("Editor");
   }
 
+  /**
+   * Saves the current song to the filesystem and leaves the editor.
+   */
   saveAndExit() {
     this.showHomeScreen();
   }
 
+  /**
+   * Clears leftover editor UI elements and input listeners.
+   */
   clearUI() {
     if (this.mainCarousel) {
       this.mainCarousel.destroy();
@@ -30463,6 +37022,11 @@ class Editor {
   }
 
   // BPM/Stop/BG change methods
+  /**
+   * Estimates the BPM from a series of tapped beat times.
+   * @param {Array} beats - Tapped beat timestamps in seconds.
+   * @returns {number} Estimated BPM value.
+   */
   calculateBPM(beats) {
     if (beats.length < 3) {
       return 0;
@@ -30490,6 +37054,9 @@ class Editor {
     return bpm;
   }
 
+  /**
+   * Opens a tap-to-the-beat mode to estimate the BPM at the cursor.
+   */
   detectBPMHere() {
     const audioElement = document.createElement("audio");
     audioElement.src = this.audio.src;
@@ -30538,6 +37105,9 @@ class Editor {
     gamepad.signals.pressed.any.add(inputHandler);
   }
 
+  /**
+   * Adds a new BPM change at the current cursor beat.
+   */
   addBPMChange() {
     this.menuVisible = true;
     
@@ -30573,10 +37143,18 @@ class Editor {
     });
   }
 
+  /**
+   * Returns the BPM change at the current cursor beat, if any.
+   * @returns {Object|undefined} The matching BPM change.
+   */
   getBPMChange() {
     return this.song.chart.bpmChanges.find(bpm => Math.abs(bpm.beat - this.cursorBeat) < 0.001);
   }
 
+  /**
+   * Edits the BPM value of a BPM change entry.
+   * @param {Object} [target] - BPM change to edit; defaults to the one at the cursor.
+   */
   editBPMChange(target) {
     const bpmChange = target || this.getBPMChange();
     if (bpmChange) {
@@ -30611,6 +37189,9 @@ class Editor {
     }
   }
   
+  /**
+   * Removes the BPM change located at the cursor beat.
+   */
   removeBPMChange() {
     const bpmChange = this.getBPMChange();
     if (bpmChange) {
@@ -30622,6 +37203,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Adds a new stop duration at the current cursor beat.
+   */
   addStop() {
     this.menuVisible = true;
     
@@ -30657,10 +37241,17 @@ class Editor {
     });
   }  
 
+  /**
+   * Returns the stop at the current cursor beat, if any.
+   * @returns {Object|undefined} The matching stop entry.
+   */
   getStop() {
     return this.song.chart.stops.find(s => Math.abs(s.beat - this.cursorBeat) < 0.001);
   }
 
+  /**
+   * Edits the duration of the stop at the current cursor beat.
+   */
   editStop() {
     const stop = this.getStop();
     if (stop) {
@@ -30695,6 +37286,9 @@ class Editor {
     }
   }
 
+  /**
+   * Removes the stop located at the cursor beat.
+   */
   removeStop() {
     const stop = this.getStop();
     if (stop) {
@@ -30706,6 +37300,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Adds a background change at the cursor from a picked image or video file.
+   */
   addBGChange() {
     this.pickFile("image/*,video/*", async event => {
       const file = event.target.files[0];
@@ -30727,6 +37324,9 @@ class Editor {
     });
   }
   
+  /**
+   * Ensures a background change exists for songs that have no background entry.
+   */
   addNoSongBgChange() {
     this.song.chart.backgrounds.push({
       beat: this.cursorBeat,
@@ -30741,10 +37341,18 @@ class Editor {
     this.song.chart.backgrounds.sort((a, b) => a.beat - b.beat);
   }
 
+  /**
+   * Returns the background change at the current cursor beat, if any.
+   * @returns {Object|undefined} The matching background change.
+   */
   getBGChange() {
     return this.song.chart.backgrounds.find(bg => Math.abs(bg.beat - this.cursorBeat) < 0.001);
   }
   
+  /**
+   * Replaces the media file of an existing background change.
+   * @param {Object} [target] - Background change to edit; defaults to the one at the cursor.
+   */
   editBGChange(target) {
     const bgChange = target || this.getBGChange();
     if (bgChange) {
@@ -30762,6 +37370,9 @@ class Editor {
     this.updateInfoText();
   }
   
+  /**
+   * Removes the background change located at the cursor beat.
+   */
   removeBGChange() {
     const bgChange = this.getBGChange();
     if (bgChange) {
@@ -30773,6 +37384,9 @@ class Editor {
     this.updateInfoText();
   }
 
+  /**
+   * Renders the chart and handles per-screen editing input each frame.
+   */
   update() {
     gamepad.update();
     
@@ -30831,6 +37445,10 @@ class Editor {
     }
   }
   
+  /**
+   * Plays an explosion effect at a column when a mine is hit.
+   * @param {number} column - Column where the mine exploded.
+   */
   playExplosionEffect(column) {
     const receptor = this.chartRenderer.receptors[column];
     if (receptor && receptor.explosion) {
@@ -30848,6 +37466,11 @@ class Editor {
     }
   }
 
+  /**
+   * Shows hit effects for notes reaching the judge line during playback.
+   * @param {number} now - Current song time in seconds.
+   * @param {number} beat - Current beat position.
+   */
   showHitEffects(now, beat) {
     const notes = this.getCurrentChartNotes();
 
@@ -30859,10 +37482,16 @@ class Editor {
     });
   }
   
+  /**
+   * Leaves the editor and returns to the main menu.
+   */
   exitEditor() {
     game.state.start("MainMenu");
   }
 
+  /**
+   * Cleans up editor resources and stores the song for later access.
+   */
   shutdown() {
     if (this.fileInput) {
       this.fileInput.value = "";
@@ -30878,18 +37507,54 @@ class Editor {
   }
 }
 
+/**
+ * @class Credits
+ * @category Game States
+ * @summary Credits screen
+ * @constructor
+ * @param {string} [returnState] - Game state to return to when credits finish.
+ * @param {Object} [returnStateParams] - Params forwarded to the return state.
+ * @features
+ * Scrollable credits paced by the background song tempo
+ * Background slideshow of song artwork
+ * Plays a random song from the music library
+ * @description
+ * The Credits state plays the end-of-game credits as a vertically scrolling
+ * banner paced by the tempo of a randomly selected background song. It cycles
+ * artwork from the local song library as a backdrop. Once the credits finish,
+ * the player can press any button to return to the configured state.
+ * @example
+ * // Modding usage example
+ * // Play the credits and return to a chosen state afterward
+ * game.state.start("Credits");
+ *
+ * // Or specify where to land once the credits complete
+ * game.state.start("Credits", true, false, "Title");
+ */
 class Credits {
+  /**
+   * Records the return state and initializes credits timing and background data.
+   * @param {string} [returnState] - Game state to return to after the credits.
+   * @param {Object} [returnStateParams] - Params forwarded to the return state.
+   */
   init(returnState = 'MainMenu', returnStateParams = {}) {
+    /** @type {string} State to return to when credits finish. */
     this.returnState = returnState;
+    /** @type {Object} Params forwarded to the return state. */
     this.returnStateParams = returnStateParams;
+    /** @type {boolean} Whether input is being awaited after the finale. */
     this.isWaitingForInput = false;
     this.backgroundInterval = 8000;
+    /** @type {Array} URLs of backgrounds available for the slideshow. */
     this.availableBackgrounds = [];
     this.bpmChanges = null;
     this.stops = null;
     this.startTime = 0;
   }
 
+  /**
+   * Builds the credits text container, background slideshow, and music.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -30961,6 +37626,9 @@ class Credits {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
+  /**
+   * Creates the background sprite and starts the artwork slideshow timer.
+   */
   setupBackground() {
     this.backgroundSprite = game.add.sprite(0, 0);
     this.backgroundSprite.alpha = 0.7;
@@ -31029,6 +37697,9 @@ class Credits {
     tempImg.src = nextBackground;
   }
 
+  /**
+   * Picks a random song with audio and plays it behind the credits.
+   */
   startBackgroundMusic() {
     if (backgroundMusic) {
       backgroundMusic.stop();
@@ -31066,6 +37737,10 @@ class Credits {
     }
   }
 
+  /**
+   * Collects credit lines for every local song with chart credit metadata.
+   * @returns {Array} Array of credit content descriptors.
+   */
   getSongCredits() {
     const songCredits = [];
     
@@ -31113,6 +37788,11 @@ class Credits {
     return this.stops.length ? this.stops.find((e, i, a) => i + 1 == a.length || a[i + 1].beat >= beat) : null;
   }
 
+  /**
+   * Converts a beat position to seconds using BPM changes and stops.
+   * @param {number} beat - Beat position to convert.
+   * @returns {number} Time in seconds.
+   */
   beatToSec(beat) {
     if (!this.bpmChanges || this.bpmChanges.length === 0) return beat * 60 / 120;
     
@@ -31123,6 +37803,11 @@ class Credits {
     return x;
   }
 
+  /**
+   * Converts a seconds position to beats using BPM changes and stops.
+   * @param {number} sec - Time in seconds to convert.
+   * @returns {number} Beat position.
+   */
   secToBeat(sec) {
     if (!this.bpmChanges || this.bpmChanges.length === 0) return sec * 120 / 60;
     
@@ -31132,6 +37817,9 @@ class Credits {
     return ((sec - b.sec) * b.bpm) / 60 + b.beat;
   }
 
+  /**
+   * Scrolls the credits, syncing speed to the current BPM each frame.
+   */
   update() {
     const { now, beat } = this.getSongTime();
     
@@ -31156,6 +37844,9 @@ class Credits {
     }
   }
 
+  /**
+   * Shows the thank-you message and waits for input to leave the screen.
+   */
   onCreditsComplete() {
     this.continueText = new Text(game.width / 2, game.height / 2, __("Thank you for playing||Gracias por jugar"), FONTS.bold_shadow);
     this.continueText.anchor.set(0.5);
@@ -31169,6 +37860,9 @@ class Credits {
     });
   }
 
+  /**
+   * Fades the camera and transitions to the configured return state.
+   */
   returnToMenu() {
     game.camera.fade(0x000000, 1000);
     game.camera.onFadeComplete.addOnce(() => {
@@ -31176,6 +37870,9 @@ class Credits {
     });
   }
 
+  /**
+   * Removes input handlers and stops credits music and background timers.
+   */
   shutdown() {
     if (this.skipHandler) {
       gamepad.signals.pressed.any.remove(this.skipHandler);
@@ -31192,11 +37889,44 @@ class Credits {
   }
 }
 
+/**
+ * @class ErrorScreen
+ * @category Game States
+ * @summary Error display screen shown when game crashes
+ * @constructor
+ * @param {string} [message] - Crash message shown to the player.
+ * @param {string} [recoverStateKey] - State to restart into when the player recovers.
+ * @features
+ * Displays crash message on a full-screen splash
+ * Any key recovers to a configured state
+ * Clicking opens the bug report page before recovering
+ * @description
+ * The ErrorScreen state is shown when the game crashes, displaying the crash
+ * message on a full-screen splash. Pressing any key restarts the game into the
+ * configured recovery state, while clicking the screen opens the bug report
+ * page before recovering.
+ * @example
+ * // Modding usage example
+ * game.state.start("ErrorScreen");
+ *
+ * // Provide a custom message and recovery state
+ * game.state.start("ErrorScreen", true, false, "Audio device failed", "MainMenu");
+ */
 class ErrorScreen {
+  /**
+   * Stores the crash message and the state used to recover from the error.
+   * @param {string} message - Crash message shown to the player.
+   * @param {string} recoverStateKey - State to restart into on recovery.
+   */
   init(message, recoverStateKey) {
+    /** @type {string} Crash message displayed to the player. */
     this.message = message || "The causes of this failure are unknown yet";
+    /** @type {string} State key to restart into on recovery. */
     this.recoverStateKey = recoverStateKey || "Title";
   }
+  /**
+   * Renders the error splash and wires the recovery input handlers.
+   */
   create() {
     this.background = game.add.graphics(0, 0);
     this.background.beginFill(0x4428bc, 1);
@@ -31228,6 +37958,37 @@ Please Report The Developer Immediately!
   }
 }
 
+/**
+ * @class ChartRenderer
+ * @category Core Game Classes
+ * @summary Renders notes, receptors, and chart elements
+ * @constructor
+ * @param {Phaser.Scene} scene - The Phaser game scene
+ * @param {Object} song - Song data containing chart and metadata
+ * @param {number} difficultyIndex - Index into the chart's difficulty array
+ * @param {Object} options - Rendering and gameplay configuration options
+ * @features
+ * Falling and rising scroll direction rendering
+ * Hold and roll note body rendering
+ * Mine note animation and display
+ * Beat line, speed change, and background change overlays
+ * Object pooling for sprite reuse
+ * @description
+ * Handles all visual rendering of the chart during gameplay, including notes, receptors,
+ * hold/roll bodies, mines, beat lines, and speed/background change indicators.
+ * Supports both falling and rising scroll directions with configurable speed modifiers.
+ * Manages sprite pooling and z-ordering for efficient rendering performance.
+ * @example
+ * // Creating a ChartRenderer for a song
+ * const renderer = new ChartRenderer(scene, songData, 0, {
+ *   scrollDirection: "falling",
+ *   speedMod: "X-MOD",
+ *   noteSpeedMultiplier: 1.5,
+ *   enableBeatLines: true
+ * });
+ * // Render at current time
+ * renderer.render(currentTime, currentBeat);
+ */
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -31262,15 +38023,22 @@ class ChartRenderer {
     
     this.player = this.options.player || this.scene.player;
 
+    /** @type {string} Scroll direction: "falling" or "rising" */
     this.scrollDirection = this.options.scrollDirection || "falling";
 
     // Visual constants
+    /** @type {number} Vertical pixel spacing between note rows */
     this.VERTICAL_SEPARATION = 1.25;
     this.SCREEN_CONSTANT = this.options.speedMod === "C-MOD" ? 240 / 60 : 1;
+    /** @type {number} Base note speed multiplier including screen constant */
     this.NOTE_SPEED_MULTIPLIER = this.options.noteSpeedMultiplier + this.SCREEN_CONSTANT;
+    /** @type {number} Y position of the judgement line */
     this.JUDGE_LINE = this.scrollDirection === "falling" ? this.options.judgeLineYFalling : this.options.judgeLineYRising;
+    /** @type {number} Render direction: -1 for falling, 1 for rising */
     this.DIRECTION = this.scrollDirection === "falling" ? -1 : 1;
+    /** @type {number} Width of each note column */
     this.COLUMN_SIZE = 20;
+    /** @type {number} Gap between note columns */
     this.COLUMN_SEPARATION = 4;
     this.INACTIVE_COLOR = 0x888888;
 
@@ -31399,10 +38167,17 @@ class ChartRenderer {
 
     this.tags = {};
     
+    /** @type {Array} Receptor sprites for each of the four columns */
     this.receptors = [];
     this.initialize();
   }
   
+  /**
+   * Loads a song's chart data for the given difficulty into the renderer.
+   * Cleans up any previously pooled note sprites before reloading.
+   * @param {Object} song - Song data containing chart and metadata
+   * @param {number} difficultyIndex - Index into the chart's difficulty array
+   */
   load(song, difficultyIndex) {
     if (this.notes) {
       this.notes.forEach(note => this.killNote(note, true));
@@ -31411,19 +38186,35 @@ class ChartRenderer {
     this.song = song;
     this.difficultyIndex = difficultyIndex;
     this.chart = song.chart;
+    /** @type {Object} The selected difficulty from the chart */
     this.difficulty = this.chart.difficulties[difficultyIndex];
+    /** @type {Array} Note data for the selected difficulty */
     this.notes = this.chart.notes[this.difficulty.type + this.difficulty.rating];
+    /** @type {Array} BPM change markers from the chart */
     this.bpmChanges = this.chart.bpmChanges;
+    /** @type {Array} Stop events from the chart */
     this.stops = this.chart.stops;
     this.backgrounds = this.chart.backgrounds || [];
   }
   
+  /**
+   * Destroys this renderer and returns a fresh instance for the given chart.
+   * Used to rebuild the renderer with different chart data or options.
+   * @param {Object} song - Song data to load
+   * @param {number} difficultyIndex - Index into the chart's difficulty array
+   * @param {Object} options - Rendering and gameplay configuration options
+   * @returns {ChartRenderer} A new ChartRenderer instance
+   */
   recreate(song, difficultyIndex, options) {
     this.destroy();
     
     return new ChartRenderer(this.scene, song || this.song, difficultyIndex || 0, options || this.options);
   }
 
+  /**
+   * Sets up receptor sprites, explosion effects, and the chart background.
+   * Called once during construction to build the initial visual layout.
+   */
   initialize() {
     const leftOffset = this.calculateLeftOffset();
 
@@ -31516,6 +38307,14 @@ class ChartRenderer {
     return Math.abs(remainder) < epsilon || Math.abs(remainder - 4) < epsilon;
   }
 
+  /**
+   * Computes the on-screen Y position of a note for the current scroll direction.
+   * Also returns the past-scroll distance and hold body height for freeze notes.
+   * @param {Object} note - The note to position
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   * @returns {Object} {pastSize, bodyHeight, yPos}
+   */
   calculateVerticalPosition(note, now, beat) {
     let pastSize;
     let bodyHeight = 0;
@@ -31542,6 +38341,11 @@ class ChartRenderer {
     return { pastSize, bodyHeight, yPos };
   }
 
+  /**
+   * Returns the BPM in effect at the given beat position.
+   * @param {number} beat - Beat position to look up
+   * @returns {number} Current BPM value
+   */
   getCurrentBPM(beat = 0) {
     if (!this.bpmChanges || this.bpmChanges.length === 0) return 120;
     
@@ -31560,6 +38364,11 @@ class ChartRenderer {
     return this.bpmChanges.find((e, i, a) => i + 1 == a.length || a[i + 1][valueType] >= time);
   }
 
+  /**
+   * Converts a beat position to seconds, accounting for BPM changes and stops.
+   * @param {number} beat - Beat position to convert
+   * @returns {number} Time in seconds
+   */
   beatToSec(beat) {
     if (!this.bpmChanges || this.bpmChanges.length === 0) return beat * 60 / 120;
     
@@ -31570,6 +38379,11 @@ class ChartRenderer {
     return x;
   }
 
+  /**
+   * Converts a time in seconds to a beat position, accounting for stops.
+   * @param {number} sec - Time in seconds to convert
+   * @returns {number} Beat position
+   */
   secToBeat(sec) {
     if (!this.bpmChanges || this.bpmChanges.length === 0) return sec * 120 / 60;
     
@@ -31579,6 +38393,12 @@ class ChartRenderer {
     return ((sec - b.sec) * b.bpm) / 60 + b.beat;
   }
   
+  /**
+   * Main render entry point called each frame.
+   * Dispatches to the falling or rising renderer and draws optional overlay elements.
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   render(now, beat) {
     if (this.paused) return;
     
@@ -31600,6 +38420,12 @@ class ChartRenderer {
     this.cleanupTags();
   }
 
+  /**
+   * Renders all notes in a falling scroll direction with miss checking and z-ordering.
+   * Called by render() when the scroll direction is set to "falling".
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   renderFalling(now, beat) {
     const leftOffset = this.calculateLeftOffset();
     const notesToRender = [];
@@ -31658,6 +38484,12 @@ class ChartRenderer {
     });
   }
 
+  /**
+   * Renders all notes in a rising scroll direction with miss checking and z-ordering.
+   * Called by render() when the scroll direction is set to "rising".
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   renderRising(now, beat) {
     const leftOffset = this.calculateLeftOffset();
     const notesToRender = [];
@@ -31716,6 +38548,13 @@ class ChartRenderer {
     });
   }
 
+  /**
+   * Positions and animates a mine note's sprite at the given coordinates.
+   * Reuses pooled sprites or creates new ones on demand.
+   * @param {Object} note - The mine note to render
+   * @param {number} x - X position
+   * @param {number} yPos - Y position
+   */
   renderMine(note, x, yPos) {
     if (!note.sprite) {
       note.sprite = this.minesGroup.getFirstDead() || (() => {
@@ -31732,6 +38571,13 @@ class ChartRenderer {
     note.sprite.y = yPos;
   }
 
+  /**
+   * Positions an arrow note's sprite, applying its color frame and column rotation.
+   * Reuses pooled sprites or creates new ones on demand.
+   * @param {Object} note - The arrow note to render
+   * @param {number} x - X position
+   * @param {number} yPos - Y position
+   */
   renderArrow(note, x, yPos) {
     if (!note.sprite) {
       note.sprite = this.notesGroup.getFirstDead() || (() => {
@@ -31749,6 +38595,18 @@ class ChartRenderer {
     note.sprite.y = yPos;
   }
 
+  /**
+   * Renders hold and roll note bodies and endpoints with active hold tracking.
+   * Handles miss checking, active-state trimming, and tinting for holds.
+   * @param {Object} note - The hold/roll note to render
+   * @param {number} x - X position
+   * @param {number} yPos - Base Y position
+   * @param {number} bodyHeight - Full height of the hold body
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   * @param {string} direction - "falling" or "rising"
+   * @returns {number} Adjusted Y position of the note arrow
+   */
   renderHoldNote(note, x, yPos, bodyHeight, now, beat, direction) {
     if (!note.holdParts) {
       const prefix = note.type === "2" ? "hold" : "roll";
@@ -31874,6 +38732,12 @@ class ChartRenderer {
     return yPos;
   }
 
+  /**
+   * Renders beat division lines for the visible measures on screen.
+   * Cleans up off-screen and stuck timeline sprite objects.
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   renderTimeLines(now, beat) {
     const beatsPerMeasure = Account.settings.beatsPerMeasure || 4;
     const startMeasure = Math.floor(beat / beatsPerMeasure);
@@ -31897,6 +38761,12 @@ class ChartRenderer {
     this.cleanupStuckLines();
   }
   
+  /**
+   * Draws BPM change and stop indicator lines with tags on the chart.
+   * Redraws the speed-mod overlay graphics each time it is called.
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   renderSpeedChanges(now, beat) {
     this.speedModGraphics.clear();
     
@@ -31938,6 +38808,12 @@ class ChartRenderer {
     });
   }
   
+  /**
+   * Draws background change indicator lines with tags on the chart.
+   * Redraws the background-change overlay graphics each time it is called.
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   renderBGChanges(now, beat) {
     this.bgChangeGraphics.clear();
     
@@ -32117,6 +38993,12 @@ class ChartRenderer {
     return null;
   }
 
+  /**
+   * Spawns and animates an explosion effect at the matching receptor position.
+   * Uses normal or mine explosion textures depending on the type requested.
+   * @param {Object} note - The note that triggered the explosion
+   * @param {string} type - "normal" or "mine" explosion texture
+   */
   createExplosion(note, type = "normal") {
     const receptor = this.receptors[note.column];
 
@@ -32143,6 +39025,11 @@ class ChartRenderer {
       .onComplete.add(() => explosion.kill());
   }
 
+  /**
+   * Shows or hides the active-hold explosion glow on a receptor.
+   * @param {number} column - Column index whose receptor glow to toggle
+   * @param {boolean} visible - Whether the glow should be visible
+   */
   toggleHoldExplosion(column, visible) {
     const explosion = this.receptors[column].explosion;
     explosion.visible = visible;
@@ -32204,6 +39091,9 @@ class ChartRenderer {
     return line;
   }
 
+  /**
+   * Destroys all sprite groups and graphics used for rendering the chart.
+   */
   destroy() {
     this.linesGroup.destroy(true);
     this.receptorsGroup.destroy(true);
@@ -32218,17 +39108,48 @@ class ChartRenderer {
   }
 }
 
+/**
+ * @class AudioTemperatureMeter
+ * @category Core Game Classes
+ * @summary Audio-based tempo meter for dynamic background effects
+ * @constructor
+ * @param {Phaser.Scene} scene - The Phaser game scene
+ * @param {HTMLAudioElement} audioElement - The game audio element to analyze
+ * @features
+ * Volume-based silence detection
+ * BPM spike detection for intensity changes
+ * Stop event awareness
+ * Sample section highlighting
+ * @description
+ * Monitors audio playback and chart data to determine when the music is at a high or low
+ * intensity, dispatching signals that drive dynamic visual effects like background animations.
+ * Uses Web Audio API for volume analysis and chart metadata for BPM changes, stops,
+ * and sample section detection to make temperature state decisions.
+ * @example
+ * // Creating a temperature meter for background effects
+ * const meter = new AudioTemperatureMeter(scene, audioElement);
+ * meter.onHighTemperature.add(() => {
+ *   backgroundSprite.playAnimation("intense");
+ * });
+ * meter.onLowTemperature.add(() => {
+ *   backgroundSprite.playAnimation("calm");
+ * });
+ */
 class AudioTemperatureMeter {
   constructor(scene, audioElement) {
     this.scene = scene;
     this.audio = audioElement;
     
+    /** @type {Phaser.Signal} Dispatched when the temperature switches to high */
     this.onHighTemperature = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when the temperature switches to low */
     this.onLowTemperature = new Phaser.Signal();
     
+    /** @type {boolean} Whether the meter currently reports a high state */
     this.isHigh = false;
     this.sampleStartSec = 9999;
     this.sampleEndSec = 9999 + 1;
+    /** @type {number} Most recently measured BPM value */
     this.lastBPM = 120;
     this.bpmSpikeActive = false;
     this.bpmSpikeEndTime = 0;
@@ -32237,6 +39158,7 @@ class AudioTemperatureMeter {
     this.silenceEndTime = null;
     this.volumeHistory = [];
     
+    /** @type {Object} Tunable detection settings for the meter */
     this.config = {
       debug: false,
       ignoreFirstSeconds: 5,
@@ -32253,6 +39175,10 @@ class AudioTemperatureMeter {
     }
   }
   
+  /**
+   * Reads the song's sample start and length from the chart for temperature timing.
+   * Called once during construction to define the sample section window.
+   */
   init() {
     if (!this.scene || !this.scene.song) return;
     
@@ -32266,6 +39192,10 @@ class AudioTemperatureMeter {
     }
   }
   
+  /**
+   * Initializes the Web Audio API analyser for volume detection.
+   * Safe to call with no audio element; setup is skipped silently.
+   */
   setupVolumeDetection() {
     if (!this.audio) return;
     
@@ -32284,6 +39214,11 @@ class AudioTemperatureMeter {
     }
   }
   
+  /**
+   * Returns the current normalized loudness of the audio stream.
+   * Falls back to a neutral 0.5 when no analyser is available.
+   * @returns {number} Normalized volume from 0 to 1
+   */
   getVolume() {
     if (!this.analyser || !this.dataArray) return 0.5;
     
@@ -32295,6 +39230,12 @@ class AudioTemperatureMeter {
     return sum / this.bufferLength;
   }
   
+  /**
+   * Returns the BPM in effect at the given playback time from chart changes.
+   * Falls back to the last measured BPM when no chart is available.
+   * @param {number} nowSec - Current playback time in seconds
+   * @returns {number} BPM value
+   */
   getCurrentBPM(nowSec) {
     if (!this.scene || !this.scene.player || !this.scene.player.renderer) {
       return this.lastBPM;
@@ -32317,6 +39258,11 @@ class AudioTemperatureMeter {
     return currentBPM;
   }
   
+  /**
+   * Detects significant BPM increases and activates a spike section.
+   * A 16-measure (64 beat) high section is triggered on large jumps.
+   * @param {number} nowSec - Current playback time in seconds
+   */
   checkForBPMSpike(nowSec) {
     const currentBPM = this.getCurrentBPM(nowSec);
     
@@ -32354,6 +39300,12 @@ class AudioTemperatureMeter {
     this.lastBPM = currentBPM;
   }
   
+  /**
+   * Samples audio volume and tracks periods of silence.
+   * Returns whether the current moment is silent and for how long.
+   * @param {number} nowSec - Current playback time in seconds
+   * @returns {Object} {isSilent, silenceDuration}
+   */
   checkForSilence(nowSec) {
     const volume = this.getVolume();
     
@@ -32380,6 +39332,11 @@ class AudioTemperatureMeter {
     return { isSilent, silenceDuration: this.silenceStartTime !== null ? nowSec - this.silenceStartTime : 0 };
   }
   
+  /**
+   * Detects when playback passes through a chart stop event.
+   * Temporarily marks the meter as in a stop with a timed reset.
+   * @param {number} nowSec - Current playback time in seconds
+   */
   checkForStops(nowSec) {
     if (!this.scene || !this.scene.player || !this.scene.player.renderer) {
       return;
@@ -32414,6 +39371,12 @@ class AudioTemperatureMeter {
     }
   }
   
+  /**
+   * Main per-frame evaluation that decides high or low temperature state.
+   * Combines sample section, BPM spike, silence, and stop rules, then dispatches signals.
+   * @param {number} nowSec - Current playback time in seconds
+   * @param {number} beat - Current beat position
+   */
   update(nowSec, beat) {
     if (!this.audio || !this.scene) return;
     
@@ -32521,6 +39484,9 @@ class AudioTemperatureMeter {
     );
   }
   
+  /**
+   * Resets all detection state back to initial values.
+   */
   reset() {
     this.isHigh = false;
     this.bpmSpikeActive = false;
@@ -32531,14 +39497,25 @@ class AudioTemperatureMeter {
     this.volumeHistory = [];
   }
   
+  /**
+   * Returns the temperature as a numeric value.
+   * @returns {number} 100 when high, 0 when low
+   */
   getTemperature() {
     return this.isHigh ? 100 : 0;
   }
   
+  /**
+   * Returns whether the meter currently reports a high temperature state.
+   * @returns {boolean} True when high
+   */
   isTemperatureHigh() {
     return this.isHigh;
   }
     
+  /**
+   * Cleans up signals and debug text used by the meter.
+   */
   destroy() {
     // Detener todas las señales primero
     this.onHighTemperature.dispose();
@@ -32572,6 +39549,34 @@ class AudioTemperatureMeter {
   }
 }
 
+/**
+ * @class Player
+ * @category Core Game Classes
+ * @summary Handles all gameplay logic including note processing and scoring
+ * @constructor
+ * @param {Phaser.Scene} scene - The Phaser game scene this player belongs to
+ * @param {string} playerSide - Player position: "center", "left", or "right"
+ * @param {Object} settings - Gameplay configuration overrides
+ * @features
+ * Note input processing and judgement evaluation
+ * Score, combo, health, and accuracy tracking
+ * Hold and roll note management
+ * Skill system integration
+ * @description
+ * Core gameplay class that processes player input, evaluates timing judgements against chart notes,
+ * and manages all runtime game state including scoring, health, combo, and accuracy.
+ * Delegates visual rendering to ChartRenderer while handling the logic layer of gameplay.
+ * Serves as the base class for FirstPlayer and SecondPlayer.
+ * @example
+ * // Creating a Player instance directly
+ * const player = new Player(game.state.getCurrentState(), "left", {
+ *   speedMod: "C-MOD",
+ *   scrollDirection: "falling",
+ *   noteSpeedMult: 1.5
+ * });
+ * player.update();
+ * console.log(player.score, player.combo, player.accuracy);
+ */
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
     this.scene = scene;
@@ -32582,6 +39587,7 @@ class Player {
     this.hud = scene.hud;
     
     // Use ChartRenderer for rendering
+    /** @type {ChartRenderer} Handles all visual chart rendering */
     this.renderer = new ChartRenderer(scene, JSON.parse(JSON.stringify(scene.song)), scene.song.difficultyIndex || scene.difficultyIndex, {
       enableGameplayLogic: true,
       enableJudgement: true,
@@ -32601,10 +39607,14 @@ class Player {
     });
     
     // Copy references from renderer
+/** @type {Array} Chart note data for this difficulty */
     this.notes = this.renderer.notes;
+    /** @type {Array} BPM change markers from the chart */
     this.bpmChanges = this.renderer.bpmChanges;
+    /** @type {Array} Stop events from the chart */
     this.stops = this.renderer.stops;
-    
+
+    /** @type {boolean} Whether AI auto-play is active */
     this.autoplay = settings.autoplay || scene.autoplay;
     this.autoplayActiveHolds = new Set();
 
@@ -32619,16 +39629,25 @@ class Player {
     };
 
     // Game state
+    /** @type {Array<boolean>} Current press state for each column */
     this.inputStates = [false, false, false, false];
     this.lastInputStates = [false, false, false, false];
+    /** @type {Object} Active hold notes keyed by column index */
     this.activeHolds = {};
+    /** @type {Set} Columns currently being held */
     this.heldColumns = new Set();
+    /** @type {Array} History of all judgements received */
     this.judgementHistory = [];
     this.lastNoteCheckBeats = [null, null, null, null];
+    /** @type {number} Current accumulated score */
     this.score = 0;
+    /** @type {number} Current consecutive hit streak */
     this.combo = 0;
+    /** @type {number} Highest combo achieved this game */
     this.maxCombo = 0;
+    /** @type {number} Maximum health capacity */
     this.maxHealth = 100;
+    /** @type {number} Current player health */
     this.health = this.maxHealth;
     this.previousHealth = this.health;
     this.timingStory = [];
@@ -32639,6 +39658,7 @@ class Player {
     this.ROLL_REQUIRED_INTERVALS = 0.5;
     
     // Accuracy tracking
+    /** @type {Object} Count of each judgement type received */
     this.judgementCounts = {
       marvelous: 0,
       perfect: 0,
@@ -32647,13 +39667,19 @@ class Player {
       boo: 0,
       miss: 0
     };
+    /** @type {number} Total note count for accuracy calculation */
     this.totalNotes = 0;
+    /** @type {number} Current accuracy percentage (0-100) */
     this.accuracy = 0;
+    /** @type {boolean} Whether the game has ended */
     this.gameOver = false;
     
     // Skill system
+    /** @type {Object} Reference to the active skill system */
     this.skillSystem = this.scene.skillSystem;
+    /** @type {number} Consecutive marvelous/perfect hits */
     this.perfectStreak = 0;
+    /** @type {boolean} Whether the combo shield skill is active */
     this.comboShieldActive = false;
     this.skillSystem.onHealthRegen = amount => this.onSkillHpRegen(amount);
     this.skillSystem.onComboShield = () => this.onComboShield();
@@ -32662,6 +39688,7 @@ class Player {
     this.calculateTotalNotes();
     
     // Copy receptors from renderer
+    /** @type {Array} Receptor sprites for each column */
     this.receptors = this.renderer.receptors;
     
     // Initialize receptors touch interactivity
@@ -32700,6 +39727,10 @@ class Player {
     this.ACCURACY_BAR_WIDTH = 187;
   }
   
+  /**
+   * Counts the total number of hittable notes in the chart for accuracy calculation.
+   * Called once during initialization to set the baseline for accuracy scoring.
+   */
   calculateTotalNotes() {
     const noteValues = {
       "1": 1,
@@ -32719,6 +39750,15 @@ class Player {
     return (192 - totalWidth) / 2;
   }
   
+  /**
+   * Finds the nearest unhit note in a given column within a time range.
+   * Used by input handling and auto-play to identify which note to judge.
+   * @param {number} column - Column index (0-3)
+   * @param {number} beat - Current beat position
+   * @param {Array<string>} noteTypes - Note types to search for
+   * @param {number} searchRangeSeconds - Search window in seconds
+   * @returns {Object|null} Closest matching note or null
+   */
   findClosestNote(column, beat, noteTypes = ["1", "2"], searchRangeSeconds = 0.5) {
     const now = this.renderer.beatToSec(beat);
         
@@ -32777,6 +39817,15 @@ class Player {
     );
   }
 
+  /**
+   * Checks if a note falls within the judgement window and triggers the callback.
+   * Prevents double-judging the same note by tracking last checked beats per column.
+   * @param {Object} note - The note to check
+   * @param {number} currentTime - Current playback time in seconds
+   * @param {number} column - Column index
+   * @param {Function} callback - Called with (note, timeDelta) if within window
+   * @returns {boolean} Whether the note was processed
+   */
   processNoteIfInWindow(note, currentTime, column, callback) {
     // Calculate time delta in seconds
     const noteTime = note.sec;
@@ -32794,6 +39843,10 @@ class Player {
     return false;
   }
 
+  /**
+   * AI auto-play logic that simulates perfect inputs for all notes.
+   * Processes regular notes and holds automatically each frame when enabled.
+   */
   // AI autolay method
   autoPlay() {
     if (!this.scene.startTime || this.scene.isPaused) return;
@@ -32847,6 +39900,12 @@ class Player {
     }
   }
 
+  /**
+   * Core input handler that processes key press and release events.
+   * Routes to regular note checking, hold start/release, and roll tapping logic.
+   * @param {number} column - Column index (0-3)
+   * @param {boolean} isKeyDown - True for key press, false for release
+   */
   // Input handling
   handleInput(column, isKeyDown) {
     if (!this.scene.startTime || this.scene.isPaused) return;
@@ -32897,6 +39956,13 @@ class Player {
     }
   }
   
+  /**
+   * Checks if a regular tap note was hit within the judgement window.
+   * @param {number} column - Column index
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   * @returns {boolean} Whether a note was hit
+   */
   checkRegularNotes(column, now, beat) {
     const closestNote = this.findClosestNote(column, beat, ["1"]);
     
@@ -32913,6 +39979,14 @@ class Player {
     return false;
   }
 
+  /**
+   * Checks if the player is holding a column with a mine note at the judgement line.
+   * Mines damage the player when held at the same position.
+   * @param {number} column - Column index
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   * @returns {boolean} Whether a mine was triggered
+   */
   checkMines(column, now, beat) {
     // Find mine notes that are very close to the current beat (at judgment line)
     const mineNotes = this.notes.filter(n => 
@@ -32938,6 +40012,11 @@ class Player {
     return hitMine;
   }
   
+  /**
+   * Applies damage and breaks combo when a mine note is triggered.
+   * Respects mine damage multiplier from the skill system.
+   * @param {Object} mineNote - The mine note that was hit
+   */
   triggerMine(mineNote) {
     this.createExplosion(mineNote, "mine");
     mineNote.hit = true;
@@ -32956,6 +40035,13 @@ class Player {
     }
   }
 
+  /**
+   * Checks if a hold or roll note should begin based on current timing.
+   * Initializes the hold tracking state for the column.
+   * @param {number} column - Column index
+   * @param {number} now - Current time in seconds
+   * @param {number} beat - Current beat position
+   */
   checkHoldStart(column, now, beat) {
     const closestHold = this.findClosestNote(column, beat, ["2", "4"]);
     
@@ -32986,6 +40072,12 @@ class Player {
     }
   }
 
+  /**
+   * Handles key release during an active hold note.
+   * Applies forgiveness window before marking the hold as inactive.
+   * @param {number} column - Column index
+   * @param {number} now - Current time in seconds
+   */
   checkHoldRelease(column, now) {
     const hold = this.activeHolds[column];
     if (hold) {
@@ -33015,6 +40107,10 @@ class Player {
     Account.settings.hapticFeedback && this.this.gamepad.vibrate(duration);
   }
   
+  /**
+   * Returns judgement windows modified by skill system multipliers.
+   * @returns {Object} Judgement window thresholds in milliseconds
+   */
   getAdjustedJudgementWindows() {
     const baseWindows = { ...this.scene.JUDGE_WINDOWS };
     const multiplier = this.skillSystem ? this.skillSystem.getJudgementWindowMultiplier() : 1.0;
@@ -33026,18 +40122,32 @@ class Player {
     return baseWindows;
   }
 
+  /**
+   * Returns hold note forgiveness duration with skill system modifier.
+   * @returns {number} Forgiveness window in seconds
+   */
   getHoldForgiveness() {
     const baseForgiveness = this.HOLD_FORGIVENESS;
     const multiplier = this.skillSystem ? this.skillSystem.getHoldForgivenessMultiplier() : 1.0;
     return baseForgiveness * multiplier;
   }
 
+  /**
+   * Returns roll note tap forgiveness duration with skill system modifier.
+   * @returns {number} Forgiveness window in seconds
+   */
   getRollForgiveness() {
     const baseForgiveness = this.ROLL_FORGIVENESS;
     const multiplier = this.skillSystem ? this.skillSystem.getRollForgivenessMultiplier() : 1.0;
     return baseForgiveness * multiplier;
   }
 
+  /**
+   * Evaluates the timing delta against adjusted judgement windows.
+   * Updates the perfect streak counter and records to timing history.
+   * @param {number} timeDelta - Time difference in seconds (negative = early, positive = late)
+   * @returns {string} Judgement name: "marvelous", "perfect", "great", "good", "boo", or "miss"
+   */
   getJudgement(timeDelta) {
     this.timingStory.push(timeDelta);
     
@@ -33060,6 +40170,15 @@ class Player {
     return "miss";
   }
     
+  /**
+   * Processes a judgement result by updating score, combo, health, and accuracy.
+   * Applies skill system modifiers including score multipliers, health gains,
+   * combo shields, and judgement conversions.
+   * @param {Object} note - The note that was judged
+   * @param {string} judgement - The judgement result
+   * @param {number} column - Column index
+   * @param {string} type - Note type: "normal" or "freeze"
+   */
   processJudgement(note, judgement, column, type = "normal") {
     // Check for combo shield before processing miss
     if (judgement === "miss" && this.comboShieldActive) {
@@ -33144,18 +40263,30 @@ class Player {
     this.showJudgementText(judgement, column, type);
   }
   
+  /**
+   * Returns maximum health including skill system bonuses.
+   * @returns {number} Maximum health value
+   */
   getMaxHealth() {
     const baseHealth = this.maxHealth;
     const bonus = this.skillSystem ? this.skillSystem.getMaxHealthBonus() : 0;
     return baseHealth + bonus;
   }
   
+  /**
+   * Returns note speed multiplier combined with skill system modifiers.
+   * @returns {number} Combined speed multiplier
+   */
   getNoteSpeedMultiplier() {
     const baseMultiplier = this.renderer.NOTE_SPEED_MULTIPLIER;
     const skillMultiplier = this.skillSystem ? this.skillSystem.getNoteSpeedMultiplier() : 1.0;
     return baseMultiplier * skillMultiplier;
   }
   
+  /**
+   * Recalculates accuracy as a weighted percentage of achieved vs possible score.
+   * Updates the accuracy bar in the HUD.
+   */
   updateAccuracy() {
     if (this.gameOver) return;
     
@@ -33197,6 +40328,9 @@ class Player {
     }
   }
 
+  /**
+   * Updates the HUD display with current combo, score, and pulsing effects.
+   */
   updateUI() {
     this.comboText.write(this.combo.toString());
     this.comboText.tint = this.getComboColor(this.combo);
@@ -33211,6 +40345,10 @@ class Player {
     this.hud.alpha = this.gameOver ? 0.5 : 1;
   }
   
+  /**
+   * Returns a letter grade based on current accuracy.
+   * @returns {string} Grade from "SSS+" down to "F"
+   */
   getScoreRating() {
     const acc = this.accuracy;
     
@@ -33226,6 +40364,13 @@ class Player {
     return "F";
   }
 
+  /**
+   * Displays the judgement text with color, animation, and optional receptor pulse.
+   * Freeze judgements show as smaller floating text near the receptor.
+   * @param {string} judgement - The judgement to display
+   * @param {number} column - Column index for receptor pulsing
+   * @param {string} type - "normal" or "freeze" for different display styles
+   */
   showJudgementText(judgement, column, type) {
     const colors = {
       marvelous: 0x00ffff,
@@ -33292,6 +40437,11 @@ class Player {
     game.add.tween(sprite.scale).to({ x: 1.2, y: 1.2 }, 50, "Linear", true).yoyo(true);
   }
   
+  /**
+   * Returns a color that transitions from white to yellow as combo increases.
+   * @param {number} combo - Current combo count
+   * @returns {number} RGB color value
+   */
   getComboColor(combo) {
     const max = 100;
     const value = Math.min(max, combo);
@@ -33301,12 +40451,19 @@ class Player {
     return (r << 16) | (g << 8) | b;
   }
   
+  /**
+   * Callback for skill system health regeneration.
+   * @param {number} amount - Health to restore
+   */
   onSkillHpRegen(amount = 0) {
     if (!this.gameOver) {
       this.health = Math.min(this.getMaxHealth(), this.health + amount);
     }
   }
   
+  /**
+   * Activates the combo shield, converting the next miss into a non-combo-breaking boo.
+   */
   onComboShield() {
     this.comboShieldActive = true;
   }
@@ -33327,6 +40484,11 @@ class Player {
     return this.renderer.secToBeat(sec);
   }
   
+  /**
+   * Renders the chart by delegating to ChartRenderer with current active holds.
+   * Called each frame to update note positions and visual elements.
+   * @returns {Object} Current timing state {now, beat}
+   */
   render() {
     if (!this.scene.startTime || this.scene.isPaused) return;
 
@@ -33338,6 +40500,12 @@ class Player {
     return { now, beat };
   }
   
+  /**
+   * Main gameplay loop called each frame.
+   * Processes input, updates holds, checks skill activations, and manages health.
+   * Handles both manual input and auto-play modes.
+   * @returns {Object} Current timing state {now, beat}
+   */
   update() {
     const { now, beat } = this.scene.getCurrentTime();
 
@@ -33473,6 +40641,9 @@ class Player {
     return { now, beat };
   }
 
+  /**
+   * Cleans up all renderer resources and sprite groups.
+   */
   destroy() {
     if (this.renderer) {
       this.renderer.destroy();
@@ -33480,6 +40651,27 @@ class Player {
   }
 }
 
+/**
+ * @class FirstPlayer
+ * @category Core Game Classes
+ * @summary First player gameplay instance using Player
+ * @constructor
+ * @param {Phaser.Scene} scene - The Phaser game scene
+ * @param {Object} settings - Gameplay configuration overrides
+ * @features
+ * Uses gamepad1 for input
+ * Left-side screen positioning
+ * P1-specific HUD elements
+ * @description
+ * Concrete Player subclass configured for the first player in both single and multiplayer modes.
+ * Assigns gamepad1 for input, positions the chart on the left side of the screen,
+ * and binds P1-specific HUD elements for judgement, combo, score, and health display.
+ * @example
+ * // Creating a first player in a gameplay scene
+ * const p1 = new FirstPlayer(scene, { speedMod: "X-MOD" });
+ * p1.update();
+ * console.log(p1.score, p1.getScoreRating());
+ */
 class FirstPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "left" side
@@ -33497,6 +40689,27 @@ class FirstPlayer extends Player {
   }
 }
 
+/**
+ * @class SecondPlayer
+ * @category Core Game Classes
+ * @summary Second player gameplay instance for multiplayer
+ * @constructor
+ * @param {Phaser.Scene} scene - The Phaser game scene
+ * @param {Object} settings - Gameplay configuration overrides
+ * @features
+ * Uses gamepad2 for input
+ * Right-side screen positioning
+ * P2-specific HUD elements
+ * @description
+ * Concrete Player subclass configured for the second player in multiplayer mode.
+ * Assigns gamepad2 for input, positions the chart on the right side of the screen,
+ * and binds P2-specific HUD elements for judgement, combo, score, and health display.
+ * @example
+ * // Creating a second player for head-to-head gameplay
+ * const p2 = new SecondPlayer(scene, { speedMod: "C-MOD" });
+ * p2.update();
+ * console.log(p2.score, p2.getScoreRating());
+ */
 class SecondPlayer extends Player {
   constructor(scene, settings = {}) {
     // Call parent with "right" side
