@@ -1,0 +1,728 @@
+/* HTML Styles */
+body {
+  color: black;
+	overflow: auto;
+	margin: 0 auto;
+	padding: 24px;
+	word-break: break-word;
+	font-family: "Segoe UI", "Comic Sans MS", Verdana, Sans-Serif;
+}
+
+a, doki-link {
+	color: #4b9afb;
+	cursor: pointer;
+	text-decoration: none;
+	transition color 0.3s;
+	font-weight: bold;
+}
+a:active, doki-link:active {
+	color: #0a5fc6;
+	text-decoration: underline;
+}
+
+h1 {
+	font-size: 40px;
+	line-height: 48px;
+	font-weight: normal;
+	margin-left: -2px;
+	margin-top: 16px;
+	margin-bottom: -8px;
+}
+
+h2 {
+	font-size: 28px;
+	line-height: 36px;
+	font-weight: normal;
+	margin-left: -1px;
+	margin-top: 28px;
+	margin-bottom: -8px;
+}
+
+h3 {
+	font-size: 20px;
+	line-height: 28px;
+	font-weight: normal;
+	margin-top: 24px;
+	margin-bottom: -8px;
+}
+
+p,
+div,
+table,
+ol,
+ul,
+summary {
+	margin-top: 16px;
+	margin-bottom: 16px;
+}
+
+summary:hover {
+	cursor: pointer;
+}
+
+p {
+	padding-right: 16px;
+}
+
+ul, ol {
+	box-sizing: border-box;
+	padding-left: 24px;
+}
+ul li,
+ol li {
+	padding-left: 4px;
+	margin-bottom: 4px;
+}
+
+li ul,
+li ol {
+	margin-top: 4px;
+}
+
+/* DokiDocs Base Styles */
+.doki-hidden {
+  display: none !important;
+}
+
+/* Base Doki Tags */
+doki-title {
+  display: block;
+  font-size: 2.5em;
+  font-weight: bold;
+  margin: 0.5em 0;
+  color: #333;
+}
+
+doki-heading {
+  display: block;
+  font-size: 1.8em;
+  font-weight: bold;
+  margin: 1em 0 0.5em 0;
+  color: #444;
+  padding-bottom: 0.2em;
+}
+
+doki-subheading {
+  display: block;
+  font-size: 1.4em;
+  font-weight: bold;
+  margin: 0.8em 0 0.3em 0;
+  color: #555;
+}
+
+doki-paragraph {
+  display: block;
+  margin: 0.8em 0;
+  line-height: 1.6;
+}
+
+doki-link {
+  display: inline;
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+doki-link:hover {
+  color: #004499;
+}
+
+doki-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1em auto;
+  border-radius: 4px;
+}
+
+doki-image img {
+  width: 100%;
+}
+
+doki-video {
+  display: block;
+  max-width: 100%;
+  margin: 1em auto;
+}
+
+doki-video video {
+  width: 100%;
+}
+
+doki-iframe {
+  display: block;
+  width: 100%;
+  border: none;
+  margin: 1em 0;
+}
+
+doki-citation {
+  display: block;
+  font-style: italic;
+  margin: 1em 0;
+  padding-left: 1em;
+  border-left: 3px solid #ccc;
+  color: #666;
+}
+
+doki-credit {
+  display: block;
+  font-size: 0.9em;
+  color: #888;
+  margin: 0.5em 0;
+}
+
+doki-footer {
+  display: block;
+  padding: 1em;
+  color: #666;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+doki-tab {
+  display: block;
+  margin: 1em 0;
+  padding-left: 2em;
+}
+
+doki-frame {
+  display: block;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1em;
+  margin: 1em 0;
+  background-color: #f9f9f9;
+}
+
+doki-note {
+  display: block;
+  background-color: #e7f3ff;
+  border-left: 4px solid #2196F3;
+  padding: 1em;
+  margin: 1em 0;
+  border-radius: 0 4px 4px 0;
+}
+
+doki-warning {
+  display: block;
+  background-color: #fff8e1;
+  border-left: 4px solid #ffc107;
+  padding: 1em;
+  margin: 1em 0;
+  border-radius: 0 4px 4px 0;
+}
+
+doki-danger {
+  display: block;
+  background-color: #ffebee;
+  border-left: 4px solid #f44336;
+  padding: 1em;
+  margin: 1em 0;
+  border-radius: 0 4px 4px 0;
+}
+
+/* List Styles */
+doki-list {
+  display: block;
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+doki-list[data-type="unordered"] {
+  list-style-type: disc;
+}
+
+doki-list[data-type="unordered"][data-bullet="-"] {
+  list-style-type: none;
+  padding-left: 1em;
+}
+
+doki-list[data-type="unordered"][data-bullet="-"] doki-list-item::before {
+  content: "–";
+  margin-right: 0.5em;
+}
+
+doki-list[data-type="unordered"][data-bullet="•"] {
+  list-style-type: none;
+  padding-left: 1em;
+}
+
+doki-list[data-type="unordered"][data-bullet="•"] doki-list-item::before {
+  content: "•";
+  margin-right: 0.5em;
+}
+
+doki-list[data-type="unordered"][data-bullet="*"] {
+  list-style-type: circle;
+}
+
+doki-list[data-type="unordered"][data-bullet="~"] {
+  list-style-type: square;
+}
+
+doki-list[data-type="ordered"] {
+  list-style-type: decimal;
+}
+
+doki-list[data-type="ordered"][data-format="#."] {
+  list-style-type: decimal;
+}
+
+doki-list[data-type="ordered"][data-format="#"] {
+  list-style-type: decimal;
+}
+
+doki-list[data-type="ordered"][data-format="(#)."] {
+  list-style-type: none;
+  counter-reset: doki-counter;
+  padding-left: 1em;
+}
+
+doki-list[data-type="ordered"][data-format="(#)."] doki-list-item::before {
+  content: "(" counter(doki-counter) ").";
+  counter-increment: doki-counter;
+  margin-right: 0.5em;
+}
+
+doki-list[data-type="ordered"][data-format="(#)"] {
+  list-style-type: none;
+  counter-reset: doki-counter;
+  padding-left: 1em;
+}
+
+doki-list[data-type="ordered"][data-format="(#)"] doki-list-item::before {
+  content: "(" counter(doki-counter) ")";
+  counter-increment: doki-counter;
+  margin-right: 0.5em;
+}
+
+doki-list[data-type="ordered"][data-format="(#)-"] {
+  list-style-type: none;
+  counter-reset: doki-counter;
+  padding-left: 1em;
+}
+
+doki-list[data-type="ordered"][data-format="(#)-"] doki-list-item::before {
+  content: "(" counter(doki-counter) ")-";
+  counter-increment: doki-counter;
+  margin-right: 0.5em;
+}
+
+doki-list[data-type="ordered"][data-format="#-"] {
+  list-style-type: none;
+  counter-reset: doki-counter;
+  padding-left: 1em;
+}
+
+doki-list[data-type="ordered"][data-format="#-"] doki-list-item::before {
+  content: counter(doki-counter) "-";
+  counter-increment: doki-counter;
+  margin-right: 0.5em;
+}
+
+doki-list-item {
+  display: list-item;
+  margin: 0.3em 0;
+  line-height: 1.5;
+}
+
+/* Table Container for Horizontal Scrolling */
+doki-table-container {
+  display: block;
+  width: 100%;
+  margin: 1em 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+doki-table {
+  display: table;
+  width: auto; /* Changed from 100% to auto */
+  min-width: calc(100% - 1px); /* Ensure it takes at least full width */
+  border-collapse: collapse;
+  margin: 0; /* Remove margin since container handles it */
+  word-break: keep-all;
+  word-wrap: normal;
+  overflow-wrap: normal;
+  hyphens: manual;
+  white-space: nowrap; /* Prevent line breaks within table cells */
+}
+
+doki-table-row {
+  display: table-row;
+}
+
+doki-table-cell {
+  display: table-cell;
+  padding: 0.5em;
+  border: 1px solid #ddd;
+  vertical-align: top;
+  white-space: normal; /* Allow normal wrapping within cells */
+  word-break: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  min-width: 50px; /* Minimum cell width */
+}
+
+doki-table-header {
+  display: table-cell;
+  padding: 0.5em;
+  border: 1px solid #ddd;
+  background-color: #f5f5f5;
+  font-weight: bold;
+  text-align: center;
+  white-space: normal; /* Allow normal wrapping within headers */
+  word-break: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  min-width: 50px; /* Minimum header width */
+}
+
+/* Code Block Container */
+doki-code-block-container {
+  display: block;
+  position: relative;
+  margin: 1em 0;
+}
+
+/* Inline Code */
+doki-inline-code {
+  display: inline;
+  font-family: 'Courier New', monospace;
+  background-color: #f5f5f5;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  font-size: 0.9em;
+}
+
+doki-inline-code code {
+  background: transparent !important;
+  padding: 0 !important;
+  color: inherit !important;
+  font-size: inherit !important;
+  border: none !important;
+}
+
+/* Code Block */
+doki-code-block {
+  display: block;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+doki-code-block pre {
+  margin: 0;
+  padding: 1em;
+  background: transparent;
+  overflow: visible;
+  white-space: pre;
+  border: none;
+}
+
+doki-code-block code {
+  display: block;
+  white-space: pre;
+  overflow: visible;
+  word-wrap: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+  background: transparent;
+  padding: 0;
+  border: none;
+}
+
+/* Copy button styles */
+.doki-copy-button {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 0.3em 0.6em;
+  font-size: 0.8em;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.doki-copy-button:hover {
+  opacity: 1;
+  background: #e9e9e9;
+}
+
+.doki-copy-button.copied {
+  background: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+/* Highlight.js compatibility */
+.hljs {
+  background: transparent !important;
+}
+
+doki-code-block .hljs {
+  padding: 0 !important;
+}
+
+/* Responsive behavior - only scroll when necessary */
+@media (max-width: 768px) {
+  doki-table-container {
+    overflow-x: auto; /* Force scrolling on mobile */
+  }
+  
+  doki-table {
+    white-space: nowrap; /* Ensure table doesn't wrap on mobile */
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #262626;
+    color: #eee;
+  }
+  doki-title { color: #fff; }
+  doki-heading { color: #eee; }
+  doki-subheading { color: #ddd; }
+  doki-paragraph { color: #ccc; }
+  doki-inline-code { background-color: #333; border-color: #555; }
+  doki-code-block { background-color: #2d2d2d; border-color: #444; }
+  
+  pre .tag, code .tag { color: #2194ce; } /* HTML tag */
+  pre .atn, code .atn { color: #BB55FF; } /* HTML attribute name */
+  pre .atv, code .atv { color: #30b030; } /* HTML attribute value */
+  pre .str, code .str { color: #BB55FF; } /* string */
+  pre .com, code .com { color: #666666; } /* comment */
+  pre .lit, code .lit { color: #ff3399; } /* literal */
+  pre .pln, code .pln { color: #aaaaaa; } /* plaintext */
+
+  doki-table-header { background-color: #444; border-color: #666; }
+  doki-table-cell { border-color: #666; }
+  doki-frame { background-color: #2d2d2d; border-color: #444; }
+  
+  doki-note, doki-warning, doki-danger {
+    color: #eee;
+  }
+  
+  doki-note {
+    background-color: #074692;
+  }
+  
+  doki-warning {
+    background-color: #dc6a0e;
+  }
+  
+  doki-danger {
+    background-color: brown;
+  }
+  
+  .doki-copy-button {
+    background: #444;
+    border-color: #666;
+    color: #ccc;
+  }
+  
+  .doki-copy-button:hover {
+    background: #555;
+  }
+  
+  .doki-copy-button.copied {
+    background: #388E3C;
+    border-color: #388E3C;
+  }
+}
+
+/*!
+  Theme: MoBeigi.com
+  Author: Mo Beigi
+  License: See base16-schemes-source
+  Maintainer: Mo Beigi
+  Version: 2024.10.18
+
+  Based on the Highlight.js Base16 template builder.
+  Powered by CSS variables.
+  
+  https://github.com/highlightjs/base16-highlightjs
+*/
+
+pre code.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 1em;
+}
+
+code.hljs {
+  padding: 3px 5px;
+}
+
+.hljs {
+  color: var(--highlightjs-base05);
+  background: var(--highlightjs-base00);
+}
+
+.hljs::selection,
+.hljs ::selection {
+  background-color: var(--highlightjs-base02);
+  color: var(--highlightjs-base05);
+}
+
+/* purposely do not highlight these things */
+.hljs-formula,
+.hljs-params,
+.hljs-property {}
+
+/* base03 - Comments, Invisibles, Line Highlighting */
+.hljs-comment {
+  color: var(--highlightjs-base03);
+}
+
+/* base04 - Dark Foreground (Used for status bars) */
+.hljs-tag {
+  color: var(--highlightjs-base04);
+}
+
+/* base05 - Default Foreground, Caret, Delimiters, Operators */
+.hljs-subst,
+.hljs-punctuation,
+.hljs-operator {
+  color: var(--highlightjs-base05);
+}
+
+.hljs-operator {
+  opacity: 0.7;
+}
+
+/* base08 - Variables, XML Tags, Markup Link Text, Markup Lists, Diff Deleted */
+.hljs-bullet,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-selector-tag,
+.hljs-name,
+.hljs-deletion {
+  color: var(--highlightjs-base08);
+}
+
+/* base09 - Integers, Boolean, Constants, XML Attributes, Markup Link Url */
+.hljs-symbol,
+.hljs-number,
+.hljs-link,
+.hljs-attr,
+.hljs-variable.constant_,
+.hljs-literal {
+  color: var(--highlightjs-base09);
+}
+
+/* base0A - Classes, Markup Bold, Search Text Background */
+.hljs-title,
+.hljs-class .hljs-title,
+.hljs-title.class_ {
+  color: var(--highlightjs-base0A);
+}
+
+.hljs-strong {
+  font-weight: bold;
+  color: var(--highlightjs-base0A);
+}
+
+/* base0B - Strings, Inherited Class, Markup Code, Diff Inserted */
+.hljs-code,
+.hljs-addition,
+.hljs-title.class_.inherited__,
+.hljs-string {
+  color: var(--highlightjs-base0B);
+}
+
+/* base0C - Support, Regular Expressions, Escape Characters, Markup Quotes */
+.hljs-built_in,
+.hljs-doctag,
+.hljs-quote,
+.hljs-keyword.hljs-atrule,
+.hljs-regexp {
+  color: var(--highlightjs-base0C);
+}
+
+/* base0D - Functions, Methods, Attribute IDs, Headings */
+.hljs-function .hljs-title,
+.hljs-attribute,
+.ruby .hljs-property,
+.hljs-title.function_,
+.hljs-section {
+  color: var(--highlightjs-base0D);
+}
+
+/* base0E - Keywords, Storage, Selector, Markup Italic, Diff Changed */
+.hljs-type,
+.hljs-template-tag,
+.diff .hljs-meta,
+.hljs-keyword {
+  color: var(--highlightjs-base0E);
+}
+
+.hljs-emphasis {
+  color: var(--highlightjs-base0E);
+  font-style: italic;
+}
+
+/* base0F - Deprecated, Opening/Closing Embedded Language Tags, e.g. <?php ?> */
+.hljs-meta,
+.hljs-meta .hljs-keyword,
+.hljs-meta .hljs-string {
+  color: var(--highlightjs-base0F);
+}
+
+.hljs-meta .hljs-keyword,
+.hljs-meta-keyword {
+  font-weight: bold;
+}
+
+/* Light Theme */
+:root {
+    --highlightjs-base00: #f9f9f9; /* Default Background */
+    --highlightjs-base01: #e7eaec; /* Lighter Background */
+    --highlightjs-base02: #cceae7; /* Selection Background */
+    --highlightjs-base03: #9f9f9f; /* Comments, Invisibles, Line Highlighting */
+    --highlightjs-base04: #8796b0; /* Dark Foreground */
+    --highlightjs-base05: #404040; /* Default Foreground */
+    --highlightjs-base06: #404040; /* Light Foreground */
+    --highlightjs-base07: #ffffff; /* Light Background */
+    --highlightjs-base08: #ff5370; /* Variables, XML Tags */
+    --highlightjs-base09: #f76d47; /* Integers, Constants */
+    --highlightjs-base0A: #ff914d; /* Classes, Bold Text */
+    --highlightjs-base0B: #91b859; /* Strings, Markup Code */
+    --highlightjs-base0C: #39adb5; /* Support, Escape Characters */
+    --highlightjs-base0D: #6182b8; /* Functions, Methods */
+    --highlightjs-base0E: #7c4dff; /* Keywords, Selectors */
+    --highlightjs-base0F: #e53935; /* Deprecated, Embedded Tags */
+}
+
+  /* Dark Theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --highlightjs-base00: #232323; /* Default Background */
+    --highlightjs-base01: #303030; /* Lighter Background */
+    --highlightjs-base02: #353535; /* Selection Background */
+    --highlightjs-base03: #a9a9a9; /* Comments, Invisibles, Line Highlighting */
+    --highlightjs-base04: #b2ccd6; /* Dark Foreground */
+    --highlightjs-base05: #e3e3e3; /* Default Foreground */
+    --highlightjs-base06: #e3e3e3; /* Light Foreground */
+    --highlightjs-base07: #ffffff; /* Light Background */
+    --highlightjs-base08: #f07178; /* Variables, XML Tags */
+    --highlightjs-base09: #f78c6c; /* Integers, Constants */
+    --highlightjs-base0A: #ffcb6b; /* Classes, Bold Text */
+    --highlightjs-base0B: #c3e88d; /* Strings, Markup Code */
+    --highlightjs-base0C: #89ddff; /* Support, Escape Characters */
+    --highlightjs-base0D: #82aaff; /* Functions, Methods */
+    --highlightjs-base0E: #c792ea; /* Keywords, Selectors */
+    --highlightjs-base0F: #ff5370; /* Deprecated, Embedded Tags */
+  }
+}

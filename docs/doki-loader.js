@@ -2,7 +2,7 @@ document.body.style.visibility = "hidden";
 
 window.onload = function () {
   // List of possible places to find DokiDocs
-  const dokiDocsLocations = ["./", "../", "../", "https://cdn.jsdelivr.net/npm/doki-docs@latest/"];
+  const dokiDocsLocations = ["./", "../", "../", "./lib/", "./js/", "https://cdn.jsdelivr.net/npm/doki-docs@latest/"];
 
   let currentIndex = 0;
 

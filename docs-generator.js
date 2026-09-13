@@ -69,7 +69,7 @@ const DOKI_LOADER_JS = `document.body.style.visibility = "hidden";
 
 window.onload = function () {
   // List of possible places to find DokiDocs
-  const dokiDocsLocations = ["./", "../", "../", "https://cdn.jsdelivr.net/npm/doki-docs@latest/"];
+  const dokiDocsLocations = ["./", "../", "../", "./lib/", "./js/", "https://cdn.jsdelivr.net/npm/doki-docs@latest/"];
 
   let currentIndex = 0;
 
@@ -905,7 +905,7 @@ function generateGlobalsPage(globals) {
   sections.push('');
 
   const body = sections.join('\n    ');
-  return htmlHead('Global Scope', '../') + body + htmlFoot();
+  return htmlHead('Global Scope', './') + body + htmlFoot();
 }
 
 function generateIndexPage(classes, globals) {
@@ -2755,6 +2755,9 @@ function generateDocs(options = {}) {
   fs.mkdirSync(path.join(outputDir, 'classes'), { recursive: true });
   fs.mkdirSync(path.join(outputDir, 'tutorials'), { recursive: true });
 
+  fs.copyFileSync(path.join('./lib/', 'doki-docs.js'), path.join(outputDir, 'doki-docs.js'));
+  fs.copyFileSync(path.join('./lib/', 'doki-docs.css'), path.join(outputDir, 'doki-docs.css'));
+  
   fs.writeFileSync(path.join(outputDir, 'doki-loader.js'), DOKI_LOADER_JS, 'utf8');
 
   classes.forEach(cls => {
