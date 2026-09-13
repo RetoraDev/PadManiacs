@@ -4,6 +4,7 @@ class AllPads extends Gamepad {
     
     this.gamepads = gamepads || [];
     this.lastPlayerId = 1;
+    this.singlePlayerId = -1; // All pads enabled
   }
   update() {
     this.keys.forEach(key => {
@@ -18,6 +19,12 @@ class AllPads extends Gamepad {
     let anyReleased = false;
     
     this.gamepads.forEach(pad => {
+      if (this.singlePlayerId != -1) {
+        if (pad.playerIndex + 1 !== this.singlePlayerId) {
+          return;
+        }
+      }
+      
       pad.update();
       
       this.keys.forEach(key => {

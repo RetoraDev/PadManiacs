@@ -42,6 +42,8 @@ class SongSelect {
   }
   
   create() {
+    //gamepad.singlePlayerId = gamepad.lastPlayerId;
+    
     game.camera.fadeIn(0x000000);
     
     new FuturisticLines();
@@ -62,6 +64,7 @@ class SongSelect {
     this.bannerImg = this.bannerImg || document.createElement("img");
     
     this.navigationHint = new NavigationHint('song_select');
+    this.navigationHint.ignorePlayerSwitch = true;
     
     this.autoplayText = new Text(4, 132, "");
     
@@ -852,5 +855,7 @@ class SongSelect {
     if (this.visibilityChangeListener) {
       window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     }
+    
+    gamepad.singlePlayerId = -1;
   }
 }

@@ -135,7 +135,7 @@ class Keybindings {
       this.showGamepadCustomization(2);
     });
     
-    settingsWindow.addItem(__("Reset To Defaults||restablecer"), "", () => {
+    settingsWindow.addItem(__("Reset To Defaults||Restablecer"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(
         __("Reset all keybindings to default settings?||¿Restablecer todas las configuraciones de teclas a los valores predeterminados?"),
@@ -161,6 +161,11 @@ class Keybindings {
   }
   
   showKeyboardCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
+    this.cleanupWaitOverlay();
+    
+    // Force selectedIndex = 0, the Window class doesn't support setting selectedIndex at all
+    selectedIndex = 0;
+    
     const keysWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     keysWindow.fontTint = 0x76fcde;
     
@@ -183,6 +188,7 @@ class Keybindings {
         this.windowManager.remove(keysWindow, true);
         this.showKeyWaitOverlay(
           __(`PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}||PRESIONA TECLA PARA: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`),
+          true, false,
           (keyCode) => {
             this.mapKeyboardKey(playerNum, control.mappingKey, control.index, keyCode);
             this.showKeyboardCustomization(playerNum, keysWindow.selectedIndex, returnIndex);
@@ -203,6 +209,11 @@ class Keybindings {
   }
   
   showGamepadCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
+    this.cleanupWaitOverlay();
+    
+    // Force selectedIndex = 0, the Window class doesn't support setting selectedIndex at all
+    selectedIndex = 0;
+    
     const gamepadWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     gamepadWindow.fontTint = 0x76fcde;
     
@@ -225,6 +236,7 @@ class Keybindings {
         this.windowManager.remove(gamepadWindow, true);
         this.showKeyWaitOverlay(
           __(`PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}||PRESIONA BOTÓN DEL MANDO PARA: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`),
+          false, true,
           (buttonCode) => {
             this.mapGamepadKey(playerNum, control.mappingKey, buttonCode);
             this.showGamepadCustomization(playerNum, gamepadWindow.selectedIndex, returnIndex);
@@ -244,7 +256,7 @@ class Keybindings {
     }, true);
   }
   
-  showKeyWaitOverlay(message, onSubmit, onCancel) {
+  showKeyWaitOverlay(message, listenKeyboard = true, listenGamepad = true, onSubmit, onCancel) {
     this.cleanupWaitOverlay();
     
     this.waitOverlayActive = true;
@@ -259,7 +271,7 @@ class Keybindings {
     instructionText.anchor.set(0.5, 0.5);
     instructionText.fontSize = 2;
     
-    const helpText = new Text(120, 100, __("Hold ESC or MENU to unmap||Mantén ESC o MENÚ para desasignar"));
+    const helpText = new Text(120, 100, __("Hold ESC to unmap||Mantén ESC para desasignar"));
     helpText.anchor.set(0.5, 0.5);
     
     let escHoldStartTime = 0;
@@ -287,22 +299,15 @@ class Keybindings {
       
       progressBar.clear();
       progressBar.beginFill(0xffffff, 1);
-      progressBar.drawRect(0, 146, 240 * progress, 4);
+      progressBar.drawRect(0, 128, 240 * progress, 4);
       progressBar.endFill();
-      
-      const overlayAlpha = 0.7 * (1 - progress * 0.7);
-      overlay.clear();
-      overlay.beginFill(0x000000, overlayAlpha);
-      overlay.drawRect(0, 0, 240, 140);
-      overlay.endFill();
       
       if (progress >= 1) {
         if (progressInterval) {
           clearInterval(progressInterval);
           progressInterval = null;
         }
-        this.cleanupWaitOverlay();
-        this.showNotification(__("Key unmapped!||¡Tecla desasignada!"));
+        cleanup();
         onCancel?.();
       }
     };
@@ -314,13 +319,10 @@ class Keybindings {
       }
       progressBar.clear();
       progressBarBg.visible = false;
-      overlay.clear();
-      overlay.beginFill(0x000000, 0.7);
-      overlay.drawRect(0, 0, 240, 140);
-      overlay.endFill();
     };
     
     const cleanup = () => {
+      gamepad.releaseAll();
       this.waitOverlayActive = false;
       this.navigationHint.visible = true;
       if (progressInterval) clearInterval(progressInterval);
@@ -344,21 +346,21 @@ class Keybindings {
           if (progressInterval) clearInterval(progressInterval);
           progressInterval = setInterval(updateProgress, 16);
         }
-      } else if (!keyPressed) {
+      } else if (!keyPressed && listenKeyboard) {
         keyPressed = true;
         // Check if key is Unidentified
         const keyName = this.getKeyName(keyCode);
         if (keyName === 'Unidentified' || keyName === '???') {
           cleanup();
           this.showNotification(__(`Cannot map: ${keyName}||No se puede asignar: ${keyName}`));
-          this.showKeyWaitOverlay(message, onSubmit, onCancel);
+          onCancel();
           return;
         }
         cleanup();
         // Check for conflicts BEFORE calling onSubmit
         const conflict = this.findKeyboardKeyConflict(
-          this._pendingPlayerKey || 'player1',
-          this._pendingMappingKey || 'up',
+          this._pendingPlayerKey || null,
+          this._pendingMappingKey || null,
           this._pendingIndex || 0,
           keyCode
         );
@@ -379,7 +381,7 @@ class Keybindings {
     };
     
     const gamepadListener = (buttonCode) => {
-      if (!this.waitOverlayActive) return;
+      if (!listenGamepad || !this.waitOverlayActive) return;
       
       cleanup();
       // Check for conflicts
@@ -449,9 +451,28 @@ class Keybindings {
     const conflict = this.findKeyboardKeyConflict(playerKey, mappingKey, index, keyCode);
     
     if (conflict) {
-      // Swap: move the conflicting key to the old position
-      const oldKey = mapping[playerKey][mappingKey][index];
-      mapping[conflict.playerKey][conflict.mappingKey][conflict.index] = oldKey;
+      // Check if the old key at our target position is null (unmapped)
+      const oldKey = mapping[playerKey][mappingKey] && Array.isArray(mapping[playerKey][mappingKey])
+        ? mapping[playerKey][mappingKey][index]
+        : null;
+      
+      if (oldKey === null || oldKey === undefined) {
+        // We're assigning to an unmapped slot - just unmap the conflicting key
+        // (don't try to swap null into the other position)
+        if (Array.isArray(mapping[conflict.playerKey][conflict.mappingKey])) {
+          mapping[conflict.playerKey][conflict.mappingKey][conflict.index] = null;
+          // Trim trailing nulls
+          while (mapping[conflict.playerKey][conflict.mappingKey].length > 0 &&
+                 mapping[conflict.playerKey][conflict.mappingKey][mapping[conflict.playerKey][conflict.mappingKey].length - 1] === null) {
+            mapping[conflict.playerKey][conflict.mappingKey].pop();
+          }
+        } else {
+          mapping[conflict.playerKey][conflict.mappingKey] = null;
+        }
+      } else {
+        // Both slots have real keys - swap them
+        mapping[conflict.playerKey][conflict.mappingKey][conflict.index] = oldKey;
+      }
     }
     
     // Set the new key
@@ -475,7 +496,14 @@ class Keybindings {
     
     if (conflict) {
       const oldButton = mapping[playerKey][mappingKey];
-      mapping[conflict.playerKey][conflict.mappingKey] = oldButton;
+      
+      if (oldButton === null || oldButton === undefined) {
+        // Target slot is unmapped - just unmap the conflicting button
+        mapping[conflict.playerKey][conflict.mappingKey] = null;
+      } else {
+        // Both slots have real buttons - swap them
+        mapping[conflict.playerKey][conflict.mappingKey] = oldButton;
+      }
     }
     
     mapping[playerKey][mappingKey] = buttonCode;
@@ -484,6 +512,11 @@ class Keybindings {
   }
   
   findKeyboardKeyConflict(playerKey, mappingKey, index, keyCode) {
+    if (!playerKey || !mappingKey) return null;
+    
+    // Don't search for null conflicts - an unmapped key can't conflict with anything
+    if (keyCode === null || keyCode === undefined) return null;
+    
     const mapping = this.pendingChanges.keyboard;
     const controlLabels = {
       'up': 'UP',
@@ -501,6 +534,9 @@ class Keybindings {
         if (pKey === playerKey && mKey === mappingKey) continue;
         if (!Array.isArray(keys)) continue;
         for (let i = 0; i < keys.length; i++) {
+          // Skip null/undefined entries - they don't conflict
+          if (keys[i] === null || keys[i] === undefined) continue;
+          
           if (keys[i] === keyCode) {
             const label = `${pKey === 'player1' ? 'P1' : 'P2'} ${controlLabels[mKey] || mKey.toUpperCase()}`;
             return { playerKey: pKey, mappingKey: mKey, index: i, label: label };
@@ -512,6 +548,9 @@ class Keybindings {
   }
   
   findGamepadKeyConflict(playerKey, mappingKey, buttonCode) {
+    // Don't search for null conflicts
+    if (buttonCode === null || buttonCode === undefined) return null;
+    
     const mapping = this.pendingChanges.gamepad;
     const controlLabels = {
       'up': 'UP',
@@ -527,6 +566,10 @@ class Keybindings {
     for (const [pKey, player] of Object.entries(mapping)) {
       for (const [mKey, code] of Object.entries(player)) {
         if (pKey === playerKey && mKey === mappingKey) continue;
+        
+        // Skip null/undefined entries
+        if (code === null || code === undefined) continue;
+        
         if (code === buttonCode) {
           const label = `${pKey === 'player1' ? 'P1' : 'P2'} ${controlLabels[mKey] || mKey.toUpperCase()}`;
           return { playerKey: pKey, mappingKey: mKey, label: label };
@@ -535,7 +578,7 @@ class Keybindings {
     }
     return null;
   }
-  
+
   unmapKeyboardKey(playerNum, mappingKey, index) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
     const mapping = this.pendingChanges.keyboard;
@@ -546,7 +589,7 @@ class Keybindings {
       while (mapping[playerKey][mappingKey].length > 0 && mapping[playerKey][mappingKey][mapping[playerKey][mappingKey].length - 1] === null) {
         mapping[playerKey][mappingKey].pop();
       }
-      
+
       this.showNotification(__("KEY UNMAPPED!||¡TECLA DESASIGNADA!"));
     }
   }

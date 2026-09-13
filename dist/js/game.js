@@ -5,10 +5,10 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.2.1 dev
- * Build: 9/5/2026, 8:18:29 PM
+ * Build: 9/13/2026, 3:12:04 AM
  * Platform: Development
  * Debug: false
- * Minified: true
+ * Minified: false
  */
 
 // Cache for localized strings
@@ -367,7 +367,14 @@ const NAVIGATION_HINT_PRESETS = {
     { position: "left", icon: "d-pad", text: __("NAVIGATE||NAVEGAR") },
     { position: "right", icon: "select", text: __("DIFFICULTY||DIFICULTAD") },
     { position: "right", icon: "b", text: __("BACK||VOLVER") }
-  ]
+  ],
+  multiplayer_room_list: [
+    { position: "left", icon: "d-pad", text: __("NAVIGATE||NAVEGAR") },
+    { position: "left", icon: "select", text: __("REFRESH||REFRESCAR") },
+    { position: "right", icon: "start", text: __("CREATE||CREAR") },
+    { position: "right", icon: "a", text: __("JOIN||UNIRSE") },
+    { position: "right", icon: "b", text: __("BACK||VOLVER") }
+  ],
 };
 
 const DEFAULT_SONG_FOLDERS = [
@@ -10003,7 +10010,7 @@ class Logo extends Phaser.Sprite {
 }
 
 class NavigationHint extends Phaser.Sprite {
-  constructor(hints = []) {
+  constructor(hints = [], disableCache) {
     super(game, 0, game.height - 6);
     
     if (typeof hints === 'string') hints = NAVIGATION_HINT_PRESETS[hints] || [];
@@ -10012,7 +10019,19 @@ class NavigationHint extends Phaser.Sprite {
     this.items = [];
     this.alternateTimer = null;
     this.currentAlternatePlayer = 1;
+    this.ignorePlayerSwitch = false;
+    this.disableCache = disableCache || false;
     this.alternateMode = Account.settings.alternateHintMode || false;
+    
+    this.onPlayerSwitch = new Phaser.Signal();
+    
+    // Cache prompt elements to reuse them later
+    this.parents = {};
+    
+    this.sizes = {
+      '1': 0,
+      '2': 0
+    };
     
     // Cache last state to avoid unnecessary refreshes
     this.lastState = {
@@ -10042,22 +10061,20 @@ class NavigationHint extends Phaser.Sprite {
       if (currentSource !== this.lastState.inputSource ||
           currentPlayer !== this.lastState.activePlayer ||
           currentStyle !== this.lastState.buttonStyle) {
-        this.refreshHints();
+        if (!this.ignorePlayerSwitch) {
+          this.refreshHints();
+          this.onPlayerSwitch.dispatch(currentPlayer);
+        }
       }
     };
     
-    if (gamepad1) gamepad1.signals.pressed.any.add(updateCondition);
-    if (gamepad2) gamepad2.signals.pressed.any.add(updateCondition);
+    this.updateCondition = updateCondition;
     
-    if (game.input && game.input.keyboard) {
-      const originalCallback = game.input.keyboard.onDownCallback;
-      game.input.keyboard.onDownCallback = (event) => {
-        if (originalCallback) originalCallback(event);
-        updateCondition();
-      };
-    }
-    
-    if (mouse) mouse.onDown.add(updateCondition);
+    if (gamepad) gamepad.signals.pressed.any.add(this.updateCondition);
+  }
+  
+  stopInputTracking() {
+    if (gamepad) gamepad.signals.pressed.any.remove(this.updateCondition);
   }
   
   startAlternateMode() {
@@ -10105,6 +10122,32 @@ class NavigationHint extends Phaser.Sprite {
     this.lastState.buttonStyle = Account.settings.buttonStyle || 'xbox';
     this.lastState.alternateMode = this.alternateMode;
     
+    let inputSource = this.lastState.inputSource;
+    
+    if (inputSource == 'none' || inputSource == 'touch') inputSource = 'gamepad';
+    
+    if (!this.disableCache) {
+      if (this.parents[1] && this.parents[2]) {
+        this.parents[1]['keyboard'].visible = false;
+        this.parents[2]['keyboard'].visible = false;
+        this.parents[1]['gamepad'].visible = false;
+        this.parents[2]['gamepad'].visible = false;
+        this.parents[this.lastState.activePlayer][inputSource].visible = true;
+      } else {
+        this.destroyHints();
+        this.createHints(1, 'keyboard', true);
+        this.createHints(1, 'gamepad', true);
+        this.createHints(2, 'keyboard', true);
+        this.createHints(2, 'gamepad', true);
+        this.parents[this.lastState.activePlayer][inputSource].visible = true;
+      }
+    } else {
+      this.destroyHints();
+      this.createHints();
+    }
+  }
+  
+  destroyHints() {
     // Destroy all existing items
     this.items.forEach(item => {
       if (item.group) {
@@ -10116,12 +10159,11 @@ class NavigationHint extends Phaser.Sprite {
       }
     });
     this.items = [];
-    this.createHints();
   }
   
-  createHints() {
-    const activePlayer = this.getActivePlayer();
-    const inputSource = this.getInputSource();
+  createHints(player, input, hide) {
+    const activePlayer = player || this.getActivePlayer();
+    const inputSource = input || this.getInputSource();
     const buttonStyle = Account.settings.buttonStyle || 'xbox';
     
     const groupedHints = { left: [], center: [], right: [] };
@@ -10130,6 +10172,8 @@ class NavigationHint extends Phaser.Sprite {
     this.createPositionHints('left', groupedHints.left, activePlayer, inputSource, buttonStyle);
     this.createPositionHints('center', groupedHints.center, activePlayer, inputSource, buttonStyle);
     this.createPositionHints('right', groupedHints.right, activePlayer, inputSource, buttonStyle);
+    
+    if (hide) this.parents[activePlayer][inputSource].visible = false;
   }
   
   createPositionHints(position, hints, activePlayer, inputSource, buttonStyle) {
@@ -10152,11 +10196,22 @@ class NavigationHint extends Phaser.Sprite {
     else if (position === 'center') currentX = (game.width / 2) - (totalWidth / 2);
     else currentX = game.width - 4 - totalWidth;
     
+    if (inputSource == 'none' || inputSource == 'touch') inputSource = 'gamepad';
+    
+    if (!this.parents[activePlayer]) {
+      this.parents[activePlayer] = {};
+    }
+    
+    if (!this.parents[activePlayer][inputSource]) {
+      this.parents[activePlayer][inputSource] = game.add.group();
+      this.addChild(this.parents[activePlayer][inputSource]);
+    }
+    
     // Create each hint
     for (const hint of hints) {
       const iconGroup = this.createIcon(hint, inputSource, buttonStyle, activePlayer, currentX);
       if (iconGroup) {
-        this.addChild(iconGroup.group);
+        this.parents[activePlayer][inputSource].addChild(iconGroup.group);
         currentX += iconGroup.width;
       }
       
@@ -10165,7 +10220,7 @@ class NavigationHint extends Phaser.Sprite {
         const descSprite = new Text(0, 2, descriptionText, FONTS.small);
         descSprite.anchor.y = 0.5;
         descSprite.x = currentX;
-        this.addChild(descSprite);
+        this.parents[activePlayer][inputSource].addChild(descSprite);
         currentX += descSprite.width + 4;
         this.items.push({ descriptionSprite: descSprite });
       } else {
@@ -10412,10 +10467,12 @@ class NavigationHint extends Phaser.Sprite {
   updateHints(hints) {
     if (typeof hints === 'string') hints = NAVIGATION_HINT_PRESETS[hints] || [];
     this.hints = hints;
+    this.parents = {};
     this.refreshHints();
   }
   
   destroy() {
+    this.stopInputTracking();
     this.stopAlternateMode();
     this.items.forEach(item => {
       if (item.group) item.group.destroy(true);
@@ -13060,16 +13117,6 @@ window.multiplayerState = {
   }
 };
 
-// Online multiplayer server settings
-const MULTIPLAYER_SERVER = (() => {
-  // Allow override via global config
-  if (window.MULTIPLAYER_CONFIG && window.MULTIPLAYER_CONFIG.server) {
-    return window.MULTIPLAYER_CONFIG.server;
-  }
-  // Default to localhost
-  return 'ws://localhost:8080/ws';
-})();
-
 class ScreenRecorder {
   constructor(game) {
     this.game = game;
@@ -14315,6 +14362,7 @@ class AllPads extends Gamepad {
     
     this.gamepads = gamepads || [];
     this.lastPlayerId = 1;
+    this.singlePlayerId = -1; // All pads enabled
   }
   update() {
     this.keys.forEach(key => {
@@ -14329,6 +14377,12 @@ class AllPads extends Gamepad {
     let anyReleased = false;
     
     this.gamepads.forEach(pad => {
+      if (this.singlePlayerId != -1) {
+        if (pad.playerIndex + 1 !== this.singlePlayerId) {
+          return;
+        }
+      }
+      
       pad.update();
       
       this.keys.forEach(key => {
@@ -17284,12 +17338,6 @@ class Boot {
     game.state.add("Jukebox", Jukebox);
     game.state.add("Credits", Credits);
     
-    game.state.add("RoomList", RoomList);
-    game.state.add("RoomLobby", RoomLobby);
-    game.state.add("ProfileEdit", ProfileEdit);
-    game.state.add("PlayMultiOnline", PlayMultiOnline);
-    game.state.add("ResultsMultiOnline", ResultsMultiOnline);
-
     window.primaryAssets = this.keys;
 
     window.gameResources = [
@@ -18827,17 +18875,6 @@ class MainMenu {
     });
     
     carousel.addItem(__("Rhythm Game||Partida"), () => this.startGame());
-    carousel.addItem(__("Multiplayer||Multijugador"), () => {
-      if (!window.multiplayer || !window.multiplayer.isConnected) {
-        if (window.multiplayer) {
-          window.multiplayer.connect();
-        } else {
-          notifications.show(__("Multiplayer not available||Multijugador no disponible"), 2000, 'error');
-          return;
-        }
-      }
-      game.state.start("RoomList");
-    });
     carousel.addItem(__("Character Select||Personaje"), () => {
       this.keepBackgroundMusic = true;
       game.state.start("CharacterSelect");
@@ -20263,7 +20300,7 @@ class Keybindings {
       this.showGamepadCustomization(2);
     });
     
-    settingsWindow.addItem(__("Reset To Defaults||restablecer"), "", () => {
+    settingsWindow.addItem(__("Reset To Defaults||Restablecer"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(
         __("Reset all keybindings to default settings?||¿Restablecer todas las configuraciones de teclas a los valores predeterminados?"),
@@ -20289,6 +20326,11 @@ class Keybindings {
   }
   
   showKeyboardCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
+    this.cleanupWaitOverlay();
+    
+    // Force selectedIndex = 0, the Window class doesn't support setting selectedIndex at all
+    selectedIndex = 0;
+    
     const keysWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     keysWindow.fontTint = 0x76fcde;
     
@@ -20311,6 +20353,7 @@ class Keybindings {
         this.windowManager.remove(keysWindow, true);
         this.showKeyWaitOverlay(
           __(`PRESS KEY FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}||PRESIONA TECLA PARA: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`),
+          true, false,
           (keyCode) => {
             this.mapKeyboardKey(playerNum, control.mappingKey, control.index, keyCode);
             this.showKeyboardCustomization(playerNum, keysWindow.selectedIndex, returnIndex);
@@ -20331,6 +20374,11 @@ class Keybindings {
   }
   
   showGamepadCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
+    this.cleanupWaitOverlay();
+    
+    // Force selectedIndex = 0, the Window class doesn't support setting selectedIndex at all
+    selectedIndex = 0;
+    
     const gamepadWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     gamepadWindow.fontTint = 0x76fcde;
     
@@ -20353,6 +20401,7 @@ class Keybindings {
         this.windowManager.remove(gamepadWindow, true);
         this.showKeyWaitOverlay(
           __(`PRESS GAMEPAD BUTTON FOR: ${playerNum === 1 ? "P1" : "P2"} ${control.description}||PRESIONA BOTÓN DEL MANDO PARA: ${playerNum === 1 ? "P1" : "P2"} ${control.description}`),
+          false, true,
           (buttonCode) => {
             this.mapGamepadKey(playerNum, control.mappingKey, buttonCode);
             this.showGamepadCustomization(playerNum, gamepadWindow.selectedIndex, returnIndex);
@@ -20372,7 +20421,7 @@ class Keybindings {
     }, true);
   }
   
-  showKeyWaitOverlay(message, onSubmit, onCancel) {
+  showKeyWaitOverlay(message, listenKeyboard = true, listenGamepad = true, onSubmit, onCancel) {
     this.cleanupWaitOverlay();
     
     this.waitOverlayActive = true;
@@ -20387,7 +20436,7 @@ class Keybindings {
     instructionText.anchor.set(0.5, 0.5);
     instructionText.fontSize = 2;
     
-    const helpText = new Text(120, 100, __("Hold ESC or MENU to unmap||Mantén ESC o MENÚ para desasignar"));
+    const helpText = new Text(120, 100, __("Hold ESC to unmap||Mantén ESC para desasignar"));
     helpText.anchor.set(0.5, 0.5);
     
     let escHoldStartTime = 0;
@@ -20415,22 +20464,15 @@ class Keybindings {
       
       progressBar.clear();
       progressBar.beginFill(0xffffff, 1);
-      progressBar.drawRect(0, 146, 240 * progress, 4);
+      progressBar.drawRect(0, 128, 240 * progress, 4);
       progressBar.endFill();
-      
-      const overlayAlpha = 0.7 * (1 - progress * 0.7);
-      overlay.clear();
-      overlay.beginFill(0x000000, overlayAlpha);
-      overlay.drawRect(0, 0, 240, 140);
-      overlay.endFill();
       
       if (progress >= 1) {
         if (progressInterval) {
           clearInterval(progressInterval);
           progressInterval = null;
         }
-        this.cleanupWaitOverlay();
-        this.showNotification(__("Key unmapped!||¡Tecla desasignada!"));
+        cleanup();
         onCancel?.();
       }
     };
@@ -20442,13 +20484,10 @@ class Keybindings {
       }
       progressBar.clear();
       progressBarBg.visible = false;
-      overlay.clear();
-      overlay.beginFill(0x000000, 0.7);
-      overlay.drawRect(0, 0, 240, 140);
-      overlay.endFill();
     };
     
     const cleanup = () => {
+      gamepad.releaseAll();
       this.waitOverlayActive = false;
       this.navigationHint.visible = true;
       if (progressInterval) clearInterval(progressInterval);
@@ -20472,21 +20511,21 @@ class Keybindings {
           if (progressInterval) clearInterval(progressInterval);
           progressInterval = setInterval(updateProgress, 16);
         }
-      } else if (!keyPressed) {
+      } else if (!keyPressed && listenKeyboard) {
         keyPressed = true;
         // Check if key is Unidentified
         const keyName = this.getKeyName(keyCode);
         if (keyName === 'Unidentified' || keyName === '???') {
           cleanup();
           this.showNotification(__(`Cannot map: ${keyName}||No se puede asignar: ${keyName}`));
-          this.showKeyWaitOverlay(message, onSubmit, onCancel);
+          onCancel();
           return;
         }
         cleanup();
         // Check for conflicts BEFORE calling onSubmit
         const conflict = this.findKeyboardKeyConflict(
-          this._pendingPlayerKey || 'player1',
-          this._pendingMappingKey || 'up',
+          this._pendingPlayerKey || null,
+          this._pendingMappingKey || null,
           this._pendingIndex || 0,
           keyCode
         );
@@ -20507,7 +20546,7 @@ class Keybindings {
     };
     
     const gamepadListener = (buttonCode) => {
-      if (!this.waitOverlayActive) return;
+      if (!listenGamepad || !this.waitOverlayActive) return;
       
       cleanup();
       // Check for conflicts
@@ -20577,9 +20616,28 @@ class Keybindings {
     const conflict = this.findKeyboardKeyConflict(playerKey, mappingKey, index, keyCode);
     
     if (conflict) {
-      // Swap: move the conflicting key to the old position
-      const oldKey = mapping[playerKey][mappingKey][index];
-      mapping[conflict.playerKey][conflict.mappingKey][conflict.index] = oldKey;
+      // Check if the old key at our target position is null (unmapped)
+      const oldKey = mapping[playerKey][mappingKey] && Array.isArray(mapping[playerKey][mappingKey])
+        ? mapping[playerKey][mappingKey][index]
+        : null;
+      
+      if (oldKey === null || oldKey === undefined) {
+        // We're assigning to an unmapped slot - just unmap the conflicting key
+        // (don't try to swap null into the other position)
+        if (Array.isArray(mapping[conflict.playerKey][conflict.mappingKey])) {
+          mapping[conflict.playerKey][conflict.mappingKey][conflict.index] = null;
+          // Trim trailing nulls
+          while (mapping[conflict.playerKey][conflict.mappingKey].length > 0 &&
+                 mapping[conflict.playerKey][conflict.mappingKey][mapping[conflict.playerKey][conflict.mappingKey].length - 1] === null) {
+            mapping[conflict.playerKey][conflict.mappingKey].pop();
+          }
+        } else {
+          mapping[conflict.playerKey][conflict.mappingKey] = null;
+        }
+      } else {
+        // Both slots have real keys - swap them
+        mapping[conflict.playerKey][conflict.mappingKey][conflict.index] = oldKey;
+      }
     }
     
     // Set the new key
@@ -20603,7 +20661,14 @@ class Keybindings {
     
     if (conflict) {
       const oldButton = mapping[playerKey][mappingKey];
-      mapping[conflict.playerKey][conflict.mappingKey] = oldButton;
+      
+      if (oldButton === null || oldButton === undefined) {
+        // Target slot is unmapped - just unmap the conflicting button
+        mapping[conflict.playerKey][conflict.mappingKey] = null;
+      } else {
+        // Both slots have real buttons - swap them
+        mapping[conflict.playerKey][conflict.mappingKey] = oldButton;
+      }
     }
     
     mapping[playerKey][mappingKey] = buttonCode;
@@ -20612,6 +20677,11 @@ class Keybindings {
   }
   
   findKeyboardKeyConflict(playerKey, mappingKey, index, keyCode) {
+    if (!playerKey || !mappingKey) return null;
+    
+    // Don't search for null conflicts - an unmapped key can't conflict with anything
+    if (keyCode === null || keyCode === undefined) return null;
+    
     const mapping = this.pendingChanges.keyboard;
     const controlLabels = {
       'up': 'UP',
@@ -20629,6 +20699,9 @@ class Keybindings {
         if (pKey === playerKey && mKey === mappingKey) continue;
         if (!Array.isArray(keys)) continue;
         for (let i = 0; i < keys.length; i++) {
+          // Skip null/undefined entries - they don't conflict
+          if (keys[i] === null || keys[i] === undefined) continue;
+          
           if (keys[i] === keyCode) {
             const label = `${pKey === 'player1' ? 'P1' : 'P2'} ${controlLabels[mKey] || mKey.toUpperCase()}`;
             return { playerKey: pKey, mappingKey: mKey, index: i, label: label };
@@ -20640,6 +20713,9 @@ class Keybindings {
   }
   
   findGamepadKeyConflict(playerKey, mappingKey, buttonCode) {
+    // Don't search for null conflicts
+    if (buttonCode === null || buttonCode === undefined) return null;
+    
     const mapping = this.pendingChanges.gamepad;
     const controlLabels = {
       'up': 'UP',
@@ -20655,6 +20731,10 @@ class Keybindings {
     for (const [pKey, player] of Object.entries(mapping)) {
       for (const [mKey, code] of Object.entries(player)) {
         if (pKey === playerKey && mKey === mappingKey) continue;
+        
+        // Skip null/undefined entries
+        if (code === null || code === undefined) continue;
+        
         if (code === buttonCode) {
           const label = `${pKey === 'player1' ? 'P1' : 'P2'} ${controlLabels[mKey] || mKey.toUpperCase()}`;
           return { playerKey: pKey, mappingKey: mKey, label: label };
@@ -20663,7 +20743,7 @@ class Keybindings {
     }
     return null;
   }
-  
+
   unmapKeyboardKey(playerNum, mappingKey, index) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
     const mapping = this.pendingChanges.keyboard;
@@ -20674,7 +20754,7 @@ class Keybindings {
       while (mapping[playerKey][mappingKey].length > 0 && mapping[playerKey][mappingKey][mapping[playerKey][mappingKey].length - 1] === null) {
         mapping[playerKey][mappingKey].pop();
       }
-      
+
       this.showNotification(__("KEY UNMAPPED!||¡TECLA DESASIGNADA!"));
     }
   }
@@ -21073,6 +21153,8 @@ class SongSelect {
   }
   
   create() {
+    //gamepad.singlePlayerId = gamepad.lastPlayerId;
+    
     game.camera.fadeIn(0x000000);
     
     new FuturisticLines();
@@ -21093,6 +21175,7 @@ class SongSelect {
     this.bannerImg = this.bannerImg || document.createElement("img");
     
     this.navigationHint = new NavigationHint('song_select');
+    this.navigationHint.ignorePlayerSwitch = true;
     
     this.autoplayText = new Text(4, 132, "");
     
@@ -21152,6 +21235,7 @@ class SongSelect {
     // Add songs to carousel
     if (this.songs.length === 0) {
       this.songCarousel.addItem(__("No songs found||No se encontraron canciones"), null);
+      this.songCarousel.config.disableConfirm = true;
     } else {
       this.songs.forEach((song, index) => {
         const title = song.titleTranslit || song.title;
@@ -21882,6 +21966,8 @@ class SongSelect {
     if (this.visibilityChangeListener) {
       window.removeEventListener("visibilitychange", this.visibilityChangeListener);
     }
+    
+    gamepad.singlePlayerId = -1;
   }
 }
 
@@ -26188,7 +26274,7 @@ class PlayMulti extends Play {
   }
   
   checkFullCombo(player) {
-    if (!this.started && player.fullComboStarted) return;
+    if (player && !this.started && player.fullComboStarted) return;
     
     player.fullComboStarted = true;
     
@@ -31142,1849 +31228,6 @@ Please Report The Developer Immediately!
   }
 }
 
-class PlayMultiOnline extends Play {
-  init(config) {
-    // Validate config
-    if (!config || !config.song) {
-      console.error('[PlayMultiOnline] Invalid config:', config);
-      game.state.start("RoomList");
-      return;
-    }
-    
-    // Call Play.init with the song data
-    super.init(
-      { chart: config.song, difficultyIndex: config.difficultyIndex || 0 },
-      config.difficultyIndex || 0,
-      false,
-      false,
-      null
-    );
-    
-    this.config = config;
-    this.opponentId = config.opponentId;
-    this.roomId = config.roomId;
-    this.client = window.multiplayer;
-    this.localFrame = 0;
-    this.opponentInputs = [];
-    this.gameEnded = false;
-    this.gameResultsSent = false;
-    this.isPlayer1 = config.isPlayer1 !== undefined ? config.isPlayer1 : true;
-    this.isHost = config.isHost || false;
-    this.connectionStatus = 'connected';
-    this.matchData = config.matchData || null;
-    this.isSpectator = config.isSpectator || false;
-    this.opponentName = config.opponentName || 'Opponent';
-    this.myName = this.getPlayerName();
-    
-    // Initialize remote player flag
-    this.hasRemotePlayer = false;
-    
-    // Setup handlers
-    this.setupGameHandlers();
-  }
-  
-  getPlayerName() {
-    try {
-      const account = JSON.parse(localStorage.getItem('Account') || '{}');
-      return account.profile?.name || 'Player';
-    } catch {
-      return 'Player';
-    }
-  }
-  
-  setupGameHandlers() {
-    this.client.off('opponent_input', this.onOpponentInput);
-    this.client.off('game_result', this.onGameResult);
-    this.client.off('disconnected', this.onDisconnected);
-    
-    this.onOpponentInput = this.onOpponentInput.bind(this);
-    this.onGameResult = this.onGameResult.bind(this);
-    this.onDisconnected = this.onDisconnected.bind(this);
-    
-    this.client.on('opponent_input', this.onOpponentInput);
-    this.client.on('game_result', this.onGameResult);
-    this.client.on('disconnected', this.onDisconnected);
-  }
-  
-  create() {
-    // Call Play.create() for base game setup
-    super.create();
-    
-    // Override HUD for online multiplayer
-    this.createOnlineHUD();
-    
-    // Setup online players
-    this.setupOnlinePlayers();
-    
-    // Override song end
-    this.originalSongEnd = this.songEnd.bind(this);
-    this.songEnd = this.onlineSongEnd.bind(this);
-    
-    // Override song info intro to show VS text
-    this.originalShowSongInfo = this.showSongInfo.bind(this);
-    this.showSongInfo = this.showOnlineSongInfo.bind(this);
-    
-    // Add VS text to song info
-    this.showOnlineSongInfo();
-  }
-  
-  createOnlineHUD() {
-    // Create HUD elements similar to PlayMulti but with online-specific elements
-    
-    // Connection status
-    this.connectionText = new Text(
-      game.width / 2,
-      2,
-      "● " + __("Connected||Conectado"),
-      FONTS.tiny_shaded
-    );
-    this.connectionText.anchor.x = 0.5;
-    this.connectionText.tint = 0x00ff00;
-    this.hud.addChild(this.connectionText);
-    
-    // VS indicator
-    this.vsText = new Text(
-      game.width / 2,
-      132,
-      `${this.myName} VS ${this.opponentName}`,
-      FONTS.tiny_shaded
-    );
-    this.vsText.anchor.x = 0.5;
-    this.vsText.tint = 0xffd700;
-    this.hud.addChild(this.vsText);
-    
-    // Spectator indicator
-    if (this.isSpectator) {
-      this.spectatorText = new Text(
-        game.width / 2,
-        120,
-        "👁 " + __("SPECTATOR MODE||MODO ESPECTADOR"),
-        FONTS.default
-      );
-      this.spectatorText.anchor.x = 0.5;
-      this.spectatorText.tint = 0x00ccff;
-      this.hud.addChild(this.spectatorText);
-    }
-  }
-  
-  showOnlineSongInfo() {
-    // Create the VS banner
-    const vsBanner = game.add.sprite(0, 75);
-    vsBanner.anchor.y = 0.5;
-    
-    const bannerGraphics = game.add.graphics(0, 0);
-    vsBanner.addChild(bannerGraphics);
-    
-    const lines = [
-      { text: this.song.chart.titleTranslit || this.song.chart.title || 'Unknown', size: 8, tint: 0xffffff },
-      { text: this.song.chart.artistTranslit || this.song.chart.artist || 'Unknown', size: 6, tint: 0x00cbff },
-      { text: `${this.myName} VS ${this.opponentName}`, size: 8, tint: 0xffd700 }
-    ];
-    
-    const FIXED_DELAY = this.FIXED_DELAY;
-    const entranceDuration = 200;
-    const exitDuration = 200;
-    
-    let y = 0;
-    let height = 4;
-    
-    for (const line of lines) {
-      if (line.text) {
-        const text = new Text(-240, y, line.text, FONTS[line.size === 8 ? 'default' : 'default_shadow'], vsBanner);
-        text.alpha = 1;
-        text.tint = line.tint;
-        text.x -= text.width * 2;
-        text.anchor.x = 0.5;
-        
-        game.add.tween(text).to({ x: 120, alpha: 1 }, entranceDuration * 2, Phaser.Easing.Quadratic.Out, true).onComplete.add(() => {
-          game.add.tween(text).to({ x: 240 + text.width * 2, alpha: 0 }, exitDuration * 2, Phaser.Easing.Quadratic.In, true, FIXED_DELAY - entranceDuration - entranceDuration - exitDuration - exitDuration);
-        });
-        
-        y += line.size + 2;
-        height += line.size + 2;
-      }
-    }
-    
-    if (y === 0) {
-      vsBanner.destroy();
-      return;
-    }
-    
-    height += 4;
-    
-    bannerGraphics.beginFill(0x000000, 0.6);
-    bannerGraphics.drawRect(0, -6, 240, height);
-    bannerGraphics.endFill();
-    
-    vsBanner.alpha = 0;
-    
-    game.add.tween(vsBanner).to({ alpha: 1 }, entranceDuration, Phaser.Easing.Quadratic.In, true).onComplete.add(() => {
-      game.add.tween(vsBanner).to({ alpha: 0 }, exitDuration, Phaser.Easing.Quadratic.Out, true, FIXED_DELAY - entranceDuration - exitDuration).onComplete.add(() => {
-        vsBanner.destroy();
-      });
-    });
-  }
-  
-  setupOnlinePlayers() {
-    // Create local player (extends Player)
-    // Create remote player (extends RemotePlayer)
-    
-    const settings = this.isPlayer1 ? 
-      this.config.player1?.settings || {} : 
-      this.config.player2?.settings || {};
-    
-    // Create local player (always left side)
-    this.localPlayer = new Player(this, "left", settings);
-    this.localPlayer.autoplay = settings.autoplay || false;
-    
-    // Create remote player (right side)
-    this.remotePlayer = new RemotePlayer(
-      this,
-      this.isPlayer1 ? 
-        this.config.player2?.settings || {} : 
-        this.config.player1?.settings || {},
-      this.opponentId,
-      { 
-        name: this.opponentName,
-        isSpectator: this.isSpectator 
-      }
-    );
-    this.remotePlayer.autoplay = false;
-    this.hasRemotePlayer = true;
-    
-    // Override local player input to send to server
-    this.setupLocalInputRelay();
-    
-    // Set the player reference for the base Play class
-    // We need to override which player is used for the base game logic
-    this.player = this.localPlayer;
-    this.player2 = this.remotePlayer;
-    
-    // Store both players
-    this._players = [this.localPlayer, this.remotePlayer];
-  }
-  
-  setupLocalInputRelay() {
-    const originalHandleInput = this.localPlayer.handleInput.bind(this.localPlayer);
-    
-    this.localPlayer.handleInput = (column, isKeyDown) => {
-      // Call original handler
-      originalHandleInput(column, isKeyDown);
-      
-      // Send input to opponent via server
-      if (isKeyDown) {
-        this.sendLocalInput(column);
-      }
-    };
-  }
-  
-  sendLocalInput(column) {
-    const buttonMask = 1 << column;
-    this.client.sendGameInput(
-      this.localFrame,
-      buttonMask,
-      Date.now()
-    );
-  }
-  
-  onOpponentInput(data) {
-    if (data.from === this.opponentId) {
-      this.opponentInputs.push({
-        frame: data.frame || 0,
-        buttons: data.buttons || 0,
-        timestamp: data.timestamp || 0,
-        from: data.from
-      });
-      
-      // Apply input to remote player
-      if (this.remotePlayer) {
-        const buttons = data.buttons || 0;
-        for (let col = 0; col < 4; col++) {
-          const isPressed = (buttons & (1 << col)) !== 0;
-          this.remotePlayer.remoteHeldColumns.add(col);
-          if (isPressed) {
-            this.remotePlayer.remoteHeldColumns.add(col);
-            this.remotePlayer._remoteGamepad._setKey(
-              ['left', 'down', 'up', 'right'][col],
-              true
-            );
-          } else {
-            this.remotePlayer.remoteHeldColumns.delete(col);
-            this.remotePlayer._remoteGamepad._setKey(
-              ['left', 'down', 'up', 'right'][col],
-              false
-            );
-          }
-        }
-        this.remotePlayer._remoteGamepad.update();
-      }
-    }
-  }
-  
-  onGameResult(data) {
-    // Handle game result from server
-    if (data.overallWinner) {
-      const isWinner = data.overallWinner === this.client.socketId;
-      notifications.show(
-        isWinner ? __("You won! +10 points||¡Ganaste! +10 puntos") : __("You lost!||¡Perdiste!"),
-        3000,
-        isWinner ? 'success' : 'error'
-      );
-    }
-  }
-  
-  onDisconnected() {
-    this.connectionStatus = 'disconnected';
-    if (this.connectionText) {
-      this.connectionText.write("● " + __("Disconnected||Desconectado"));
-      this.connectionText.tint = 0xff0000;
-    }
-    notifications.show(__("Connection lost!||¡Conexión perdida!"), 2000, 'error');
-  }
-  
-  onlineSongEnd() {
-    if (this.gameEnded) return;
-    this.gameEnded = true;
-    
-    // Get results from both players
-    const results = {
-      player1: this.getPlayerResults(this.localPlayer),
-      player2: this.getPlayerResults(this.remotePlayer)
-    };
-    
-    // Determine winner
-    let winner = null;
-    if (results.player1.score > results.player2.score) {
-      winner = this.isPlayer1 ? this.client.socketId : this.opponentId;
-    } else if (results.player2.score > results.player1.score) {
-      winner = this.isPlayer1 ? this.opponentId : this.client.socketId;
-    }
-    
-    // Send results to server
-    this.sendGameResults(results, winner);
-    
-    // Call original song end
-    this.originalSongEnd();
-  }
-  
-  getPlayerResults(player) {
-    return {
-      score: player.score || 0,
-      accuracy: player.accuracy || 0,
-      maxCombo: player.maxCombo || 0,
-      rating: player.getScoreRating ? player.getScoreRating() : 'F',
-      judgements: player.judgementCounts || {
-        marvelous: 0,
-        perfect: 0,
-        great: 0,
-        good: 0,
-        boo: 0,
-        miss: 0
-      }
-    };
-  }
-  
-  sendGameResults(results, winner) {
-    if (this.gameResultsSent) return;
-    this.gameResultsSent = true;
-    
-    const myResults = this.isPlayer1 ? results.player1 : results.player2;
-    
-    this.client.sendGameResult(
-      myResults.score,
-      myResults.accuracy,
-      myResults.maxCombo,
-      myResults.rating
-    );
-    
-    // Send full results to room
-    this.client.send('game_results_full', {
-      roomId: this.roomId,
-      results: results,
-      winner: winner,
-      isPlayer1: this.isPlayer1,
-      socketId: this.client.socketId
-    });
-  }
-  
-  update() {
-    // Update connection status
-    this.updateConnectionStatus();
-    
-    // Call parent update (which uses this.player)
-    // We need to handle both players
-    if (this.localPlayer) {
-      this.localPlayer.update();
-    }
-    if (this.remotePlayer) {
-      this.remotePlayer.update();
-    }
-    
-    // Update HUD for both players
-    this.updateMultiHUD();
-    
-    // Increment local frame
-    this.localFrame++;
-    
-    // Clean up old opponent inputs
-    const now = Date.now();
-    this.opponentInputs = this.opponentInputs.filter(
-      input => now - input.timestamp < 1000
-    );
-  }
-  
-  updateMultiHUD() {
-    // Update both players' HUD elements
-    // We need to use the same HUD elements as PlayMulti
-    // This is a simplified version - in production you'd mirror PlayMulti's HUD
-    
-    if (this.localPlayer) {
-      // Update local player HUD
-      this.scoreText.write(this.localPlayer.score.toString().padStart(8, "0"));
-      this.comboText.write(this.localPlayer.combo.toString());
-      this.healthText.write(Math.floor(this.localPlayer.health).toString());
-      
-      // Update health bar
-      if (this.lifebarMiddle) {
-        const healthWidth = (this.localPlayer.health / this.localPlayer.getMaxHealth()) * this.HEALTH_WIDTH;
-        this.lifebarMiddle.width = healthWidth;
-        this.lifebarEnd.x = healthWidth;
-      }
-    }
-    
-    if (this.remotePlayer) {
-      // Update remote player HUD (right side)
-      // In production, you'd have separate HUD elements for player 2
-      // For now, we just update the remote player's internal state
-    }
-  }
-  
-  updateConnectionStatus() {
-    const now = Date.now();
-    const recentInput = this.opponentInputs.find(
-      input => now - input.timestamp < 2000
-    );
-    
-    if (this.connectionStatus === 'connected' && 
-        this.opponentInputs.length > 0 && 
-        !recentInput) {
-      this.connectionStatus = 'slow';
-      if (this.connectionText) {
-        this.connectionText.write("● " + __("Slow connection||Conexión lenta"));
-        this.connectionText.tint = 0xffff00;
-      }
-    } else if (this.connectionStatus !== 'connected' && recentInput) {
-      this.connectionStatus = 'connected';
-      if (this.connectionText) {
-        this.connectionText.write("● " + __("Connected||Conectado"));
-        this.connectionText.tint = 0x00ff00;
-      }
-    }
-  }
-  
-  render() {
-    // Render both players
-    if (this.localPlayer) {
-      this.localPlayer.render();
-    }
-    if (this.remotePlayer) {
-      this.remotePlayer.render();
-    }
-  }
-  
-  shutdown() {
-    // Clean up handlers
-    this.client.off('opponent_input', this.onOpponentInput);
-    this.client.off('game_result', this.onGameResult);
-    this.client.off('disconnected', this.onDisconnected);
-    
-    // Destroy remote player
-    if (this.remotePlayer) {
-      this.remotePlayer.destroy();
-      this.remotePlayer = null;
-    }
-    
-    // Call parent shutdown
-    super.shutdown();
-  }
-}
-
-class RoomList {
-  create() {
-    game.camera.fadeIn(0x000000);
-    this.futuristicLines = new FuturisticLines();
-    this.backgroundGradient = new BackgroundGradient();
-    this.navigationHint = new NavigationHint('general');
-    
-    this.rooms = [];
-    this.selectedRoom = null;
-    this.client = window.multiplayer;
-    this.windowManager = new WindowManager();
-    this.refreshTimer = null;
-    this.autoRefreshInterval = 5000;
-    
-    // Connect if not connected
-    if (!this.client.isConnected) {
-      this.client.connect();
-    }
-    
-    // Setup event handlers
-    this.setupHandlers();
-    
-    // Create UI
-    this.createUI();
-    
-    // Request room list
-    this.client.getRoomList();
-    
-    // Auto-refresh
-    this.startAutoRefresh();
-    
-    addonManager.executeStateBehaviors(this.constructor.name, this);
-  }
-  
-  setupHandlers() {
-    this.client.off('room_list', this.onRoomList);
-    this.client.off('connected', this.onConnected);
-    this.client.off('disconnected', this.onDisconnected);
-    this.client.off('error', this.onError);
-    this.client.off('room_created', this.onRoomCreated);
-    this.client.off('join_result', this.onJoinResult);
-    
-    this.onRoomList = this.onRoomList.bind(this);
-    this.onConnected = this.onConnected.bind(this);
-    this.onDisconnected = this.onDisconnected.bind(this);
-    this.onError = this.onError.bind(this);
-    this.onRoomCreated = this.onRoomCreated.bind(this);
-    this.onJoinResult = this.onJoinResult.bind(this);
-    
-    this.client.on('room_list', this.onRoomList);
-    this.client.on('connected', this.onConnected);
-    this.client.on('disconnected', this.onDisconnected);
-    this.client.on('error', this.onError);
-    this.client.on('room_created', this.onRoomCreated);
-    this.client.on('join_result', this.onJoinResult);
-  }
-  
-  onRoomList(rooms) {
-    this.rooms = rooms || [];
-    this.updateRoomList();
-  }
-  
-  onConnected(data) {
-    console.log('[RoomList] Connected, socketId:', data.socketId);
-    this.statusText.write(__("Connected||Conectado"));
-    this.statusText.tint = 0x00ff00;
-    this.client.getRoomList();
-  }
-  
-  onDisconnected() {
-    this.statusText.write(__("Disconnected||Desconectado"));
-    this.statusText.tint = 0xff0000;
-    notifications.show(__('Disconnected from server||Desconectado del servidor'), 2000, 'error');
-  }
-  
-  onError(error) {
-    notifications.show(__('Connection error||Error de conexión'), 2000, 'error');
-  }
-  
-  onRoomCreated(data) {
-    if (data.success) {
-      notifications.show(__("Room created!||¡Sala creada!"), 1500, 'success');
-      game.state.start("RoomLobby", true, false, data.roomId);
-    } else {
-      notifications.show(__("Failed to create room||Error al crear sala"), 2000, 'error');
-    }
-  }
-  
-  onJoinResult(data) {
-    if (data.success) {
-      game.state.start("RoomLobby", true, false, data.room?.id || this._pendingRoomId);
-    } else {
-      notifications.show(data.error || __("Failed to join room||Error al unirse"), 2000, 'error');
-      this.client.getRoomList();
-      this._pendingRoomId = null;
-    }
-  }
-  
-  createUI() {
-    // Title
-    this.titleText = new Text(game.width / 2, 2, __("ROOMS||SALAS"), FONTS.bold_shadow);
-    this.titleText.anchor.x = 0.5;
-    
-    // Status text
-    this.statusText = new Text(4, 132, __("Connecting...||Conectando..."), FONTS.tiny_default);
-    this.statusText.tint = 0xffff00;
-    
-    // Room list
-    this.roomList = new CarouselMenu(0, 14, 180, 102, {
-      bgcolor: '#2c3e50',
-      fgcolor: '#ffffff',
-      align: 'left',
-      animate: true,
-      margin: { left: 4, right: 4 }
-    });
-    
-    this.roomList.addItem(__("REFRESH||REFRESCAR"), () => {
-      this.client.getRoomList();
-      this.resetAutoRefresh();
-    });
-    this.roomList.addItem(__("CREATE ROOM||CREAR SALA"), () => this.showCreateRoom());
-    this.roomList.addItem(__("PROFILE||PERFIL"), () => game.state.start("ProfileEdit"));
-    this.roomList.addItem(__("BACK||VOLVER"), () => {
-      this.stopAutoRefresh();
-      game.state.start("MainMenu");
-    });
-    
-    this.roomList.onCancel.add(() => {
-      this.stopAutoRefresh();
-      game.state.start("MainMenu");
-    });
-    
-    // Update status
-    if (this.client.isConnected) {
-      this.statusText.write(__("Connected||Conectado"));
-      this.statusText.tint = 0x00ff00;
-    }
-    
-    this.updateRoomList();
-  }
-  
-  updateRoomList() {
-    // Keep first 4 items (Refresh, Create, Profile, Back)
-    while (this.roomList.items.length > 4) {
-      const item = this.roomList.items.pop();
-      this.roomList.removeItemVisuals(item);
-    }
-    
-    if (this.rooms.length === 0) {
-      this.roomList.addItem(
-        __("No rooms available||No hay salas disponibles"),
-        null,
-        { bgcolor: '#34495e' }
-      );
-    } else {
-      this.rooms.forEach(room => {
-        const statusIcon = room.state === 'playing' ? '🔴' : '🟢';
-        const label = `${room.id} ${statusIcon} ${room.playerCount}/${room.maxPlayers}`;
-        
-        this.roomList.addItem(
-          label,
-          () => this.joinRoom(room.id),
-          { 
-            roomId: room.id, 
-            bgcolor: room.state === 'playing' ? '#8e44ad' : '#27ae60',
-            room: room
-          }
-        );
-      });
-    }
-    
-    this.roomList.updateSelection();
-    this.roomList.updateScrollBar();
-  }
-  
-  showCreateRoom() {
-    const configWindow = this.windowManager.createWindow(4, 3, 22, 7, "1");
-    configWindow.fontTint = 0x76fcde;
-    
-    let maxPlayers = 8;
-    let timer = 60;
-    
-    configWindow.addRangeItem(
-      __("Players||Jugadores"),
-      2, 20, 1, maxPlayers, "",
-      value => maxPlayers = value
-    );
-    
-    configWindow.addRangeItem(
-      __("Timer (seconds)||Tiempo (segundos)"),
-      30, 120, 5, timer, "s",
-      value => timer = value
-    );
-    
-    configWindow.addItem(__("CREATE||CREAR"), ">", () => {
-      this.windowManager.remove(configWindow, true);
-      this.client.createRoom({ maxPlayers, timer });
-    });
-    
-    configWindow.addItem(__("CANCEL||CANCELAR"), "", () => {
-      this.windowManager.remove(configWindow, true);
-    }, true);
-    
-    this.windowManager.focus(configWindow);
-  }
-  
-  joinRoom(roomId) {
-    this._pendingRoomId = roomId;
-    notifications.show(__("Joining room...||Uniéndose a la sala..."));
-    this.client.joinRoom(roomId);
-  }
-  
-  startAutoRefresh() {
-    this.stopAutoRefresh();
-    this.refreshTimer = setInterval(() => {
-      if (this.client.isConnected) {
-        this.client.getRoomList();
-      }
-    }, this.autoRefreshInterval);
-  }
-  
-  stopAutoRefresh() {
-    if (this.refreshTimer) {
-      clearInterval(this.refreshTimer);
-      this.refreshTimer = null;
-    }
-  }
-  
-  resetAutoRefresh() {
-    this.stopAutoRefresh();
-    this.startAutoRefresh();
-  }
-  
-  update() {
-    gamepad.update();
-    this.windowManager?.update();
-  }
-  
-  shutdown() {
-    this.stopAutoRefresh();
-    this.client.off('room_list', this.onRoomList);
-    this.client.off('connected', this.onConnected);
-    this.client.off('disconnected', this.onDisconnected);
-    this.client.off('error', this.onError);
-    this.client.off('room_created', this.onRoomCreated);
-    this.client.off('join_result', this.onJoinResult);
-  }
-}
-
-class RoomLobby {
-  init(roomId) {
-    this.roomId = roomId;
-    this.client = window.multiplayer;
-    this.roomData = null;
-    this.players = [];
-    this.chatMessages = [];
-    this.selectedPlayerId = null;
-    this.isReady = false;
-    this.gameStarting = false;
-    this.selectedSong = null;
-    this.isHost = false;
-    this.windowManager = new WindowManager();
-    this.characterManager = new CharacterManager();
-    this.currentCharacter = this.characterManager.getCurrentCharacter();
-    this.spectatorMode = false;
-    this.matchInfo = null;
-    
-    // Setup handlers
-    this.setupHandlers();
-    
-    // Request room state
-    this.client.getRoom(this.roomId);
-  }
-  
-  setupHandlers() {
-    this.client.off('room_update', this.onRoomUpdate);
-    this.client.off('player_joined', this.onPlayerJoined);
-    this.client.off('player_left', this.onPlayerLeft);
-    this.client.off('chat_message', this.onChatMessage);
-    this.client.off('game_start', this.onGameStart);
-    this.client.off('room_closed', this.onRoomClosed);
-    this.client.off('disconnected', this.onDisconnected);
-    this.client.off('room_song_selected', this.onSongSelected);
-    
-    this.onRoomUpdate = this.onRoomUpdate.bind(this);
-    this.onPlayerJoined = this.onPlayerJoined.bind(this);
-    this.onPlayerLeft = this.onPlayerLeft.bind(this);
-    this.onChatMessage = this.onChatMessage.bind(this);
-    this.onGameStart = this.onGameStart.bind(this);
-    this.onRoomClosed = this.onRoomClosed.bind(this);
-    this.onDisconnected = this.onDisconnected.bind(this);
-    this.onSongSelected = this.onSongSelected.bind(this);
-    
-    this.client.on('room_update', this.onRoomUpdate);
-    this.client.on('player_joined', this.onPlayerJoined);
-    this.client.on('player_left', this.onPlayerLeft);
-    this.client.on('chat_message', this.onChatMessage);
-    this.client.on('game_start', this.onGameStart);
-    this.client.on('room_closed', this.onRoomClosed);
-    this.client.on('disconnected', this.onDisconnected);
-    this.client.on('room_song_selected', this.onSongSelected);
-  }
-  
-  create() {
-    game.camera.fadeIn(0x000000);
-    this.futuristicLines = new FuturisticLines();
-    this.backgroundGradient = new BackgroundGradient();
-    
-    this.createLayout();
-    
-    // Set initial room message
-    this.setRoomMessage(__("Waiting for players...||Esperando jugadores..."));
-    
-    addonManager.executeStateBehaviors(this.constructor.name, this);
-  }
-  
-  // --- Event Handlers ---
-  onRoomUpdate(room) {
-    if (!room) {
-      notifications.show(__("Room no longer exists||La sala ya no existe"), 2000, 'error');
-      game.state.start("RoomList");
-      return;
-    }
-    
-    this.roomData = room;
-    this.players = room.players || [];
-    this.isHost = room.host === this.client.socketId;
-    this.spectatorMode = room.state === 'playing' || false;
-    this.updateUI();
-  }
-  
-  onPlayerJoined(room) {
-    this.roomData = room;
-    this.players = room.players || [];
-    this.updateUI();
-    this.setRoomMessage(`${__("Player joined||Jugador se unió")}: ${this.getLastPlayerName(room)}`);
-  }
-  
-  onPlayerLeft(data) {
-    this.roomData = data.room;
-    this.players = data.room.players || [];
-    this.updateUI();
-    this.setRoomMessage(`${__("Player left||Jugador salió")}`);
-  }
-  
-  onChatMessage(msg) {
-    this.chatMessages.push(msg);
-    if (this.chatMessages.length > 6) {
-      this.chatMessages.shift();
-    }
-    this.updateChat();
-  }
-  
-  onGameStart(data) {
-    this.gameStarting = true;
-    notifications.show(__("Game starting!||¡Comenzando el juego!"), 1500, 'success');
-    this.gameData = data;
-    
-    // Find my match
-    let myMatch = null;
-    let isSpectator = false;
-    let opponentId = null;
-    let opponentName = 'Opponent';
-    
-    if (data.matches) {
-      for (const match of data.matches) {
-        if (match.player1 === this.client.socketId) {
-          myMatch = match;
-          opponentId = match.player2;
-          // Find opponent name
-          const opponent = this.players.find(p => p.socketId === opponentId);
-          if (opponent) opponentName = opponent.name;
-          break;
-        }
-        if (match.player2 === this.client.socketId) {
-          myMatch = match;
-          opponentId = match.player1;
-          const opponent = this.players.find(p => p.socketId === opponentId);
-          if (opponent) opponentName = opponent.name;
-          break;
-        }
-      }
-    }
-    
-    // Check if spectator
-    if (data.spectators && data.spectators.includes(this.client.socketId)) {
-      isSpectator = true;
-      // Find first match to spectate
-      if (data.matches && data.matches.length > 0) {
-        const match = data.matches[0];
-        const p1 = this.players.find(p => p.socketId === match.player1);
-        const p2 = this.players.find(p => p.socketId === match.player2);
-        opponentName = `${p1?.name || 'P1'} vs ${p2?.name || 'P2'}`;
-        opponentId = match.player2;
-      }
-    }
-    
-    // Use selected song
-    let song = this.selectedSong || data.selectedSong;
-    if (!song) {
-      const songs = window.localSongs || window.externalSongs || [];
-      if (songs.length > 0) {
-        song = songs[Math.floor(Math.random() * songs.length)];
-      }
-    }
-    
-    // Transition to game
-    game.time.events.add(500, () => {
-      this.startGame(song, opponentId, opponentName, isSpectator);
-    });
-  }
-  
-  onRoomClosed() {
-    notifications.show(__("Room was closed||La sala fue cerrada"), 2000, 'error');
-    game.state.start("RoomList");
-  }
-  
-  onDisconnected() {
-    notifications.show(__("Disconnected from server||Desconectado del servidor"), 2000, 'error');
-    game.state.start("RoomList");
-  }
-  
-  onSongSelected(data) {
-    if (data.roomId === this.roomId) {
-      this.selectedSong = data.song;
-      this.updateSongDisplay();
-      const title = data.song?.titleTranslit || data.song?.title || 'Unknown';
-      notifications.show(`${__("Song selected||Canción seleccionada")}: ${title}`, 1500);
-    }
-  }
-  
-  // --- UI Creation ---
-  createLayout() {
-    // Background
-    this.background = game.add.graphics(0, 0);
-    this.background.beginFill(0x000000, 0.2);
-    this.background.drawRect(0, 0, game.width, game.height);
-    this.background.endFill();
-    
-    // Room ID
-    this.roomIdText = new Text(game.width / 2, 2, `ROOM: ${this.roomId}`, FONTS.default);
-    this.roomIdText.anchor.x = 0.5;
-    
-    // Player list
-    this.createPlayerList();
-    
-    // Character preview
-    this.createCharacterPreview();
-    
-    // Player info
-    this.createPlayerInfo();
-    
-    // Chat
-    this.createChat();
-    
-    // Room message
-    this.createRoomMessage();
-    
-    // Ready button (START button toggles ready)
-    this.createReadyButton();
-    
-    // Song selection (host only)
-    this.createSongSelection();
-    
-    // Spectator mode indicator
-    this.createSpectatorIndicator();
-  }
-  
-  createPlayerList() {
-    const x = 0;
-    const y = 14;
-    const w = 48;
-    const h = 96;
-    
-    this.playerListBg = game.add.graphics(x, y);
-    this.playerListBg.beginFill(0x000000, 0.4);
-    this.playerListBg.drawRect(0, 0, w, h);
-    this.playerListBg.endFill();
-    
-    this.playerListTitle = new Text(x + 2, y + 2, __("PLAYERS||JUGADORES"), FONTS.tiny_shaded);
-    
-    this.playerNameSprites = [];
-    this.playerReadySprites = [];
-    this.playerClickAreas = [];
-    this.playerStatusSprites = [];
-  }
-  
-  createCharacterPreview() {
-    const x = 52;
-    const y = 14;
-    const w = 120;
-    const h = 96;
-    
-    this.previewBg = game.add.graphics(x, y);
-    this.previewBg.beginFill(0x000000, 0.3);
-    this.previewBg.drawRect(0, 0, w, h);
-    this.previewBg.endFill();
-    
-    this.previewName = new Text(x + w/2, y + 6, "", FONTS.default);
-    this.previewName.anchor.x = 0.5;
-    
-    this.characterDisplay = null;
-  }
-  
-  createPlayerInfo() {
-    const x = 176;
-    const y = 14;
-    const w = 64;
-    const h = 96;
-    
-    this.infoBg = game.add.graphics(x, y);
-    this.infoBg.beginFill(0x000000, 0.4);
-    this.infoBg.drawRect(0, 0, w, h);
-    this.infoBg.endFill();
-    
-    this.infoText = new Text(x + 2, y + 2, 
-      __("Select a player||Selecciona un jugador"),
-      FONTS.tiny_default
-    );
-    this.infoText.wrap(60);
-  }
-  
-  createChat() {
-    const x = 0;
-    const y = 112;
-    const w = 160;
-    const h = 28;
-    
-    this.chatBg = game.add.graphics(x, y);
-    this.chatBg.beginFill(0x000000, 0.5);
-    this.chatBg.drawRect(0, 0, w, h);
-    this.chatBg.endFill();
-    
-    this.chatDisplay = new Text(x + 2, y + 2, "", FONTS.tiny_default);
-    
-    this.chatInputLabel = new Text(x + 2, y + h - 6, __("Press ENTER to chat||Presiona ENTER para chatear"), FONTS.tiny_default);
-    this.chatInputLabel.tint = 0x666666;
-    this.chatInputLabel.inputEnabled = true;
-    this.chatInputLabel.useHandCursor = true;
-    this.chatInputLabel.events.onInputDown.add(() => this.openChatInput());
-  }
-  
-  createRoomMessage() {
-    this.roomMessage = new Text(164, 112, "", FONTS.tiny_stroke);
-    this.roomMessage.wrap(76);
-  }
-  
-  createReadyButton() {
-    const x = 112;
-    const y = 112;
-    
-    this.readyBg = game.add.graphics(x - 20, y - 2);
-    this.readyBg.beginFill(0x27ae60, 0.8);
-    this.readyBg.drawRect(0, 0, 40, 10);
-    this.readyBg.endFill();
-    this.readyBg.anchor.x = 0.5;
-    
-    this.readyButton = new Text(x, y + 3, __("READY||LISTO"), FONTS.default);
-    this.readyButton.anchor.x = 0.5;
-    this.readyButton.inputEnabled = true;
-    this.readyButton.useHandCursor = true;
-    this.readyButton.events.onInputDown.add(() => this.toggleReady());
-  }
-  
-  createSongSelection() {
-    this.songText = new Text(4, 132, "", FONTS.tiny_stroke);
-    this.updateSongDisplay();
-    
-    // Only host can select song
-    if (this.isHost) {
-      this.songText.inputEnabled = true;
-      this.songText.useHandCursor = true;
-      this.songText.events.onInputDown.add(() => this.openSongSelect());
-    }
-  }
-  
-  createSpectatorIndicator() {
-    this.spectatorText = new Text(
-      game.width / 2,
-      132,
-      "",
-      FONTS.tiny_shaded
-    );
-    this.spectatorText.anchor.x = 0.5;
-    this.spectatorText.tint = 0x00ccff;
-    this.spectatorText.visible = false;
-  }
-  
-  // --- UI Updates ---
-  updateUI() {
-    this.updatePlayerList();
-    this.updateCharacterPreview();
-    this.updateInfoText();
-    this.updateReadyButton();
-    this.updateSongDisplay();
-    this.updateTimer();
-    this.updateSpectatorIndicator();
-    
-    this.isHost = this.roomData?.host === this.client.socketId;
-    this.songText.inputEnabled = this.isHost;
-    this.songText.alpha = this.isHost ? 1 : 0.5;
-  }
-  
-  updatePlayerList() {
-    this.playerNameSprites.forEach(s => s.destroy());
-    this.playerReadySprites.forEach(s => s.destroy());
-    this.playerClickAreas.forEach(s => s.destroy());
-    this.playerStatusSprites.forEach(s => s.destroy());
-    this.playerNameSprites = [];
-    this.playerReadySprites = [];
-    this.playerClickAreas = [];
-    this.playerStatusSprites = [];
-    
-    const currentPlayer = this.players.find(p => p.socketId === this.client.socketId);
-    const isMeReady = currentPlayer?.ready || false;
-    
-    this.players.forEach((player, index) => {
-      const x = 2;
-      const y = 16 + (index * 9);
-      const isMe = player.socketId === this.client.socketId;
-      const isHost = player.isHost || false;
-      const isSpectator = player.isSpectator || false;
-      
-      const color = isMeReady ? '#27ae60' : (isMe ? '#3498db' : '#ffffff');
-      
-      let nameDisplay = player.name;
-      if (isHost) nameDisplay += ' 👑';
-      if (isMe) nameDisplay += ' (you)';
-      if (isSpectator) nameDisplay += ' 👁';
-      
-      const nameText = new Text(x, y, nameDisplay, FONTS.tiny_default);
-      nameText.tint = parseInt(color.replace('#', ''), 16);
-      this.playerNameSprites.push(nameText);
-      
-      // Status indicator (ready/spectator)
-      let statusText = '';
-      if (isSpectator) {
-        statusText = '👁';
-      } else {
-        statusText = player.ready ? '✓' : '○';
-      }
-      const status = new Text(x + 38, y, statusText, FONTS.tiny_default);
-      status.tint = isSpectator ? 0x00ccff : (player.ready ? 0x00ff00 : 0x666666);
-      this.playerStatusSprites.push(status);
-      
-      // Click to select (only if not me)
-      if (!isMe) {
-        nameText.inputEnabled = true;
-        nameText.useHandCursor = true;
-        nameText.events.onInputDown.add(() => this.selectPlayer(player));
-        this.playerClickAreas.push(nameText);
-      }
-    });
-  }
-  
-  updateCharacterPreview() {
-    const targetPlayer = this.selectedPlayerId 
-      ? this.players.find(p => p.socketId === this.selectedPlayerId)
-      : this.players.find(p => p.socketId === this.client.socketId);
-    
-    if (!targetPlayer) return;
-    
-    this.previewName.write(targetPlayer.name);
-    
-    if (this.characterDisplay) {
-      this.characterDisplay.destroy();
-    }
-    
-    const charData = this.getCharacterData(targetPlayer.character);
-    const x = 52;
-    const y = 14;
-    const w = 120;
-    const h = 96;
-    
-    this.characterDisplay = new CharacterPortrait(
-      x + w/2,
-      y + h/2 + 4,
-      charData || null
-    );
-  }
-  
-  updateInfoText() {
-    if (!this.selectedPlayerId) {
-      this.infoText.write(
-        __("Select a player\n||Selecciona un jugador\n\n") +
-        __("Points||Puntos"): —
-      );
-      return;
-    }
-    
-    const player = this.players.find(p => p.socketId === this.selectedPlayerId);
-    if (!player) {
-      this.infoText.write(__("Player left||Jugador salió"));
-      return;
-    }
-    
-    this.infoText.write(
-      `${player.name}\n` +
-      `${__("Points||Puntos")}: ${player.points || 0}\n` +
-      `${__("Character||Personaje")}: ${player.character}\n` +
-      `${player.isSpectator ? "👁 " + __("Spectator||Espectador") : ""}`
-    );
-    this.infoText.wrap(60);
-  }
-  
-  updateReadyButton() {
-    const currentPlayer = this.players.find(p => p.socketId === this.client.socketId);
-    if (!currentPlayer) return;
-    
-    // If spectator, ready button is disabled
-    if (currentPlayer.isSpectator) {
-      this.readyButton.write("👁 " + __("SPECTATOR||ESPECTADOR"));
-      this.readyBg.tint = 0x00ccff;
-      this.readyButton.alpha = 0.5;
-      this.readyButton.inputEnabled = false;
-      return;
-    }
-    
-    this.isReady = currentPlayer.ready;
-    this.readyButton.write(this.isReady ? __("READY ✓||LISTO ✓") : __("READY||LISTO"));
-    this.readyBg.tint = this.isReady ? 0x27ae60 : 0x666666;
-    this.readyBg.clear();
-    this.readyBg.beginFill(this.readyBg.tint, 0.8);
-    this.readyBg.drawRect(0, 0, 40, 10);
-    this.readyBg.endFill();
-    
-    // Disable if countdown locked (timer < 10) and ready
-    if (this.roomData?.timer < 10 && this.isReady) {
-      this.readyButton.alpha = 0.5;
-      this.readyButton.inputEnabled = false;
-    } else {
-      this.readyButton.alpha = 1;
-      this.readyButton.inputEnabled = true;
-    }
-  }
-  
-  updateTimer() {
-    const timer = this.roomData?.timer || 0;
-    
-    if (timer > 0) {
-      this.setRoomMessage(`${__("Starting in||Comenzando en")} ${timer}s...`);
-    } else {
-      const playerCount = this.players.length;
-      const nonSpectators = this.players.filter(p => !p.isSpectator);
-      const readyPlayers = nonSpectators.filter(p => p.ready);
-      
-      if (playerCount === 0) {
-        this.setRoomMessage(__("Waiting for players...||Esperando jugadores..."));
-      } else if (nonSpectators.length < 2) {
-        this.setRoomMessage(__("Waiting for more players (2 minimum)||Esperando más jugadores (mínimo 2)"));
-      } else {
-        if (readyPlayers.length === nonSpectators.length && nonSpectators.length >= 2) {
-          this.setRoomMessage(__("All ready! Starting...||¡Todos listos! Comenzando..."));
-        } else {
-          this.setRoomMessage(`${readyPlayers.length}/${nonSpectators.length} ${__("ready||listos")}`);
-        }
-      }
-    }
-  }
-  
-  updateSongDisplay() {
-    if (this.selectedSong) {
-      const title = this.selectedSong.titleTranslit || this.selectedSong.title || 'Unknown';
-      this.songText.write(`🎵 ${title}`);
-    } else {
-      this.songText.write(__("Select song||Seleccionar canción"));
-    }
-  }
-  
-  updateSpectatorIndicator() {
-    const currentPlayer = this.players.find(p => p.socketId === this.client.socketId);
-    if (currentPlayer && currentPlayer.isSpectator) {
-      this.spectatorText.visible = true;
-      this.spectatorText.write("👁 " + __("SPECTATOR MODE||MODO ESPECTADOR"));
-    } else {
-      this.spectatorText.visible = false;
-    }
-  }
-  
-  updateChat() {
-    let text = '';
-    const recent = this.chatMessages.slice(-5);
-    recent.forEach(msg => {
-      const name = msg.from || 'Unknown';
-      const message = msg.message || '';
-      text += `${name}: ${message}\n`;
-    });
-    this.chatDisplay.write(text);
-  }
-  
-  // --- Actions ---
-  selectPlayer(player) {
-    this.selectedPlayerId = player.socketId;
-    this.updateCharacterPreview();
-    this.updateInfoText();
-  }
-  
-  toggleReady() {
-    const currentPlayer = this.players.find(p => p.socketId === this.client.socketId);
-    if (!currentPlayer || currentPlayer.isSpectator) return;
-    if (this.roomData?.timer < 10 && this.isReady) return;
-    
-    this.client.toggleReady();
-  }
-  
-  openSongSelect() {
-    if (!this.isHost) {
-      notifications.show(__("Only the host can select the song||Solo el anfitrión puede seleccionar la canción"));
-      return;
-    }
-    
-    const songs = window.localSongs || window.externalSongs || [];
-    if (songs.length === 0) {
-      notifications.show(__("No songs available||No hay canciones disponibles"));
-      return;
-    }
-    
-    const songWindow = this.windowManager.createWindow(4, 4, 22, 9, "1");
-    songWindow.fontTint = 0x76fcde;
-    
-    songs.forEach((song, index) => {
-      const title = song.titleTranslit || song.title || `Song ${index + 1}`;
-      const isSelected = this.selectedSong && this.selectedSong.audioUrl === song.audioUrl;
-      songWindow.addItem(
-        title + (isSelected ? ' ✓' : ''),
-        '',
-        () => {
-          this.selectedSong = song;
-          this.client.selectSong(song);
-          this.updateSongDisplay();
-          this.windowManager.remove(songWindow, true);
-          notifications.show(__("Song selected!||¡Canción seleccionada!"));
-        }
-      );
-    });
-    
-    songWindow.addItem(__("CANCEL||CANCELAR"), "", () => {
-      this.windowManager.remove(songWindow, true);
-    }, true);
-    
-    this.windowManager.focus(songWindow);
-  }
-  
-  openChatInput() {
-    if (window.focusedElement) return;
-    
-    const keyboard = new OnScreenKeyboard(undefined, 68);
-    const input = new TextInput({
-      text: "",
-      width: 20,
-      maxLength: 100,
-      y: 38,
-      onConfirm: (text) => {
-        keyboard.destroy();
-        if (text.trim()) {
-          this.client.sendChat(text.trim());
-        }
-        this.chatInputOpen = false;
-      },
-      onCancel: () => {
-        keyboard.destroy();
-        this.chatInputOpen = false;
-      }
-    });
-    
-    window.focusedElement = input;
-    this.chatInputOpen = true;
-  }
-  
-  setRoomMessage(text) {
-    this.roomMessage.write(text);
-    this.roomMessage.wrap(76);
-  }
-  
-  getLastPlayerName(room) {
-    if (!room || !room.players || room.players.length === 0) return '';
-    return room.players[room.players.length - 1]?.name || '';
-  }
-  
-  getCharacterData(characterName) {
-    try {
-      const charManager = new CharacterManager();
-      const char = charManager.characters.get(characterName);
-      if (char) return char;
-    } catch (e) {}
-    
-    return new Character(DEFAULT_CHARACTER);
-  }
-  
-  startGame(song, opponentId, opponentName, isSpectator) {
-    if (!song) {
-      notifications.show(__("No song available!||¡No hay canciones disponibles!"), 2000, 'error');
-      game.state.start("RoomList");
-      return;
-    }
-    
-    const isPlayer1 = !isSpectator && 
-      (this.gameData?.matches?.some(m => m.player1 === this.client.socketId) || false);
-    
-    // Build multiplayer state
-    const config = {
-      song: song,
-      difficultyIndex: 0,
-      player1: {
-        settings: { ...DEFAULT_PLAYER_SETTINGS },
-        ready: true
-      },
-      player2: {
-        settings: { ...DEFAULT_PLAYER_SETTINGS },
-        joined: true,
-        ready: true
-      },
-      opponentId: opponentId || 'spectator',
-      roomId: this.roomId,
-      isPlayer1: isPlayer1,
-      isHost: this.isHost,
-      isSpectator: isSpectator || false,
-      opponentName: opponentName || 'Opponent',
-      matchData: this.gameData || null
-    };
-    
-    // Store in window for access
-    window.multiplayerState = {
-      song: song,
-      difficultyIndex: 0,
-      player1: config.player1,
-      player2: config.player2
-    };
-    
-    game.state.start("PlayMultiOnline", true, false, config);
-  }
-  
-  // --- Update Loop ---
-  update() {
-    gamepad.update();
-    this.windowManager?.update();
-    this.updateTimer();
-    
-    // Handle chat with keyboard
-    if (gamepad.pressed.enter && !this.chatInputOpen && !window.focusedElement) {
-      this.openChatInput();
-    }
-    
-    // START button toggles ready
-    if (gamepad.pressed.start && !this.chatInputOpen && !window.focusedElement) {
-      this.toggleReady();
-    }
-    
-    // Force start with Select button (host only)
-    if (this.isHost && gamepad.pressed.select && this.players.filter(p => !p.isSpectator).length >= 2) {
-      this.client.forceStart();
-    }
-  }
-  
-  shutdown() {
-    this.client.off('room_update', this.onRoomUpdate);
-    this.client.off('player_joined', this.onPlayerJoined);
-    this.client.off('player_left', this.onPlayerLeft);
-    this.client.off('chat_message', this.onChatMessage);
-    this.client.off('game_start', this.onGameStart);
-    this.client.off('room_closed', this.onRoomClosed);
-    this.client.off('disconnected', this.onDisconnected);
-    this.client.off('room_song_selected', this.onSongSelected);
-    
-    // Clean up character display
-    if (this.characterDisplay) {
-      this.characterDisplay.destroy();
-      this.characterDisplay = null;
-    }
-  }
-}
-
-class ProfileEdit {
-  create() {
-    game.camera.fadeIn(0x000000);
-    this.futuristicLines = new FuturisticLines();
-    this.backgroundGradient = new BackgroundGradient();
-    this.navigationHint = new NavigationHint('general');
-    
-    this.client = window.multiplayer;
-    this.windowManager = new WindowManager();
-    this.characterManager = new CharacterManager();
-    
-    // Load current profile with fallbacks
-    this.profile = {
-      name: this.client?.profile?.name || 'Guest',
-      about: this.client?.profile?.profile || '',
-      character: this.client?.profile?.character || 'EIRI',
-      points: this.client?.profile?.points || 0
-    };
-    
-    this.showEditMenu();
-    
-    addonManager?.executeStateBehaviors(this.constructor.name, this);
-  }
-  
-  showEditMenu() {
-    const window = this.windowManager.createWindow(3, 2, 24, 11, "1");
-    window.fontTint = 0x76fcde;
-    
-    window.addItem(__("Name (max 12)||Nombre (máx 12)"), this.profile.name, () => {
-      this.showTextInput(__("Enter name||Ingresa nombre"), (value) => {
-        this.profile.name = value.slice(0, 12).trim() || 'Guest';
-        this.showEditMenu();
-      }, this.profile.name);
-    });
-    
-    window.addItem(__("About (max 120)||Acerca de (máx 120)"), 
-      this.profile.about.slice(0, 20) + (this.profile.about.length > 20 ? '...' : ''),
-      () => {
-        this.showTextInput(__("Enter about||Ingresa acerca de"), (value) => {
-          this.profile.about = value.slice(0, 120).trim();
-          this.showEditMenu();
-        }, this.profile.about, true);
-      }
-    );
-    
-    window.addItem(__("Character||Personaje"), this.profile.character, () => {
-      this.showCharacterSelect();
-    });
-    
-    window.addItem(__("Points||Puntos"), `${this.profile.points}`, () => {});
-    
-    window.addItem(__("SAVE||GUARDAR"), ">", () => {
-      this.saveProfile();
-      this.windowManager.remove(window, true);
-      notifications.show(__("Profile saved!||¡Perfil guardado!"), 1500, 'success');
-      game.state.start("RoomList");
-    });
-    
-    window.addItem(__("CANCEL||CANCELAR"), "", () => {
-      this.windowManager.remove(window, true);
-      game.state.start("RoomList");
-    }, true);
-    
-    this.windowManager.focus(window);
-  }
-  
-  showTextInput(title, onConfirm, initialText = '', multiline = false) {
-    const keyboard = new OnScreenKeyboard(undefined, 68);
-    
-    const input = new TextInput({
-      text: initialText,
-      width: 20,
-      maxLength: multiline ? 120 : 12,
-      useNewline: multiline,
-      onConfirm: (text) => {
-        keyboard.destroy();
-        onConfirm(text);
-      },
-      onCancel: () => {
-        keyboard.destroy();
-        this.showEditMenu();
-      }
-    });
-    window.focusedElement = input;
-  }
-  
-  showCharacterSelect() {
-    let chars = [];
-    try {
-      chars = this.characterManager.getCharacterList() || [];
-    } catch (e) {
-      chars = [];
-    }
-    
-    if (chars.length === 0) {
-      // Create default character if none exist
-      try {
-        const defaultChar = new Character(DEFAULT_CHARACTER);
-        chars = [defaultChar];
-      } catch (e) {
-        chars = [{ name: 'EIRI' }];
-      }
-    }
-    
-    const window = this.windowManager.createWindow(4, 2, 22, 11, "1");
-    window.fontTint = 0x76fcde;
-    
-    window.addItem(__("Current||Actual"), this.profile.character, () => {});
-    
-    chars.forEach(char => {
-      const name = char.name || 'Unknown';
-      const isSelected = name === this.profile.character;
-      window.addItem(
-        name + (isSelected ? ' ✓' : ''),
-        '',
-        () => {
-          this.profile.character = name;
-          this.windowManager.remove(window, true);
-          this.showEditMenu();
-        }
-      );
-    });
-    
-    window.addItem(__("BACK||VOLVER"), "", () => {
-      this.windowManager.remove(window, true);
-      this.showEditMenu();
-    }, true);
-    
-    this.windowManager.focus(window);
-  }
-  
-  saveProfile() {
-    try {
-      if (this.client && this.client.isConnected) {
-        this.client.updateProfile({
-          name: this.profile.name,
-          profile: this.profile.about,
-          character: this.profile.character,
-          points: this.profile.points
-        });
-      } else {
-        // Save locally if offline
-        const account = JSON.parse(localStorage.getItem('Account') || '{}');
-        if (!account.profile) account.profile = {};
-        account.profile.name = this.profile.name;
-        account.profile.about = this.profile.about;
-        account.profile.character = this.profile.character;
-        account.profile.points = this.profile.points;
-        localStorage.setItem('Account', JSON.stringify(account));
-      }
-    } catch (e) {
-      console.warn('Could not save profile:', e);
-    }
-  }
-  
-  update() {
-    gamepad.update();
-    this.windowManager?.update();
-  }
-}
-
-class ResultsMultiOnline extends ResultsMulti {
-  init(gameData, config) {
-    super.init(gameData, config);
-    
-    this.roomId = config?.roomId || null;
-    this.opponentId = config?.opponentId || null;
-    this.client = window.multiplayer;
-    this.isPlayer1 = config?.isPlayer1 !== undefined ? config.isPlayer1 : true;
-    this.isSpectator = config?.isSpectator || false;
-    this.fullResults = {};
-    this.winner = null;
-    this.resultsReceived = false;
-    this.matchResults = null;
-    this.pollInterval = null;
-    
-    // Listen for opponent's results
-    this.setupResultsHandlers();
-  }
-  
-  setupResultsHandlers() {
-    this.client.on('game_results_full', (data) => {
-      if (data.from === this.opponentId || data.from !== this.client.socketId) {
-        this.fullResults[data.from] = data;
-        this.updateResultsDisplay();
-      }
-    });
-  }
-  
-  create() {
-    // Skip ResultsMulti.create() and use our own layout
-    // But we want to keep the parent's structure
-    game.camera.fadeIn(0x000000);
-    this.futuristicLines = new FuturisticLines();
-    this.backgroundGradient = new BackgroundGradient();
-    
-    this.displayResults();
-    this.addOnlineInfo();
-    
-    // Request room state to get results
-    if (this.roomId) {
-      this.pollInterval = setInterval(() => {
-        if (this.client.isConnected) {
-          this.client.getRoom(this.roomId);
-        }
-      }, 1000);
-    }
-    
-    // Auto-return after 30 seconds
-    this.autoReturnTimer = setTimeout(() => {
-      this.returnToLobby();
-    }, 30000);
-  }
-  
-  displayResults() {
-    // Copy from ResultsMulti but simplified
-    // Show player results
-    this.showPlayerResults(1);
-    this.showPlayerResults(2);
-    
-    // Winner display (will be updated when results arrive)
-    this.winnerText = new Text(game.width / 2, 112 - 14, __("Waiting for results...||Esperando resultados..."), FONTS.bold);
-    this.winnerText.anchor.x = 0.5;
-    this.winnerText.tint = 0xffffff;
-  }
-  
-  showPlayerResults(playerNumber) {
-    const player = this.gameData?.["player" + playerNumber];
-    if (!player) return;
-    
-    const xPos = playerNumber == 1 ? 10 : 240 - 10;
-    const xAnchor = playerNumber == 1 ? 0 : 1;
-    const autoplay = player.autoplay || false;
-    
-    // Score
-    const scoreText = new Text(xPos, 30, __(`(Score|Puntaje): ${autoplay ? "---" : player.score.toLocaleString()}`), FONTS.default);
-    scoreText.anchor.x = xAnchor;
-    
-    // Accuracy
-    const accuracyText = new Text(xPos, 40, __(`(Accuracy|Precisión): ${autoplay ? "---" : `${player.accuracy.toFixed(2)}%`}`), FONTS.default);
-    accuracyText.anchor.x = xAnchor;
-    
-    // Rating
-    const scoreRating = player.getScoreRating ? player.getScoreRating() : 'F';
-    const ratingText = new Text(xPos, 50, __(`(Rating|Calificación): ${autoplay ? "AUTO" : scoreRating}`), FONTS.shaded);
-    ratingText.tint = this.getRatingColor(scoreRating);
-    ratingText.anchor.x = xAnchor;
-    
-    // Combo
-    const comboText = new Text(xPos, 60, __(`(Max Combo|Combo Máx): ${autoplay ? "---" : player.maxCombo}`), FONTS.default);
-    comboText.anchor.x = xAnchor;
-    
-    // Judgements
-    const judgementsText = new Text(xPos, 70, autoplay ? __("AUTOPLAY ENABLED||AUTOPLAY ACTIVADO") : this.getJudgementsText(player.judgementCounts));
-    judgementsText.tint = autoplay ? 0xff0000 : 0xffffff;
-    judgementsText.anchor.x = xAnchor;
-  }
-  
-  addOnlineInfo() {
-    this.opponentStatus = new Text(game.width / 2, 124, 
-      __("Waiting for opponent results...||Esperando resultados del oponente..."),
-      FONTS.default
-    );
-    this.opponentStatus.anchor.x = 0.5;
-    this.opponentStatus.tint = 0x666666;
-    
-    this.pointsText = new Text(game.width / 2, 136, "", FONTS.tiny_shaded);
-    this.pointsText.anchor.x = 0.5;
-  }
-  
-  updateResultsDisplay() {
-    const hasMyResults = this.fullResults[this.client.socketId] !== undefined;
-    const hasOpponentResults = this.fullResults[this.opponentId] !== undefined;
-    
-    if (hasMyResults && hasOpponentResults && !this.resultsReceived) {
-      this.resultsReceived = true;
-      
-      const myData = this.fullResults[this.client.socketId];
-      const oppData = this.fullResults[this.opponentId];
-      
-      // Extract scores
-      const myScore = myData?.results?.player1?.score || 
-                      myData?.results?.player2?.score || 0;
-      const oppScore = oppData?.results?.player1?.score || 
-                       oppData?.results?.player2?.score || 0;
-      
-      // Determine winner
-      let resultText = '';
-      let resultColor = 0xffffff;
-      let pointsText = '';
-      
-      if (this.isSpectator) {
-        resultText = __("Spectator mode||Modo espectador");
-        resultColor = 0x00ccff;
-        pointsText = __("Thanks for watching!||¡Gracias por mirar!");
-      } else if (myScore > oppScore) {
-        resultText = __("YOU WIN!||¡GANASTE!");
-        resultColor = 0x00ff00;
-        pointsText = __("+10 points!||+10 puntos!");
-        this.pointsText.tint = 0xffd700;
-      } else if (oppScore > myScore) {
-        resultText = __("YOU LOSE!||¡PERDISTE!");
-        resultColor = 0xff0000;
-        pointsText = __("Better luck next time!||¡Mejor suerte la próxima!");
-      } else {
-        resultText = __("DRAW!||¡EMPATE!");
-        resultColor = 0xffff00;
-        pointsText = __("Good game!||¡Buen juego!");
-      }
-      
-      this.opponentStatus.write(resultText);
-      this.opponentStatus.tint = resultColor;
-      this.pointsText.write(pointsText);
-      
-      // Update winner text
-      if (this.winnerText) {
-        this.winnerText.write(resultText);
-        this.winnerText.tint = resultColor;
-      }
-      
-      // Stop polling
-      if (this.pollInterval) {
-        clearInterval(this.pollInterval);
-        this.pollInterval = null;
-      }
-      
-      // Show continue button after delay
-      game.time.events.add(2000, () => this.showContinueButton());
-    }
-  }
-  
-  showContinueButton() {
-    if (this._continueMenu) {
-      this._continueMenu.destroy();
-    }
-    
-    this._continueMenu = new CarouselMenu(game.width / 2 - 25, 50, 50, 40, {
-      gradient: false,
-      bgcolor: 'brown',
-      fgcolor: '#ffffff',
-      margin: { top: 0, bottom: 0, left: 0, right: 0 },
-    });
-    
-    this._continueMenu.addItem(__("Continue||Continuar"), () => {
-      this.returnToLobby();
-    });
-    
-    this._continueMenu.addItem(__("Leave||Salir"), () => {
-      if (this.client && this.client.isConnected) {
-        this.client.leaveRoom();
-      }
-      game.state.start("RoomList");
-    });
-  }
-  
-  returnToLobby() {
-    if (this.roomId) {
-      game.state.start("RoomLobby", true, false, this.roomId);
-    } else {
-      game.state.start("RoomList");
-    }
-  }
-  
-  getJudgementsText(judgements) {
-    if (!judgements) return '';
-    return `Marvelous: ${judgements.marvelous || 0}\n` +
-           `Perfect: ${judgements.perfect || 0}\n` +
-           `Great: ${judgements.great || 0}\n` +
-           `Good: ${judgements.good || 0}\n` +
-           `Boo: ${judgements.boo || 0}\n` +
-           `Miss: ${judgements.miss || 0}`;
-  }
-  
-  getRatingColor(rating) {
-    const colors = {
-      "SSS+": 0xFFD700, "SSS": 0xFFD700, "SS": 0xF0F0F0, "S": 0xF0F0F0,
-      "A": 0x00FF00, "B": 0x0000FF, "C": 0xFFFF00, "D": 0xFFA500,
-      "E": 0xFF0000, "F": 0x800080
-    };
-    return colors[rating] || 0xFFFFFF;
-  }
-  
-  update() {
-    gamepad.update();
-  }
-  
-  shutdown() {
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
-      this.pollInterval = null;
-    }
-    if (this.autoReturnTimer) {
-      clearTimeout(this.autoReturnTimer);
-      this.autoReturnTimer = null;
-    }
-    this.client.off('game_results_full');
-    if (this._continueMenu) {
-      this._continueMenu.destroy();
-      this._continueMenu = null;
-    }
-    super.shutdown?.();
-  }
-}
-
 class ChartRenderer {
   constructor(scene, song, difficultyIndex, options = {}) {
     this.scene = scene;
@@ -35268,584 +33511,6 @@ class SecondPlayer extends Player {
     scene.p2JudgementText.x = this.renderer.calculateCenter();
     
     this.hud = scene.p2Hud;
-  }
-}
-
-class MultiplayerClient {
-  constructor() {
-    this.ws = null;
-    this.socketId = null;
-    this.connected = false;
-    this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 5;
-    this.reconnectDelay = 2000;
-    this.heartbeatInterval = null;
-    this.lastPong = 0;
-    this.isConnecting = false;
-    this.messageQueue = [];
-    this.handlers = new Map();
-    this._reconnectTimer = null;
-    this._heartbeatTimer = null;
-    this.roomData = null;
-    this.profile = this.loadProfile();
-  }
-  
-  loadProfile() {
-    try {
-      const account = JSON.parse(localStorage.getItem('Account') || '{}');
-      // Try to get character name from character manager
-      let characterName = CHARACTER_SYSTEM.DEFAULT_CHARACTER;
-      try {
-        const charManager = new CharacterManager();
-        const currentChar = charManager.getCurrentCharacter();
-        if (currentChar) characterName = currentChar.name;
-      } catch (e) {
-        // Character manager not available
-      }
-      
-      return {
-        name: account.profile?.name || characterName || 'Guest',
-        profile: account.profile?.about || '',
-        character: characterName,
-        points: account.profile?.points || 0
-      };
-    } catch {
-      return { name: 'Guest', profile: '', character: CHARACTER_SYSTEM.DEFAULT_CHARACTER, points: 0 };
-    }
-  }
-  
-  saveProfileToAccount() {
-    try {
-      const account = JSON.parse(localStorage.getItem('Account') || '{}');
-      if (!account.profile) account.profile = {};
-      account.profile.name = this.profile.name;
-      account.profile.about = this.profile.profile;
-      account.profile.points = this.profile.points || 0;
-      localStorage.setItem('Account', JSON.stringify(account));
-    } catch (e) {
-      console.warn('Could not save profile:', e);
-    }
-  }
-  
-  connect() {
-    if (this.connected || this.isConnecting) return;
-    
-    this.isConnecting = true;
-    console.log('[Multiplayer] Connecting to server...');
-    
-    try {
-      this.ws = new WebSocket(MULTIPLAYER_SERVER);
-      
-      this.ws.onopen = () => {
-        console.log('[Multiplayer] Connected!');
-        this.connected = true;
-        this.isConnecting = false;
-        this.reconnectAttempts = 0;
-        this.lastPong = Date.now();
-        
-        this.startHeartbeat();
-        this.send('update_profile', this.profile);
-        this.processQueue();
-        this.trigger('connected', { socketId: this.socketId });
-      };
-      
-      this.ws.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          this.handleMessage(message);
-        } catch (e) {
-          console.error('[Multiplayer] Parse error:', e);
-        }
-      };
-      
-      this.ws.onclose = () => {
-        console.log('[Multiplayer] Disconnected');
-        this.connected = false;
-        this.isConnecting = false;
-        this.stopHeartbeat();
-        this.trigger('disconnected');
-        this.attemptReconnect();
-      };
-      
-      this.ws.onerror = (error) => {
-        console.error('[Multiplayer] Error:', error);
-        this.trigger('error', error);
-      };
-      
-    } catch (error) {
-      console.error('[Multiplayer] Connection error:', error);
-      this.isConnecting = false;
-      this.attemptReconnect();
-    }
-  }
-  
-  disconnect() {
-    this.reconnectAttempts = this.maxReconnectAttempts;
-    this.clearReconnectTimer();
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
-    this.connected = false;
-    this.stopHeartbeat();
-    this.roomData = null;
-  }
-  
-  attemptReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.log('[Multiplayer] Max reconnect attempts reached');
-      this.trigger('reconnect_failed');
-      return;
-    }
-    
-    this.reconnectAttempts++;
-    const delay = this.reconnectDelay * this.reconnectAttempts;
-    console.log(`[Multiplayer] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
-    
-    this.clearReconnectTimer();
-    this._reconnectTimer = setTimeout(() => {
-      if (!this.connected) {
-        this.connect();
-      }
-    }, delay);
-  }
-  
-  clearReconnectTimer() {
-    if (this._reconnectTimer) {
-      clearTimeout(this._reconnectTimer);
-      this._reconnectTimer = null;
-    }
-  }
-  
-  startHeartbeat() {
-    this.stopHeartbeat();
-    this._heartbeatTimer = setInterval(() => {
-      if (this.connected && this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.send('ping', { timestamp: Date.now() });
-      }
-    }, 15000);
-  }
-  
-  stopHeartbeat() {
-    if (this._heartbeatTimer) {
-      clearInterval(this._heartbeatTimer);
-      this._heartbeatTimer = null;
-    }
-  }
-  
-  handleMessage(message) {
-    const { type, data } = message;
-    
-    if (type === 'pong') {
-      this.lastPong = Date.now();
-      return;
-    }
-    
-    if (type === 'connected') {
-      this.socketId = data.socketId;
-      this.trigger('connected', data);
-      return;
-    }
-    
-    if (type === 'room_update' || type === 'room_created' || type === 'join_result') {
-      if (data?.room) {
-        this.roomData = data.room;
-      }
-    }
-    
-    this.trigger(type, data);
-    this.trigger('any', { type, data });
-  }
-  
-  send(type, data = {}) {
-    if (!this.connected || !this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      this.messageQueue.push({ type, data });
-      return;
-    }
-    
-    try {
-      this.ws.send(JSON.stringify({ type, data }));
-    } catch (error) {
-      console.error('[Multiplayer] Send error:', error);
-    }
-  }
-  
-  processQueue() {
-    const queue = [...this.messageQueue];
-    this.messageQueue = [];
-    for (const msg of queue) {
-      this.send(msg.type, msg.data);
-    }
-  }
-  
-  on(type, handler) {
-    if (!this.handlers.has(type)) {
-      this.handlers.set(type, []);
-    }
-    this.handlers.get(type).push(handler);
-  }
-  
-  once(type, handler) {
-    const wrapper = (data) => {
-      handler(data);
-      this.off(type, wrapper);
-    };
-    this.on(type, wrapper);
-  }
-  
-  off(type, handler) {
-    if (!this.handlers.has(type)) return;
-    if (handler) {
-      const handlers = this.handlers.get(type);
-      const index = handlers.indexOf(handler);
-      if (index !== -1) {
-        handlers.splice(index, 1);
-      }
-      if (handlers.length === 0) {
-        this.handlers.delete(type);
-      }
-    } else {
-      this.handlers.delete(type);
-    }
-  }
-  
-  trigger(type, data) {
-    if (this.handlers.has(type)) {
-      for (const handler of this.handlers.get(type)) {
-        try {
-          handler(data);
-        } catch (e) {
-          console.error(`[Multiplayer] Handler error for ${type}:`, e);
-        }
-      }
-    }
-  }
-  
-  get isConnected() {
-    return this.connected && this.ws && this.ws.readyState === WebSocket.OPEN;
-  }
-  
-  updateProfile(profile) {
-    this.profile = { ...this.profile, ...profile };
-    this.saveProfileToAccount();
-    this.send('update_profile', this.profile);
-  }
-  
-  createRoom(config = {}) {
-    this.send('create_room', config);
-  }
-  
-  joinRoom(roomId) {
-    this.send('join_room', { roomId });
-  }
-  
-  leaveRoom() {
-    this.send('leave_room');
-    this.roomData = null;
-  }
-  
-  toggleReady() {
-    this.send('toggle_ready');
-  }
-  
-  forceStart() {
-    this.send('force_start');
-  }
-  
-  sendChat(message) {
-    this.send('chat_message', { message });
-  }
-  
-  sendGameInput(frame, buttons, timestamp) {
-    this.send('game_input', { frame, buttons, timestamp });
-  }
-  
-  sendGameResult(score, accuracy, maxCombo, rating) {
-    this.send('game_result', { score, accuracy, maxCombo, rating });
-  }
-  
-  getRoomList() {
-    this.send('get_rooms');
-  }
-  
-  getRoom(roomId) {
-    this.send('get_room', { roomId });
-  }
-  
-  selectSong(song) {
-    this.send('room_song_selected', {
-      roomId: this.roomData?.id,
-      song: {
-        title: song.title,
-        titleTranslit: song.titleTranslit,
-        artist: song.artist,
-        artistTranslit: song.artistTranslit,
-        audioUrl: song.audioUrl,
-        folderName: song.folderName || null,
-        isExternal: song.isExternal || false
-      }
-    });
-  }
-}
-
-class RemotePlayer extends SecondPlayer {
-  constructor(scene, settings = {}, opponentId = null, matchData = null) {
-    // Call parent with "right" side
-    super(scene, settings);
-    
-    this.opponentId = opponentId;
-    this.client = window.multiplayer;
-    this.isOnline = true;
-    this.lastReceivedInput = null;
-    this.receivedInputs = [];
-    this.inputBuffer = [];
-    this.predictionFrames = 3;
-    this.matchData = matchData;
-    this.isSpectator = matchData?.isSpectator || false;
-    this.remoteName = matchData?.name || 'Opponent';
-    
-    // Override gamepad to use remote input
-    this._remoteGamepad = this.createRemoteGamepad();
-    this.gamepad = this._remoteGamepad;
-    
-    // Override input handling to use remote data
-    this.originalHandleInput = this.handleInput.bind(this);
-    this.handleInput = this.handleRemoteInput.bind(this);
-    
-    // Setup remote input listener
-    this.setupRemoteListener();
-    
-    // Keep track of opponent's held columns
-    this.remoteHeldColumns = new Set();
-    
-    // Store original autoPlay
-    this.originalAutoPlay = this.autoPlay.bind(this);
-    
-    // Spectator mode disables input
-    if (this.isSpectator) {
-      this.handleInput = () => {};
-    }
-  }
-  
-  createRemoteGamepad() {
-    const remoteGamepad = {
-      held: { up: false, down: false, left: false, right: false, a: false, b: false, select: false, start: false },
-      pressed: { up: false, down: false, left: false, right: false, a: false, b: false, select: false, start: false },
-      released: { up: false, down: false, left: false, right: false, a: false, b: false, select: false, start: false },
-      prevState: { up: false, down: false, left: false, right: false, a: false, b: false, select: false, start: false },
-      playerIndex: 1,
-      lastInputSource: 'remote',
-      any: { held: false, pressed: false, released: false },
-      
-      update: function() {
-        // Calculate any states
-        this.any.held = Object.values(this.held).some(v => v === true);
-        this.any.pressed = Object.values(this.pressed).some(v => v === true);
-        this.any.released = Object.values(this.released).some(v => v === true);
-      },
-      
-      isDirectionPressed: function() {
-        return this.held.up || this.held.down || this.held.left || this.held.right;
-      },
-      
-      getDirection: function() {
-        let x = 0, y = 0;
-        if (this.held.left) x -= 1;
-        if (this.held.right) x += 1;
-        if (this.held.up) y -= 1;
-        if (this.held.down) y += 1;
-        if (x !== 0 && y !== 0) {
-          x *= 0.7071;
-          y *= 0.7071;
-        }
-        return { x, y };
-      },
-      
-      vibrate: function() { return false; },
-      reset: function() {
-        for (const key of Object.keys(this.held)) {
-          this.prevState[key] = this.held[key];
-          this.held[key] = false;
-          this.pressed[key] = false;
-          this.released[key] = false;
-        }
-      },
-      
-      _setKey: function(key, value) {
-        const oldValue = this.held[key] || false;
-        this.prevState[key] = oldValue;
-        this.held[key] = value;
-        this.pressed[key] = value && !oldValue;
-        this.released[key] = !value && oldValue;
-        // Also update any state
-        this.any.held = Object.values(this.held).some(v => v === true);
-        this.any.pressed = Object.values(this.pressed).some(v => v === true);
-        this.any.released = Object.values(this.released).some(v => v === true);
-      },
-      
-      _clear: function() {
-        for (const key of ['up', 'down', 'left', 'right', 'a', 'b', 'select', 'start']) {
-          this.prevState[key] = this.held[key] || false;
-          this.held[key] = false;
-          this.pressed[key] = false;
-          this.released[key] = false;
-        }
-        this.any.held = false;
-        this.any.pressed = false;
-        this.any.released = false;
-      }
-    };
-    
-    return remoteGamepad;
-  }
-  
-  setupRemoteListener() {
-    // Remove old listeners
-    this.client.off('opponent_input', this._onOpponentInput);
-    
-    this._onOpponentInput = (data) => {
-      if (data.from === this.opponentId) {
-        this.receiveRemoteInput(data);
-      }
-    };
-    
-    this.client.on('opponent_input', this._onOpponentInput);
-  }
-  
-  receiveRemoteInput(data) {
-    // Store input with timestamp for processing
-    this.receivedInputs.push({
-      frame: data.frame || 0,
-      buttons: data.buttons || 0,
-      timestamp: data.timestamp || Date.now(),
-      processed: false
-    });
-    
-    // Keep only recent inputs (limit to 50)
-    const now = Date.now();
-    this.receivedInputs = this.receivedInputs
-      .filter(input => now - input.timestamp < 2000)
-      .slice(-50);
-  }
-  
-  handleRemoteInput(column, isKeyDown) {
-    const keyMap = {
-      0: 'left',
-      1: 'down',
-      2: 'up',
-      3: 'right'
-    };
-    
-    const key = keyMap[column];
-    if (key) {
-      this._remoteGamepad._setKey(key, isKeyDown);
-      
-      if (isKeyDown) {
-        this.remoteHeldColumns.add(column);
-      } else {
-        this.remoteHeldColumns.delete(column);
-      }
-    }
-  }
-  
-  processRemoteInputs() {
-    const now = Date.now();
-    const keyMap = {
-      0: 'left',
-      1: 'down',
-      2: 'up',
-      3: 'right'
-    };
-    
-    // Process inputs in order
-    const sortedInputs = [...this.receivedInputs]
-      .filter(input => !input.processed)
-      .sort((a, b) => a.timestamp - b.timestamp);
-    
-    for (const input of sortedInputs) {
-      if (now - input.timestamp > 500) {
-        input.processed = true;
-        continue;
-      }
-      
-      const buttons = input.buttons || 0;
-      
-      for (let col = 0; col < 4; col++) {
-        const isPressed = (buttons & (1 << col)) !== 0;
-        const key = keyMap[col];
-        
-        if (key) {
-          const currentHeld = this.remoteHeldColumns.has(col);
-          if (isPressed !== currentHeld) {
-            this._remoteGamepad._setKey(key, isPressed);
-            if (isPressed) {
-              this.remoteHeldColumns.add(col);
-            } else {
-              this.remoteHeldColumns.delete(col);
-            }
-          }
-        }
-      }
-      
-      input.processed = true;
-    }
-    
-    // Clean up old processed inputs
-    this.receivedInputs = this.receivedInputs
-      .filter(input => !input.processed || now - input.timestamp < 1000)
-      .slice(-50);
-    
-    // Update remote gamepad state
-    this._remoteGamepad.update();
-  }
-  
-  autoPlay() {
-    // Disable autoplay for remote player
-    if (!this.isSpectator) {
-      // Remote player doesn't auto-play
-    }
-  }
-  
-  update() {
-    // Process incoming remote inputs
-    this.processRemoteInputs();
-    
-    // Call parent update (which uses this.gamepad = _remoteGamepad)
-    const result = super.update();
-    
-    return result;
-  }
-  
-  render() {
-    super.render();
-    
-    // Add visual indicator for remote player
-    if (!this._remoteIndicator && !this.isSpectator) {
-      this._remoteIndicator = new Text(
-        this.renderer.calculateLeftOffset() + this.renderer.calculateFullWidth() / 2,
-        this.renderer.JUDGE_LINE - 20,
-        `🌐 ${this.remoteName}`,
-        FONTS.tiny_stroke
-      );
-      this._remoteIndicator.anchor.x = 0.5;
-      this._remoteIndicator.tint = 0x00ccff;
-      if (this.scene && this.scene.overHud) {
-        this.scene.overHud.addChild(this._remoteIndicator);
-      }
-    }
-  }
-  
-  vibrate(duration) {
-    return false;
-  }
-  
-  destroy() {
-    if (this._remoteIndicator) {
-      this._remoteIndicator.destroy();
-      this._remoteIndicator = null;
-    }
-    this.client.off('opponent_input', this._onOpponentInput);
-    super.destroy();
   }
 }
 

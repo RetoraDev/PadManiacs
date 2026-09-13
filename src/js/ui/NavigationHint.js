@@ -1,5 +1,5 @@
 class NavigationHint extends Phaser.Sprite {
-  constructor(hints = []) {
+  constructor(hints = [], disableCache) {
     super(game, 0, game.height - 6);
     
     if (typeof hints === 'string') hints = NAVIGATION_HINT_PRESETS[hints] || [];
@@ -8,7 +8,19 @@ class NavigationHint extends Phaser.Sprite {
     this.items = [];
     this.alternateTimer = null;
     this.currentAlternatePlayer = 1;
+    this.ignorePlayerSwitch = false;
+    this.disableCache = disableCache || false;
     this.alternateMode = Account.settings.alternateHintMode || false;
+    
+    this.onPlayerSwitch = new Phaser.Signal();
+    
+    // Cache prompt elements to reuse them later
+    this.parents = {};
+    
+    this.sizes = {
+      '1': 0,
+      '2': 0
+    };
     
     // Cache last state to avoid unnecessary refreshes
     this.lastState = {
@@ -38,22 +50,20 @@ class NavigationHint extends Phaser.Sprite {
       if (currentSource !== this.lastState.inputSource ||
           currentPlayer !== this.lastState.activePlayer ||
           currentStyle !== this.lastState.buttonStyle) {
-        this.refreshHints();
+        if (!this.ignorePlayerSwitch) {
+          this.refreshHints();
+          this.onPlayerSwitch.dispatch(currentPlayer);
+        }
       }
     };
     
-    if (gamepad1) gamepad1.signals.pressed.any.add(updateCondition);
-    if (gamepad2) gamepad2.signals.pressed.any.add(updateCondition);
+    this.updateCondition = updateCondition;
     
-    if (game.input && game.input.keyboard) {
-      const originalCallback = game.input.keyboard.onDownCallback;
-      game.input.keyboard.onDownCallback = (event) => {
-        if (originalCallback) originalCallback(event);
-        updateCondition();
-      };
-    }
-    
-    if (mouse) mouse.onDown.add(updateCondition);
+    if (gamepad) gamepad.signals.pressed.any.add(this.updateCondition);
+  }
+  
+  stopInputTracking() {
+    if (gamepad) gamepad.signals.pressed.any.remove(this.updateCondition);
   }
   
   startAlternateMode() {
@@ -101,6 +111,32 @@ class NavigationHint extends Phaser.Sprite {
     this.lastState.buttonStyle = Account.settings.buttonStyle || 'xbox';
     this.lastState.alternateMode = this.alternateMode;
     
+    let inputSource = this.lastState.inputSource;
+    
+    if (inputSource == 'none' || inputSource == 'touch') inputSource = 'gamepad';
+    
+    if (!this.disableCache) {
+      if (this.parents[1] && this.parents[2]) {
+        this.parents[1]['keyboard'].visible = false;
+        this.parents[2]['keyboard'].visible = false;
+        this.parents[1]['gamepad'].visible = false;
+        this.parents[2]['gamepad'].visible = false;
+        this.parents[this.lastState.activePlayer][inputSource].visible = true;
+      } else {
+        this.destroyHints();
+        this.createHints(1, 'keyboard', true);
+        this.createHints(1, 'gamepad', true);
+        this.createHints(2, 'keyboard', true);
+        this.createHints(2, 'gamepad', true);
+        this.parents[this.lastState.activePlayer][inputSource].visible = true;
+      }
+    } else {
+      this.destroyHints();
+      this.createHints();
+    }
+  }
+  
+  destroyHints() {
     // Destroy all existing items
     this.items.forEach(item => {
       if (item.group) {
@@ -112,12 +148,11 @@ class NavigationHint extends Phaser.Sprite {
       }
     });
     this.items = [];
-    this.createHints();
   }
   
-  createHints() {
-    const activePlayer = this.getActivePlayer();
-    const inputSource = this.getInputSource();
+  createHints(player, input, hide) {
+    const activePlayer = player || this.getActivePlayer();
+    const inputSource = input || this.getInputSource();
     const buttonStyle = Account.settings.buttonStyle || 'xbox';
     
     const groupedHints = { left: [], center: [], right: [] };
@@ -126,6 +161,8 @@ class NavigationHint extends Phaser.Sprite {
     this.createPositionHints('left', groupedHints.left, activePlayer, inputSource, buttonStyle);
     this.createPositionHints('center', groupedHints.center, activePlayer, inputSource, buttonStyle);
     this.createPositionHints('right', groupedHints.right, activePlayer, inputSource, buttonStyle);
+    
+    if (hide) this.parents[activePlayer][inputSource].visible = false;
   }
   
   createPositionHints(position, hints, activePlayer, inputSource, buttonStyle) {
@@ -148,11 +185,22 @@ class NavigationHint extends Phaser.Sprite {
     else if (position === 'center') currentX = (game.width / 2) - (totalWidth / 2);
     else currentX = game.width - 4 - totalWidth;
     
+    if (inputSource == 'none' || inputSource == 'touch') inputSource = 'gamepad';
+    
+    if (!this.parents[activePlayer]) {
+      this.parents[activePlayer] = {};
+    }
+    
+    if (!this.parents[activePlayer][inputSource]) {
+      this.parents[activePlayer][inputSource] = game.add.group();
+      this.addChild(this.parents[activePlayer][inputSource]);
+    }
+    
     // Create each hint
     for (const hint of hints) {
       const iconGroup = this.createIcon(hint, inputSource, buttonStyle, activePlayer, currentX);
       if (iconGroup) {
-        this.addChild(iconGroup.group);
+        this.parents[activePlayer][inputSource].addChild(iconGroup.group);
         currentX += iconGroup.width;
       }
       
@@ -161,7 +209,7 @@ class NavigationHint extends Phaser.Sprite {
         const descSprite = new Text(0, 2, descriptionText, FONTS.small);
         descSprite.anchor.y = 0.5;
         descSprite.x = currentX;
-        this.addChild(descSprite);
+        this.parents[activePlayer][inputSource].addChild(descSprite);
         currentX += descSprite.width + 4;
         this.items.push({ descriptionSprite: descSprite });
       } else {
@@ -408,10 +456,12 @@ class NavigationHint extends Phaser.Sprite {
   updateHints(hints) {
     if (typeof hints === 'string') hints = NAVIGATION_HINT_PRESETS[hints] || [];
     this.hints = hints;
+    this.parents = {};
     this.refreshHints();
   }
   
   destroy() {
+    this.stopInputTracking();
     this.stopAlternateMode();
     this.items.forEach(item => {
       if (item.group) item.group.destroy(true);

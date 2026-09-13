@@ -198,7 +198,7 @@ class PlayMulti extends Play {
   }
   
   checkFullCombo(player) {
-    if (!this.started && player.fullComboStarted) return;
+    if (player && !this.started && player.fullComboStarted) return;
     
     player.fullComboStarted = true;
     
