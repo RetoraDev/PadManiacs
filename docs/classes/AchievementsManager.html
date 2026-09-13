@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>AchievementsManager - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "AchievementsManager Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Achievement tracking, unlocking, and stats management</p>
+
+    [heading: "Description"]
+    <p>AchievementsManager maintains the player's statistics, play streak, and session timing throughout the game session. It periodically evaluates all achievement definitions against the current stats, unlocks any that are newly satisfied, awards experience, and triggers in-game notifications. It also handles page visibility events to pause and resume time tracking correctly.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Tracks play time with a high-frequency interval timer
+* Evaluates achievement conditions against live player stats
+* Manages daily play streaks and holiday detection
+* Persists session state across page visibility changes
+* Awards experience to the current character on unlock
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ newAchievements | Array&lt;Object&gt; | Achievements unlocked this session ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ initialize | () | Initialises achievement progress, stats, holiday definitions, and session tracking. ]
+[ startSession | () | Starts a new play session, incrementing session counters and updating the streak. ]
+[ startTimeTracking | () | Begins the periodic time tracking interval that updates play time stats. ]
+[ updateTimeStats | () | Called on each timer tick to accumulate play time and check achievements periodically. ]
+[ updatePlayStreak | () | Updates the daily play streak based on the last played date. ]
+[ checkTimeBasedConditions | () | Evaluates time-of-day and holiday conditions for the current session. ]
+[ Date | () | Returns the current date breakdown needed for time-based achievement checks. ]
+[ Holidays | () | Returns the full holiday calendar mapping months and dates to holiday names. ]
+[ HolidayName | (month, date) | Returns the localised name of a holiday for a given month and date. ]
+[ isHoliday | (month, date) | Checks whether a given month and date corresponds to a known holiday. ]
+[ setupWindowEvents | () | Attaches DOM event listeners for page visibility and unload to manage session state. ]
+[ onPageHide | () | Pauses time tracking when the page becomes hidden. ]
+[ onPageShow | () | Resumes time tracking when the page becomes visible again. ]
+[ endSession | () | Ends the current play session, finalising stats and saving to account. ]
+[ updateStats | (gameResults) | Updates stats with gameplay results and checks for newly unlocked achievements. ]
+[ updateGameStats | (gameResults) | Records gameplay statistics from a completed song into Account.stats. ]
+[ checkAchievements | () | Evaluates all achievement definitions and unlocks any that are newly satisfied. ]
+[ awardAchievementExp | (achievement) | Awards the achievement experience reward to the current character. ]
+[ UnlockedAchievements | () | Returns all achievements that have been unlocked. ]
+[ LockedAchievements | () | Returns non-hidden achievements that have not yet been unlocked. ]
+[ HiddenAchievements | () | Returns hidden achievements that have not yet been unlocked. ]
+[ AchievementProgress | (achievementId) | Returns the stored progress value for a specific achievement. ]
+[ TotalUnlockedCount | () | Returns the total number of achievements that have been unlocked. ]
+[ TotalAchievementsCount | () | Returns the total number of achievement definitions. ]
+[ CompletionPercentage | () | Calculates the achievement completion percentage as a whole number. ]
+[ TimePlayedFormatted | () | Returns the total time played formatted as a human-readable string. ]
+[ formatTime | (seconds) | Converts a number of seconds into a human-readable time string. ]
+[ CurrentSessionTime | () | Returns the duration of the current session in seconds. ]
+[ forceSave | () | Forces an immediate save of the current session state to the account. ]
+[ destroy | () | Ends the session and removes all DOM event listeners. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Initialising and checking achievements after a song
+const mgr = new AchievementsManager();
+mgr.initialize();
+// After a gameplay result:
+const newAchievements = mgr.updateStats(gameResults);
+newAchievements.forEach(a => console.log('Unlocked:', a.name));
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

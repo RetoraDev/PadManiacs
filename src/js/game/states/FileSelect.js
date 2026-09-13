@@ -1,12 +1,44 @@
+/**
+ * @class FileSelect
+ * @category Game States
+ * @summary File system browser with navigation history and extension filtering
+ * @constructor
+ * @description
+ * A navigable file and directory browser presented as a carousel menu. It lets the
+ * caller open, rename, or pick files by providing extension filters and selection and
+ * cancel callbacks, keeps a navigation history to go back to parent folders, and
+ * persists its current position so the state can be restored after navigating away.
+ * @example
+ * // Open the browser to a folder of screenshots (.png) and act on selection.
+ * game.state.add('FileSelect', FileSelect);
+ * game.state.start('FileSelect', true, false, ['png'],
+ *   entry => console.log('Selected', entry), () => console.log('Cancelled'));
+ */
 class FileSelect {
+  /**
+   * Stores the extension filter, selection/cancel callbacks, and navigation defaults,
+   * restoring a previously saved file browser state if present.
+   * @param {Array<string>|null} [extensions] - Allowed file extensions, or null to show all files
+   * @param {Function|null} [onSelect] - Callback invoked when a file is selected
+   * @param {Function|null} [onCancel] - Callback invoked when browsing is cancelled
+   * @param {boolean} [allowCancel] - Whether the back/cancel action completes the state
+   */
   init(extensions = null, onSelect = null, onCancel = null, allowCancel = true) {
+    /** @type {Array<string>|null} Allowed file extensions, or null for any file */
     this.extensions = extensions;
+    /** @type {Function|null} Callback invoked when a file is selected */
     this.onSelect = onSelect;
+    /** @type {Function|null} Callback invoked when browsing is cancelled */
     this.onCancel = onCancel;
+    /** @type {boolean} Whether the back/cancel action completes the state */
     this.allowCancel = allowCancel;
+    /** @type {string} Full path of the directory currently being browsed */
     this.currentPath = '';
+    /** @type {Object|null} File entry for the current directory */
     this.currentDir = null;
+    /** @type {Array<Object>} Stack of previously visited directories */
     this.history = [];
+    /** @type {FileSystemTools} Helper for listing and reading directories */
     this.fileSystem = new FileSystemTools();
     
     if (window.fileSelectState) {
@@ -14,6 +46,11 @@ class FileSelect {
     }
   }
 
+  /**
+   * Builds the file browser UI: fades in the camera, adds the background layers and
+   * navigation hint, creates the path and empty-folder texts, and loads the current
+   * directory into the carousel.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -35,6 +72,10 @@ class FileSelect {
     this.loadDirectory();
   }
 
+  /**
+   * Persists the browser position (current path, selection, scroll offset, filters, and
+   * history) to window.fileSelectState so the state can be restored later.
+   */
   saveState() {
     window.fileSelectState = {
       currentPath: this.currentDir ? this.currentDir.fullPath : '/',
@@ -45,6 +86,11 @@ class FileSelect {
     };
   }
 
+  /**
+   * Applies a previously saved file browser state to this instance, restoring the path,
+   * history, selection index, and scroll offset for the next load.
+   * @param {Object} state - Saved state object previously written by saveState
+   */
   restoreState(state) {
     if (state.extensions) {
       this.extensions = state.extensions;
@@ -63,6 +109,13 @@ class FileSelect {
     }
   }
 
+  /**
+   * Lists the entries of the given (or root/file-system default) directory, filters them
+   * by the extension whitelist, builds a sorted carousel menu with parent navigation,
+   * restores any saved selection, and refreshes the path display.
+   * @param {Object|null} [dirEntry] - Directory to browse, or null to browse the default path
+   * @returns {Promise<void>} Resolves once the directory has been loaded into the carousel
+   */
   async loadDirectory(dirEntry = null) {
     this.emptyFolderText.visible = false;
     
@@ -212,6 +265,11 @@ class FileSelect {
     this.saveState();
   }
   
+  /**
+   * Handles a carousel selection: directories are pushed into history and opened, while
+   * files are selected through the onSelect callback or advance to the main menu.
+   * @param {Object} entry - File or directory entry that was selected
+   */
   onEntrySelected(entry) {
     if (entry.isDirectory) {
       this.history.push(this.currentDir);
@@ -226,6 +284,11 @@ class FileSelect {
     }
   }
   
+  /**
+   * Navigates up one level, either to the previously visited directory from history or
+   * to the parent of the current path.
+   * @returns {Promise<void>} Resolves once the parent directory has been loaded
+   */
   async goToParent() {
     if (this.history.length > 0) {
       const parent = this.history.pop();
@@ -241,6 +304,9 @@ class FileSelect {
     }
   }
   
+  /**
+   * Pops the most recent directory from history and reloads it.
+   */
   goBack() {
     if (this.history.length > 0) {
       const previous = this.history.pop();
@@ -248,6 +314,10 @@ class FileSelect {
     }
   }
   
+  /**
+   * Rewrites the path label with the current directory's full path, wrapping the text
+   * to fit the screen width.
+   */
   updatePathDisplay() {
     let path = this.currentDir ? this.currentDir.fullPath : '/';
     if (path === '') path = '/';
@@ -255,6 +325,11 @@ class FileSelect {
     this.pathText.wrap(240 - 10);
   }
   
+  /**
+   * Cleans up the browser UI and shows an error message, returning to the main menu
+   * after a short delay.
+   * @param {string} message - Error message to display
+   */
   showError(message) {
     this.loadingDots?.destroy();
     this.carousel?.destroy();
@@ -268,10 +343,17 @@ class FileSelect {
     });
   }
   
+  /**
+   * Called each frame; refreshes the gamepad state so carousel navigation stays responsive.
+   */
   update() {
     gamepad.update();
   }
   
+  /**
+   * Runs when the state is shut down: saves the browser position and destroys the
+   * loading dots and carousel widgets.
+   */
   shutdown() {
     this.saveState();
     

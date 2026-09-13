@@ -1,4 +1,29 @@
+/**
+ * @class Playlists
+ * @category Game States
+ * @summary Playlist creation and management screen
+ * @constructor
+ * @features
+ * List, create, rename, clear, and delete playlists
+ * Song view with external song loading prompts
+ * Launch SongSelect from within a playlist
+ * @description
+ * The Playlists state is the playlist management screen where players create,
+ * rename, clear and delete playlists built from the song library. It prompts
+ * to preload external songs when a playlist references them, and starts song
+ * selection against a filtered snippet of the playlist when a song is chosen.
+ * @example
+ * // Modding usage example
+ * // Open the playlist management screen
+ * game.state.start("Playlists");
+ *
+ * // Create a playlist programmatically first
+ * PlaylistManager.getInstance().createPlaylist("My Mix");
+ */
 class Playlists {
+  /**
+   * Sets up the playlist UI and shows the list or continues a pending load.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -6,9 +31,12 @@ class Playlists {
     new FuturisticLines();
     this.navigationHint = new NavigationHint('general');
     
+    /** @type {PlaylistManager} Shared playlist manager instance. */
     this.playlistManager = PlaylistManager.getInstance();
     
+    /** @type {Text} Header text showing the current screen title. */
     this.actionText = new Text(8, 6, "PLAYLISTS", FONTS.bold_shadow);
+    /** @type {Text} Detail text under the header (e.g. song counts). */
     this.detailText = new Text(8, 6, "", FONTS.default_shadow);
     this.detailText.tint = 0x989898;
     
@@ -22,6 +50,10 @@ class Playlists {
     this.showPlaylistList();
   }
 
+  /**
+   * Loads external songs first, or prompts the player when they are missing.
+   * @param {Function} [callback] - Optional callback run after external songs exist.
+   */
   loadExternalSongsThenProceed(callback) {
     if (window.externalSongs && window.externalSongs.length > 0) {
       callback?.();
@@ -43,9 +75,13 @@ class Playlists {
     );
   }
 
+  /**
+   * Rebuilds the main carousel listing all playlists.
+   */
   showPlaylistList() {
     if (this.carousel) this.carousel.destroy();
     
+    /** @type {CarouselMenu} Carousel listing playlists or songs. */
     this.carousel = new CarouselMenu(0, 16, game.width - 8, game.height - 24, {
       bgcolor: '#9b59b6',
       fgcolor: '#ffffff',
@@ -73,6 +109,9 @@ class Playlists {
     this.detailText.write("");
   }
 
+  /**
+   * Opens an on-screen keyboard to create a new named playlist.
+   */
   addPlaylist() {
     const keyboard = new OnScreenKeyboard(undefined, 55);
     
@@ -102,6 +141,10 @@ class Playlists {
     });
   }
 
+  /**
+   * Opens a playlist, prompting to load external songs when required.
+   * @param {string} key - Playlist key to open.
+   */
   openPlaylist(key) {
     const playlistRef = this.playlistManager.getPlaylistRef(key);
     if (!playlistRef) return;
@@ -126,6 +169,10 @@ class Playlists {
     this.openPlaylistWithRefs(key);
   }
 
+  /**
+   * Builds the song list view for a playlist, marking missing songs.
+   * @param {string} key - Playlist key to display.
+   */
   openPlaylistWithRefs(key) {
     const playlist = this.playlistManager.getPlaylistRef(key);
     if (!playlist) return;
@@ -186,6 +233,10 @@ class Playlists {
     this.carousel.onCancel.add(() => this.showPlaylistList());
   }
   
+  /**
+   * Opens a rename dialog for an existing playlist.
+   * @param {string} key - Playlist key to rename.
+   */
   renamePlaylist(key) {
     const playlist = this.playlistManager.getPlaylistRef(key);
     
@@ -218,6 +269,10 @@ class Playlists {
     });
   }
 
+  /**
+   * Confirms and deletes a playlist.
+   * @param {string} key - Playlist key to delete.
+   */
   deletePlaylist(key) {
     this.confirmDialog(
       __("Delete this playlist permanently?||¿Borrar playlist para siempre?"),
@@ -230,6 +285,12 @@ class Playlists {
     );
   }
 
+  /**
+   * Starts song selection from the playable songs of a playlist.
+   * @param {string} playlistKey - Key of the originating playlist.
+   * @param {Array} songRefs - Song references stored in the playlist.
+   * @param {number} songIndex - Index of the selected song within the refs.
+   */
   startSongSelect(playlistKey, songRefs, songIndex) {
     // Only convert refs to full songs for the ones we need (just the current view)
     const songs = songRefs.map(ref => this.playlistManager.restoreFullSong(ref));
@@ -248,6 +309,12 @@ class Playlists {
     );
   }
 
+  /**
+   * Shows a modal confirm/cancel dialog.
+   * @param {string} message - Localized dialog message.
+   * @param {Function} onConfirm - Called when the confirm button is chosen.
+   * @param {Function} onCancel - Called when the cancel button is chosen.
+   */
   confirmDialog(message, onConfirm, onCancel) {
     const dialog = new DialogWindow(message, {
       buttons: [__("Yes||Sí"), "No"],
@@ -264,6 +331,9 @@ class Playlists {
     });
   }
 
+  /**
+   * Updates gamepad input each frame.
+   */
   update() {
     gamepad.update();
   }

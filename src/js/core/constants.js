@@ -1,16 +1,24 @@
+/** @type {string} Copyright notice */
 const COPYRIGHT = "%";
 
+/** @type {string} Current game version */
 const VERSION = "%";
 
+/** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = %;
 
+/** @type {boolean} Whether to log personality study data during development */
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
 
+/** @type {boolean} Whether to unlock all clothing items for development */
 window.UNLOCK_ALL_CLOTHES = false;
 
+/** @type {string} Character map for the default font */
 const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★áéíóúüñÁÉÍÓÚÜÑ";
+/** @type {string} Character map for the tiny font */
 const TINY_FONT_MAP = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+-×*()[]/\\0123456789_'\" •<>=%∥▶";
 
+/** @type {Object} Predefined font configurations for text rendering */
 const FONTS = {
   default: {
     credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
@@ -102,8 +110,10 @@ const FONTS = {
   }
 };
 
+/** @type {array} Available UI window panels */
 const WINDOW_PANELS = ["1", "2", "3", "4", "5"];
 
+/** @type {Object} Predefined navigation hint presets for each screen */
 const NAVIGATION_HINT_PRESETS = {
   general: [
     {
@@ -296,6 +306,7 @@ const NAVIGATION_HINT_PRESETS = {
   ],
 };
 
+/** @type {array} Default built-in song folders */
 const DEFAULT_SONG_FOLDERS = [
   "MikiMikiRomanticNight",
   "ThousandCherryBlossoms",
@@ -315,6 +326,7 @@ const DEFAULT_SONG_FOLDERS = [
   "melody_2.exe"
 ];
 
+/** @type {Object} Delta limits in milliseconds for different judgments */
 const JUDGE_WINDOWS = {
   marvelous: 55,
   perfect: 75,
@@ -323,6 +335,7 @@ const JUDGE_WINDOWS = {
   boo: 180
 };
 
+/** @type {Object} Score values for different judgments */
 const SCORE_VALUES = {
   marvelous: 1000,
   perfect: 800,
@@ -332,16 +345,24 @@ const SCORE_VALUES = {
   miss: 0
 };
 
+/** @type {string} Community website home page URL */
 const COMMUNITY_HOMEPAGE_URL = "https://retora.itch.io/padmaniacs/community";
+/** @type {string} Rating survey URL */
 const FEEDBACK_REVIEW_URL = "https://retora.itch.io/padmaniacs/rate";
+/** @type {string} Feature requests forum URL */
 const FEEDBACK_FEATURE_REQUEST_URL = "https://itch.io/t/5585472/feature-requests";
+/** @type {string} Bug reports forum URL */
 const FEEDBACK_BUG_REPORT_URL = "https://itch.io/t/5585499/bug-reports";
 
+/** @type {number} Seconds to wait before displaying start-up community popup prompt */
 const COMMUNITY_PROMPT_MIN_PLAYTIME = 60 * 60;
+/** @type {number} Seconds to wait before displaying feedback dialog */
 const RATING_PROMPT_MIN_PLAYTIME = 15 * 60;
+/** @type {number} Seconds to wait before displaying feature request dialog */
 const FEATURE_REQUEST_MIN_PLAYTIME = 30 * 60;
 
 // Keyboard key names
+/** @type {Object} Keyboard key name map for UI */
 const KEYBOARD_KEY_NAMES = {
   "Unidentified": "???",
   "Alt": "ALT",
@@ -521,6 +542,7 @@ const KEYBOARD_KEY_NAMES = {
 };
 
 // Keyboard key codes
+/** @type {Object} Keyboard key code values for UI */
 const KEYBOARD_KEY_CODES = {
   A: 'A'.charCodeAt(0),
   B: 'B'.charCodeAt(0),
@@ -633,6 +655,7 @@ const KEYBOARD_KEY_CODES = {
 };
 
 // Gamepad key names
+/** @type {Object} Gamepad key name map for UI */
 const GAMEPAD_KEY_NAMES = {
   0: "BUTTON A",
   1: "BUTTON B",
@@ -651,6 +674,7 @@ const GAMEPAD_KEY_NAMES = {
 };
 
 // Keyboard button mapping
+/** @type {Object} Default key mappings for keyboard controls */
 const DEFAULT_KEYBOARD_MAPPING = {
   player1: {
     up: [Phaser.KeyCode.W,],
@@ -674,6 +698,7 @@ const DEFAULT_KEYBOARD_MAPPING = {
   }
 };
 
+/** @type {Object} Default key mappings for gamepad controls */
 const DEFAULT_GAMEPAD_MAPPING = {
   player1: {
     up: 12,
@@ -697,4 +722,5 @@ const DEFAULT_GAMEPAD_MAPPING = {
   }
 };
 
+/** @type {array} Supported video file extensions for external songs */
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg"];

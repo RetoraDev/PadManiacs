@@ -1,4 +1,38 @@
+/**
+ * @class FileTools
+ * @category File System Classes
+ * @summary File utilities for Base64 conversion and export
+ * @constructor
+ * @features
+ * Converts URLs to Base64 data URIs
+ * Strips data URI prefixes to extract raw Base64 strings
+ * Parses song data for chart export
+ * Resolves file paths, names, and extensions
+ * @description
+ * FileTools is a static utility class that provides methods for Base64
+ * conversion, file path manipulation, and song data preparation for chart
+ * export. It centralises common file-related operations so that parsers,
+ * the file system layer, and the export pipeline share a single
+ * implementation.
+ * @example
+ * // Converting a remote image URL to a Base64 string
+ * const base64 = await FileTools.urlToBase64('https://example.com/banner.png');
+ * if (base64) {
+ *   const img = new Image();
+ *   img.src = 'data:image/png;base64,' + base64;
+ * }
+ *
+ * // Extracting a filename from a full path
+ * const name = FileTools.getFilename('Songs/MySong/audio.mp3');
+ * console.log(name); // "audio.mp3"
+ */
 class FileTools {
+  /**
+   * Converts a URL (http, file, blob, or data) into a Base64 data URI string.
+   * @param {string} url - The URL to convert
+   * @param {string} [type] - The MIME type hint
+   * @returns {Promise<string>} Resolves with the data URI or empty string on failure
+   */
   static async urlToDataURL(url, type) {
     return new Promise((resolve, reject) => {
       if (typeof url !== "string") {
@@ -34,6 +68,11 @@ class FileTools {
     });
   }
   
+  /**
+   * Strips the data URI prefix from a data URI string, returning raw Base64.
+   * @param {string} dataUrl - The data URI or plain Base64 string
+   * @returns {string|null} The raw Base64 content, or null if input is not a string
+   */
   static extractBase64(dataUrl) {
     if (typeof dataUrl === "string") {
       if (!dataUrl.startsWith('data:')) {
@@ -46,6 +85,11 @@ class FileTools {
     }
   }
   
+  /**
+   * Converts a URL directly to a raw Base64 string.
+   * @param {string} url - The URL to convert
+   * @returns {Promise<string|null>} Resolves with raw Base64 or null on error
+   */
   static async urlToBase64(url) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -59,6 +103,12 @@ class FileTools {
     });
   }
   
+  /**
+   * Prepares a song object for export by stripping sprite and runtime references.
+   * @param {Object} song - The song object containing a chart property
+   * @param {Object} files - The associated file map
+   * @returns {Promise<Object>} A deep copy of the chart data without sprite references
+   */
   static async prepareSongForExport(song, files) {
     // Create a deep copy without sprite references
     const songCopy = { ...song.chart };
@@ -84,12 +134,22 @@ class FileTools {
     return songCopy;
   }
   
+  /**
+   * Extracts the filename portion from a URL or file path.
+   * @param {string} url - The full URL or file path
+   * @returns {string} The filename, or empty string if invalid
+   */
   static getFilename(url) {
     if (!url || url === "no-media") return "";
     const parts = url.split(/[\\/]/);
     return parts[parts.length - 1] || "";
   }
   
+  /**
+   * Extracts the directory portion from a URL or file path.
+   * @param {string} url - The full URL or file path
+   * @returns {string} The directory path, or empty string if invalid
+   */
   static getDirectory(url) {
     if (!url || url === "no-media") return "";
     const parts = url.split('/');
@@ -97,12 +157,23 @@ class FileTools {
     return parts.join('/');
   }
   
+  /**
+   * Extracts the file extension from a URL or file path.
+   * @param {string} url - The full URL or file path
+   * @returns {string} The extension without the dot, or empty string if invalid
+   */
   static getExtension(url) {
     if (!url || url === "no-media") return "";
     const parts = url.split('.');
     return parts[parts.length - 1] || "";
   }
   
+  /**
+   * Retrieves raw Base64 data for a named file from a file map.
+   * @param {string} filename - The filename to look up
+   * @param {Object} files - A map of filenames to data URIs or URLs
+   * @returns {Promise<string|null>} Resolves with raw Base64 or null if not found
+   */
   static async getFileData(filename, files) {
     if (!files[filename]) {
       return null;
@@ -123,6 +194,11 @@ class FileTools {
     }
   }
   
+  /**
+   * Fetches a text file from a URL using XMLHttpRequest.
+   * @param {string} url - The URL to fetch
+   * @returns {Promise<string|null>} Resolves with the text content or null on failure
+   */
   static loadTextFile(url) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -139,6 +215,11 @@ class FileTools {
     });
   }
   
+  /**
+   * Reads a File object as text using FileReader.
+   * @param {File} file - The File object to read
+   * @returns {Promise<string>} Resolves with the text content
+   */
   static readTextFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -148,6 +229,11 @@ class FileTools {
     });
   }
   
+  /**
+   * Reads a File object as a binary string using FileReader.
+   * @param {File} file - The File object to read
+   * @returns {Promise<string>} Resolves with the binary string content
+   */
   static readBinaryFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -157,6 +243,11 @@ class FileTools {
     });
   }
   
+  /**
+   * Fetches a resource as a Blob, supporting http, data, blob, and local file URLs.
+   * @param {string} url - The URL to fetch
+   * @returns {Promise<Blob>} Resolves with the Blob data
+   */
   static async fetchFileAsBlob(url) {
     // Si es una URL de objeto (blob:) o data URL, fetch directamente
     if (url.startsWith('blob:') || url.startsWith('data:')) {

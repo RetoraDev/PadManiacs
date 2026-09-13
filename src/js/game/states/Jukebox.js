@@ -1,13 +1,49 @@
+/**
+ * @class Jukebox
+ * @category Game States
+ * @summary Music player mode with visualizers
+ * @constructor
+ * @param {Array} [songs] - Song list to play; defaults to local plus external songs.
+ * @param {number} [startIndex] - Index of the first song to load.
+ * @features
+ * Playback controls, seek, skip and volume adjustment
+ * Multiple audio visualizer modes
+ * Fullscreen mode and per-song lyrics
+ * @description
+ * The Jukebox state is a full music player that cycles through the game's song
+ * library with play, pause, seek, skip, shuffle and volume controls. It renders
+ * animated audio visualizers, synchronized lyrics, and per-song background art,
+ * and remembers the playback position of each song. Input is handled through
+ * the gamepad, mouse and keyboard.
+ * @example
+ * // Modding usage example
+ * // Start playback of every local and external song
+ * game.state.start("Jukebox");
+ *
+ * // Or pass a custom song list and starting index
+ * game.state.start("Jukebox", true, false, [songA, songB], 1);
+ */
 class Jukebox {
+  /**
+   * Initializes the song list, playback state, and visualizer settings.
+   * @param {Array} [songs] - Song list to play when the state starts.
+   * @param {number} [startIndex] - Index of the first song to load.
+   */
   init(songs = null, startIndex = 0) {
+    /** @type {Array} Song list managed by the jukebox. */
     this.songs = songs || (window.localSongs && window.externalSongs ? [...window.localSongs, ...window.externalSongs] : window.localSongs) || [];
+    /** @type {number} Index of the currently loaded song. */
     this.currentIndex = startIndex || 0;
+    /** @type {Object} The song object currently loaded. */
     this.currentSong = this.songs[this.currentIndex];
+    /** @type {boolean} Whether audio is currently playing. */
     this.isPlaying = false;
+    /** @type {boolean} Whether shuffle mode is active. */
     this.isShuffled = false;
     this.menuVisible = false;
     this.songListMenuVisible = false;
     this.originalSongOrder = [...this.songs];
+    /** @type {string} Active visualizer type ('bars', 'symmetrical', etc.). */
     this.visualizerMode = 'symmetrical';
     this.seekSpeed = 1; // seconds per key press
     this.lastSeekTime = 0;
@@ -41,9 +77,13 @@ class Jukebox {
     this.isMouseSeeking = false;
     
     // Remember playback position
+    /** @type {Object} Remembered playback positions keyed by song. */
     this.playbackPositions = {};
   }
 
+  /**
+   * Sets up background, audio player, UI, visualizer, lyrics, and first song.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -90,6 +130,7 @@ class Jukebox {
       backgroundMusic.stop();
     }
     
+    /** @type {HTMLAudioElement} Audio element driving all playback. */
     this.audioElement = document.createElement("audio");
     this.audioElement.volume = Account.settings.volume / 100;
     
@@ -321,6 +362,10 @@ class Jukebox {
     }
   }
 
+  /**
+   * Parses an LRC string into a synchronized lyrics object.
+   * @param {string} lrcContent - LRC lyric content for the current song.
+   */
   loadLyrics(lrcContent) {
     if (lrcContent && lrcContent != "") {
       this.lyrics = new Lyrics({
@@ -377,6 +422,11 @@ class Jukebox {
     return 0;
   }
 
+  /**
+   * Loads the song at the given index and begins playback.
+   * @param {number} index - Song index in the playlist.
+   * @param {boolean} [reset] - When true, restart from position zero.
+   */
   loadSong(index, reset) {
     if (index < 0 || index >= this.songs.length) return;
     
@@ -572,6 +622,10 @@ class Jukebox {
     this.buttonActiveTimers[buttonName] = game.time.now + duration;
   }
 
+  /**
+   * Steps the master volume by a delta and persists the account setting.
+   * @param {number} delta - Volume change in percentage points.
+   */
   changeVolume(delta) {
     let currentVolume = Account.settings.volume;
     let newVolume = currentVolume + delta;
@@ -592,6 +646,9 @@ class Jukebox {
     }
   }
 
+/**
+   * Starts playback of the audio element and flips the isPlaying flag.
+   */
   play() {
     this.audioElement.play().then(() => {
       this.isPlaying = true;
@@ -604,11 +661,17 @@ class Jukebox {
     });
   }
 
+  /**
+   * Pauses the audio element and clears the isPlaying flag.
+   */
   pause() {
     this.audioElement.pause();
     this.isPlaying = false;
   }
 
+  /**
+   * Toggles between play and pause, flashing the pause button frame.
+   */
   togglePlayback() {
     if (this.isPlaying) {
       this.pause();
@@ -621,6 +684,10 @@ class Jukebox {
     this.setButtonActive('pause', 100);
   }
 
+  /**
+   * Advances to the next song, looping to the start of the playlist.
+   * @param {boolean} [reset] - When true, discard the remembered position.
+   */
   nextSong(reset) {
     let nextIndex = this.currentIndex + 1;
     if (nextIndex >= this.songs.length) {
@@ -629,6 +696,9 @@ class Jukebox {
     this.loadSong(nextIndex, reset);
   }
 
+  /**
+   * Moves to the previous song, looping to the end of the playlist.
+   */
   previousSong() {
     let prevIndex = this.currentIndex - 1;
     if (prevIndex < 0) {
@@ -637,6 +707,9 @@ class Jukebox {
     this.loadSong(prevIndex);
   }
 
+  /**
+   * Toggles shuffle mode, randomizing or restoring the song order.
+   */
   toggleShuffle() {
     this.isShuffled = !this.isShuffled;
     
@@ -664,12 +737,18 @@ class Jukebox {
     game.time.events.add(1500, () => this.shuffleLabel.visible = false);
   }
 
+  /**
+   * Seeks forward in the current song by one seek step.
+   */
   seekForward() {
     const currentTime = this.audioElement.currentTime;
     const newTime = Math.min(currentTime + this.seekSpeed, this.audioElement.duration || Infinity);
     this.audioElement.currentTime = newTime;
   }
 
+  /**
+   * Seeks backward in the current song by one seek step.
+   */
   seekBackward() {
     const currentTime = this.audioElement.currentTime;
     const newTime = Math.max(currentTime - this.seekSpeed, 0);
@@ -702,6 +781,9 @@ class Jukebox {
     this.audioElement.currentTime = newTime;
   }
   
+  /**
+   * Cycles to the next visualizer type and applies it to the display.
+   */
   changeVisualizerMode() {
     const modes = ['bars', 'symmetrical', 'waveform', 'circular'];
     const currentIndex = modes.indexOf(this.visualizerMode);
@@ -714,6 +796,9 @@ class Jukebox {
     this.setButtonActive('visualization', 100);
   }
 
+  /**
+   * Opens the playlist window listing every song with its title.
+   */
   showSongList() {
     this.songListMenuVisible = true;
 
@@ -764,6 +849,9 @@ class Jukebox {
     this.windowManager.focus(menu);
   }
 
+  /**
+   * Opens the jukebox menu with song list, shuffle, and exit options.
+   */
   showMenu() {
     this.menuVisible = true;
     
@@ -804,6 +892,9 @@ class Jukebox {
     this.windowManager.focus(menu);
   }
 
+  /**
+   * Saves the playback position, cleans up audio/visualizer resources, and exits.
+   */
   exitJukebox() {
     // Save current playback position before exiting
     this.savePlaybackPosition();
@@ -829,6 +920,9 @@ class Jukebox {
     game.state.start("MainMenu");
   }
 
+  /**
+   * Updates the visualizer, displays, video background, and input each frame.
+   */
   update() {
     // Update visualizer
     if (this.visualizer) {
@@ -853,6 +947,9 @@ class Jukebox {
     this.handleInput();
   }
 
+  /**
+   * Advances the lyrics display to the current audio time.
+   */
   updateLyrics() {
     if (this.hasLyrics && this.lyrics && this.audioElement) {
       const currentTime = this.audioElement.currentTime;
@@ -862,6 +959,9 @@ class Jukebox {
     }
   }
 
+  /**
+   * Processes gamepad and mouse input for playback, volume, seek and menus.
+   */
   handleInput() {
     const currentTime = game.time.now;
     
@@ -963,6 +1063,9 @@ class Jukebox {
     }
   }
 
+  /**
+   * Saves position and cleans up audio, visualizer, and lyrics resources.
+   */
   shutdown() {
     // Save current playback position before shutting down
     this.savePlaybackPosition();

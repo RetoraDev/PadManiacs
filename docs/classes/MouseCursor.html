@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>MouseCursor - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "MouseCursor Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Custom mouse cursor</p>
+
+    [heading: "Description"]
+    <p>Replaces the native OS cursor with a game sprite and exposes button/wheel signals for the rest of the UI. It tracks press, hold and release edge states for left, right and middle buttons, dispatches move signals, and hides itself after two seconds of inactivity. It automatically (re)initializes when the active state is allowed and disables all native mouse interactions.</p>
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ sprite | Phaser.Sprite | Cursor sprite rendered over the scene ]
+[ visible | Boolean | Whether the cursor sprite is visible ]
+[ onDown | Phaser.Signal | Fired when a mouse button is pressed ]
+[ onMove | Phaser.Signal | Fired when the mouse moves ]
+[ onUp | Phaser.Signal | Fired when a mouse button is released ]
+[ onWheel | Phaser.Signal | Fired when the mouse wheel scrolls ]
+[ keys | Array&lt;String&gt; | Identifier strings for each tracked mouse button ]
+[ pointer | Phaser.Pointer | The active mouse input pointer ]
+[ lastPosition | {{x: Number, y: Number}} Position reported on the last move |  ]
+[ lastUpdate | Number | Timestamp of the last input activity ]
+[ restrictedStates | Set | State names where the custom cursor is disabled ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ reset | () | Recreates all signals and clears every input state container, resetting pressed, held, released and wheel flags. ]
+[ setupStateChangeHandling | () | Registers a state-change listener so the cursor reinitializes on every new state. ]
+[ onStateChange | (newState) | Resets input state on state change and reinitializes the cursor when the new state is allowed. ]
+[ isStateAllowed | (stateName) | Whether a given state name is allowed to use the custom cursor. ]
+[ initializeCursor | () | Builds the cursor sprite and wires up pointer button and wheel input callbacks. Any existing cursor sprite is destroyed first. ]
+[ setupDeviceButton | (button, id) | Attaches press and release handlers for one mouse button, dispatching the corresponding signals and waking the cursor sprite. ]
+[ updateCursor | () | Per-frame routine for the cursor sprite: tracks the pointer, switches to the hand frame over clickable targets, dispatches move signals and fades the sprite out after inactivity. ]
+[ updateState | () | Computes pressed, released and held edge states for every tracked button and exposes them on the aggregate 'any' flags. ]
+[ hide | () | Hides the cursor sprite while keeping input tracking active. ]
+[ show | () | Shows the cursor sprite again. ]
+[ destroy | () | Destroys the cursor sprite and disposes of all signals. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const cursor = new MouseCursor();
+cursor.onMove.add((x, y) => {
+  console.log('cursor at', x, y);
+});
+cursor.show();
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

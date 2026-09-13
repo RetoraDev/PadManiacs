@@ -1,6 +1,33 @@
+/**
+ * @class FullScreenAudioVisualizer
+ * @category Core Game Classes
+ * @summary Advanced audio visualization for Jukebox
+ * @constructor
+ * @param {HTMLAudioElement} audioElement - Audio element to analyze
+ * @param {Object} [options] - Configuration options
+ * @features
+ * Multiple visualization types: bars, waveform, circular, symmetrical
+ * Configurable bar colors, sizes, smoothing, and alpha
+ * Static factory and browser support detection helpers
+ * @description
+ * Full-screen audio visualizer that renders a configurable frequency spectrum visualization.
+ * Supports four visualization styles and smooths frequency data for a fluid visual response.
+ * @example
+ * // Modding usage example
+ * const viz = FullScreenAudioVisualizer.create(audioElement, {
+ *   barColor: 0xFF00FF,
+ *   visualizationType: 'circular',
+ *   fftSize: 512
+ * });
+ * function update() {
+ *   viz.update();
+ * }
+ */
 class FullScreenAudioVisualizer {
   constructor(audioElement, options = {}) {
+    /** @type {HTMLAudioElement} The audio element being analyzed */
     this.audioElement = audioElement;
+    /** @type {Object} Visualization configuration options */
     this.options = {
       barColor: 0x76fcde,
       barWidth: 4,
@@ -14,16 +41,25 @@ class FullScreenAudioVisualizer {
       ...options
     };
     
+    /** @type {Phaser.Graphics} Graphics object used for all drawing */
     this.graphics = game.add.graphics(0, 0);
+    /** @type {AnalyserNode|null} Analyser node providing audio data */
     this.analyser = null;
+    /** @type {Uint8Array|null} Raw frequency data buffer */
     this.dataArray = null;
+    /** @type {number} Length of the frequency buffer */
     this.bufferLength = 0;
+    /** @type {Uint8Array|null} Smoothed frequency data buffer */
     this.frequencyData = null;
+    /** @type {boolean} Whether the visualizer is active and analyzing */
     this.isActive = false;
     
     this.setupAudioAnalysis();
   }
 
+  /**
+   * Creates the audio context and analyser, then connects the audio element source.
+   */
   setupAudioAnalysis() {
     try {
       // Create audio context if not already created
@@ -54,6 +90,9 @@ class FullScreenAudioVisualizer {
     }
   }
 
+  /**
+   * Connects or reconnects the audio element to the analyser node.
+   */
   connectAudioSource() {
     if (!this.audioElement || !this.analyser) return;
     
@@ -73,6 +112,10 @@ class FullScreenAudioVisualizer {
     }
   }
 
+  /**
+   * Swaps in a new audio element and reconnects it to the analyser.
+   * @param {HTMLAudioElement} audioElement - The new audio element
+   */
   setAudioSource(audioElement) {
     this.audioElement = audioElement;
     if (this.isActive) {
@@ -80,6 +123,9 @@ class FullScreenAudioVisualizer {
     }
   }
 
+/**
+   * Fetches audio data, applies smoothing, and renders the configured visualization each frame.
+   */
   update() {
     if (!this.isActive || !this.analyser) return;
     
@@ -252,6 +298,10 @@ class FullScreenAudioVisualizer {
   }
 
   // Method to change visualization type
+  /**
+   * Changes the visualization style to one of the supported types.
+   * @param {string} type - Visualization type ('bars', 'waveform', 'circular', 'symmetrical')
+   */
   setVisualizationType(type) {
     const validTypes = ['bars', 'waveform', 'circular', 'symmetrical'];
     if (validTypes.includes(type)) {
@@ -262,14 +312,26 @@ class FullScreenAudioVisualizer {
     }
   }
 
+  /**
+   * Sets the bar color used by the visualization.
+   * @param {number} color - Hex color value as a number
+   */
   setBarColor(color) {
     this.options.barColor = color;
   }
 
+  /**
+   * Sets the rendering alpha of the visualization.
+   * @param {number} alpha - Alpha value clamped between 0 and 1
+   */
   setAlpha(alpha) {
     this.options.alpha = Phaser.Math.clamp(alpha, 0, 1);
   }
 
+  /**
+   * Merges new configuration options and re-applies analyser settings when present.
+   * @param {Object} newOptions - Partial configuration options to apply
+   */
   setOptions(newOptions) {
     this.options = { ...this.options, ...newOptions };
     
@@ -294,24 +356,41 @@ class FullScreenAudioVisualizer {
   }
 
   // Get current visualization settings
+  /**
+   * Returns a copy of the current visualization settings.
+   * @returns {Object} Copy of the options object
+   */
   getSettings() {
     return { ...this.options };
   }
 
   // Check if visualizer is ready and active
+  /**
+   * Returns whether the visualizer is active and ready for analysis.
+   * @returns {boolean} True if active and the analyser exists
+   */
   isReady() {
     return this.isActive && this.analyser !== null;
   }
 
   // Pause/Resume functionality
+  /**
+   * Pauses visualization updates.
+   */
   pause() {
     this.isActive = false;
   }
 
+  /**
+   * Resumes visualization updates.
+   */
   resume() {
     this.isActive = true;
   }
 
+  /**
+   * Stops analysis, disconnects audio nodes, closes the context, and frees resources.
+   */
   destroy() {
     this.isActive = false;
     
@@ -346,11 +425,21 @@ class FullScreenAudioVisualizer {
   }
 
   // Static method to create visualizer with default settings
+  /**
+   * Factory method to create a FullScreenAudioVisualizer with default settings.
+   * @param {HTMLAudioElement} audioElement - Audio element to analyze
+   * @param {Object} [options] - Configuration options
+   * @returns {FullScreenAudioVisualizer} The created visualizer instance
+   */
   static create(audioElement, options = {}) {
     return new FullScreenAudioVisualizer(audioElement, options);
   }
 
   // Static method to check if browser supports audio analysis
+  /**
+   * Checks whether the browser supports Web Audio analysis.
+   * @returns {boolean} True if an AudioContext is available
+   */
   static isSupported() {
     return !!(window.AudioContext || window.webkitAudioContext);
   }

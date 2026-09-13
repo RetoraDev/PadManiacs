@@ -1,11 +1,45 @@
+/**
+ * @class Play
+ * @category Game States
+ * @summary Main gameplay state
+ * @constructor
+ * @features
+ * Full playthrough flow from audio setup through judgement and results
+ * HUD with score, combo, lifebar, accuracy, visualizers and character closeups
+ * Background pipeline supporting images, videos, fades and animated effects
+ * Chart modifiers, character skills, lyrics, metronome and pause menu support
+ * @description
+ * The Play state runs a single song from start to finish. It clones the chart, loads
+ * the audio and backgrounds, spawns the player renderer and advances the rhythm
+ * gameplay loop producing judgement counts, combo, accuracy and a final score. When
+ * the song ends it collates the results and hands them to the Results state.
+ * @example
+ * // Start a normal playthrough for a song and difficulty
+ * game.state.start("Play", true, false, { chart: song, difficultyIndex: 2 });
+ *
+ * // Launch in playtest mode with autoplay from the editor
+ * game.state.start("Play", true, false, song, 0, true, true);
+ */
 class Play {
+  /**
+   * Phaser state hook that clones the chart, initializes the gameplay objects
+   * and saves the last played song to the account.
+   * @param {Object} song - Object containing the chart and song data
+   * @param {number} difficultyIndex - Index of the selected difficulty
+   * @param {boolean} playtestMode - Whether this is an editor playtest run
+   * @param {boolean} autoplay - Whether the run is played by the computer
+   * @param {string} playlistKey - Optional playlist key this song belongs to
+   */
   init(song, difficultyIndex, playtestMode, autoplay, playlistKey) {
     if (typeof song.difficultyIndex != undefined && typeof difficultyIndex != undefined) {
       song.difficultyIndex = difficultyIndex;
     }
     this.originalSong = song;
+    /** @type {Object} A deep clone of the chart used for gameplay */
     this.song = structuredClone(song);
+    /** @type {number} Index of the selected difficulty */
     this.difficultyIndex = typeof difficultyIndex != undefined ? difficultyIndex : song.difficultyIndex;
+    /** @type {Object|null} The player renderer and judgement objects */
     this.player = null;
     this.backgroundQueue = [];
     this.preloadedBackgroundElements = {};
@@ -17,8 +51,11 @@ class Play {
     this.audioEndListener = null;
     this.started = false;
     this.startTime = 0;
+    /** @type {boolean} Whether the note roadmap is being played by the computer */
     this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
+    /** @type {string} Optional playlist key the current song belongs to */
     this.playlistKey = playlistKey;
+    /** @type {number} The user's global timing offset in milliseconds */
     this.userOffset = Account.settings.userOffset || 0;
     this.lastVideoUpdateTime = 0;
     this.lyrics = null;
@@ -33,7 +70,9 @@ class Play {
     this.shootingDown = false;
     
     // Initialize character system
+    /** @type {CharacterManager} Manages the player's characters and persistence */
     this.characterManager = new CharacterManager();
+    /** @type {Object|null} The character active for this playthrough */
     this.currentCharacter = this.characterManager.getCurrentCharacter();
     this.skillSystem = new CharacterSkillSystem(this, this.currentCharacter);
     
@@ -76,6 +115,10 @@ class Play {
     this.FIXED_DELAY = 2000; 
   }
   
+  /**
+   * Phaser state hook that builds the HUD, applies chart modifiers and
+   * starts the asynchronous background and audio setup.
+   */
   create() {
     // Ensure background music is stopped during gameplay
     if (backgroundMusic) {
@@ -116,6 +159,10 @@ class Play {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Preloads all chart backgrounds, sets up the audio and starts the song.
+   * @returns {Promise<void>} Resolves once the audio is ready and the song starts
+   */
   async initialSetup() {
     const dots = new LoadingDots();
     dots.x -= 4;
@@ -131,6 +178,10 @@ class Play {
     this.songStart();
   }
   
+  /**
+   * Applies the enabled chart modifiers (mines, freezes, jumps, mirror, randomize)
+   * to a working copy of the current difficulty's notes.
+   */
   applyChartModifiers() {
     const modifiers = Account.settings.chartModifiers || {};
     
@@ -255,6 +306,10 @@ class Play {
     }
   }
   
+  /**
+   * Creates and loads the audio element, then builds the audio visualizer.
+   * @returns {Promise<string|undefined>} Resolves when the audio can play
+   */
   setupAudio() {
     return new Promise(resolve => {
       // Create audio element and wait for it to load
@@ -279,6 +334,11 @@ class Play {
     });
   }
   
+  /**
+   * Loads a single background image or video element for later drawing.
+   * @param {Object} background - Descriptor with url and type fields
+   * @returns {Promise<HTMLImageElement|HTMLVideoElement>} The loaded background element
+   */
   preloadBackground(background) {
     return new Promise((resolve, reject) => {
       const { url, type } = background;
@@ -322,6 +382,9 @@ class Play {
     });
   }
   
+  /**
+   * Builds the heads-up display with lifebar, score, combo, accuracy and text.
+   */
   createHud() {
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
@@ -394,6 +457,13 @@ class Play {
     this.comboText.anchor.set(1);
   }
   
+  /**
+   * Recreates the visualizer matching the current setting, or removes it.
+   * @param {number} visualizerX - X position of the visualizer
+   * @param {number} visualizerY - Y position of the visualizer
+   * @param {number} visualizerWidth - Width of the visualizer area
+   * @param {number} visualizerHeight - Height of the visualizer area
+   */
   createVisualizer(visualizerX = 2, visualizerY = 131, visualizerWidth = 46, visualizerHeight = 7) {
     // Remove existing visualizer
     if (this.visualizer) {
@@ -421,6 +491,9 @@ class Play {
     }
   }
   
+  /**
+   * Wires the audio temperature meter to the HUD flash effects.
+   */
   setupSongTemperature() {
     const meter = new AudioTemperatureMeter(this, this.audio, this.song.chart);
     
@@ -435,10 +508,16 @@ class Play {
     this.temperature = meter;
   }
   
+  /**
+   * Instantiates the center-lane Player used for gameplay.
+   */
   setupPlayer() {
     this.player = new Player(this, "center");
   }
   
+  /**
+   * Creates the lyrics text element and controller when a lyrics file exists.
+   */
   setupLyrics() {
     if (this.hasLyricsFile) {
       const lrcContent = this.song.chart.lyricsContent; 
@@ -458,6 +537,9 @@ class Play {
     }
   }
   
+  /**
+   * Sets the initial chart background or clears it when none is present.
+   */
   setInitialBackground() {
     // Set initial background
     if (this.song.chart.backgroundUrl && this.song.chart.backgroundUrl !== "no-media") {
@@ -467,6 +549,9 @@ class Play {
     }
   }
   
+  /**
+   * Begins playback: shows the song info, schedules the audio start and HUD reveal.
+   */
   songStart() {
     this.setInitialBackground();
     
@@ -492,12 +577,18 @@ class Play {
     this.audioEndListener = this.audio.addEventListener("ended", () => this.songEnd(), { once: true });
   }
   
+  /**
+   * Opens the Chart Modifiers state while the start button is held at kickoff.
+   */
   checkModifiersScreenButton() {
     if (gamepad.held.start) {
       game.state.start("ChartModifiers", true, false, "Play", this.originalSong, this.difficultyIndex, this.playtestMode, this.autoplay);
     }
   }
   
+  /**
+   * Animates an intro banner with the song's title, subtitle, artist and credit.
+   */
   showSongInfo() {
     const texts = [
       {
@@ -588,6 +679,9 @@ class Play {
     });
   }
   
+  /**
+   * Starts the pulsing HUD flash effect synced to the song's beat.
+   */
   startHudFlash() {
     this.hudFlashShape.alpha = 1;
     
@@ -597,24 +691,43 @@ class Play {
     game.add.tween(this.hudFlashShape.scale).to({ x: 0.9, y: 0.9 }, interval, Phaser.Easing.Quadratic.Out, true).repeat(-1);
   }
   
+  /**
+   * Stops the HUD flash effect and fades the flash shape away.
+   */
   stopHudFlash() {
     game.tweens.removeFrom(this.hudFlashShape);
     game.add.tween(this.hudFlashShape).to({ alpha: 0 }, 100, Phaser.Easing.Quadratic.Out, true);
     game.add.tween(this.hudFlashShape.scale).to({ x: 1, y: 1 }, 100, Phaser.Easing.Quadratic.Out, true).repeat(-1);
   }
   
+  /**
+   * Slides the HUD panels, background and receptors into view.
+   * @param {number} duration - Tween duration in milliseconds
+   * @param {number} backgroundAlpha - Target background opacity
+   * @param {number} receptorsAlpha - Receptors alpha to restore during the reveal
+   */
   showHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
     game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.Out, true);
     game.add.tween(this.hudTop).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
     game.add.tween(this.hudBottom).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
   }
   
+  /**
+   * Slides the HUD panels and background out of view.
+   * @param {number} duration - Tween duration in milliseconds
+   * @param {number} backgroundAlpha - Target background opacity while hidden
+   * @param {number} receptorsAlpha - Receptors alpha to restore during the hide
+   */
   hideHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
     game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.In, true);
     game.add.tween(this.hudTop).to({ y: -40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
     game.add.tween(this.hudBottom).to({ y: 40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
   }
   
+  /**
+   * Plays the character close shot sequence with a countdown timer.
+   * @param {number} duration - Total duration of the close shot in milliseconds
+   */
   showCharacterCloseShot(duration) {
     const displayTime = Math.max(500, duration - 400);
     const closeShot = new CharacterCloseShot(2, 131, this.currentCharacter);
@@ -669,6 +782,10 @@ class Play {
     });
   }
   
+  /**
+   * Plays a full-screen glitch animation layered over the HUD.
+   * @param {number} duration - Lifespan of the glitch effect in milliseconds
+   */
   showGlitchAnimation(duration = 1000) {
     const glitch = game.add.sprite(0, 0, 'ui_glitch_animation');
     glitch.animations.add('glitch', [0, 1, 2, 3, 4, 5, 6], 12, true);
@@ -678,6 +795,9 @@ class Play {
     this.overHud.addChild(glitch);
   }
   
+  /**
+   * Plays the full combo (or flawless) celebration overlay when reached.
+   */
   showFullCombo() {
     if (this.fullComboAnimationStarted) {
       return;
@@ -754,6 +874,10 @@ class Play {
     Audio.play("full_combo", 1);
   }
   
+  /**
+   * Draws a background element onto the background canvas, handling errors.
+   * @param {HTMLImageElement|HTMLVideoElement} element - The element to draw
+   */
   drawBackground(element) {
     // Check if element is errored
     if (element && element.__errored) {
@@ -780,6 +904,9 @@ class Play {
     }
   }
   
+  /**
+   * Draws the default chart background as a fallback when one fails to load.
+   */
   drawFallbackBackground() {
     if (this.shootingDown) return;
     
@@ -793,6 +920,9 @@ class Play {
     }
   }
   
+  /**
+   * Clears the background canvas to black and reveals the gradient overlay.
+   */
   clearBackground() {
     this.backgroundSprite.ctx.fillStyle = "#000000";
     this.backgroundSprite.ctx.fillRect(0, 0, game.width, game.height);
@@ -800,6 +930,11 @@ class Play {
     this.backgroundGradient.visible = true;
   }  
   
+  /**
+   * Loads or reuses a background image and draws it onto the canvas.
+   * @param {string} filename - Chart identifier for the background
+   * @param {string} url - URL of the background image
+   */
   loadBackgroundImage(filename, url) {
     if (filename == 'undefined' || !filename || !url) return;
     
@@ -849,6 +984,13 @@ class Play {
     this.backgroundGradient.visible = true;
   }
   
+  /**
+   * Loads or reuses a background video and begins playback.
+   * @param {string} filename - Chart identifier for the background
+   * @param {string} url - URL of the background video
+   * @param {Function} [onloadCallback] - Called when the video is ready
+   * @param {Function} [onerrorCallback] - Called if the video fails to load
+   */
   loadBackgroundVideo(filename, url, onloadCallback, onerrorCallback) {
     if (filename == 'undefined' || !filename || !url) {
       onerrorCallback?.();
@@ -925,6 +1067,10 @@ class Play {
     }
   }
   
+  /**
+   * Starts playback of the given video and hides the gradient overlay.
+   * @param {HTMLVideoElement} video - The video element to play
+   */
   playVideo(video) {
     this.video = video || this.video;
     this.video.play();
@@ -932,6 +1078,10 @@ class Play {
     this.backgroundGradient.visible = false;
   }
   
+  /**
+   * Applies a chart background at its scheduled beat, honoring fade options.
+   * @param {Object} bg - The background descriptor from the chart
+   */
   applyBackground(bg) {
     if (bg.file == '-nosongbg-') {
       this.clearBackground();
@@ -964,6 +1114,10 @@ class Play {
     this.currentBackground = bg;
   }
   
+  /**
+   * Handles fade-in, scheduled fade-out and opacity for a background.
+   * @param {Object} bg - The background descriptor being applied
+   */
   applyBgEffects(bg) {
     const alpha = bg.type == 'video' ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
     const targetAlpha = parseFloat(bg.opacity) * alpha;
@@ -1004,6 +1158,10 @@ class Play {
     }
   }
   
+  /**
+   * Applies the StepMania-style background effect loop (stretch, scroll or pulse).
+   * @param {Object} bg - The background descriptor carrying an effect id
+   */
   applyBgEffect(bg) {
     // Cancel existing effect
     if (this._bgEffectTimer) {
@@ -1055,6 +1213,9 @@ class Play {
     }
   }
   
+  /**
+   * Fades out the previous background when a fade-out was scheduled for it.
+   */
   handlePreviousBgFadeOut() {
     // If there's a pending fade out for the current background
     if (this._pendingFadeOut && this.currentBackground) {
@@ -1073,6 +1234,11 @@ class Play {
     }
   }
   
+  /**
+   * Collects the game results from a player into a plain result object.
+   * @param {Object} [player] - The player whose results are gathered
+   * @returns {Object} The game results summary
+   */
   getGameResults(player = this.player) {
     return {
       score: player.score,
@@ -1088,10 +1254,16 @@ class Play {
     };
   }
   
+  /**
+   * Restarts the current song with the same settings.
+   */
   restartSong() {
     game.state.start("Play", true, false, this.originalSong, this.difficultyIndex, this.playtestMode, this.autoplay, this.playlistKey);
   }
   
+  /**
+   * Finalizes the run: updates stats, experience and records, then opens Results.
+   */
   songEnd() {
     // Forget preloaded backgrounds
     setTimeout(() => {
@@ -1183,6 +1355,10 @@ class Play {
     game.state.start("Results", true, false, gameData);
   }
   
+  /**
+   * Accumulates the account statistics from the completed game.
+   * @param {Object} gameResults - The game results to tally
+   */
   updateUserStats(gameResults) {
     if (!Account.stats) {
       Account.stats = { ...DEFAULT_ACCOUNT.stats };
@@ -1225,6 +1401,9 @@ class Play {
     achievementsManager.updateStats(gameResults);
   }
   
+  /**
+   * Toggles between the paused and running states of the song.
+   */
   togglePause() {
     if (this.isAnimating) return;
     
@@ -1235,6 +1414,9 @@ class Play {
     }
   }
   
+  /**
+   * Pauses gameplay and playback, then shows the pause menu.
+   */
   pause() {
     if (!this.started) return;
     this.isPaused = true;
@@ -1244,6 +1426,9 @@ class Play {
     this.showPauseMenu();
   }
   
+  /**
+   * Resumes gameplay and playback, then hides the pause menu.
+   */
   resume() {
     this.isPaused = false;
     this.totalPausedDuration += game.time.now - this.pauseStartTime;
@@ -1252,10 +1437,17 @@ class Play {
     this.hidePauseMenu();
   }
   
+  /**
+   * Builds a text block listing the current judgement counts.
+   * @returns {string} The judgement text used in the pause menu
+   */
   getStatsContent() {
     return Object.entries(this.player.judgementCounts).map(entry => `${entry[0]}: ${entry[1]}`.toUpperCase()).join('\n');
   }
   
+  /**
+   * Shows the pause menu with continue, autoplay, restart, retry and quit options.
+   */
   showPauseMenu() {
     this.pauseBg = game.add.graphics(0, 0);
     
@@ -1304,6 +1496,9 @@ class Play {
     this.pauseCarousel.onCancel.add(() => this.resume());
   }
   
+  /**
+   * Removes the pause menu objects from the scene.
+   */
   hidePauseMenu() {
     if (this.pauseCarousel) {
       this.pauseBg.destroy();
@@ -1313,6 +1508,10 @@ class Play {
     }
   }
   
+  /**
+   * Returns the current play time in seconds and beats, accounting for pauses.
+   * @returns {Object} Object with numeric "now" and "beat" fields
+   */
   getCurrentTime() {
     if (this.isPaused) {
       const elapsed = this.pauseStartTime - this.startTime - this.totalPausedDuration + this.userOffset;
@@ -1329,10 +1528,18 @@ class Play {
     }
   }
   
+  /**
+   * Converts a time in seconds to beats using the player's timing.
+   * @param {number} sec - Time in seconds
+   * @returns {number} The equivalent beat
+   */
   secToBeat(sec) {
     return this.player ? this.player.secToBeat(sec) : 0;
   }
   
+  /**
+   * Enqueues and applies chart backgrounds as their beats arrive, then updates video.
+   */
   updateBackgrounds() {
     const { beat } = this.getCurrentTime();
     
@@ -1354,6 +1561,9 @@ class Play {
     this.updateVideo();
   }
   
+  /**
+   * Redraws the current video frame at the configured frame rate.
+   */
   updateVideo() {
     if (this.video && 
         !this.video.__errored &&
@@ -1376,6 +1586,9 @@ class Play {
     }
   }
   
+  /**
+   * Phaser lifecycle hook called every frame; drives the main gameplay loop.
+   */
   update() {
     gamepad.update();
         
@@ -1454,12 +1667,18 @@ class Play {
     }
   }
   
+  /**
+   * Phaser render hook that renders the player's note objects.
+   */
   render() {
     if (this.player) {
       this.player.render();
     }
   }
   
+  /**
+   * Phaser lifecycle hook called when leaving the state; tears down playback.
+   */
   shutdown() {
     this.shootingDown = true;
     

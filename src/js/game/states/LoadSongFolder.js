@@ -1,11 +1,36 @@
+/**
+ * @class LoadSongFolder
+ * @category Game States
+ * @summary Loads a single song via file input
+ * @constructor
+ * @description
+ * Lets the user select a song folder (or a .zip archive) through a native file picker
+ * and plays the resulting chart immediately. It locates and parses a .sm chart from the
+ * chosen files, extracting audio, background, banner, lyrics, and BG change assets from
+ * the ZIP when applicable, and starts SongSelect with the single chart.
+ * @example
+ * // Opens a file picker so the player can select a folder or ZIP to play.
+ * game.state.add('LoadSongFolder', LoadSongFolder);
+ * game.state.start('LoadSongFolder');
+ */
 class LoadSongFolder {
+  /**
+   * Shows the folder selection progress text, prepares the parser, and opens the
+   * native directory picker.
+   */
   create() {
+    /** @type {ProgressText} Bilingual progress text shown while a folder is selected */
     this.progressText = new ProgressText(__("Select Song Folder...||Seleccionar carpeta..."));
     
+    /** @type {ExternalSMParser} Parser used to read the selected chart files */
     this.parser = new ExternalSMParser();
     this.showFileInput();
   }
 
+  /**
+   * Creates and opens a webkitdirectory file input, wiring up selection to processFiles
+   * and cancellation to an error message, with a fallback hint for non-webkit browsers.
+   */
   showFileInput() {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -29,6 +54,12 @@ class LoadSongFolder {
     fileInput.click();
   }
 
+  /**
+   * Handles the picked files: dispatches a .zip to the ZIP processor, otherwise locates
+   * and parses the first .sm chart and starts SongSelect with that single song.
+   * @param {FileList} files - Files chosen from the directory picker
+   * @returns {Promise<void>} Resolves once the song has been parsed or rejected
+   */
   async processFiles(files) {
     try {
       this.progressText.write(__("Loading Song...||Cargando canción..."));
@@ -73,6 +104,12 @@ class LoadSongFolder {
     }
   }
   
+  /**
+   * Decompresses the selected .zip with JSZip and imports its contents, starting
+   * SongSelect with the first chart that is produced.
+   * @param {File} file - The .zip archive chosen by the user
+   * @returns {Promise<void>} Resolves once the ZIP has been processed or rejected
+   */
   async processZipFile(file) {
     const JSZip = window.JSZip;
     if (!JSZip) {
@@ -95,6 +132,14 @@ class LoadSongFolder {
     });
   }
 
+  /**
+   * Extracts the first .sm chart found in a decompressed ZIP, loads its audio, background,
+   * banner, lyrics, and BG change assets as object URLs, and invokes the callback with
+   * the finished chart.
+   * @param {Object} zipContent - JSZip archive object containing the song files
+   * @param {Function} callback - Invoked with the fully loaded chart object
+   * @returns {Promise<void>} Resolves once the chart and its assets have been loaded
+   */
   async processZipContent(zipContent, callback) {
     // Find .sm file
     let smFile = null;
@@ -190,6 +235,10 @@ class LoadSongFolder {
     callback(chart);
   }  
   
+  /**
+   * Displays an error on the progress text and returns to the main menu after a delay.
+   * @param {string} message - Error message to display
+   */
   showError(message) {
     this.progressText.write(message);
     game.time.events.add(3000, () => {

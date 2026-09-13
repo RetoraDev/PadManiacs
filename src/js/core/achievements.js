@@ -1,4 +1,5 @@
 // Achievements system constants
+/** @type {Object} Achievements system constants */
 const ACHIEVEMENTS = {
   EXPERIENCE_VALUES: {
     COMMON: 5,
@@ -10,6 +11,7 @@ const ACHIEVEMENTS = {
 };
 
 // Achievement categories
+/** @type {Object} Achievement categories (Gameplay, Character, Progression, etc.) */
 const ACHIEVEMENT_CATEGORIES = {
   GAMEPLAY: __("Gameplay||Juego"),
   CHARACTER: __("Character||Personaje"),
@@ -22,6 +24,7 @@ const ACHIEVEMENT_CATEGORIES = {
 };
 
 // Achievement definitions
+/** @type {array} Achievement definitions */
 const ACHIEVEMENT_DEFINITIONS = [
   // Gameplay Achievements
   {

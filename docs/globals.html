@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Global Scope - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="./doki-loader.js"></script>
+[title: "Global Scope"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Global constants, variables and functions available throughout the game and usable in addons. These cover settings, environment detection, song and chart data, character and achievement systems, and core game services.</p>
+
+    [heading: "Global Constants"]
+    [table header]
+[ Name | Type | Value | Description ]
+[ ACHIEVEMENT_CATEGORIES | Object | {...} | Achievement categories (Gameplay, Character, Progression, etc.) ]
+[ ACHIEVEMENT_DEFINITIONS | array | [...] | Achievement definitions ]
+[ ACHIEVEMENTS | Object | {...} | Achievements system constants ]
+[ ADDONS_DIRECTORY | string | &quot;Addons&quot; | Addons directory name ]
+[ Audio | Object | {...} | Audio pool for Phaser Audio objects ]
+[ BACKUPS_DIRECTORY | string | &quot;Backups&quot; | Backups directory name ]
+[ CHARACTER_ITEMS | Object | [...] | Clothing and accessory definitions ]
+[ CHARACTER_SKILLS | array | [...] | Skill definitions for characters ]
+[ CHARACTER_SYSTEM | Object | {...} | Character system constants (max level, name length, etc.) ]
+[ COMMUNITY_HOMEPAGE_URL | string | &quot;https://retora.itch.io/padmaniacs/co... | Community website home page URL ]
+[ COMMUNITY_PROMPT_MIN_PLAYTIME | number | 60 * 60 | Seconds to wait before displaying start-up community popup prompt ]
+[ COPYRIGHT | string | &quot;%&quot; | Copyright notice ]
+[ CORDOVA_EXTERNAL_DIRECTORY | string | &quot;PadManiacs/&quot; | External directory path for Cordova ]
+[ CURRENT_ENVIRONMENT | string | % | Current runtime environment ]
+[ DEFAULT_ACCOUNT | Object | {...} | Default settings and user data including characters and achievements ]
+[ DEFAULT_CHARACTER | Object | {...} | Default character used for new accounts ]
+[ DEFAULT_FONT_MAP | string | &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij... | Character map for the default font ]
+[ DEFAULT_GAMEPAD_MAPPING | Object | {...} | Default key mappings for gamepad controls ]
+[ DEFAULT_KEYBOARD_MAPPING | Object | {...} | Default key mappings for keyboard controls ]
+[ DEFAULT_PLAYER_SETTINGS | Object | {...} | Default multiplayer player settings derived from account settings ]
+[ DEFAULT_SONG_FOLDERS | array | [...] | Default built-in song folders ]
+[ DEFAULT_UNLOCKED_ITEMS | array | [...] | Clothing items unlocked by default ]
+[ EDITOR_OUTPUT_DIRECTORY | string | &quot;Edits&quot; | Editor output directory name ]
+[ ENABLE_EXP_SFX | boolean | true | Enable experience sound effects ]
+[ ENABLE_PARALLEL_LOADING | boolean | true | Enable parallel asset loading ]
+[ ENABLE_UI_SFX | boolean | true | Enable UI sound effects ]
+[ ENVIRONMENT | Object | {...} | Environment type definitions (UNKNOWN, NWJS, CORDOVA, WEB) ]
+[ EXTERNAL_DIRECTORY | string | CURRENT_ENVIRONMENT == ENVIRONMENT.CO... | Current external directory path ]
+[ FEATURE_REQUEST_MIN_PLAYTIME | number | 30 * 60 | Seconds to wait before displaying feature request dialog ]
+[ FEEDBACK_BUG_REPORT_URL | string | &quot;https://itch.io/t/5585499/bug-reports&quot; | Bug reports forum URL ]
+[ FEEDBACK_FEATURE_REQUEST_URL | string | &quot;https://itch.io/t/5585472/feature-re... | Feature requests forum URL ]
+[ FEEDBACK_REVIEW_URL | string | &quot;https://retora.itch.io/padmaniacs/rate&quot; | Rating survey URL ]
+[ FONTS | Object | {...} | Predefined font configurations for text rendering ]
+[ GAMEPAD_KEY_NAMES | Object | {...} | Gamepad key name map for UI ]
+[ JUDGE_WINDOWS | Object | {...} | Delta limits in milliseconds for different judgments ]
+[ KEYBOARD_KEY_CODES | Object | {...} | Keyboard key code values for UI ]
+[ KEYBOARD_KEY_NAMES | Object | {...} | Keyboard key name map for UI ]
+[ MAX_PARALLEL_ADDON_LOADS | number | 3 | Maximum parallel addon loads ]
+[ MAX_PARALLEL_DOWNLOADS | number | 16 | Maximum parallel downloads ]
+[ NAVIGATION_HINT_PRESETS | Object | {...} | Predefined navigation hint presets for each screen ]
+[ NWJS_EXTERNAL_DIRECTORY | string | &quot;data/&quot; | External directory path for NW.js ]
+[ RATING_PROMPT_MIN_PLAYTIME | number | 15 * 60 | Seconds to wait before displaying feedback dialog ]
+[ REGULAR_VIBRATION_INTENSITY | number | 75 | Vibration duration in MS for regular hits ]
+[ SCORE_VALUES | Object | {...} | Score values for different judgments ]
+[ SCREENSHOTS_DIRECTORY | string | &quot;Screenshots&quot; | Screenshots directory name ]
+[ SONGS_DIRECTORY | string | &quot;Songs&quot; | Songs directory name ]
+[ STRONG_VIBRATION_INTENSITY | number | 50 | Vibration duration in MS for strong hits ]
+[ TINY_FONT_MAP | string | &quot; ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:!¡?¿h+... | Character map for the tiny font ]
+[ VERSION | string | &quot;%&quot; | Current game version ]
+[ VIDEO_EXTENSIONS | array | [...] | Supported video file extensions for external songs ]
+[ WEAK_VIBRATION_INTENSITY | number | 50 | Vibration duration in MS for weak hits ]
+[ WINDOW_PANELS | array | [&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;] | Available UI window panels ]
+[/table]
+
+    
+    [heading: "Global Variables"]
+    [table header]
+[ Name | Type | Description ]
+[ Account | AccountData | User data with settings, characters, achievements, and progress ]
+[ achievementsManager | AchievementsManager | Global achievements and stats system instance ]
+[ addonManager | AddonManager | Global addon management system ]
+[ backgroundMusic | BackgroundMusic | Global background music controller ]
+[ DEBUG | boolean | Global debug flag, can be enabled for development ]
+[ game | Phaser.Game | Main Phaser game instance ]
+[ gamepad | AllPads | Unified input system instance ]
+[ gamepad1 | Gamepad | First gamepad instance ]
+[ gamepad2 | Gamepad | Second gamepad instance ]
+[ inputManager | InputManager | Global input manager instance ]
+[ LOG_PERSONALITY_STUDY | boolean | Whether to log personality study data during development ]
+[ mouse | MouseCursor | Global mouse cursor instance ]
+[ multiplayerState | Object | Shared multiplayer match state ]
+[ notifications | NotificationSystem | Global notification system instance ]
+[ UNLOCK_ALL_CLOTHES | boolean | Whether to unlock all clothing items for development ]
+[/table]
+
+    
+    [heading: "Global Functions"]
+    [table header]
+[ Name | Parameters | Description ]
+[ addFpsText | () | Displays a running FPS counter in the top-right corner of the screen ]
+[ bootGame | () | Initializes and starts the Phaser game ]
+[ openExternalUrl | (url) | Opens URL in default browser ]
+[ saveAccount | () | Saves account data to localStorage ]
+[/table]
+
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

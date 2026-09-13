@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Lyrics - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Lyrics Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>LRC lyrics synchronization system with color support</p>
+
+    [heading: "Description"]
+    <p>Lyrics is an LRC lyrics synchronization system. It parses .lrc text, builds sorted time-to-line ranges, and writes the current lyric line into a Text element as the song progresses. It supports per-line colors, metadata tags (artist, title, etc.), and text wrapping for lines longer than the configured maximum.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Parses LRC lyrics including [COLOUR] color tags and [tag] metadata lines
+* Builds time-range intervals for efficient current-line lookup
+* Auto-wraps long lines and stops text scrolling between lines
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ options | Object | Configuration object (textElement, maxLineLength, lrc) ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ textElement | Text | Text instance to display lyrics ]
+[ maxLineLength | number | Maximum characters per line ]
+[ currentTime | number | Current playback time in seconds ]
+[ lrcData | Array | Parsed lyric entries with timestamps ]
+[ rangeLrc | Array | Time-range lyric entries for current-line lookup ]
+[ currentLineIndex | number | Index of the currently displayed lyric line ]
+[ currentColor | number | Current line color as hex value ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ setLrc | (rawLrc) | Parses raw LRC text into timestamped lyrics and builds time-range intervals. Handles [COLOUR] color changes, metadata tags, and repeated timestamps per line. ]
+[ move | (time) | Advances the lyrics clock to a given time and displays the matching line. ]
+[ displayCurrentLine | () | Writes the current lyric line into the text element with its stored color. Stops any active text scrolling and wraps lines that exceed the maximum length. ]
+[ CurrentLine | () | Returns the text of the currently displayed lyric line. ]
+[ CurrentColor | () | Returns the hex color of the currently displayed lyric line. ]
+[ NextLine | () | Returns the text of the line that follows the current one. ]
+[ hasLyrics | () | Checks whether any lyrics have been loaded. ]
+[ clear | () | Clears the lyrics display and resets all parsed data. ]
+[ destroy | () | Clears all lyrics and releases the text element reference. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Displaying synchronized lyrics during gameplay
+const lyrics = new Lyrics({
+  textElement: new Text(2, 2, "", FONTS.default),
+  maxLineLength: 40,
+  lrc: "[00:12.00][COLOUR]0x76FCFF" + "Here is a lyric line"
+});
+lyrics.move(currentSongTime);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

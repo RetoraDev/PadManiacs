@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Player - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Player Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Handles all gameplay logic including note processing and scoring</p>
+
+    [heading: "Description"]
+    <p>Core gameplay class that processes player input, evaluates timing judgements against chart notes, and manages all runtime game state including scoring, health, combo, and accuracy. Delegates visual rendering to ChartRenderer while handling the logic layer of gameplay. Serves as the base class for FirstPlayer and SecondPlayer.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Note input processing and judgement evaluation
+* Score, combo, health, and accuracy tracking
+* Hold and roll note management
+* Skill system integration
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ scene | Phaser.Scene | The Phaser game scene this player belongs to ]
+[ playerSide | string | Player position: &quot;center&quot;, &quot;left&quot;, or &quot;right&quot; ]
+[ settings | Object | Gameplay configuration overrides ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ renderer | ChartRenderer | Handles all visual chart rendering ]
+[ notes | Array | Chart note data for this difficulty ]
+[ bpmChanges | Array | BPM change markers from the chart ]
+[ stops | Array | Stop events from the chart ]
+[ autoplay | boolean | Whether AI auto-play is active ]
+[ inputStates | Array&lt;boolean&gt; | Current press state for each column ]
+[ activeHolds | Object | Active hold notes keyed by column index ]
+[ heldColumns | Set | Columns currently being held ]
+[ judgementHistory | Array | History of all judgements received ]
+[ score | number | Current accumulated score ]
+[ combo | number | Current consecutive hit streak ]
+[ maxCombo | number | Highest combo achieved this game ]
+[ maxHealth | number | Maximum health capacity ]
+[ health | number | Current player health ]
+[ judgementCounts | Object | Count of each judgement type received ]
+[ totalNotes | number | Total note count for accuracy calculation ]
+[ accuracy | number | Current accuracy percentage (0-100) ]
+[ gameOver | boolean | Whether the game has ended ]
+[ skillSystem | Object | Reference to the active skill system ]
+[ perfectStreak | number | Consecutive marvelous/perfect hits ]
+[ comboShieldActive | boolean | Whether the combo shield skill is active ]
+[ receptors | Array | Receptor sprites for each column ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ calculateTotalNotes | () | Counts the total number of hittable notes in the chart for accuracy calculation. Called once during initialization to set the baseline for accuracy scoring. ]
+[ findClosestNote | (column, beat, noteTypes, searchRangeSeconds) | Finds the nearest unhit note in a given column within a time range. Used by input handling and auto-play to identify which note to judge. ]
+[ processNoteIfInWindow | (note, currentTime, column, callback) | Checks if a note falls within the judgement window and triggers the callback. Prevents double-judging the same note by tracking last checked beats per column. ]
+[ autoPlay | () | AI auto-play logic that simulates perfect inputs for all notes. Processes regular notes and holds automatically each frame when enabled. ]
+[ handleInput | (column, isKeyDown) | Core input handler that processes key press and release events. Routes to regular note checking, hold start/release, and roll tapping logic. ]
+[ checkRegularNotes | (column, now, beat) | Checks if a regular tap note was hit within the judgement window. ]
+[ checkMines | (column, now, beat) | Checks if the player is holding a column with a mine note at the judgement line. Mines damage the player when held at the same position. ]
+[ triggerMine | (mineNote) | Applies damage and breaks combo when a mine note is triggered. Respects mine damage multiplier from the skill system. ]
+[ checkHoldStart | (column, now, beat) | Checks if a hold or roll note should begin based on current timing. Initializes the hold tracking state for the column. ]
+[ checkHoldRelease | (column, now) | Handles key release during an active hold note. Applies forgiveness window before marking the hold as inactive. ]
+[ AdjustedJudgementWindows | () | Returns judgement windows modified by skill system multipliers. ]
+[ HoldForgiveness | () | Returns hold note forgiveness duration with skill system modifier. ]
+[ RollForgiveness | () | Returns roll note tap forgiveness duration with skill system modifier. ]
+[ Judgement | (timeDelta) | Evaluates the timing delta against adjusted judgement windows. Updates the perfect streak counter and records to timing history. ]
+[ processJudgement | (note, judgement, column, type) | Processes a judgement result by updating score, combo, health, and accuracy. Applies skill system modifiers including score multipliers, health gains, combo shields, and judgement conversions. ]
+[ MaxHealth | () | Returns maximum health including skill system bonuses. ]
+[ NoteSpeedMultiplier | () | Returns note speed multiplier combined with skill system modifiers. ]
+[ updateAccuracy | () | Recalculates accuracy as a weighted percentage of achieved vs possible score. Updates the accuracy bar in the HUD. ]
+[ updateUI | () | Updates the HUD display with current combo, score, and pulsing effects. ]
+[ ScoreRating | () | Returns a letter grade based on current accuracy. ]
+[ showJudgementText | (judgement, column, type) | Displays the judgement text with color, animation, and optional receptor pulse. Freeze judgements show as smaller floating text near the receptor. ]
+[ ComboColor | (combo) | Returns a color that transitions from white to yellow as combo increases. ]
+[ onSkillHpRegen | (amount) | Callback for skill system health regeneration. ]
+[ onComboShield | () | Activates the combo shield, converting the next miss into a non-combo-breaking boo. ]
+[ render | () | Renders the chart by delegating to ChartRenderer with current active holds. Called each frame to update note positions and visual elements. ]
+[ update | () | Main gameplay loop called each frame. Processes input, updates holds, checks skill activations, and manages health. Handles both manual input and auto-play modes. ]
+[ destroy | () | Cleans up all renderer resources and sprite groups. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Creating a Player instance directly
+const player = new Player(game.state.getCurrentState(), "left", {
+  speedMod: "C-MOD",
+  scrollDirection: "falling",
+  noteSpeedMult: 1.5
+});
+player.update();
+console.log(player.score, player.combo, player.accuracy);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

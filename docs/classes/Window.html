@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Window - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Window Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Customizable UI window with menu items and scrollbar</p>
+
+    [heading: "Description"]
+    <p>Window is a sprite-based UI window that renders a frame from tiled sprite parts on an 8px grid. It hosts menu items (plain, setting, and range types) and handles selection, navigation, highlighting, scrolling, and an optional scroll bar. Its signals let mods react to selection, confirmation, and cancellation without touching window internals.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Grid-aligned frame built from tiled sprite parts
+* Plain, setting, and range menu items
+* Blinking selector arrow and pulsing highlight
+* Auto-hiding scroll bar and signal-based events
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ x | number | X position in 8px grid cells ]
+[ y | number | Y position in 8px grid cells ]
+[ width | number | Window width in 8px cells ]
+[ height | number | Window height in 8px cells ]
+[ skin | string | =&quot;1&quot;] - Window skin key used for frame sprites ]
+[ parent | object | Optional parent to add the window sprite to ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ size | object | Window dimensions in grid cells ({ width, height }) ]
+[ offset | object | Pixel offset applied to item content ({ x, y }) ]
+[ scrollOffset | number | Index of the first visible item ]
+[ selectedIndex | number | Index of the currently selected item ]
+[ focus | boolean | Whether this window is focused for navigation ]
+[ skin | string | Window skin key used for frame sprites ]
+[ selector | Phaser.Sprite | Blinking selection arrow sprite ]
+[ highlight | Phaser.Graphics | Animated highlight rectangle behind the selection ]
+[ scrollBar | Phaser.Graphics | Auto-hiding scroll bar indicator ]
+[ onSelect | Phaser.Signal | Dispatched with the new index when selection moves ]
+[ onConfirm | Phaser.Signal | Dispatched when the window is confirmed ]
+[ onCancel | Phaser.Signal | Dispatched when the window is cancelled ]
+[ items | Array | Array of menu items managed by this window ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ addItem | (text, valueText, callback, backButton) | Adds a plain menu item with an optional value text on the right side. ]
+[ addSettingItem | (text, options, currentIndex, callback) | Adds a setting item that cycles through options with left/right input. ]
+[ addRangeItem | (text, min, max, step, value, suffix, callback) | Adds a numeric range item adjusted by a step on left/right input. ]
+[ VisibleHeight | (excluding) | Returns the usable content height in pixels below the window padding. ]
+[ update | () | Recomputes visible items, scroll bounds, and item positions. Called automatically after items are added or the window is resized. ]
+[ updateSelector | () | Positions the selector arrow and highlight on the selected item. ]
+[ updateHighlight | () | Animates the highlight rectangle alpha and positions it on the selection. ]
+[ forceHighlight | (y) | Pins the highlight rectangle to a fixed Y position within the window. ]
+[ updateScrollBar | () | Redraws and reveals the scroll bar when items overflow the window. ]
+[ showScrollBar | () | Fades the scroll bar in and schedules an automatic fade out. ]
+[ hideScrollBar | () | Immediately hides and clears the scroll bar. ]
+[ navigate | (direction) | Moves selection by the given direction and plays the navigation sound. ]
+[ selectIndex | (index) | Selects the item at the given index and adjusts scrolling to show it. ]
+[ setTint | (tint) | Applies a tint to every window frame part. ]
+[ confirm | () | Confirms the selected item's callback or dispatches the onConfirm signal. ]
+[ cancel | () | Runs back-button callbacks and dispatches the onCancel signal. ]
+[ scroll | (delta) | Scrolls the selection by the given delta, clamping it to the item list. ]
+[ removeAll | () | Destroys all item texts and resets the item list and selection. ]
+[ clear | () | Removes all items, disposes signals, and no-ops navigation handlers. ]
+[ show | () | Makes the window sprite visible. ]
+[ hide | () | Hides the window sprite. ]
+[ destroy | () | Clears the window, marks it disposed, and destroys the sprite. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const win = new Window(4, 4, 12, 6, "1");
+win.addItem('Play', '', () => game.state.start('Play'), true);
+win.addSettingItem('Volume', ['Low', 'Med', 'High'], 1);
+win.addRangeItem('Speed', 0, 200, 10, 100, '%');
+win.onConfirm.add(() => {});
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

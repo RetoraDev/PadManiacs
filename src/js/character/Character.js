@@ -1,11 +1,47 @@
+/**
+ * @class Character
+ * @category Character System Classes
+ * @summary Character data model with leveling and experience
+ * @constructor
+ * @param {Object} data - Initial character data
+ * @features
+ * Leveling and experience system
+ * Skill, hair, and item unlocking
+ * Appearance and clothing customization
+ * Personality development from gameplay history
+ * @description
+ * Core data model representing a playable character, including level, experience,
+ * unlocked skills, appearance, and developed personalities. Progress advances through
+ * gameplay and unlocks are granted at level milestones.
+ * @example
+ * // Modding usage example
+ * const char = new Character({
+ *   name: 'Hero',
+ *   level: 1,
+ *   experience: 0,
+ *   appearance: { skinTone: 0, frontHair: 1, backHair: 1 }
+ * });
+ * char.addExperience(120);
+ * console.log(char.level, char.getExperienceProgress());
+ * char.changeHairStyle('front', 2);
+ * char.changeClothing('top_seifuku_red');
+ * console.log(char.toJSON());
+ */
 class Character {
   constructor(data) {
+    /** @type {string} Character display name */
     this.name = data.name;
+    /** @type {number} Current character level */
     this.level = data.level || 1;
+    /** @type {number} Current experience points */
     this.experience = data.experience || 0;
+    /** @type {number} Skill proficiency level */
     this.skillLevel = data.skillLevel || 1;
+    /** @type {Array} List of unlocked skill IDs */
     this.unlockedSkills = data.unlockedSkills || [];
+    /** @type {string|null} Currently selected skill ID */
     this.selectedSkill = data.selectedSkill || null;
+    /** @type {Object} Character appearance configuration */
     this.appearance = data.appearance || {
       skinTone: 0,
       frontHair: 1,
@@ -26,6 +62,7 @@ class Character {
         special: null
       }
     };
+    /** @type {Object} Cumulative gameplay statistics */
     this.stats = data.stats || {
       gamesPlayed: 0,
       totalScore: 0,
@@ -33,20 +70,36 @@ class Character {
       perfectGames: 0,
       skillsUsed: 0
     };
+    /** @type {Array} History of experience gain events */
     this.experienceStory = [];
+    /** @type {number} Level at which the character last raised their skill level */
     this.lastSkillLevelUp = data.lastSkillLevelUp || 0;
+    /** @type {number} Level at which the character last unlocked a hair style */
     this.lastHairUnlockLevel = data.lastHairUnlockLevel || 0;
+    /** @type {number} Level at which the character last unlocked an item */
     this.lastItemUnlockLevel = data.lastItemUnlockLevel || 0;
+    /** @type {string|null} Active personality ID */
     this.personality = data.personality || null;
+    /** @type {Array} List of developed personality IDs */
     this.developedPersonalities = data.developedPersonalities || [];
+    /** @type {Array} History of personality study results */
     this.personalityStudyHistory = data.personalityStudyHistory || [];
+    /** @type {number} Index of the current personality in the developed list */
     this.currentPersonalityIndex = data.currentPersonalityIndex || 0;
   }
   
+  /**
+   * Returns the most recent experience story entry, or null when no history exists.
+   * @returns {Object|null} The last experience story entry
+   */
   getLastExperienceStoryEntry() {
     return this.experienceStory.length ? this.experienceStory[this.experienceStory.length - 1] : null;
   }
 
+  /**
+   * Adds experience points and triggers level ups whenever thresholds are crossed.
+   * @param {number} amount - Experience points to grant
+   */
   addExperience(amount) {
     const storyEntry = {
       levelBefore: this.level,
@@ -68,6 +121,9 @@ class Character {
     this.experienceStory.push(storyEntry);
   }
 
+  /**
+   * Increases the character level and rolls for skill, hair, item, and skill level unlocks.
+   */
   levelUp() {
     this.level++;
     
@@ -113,6 +169,10 @@ class Character {
     }
   }
 
+  /**
+   * Unlocks a random available skill, preferring ones matching the character's personality.
+   * @returns {Object|null} The unlocked skill object or null if none are available
+   */
   unlockRandomSkill() {
     const personality = this.personality ? CHARACTER_SYSTEM.PERSONALITIES.find(p => p.id === this.personality) : null;
     
@@ -168,6 +228,10 @@ class Character {
     return randomSkill;
   }
 
+  /**
+   * Unlocks a random front or back hair style not yet owned by the account.
+   * @returns {Object|null} Object with type and id of the unlocked hair, or null
+   */
   unlockRandomHairStyle() {
     const availableFrontHairs = [];
     const availableBackHairs = [];
@@ -203,6 +267,10 @@ class Character {
     return null;
   }
 
+  /**
+   * Unlocks a random clothing item not yet owned by the account.
+   * @returns {Object|null} The unlocked item object or null if none are available
+   */
   unlockRandomItem() {
     const defaultItems = ["top_seifuku_default", "bottom_skirt_blue", "shoes_common"];
     
@@ -224,6 +292,11 @@ class Character {
     return null;
   }
   
+  /**
+   * Evaluates finished game results and may develop a new personality from eligible candidates.
+   * @param {Object} gameResults - Results from a completed game session
+   * @returns {Object|null} The developed personality object or null
+   */
   studyPersonalities(gameResults) {
     if (!gameResults.complete || gameResults.autoplay) return null;
     
@@ -294,6 +367,12 @@ class Character {
     return null;
   }
   
+  /**
+   * Computes how well gameplay results satisfy a personality's development criteria.
+   * @param {Object} personality - The personality definition to score
+   * @param {Object} gameResults - Results from a completed game session
+   * @returns {number} Normalized score between 0 and 1
+   */
   calculatePersonalityScore(personality, gameResults) {
     const reasons = personality.reasons || {};
     let score = 0;
@@ -363,6 +442,10 @@ class Character {
     return totalChecks > 0 ? score / totalChecks : 0;
   }
 
+  /**
+   * Returns all unlocked hair style IDs organized by front and back types.
+   * @returns {Object} Object with front and back arrays of hair style IDs
+   */
   getAvailableHairStyles() {
     return {
       front: Account.characters.unlockedHairs.front,
@@ -370,10 +453,19 @@ class Character {
     };
   }
 
+  /**
+   * Returns all unlocked clothing item IDs for the account.
+   * @returns {Array} List of unlocked item IDs
+   */
   getAvailableItems() {
     return Account.characters.unlockedItems;
   }
   
+  /**
+   * Looks up a clothing item definition by its ID.
+   * @param {string} itemId - The item identifier
+   * @returns {Object|null} The matching item object or null
+   */
   static getItem(itemId) {
     for (const item of CHARACTER_ITEMS) {
       if (item.id === itemId) return item;
@@ -381,6 +473,11 @@ class Character {
     return null;
   }
 
+  /**
+   * Looks up a personality definition by its ID.
+   * @param {string} itemId - The personality identifier
+   * @returns {Object|null} The matching personality object or null
+   */
   static getPersonlity(itemId) {
     for (const item of CHARACTER_SYSTEM.PERSONALITIES) {
       if (item.id === itemId) return item;
@@ -388,6 +485,12 @@ class Character {
     return null;
   }
 
+  /**
+   * Applies a hair style if the character owns it.
+   * @param {string} type - Hair type, either 'front' or 'back'
+   * @param {number} hairId - The hair style ID to apply
+   * @returns {boolean} Whether the change succeeded
+   */
   changeHairStyle(type, hairId) {
     if (type === 'front' && Account.characters.unlockedHairs.front.includes(hairId)) {
       this.appearance.frontHair = hairId;
@@ -399,11 +502,21 @@ class Character {
     return false;
   }
   
+  /**
+   * Sets the hair tint color for the character's appearance.
+   * @param {number} tint - Hex color value for the hair tint
+   * @returns {boolean} Whether the change succeeded
+   */
   changeHairTint(tint) {
     this.appearance.tints.hair = tint;
     return true;
   }
 
+  /**
+   * Equips a clothing item if owned, handling tint layers and the special item slot.
+   * @param {string} itemId - The clothing item ID to equip
+   * @returns {boolean} Whether the change succeeded
+   */
   changeClothing(itemId) {
     if (Account.characters.unlockedItems.includes(itemId)) {
       const item = CHARACTER_ITEMS.clothing.find(i => i.id === itemId) || 
@@ -438,19 +551,35 @@ class Character {
     return false;
   }
 
+  /**
+   * Returns the experience points required to reach the next level.
+   * @returns {number} Required experience points
+   */
   getRequiredExperience() {
     return CHARACTER_SYSTEM.EXPERIENCE_CURVE(this.level);
   }
 
+  /**
+   * Returns the progress ratio toward the next level.
+   * @returns {number} Progress value between 0 and 1
+   */
   getExperienceProgress() {
     const required = this.getRequiredExperience();
     return this.experience / required;
   }
 
+  /**
+   * Checks whether the character has any unlocked skills to use.
+   * @returns {boolean} True if the character can use a skill
+   */
   canUseSkill() {
     return this.skillLevel > 0 && this.unlockedSkills.length > 0;
   }
 
+  /**
+   * Serializes the character into a plain object suitable for persistence.
+   * @returns {Object} Character data ready for JSON storage
+   */
   toJSON() {
     return {
       name: this.name,

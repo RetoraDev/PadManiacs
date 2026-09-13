@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Jukebox - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Jukebox Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Music player mode with visualizers</p>
+
+    [heading: "Description"]
+    <p>The Jukebox state is a full music player that cycles through the game's song library with play, pause, seek, skip, shuffle and volume controls. It renders animated audio visualizers, synchronized lyrics, and per-song background art, and remembers the playback position of each song. Input is handled through the gamepad, mouse and keyboard.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Playback controls, seek, skip and volume adjustment
+* Multiple audio visualizer modes
+* Fullscreen mode and per-song lyrics
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ songs | Array | Song list to play; defaults to local plus external songs. ]
+[ startIndex | number | Index of the first song to load. ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ songs | Array | Song list managed by the jukebox. ]
+[ currentIndex | number | Index of the currently loaded song. ]
+[ currentSong | Object | The song object currently loaded. ]
+[ isPlaying | boolean | Whether audio is currently playing. ]
+[ isShuffled | boolean | Whether shuffle mode is active. ]
+[ visualizerMode | string | Active visualizer type ('bars', 'symmetrical', etc.). ]
+[ playbackPositions | Object | Remembered playback positions keyed by song. ]
+[ audioElement | HTMLAudioElement | Audio element driving all playback. ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ init | (songs, startIndex) | Initializes the song list, playback state, and visualizer settings. ]
+[ create | () | Sets up background, audio player, UI, visualizer, lyrics, and first song. ]
+[ loadLyrics | (lrcContent) | Parses an LRC string into a synchronized lyrics object. ]
+[ loadSong | (index, reset) | Loads the song at the given index and begins playback. ]
+[ changeVolume | (delta) | Steps the master volume by a delta and persists the account setting. ]
+[ play | () | Starts playback of the audio element and flips the isPlaying flag. ]
+[ pause | () | Pauses the audio element and clears the isPlaying flag. ]
+[ togglePlayback | () | Toggles between play and pause, flashing the pause button frame. ]
+[ nextSong | (reset) | Advances to the next song, looping to the start of the playlist. ]
+[ previousSong | () | Moves to the previous song, looping to the end of the playlist. ]
+[ toggleShuffle | () | Toggles shuffle mode, randomizing or restoring the song order. ]
+[ seekForward | () | Seeks forward in the current song by one seek step. ]
+[ seekBackward | () | Seeks backward in the current song by one seek step. ]
+[ changeVisualizerMode | () | Cycles to the next visualizer type and applies it to the display. ]
+[ showSongList | () | Opens the playlist window listing every song with its title. ]
+[ showMenu | () | Opens the jukebox menu with song list, shuffle, and exit options. ]
+[ exitJukebox | () | Saves the playback position, cleans up audio/visualizer resources, and exits. ]
+[ update | () | Updates the visualizer, displays, video background, and input each frame. ]
+[ updateLyrics | () | Advances the lyrics display to the current audio time. ]
+[ handleInput | () | Processes gamepad and mouse input for playback, volume, seek and menus. ]
+[ shutdown | () | Saves position and cleans up audio, visualizer, and lyrics resources. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+// Start playback of every local and external song
+game.state.start("Jukebox");
+
+// Or pass a custom song list and starting index
+game.state.start("Jukebox", true, false, [songA, songB], 1);
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

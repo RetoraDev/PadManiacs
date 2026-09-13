@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Load - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Load Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Dynamic asset loading with progress tracking</p>
+
+    [heading: "Description"]
+    <p>A generic loading state that receives a list of resources and loads them for the game cache according to their declared type (image, spritesheet, audio, video, JSON, or text). It displays a bilingual progress text overlay while assets are retrieved and, once every resource has been queued, transitions into the state that was requested after loading completes.</p>
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ resources | Array&lt;Object&gt; | Pending resource manifest to load ]
+[ nextState | string | Game state key to start once loading finishes ]
+[ nextStateParams | Object | Parameters forwarded to the next state ]
+[ loadedCount | number | Number of resources queued so far ]
+[ totalCount | number | Total number of resources to load ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ init | (resources, nextState, nextStateParams) | Stores the resource list, the state to start once loading finishes, and any parameters that should be passed along to that next state. ]
+[ preload | () | Registers every resource from the manifest with the Phaser loader using its declared type, and shows the bilingual loading progress text while assets load. ]
+[ create | () | Runs after all resources have been loaded and starts the requested next state, forwarding along any stored parameters. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Kicking off a load of arbitrary assets, then jumping to the Title state.
+const resources = [
+  { key: 'ui_logo_shape', url: 'ui/logo_shape.png', type: 'image' }
+];
+game.state.start('Load', true, false, resources, 'Title');
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Background - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "Background Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Generic background sprite with alpha tween</p>
+
+    [heading: "Description"]
+    <p>A full-screen sprite anchored at the top-left that sits behind the gameplay scene. The sprite starts at the minimum alpha and, when tween is enabled, drifts between min and max with an infinite yoyo tween. Fade methods let individual states animate the background in and out on demand.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Optional looping alpha pulsation
+* Manual fade in/out helpers
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ key | String | Texture key of the background image ]
+[ tween | Boolean | Whether to automatically oscillate alpha ]
+[ min | Number | Minimum alpha value ]
+[ max | Number | Maximum alpha value ]
+[ time | Number | Duration of the alpha tween in milliseconds ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ alpha | Number | Current alpha value ]
+[ minAlpha | Number | Minimum alpha value ]
+[ maxAlpha | Number | Maximum alpha value ]
+[ tweenTime | Number | Alpha tween duration in milliseconds ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ fadeIn | () | Fades the background sprite up to its maximum alpha using a linear tween. ]
+[ fadeOut | () | Fades the background sprite down to its minimum alpha using a linear tween. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const bg = new Background('my_background', true, 0.1, 0.5, 1000);
+game.add.existing(bg);
+bg.fadeIn();
+bg.fadeOut();
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

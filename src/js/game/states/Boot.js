@@ -1,7 +1,29 @@
+/**
+ * @class Boot
+ * @category Game States
+ * @summary Load critical assets, initialize input system, then start loading the game
+ * @constructor
+ * @description
+ * The very first game state that runs on launch. It preloads essential spritesheets such as
+ * fonts and window panels, fixes account settings migrated from older versions, initializes
+ * global systems like notifications, input management, achievements, and the mouse cursor,
+ * then registers every subsequent game state and begins the asset loading pipeline.
+ * @example
+ * // Boot is the entry state set in the Phaser game config.
+ * // It transitions automatically to the Load state once setup is complete.
+ * game = new Phaser.Game(480, 270, Phaser.AUTO, 'game', null, null, false);
+ * game.state.add('Boot', Boot);
+ * game.state.start('Boot');
+ */
 class Boot {
+  /**
+   * Loads the essential spritesheets (fonts and window panels) and records their keys
+   * into this.keys, then checks whether the game crashed during the previous session.
+   */
   preload() {
     this.load.baseURL = "assets/";
 
+    /** @type {Array<string>} Keys of the primary spritesheets loaded in this state */
     this.keys = [];
 
     Object.keys(FONTS).forEach(key => {
@@ -17,6 +39,10 @@ class Boot {
     // Check if game crashed last time
     this.checkForCrashRecovery();
   }
+  /**
+   * Checks a local storage flag to detect whether the game crashed on the previous
+   * session and clears it while marking the account for a later bug report dialog.
+   */
   checkForCrashRecovery() {
     const lastCrashed = localStorage.getItem('gameLastCrashed');
     if (lastCrashed === 'true') {
@@ -28,6 +54,10 @@ class Boot {
       saveAccount();
     }
   }
+  /**
+   * Migrates the saved account data into a compatible format for the current game
+   * version, fixing older keyboard mappings, character customization, and settings fields.
+   */
   fixSettings() {
     const currentVersion = DEFAULT_ACCOUNT.version;
     const oldVersion = Account.version;
@@ -128,16 +158,24 @@ class Boot {
     Account.version = currentVersion;
     saveAccount();
   }
+  /**
+   * Initializes global systems (notifications, input manager, achievements, mouse cursor),
+   * registers every game state, builds the full resource manifest, and transitions to the Load state.
+   */
   create() {
+    /** @type {NotificationSystem} Global notification system instance */
     notifications = new NotificationSystem();
     
     this.fixSettings();
 
+    /** @type {InputManager} Global input manager handling input system definitions */
     window.inputManager = new InputManager(game);
     
+    /** @type {AchievementsManager} Global achievements and stats system instance */
     achievementsManager = new AchievementsManager();
     achievementsManager.initialize();
     
+    /** @type {MouseCursor} Global mouse cursor instance */
     mouse = new MouseCursor();
 
     game.time.advancedTiming = true;

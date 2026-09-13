@@ -1,3 +1,27 @@
+/**
+ * @class NumberInput
+ * @category UI Classes
+ * @summary Numeric value input dialog
+ * @constructor
+ * @param {object} [config={}] - Config with min, max, decimals, and initial text
+ * @features
+ * Clamped numeric range with min and max enforcement
+ * Decimal place support with fixed formatting
+ * Increment and decrement on gamepad up/down
+ * Dispatches the numeric value on confirm or cancel
+ * @description
+ * NumberInput extends TextInput to edit numeric values instead of free text.
+ * The input is clamped to a min/max range, honors a decimal-place count, and
+ * restricts the permitted characters accordingly. Gamepad up/down increments
+ * or decrements the value, and confirm or cancel dispatch the numeric result.
+ * @example
+ * // Modding usage example
+ * const input = new NumberInput({
+ *   text: '7',
+ *   min: 0, max: 10, decimals: 0,
+ *   onConfirm: (value) => setSpeed(value)
+ * });
+ */
 class NumberInput extends TextInput {
   constructor(config = {}) {
     config = {
@@ -32,17 +56,29 @@ class NumberInput extends TextInput {
       onCancel: config.onCancel
     });
     
+    /** @type {number} Minimum allowed value */
     this.min = config.min;
+    /** @type {number} Maximum allowed value */
     this.max = config.max;
+    /** @type {number} Number of decimal places to display */
     this.decimals = config.decimals;
   }
   
+  /**
+   * Parses the current text into a number clamped to the configured range.
+   * @returns {number} The clamped numeric value
+   */
   getNumericValue() {
     let value = parseFloat(this.text);
     if (isNaN(value)) value = this.min;
     return Math.min(this.max, Math.max(this.min, value));
   }
   
+  /**
+   * Validates characters for numeric input, guarding minus and decimal signs.
+   * @param {string} char - The single character to validate
+   * @returns {boolean} True when the character may be inserted
+   */
   validateCharInput(char) {
     if (char === '-') {
       return this.text.length === 0;
@@ -55,6 +91,11 @@ class NumberInput extends TextInput {
     return super.validateCharInput(char);
   }
   
+  /**
+   * Handles input, mapping up/down to increment/decrement actions.
+   * @param {object} key - Key event with an optional action string
+   * @param {string} input - The character to insert (ignored for actions)
+   */
   receiveInput(key, input) {
     const oldValue = this.getNumericValue();
     
@@ -92,6 +133,9 @@ class NumberInput extends TextInput {
     }
   }
   
+  /**
+   * Increases the value by one step of the configured decimal precision.
+   */
   increment() {
     let step = Math.pow(10, -this.decimals);
     let newValue = this.getNumericValue() + step;
@@ -99,6 +143,9 @@ class NumberInput extends TextInput {
     this.setValue(newValue);
   }
   
+  /**
+   * Decreases the value by one step of the configured decimal precision.
+   */
   decrement() {
     let step = Math.pow(10, -this.decimals);
     let newValue = this.getNumericValue() - step;
@@ -106,6 +153,10 @@ class NumberInput extends TextInput {
     this.setValue(newValue);
   }
   
+  /**
+   * Sets and displays a value, clamped to the configured range.
+   * @param {number} value - The value to set
+   */
   setValue(value) {
     value = Math.min(this.max, Math.max(this.min, value));
     let displayValue;
@@ -119,6 +170,9 @@ class NumberInput extends TextInput {
     this.updateCursor();
   }
   
+  /**
+   * Reclamps the current text's value and refreshes its formatted display.
+   */
   clampAndUpdateDisplay() {
     let value = this.getNumericValue();
     let newDisplay;
@@ -136,12 +190,18 @@ class NumberInput extends TextInput {
     }
   }
   
+  /**
+   * Dispatches the clamped numeric value on onConfirm and destroys the input.
+   */
   confirm() {
     const numericValue = this.getNumericValue();
     this.onConfirm.dispatch(numericValue);
     this.destroy();
   }
   
+  /**
+   * Dispatches the clamped numeric value on onCancel and destroys the input.
+   */
   cancel() {
     const numericValue = this.getNumericValue();
     this.onCancel.dispatch(numericValue);

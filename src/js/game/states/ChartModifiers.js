@@ -1,18 +1,51 @@
+/**
+ * @class ChartModifiers
+ * @category Game States
+ * @summary Chart modifier and note rendering settings screen
+ * @constructor
+ * @features
+ * Toggle switches for No Jumps, No Hands, No Freezes, No Mines, Mirrored and Randomized
+ * Inline note colors, note speed and speed mod options when opened outside of Settings
+ * Applies and saves the modifiers to the account before returning to the calling state
+ * @description
+ * The Chart Modifiers state is a compact settings overlay reachable from the pause menu
+ * or from Settings. It edits note rendering options and toggles the chart modifier flags,
+ * saving them to the account and returning control to the state that requested them.
+ * @example
+ * // Launch chart modifiers and resume gameplay afterwards
+ * game.state.start("ChartModifiers", true, false, "Play", song, 0);
+ *
+ * // Read the active chart modifiers
+ * console.log(Account.settings.chartModifiers);
+ */
 class ChartModifiers {
+  /**
+   * Phaser state hook that stores the state to return to after applying.
+   * @param {string} returnState - Name of the state to return to after applying
+   * @param {...*} returnParams - Params to forward when restarting the return state
+   */
   init(returnState = "Settings", ...returnParams) {
     this.returnState = returnState;
     this.returnParams = returnParams;
   }
   
+  /**
+   * Phaser state hook that sets up the background and builds the settings window.
+   */
   create() {
     game.camera.fadeIn(0x000000);
 
+    /** @type {FuturisticLines} Decorative animated background line effect */
     this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Ambient gradient overlay for the menu background */
     this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} On-screen hint bar with contextual button labels */
     this.navigationHint = new NavigationHint("general");
     
+    /** @type {Object} The current chart modifier flags being edited */
     this.modifiers = Account.settings.chartModifiers || DEFAULT_ACCOUNT.settings.chartModifiers;
     
+    /** @type {WindowManager} Manages the settings window and its focus */
     this.windowManager = new WindowManager();
     
     gamepad.releaseAll();
@@ -22,11 +55,17 @@ class ChartModifiers {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Phaser lifecycle hook called every frame to poll gamepad input.
+   */
   update() {
     gamepad.update();
     this.windowManager.update();
   }
   
+  /**
+   * Builds the settings window with the modifier and rendering options.
+   */
   showMenu() {
     const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
     settingsWindow.fontTint = 0x76fcde;
@@ -125,6 +164,15 @@ class ChartModifiers {
     }, true);
   }
 
+  /**
+   * Shows a modal confirmation dialog with the given message and buttons.
+   * @param {string} message - Text to display inside the dialog
+   * @param {Function} onConfirm - Callback invoked when the confirm button is chosen
+   * @param {Function} onCancel - Callback invoked when the dialog is cancelled
+   * @param {string} [confirmText] - Label for the confirm button
+   * @param {string} [cancelText] - Label for the cancel button
+   * @returns {DialogWindow} The created dialog
+   */
   confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]

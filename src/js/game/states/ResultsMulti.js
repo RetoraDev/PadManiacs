@@ -1,15 +1,44 @@
+/**
+ * @class ResultsMulti
+ * @category Game States
+ * @summary Multiplayer results screen with winner declaration
+ * @constructor
+ * @features
+ * Side-by-side score, accuracy, rating, combo and judgement breakdown for both players
+ * Winner determination driven by score, then accuracy, combo and judgement quality
+ * Records win counters and declares a DRAW or PLAYER N victory with a pulsing banner
+ * @description
+ * The multiplayer results state extends Results to summarize a local two-player match.
+ * It lays out both players' performance side by side, computes the winner with a
+ * tie-breaker chain and updates the persistent win/loss counters on the account.
+ * @example
+ * // Open the multiplayer results for a finished match
+ * game.state.start("ResultsMulti", true, false, gameResults, config);
+ */
 class ResultsMulti extends Results {
   constructor() {
     super();
   }
   
+  /**
+   * Phaser state hook that stores the game results and match configuration.
+   * @param {Object} gameResults - Combined results for both players from PlayMulti
+   * @param {Object} config - The multiplayer configuration used for the match
+   */
   init(gameResults, config) {
+    /** @type {Object} Combined results for both players */
     this.gameResults = gameResults;
+    /** @type {Object} The multiplayer configuration used for the match */
     this.config = config;
+    /** @type {Object} The song that was played */
     this.song = gameResults.song;
+    /** @type {number} Index of the difficulty that was played */
     this.difficultyIndex = gameResults.difficultyIndex;
   }
   
+  /**
+   * Phaser state hook that builds the multiplayer results screen.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -20,6 +49,9 @@ class ResultsMulti extends Results {
     this.displayResults();
   }
   
+  /**
+   * Renders the match summary, previews the audio and declares the winner.
+   */
   displayResults() {
     // Banner
     this.bannerImg = document.createElement("img");
@@ -91,6 +123,10 @@ class ResultsMulti extends Results {
     this.showMenu();
   }
   
+  /**
+   * Determines the match winner by comparing score, accuracy, combo and judgements.
+   * @returns {number} 1, 2 or 0 for player 1, player 2 or a draw
+   */
   getWinner() {
     const { player1, player2 } = this.gameResults.results;
     
@@ -130,6 +166,10 @@ class ResultsMulti extends Results {
     return 0;
   }
   
+  /**
+   * Renders a single player's results panel on the appropriate side of the screen.
+   * @param {number} playerNumber - The player number (1 or 2)
+   */
   showPlayerResults(playerNumber) {
     const player = this.gameResults["player" + playerNumber];
     
@@ -174,6 +214,9 @@ class ResultsMulti extends Results {
     }
   }
   
+  /**
+   * Builds the multiplayer results navigation menu.
+   */
   showMenu() {
     const menu = new CarouselMenu(game.width / 2 - 25, 50, 50, 80, {
       gradient: false,

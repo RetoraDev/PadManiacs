@@ -1,13 +1,45 @@
+/**
+ * @class PlayMulti
+ * @category Game States
+ * @summary Two-player local multiplayer gameplay state
+ * @constructor
+ * @features
+ * Two independent players sharing one chart with separate scores, lifebars and combos
+ * Split-layout HUD with per-player score, accuracy, combo and judgement text
+ * Per-player autoplay flags plus a shared metronome assist tick display
+ * @description
+ * The multiplayer gameplay state extends the single player Play state to run two
+ * simultaneous players on a shared chart. Each player keeps an independent combo,
+ * score, lifebar, accuracy and autoplay flag, and the state resolves to a combined
+ * results object consumed by the ResultsMulti screen.
+ * @example
+ * // Launch a local multiplayer game for two configured players
+ * game.state.start("PlayMulti", true, false, {
+ *   song: song,
+ *   difficultyIndex: 0,
+ *   player1: { settings: { autoplay: false } },
+ *   player2: { settings: { autoplay: true } }
+ * });
+ */
 class PlayMulti extends Play {
   constructor() {
     super();
   }
   
+  /**
+   * Phaser state hook that forwards the shared chart to Play.init and stores the config.
+   * @param {Object} config - Multiplayer config with song, difficultyIndex and player settings
+   * @param {number} _ - Unused difficulty placeholder
+   * @param {boolean} __ - Unused playtest mode placeholder
+   * @param {boolean} ___ - Unused autoplay placeholder
+   * @param {string} playlistKey - Optional playlist key for the song
+   */
   init(config, _, __, ___, playlistKey) {
     const { song, difficultyIndex } = config;
     
     super.init({ chart: song, difficultyIndex }, difficultyIndex, undefined, undefined, playlistKey);
     
+    /** @type {Object} The multiplayer configuration with per-player settings */
     this.config = config;
     
     // Disable character system
@@ -15,10 +47,16 @@ class PlayMulti extends Play {
     this.skillSystem.character = null;
   }
   
+  /**
+   * Phaser state hook that builds the shared HUD and player layout.
+   */
   create() {
     super.create();
   }
   
+  /**
+   * Builds the split multiplayer HUD with per-player score, lifebar and combo.
+   */
   createHud() {
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
@@ -37,9 +75,11 @@ class PlayMulti extends Play {
     this.hudBottom.alpha = 0;
     this.hud.addChild(this.hudBottom);
     
+    /** @type {Phaser.Sprite} HUD container for player 1 */
     this.p1Hud = game.add.sprite(0, 0, "ui_hud_player_parent_multi", 0);
     this.hudTop.addChild(this.p1Hud);
     
+    /** @type {Phaser.Sprite} HUD container for player 2 */
     this.p2Hud = game.add.sprite(0, 0, "ui_hud_player_parent_multi", 1);
     this.hudTop.addChild(this.p2Hud);
     
@@ -138,10 +178,16 @@ class PlayMulti extends Play {
     this.p2AutoplayText.anchor.x = 1;
   }
   
+  /**
+   * Creates the shared center visualizer in the multiplayer HUD layout.
+   */
   createVisualizer() {
     super.createVisualizer(97, 131, 46, 7);
   }
   
+  /**
+   * Spawns the FirstPlayer and SecondPlayer with their own input settings.
+   */
   setupPlayer() {
     this.player1 = new FirstPlayer(this, this.config.player1.settings);
     this.player2 = new SecondPlayer(this, this.config.player2.settings);
@@ -149,10 +195,18 @@ class PlayMulti extends Play {
     this.player = this.player1;
   }
   
+  /**
+   * Overrides the pause stats block for the multiplayer layout.
+   * @returns {string} An empty string (stats are shown via separate player texts)
+   */
   getStatsContent() {
     return "";
   }
   
+  /**
+   * Collects both players' results into a combined multiplayer result object.
+   * @returns {Object} The multiplayer game results
+   */
   getGameResults() {
     return {
       song: this.song,
@@ -167,10 +221,16 @@ class PlayMulti extends Play {
     };
   }
   
+  /**
+   * Restarts the multiplayer game with the same configuration.
+   */
   restartSong() {
     game.state.start("PlayMulti", true, false, this.config);
   }
   
+  /**
+   * Finalizes the multiplayer run and opens the ResultsMulti state.
+   */
   songEnd() {
     // Forget preloaded backgrounds
     Object.entries(this.preloadedBackgroundElements).map(entry => entry[1] || null).forEach(element => {
@@ -197,6 +257,10 @@ class PlayMulti extends Play {
     game.state.start("ResultsMulti", true, false, gameResults, this.config);
   }
   
+  /**
+   * Shows the full combo or flawless banner for a player when achieved.
+   * @param {Object} player - The player to check for a full combo
+   */
   checkFullCombo(player) {
     if (player && !this.started && player.fullComboStarted) return;
     
@@ -230,6 +294,9 @@ class PlayMulti extends Play {
     }
   }
   
+  /**
+   * Phaser lifecycle hook called every frame; updates both players.
+   */
   update() {
     gamepad.update();
         
@@ -286,6 +353,9 @@ class PlayMulti extends Play {
     this.checkFullCombo(this.player2);
   }
   
+  /**
+   * Phaser render hook that renders both players' note objects.
+   */
   render() {
     if (this.player1 && this.player2) {
       this.player1.render();

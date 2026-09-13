@@ -1,6 +1,31 @@
+/**
+ * @class WindowManager
+ * @category UI Classes
+ * @summary Manages UI windows, focus, and navigation
+ * @constructor
+ * @features
+ * Tracks and focuses a stack of UI windows
+ * Routes gamepad navigation, confirm, and cancel to the focused window
+ * Mouse hover selection, wheel scrolling, and click confirmation
+ * Dynamic repeat cooldown for held directional buttons
+ * @description
+ * WindowManager owns every open Window, keeps a single focused window, and
+ * forwards gamepad and mouse input to it. It applies a dynamic cooldown so
+ * held directional buttons repeat at increasing speed, moves the selection by
+ * mouse hover, and supports wheel scrolling and click confirmation. It is the
+ * hub that connects the menu windows together.
+ * @example
+ * // Modding usage example
+ * const ui = new WindowManager();
+ * const menu = ui.createWindow(4, 3, 14, 8, "1");
+ * const modal = ui.createWindow(6, 5, 10, 4, "1");
+ * ui.focus(menu);
+ */
 class WindowManager {
   constructor() {
+    /** @type {Array} Stack of managed Window objects */
     this.windows = [];
+    /** @type {Window} Window that currently receives navigation input */
     this.focusedWindow = null;
     
     this.gamepad = gamepad;
@@ -15,6 +40,11 @@ class WindowManager {
     this.mouseTarget = null;
   }
 
+  /**
+   * Registers a window and focuses it automatically when it is the first.
+   * @param {Window} window - The window to manage
+   * @returns {Window} The added window
+   */
   add(window) {
     if (!this.windows.includes(window)) {
       this.windows.push(window);
@@ -28,10 +58,21 @@ class WindowManager {
     return window;
   }
 
+  /**
+   * Shows a managed window without changing focus.
+   * @param {Window} window - The window to show
+   */
   show(window) {
     window.show();
   }
 
+  /**
+   * Removes a window from the stack, optionally destroying it.
+   * The next available window receives focus when the focused one is removed.
+   * @param {Window} window - The window to remove
+   * @param {boolean} [destroy=true] - Whether to destroy the window
+   * @returns {boolean} True when the window was removed
+   */
   remove(window, destroy = true) {
     const index = this.windows.indexOf(window);
     if (index !== -1) {
@@ -58,6 +99,12 @@ class WindowManager {
     return false;
   }
 
+  /**
+   * Focuses a window, hiding the previously focused one and showing its arrow.
+   * @param {Window} window - The window to focus
+   * @param {boolean} [hide=true] - Whether to hide the previously focused window
+   * @returns {boolean} True when the window was focused
+   */
   focus(window, hide = true) {
     if (window && this.windows.includes(window)) {
       // Hide selector for previously focused window
@@ -78,10 +125,16 @@ class WindowManager {
     return false;
   }
 
+  /**
+   * Clears the focused window reference without modifying the stack.
+   */
   unfocus() {
     this.focusedWindow = null;
   }
 
+  /**
+   * Clears focus and hides every managed window.
+   */
   closeAll() {
     if (this.focusedWindow) {
       this.focusedWindow.focus = false;
@@ -90,6 +143,9 @@ class WindowManager {
     this.windows.forEach(window => window.hide());
   }
 
+  /**
+   * Processes mouse and gamepad input for the focused window each frame.
+   */
   update() {
     // Only process input if we have a focused window
     if (this.focusedWindow && !this.focusedWindow.disposed) {
@@ -99,6 +155,10 @@ class WindowManager {
     }
   }
   
+  /**
+   * Routes gamepad presses and held buttons to the focused window.
+   * Uses a dynamic cooldown so held directions repeat at increasing speed.
+   */
   handleGamepadNavigation() {
     // Handle gamepad navigation
     const { up, down, left, right, a, b } = this.gamepad.held;
@@ -176,6 +236,9 @@ class WindowManager {
     }
   }
   
+  /**
+   * Handles mouse hover selection, wheel scrolling, and click confirmation.
+   */
   handleMouseNavigation() {
     const position = mouse.pointer.position;
     
@@ -205,6 +268,12 @@ class WindowManager {
     this.previousMouseTarget = this.mouseTarget;
   }
   
+  /**
+   * Returns whether the given position lies inside the window bounds.
+   * @param {Window} window - The window to test against
+   * @param {object} position - Position with x and y properties
+   * @returns {boolean} True when the position is inside the window
+   */
   checkMouseBounds(window, position) {
     const { x, y } = position;
 
@@ -219,6 +288,12 @@ class WindowManager {
     return true;
   }
   
+  /**
+   * Returns the topmost visible item hovered by the given mouse position.
+   * @param {Window} window - The window whose items are tested
+   * @param {object} position - Position with x and y properties
+   * @returns {object|null} The hovered item or null
+   */
   getMouseTarget(window, position) {
     const { x, y } = position;
     
@@ -236,12 +311,25 @@ class WindowManager {
   }
 
   // Helper methods for common operations
+  /**
+   * Creates a Window, registers it with the manager, and returns it.
+   * @param {number} x - Window X position in grid cells
+   * @param {number} y - Window Y position in grid cells
+   * @param {number} width - Window width in grid cells
+   * @param {number} height - Window height in grid cells
+   * @param {string} [skin="1"] - Window skin key
+   * @param {object} [parent] - Optional parent for the new window
+   * @returns {Window} The created window
+   */
   createWindow(x, y, width, height, skin = "1", parent = null) {
     const window = new Window(x, y, width, height, skin, parent);
     this.add(window);
     return window;
   }
 
+  /**
+   * Records the first press time to seed the dynamic cooldown timing.
+   */
   updatePressTiming() {
     // Track first press time
     if (this.firstPressTime === undefined) {
@@ -252,11 +340,18 @@ class WindowManager {
     this.lastPress = game.time.now;
   }
 
+  /**
+   * Resets the first and last press timestamps after a fresh input.
+   */
   resetPressTiming() {
     this.firstPressTime = game.time.now;
     this.lastPress = game.time.now;
   }
 
+  /**
+   * Clears the window stack and focus, optionally destroying each window.
+   * @param {boolean} [destroy=false] - Whether to destroy the removed windows
+   */
   clearAll(destroy = false) {
     if (destroy) {
       this.windows.forEach(window => window.destroy());
@@ -266,6 +361,11 @@ class WindowManager {
   }
 
   // Bring window to front (visually) without necessarily focusing it
+  /**
+   * Brings a window to the top visually and reorders the stack array.
+   * @param {Window} window - The window to bring to the front
+   * @returns {boolean} True when the window was reordered
+   */
   bringToFront(window) {
     if (this.windows.includes(window)) {
       window.bringToTop();

@@ -27,6 +27,7 @@
     "clean": "rm -rf dist",
     "clean:all": "rm -rf dist && rm -f *.zip *.apk",
     "test": "node test.js",
+    "docs": "node docs-generator.js",
     "help": "node index.js --help"
   },
   "repository": {

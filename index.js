@@ -9,6 +9,7 @@ const readline = require('readline');
 
 // Import the build system
 const { BuildSystem, buildProcess } = require('./build.js');
+const { generateDocs } = require('./docs-generator.js');
 
 class InteractiveInterface {
   constructor() {
@@ -48,6 +49,7 @@ class InteractiveInterface {
       { label: 'Build Options', action: () => this.showBuildMenu() },
       { label: 'Serve Project', action: () => this.showServeMenu() },
       { label: 'Run Tests', action: () => this.runTests() },
+      { label: 'Generate Docs', action: () => this.runDocs() },
       { label: 'Code Reminders', action: () => this.showCodeReminders() }, // New option
       { label: 'Project Info', action: () => this.showProjectInfo() },
       { label: 'Exit', action: () => this.exit() }
@@ -109,6 +111,7 @@ class InteractiveInterface {
       minify: false,
       debug: false,
       zipalign: false,
+      docs: false,
       headless: false,
       help: false
     };
@@ -151,6 +154,9 @@ class InteractiveInterface {
           break;
         case '--zipalign':
           parsed.zipalign = true;
+          break;
+        case '--docs':
+          parsed.docs = true;
           break;
         case '--no-install':
           parsed.noInstall = true;
@@ -195,6 +201,11 @@ class InteractiveInterface {
       return true;
     }
 
+    if (this.cliArgs.docs) {
+      this.executeCLIDocs();
+      return true;
+    }
+
     return false; // No CLI args handled, show interactive menu
   }
   
@@ -224,6 +235,7 @@ class InteractiveInterface {
     console.log('');
     
     console.log(this.color('Other Options:', 'yellow'));
+    console.log('  --docs           Generate JSDoc documentation');
     console.log('  --headless       Run without interactive menu');
     console.log('  --help, -h       Show this help message');
     console.log('');
@@ -232,6 +244,7 @@ class InteractiveInterface {
     console.log('  node index.js --cordova --debug');
     console.log('  node index.js --serve-src');
     console.log('  node index.js --all --minify --headless');
+    console.log('  node index.js --docs');
     console.log('  npm start -- --serve');
     console.log('');
     
@@ -1074,6 +1087,37 @@ class InteractiveInterface {
     console.log(this.color('Press any key to return to menu...', 'dim'));
     
     this.rl.input.once('data', () => this.showMainMenu());
+  }
+
+  runDocs() {
+    this.clearScreen();
+    this.drawLogo();
+    
+    this.busy = true;
+    
+    console.log(this.color('Generating documentation...\n', 'yellow'));
+    console.log(this.color('─'.repeat(50), 'dim') + '\n');
+    
+    try {
+      generateDocs();
+      console.log(`\n${this.color('Documentation generated successfully!', 'green')}`);
+    } catch (error) {
+      console.log(`\n${this.color('Documentation generation failed:', 'red')} ${error.message}`);
+    }
+    
+    console.log(this.color('Press any key to return to menu...', 'dim'));
+    
+    this.rl.input.once('data', () => this.showMainMenu());
+  }
+
+  executeCLIDocs() {
+    try {
+      generateDocs();
+      process.exit(0);
+    } catch (error) {
+      console.error(this.color('Documentation generation failed:', 'red'), error.message);
+      process.exit(1);
+    }
   }
 
   showProjectInfo() {

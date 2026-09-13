@@ -1,11 +1,45 @@
+/**
+ * @class SongSelect
+ * @category Game States
+ * @summary Song selection with previews and difficulty selection
+ * @constructor
+ * @features
+ * Carousel listing of songs with audio and banner previews
+ * High score display per song and a difficulty selection overlay
+ * Single player and two-player multiplayer setup with per-player settings
+ * Playlist actions for adding, removing and reordering songs
+ * @description
+ * The Song Select state lets players browse the loaded song list, preview audio and
+ * banners, inspect high scores and pick a difficulty. From here the player can start
+ * a single player game, configure a local multiplayer match, or manage songs and
+ * playlists through the actions menu.
+ * @example
+ * // Launch song select for the local song library
+ * game.state.start("SongSelect", true, false, window.localSongs, 0, false, "local");
+ *
+ * // Start a game directly for a chosen song and difficulty
+ * game.state.start("Play", true, false, { chart: song, difficultyIndex: 0 });
+ */
 class SongSelect {
+  /**
+   * Phaser state hook that stores the song list, starting index and type.
+   * @param {Object[]} songs - The song list to present
+   * @param {number} index - Song index to start the carousel at
+   * @param {boolean} autoSelect - Whether to auto-start the initially selected song
+   * @param {string} [type] - Source type of the songs ("auto", "local" or "external")
+   * @param {string} [playlistKey] - Optional playlist key the songs belong to
+   */
   init(songs, index, autoSelect, type = "auto", playlistKey = null) {
+    /** @type {string} Source type of the song list being browsed */
     this.type = type;
+    /** @type {string|null} Optional playlist key for the current song list */
     this.playlistKey = playlistKey;
     
     this.isActionMenuOpen = false;
     this.actionsMenuBlocked = false;
     
+    /** @type {Object[]} The song list presented in this state */
+    /** @type {number} Carousel index to start the song list at */
     switch (type) {
       case "local":
         this.songs = songs || window.localSongs || [];
@@ -24,6 +58,7 @@ class SongSelect {
     
     window.selectedSongs = this.songs;
     
+    /** @type {boolean} Whether the initially selected song should start automatically */
     this.autoSelect = autoSelect || false;
     
     if (!window.multiplayerState) window.multiplayerState = {
@@ -41,6 +76,9 @@ class SongSelect {
     }
   }
   
+  /**
+   * Phaser state hook that builds the selection UI and wires up previews.
+   */
   create() {
     //gamepad.singlePlayerId = gamepad.lastPlayerId;
     
@@ -50,7 +88,9 @@ class SongSelect {
     
     new BackgroundGradient();
     
+    /** @type {Object|null} The currently selected song */
     this.selectedSong = null;
+    /** @type {number} Index of the selected difficulty within the song */
     this.selectedDifficulty = 0;
     
     // Stop any background music when entering song selection
@@ -58,6 +98,7 @@ class SongSelect {
       backgroundMusic.stop();
     }
     
+    /** @type {HTMLAudioElement} Audio element used for song previews */
     this.previewAudio = this.previewAudio || document.createElement("audio");
     this.previewAudio.volume = Account.settings.volume / 100;
     
@@ -78,7 +119,9 @@ class SongSelect {
     this.loadingDots.y -= 8;
     this.loadingDots.visible = false;
     
+    /** @type {WindowManager} Window manager dedicated to player 1 */
     this.windowManager1 = new WindowManager(); // For Player 1
+    /** @type {WindowManager} Window manager dedicated to player 2 */
     this.windowManager2 = new WindowManager(); // For Player 2
     
     this.windowManager1.gamepad = gamepad1;
@@ -106,6 +149,9 @@ class SongSelect {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
+  /**
+   * Builds the song carousel menu, restores the starting index and previews.
+   */
   createSongSelectionMenu() {
     const x = 0;
     const y = 35;
@@ -163,6 +209,10 @@ class SongSelect {
     }
   }
 
+  /**
+   * Plays the audio preview and renders the banner and metadata for a song.
+   * @param {Object} song - The song being previewed
+   */
   previewSong(song) {
     let index = this.songCarousel.selectedIndex;
     
@@ -251,6 +301,10 @@ class SongSelect {
     }
   }
   
+  /**
+   * Displays the saved high scores for each difficulty of the given song.
+   * @param {Object} song - The song whose high scores are shown
+   */
   displayHighScores(song) {
     const songKey = this.getSongKey(song);
     const highScores = Account.highScores[songKey];
@@ -279,6 +333,11 @@ class SongSelect {
     this.highScoreText.write(highScoreText);
   }
   
+  /**
+   * Builds a stable storage key for a song based on its source.
+   * @param {Object} song - The song to identify
+   * @returns {string} The song's high score storage key
+   */
   getSongKey(song) {
     if (song.folderName) {
       return `local_${song.folderName}`;
@@ -294,6 +353,11 @@ class SongSelect {
     return `unknown_${Date.now()}`;
   }
   
+  /**
+   * Builds the metadata text block displayed for a song.
+   * @param {Object} data - The song data to describe
+   * @returns {string} The formatted metadata text
+   */
   getMetadataText(data) {
     const title = data.titleTranslit || data.title;
     const subtitle = data.subtitleTranslit || data.subtitle;
@@ -312,6 +376,11 @@ class SongSelect {
     return text;
   }
 
+  /**
+   * Sets the selected song and shows its difficulty selection overlay.
+   * @param {Object} song - The song the player chose
+   * @param {number} index - Index of the song in the carousel
+   */
   selectSong(song, index) {
     this.selectedSong = song;
     this.selectedDifficulty = 0;
@@ -320,6 +389,10 @@ class SongSelect {
     this.showDifficultySelection(song);
   }
 
+  /**
+   * Shows the carousel of difficulties available for the selected song.
+   * @param {Object} song - The song whose difficulties are listed
+   */
   showDifficultySelection(song) {
     const x = 0;
     const y = 37;
@@ -366,6 +439,11 @@ class SongSelect {
     });
   }
   
+  /**
+   * Shows the game mode carousel offering single player or multiplayer.
+   * @param {Object} song - The selected song
+   * @param {number} difficultyIndex - Index of the chosen difficulty
+   */
   showGameModeSelection(song, difficultyIndex) {
     const x = 0;
     const y = 37;
@@ -397,6 +475,11 @@ class SongSelect {
     });
   }
 
+  /**
+   * Builds the two-player setup windows with per-player match settings.
+   * @param {Object} song - The selected song
+   * @param {number} difficultyIndex - Index of the chosen difficulty
+   */
   showMultiplayerScreen(song, difficultyIndex) {
     this.multiplayerScreen = game.add.group();
     
@@ -441,6 +524,9 @@ class SongSelect {
     this.multiplayerState.difficultyIndex = difficultyIndex;
   }
   
+  /**
+   * Starts the multiplayer gameplay state with the configured settings.
+   */
   startMultiplayer() {
     this.multiplayerScreen.destroy();
     this.multiplayerScreen = null;
@@ -449,6 +535,11 @@ class SongSelect {
     game.state.start("PlayMulti", true, false, this.multiplayerState);
   }
   
+  /**
+   * Populates a player's setup window with autoplay, scroll, note and speed settings.
+   * @param {Object} window - The player's setup window to fill
+   * @param {number} playerNumber - The player number (1 or 2)
+   */
   populatePlayerFrame(window, playerNumber) {
     const settings = this.multiplayerState["player" + playerNumber].settings;
     
@@ -500,6 +591,12 @@ class SongSelect {
     );
   }
 
+  /**
+   * Starts the gameplay state for a song in single player or multiplayer.
+   * @param {Object} song - The selected song
+   * @param {number} difficultyIndex - Index of the chosen difficulty
+   * @param {boolean} singlePlayer - Whether to launch single player or multiplayer
+   */
   startGame(song, difficultyIndex, singlePlayer = true) {
     // Start gameplay with selected song
     game.state.start(singlePlayer ? "Play" : "PlayMulti", true, false, {
@@ -508,6 +605,10 @@ class SongSelect {
     }, difficultyIndex, undefined, undefined, this.playlistKey);
   }
 
+  /**
+   * Opens the actions menu for the current song (playlists, move, stats, editor).
+   * @param {string} [playlistKey] - Key of the playlist the song belongs to, if any
+   */
   showActionsMenu(playlistKey) {
     this.isActionMenuOpen = true;
     this.songCarousel.visible = false;
@@ -656,6 +757,11 @@ class SongSelect {
     this.actionsMenu.onCancel.add(() => this.closeActionsMenu());
   }
   
+  /**
+   * Shows the playlist picker for adding a song, excluding one optional playlist.
+   * @param {Object} song - The song to add to a playlist
+   * @param {string} [omitKey] - Playlist key to skip in the list
+   */
   showAddToPlaylistMenu(song, omitKey) {
     if (this.actionsMenu) this.actionsMenu.destroy();
     
@@ -698,6 +804,10 @@ class SongSelect {
     this.actionsMenu.onCancel.add(() => this.showActionsMenu(omitKey));
   }
   
+  /**
+   * Prompts the player to name and create a new playlist for the song.
+   * @param {Object} song - The song to assign to the new playlist
+   */
   createPlaylistForSong(song) {
     const keyboard = new OnScreenKeyboard(undefined, 68);
     
@@ -734,6 +844,9 @@ class SongSelect {
     });
   }
   
+  /**
+   * Closes the actions menu and restores the song carousel input.
+   */
   closeActionsMenu() {
     this.isActionMenuOpen = false;
     this.songCarousel.inputEnabled = true;
@@ -744,6 +857,9 @@ class SongSelect {
     }
   }
 
+  /**
+   * Phaser lifecycle hook called every frame; handles multiplayer readiness.
+   */
   update() {
     gamepad.update();
     
@@ -842,6 +958,9 @@ class SongSelect {
     }
   }
   
+  /**
+   * Phaser lifecycle hook called when leaving the state; stops previews.
+   */
   shutdown() {
     if (this.previewAudio && typeof this.previewAudio.pause == 'function') {
       this.previewAudio.pause();

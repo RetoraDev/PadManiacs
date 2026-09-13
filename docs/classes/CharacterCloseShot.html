@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>CharacterCloseShot - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "CharacterCloseShot Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Close-up character display for skill effects (36x7)</p>
+
+    [heading: "Description"]
+    <p>A specialized cropped character display configured with close-up crop dimensions. Shown briefly when skills activate to provide visual feedback during gameplay.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Uses close shot crop area from CHARACTER_SYSTEM constants
+* Displays cropped character view for skill activation feedback
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ x | number | Horizontal position ]
+[ y | number | Vertical position ]
+[ characterData | Object | Character data model ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const closeShot = new CharacterCloseShot(200, 100, characterData);
+game.world.addChild(closeShot);
+closeShot.updateAppearance({ top: 'top_seifuku_red' });
+closeShot.destroy();
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

@@ -1,10 +1,43 @@
+/**
+ * @class CharacterSkillSystem
+ * @category Character System Classes
+ * @summary Skill activation and effect management
+ * @constructor
+ * @param {Object} scene - The Phaser game state scene
+ * @param {Object} [character] - Character data model; falls back to scene.character
+ * @features
+ * Condition-based skill activation during gameplay
+ * Cooldown and duration tracking for all skills
+ * Effect modifiers applied and reverted on deactivation
+ * Skill bar updates and on-screen activation feedback
+ * @description
+ * Manages the lifecycle of character skills during a gameplay session, checking activation
+ * conditions, applying temporary effect modifiers, tracking cooldowns and durations, and
+ * reverting effects when skills expire or the game resets.
+ * @example
+ * // Modding usage example
+ * const skills = new CharacterSkillSystem(scene, character);
+ * function onJudge(judgement) {
+ *   skills.checkSkillActivation('on_miss', { judgement });
+ * }
+ * function update() {
+ *   skills.update();
+ * }
+ * skills.resetGame();
+ */
 class CharacterSkillSystem {
   constructor(scene, character) {
+    /** @type {Object} The owning Phaser game state scene */
     this.scene = scene;
+    /** @type {Object} Character data model using skills */
     this.character = character || scene.character;
+    /** @type {Map} Skills currently active with their start and end times */
     this.activeSkills = new Map();
+    /** @type {Map} Skill IDs mapped to their cooldown end times */
     this.skillCooldowns = new Map();
+    /** @type {number} Number of skills used during the current game */
     this.skillsUsedThisGame = 0;
+    /** @type {Object} Aggregate effect modifiers applied by active skills */
     this.skillEffects = {
       judgementConversion: null,
       judgementWindowMultiplier: 1.0,
@@ -22,6 +55,11 @@ class CharacterSkillSystem {
   }
 
   // Main method to check and activate skills
+  /**
+   * Checks whether the selected skill should activate for the given gameplay condition.
+   * @param {string} condition - The activation condition that occurred
+   * @param {Object} [params] - Context values such as judgement, combo, or health
+   */
   checkSkillActivation(condition, params = {}) {
     if (!this.character || this.exhausted) return;
 
@@ -36,6 +74,12 @@ class CharacterSkillSystem {
     }
   }
 
+  /**
+   * Determines whether a skill can be activated given cooldown, autoplay, and condition checks.
+   * @param {Object} skill - The skill definition
+   * @param {Object} params - Context values for condition evaluation
+   * @returns {boolean} Whether activation is allowed
+   */
   canActivateSkill(skill, params) {
     if (this.exhausted) return false;
     if (this.skillCooldowns.has(skill.id)) return false;
@@ -63,6 +107,11 @@ class CharacterSkillSystem {
     }
   }
 
+  /**
+   * Applies a skill's effect, sets its cooldown, shows visual feedback, and triggers the notify event.
+   * @param {Object} skill - The skill definition to activate
+   * @param {Object} params - Context values passed through for activation
+   */
   activateSkill(skill, params) {
     // Apply skill effect
     this.applySkillEffect(skill);
@@ -95,6 +144,10 @@ class CharacterSkillSystem {
     this.notifySkillUsed(skill);
   }
   
+  /**
+   * Shows an on-screen banner announcing the skill that was just used.
+   * @param {Object} skill - The skill definition that was activated
+   */
   notifySkillUsed(skill) {
     // Notify what skill was used
     const x = 4;
@@ -122,6 +175,10 @@ class CharacterSkillSystem {
     game.add.tween(background).to({ alpha: 1, x }, 350, Phaser.Easing.Quadratic.Out, true).yoyo(true).yoyoDelay(1000);
   }
 
+  /**
+   * Applies a skill's effect to the active modifiers based on its effect type.
+   * @param {Object} skill - The skill definition whose effect is applied
+   */
   applySkillEffect(skill) {
     switch (skill.effect) {
       case 'convert_judgement':
@@ -193,6 +250,10 @@ class CharacterSkillSystem {
     }
   }
 
+  /**
+   * Reverts a skill's effect and removes it from the active skills list.
+   * @param {string} skillId - ID of the skill to deactivate
+   */
   deactivateSkill(skillId) {
     const skillData = this.activeSkills.get(skillId);
     if (!skillData) return;
@@ -258,6 +319,10 @@ class CharacterSkillSystem {
     this.activeSkills.delete(skillId);
   }
 
+  /**
+   * Begins periodic health regeneration using the skill's interval and amount.
+   * @param {Object} params - Regeneration interval and amount
+   */
   startHealthRegen(params) {
     this.stopHealthRegen(); // Stop any existing regen
     
@@ -268,6 +333,9 @@ class CharacterSkillSystem {
     });
   }
 
+  /**
+   * Stops any active health regeneration timer.
+   */
   stopHealthRegen() {
     if (this.healthRegenTimer) {
       game.time.events.remove(this.healthRegenTimer);
@@ -276,6 +344,10 @@ class CharacterSkillSystem {
   }
   
   // Getters for skill effects (used by Player class)
+  /**
+   * Getters for skill effects, consumed by the Player class during gameplay.
+   * @returns {Object|null} Current judgement conversion effect
+   */
   getJudgementConversion() {
     if (this.exhausted) {
       return null;
@@ -284,42 +356,74 @@ class CharacterSkillSystem {
     }
   }
 
+  /**
+   * @returns {number} Current judgement window multiplier
+   */
   getJudgementWindowMultiplier() {
     return this.skillEffects.judgementWindowMultiplier;
   }
 
+  /**
+   * @returns {number} Current maximum health bonus
+   */
   getMaxHealthBonus() {
     return this.skillEffects.maxHealthBonus;
   }
 
+  /**
+   * @returns {number} Current note speed multiplier
+   */
   getNoteSpeedMultiplier() {
     return this.skillEffects.noteSpeedMultiplier;
   }
 
+  /**
+   * @returns {number} Current hold forgiveness multiplier
+   */
   getHoldForgivenessMultiplier() {
     return this.skillEffects.holdForgivenessMultiplier;
   }
 
+  /**
+   * @returns {number} Current roll forgiveness multiplier
+   */
   getRollForgivenessMultiplier() {
     return this.skillEffects.rollForgivenessMultiplier;
   }
 
+  /**
+   * @returns {number} Current mine damage multiplier
+   */
   getMineDamageMultiplier() {
     return this.skillEffects.mineDamageMultiplier;
   }
 
+  /**
+   * Returns the score multiplier applied for a specific judgement type.
+   * @param {string} judgement - The judgement type
+   * @returns {number} The score multiplier, defaulting to 1.0
+   */
   getScoreMultiplier(judgement) {
     return this.skillEffects.scoreMultipliers[judgement] || 1.0;
   }
 
+  /**
+   * @returns {number} Current health gain multiplier
+   */
   getHealthGainMultiplier() {
     return this.skillEffects.healthGainMultiplier;
   }
 
+  /**
+   * @returns {number} Current input lag reduction
+   */
   getInputLagReduction() {
     return this.skillEffects.inputLagReduction;
   }
 
+/**
+   * Updates exhaustion state, expires finished skills, and refreshes the skill bar each frame.
+   */
   update() {
     const currentTime = game.time.now;
     
@@ -349,6 +453,9 @@ class CharacterSkillSystem {
     this.scene.skillBar.update();
   }
 
+  /**
+   * Clears all active skills, cooldowns, effects, and usage count for a fresh game.
+   */
   resetGame() {
     for (const skillId of this.activeSkills.keys()) {
       this.deactivateSkill(skillId);
@@ -376,6 +483,10 @@ class CharacterSkillSystem {
     this.stopHealthRegen();
   }
 
+  /**
+   * Returns how many skills have been used during the current game.
+   * @returns {number} Skills used count
+   */
   getSkillsUsed() {
     return this.skillsUsedThisGame;
   }

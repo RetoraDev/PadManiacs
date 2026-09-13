@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>CharacterDisplay - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "CharacterDisplay Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Visual character sprite with layered rendering</p>
+
+    [heading: "Description"]
+    <p>A Phaser.Sprite subclass that renders a character from layered sprites representing back hair, base, front hair, eyes, and clothing items, applying tints and effects. Supports animated blinking, aura particles, and appearance updates at runtime.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Layered sprite rendering for hair, base, eyes, and clothing
+* Personality-based and generic eye blinking
+* Particle aura effects for special items
+* Alternate tint cycling on clothing layers
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ x | number | Horizontal position ]
+[ y | number | Vertical position ]
+[ characterData | Object | Character data model ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ character | Object | Character data used for rendering ]
+[ layers | Object | Rendering sprites keyed by layer name ]
+[ alternateTimers | Object | Active alternate tint timers keyed by layer ]
+[ isSpecial | boolean | Whether a special item hides the character ]
+[ isAura | boolean | Whether a special item renders as an aura ]
+[ auraParticleGroup | Phaser.Group|null | Group holding aura particle sprites ]
+[ particles | Array | Currently active aura particles ]
+[ particlePool | Array | Pool of reusable aura particles ]
+[ auraRect | Object | Rectangle defining the aura emission area ]
+[ particleTimer | Object|null | Loop timer that emits aura particles ]
+[ auraConfig | Object|null | Configuration of the active aura effect ]
+[ personalityBehavior | Object|null | Eye behavior config of the character's personality ]
+[ blinkQueue | Array | Queue of blink behaviors to follow ]
+[ currentBlinkIndex | number | Current position in the blink queue ]
+[ isBlinking | boolean | Whether a blink animation is in progress ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ SpecialItem | (appearanceObj) | Returns the special clothing item equipped by the character, if any. ]
+[ loadPersonalityBehavior | () | Loads the personality's eye behavior and rebuilds the blink queue for the character. ]
+[ buildBlinkQueue | () | Builds a queue of blink behaviors from the personality's eye behavior config. ]
+[ BlinkFrame | (distance) | Maps an eye distance value to a blink animation frame index. ]
+[ setupBlinking | () | Starts either personality-based or generic blinking depending on the character's behavior. ]
+[ startGenericBlinking | () | Starts the default blinking loop with randomly timed blink intervals. ]
+[ startPersonalityBlinking | () | Starts the personality-driven blinking sequence that follows the character's blink queue. ]
+[ blink | (time, callback) | Schedules a blink animation after a delay, then runs the completion callback. ]
+[ createLayers | (specialItemChanged) | Builds all rendering layers from the character's appearance, including aura effects. ]
+[ createClothingLayers | (appearance, tints) | Creates sprites for each clothing slot, applying tints and layering per item definition. ]
+[ setupAlternateTints | () | Starts alternate tint cycling for any layers that define an alternate tint. ]
+[ startAlternateTint | (sprite) | Begins toggling a sprite's tint between its alternate and current colors on a loop. ]
+[ createAura | (item, tints) | Creates the particle group and starts the emission loop for an aura item. ]
+[ ParticleFromPool | (key, frame) | Pulls an inactive particle from the pool or creates a new sprite for the given texture. ]
+[ recycleParticle | (sprite) | Marks a particle sprite as inactive and invisible for future reuse. ]
+[ emitParticle | () | Spawns one set of aura particles with randomized position, velocity, tint, and lifespan. ]
+[ cleanParticles | () | Removes particles whose lifespan has expired from the active list. ]
+[ updateParticles | () | Advances particle physics, fading, and tint cycling each frame. ]
+[ update | () | Per-frame update that advances active aura particles. ]
+[ deepMerge | (target, source) | Recursively merges a source object into a target, preserving nested object structure. ]
+[ updateAppearance | (newAppearance) | Rebuilds all rendering layers to reflect a new appearance configuration. ]
+[ destroy | () | Cleans up timers, particles, and rendering layers before destroying the sprite. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const display = new CharacterDisplay(0, 0, characterData);
+game.world.addChild(display);
+display.updateAppearance({ frontHair: 2 });
+display.destroy();
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

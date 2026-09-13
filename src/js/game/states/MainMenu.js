@@ -1,9 +1,42 @@
+/**
+ * @class MainMenu
+ * @category Game States
+ * @summary Main Menu screen with navigation to all features
+ * @constructor
+ * @features
+ * Home carousel that links to Free Play, Character Select, Chart Editor, Settings and Extras
+ * Priority dialogs for crash reports, ratings, feature requests and community invites
+ * Extras hub with Jukebox, Offset Assistant, Achievements, Player Stats, Feedback and Credits
+ * @description
+ * The Main Menu is the hub state shown when the game boots. It constructs the home
+ * carousel menu and routes the player to every major feature, while showing contextual
+ * feedback dialogs based on the saved account stats after a session.
+ * @example
+ * // Launch the main menu from a modded state
+ * game.state.start("MainMenu");
+ *
+ * // Extend the home menu with a custom carousel item
+ * game.onMenuIn.add(function (id, carousel) {
+ *   if (id === "home") {
+ *     carousel.addItem("My Custom Option", function () {
+ *       console.log("Hello from my mod!");
+ *     });
+ *   }
+ * });
+ */
 class MainMenu {
+  /**
+   * Phaser state hook that builds the menu visuals, plays the menu
+   * music if needed and triggers any dialog screens or the home menu.
+   */
   create() {
     game.camera.fadeIn(0xffffff);
     
+    /** @type {FuturisticLines} Decorative animated background line effect */
     this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Ambient gradient overlay for the menu background */
     this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} On-screen hint bar with contextual button labels */
     this.navigationHint = new NavigationHint('general');
     
     // Check for feedback dialogs before showing menu
@@ -18,12 +51,17 @@ class MainMenu {
     }
     
     // Dispose background music when player leaves 
+    /** @type {boolean} Whether to keep the background music alive when leaving this state */
     this.keepBackgroundMusic = false;
     
     // Execute addon behaviors for this state
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Checks account stats and shows the highest priority feedback
+   * dialog (bug report, rating, feature request, community) first.
+   */
   checkInitialDialogs() {
     // Check for bug report first (highest priority)
     if (!window.DEBUG && Account.stats.lastCrashed) {
@@ -53,6 +91,9 @@ class MainMenu {
     this.menu();
   }
 
+  /**
+   * Shows the crash report dialog when the last session ended in a crash.
+   */
   showBugReportDialog() {
     this.confirmDialog(
       __("Seems like the game crashed last time.\n" +
@@ -87,6 +128,9 @@ class MainMenu {
     );
   }
 
+  /**
+   * Shows the rating prompt dialog after enough playtime has accumulated.
+   */
   showRatingDialog() {
     this.confirmDialog(
       __("Hey! You've been playing a while!\n\n" +
@@ -115,6 +159,9 @@ class MainMenu {
     );
   }
 
+  /**
+   * Shows the feature request dialog asking the player to share ideas.
+   */
   showFeatureRequestDialog() {
     this.confirmDialog(
       __("Thank you for playing!\n\n" +
@@ -147,6 +194,9 @@ class MainMenu {
     );
   }
   
+  /**
+   * Shows the community invite dialog linking to the project homepage.
+   */
   showCommunityDialog() {
     this.confirmDialog(
       __("Enjoying the game?\n" +
@@ -173,12 +223,19 @@ class MainMenu {
     );
   }
 
+  /**
+   * Creates the WindowManager and displays the main menu home screen.
+   */
   menu() {
+    /** @type {WindowManager} Manages windows and focus for the navigation menus */
     this.windowManager = new WindowManager();
     
     this.showHomeMenu();
   }
 
+  /**
+   * Builds the home carousel with the primary navigation options.
+   */
   showHomeMenu() {
     const carousel = new CarouselMenu(0, game.height / 2 - 16, 112, 64, {
       align: 'left',
@@ -205,6 +262,9 @@ class MainMenu {
     }
   }
 
+  /**
+   * Opens the game sub-menu with Free Play, Extra Songs and Playlists.
+   */
   startGame() {
     const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
@@ -225,6 +285,9 @@ class MainMenu {
     carousel.onCancel.add(() => this.showHomeMenu());
   }
 
+  /**
+   * Shows the extra songs menu for loading or reloading external user songs.
+   */
   showExtraSongs() {
     const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
@@ -253,6 +316,9 @@ class MainMenu {
     carousel.onCancel.add(() => this.startGame());
   }
 
+  /**
+   * Opens the extras hub with Jukebox, Offset Assistant and other tools.
+   */
   showExtras() {
     const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
@@ -278,6 +344,9 @@ class MainMenu {
     carousel.onCancel.add(() => this.showHomeMenu());
   }
 
+  /**
+   * Shows the feedback menu linking to reviews, feature requests and bug reports.
+   */
   showFeedback() {
     const carousel = new CarouselMenu(0, game.height / 2 - 16, 112,   64, {
       align: 'left',
@@ -301,6 +370,9 @@ class MainMenu {
     carousel.onCancel.add(() => this.showExtras());
   }
   
+  /**
+   * Opens the community homepage and records that the player visited it.
+   */
   showCommunity() {
     window.openExternalUrl(COMMUNITY_HOMEPAGE_URL);
     
@@ -310,16 +382,31 @@ class MainMenu {
     this.menu();
   }
   
+  /**
+   * Starts the Addons state while keeping the background music playing.
+   */
   showAddonManager() {
     this.keepBackgroundMusic = true;
     game.state.start("Addons");
   }
   
+  /**
+   * Starts the Settings state while keeping the background music playing.
+   */
   showSettings() {
     this.keepBackgroundMusic = true;
     game.state.start("Settings");
   }
   
+  /**
+   * Shows a modal confirmation dialog with the given message and buttons.
+   * @param {string} message - Text to display inside the dialog
+   * @param {Function} onConfirm - Callback invoked when the confirm button is chosen
+   * @param {Function} onCancel - Callback invoked when the dialog is cancelled
+   * @param {string} [confirmText] - Label for the confirm button
+   * @param {string} [cancelText] - Label for the cancel button
+   * @returns {DialogWindow} The created dialog
+   */
   confirmDialog(message, onConfirm, onCancel, confirmText = __("Yes||Sí"), cancelText = __("No||No")) {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]
@@ -342,6 +429,9 @@ class MainMenu {
     return dialog;
   }
 
+  /**
+   * Asks for confirmation and then exits the app on native shells.
+   */
   confirmExit() {
     this.confirmDialog(
       __("Are you sure you want to exit the game?||¿Estás seguro de que quieres salir del juego?"),
@@ -361,19 +451,31 @@ class MainMenu {
     );
   }
 
+  /**
+   * Starts SongSelect for local songs in free play mode.
+   */
   freePlay() {
     game.state.start("SongSelect", true, false, window.localSongs, null, false, "local");
   }
 
+  /**
+   * Instantiates the Offset Assistant used to calibrate input latency.
+   */
   startOffsetAssistant() {
     const offsetAssistant = new OffsetAssistant(game);
     game.add.existing(offsetAssistant);
   }
 
+  /**
+   * Starts the LoadExternalSongs state for importing user songs.
+   */
   loadExternalSongs() {
     game.state.start("LoadExternalSongs");
   }
   
+  /**
+   * Opens the native file picker for .sm/.zip files and loads the chosen song folder.
+   */
   startFileSelect() {
     game.state.start('FileSelect', true, false, ['sm', 'zip'], (entry) => {
       const fileName = entry.name;
@@ -383,10 +485,16 @@ class MainMenu {
     });
   }
 
+  /**
+   * Starts the LoadSongFolder state to load a single song.
+   */
   loadSingleSong() {
     game.state.start("LoadSongFolder");
   }
 
+  /**
+   * Starts the Jukebox, optionally prompting to load external songs first.
+   */
   startJukebox() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       if (!window.externalSongs) {
@@ -409,28 +517,47 @@ class MainMenu {
     }
   }
   
+  /**
+   * Opens the Chart Editor, disallowing background music from persisting.
+   */
   openEditor() {
     this.keepBackgroundMusic = false;
     game.state.start("Editor", true, false, window.editorSongData || null);
   }
 
+  /**
+   * Starts the achievements menu.
+   */
   showAchievements() {
     game.state.start("AchievementsMenu");
   }
 
+  /**
+   * Starts the player statistics menu.
+   */
   showStats() {
     game.state.start("StatsMenu");
   }
 
+  /**
+   * Starts the credits screen, which returns to the main menu afterwards.
+   */
   showCredits() {
     game.state.start("Credits", true, false, "MainMenu");
   }
 
+  /**
+   * Phaser lifecycle hook called every frame to poll gamepad input.
+   */
   update() {
     gamepad.update();
     this.windowManager?.update();
   }
 
+  /**
+   * Phaser lifecycle hook called when leaving the state;
+   * disposes the background music unless another state keeps it alive.
+   */
   shutdown() {
     if (backgroundMusic && !this.keepBackgroundMusic) {
       backgroundMusic.destroy();

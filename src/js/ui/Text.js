@@ -1,7 +1,38 @@
+/**
+ * @class Text
+ * @category UI Classes
+ * @summary Retro pixel text with typewriter and scrolling effects
+ * @constructor
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {string} [text=""] - Initial text content
+ * @param {object} [config={}] - Overrides for FONTS.default, tint, and typewriter options
+ * @param {object} [parent] - Optional Phaser.Group or PIXI container to add this text sprite to
+ * @features
+ * Typewriter reveal effect with configurable interval
+ * Scrolling marquee mode for overflowing text
+ * Word wrapping helpers for multi-line layout
+ * Renders with a Phaser.RetroFont pixel glyph set
+ * @description
+ * Text is a sprite-based retro text label that renders pixel fonts through a
+ * Phaser.RetroFont texture. It supports normal display, typewriter reveal,
+ * and a looping marquee scroll for text that overflows its window, and it
+ * provides word wrapping helpers for multi-line layout.
+ * @example
+ * // Modding usage example
+ * const title = new Text(8, 8, 'Select Song', FONTS.default);
+ * title.tint = 0x76fcde;
+ *
+ * const typed = new Text(8, 16, 'Loading...', { typewriter: true });
+ *
+ * const ticker = new Text(8, 24, 'Queue', FONTS.small);
+ * ticker.scrollwrite('A very long scrolling message', 12, 150);
+ */
 class Text extends Phaser.Sprite {
   constructor(x, y, text = "", config = {}, parent) {
     super(game, x, y, null);
     
+    /** @type {object} Merged font, tint, and effect configuration */
     this.config = {
       ...FONTS.default,
       tint: 0xffffff,
@@ -10,13 +41,17 @@ class Text extends Phaser.Sprite {
       ...config
     };
     
+    // Create the retro font texture
+    /** @type {Phaser.RetroFont} Retro font texture that renders the glyphs */
     this.texture = new Phaser.RetroFont(game, this.config.font, this.config.fontWidth, this.config.fontHeight, this.config.fontMap);
 
     this.texture.multiLine = true;
     this.texture.autoUpperCase = this.config.autoUpperCase;
 
+    /** @type {Phaser.Timer} Timer driving typewriter and scroll effects */
     this.timer = game.time.create(false);
 
+    /** @type {number} Milliseconds between typewriter characters */
     this.typewriterInterval = this.config.typewriterInterval;
 
     this.tint = this.config.tint;
@@ -35,6 +70,13 @@ class Text extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Sets the displayed text, capping it to a max visible length when given.
+   * Longer text switches to the scrolling marquee mode instead.
+   * @param {string} text - The text to display
+   * @param {number} [max] - Maximum visible length; longer text scrolls
+   * @returns {Text} This text sprite for chaining
+   */
   write(text, max) {
     if (typeof text != "string") return this;
     if (max && text.length > max) {
@@ -46,6 +88,12 @@ class Text extends Phaser.Sprite {
     return this;
   }
 
+  /**
+   * Reveals the text one character at a time using the typewriter timer.
+   * @param {string} text - The text to type out
+   * @param {Function} [callback] - Called once typing completes
+   * @returns {Text} This text sprite for chaining
+   */
   typewrite(text, callback) {
     if (this.timer.running) this.timer.stop();
 
@@ -68,6 +116,14 @@ class Text extends Phaser.Sprite {
     return this;
   }
 
+  /**
+   * Starts a looping marquee scroll of the given text and returns controls.
+   * @param {string} text - The full text to scroll
+   * @param {number} [visibleLength=5] - How many characters are visible at once
+   * @param {number} [scrollSpeed=200] - Milliseconds between scroll steps
+   * @param {number} [separation=5] - Spaces appended between repetitions
+   * @returns {object} Controls with stop, pause, resume, and setSpeed methods
+   */
   scrollwrite(text, visibleLength = 5, scrollSpeed = 200, separation = 5) {
     if (this.timer.running) this.timer.stop();
     
@@ -116,16 +172,29 @@ class Text extends Phaser.Sprite {
     };
   }
 
+  /**
+   * Stops any running typewriter or scroll timer, halting effect updates.
+   */
   stopScrolling() {
     if (this.timer.running) {
       this.timer.stop();
     }
   }
 
+  /**
+   * Returns whether a scrolling or typewriter effect is currently running.
+   * @returns {boolean} True while the effect timer is active
+   */
   isScrolling() {
     return this.timer.running;
   }
   
+  /**
+   * Wraps the current text to a maximum pixel width, breaking long words.
+   * @param {number} maxWidth - Maximum line width in pixels
+   * @param {number} [lineSpacing=1] - Unused legacy spacing parameter
+   * @returns {Text} This text sprite for chaining
+   */
   wrapOld(maxWidth, lineSpacing = 1) {
     if (!this.texture.text) return this;
     
@@ -184,11 +253,21 @@ class Text extends Phaser.Sprite {
     return this;
   }
   
+  /**
+   * Computes how many characters fit on a line at the given pixel width.
+   * @param {number} maxWidth - Available width in pixels
+   * @returns {number} Maximum characters per line
+   */
   getMaxCharsPerLine(maxWidth = 1) {
     const charWidth = this.config.fontWidth || 4;
     return Math.floor(maxWidth / charWidth);
   }
   
+  /**
+   * Returns the current text wrapped into lines for a given pixel width.
+   * @param {number} maxWidth - Maximum line width in pixels
+   * @returns {string} The wrapped text, lines joined with newlines
+   */
   getWrappedText(maxWidth = 1) {
     if (!this.texture.text) return this.texture.text;
     
@@ -251,6 +330,11 @@ class Text extends Phaser.Sprite {
     return wrappedLines.join('\n');
   }
   
+  /**
+   * Wraps and rewrites the current text to a maximum pixel width.
+   * @param {number} maxWidth - Maximum line width in pixels
+   * @returns {Text} This text sprite for chaining
+   */
   wrap(maxWidth) {
     this.write(this.getWrappedText(maxWidth));
     return this;

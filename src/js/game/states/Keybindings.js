@@ -1,9 +1,37 @@
+/**
+ * @class Keybindings
+ * @category Game States
+ * @summary Gamepad and keyboard keybindings UI
+ * @constructor
+ * @features
+ * Remap keyboard and gamepad controls per player
+ * Swaps conflicting bindings automatically
+ * Unmaps or resets bindings to defaults
+ * @description
+ * The Keybindings state is the settings screen where players review and edit
+ * keyboard and gamepad mappings for both players. Edits are staged in
+ * pendingChanges and only committed on shutdown, so backing out never applies
+ * partial changes. A modal wait overlay captures the next key or button press.
+ * @example
+ * // Modding usage example
+ * // Launch the keybindings screen from any state
+ * game.state.start("Keybindings");
+ *
+ * // Read a binding elsewhere, e.g. when the modal captures a key
+ * const upKeys = Account.mapping.keyboard.player1.up;
+ */
 class Keybindings {
+  /**
+   * Sets up the keybindings menu UI, background effects, and input listeners.
+   */
   create() {
     game.camera.fadeIn(0x000000);
 
+    /** @type {FuturisticLines} Animated background line decoration. */
     this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Scrolling gradient background effect. */
     this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} On-screen overlay hinting button usage. */
     this.navigationHint = new NavigationHint([
       {
         position: "right",
@@ -22,16 +50,21 @@ class Keybindings {
       }
     ]);
     
+    /** @type {WindowManager} Manager for stacked dialog windows. */
     this.windowManager = new WindowManager();
     
+    /** @type {boolean} Whether the key wait overlay is currently active. */
     this.waitOverlayActive = false;
+    /** @type {Object} Staged keyboard and gamepad mapping edits. */
     this.pendingChanges = {
       keyboard: JSON.parse(JSON.stringify(Account.mapping.keyboard)),
       gamepad: JSON.parse(JSON.stringify(Account.mapping.gamepad))
     };
     
     // Notification system
+    /** @type {Array} Notifications currently queued for display. */
     this.notifications = [];
+    /** @type {Phaser.Group} Container holding notification sprites. */
     this.notificationContainer = game.add.group();
     
     gamepad.releaseAll();
@@ -41,12 +74,18 @@ class Keybindings {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Advances gamepad input, window management, and notifications each frame.
+   */
   update() {
     gamepad.update();
     this.windowManager.update();
     this.updateNotifications();
   }
   
+  /**
+   * Commits staged binding changes, persists the account, and cleans up UI.
+   */
   shutdown() {
     this.cleanupWaitOverlay();
     // Apply pending changes
@@ -63,6 +102,11 @@ class Keybindings {
     if (this.notificationContainer) this.notificationContainer.destroy();
   }
   
+  /**
+   * Shows a transient notification banner that fades out after a duration.
+   * @param {string} text - Localized message to display.
+   * @param {number} [duration] - Milliseconds before the notification fades.
+   */
   showNotification(text, duration = 2500) {
     const entry = {
       text: new Text(4, 140, text, FONTS.default_stroke),
@@ -90,6 +134,9 @@ class Keybindings {
     }
   }
   
+  /**
+   * Ages notifications each frame and removes those whose time has elapsed.
+   */
   updateNotifications() {
     const now = game.time.now;
     for (let i = this.notifications.length - 1; i >= 0; i--) {
@@ -109,6 +156,9 @@ class Keybindings {
     }
   }
   
+  /**
+   * Builds the main keybindings window with per-player edit and reset options.
+   */
   showKeybindingsMenu() {
     const settingsWindow = this.windowManager.createWindow(3, 1, 24, 14, "1");
     settingsWindow.fontTint = 0x76fcde;
@@ -160,6 +210,12 @@ class Keybindings {
     game.onMenuIn.dispatch('keybindings', settingsWindow);
   }
   
+  /**
+   * Opens the keyboard remapping window for one player.
+   * @param {number} [playerNum] - Player number, 1 or 2.
+   * @param {number} [selectedIndex] - Initial carousel index (forced to 0).
+   * @param {number} [returnIndex] - Carousel index to restore when returning.
+   */
   showKeyboardCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
     this.cleanupWaitOverlay();
     
@@ -208,6 +264,12 @@ class Keybindings {
     }, true);
   }
   
+  /**
+   * Opens the gamepad remapping window for one player.
+   * @param {number} [playerNum] - Player number, 1 or 2.
+   * @param {number} [selectedIndex] - Initial carousel index (forced to 0).
+   * @param {number} [returnIndex] - Carousel index to restore when returning.
+   */
   showGamepadCustomization(playerNum = 1, selectedIndex = 0, returnIndex = null) {
     this.cleanupWaitOverlay();
     
@@ -256,6 +318,14 @@ class Keybindings {
     }, true);
   }
   
+  /**
+   * Shows a modal overlay that waits for the next key or button press.
+   * @param {string} message - Instruction text for the control being mapped.
+   * @param {boolean} [listenKeyboard] - Accept keyboard key presses.
+   * @param {boolean} [listenGamepad] - Accept gamepad button presses.
+   * @param {Function} [onSubmit] - Callback receiving the captured key/button code.
+   * @param {Function} [onCancel] - Callback invoked when mapping is abandoned.
+   */
   showKeyWaitOverlay(message, listenKeyboard = true, listenGamepad = true, onSubmit, onCancel) {
     this.cleanupWaitOverlay();
     
@@ -434,6 +504,9 @@ class Keybindings {
     };
   }
   
+  /**
+   * Destroys the active wait overlay and restores the navigation hint.
+   */
   cleanupWaitOverlay() {
     if (this.waitOverlayElements) {
       this.waitOverlayElements.cleanup?.();
@@ -443,6 +516,13 @@ class Keybindings {
     this.navigationHint.visible = true;
   }
   
+  /**
+   * Assigns a key code to a keyboard slot, resolving conflicts by swapping.
+   * @param {number} playerNum - Player number, 1 or 2.
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   * @param {number} index - Alternate binding index for the control.
+   * @param {number} keyCode - Phaser key code being mapped.
+   */
   mapKeyboardKey(playerNum, mappingKey, index, keyCode) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
     const mapping = this.pendingChanges.keyboard;
@@ -487,6 +567,12 @@ class Keybindings {
     this.showNotification(__(`Mapped: ${this.getKeyName(keyCode)}||Asignado: ${this.getKeyName(keyCode)}`));
   }
   
+  /**
+   * Assigns a button code to a gamepad slot, resolving conflicts by swapping.
+   * @param {number} playerNum - Player number, 1 or 2.
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   * @param {number} buttonCode - Gamepad button code being mapped.
+   */
   mapGamepadKey(playerNum, mappingKey, buttonCode) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
     const mapping = this.pendingChanges.gamepad;
@@ -511,6 +597,14 @@ class Keybindings {
     this.showNotification(__(`Mapped: ${GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`}||Asignado: ${GAMEPAD_KEY_NAMES[buttonCode] || `BOTÓN ${buttonCode}`}`));
   }
   
+  /**
+   * Searches pending keyboard mappings for a conflicting key code.
+   * @param {string} [playerKey] - Player key being assigned ('player1'/'player2').
+   * @param {string} [mappingKey] - Control identifier being assigned.
+   * @param {number} [index] - Alternate binding index being assigned.
+   * @param {number} [keyCode] - Key code to search for.
+   * @returns {Object|null} Conflict details, or null when no conflict exists.
+   */
   findKeyboardKeyConflict(playerKey, mappingKey, index, keyCode) {
     if (!playerKey || !mappingKey) return null;
     
@@ -547,6 +641,13 @@ class Keybindings {
     return null;
   }
   
+  /**
+   * Searches pending gamepad mappings for a conflicting button code.
+   * @param {string} [playerKey] - Player key being assigned.
+   * @param {string} [mappingKey] - Control identifier being assigned.
+   * @param {number} [buttonCode] - Button code to search for.
+   * @returns {Object|null} Conflict details, or null when no conflict exists.
+   */
   findGamepadKeyConflict(playerKey, mappingKey, buttonCode) {
     // Don't search for null conflicts
     if (buttonCode === null || buttonCode === undefined) return null;
@@ -579,6 +680,12 @@ class Keybindings {
     return null;
   }
 
+  /**
+   * Clears a keyboard binding slot and trims trailing null entries.
+   * @param {number} playerNum - Player number, 1 or 2.
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   * @param {number} index - Alternate binding index to clear.
+   */
   unmapKeyboardKey(playerNum, mappingKey, index) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
     const mapping = this.pendingChanges.keyboard;
@@ -594,6 +701,11 @@ class Keybindings {
     }
   }
   
+  /**
+   * Clears a gamepad binding slot.
+   * @param {number} playerNum - Player number, 1 or 2.
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   */
   unmapGamepadKey(playerNum, mappingKey) {
     const playerKey = playerNum === 1 ? "player1" : "player2";
     const mapping = this.pendingChanges.gamepad;
@@ -603,6 +715,13 @@ class Keybindings {
     this.showNotification(__("BUTTON UNMAPPED!||¡BOTÓN DESASIGNADO!"));
   }
   
+  /**
+   * Resolves the display label for a keyboard binding slot.
+   * @param {string} playerKey - Player key ('player1' or 'player2').
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   * @param {number} index - Alternate binding index to inspect.
+   * @returns {string} Formatted key name, or '???' when unmapped.
+   */
   getKeyboardKeyDisplay(playerKey, mappingKey, index) {
     const mapping = this.pendingChanges.keyboard[playerKey][mappingKey];
     
@@ -613,6 +732,12 @@ class Keybindings {
     return this.getKeyName(mapping[index]);
   }
   
+  /**
+   * Resolves the display label for a gamepad binding slot.
+   * @param {string} playerKey - Player key ('player1' or 'player2').
+   * @param {string} mappingKey - Control identifier such as 'up' or 'a'.
+   * @returns {string} Button name, or '???' when unmapped.
+   */
   getGamepadButtonDisplay(playerKey, mappingKey) {
     const buttonCode = this.pendingChanges.gamepad[playerKey][mappingKey];
     
@@ -623,6 +748,11 @@ class Keybindings {
     return GAMEPAD_KEY_NAMES[buttonCode] || `BUTTON ${buttonCode}`;
   }
   
+  /**
+   * Converts a Phaser key code into its display name using the key tables.
+   * @param {number} keyCode - Phaser key code to look up.
+   * @returns {string} Formatted key name.
+   */
   getKeyName(keyCode) {
     for (const [name, code] of Object.entries(KEYBOARD_KEY_CODES)) {
       if (code === keyCode) {
@@ -632,6 +762,11 @@ class Keybindings {
     return `KEY ${keyCode}`;
   }
   
+  /**
+   * Formats a raw key table name into a human-friendly label.
+   * @param {string} name - Raw key identifier from KEYBOARD_KEY_CODES.
+   * @returns {string} Human-friendly key label.
+   */
   formatKeyName(name) {
     const nameMap = KEYBOARD_KEY_NAMES;
     if (nameMap[name]) return nameMap[name];
@@ -639,6 +774,15 @@ class Keybindings {
     return name.replace(/_/g, ' ');
   }
   
+  /**
+   * Shows a modal dialog with confirm and cancel buttons.
+   * @param {string} message - Localized dialog message.
+   * @param {Function} [onConfirm] - Called when the confirm button is chosen.
+   * @param {Function} [onCancel] - Called when the cancel button is chosen.
+   * @param {string} [confirmText] - Confirm button label.
+   * @param {string} [cancelText] - Cancel button label.
+   * @returns {DialogWindow} The created dialog instance.
+   */
   confirmDialog(message, onConfirm, onCancel, confirmText = "Yes", cancelText = "No") {
     const dialog = new DialogWindow(message, {
       buttons: [confirmText, cancelText]

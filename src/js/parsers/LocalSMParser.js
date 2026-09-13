@@ -1,8 +1,37 @@
+/**
+ * @class LocalSMParser
+ * @category Parser Classes
+ * @summary Parses StepMania .SM files for built-in songs
+ * @constructor
+ * @features
+ * Parses all standard .SM metadata tags (title, artist, BPMs, stops)
+ * Resolves media file URLs relative to the song base directory
+ * Converts beat positions to seconds accounting for BPM changes and stops
+ * @description
+ * LocalSMParser reads StepMania .SM file content that ships with the game and
+ * converts it into the internal song data format. It handles BPM changes, stop
+ * timing, note parsing, and background event resolution for songs stored on the
+ * local file system.
+ * @example
+ * // Parsing a built-in song's .SM file
+ * const parser = new LocalSMParser();
+ * const smText = await FileTools.loadTextFile('Songs/MySong/song.sm');
+ * const songData = await parser.parseSM(smText, 'Songs/MySong/');
+ * console.log(songData.title, songData.difficulties.length, 'difficulties');
+ */
 class LocalSMParser {
   constructor() {
+    /** @type {string} The base URL used for resolving relative file paths */
     this.baseUrl = "";
   }
 
+  /**
+   * Parses raw .SM file content into the internal song data structure.
+   * Extracts metadata, BPM changes, stops, notes, and resolves media URLs.
+   * @param {string} smContent - The raw text content of the .SM file
+   * @param {string} baseUrl - The base path for resolving relative file URLs
+   * @returns {Promise<Object>} The parsed song data object
+   */
   async parseSM(smContent, baseUrl) {
     this.baseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
     
@@ -241,10 +270,22 @@ class LocalSMParser {
     return out;
   }
   
+  /**
+   * Loads a text file from a URL via FileTools.
+   * @param {string} url - The URL to fetch
+   * @returns {Promise<string|null>} The text content or null
+   */
   async loadTextFile(url) {
     return FileTools.loadTextFile(url);
   }
   
+  /**
+   * Resolves a filename to a full URL using the base path.
+   * Handles absolute URLs and relative paths.
+   * @param {string} filename - The filename to resolve
+   * @param {string} baseUrl - The base URL for relative paths
+   * @returns {string} The resolved full URL
+   */
   resolveFileUrl(filename, baseUrl) {
     if (!filename) return "";
     // Handle absolute URLs and relative paths
@@ -256,10 +297,24 @@ class LocalSMParser {
     return baseUrl + filename;
   }
 
+  /**
+   * Finds the BPM change entry active at a given time value.
+   * @param {Array} bpmChanges - Sorted array of BPM change objects
+   * @param {number} time - The beat or second value to search for
+   * @param {string} valueType - The property name to compare ('beat' or 'sec')
+   * @returns {Object} The BPM change entry active at the given time
+   */
   getLastBpm(bpmChanges, time, valueType) {
     return bpmChanges.find((e, i, a) => i + 1 == a.length || a[i + 1][valueType] >= time);
   }
 
+  /**
+   * Converts a beat position to seconds accounting for BPM changes and stops.
+   * @param {Array} bpmChanges - Sorted BPM change entries with sec values
+   * @param {Array} stops - Stop entries with beat and len values
+   * @param {number} beat - The beat position to convert
+   * @returns {number} The equivalent time in seconds
+   */
   beatToSec(bpmChanges, stops, beat) {
     let b = this.getLastBpm(bpmChanges, beat, "beat");
     let x = ((beat - b.beat) / b.bpm) * 60 + b.sec;

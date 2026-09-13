@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>FuturisticLines - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "FuturisticLines Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Animated futuristic line effects</p>
+
+    [heading: "Description"]
+    <p>Spawns animated glowing lines that drift horizontally across the screen for a sci-fi ambience. Each line moves in straight or angled bursts, traces a fading tail and fades out when it leaves the viewport. Density, speed, tail length, colors and alpha can be tuned at runtime.</p>
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ lines | Array&lt;Object&gt; | Active line objects being animated ]
+[ maxLines | Number | Maximum number of concurrent lines ]
+[ lineSpeed | Number | Base movement speed of the lines ]
+[ tailLength | Number | Length of the fading tail in pixels ]
+[ spawnRate | Number | Milliseconds between line spawns ]
+[ lastSpawnTime | Number | Timestamp of the last line spawn ]
+[ lineColors | Array&lt;Number&gt; | Palette of hex colors used for new lines ]
+[ lineAlpha | Number | Base alpha of the drawn lines ]
+[ graphics | Phaser.Graphics | Graphics object that draws all lines ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ update | () | Phaser lifecycle hook called every frame. Spawns new lines when the pool is not full and the spawn timer elapses, then advances and redraws all existing lines. ]
+[ setDensity | (density) | Cap the number of concurrent lines. ]
+[ setSpeed | (speed) | Sets the base movement speed of the lines. ]
+[ setTailLength | (length) | Sets the length of the fading tail trailing each line. ]
+[ clearLines | () | Removes every active line and clears the drawing surface. ]
+[ setColors | (colors) | Replaces the color palette used for newly spawned lines. ]
+[ setAlpha | (alpha) | Sets the base alpha of the drawn lines. ]
+[ destroy | () | Clears all lines and destroys the graphics object and sprite. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const lines = new FuturisticLines();
+game.add.existing(lines);
+lines.setDensity(8);
+lines.setSpeed(1.5);
+lines.setColors([0x76FCFF, 0x00B8D4]);
+lines.clearLines();
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

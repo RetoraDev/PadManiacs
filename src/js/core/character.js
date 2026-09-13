@@ -1,4 +1,5 @@
 // Character system constants
+/** @type {Object} Character system constants (max level, name length, etc.) */
 const CHARACTER_SYSTEM = {
   MAX_NAME_LENGTH: 12,
   DEFAULT_CHARACTER: "EIRI",
@@ -853,6 +854,7 @@ const CHARACTER_SYSTEM = {
   ]
 };
 
+/** @type {array} Clothing items unlocked by default */
 const DEFAULT_UNLOCKED_ITEMS = [
   "top_seifuku_default",
   "bottom_skirt_blue",
@@ -860,6 +862,7 @@ const DEFAULT_UNLOCKED_ITEMS = [
   "accessory_hair_ties"
 ];
 
+/** @type {Object} Default character used for new accounts */
 const DEFAULT_CHARACTER = {
   name: "EIRI",
   level: 1,
@@ -898,6 +901,7 @@ const DEFAULT_CHARACTER = {
 };
 
 // Character skills list
+/** @type {array} Skill definitions for characters */
 const CHARACTER_SKILLS = [
   {
     id: "safety_net",
@@ -1422,6 +1426,7 @@ const CHARACTER_SKILLS = [
 ];
 
 // Character items
+/** @type {Object} Clothing and accessory definitions */
 const CHARACTER_ITEMS = [
   // Top
   {

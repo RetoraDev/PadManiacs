@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>FirstPlayer - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "FirstPlayer Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>First player gameplay instance using Player</p>
+
+    [heading: "Description"]
+    <p>Concrete Player subclass configured for the first player in both single and multiplayer modes. Assigns gamepad1 for input, positions the chart on the left side of the screen, and binds P1-specific HUD elements for judgement, combo, score, and health display.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Uses gamepad1 for input
+* Left-side screen positioning
+* P1-specific HUD elements
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ scene | Phaser.Scene | The Phaser game scene ]
+[ settings | Object | Gameplay configuration overrides ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Creating a first player in a gameplay scene
+const p1 = new FirstPlayer(scene, { speedMod: "X-MOD" });
+p1.update();
+console.log(p1.score, p1.getScoreRating());
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

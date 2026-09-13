@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>PlayMulti - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "PlayMulti Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Two-player local multiplayer gameplay state</p>
+
+    [heading: "Description"]
+    <p>The multiplayer gameplay state extends the single player Play state to run two simultaneous players on a shared chart. Each player keeps an independent combo, score, lifebar, accuracy and autoplay flag, and the state resolves to a combined results object consumed by the ResultsMulti screen.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Two independent players sharing one chart with separate scores, lifebars and combos
+* Split-layout HUD with per-player score, accuracy, combo and judgement text
+* Per-player autoplay flags plus a shared metronome assist tick display
+[/list]
+
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ config | Object | The multiplayer configuration with per-player settings ]
+[ p1Hud | Phaser.Sprite | HUD container for player 1 ]
+[ p2Hud | Phaser.Sprite | HUD container for player 2 ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ init | (config, _, __, ___, playlistKey) | Phaser state hook that forwards the shared chart to Play.init and stores the config. ]
+[ create | () | Phaser state hook that builds the shared HUD and player layout. ]
+[ createHud | () | Builds the split multiplayer HUD with per-player score, lifebar and combo. ]
+[ createVisualizer | () | Creates the shared center visualizer in the multiplayer HUD layout. ]
+[ setupPlayer | () | Spawns the FirstPlayer and SecondPlayer with their own input settings. ]
+[ StatsContent | () | Overrides the pause stats block for the multiplayer layout. ]
+[ GameResults | () | Collects both players' results into a combined multiplayer result object. ]
+[ restartSong | () | Restarts the multiplayer game with the same configuration. ]
+[ songEnd | () | Finalizes the multiplayer run and opens the ResultsMulti state. ]
+[ checkFullCombo | (player) | Shows the full combo or flawless banner for a player when achieved. ]
+[ update | () | Phaser lifecycle hook called every frame; updates both players. ]
+[ render | () | Phaser render hook that renders both players' note objects. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Launch a local multiplayer game for two configured players
+game.state.start("PlayMulti", true, false, {
+  song: song,
+  difficultyIndex: 0,
+  player1: { settings: { autoplay: false } },
+  player2: { settings: { autoplay: true } }
+});
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

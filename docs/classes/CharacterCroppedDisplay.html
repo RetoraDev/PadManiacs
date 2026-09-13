@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>CharacterCroppedDisplay - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+[title: "CharacterCroppedDisplay Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Character display with cropping support</p>
+
+    [heading: "Description"]
+    <p>A character display subclass that crops every rendering layer to a configured rectangle, making it suitable for portraits and close-up views where only a region of the character should be visible.</p>
+
+    [heading: "Key Features"]
+    [list]
+* Applies a crop rectangle to all rendering layers
+* Adjusts the aura emission area to match the crop region
+* Re-crops layers after appearance updates
+[/list]
+
+    [heading: "Constructor"]
+    [table header]
+[ Parameter | Type | Description ]
+[ x | number | Horizontal position ]
+[ y | number | Vertical position ]
+[ characterData | Object | Character data model ]
+[ cropArea | Object | Crop rectangle with x, y, w, and h ]
+[/table]
+
+    
+    [heading: "Properties"]
+    [table header]
+[ Property | Type | Description ]
+[ cropArea | Object | Crop rectangle applied to all layers ]
+[ auraRect | Object | Aura emission area matching the crop region ]
+[/table]
+
+    
+    [heading: "Methods"]
+    [table header]
+[ Method | Parameters | Description ]
+[ cropSprite | () | Applies the configured crop rectangle to every sprite layer and aura region. ]
+[ updateAppearance | (newAppearance) | Rebuilds layers for new appearance data and re-applies the crop afterwards. ]
+[/table]
+
+    
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Modding usage example
+const crop = { x: 10, y: 5, w: 40, h: 60 };
+const display = new CharacterCroppedDisplay(0, 0, characterData, crop);
+game.world.addChild(display);
+display.updateAppearance({ frontHair: 2 });
+display.destroy();
+[/codeblock]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

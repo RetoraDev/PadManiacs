@@ -1,22 +1,58 @@
+/**
+ * @class Window
+ * @category UI Classes
+ * @summary Customizable UI window with menu items and scrollbar
+ * @constructor
+ * @param {number} x - X position in 8px grid cells
+ * @param {number} y - Y position in 8px grid cells
+ * @param {number} width - Window width in 8px cells
+ * @param {number} height - Window height in 8px cells
+ * @param {string} [skin="1"] - Window skin key used for frame sprites
+ * @param {object} [parent] - Optional parent to add the window sprite to
+ * @features
+ * Grid-aligned frame built from tiled sprite parts
+ * Plain, setting, and range menu items
+ * Blinking selector arrow and pulsing highlight
+ * Auto-hiding scroll bar and signal-based events
+ * @description
+ * Window is a sprite-based UI window that renders a frame from tiled sprite
+ * parts on an 8px grid. It hosts menu items (plain, setting, and range
+ * types) and handles selection, navigation, highlighting, scrolling, and an
+ * optional scroll bar. Its signals let mods react to selection, confirmation,
+ * and cancellation without touching window internals.
+ * @example
+ * // Modding usage example
+ * const win = new Window(4, 4, 12, 6, "1");
+ * win.addItem('Play', '', () => game.state.start('Play'), true);
+ * win.addSettingItem('Volume', ['Low', 'Med', 'High'], 1);
+ * win.addRangeItem('Speed', 0, 200, 10, 100, '%');
+ * win.onConfirm.add(() => {});
+ */
 class Window extends Phaser.Sprite {
   constructor(x, y, width, height, skin = "1", parent = null) {
     super(game, x * 8, y * 8);
 
+    /** @type {object} Window dimensions in grid cells ({ width, height }) */
     this.size = {
       width,
       height
     };
     
+    /** @type {object} Pixel offset applied to item content ({ x, y }) */
     this.offset = {
       x: 0,
       y: 0
     };
     
+    /** @type {number} Index of the first visible item */
     this.scrollOffset = 0;
     this.itemOffset = 1;
     this.visibleItems = height;
+    /** @type {number} Index of the currently selected item */
     this.selectedIndex = 0;
+    /** @type {boolean} Whether this window is focused for navigation */
     this.focus = false;
+    /** @type {string} Window skin key used for frame sprites */
     this.skin = skin;
     this.font = "default";
     this.fontTint = 0x76fcde;
@@ -34,6 +70,7 @@ class Window extends Phaser.Sprite {
     this.createWindowFrame();
 
     // Selection arrow
+    /** @type {Phaser.Sprite} Blinking selection arrow sprite */
     this.selector = game.add.sprite(3, 0, `ui_window_${skin}`, 9);
     this.selector.visible = false;
     this.selector.animations.add('blink', [9, 10], 4, true);
@@ -41,6 +78,7 @@ class Window extends Phaser.Sprite {
     this.addChild(this.selector);
     
     // Highlight rectangle
+    /** @type {Phaser.Graphics} Animated highlight rectangle behind the selection */
     this.highlight = game.add.graphics(0, 0);
     this.highlight.alpha = 0; // Start hidden
     this.highlight.beginFill(this.fontTint, 0.8);
@@ -49,6 +87,7 @@ class Window extends Phaser.Sprite {
     this.addChild(this.highlight);
     
     // Scroll bar
+    /** @type {Phaser.Graphics} Auto-hiding scroll bar indicator */
     this.scrollBar = game.add.graphics(this.size.width * 8 - 3, 8);
     this.scrollBar.alpha = 0; // Start hidden
     this.addChild(this.scrollBar);
@@ -56,11 +95,15 @@ class Window extends Phaser.Sprite {
     this.scrollBarTween = null;
 
     // Signals
+    /** @type {Phaser.Signal} Dispatched with the new index when selection moves */
     this.onSelect = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when the window is confirmed */
     this.onConfirm = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when the window is cancelled */
     this.onCancel = new Phaser.Signal();
 
     // Items array
+    /** @type {Array} Array of menu items managed by this window */
     this.items = [];
     this.updateSelector();
   }
@@ -96,6 +139,14 @@ class Window extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Adds a plain menu item with an optional value text on the right side.
+   * @param {string} text - Item label, localized unless already localized
+   * @param {string} valueText - Value text aligned to the right edge
+   * @param {Function} [callback] - Called with the item when confirmed
+   * @param {boolean} [backButton=false] - Whether this item acts as a back/cancel button
+   * @returns {object} The created item object
+   */
   addItem(text, valueText, callback = null, backButton = false) {
     text = text._localized ? text : __(text);
     
@@ -133,6 +184,14 @@ class Window extends Phaser.Sprite {
     return item;
   }
 
+  /**
+   * Adds a setting item that cycles through options with left/right input.
+   * @param {string} text - Item label, localized unless already localized
+   * @param {Array} options - List of option values to cycle through
+   * @param {number} currentIndex - Index of the initially selected option
+   * @param {Function} [callback] - Called with the new index and value when changed
+   * @returns {object} The created item object
+   */
   addSettingItem(text, options, currentIndex, callback = null) {
     text = text._localized ? text : __(text);
     
@@ -165,6 +224,17 @@ class Window extends Phaser.Sprite {
     return item;
   }
   
+  /**
+   * Adds a numeric range item adjusted by a step on left/right input.
+   * @param {string} text - Item label, localized unless already localized
+   * @param {number} [min=0] - Minimum allowed value
+   * @param {number} [max=100] - Maximum allowed value
+   * @param {number} [step=1] - Increment/decrement step
+   * @param {number} [value=0] - Initial value
+   * @param {string} [suffix=""] - Text rendered after the value
+   * @param {Function} [callback] - Called with the new value when changed
+   * @returns {object} The created item object
+   */
   addRangeItem(text, min = 0, max = 100, step = 1, value = 0, suffix = "", callback = null) {
     text = text._localized ? text : __(text);
     
@@ -196,10 +266,19 @@ class Window extends Phaser.Sprite {
     return item;
   }
   
+  /**
+   * Returns the usable content height in pixels below the window padding.
+   * @param {number} [excluding=0] - Extra pixels to exclude from the height
+   * @returns {number} Usable height in pixels
+   */
   getVisibleHeight(excluding = 0) {
     return (this.size.height * 8) - (10 + this.offset.y);
   }
 
+  /**
+   * Recomputes visible items, scroll bounds, and item positions.
+   * Called automatically after items are added or the window is resized.
+   */
   update() {
     // Calculate visible items based on window height and item spacing
     const availableHeight = this.getVisibleHeight(); // Subtract padding
@@ -235,6 +314,9 @@ class Window extends Phaser.Sprite {
     this.updateSelector();
   }
   
+  /**
+   * Positions the selector arrow and highlight on the selected item.
+   */
   updateSelector() {
     // Position selector arrow
     if (this.focus && this.items.length > 0 && this.selectedIndex >= this.scrollOffset && this.selectedIndex < this.scrollOffset + this.visibleItems) {
@@ -253,6 +335,9 @@ class Window extends Phaser.Sprite {
     this.updateHighlight();
   }
   
+  /**
+   * Animates the highlight rectangle alpha and positions it on the selection.
+   */
   updateHighlight() {
     if (this.forcedHighlightY || this.selector.visible && !this.disableHighlight) {
       // Position with selector arrow
@@ -265,10 +350,17 @@ class Window extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Pins the highlight rectangle to a fixed Y position within the window.
+   * @param {number} y - Y position for the highlight
+   */
   forceHighlight(y) {
     this.forcedHighlightY = y;
   }
   
+  /**
+   * Redraws and reveals the scroll bar when items overflow the window.
+   */
   updateScrollBar() {
     if (this.disableScrollBar) return;
     
@@ -302,6 +394,9 @@ class Window extends Phaser.Sprite {
     this.showScrollBar();
   }
   
+  /**
+   * Fades the scroll bar in and schedules an automatic fade out.
+   */
   showScrollBar() {
     // Cancel any existing fade out tween
     if (this.scrollBarTween) {
@@ -320,6 +415,9 @@ class Window extends Phaser.Sprite {
       });
   }
 
+  /**
+   * Immediately hides and clears the scroll bar.
+   */
   hideScrollBar() {
     // Cancel any existing tween
     if (this.scrollBarTween) {
@@ -341,6 +439,10 @@ class Window extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Moves selection by the given direction and plays the navigation sound.
+   * @param {string} direction - One of 'up', 'down', 'left', or 'right'
+   */
   navigate(direction) {
     if (this.items.length === 0) return;
 
@@ -406,6 +508,10 @@ class Window extends Phaser.Sprite {
     this.playNavSound();
   }
   
+  /**
+   * Selects the item at the given index and adjusts scrolling to show it.
+   * @param {number} index - Item index to select
+   */
   selectIndex(index) {
     this.selectedIndex = index;
     this.adjustScroll();
@@ -416,10 +522,18 @@ class Window extends Phaser.Sprite {
     ENABLE_UI_SFX && Audio.play('ui_nav');
   }
   
+  /**
+   * Applies a tint to every window frame part.
+   * @param {number} tint - RGB tint value
+   */
   setTint(tint) {
     this.frameParts.forEach(part => part.tint = tint);
   }
 
+  /**
+   * Confirms the selected item's callback or dispatches the onConfirm signal.
+   * @returns {boolean} True when an item handled the confirmation
+   */
   confirm() {
     if (this.items.length > 0) {
       const item = this.items[this.selectedIndex];
@@ -439,6 +553,9 @@ class Window extends Phaser.Sprite {
     return false;
   }
 
+  /**
+   * Runs back-button callbacks and dispatches the onCancel signal.
+   */
   cancel() {
     this.items.forEach(item => {
       if (item.backButton) {
@@ -449,6 +566,10 @@ class Window extends Phaser.Sprite {
     this.onCancel.dispatch(this.selectedIndex);
   }
   
+  /**
+   * Scrolls the selection by the given delta, clamping it to the item list.
+   * @param {number} [delta=0] - Amount to scroll the selection by
+   */
   scroll(delta = 0) {
     this.scrollOffset += delta;
     this.selectedIndex += delta;
@@ -460,6 +581,9 @@ class Window extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Destroys all item texts and resets the item list and selection.
+   */
   removeAll() {
     this.items.forEach(item => {
       item.text.destroy();
@@ -470,6 +594,9 @@ class Window extends Phaser.Sprite {
     this.selectedIndex = 0;
   }
 
+  /**
+   * Removes all items, disposes signals, and no-ops navigation handlers.
+   */
   clear() {
     this.removeAll();
     if (this.scrollBarTween) {
@@ -488,14 +615,23 @@ class Window extends Phaser.Sprite {
     this.scrollOffset = 0;
   }
 
+  /**
+   * Makes the window sprite visible.
+   */
   show() {
     this.visible = true;
   }
 
+  /**
+   * Hides the window sprite.
+   */
   hide() {
     this.visible = false;
   }
 
+  /**
+   * Clears the window, marks it disposed, and destroys the sprite.
+   */
   destroy() {
     this.clear();
     this.disposed = true;

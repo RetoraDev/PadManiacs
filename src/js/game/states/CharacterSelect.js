@@ -1,21 +1,54 @@
+/**
+ * @class CharacterSelect
+ * @category Game States
+ * @summary Character selection, creation, and customization
+ * @constructor
+ * @features
+ * Carousel roster of the player's characters with select, skill, customize and delete actions
+ * Guided creation wizard covering skin, hair, clothing and a final name step
+ * RGB color picker for tinting hair and per-layer item colors with named color output
+ * @description
+ * The Character Select state manages the player-owned characters. It shows the current
+ * roster, lets the player equip unlocked skills and customize appearance down to
+ * per-layer colors, and supports a guided wizard for creating brand new characters.
+ * @example
+ * // Launch the character select screen from a modded state
+ * game.state.start("CharacterSelect");
+ *
+ * // Read the currently active character
+ * const charManager = new CharacterManager();
+ * const active = charManager.getCurrentCharacter();
+ * console.log("Active character:", active && active.name);
+ */
 class CharacterSelect {
+  /**
+   * Phaser state hook that sets up the lobby background, the character
+   * manager and the main interface elements, then refreshes the display.
+   */
   create() {
     game.camera.fadeIn(0x000000);
 
+    /** @type {CharacterManager} Manages the saved characters and their persistence */
     this.characterManager = new CharacterManager();
+    /** @type {Object} The character currently selected in the menu */
     this.selectedCharacter = this.characterManager.getCurrentCharacter();
 
     new Background('ui_lobby_background', false, 1);
     new Background('ui_lobby_overlay', true, 0.3, 0.5);
     new FuturisticLines();
 
+    /** @type {NavigationHint} Contextual hint bar with button labels */
     this.navigationHint = new NavigationHint('general');
 
     this.createUI();
     this.updateDisplay();
   }
 
+  /**
+   * Creates the initial interface objects and resets transient menu references.
+   */
   createUI() {
+    /** @type {CharacterDisplay} The rendered character sprite shown on screen */
     this.characterDisplay = new CharacterDisplay(70, 24, this.selectedCharacter);
     this.createDetailsText();
 
@@ -36,6 +69,9 @@ class CharacterSelect {
     this.showHomeUI();
   }
 
+  /**
+   * Creates the text elements and bars used to display character information.
+   */
   createDetailsText() {
     this.nameText = new Text(144, 10, "", FONTS.shaded);
     this.levelText = new Text(175, 10, "", FONTS.default);
@@ -46,6 +82,9 @@ class CharacterSelect {
     this.skillBar = new SkillBar(146, 18);
   }
 
+  /**
+   * Returns to the home screen, clearing menus and listing all characters.
+   */
   showHomeUI() {
     gamepad.releaseAll();
     this.clearAllMenus();
@@ -53,6 +92,9 @@ class CharacterSelect {
     this.updateDisplay();
   }
 
+  /**
+   * Destroys all open menus and resets the transient UI references.
+   */
   clearAllMenus() {
     if (this.characterCarousel) {
       this.characterCarousel.destroy();
@@ -90,6 +132,9 @@ class CharacterSelect {
     gamepad.signals.pressed.any.removeAll();
   }
 
+  /**
+   * Writes the selected character's name, level, experience, skill and details.
+   */
   writeCharacterInformation() {
     const char = this.selectedCharacter;
     this.nameText.write(char ? char.name : "");
@@ -136,6 +181,12 @@ class CharacterSelect {
     this.updateDetails("", text, !!char);
   }
 
+  /**
+   * Updates the shared details panel with the given title and description text.
+   * @param {string} title - Title text for the panel
+   * @param {string} description - Body text for the panel
+   * @param {boolean} [showCharacterInfo] - Whether to reveal the character info UI
+   */
   updateDetails(title, description, showCharacterInfo = false) {
     this.itemNameText.write(title);
     this.itemDescriptionText.write(description);
@@ -152,11 +203,18 @@ class CharacterSelect {
     this.itemDescriptionText.y = showCharacterInfo ? 42 : 18;
   }
 
+  /**
+   * Selects the given character and refreshes the display.
+   * @param {Object} character - The character to select
+   */
   selectCharacter(character) {
     this.selectedCharacter = character;
     this.updateDisplay();
   }
 
+  /**
+   * Rebuilds the character display sprite and refreshes the information text.
+   */
   updateDisplay() {
     if (this.characterDisplay) {
       this.characterDisplay.destroy();
@@ -170,6 +228,9 @@ class CharacterSelect {
     this.writeCharacterInformation();
   }
 
+  /**
+   * Builds the carousel listing all characters plus add/remove options.
+   */
   showCharacterList() {
     this.characterCarousel = new CarouselMenu(0, 8, 100, 130, {
       bgcolor: "#9b59b6",
@@ -215,6 +276,9 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Shows the per-character action menu: select, skill, customize or delete.
+   */
   showActionMenu() {
     gamepad.releaseAll();
     this.clearAllMenus();
@@ -241,11 +305,17 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Persists the current character as the active playable character.
+   */
   confirmSelection() {
     this.characterManager.setCurrentCharacter(this.selectedCharacter.name);
     this.showCharacterList();
   }
 
+  /**
+   * Shows the skill selection carousel for the selected character.
+   */
   setSkill() {
     this.updateDetails("", "", false);
 
@@ -295,6 +365,10 @@ class CharacterSelect {
     }
   }
 
+  /**
+   * Builds and displays a preview text describing the given skill.
+   * @param {string} skillId - The identifier of the skill to preview
+   */
   updateSkillPreview(skillId) {
     const skill = CHARACTER_SKILLS.find(s => s.id === skillId);
     if (!skill) return;
@@ -395,6 +469,9 @@ class CharacterSelect {
     this.updateDetails(skill.name, previewText, false);
   }
 
+  /**
+   * Opens the customization menu listing the appearance slots to edit.
+   */
   customizeCharacter() {
     gamepad.releaseAll();
     this.clearAllMenus();
@@ -444,6 +521,10 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Updates the details panel describing the item equipped in the given slot.
+   * @param {string} slotId - The appearance slot identifier
+   */
   updateEquipmentText(slotId) {
     const slots = {
       'front_hair': __("Front hair||Pelo frontal"),
@@ -483,6 +564,12 @@ class CharacterSelect {
     this.updateDetails(titleText, '\n\n\n' + (labelText || __("< ??? >||< ??? >")) + '\n\n' + (desc || ''));
   }
   
+  /**
+   * Converts a numeric color to the closest named or descriptive color string.
+   * @param {number} color - RGB color value (0xRRGGBB)
+   * @param {number} [step] - Color quantization step used for matching
+   * @returns {string} The localized name of the color
+   */
   colorToName(color, step = 32) {
     const r = (color >> 16) & 0xFF;
     const g = (color >> 8) & 0xFF;
@@ -677,6 +764,11 @@ class CharacterSelect {
     return closest.name;
   }
 
+  /**
+   * Returns the item data currently equipped in the given appearance slot.
+   * @param {string} slotId - The appearance slot identifier
+   * @returns {Object|null} The slot item data, or null if none is equipped
+   */
   getCurrentSlotItem(slotId) {
     const appearance = this.selectedCharacter?.appearance;
     if (!appearance) return null;
@@ -712,6 +804,10 @@ class CharacterSelect {
     return { name: __("None||Ninguno"), id: null, description: '' };
   }
   
+  /**
+   * Lists the unlocked items available for the given appearance slot.
+   * @param {string} slotId - The appearance slot identifier
+   */
   showSlotItems(slotId) {
     gamepad.releaseAll();
     this.clearAllMenus();
@@ -884,6 +980,11 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Temporarily previews an item on the character display without saving.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {Object} item - The item to preview
+   */
   previewSlotItem(slotId, item) {
     if (!this.selectedCharacter) return;
 
@@ -909,6 +1010,11 @@ class CharacterSelect {
     this.refreshCharacter(newAppearance);
   }
   
+  /**
+   * Re-renders the character display using the given appearance overrides.
+   * @param {Object} [appearance] - Partial appearance overrides to apply
+   * @param {boolean} [hardReset] - Whether to fully recreate the display sprite
+   */
   refreshCharacter(appearance = {}, hardReset = false) {
     const tempChar = {
       ...this.selectedCharacter,
@@ -931,6 +1037,11 @@ class CharacterSelect {
     }
   }
 
+  /**
+   * Equips the chosen item on the character and persists it to the account.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {Object} item - The item to equip
+   */
   equipSlotItem(slotId, item) {
     if (!this.selectedCharacter) return;
 
@@ -961,6 +1072,11 @@ class CharacterSelect {
     this.updateDisplay();
   }
 
+  /**
+   * Lists the layers of a multi-layer item so each one can be tinted.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {Object} item - The item whose layers are being colored
+   */
   showLayerColorMenu(slotId, item) {
     if (!item || !item.layers || item.layers.length < 2) return;
 
@@ -1021,6 +1137,13 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Opens the color input for tinting a single layer of an item.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {Object} item - The item being tinted
+   * @param {number} layerIndex - Index of the layer to tint
+   * @param {number} defaultColor - Starting color value
+   */
   customizeLayerColor(slotId, item, layerIndex, defaultColor) {
     const layerName = item.layers[layerIndex].name || __(`Layer ${layerIndex + 1}||Capa ${layerIndex + 1}`);
     const colorKey = slotId + '_layer' + layerIndex;
@@ -1045,6 +1168,11 @@ class CharacterSelect {
     );
   }
 
+  /**
+   * Applies the new layer tint to the character and re-renders the display.
+   * @param {string} colorKey - The storage key for the layer tint
+   * @param {number} color - RGB tint value to apply
+   */
   applyLayerColorToCharacter(colorKey, color) {
     if (!this.selectedCharacter) return;
     const appearance = this.selectedCharacter.appearance;
@@ -1057,6 +1185,11 @@ class CharacterSelect {
     }
   }
 
+  /**
+   * Opens the color input for tinting a single-slot clothing item.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {Object} item - The item being tinted
+   */
   customizeItemColor(slotId, item) {
     const currentColor = this.selectedCharacter?.appearance?.tints?.[slotId] || item?.tint || 0xffffff;
     
@@ -1080,6 +1213,11 @@ class CharacterSelect {
     );
   }
   
+  /**
+   * Applies a new tint to a clothing slot and re-renders the character.
+   * @param {string} slotId - The appearance slot identifier
+   * @param {number} color - RGB tint value to apply
+   */
   applyItemColorToCharacter(slotId, color) {
     if (!this.selectedCharacter) return;
     const appearance = this.selectedCharacter.appearance;
@@ -1092,6 +1230,11 @@ class CharacterSelect {
     }
   }
   
+  /**
+   * Opens the color input for tinting an aura/special effect item.
+   * @param {string} slotId - The clothing slot identifier
+   * @param {Object} item - The aura item being tinted
+   */
   customizeAuraColor(slotId, item) {
     const currentColor = this.selectedCharacter?.appearance?.tints?.special || item?.tint || 0xffffff;
     
@@ -1126,6 +1269,9 @@ class CharacterSelect {
     );
   }
 
+  /**
+   * Opens the color input for tinting the character's hair.
+   */
   customizeHairColor() {
     const currentColor = this.selectedCharacter.appearance.tints?.hair || 0xa8705a;
     
@@ -1162,6 +1308,14 @@ class CharacterSelect {
     );
   }
 
+  /**
+   * Shows an RGB color picker driven by the gamepad, calling back on every change.
+   * @param {string} title - Title shown above the picker
+   * @param {number} defaultColor - Starting RGB color value
+   * @param {Function} onColorChange - Called while adjusting the color
+   * @param {Function} onConfirm - Called when the picker is confirmed
+   * @param {Function} onCancel - Called when the picker is cancelled
+   */
   showColorInput(title, defaultColor, onColorChange, onConfirm, onCancel) {
     let color = defaultColor || 0xffffff;
     let r = (color >> 16) & 0xff;
@@ -1235,6 +1389,9 @@ class CharacterSelect {
     this.colorUI = { background, titleText, rgbText };
   }
   
+  /**
+   * Destroys the active color input UI and restores the general hints.
+   */
   cleanupColorUI() {
     if (this.colorUI) {
       if (this.colorUI.background) this.colorUI.background.destroy();
@@ -1246,6 +1403,9 @@ class CharacterSelect {
     this.navigationHint.updateHints('general');
   }
 
+  /**
+   * Confirms and deletes the selected character, then returns to the list.
+   */
   deleteCharacter() {
     this.confirm(
       __("Delete character?||¿Eliminar personaje?"),
@@ -1267,6 +1427,13 @@ class CharacterSelect {
     );
   }
 
+  /**
+   * Shows a Yes/No dialog for the given message and routes the result.
+   * @param {string} message - Text to display in the dialog
+   * @param {Function} onConfirm - Callback invoked for the yes button
+   * @param {Function} onCancel - Callback invoked for the no button
+   * @param {string} [recommended] - Default highlighted button selection
+   */
   confirm(message, onConfirm, onCancel, recommended = 'none') {
     this.clearAllMenus();
 
@@ -1290,8 +1457,13 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Resets the creation state and starts the new character creation wizard.
+   */
   startCharacterCreation() {
+    /** @type {number} Index of the current step in the creation wizard */
     this.creationStep = 0;
+    /** @type {Object} Appearance object being edited during creation */
     this.newCharacterAppearance = {
       skinTone: 0,
       hairColor: 0xFFFFFF,
@@ -1326,6 +1498,9 @@ class CharacterSelect {
     this.showCreationStep();
   }
 
+  /**
+   * Renders the current creation step UI and wires up its input handler.
+   */
   showCreationStep() {
     if (this.creationMenu) {
       this.creationMenu.destroy();
@@ -1372,6 +1547,9 @@ class CharacterSelect {
     }
   }
 
+  /**
+   * Shows the Next/Previous/Cancel navigation options for the wizard.
+   */
   showCreationNavigationMenu() {
     gamepad.releaseAll();
     this.creationWindow.forcedHighlightY = null;
@@ -1395,6 +1573,10 @@ class CharacterSelect {
     this.creationWindowManager.focus(this.creationWindow);
   }
   
+  /**
+   * Step handler letting the player cycle through the available skin tones.
+   * @param {Function} callback - Invoked when the step is completed
+   */
   creationCustomizeSkinTone(callback) {
     const skinOptions = [
       __("Lighter||Clarito"),
@@ -1433,6 +1615,10 @@ class CharacterSelect {
     gamepad.signals.pressed.any.add(skinHandler);
   }
 
+  /**
+   * Step handler with an RGB picker for choosing the new character hair color.
+   * @param {Function} callback - Invoked when the step is completed
+   */
   creationCustomizeHairColor(callback) {
     let color = this.newCharacterAppearance.tints.hair;
     let r = Math.max(0x88, (color >> 16) & 0xff);
@@ -1492,6 +1678,11 @@ class CharacterSelect {
     gamepad.signals.pressed.any.add(colorHandler);
   }
 
+  /**
+   * Step handler letting the player choose a front or back hair style.
+   * @param {string} type - Either "frontHair" or "backHair"
+   * @param {Function} callback - Invoked when the step is completed
+   */
   creationCustomizeHairStyle(type, callback) {
     const isDev = VERSION.includes('dev');
     const unlockAll = window.UNLOCK_ALL_CLOTHES === true && isDev;
@@ -1544,6 +1735,11 @@ class CharacterSelect {
     gamepad.signals.pressed.any.add(hairHandler);
   }
 
+  /**
+   * Step handler listing the unlocked clothing items for picking a slot.
+   * @param {string} slotId - The clothing slot being customized
+   * @param {Function} callback - Invoked when the step is completed
+   */
   creationCustomizeSlot(slotId, callback) {
     const items = CHARACTER_ITEMS.filter(item => item.type === slotId);
     const slotTypesWithNone = ['shoes', 'accessory', 'special'];
@@ -1614,6 +1810,10 @@ class CharacterSelect {
     gamepad.signals.pressed.any.add(itemHandler);
   }
 
+  /**
+   * Step handler that shows the on-screen keyboard to name the character.
+   * @param {Function} callback - Invoked when the step is completed
+   */
   creationNameCharacter(callback) {
     if (this.creationMenu) {
       this.creationMenu.destroy();
@@ -1668,6 +1868,10 @@ class CharacterSelect {
     });
   }
 
+  /**
+   * Generates a random default name from the character name syllables.
+   * @returns {string} The generated character name
+   */
   generateName() {
     const syllables = CHARACTER_SYSTEM.NAME_SYLLABLES;
     const firstSyllabe = game.rnd.pick(syllables);
@@ -1675,6 +1879,9 @@ class CharacterSelect {
     return firstSyllabe + secondSyllabe;
   }
 
+  /**
+   * Cleans up the creation objects and returns to the character list.
+   */
   cancelCharacterCreation() {
     if (this.tempCharacterDisplay) {
       this.tempCharacterDisplay.destroy();
@@ -1695,6 +1902,9 @@ class CharacterSelect {
     this.showHomeUI();
   }
 
+  /**
+   * Cleans up the creation color-picker UI and restores the general hints.
+   */
   cleanupColorUI() {
     if (this.colorUI) {
       if (this.colorUI.background) this.colorUI.background.destroy();
@@ -1707,6 +1917,9 @@ class CharacterSelect {
     this.navigationHint.updateHints('general');
   }
 
+  /**
+   * Phaser lifecycle hook called every frame to poll input and update windows.
+   */
   update() {
     gamepad.update();
 
@@ -1719,6 +1932,9 @@ class CharacterSelect {
     }
   }
 
+  /**
+   * Phaser lifecycle hook called when leaving the state; persists characters.
+   */
   shutdown() {
     this.characterManager.saveToAccount();
   }

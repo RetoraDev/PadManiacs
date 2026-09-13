@@ -1,23 +1,51 @@
+/**
+ * @class FuturisticLines
+ * @category UI Classes
+ * @summary Animated futuristic line effects
+ * @constructor
+ * @description
+ * Spawns animated glowing lines that drift horizontally across the screen for a sci-fi ambience. Each line moves in straight or angled bursts, traces a fading tail and fades out when it leaves the viewport. Density, speed, tail length, colors and alpha can be tuned at runtime.
+ * @example
+ * // Modding usage example
+ * const lines = new FuturisticLines();
+ * game.add.existing(lines);
+ * lines.setDensity(8);
+ * lines.setSpeed(1.5);
+ * lines.setColors([0x76FCFF, 0x00B8D4]);
+ * lines.clearLines();
+ */
 class FuturisticLines extends Phaser.Sprite {
   constructor() {
     super(game, 0, 0);
     
+    /** @type {Array<Object>} Active line objects being animated */
     this.lines = [];
+    /** @type {Number} Maximum number of concurrent lines */
     this.maxLines = 12;
+    /** @type {Number} Base movement speed of the lines */
     this.lineSpeed = 1.2;
+    /** @type {Number} Length of the fading tail in pixels */
     this.tailLength = 100;
+    /** @type {Number} Milliseconds between line spawns */
     this.spawnRate = 150;
+    /** @type {Number} Timestamp of the last line spawn */
     this.lastSpawnTime = 0;
     
+    /** @type {Array<Number>} Palette of hex colors used for new lines */
     this.lineColors = [0x76FCFF, 0x4AFCFE, 0x00E5FF, 0x00B8D4];
+    /** @type {Number} Base alpha of the drawn lines */
     this.lineAlpha = 0.3;
     
+    /** @type {Phaser.Graphics} Graphics object that draws all lines */
     this.graphics = game.add.graphics(0, 0);
     this.addChild(this.graphics);
     
     game.add.existing(this);
   }
 
+  /**
+   * Phaser lifecycle hook called every frame. Spawns new lines when the pool is not full and the spawn timer elapses, then advances and redraws all existing lines.
+   */
   update() {
     const currentTime = game.time.now;
     
@@ -153,31 +181,57 @@ class FuturisticLines extends Phaser.Sprite {
     this.graphics.endFill();
   }
 
+  /**
+   * Cap the number of concurrent lines.
+   * @param {Number} density - Line count clamped to 1-15
+   */
   setDensity(density) {
     this.maxLines = Phaser.Math.clamp(density, 1, 15);
   }
 
+  /**
+   * Sets the base movement speed of the lines.
+   * @param {Number} speed - Base speed clamped to 0.5-3
+   */
   setSpeed(speed) {
     this.lineSpeed = Phaser.Math.clamp(speed, 0.5, 3);
   }
 
+  /**
+   * Sets the length of the fading tail trailing each line.
+   * @param {Number} length - Tail length in pixels clamped to 20-100
+   */
   setTailLength(length) {
     this.tailLength = Phaser.Math.clamp(length, 20, 100);
   }
 
+  /**
+   * Removes every active line and clears the drawing surface.
+   */
   clearLines() {
     this.lines = [];
     this.graphics.clear();
   }
 
+  /**
+   * Replaces the color palette used for newly spawned lines.
+   * @param {Array<Number>} colors - Array of hex color values
+   */
   setColors(colors) {
     this.lineColors = colors;
   }
 
+  /**
+   * Sets the base alpha of the drawn lines.
+   * @param {Number} alpha - Alpha value clamped to 0.1-0.8
+   */
   setAlpha(alpha) {
     this.lineAlpha = Phaser.Math.clamp(alpha, 0.1, 0.8);
   }
 
+  /**
+   * Clears all lines and destroys the graphics object and sprite.
+   */
   destroy() {
     this.clearLines();
     this.graphics.destroy();

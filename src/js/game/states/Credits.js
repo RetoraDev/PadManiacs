@@ -1,15 +1,51 @@
+/**
+ * @class Credits
+ * @category Game States
+ * @summary Credits screen
+ * @constructor
+ * @param {string} [returnState] - Game state to return to when credits finish.
+ * @param {Object} [returnStateParams] - Params forwarded to the return state.
+ * @features
+ * Scrollable credits paced by the background song tempo
+ * Background slideshow of song artwork
+ * Plays a random song from the music library
+ * @description
+ * The Credits state plays the end-of-game credits as a vertically scrolling
+ * banner paced by the tempo of a randomly selected background song. It cycles
+ * artwork from the local song library as a backdrop. Once the credits finish,
+ * the player can press any button to return to the configured state.
+ * @example
+ * // Modding usage example
+ * // Play the credits and return to a chosen state afterward
+ * game.state.start("Credits");
+ *
+ * // Or specify where to land once the credits complete
+ * game.state.start("Credits", true, false, "Title");
+ */
 class Credits {
+  /**
+   * Records the return state and initializes credits timing and background data.
+   * @param {string} [returnState] - Game state to return to after the credits.
+   * @param {Object} [returnStateParams] - Params forwarded to the return state.
+   */
   init(returnState = 'MainMenu', returnStateParams = {}) {
+    /** @type {string} State to return to when credits finish. */
     this.returnState = returnState;
+    /** @type {Object} Params forwarded to the return state. */
     this.returnStateParams = returnStateParams;
+    /** @type {boolean} Whether input is being awaited after the finale. */
     this.isWaitingForInput = false;
     this.backgroundInterval = 8000;
+    /** @type {Array} URLs of backgrounds available for the slideshow. */
     this.availableBackgrounds = [];
     this.bpmChanges = null;
     this.stops = null;
     this.startTime = 0;
   }
 
+  /**
+   * Builds the credits text container, background slideshow, and music.
+   */
   create() {
     game.camera.fadeIn(0x000000);
     
@@ -81,6 +117,9 @@ class Credits {
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
 
+  /**
+   * Creates the background sprite and starts the artwork slideshow timer.
+   */
   setupBackground() {
     this.backgroundSprite = game.add.sprite(0, 0);
     this.backgroundSprite.alpha = 0.7;
@@ -149,6 +188,9 @@ class Credits {
     tempImg.src = nextBackground;
   }
 
+  /**
+   * Picks a random song with audio and plays it behind the credits.
+   */
   startBackgroundMusic() {
     if (backgroundMusic) {
       backgroundMusic.stop();
@@ -186,6 +228,10 @@ class Credits {
     }
   }
 
+  /**
+   * Collects credit lines for every local song with chart credit metadata.
+   * @returns {Array} Array of credit content descriptors.
+   */
   getSongCredits() {
     const songCredits = [];
     
@@ -233,6 +279,11 @@ class Credits {
     return this.stops.length ? this.stops.find((e, i, a) => i + 1 == a.length || a[i + 1].beat >= beat) : null;
   }
 
+  /**
+   * Converts a beat position to seconds using BPM changes and stops.
+   * @param {number} beat - Beat position to convert.
+   * @returns {number} Time in seconds.
+   */
   beatToSec(beat) {
     if (!this.bpmChanges || this.bpmChanges.length === 0) return beat * 60 / 120;
     
@@ -243,6 +294,11 @@ class Credits {
     return x;
   }
 
+  /**
+   * Converts a seconds position to beats using BPM changes and stops.
+   * @param {number} sec - Time in seconds to convert.
+   * @returns {number} Beat position.
+   */
   secToBeat(sec) {
     if (!this.bpmChanges || this.bpmChanges.length === 0) return sec * 120 / 60;
     
@@ -252,6 +308,9 @@ class Credits {
     return ((sec - b.sec) * b.bpm) / 60 + b.beat;
   }
 
+  /**
+   * Scrolls the credits, syncing speed to the current BPM each frame.
+   */
   update() {
     const { now, beat } = this.getSongTime();
     
@@ -276,6 +335,9 @@ class Credits {
     }
   }
 
+  /**
+   * Shows the thank-you message and waits for input to leave the screen.
+   */
   onCreditsComplete() {
     this.continueText = new Text(game.width / 2, game.height / 2, __("Thank you for playing||Gracias por jugar"), FONTS.bold_shadow);
     this.continueText.anchor.set(0.5);
@@ -289,6 +351,9 @@ class Credits {
     });
   }
 
+  /**
+   * Fades the camera and transitions to the configured return state.
+   */
   returnToMenu() {
     game.camera.fade(0x000000, 1000);
     game.camera.onFadeComplete.addOnce(() => {
@@ -296,6 +361,9 @@ class Credits {
     });
   }
 
+  /**
+   * Removes input handlers and stops credits music and background timers.
+   */
   shutdown() {
     if (this.skipHandler) {
       gamepad.signals.pressed.any.remove(this.skipHandler);
