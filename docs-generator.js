@@ -2809,6 +2809,7 @@ function generateDocs(options = {}) {
 
   fs.copyFileSync(path.join('./lib/', 'doki-docs.js'), path.join(outputDir, 'doki-docs.js'));
   fs.copyFileSync(path.join('./lib/', 'doki-docs.css'), path.join(outputDir, 'doki-docs.css'));
+  fs.copyFileSync(path.join('./lib/', 'highlight.min.js'), path.join(outputDir, 'highlight.min.js'));
   
   fs.writeFileSync(path.join(outputDir, 'doki-loader.js'), DOKI_LOADER_JS, 'utf8');
 

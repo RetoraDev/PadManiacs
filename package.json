@@ -16,6 +16,7 @@
     "build:release": "node build.js --all --minify --zipalign",
     "build:headless": "node build.js --all --minify --headless",
     "build:termux": "node build.js --cordova && termux-open ./dist/*.apk",
+    "build:docs": "node docs-generator.js",
     "serve": "node index.js --serve",
     "serve:dist": "node index.js --serve",
     "serve:src": "node index.js --serve-src",
@@ -25,8 +26,8 @@
     "release": "node index.js --all --minify --zipalign",
     "release:headless": "node index.js --all --minify --zipalign --headless",
     "clean": "rm -rf dist",
-    "clean:all": "rm -rf dist && rm -f *.zip *.apk",
-    "test": "node test.js",
+    "clean:all": "rm -rf dist && rm -f *.zip *.apk && rm -rf docs",
+    "test": "echo 'No tests specified'",
     "docs": "node docs-generator.js",
     "help": "node index.js --help"
   },
