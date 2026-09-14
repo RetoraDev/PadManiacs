@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "CordovaFileSystem Class"]
+    [title: "CordovaFileSystem Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,26 +18,26 @@
 
     [heading: "Key Features"]
     [list]
-* Resolves directories via the Cordova file plugin
-* Adapts root storage location per OS (iOS, Android, Windows)
-* Wraps callback-based APIs in Promises
-[/list]
+    * Resolves directories via the Cordova file plugin
+    * Adapts root storage location per OS (iOS, Android, Windows)
+    * Wraps callback-based APIs in Promises
+    [/list]
 
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ listDirectories | (dirEntry) | Lists immediate child directories within a directory entry. ]
-[ listAllDirectories | (startDir) | Recursively lists all subdirectories starting from a root directory. Uses a breadth-first traversal to discover the full directory tree. ]
-[ listFiles | (dirEntry) | Lists immediate child files within a directory entry. ]
-[ File | (fileEntry) | Retrieves the File object from a file entry. ]
-[ readFileContent | (file) | Reads the full text content of a File object. ]
-[ saveFile | (dirEntry, fileData, fileName) | Saves data to a file, creating it if it does not exist. ]
-[ createEmptyFile | (dirEntry, fileName, isAppend) | Creates an empty file or opens an existing file for appending. ]
-[ writeFile | (fileEntry, dataObj, isAppend) | Writes data to an existing file entry. ]
-[ createDirectory | (rootDirEntry, dirName) | Creates a new subdirectory inside a parent directory. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ listDirectories | (dirEntry) | Lists immediate child directories within a directory entry. ]
+    [ listAllDirectories | (startDir) | Recursively lists all subdirectories starting from a root directory. Uses a breadth-first traversal to discover the full directory tree. ]
+    [ listFiles | (dirEntry) | Lists immediate child files within a directory entry. ]
+    [ getFile | (fileEntry) | Retrieves the File object from a file entry. ]
+    [ readFileContent | (file) | Reads the full text content of a File object. ]
+    [ saveFile | (dirEntry, fileData, fileName) | Saves data to a file, creating it if it does not exist. ]
+    [ createEmptyFile | (dirEntry, fileName, isAppend) | Creates an empty file or opens an existing file for appending. ]
+    [ writeFile | (fileEntry, dataObj, isAppend) | Writes data to an existing file entry. ]
+    [ createDirectory | (rootDirEntry, dirName) | Creates a new subdirectory inside a parent directory. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Reading a song file on a Cordova mobile device
@@ -49,8 +49,8 @@ for (const entry of files) {
   const text = await fs.readFileContent(file);
   console.log(entry.name, text.length);
 }
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "CharacterSkillSystem Class"]
+    [title: "CharacterSkillSystem Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,59 +18,61 @@
 
     [heading: "Key Features"]
     [list]
-* Condition-based skill activation during gameplay
-* Cooldown and duration tracking for all skills
-* Effect modifiers applied and reverted on deactivation
-* Skill bar updates and on-screen activation feedback
-[/list]
+    * Condition-based skill activation during gameplay
+    * Cooldown and duration tracking for all skills
+    * Effect modifiers applied and reverted on deactivation
+    * Skill bar updates and on-screen activation feedback
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ scene | Object | The Phaser game state scene ]
-[ character | Object | Character data model; falls back to scene.character ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ scene | Object | The Phaser game state scene ]
+    [ character | Object | Character data model; falls back to scene.character ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ scene | Object | The owning Phaser game state scene ]
-[ character | Object | Character data model using skills ]
-[ activeSkills | Map | Skills currently active with their start and end times ]
-[ skillCooldowns | Map | Skill IDs mapped to their cooldown end times ]
-[ skillsUsedThisGame | number | Number of skills used during the current game ]
-[ skillEffects | Object | Aggregate effect modifiers applied by active skills ]
-[/table]
+    [ Property | Type | Description ]
+    [ scene | Object | The owning Phaser game state scene ]
+    [ character | Object | Character data model using skills ]
+    [ activeSkills | Map | Skills currently active with their start and end times ]
+    [ skillCooldowns | Map | Skill IDs mapped to their cooldown end times ]
+    [ skillsUsedThisGame | number | Number of skills used during the current game ]
+    [ skillEffects | Object | Aggregate effect modifiers applied by active skills ]
+    [ healthRegenTimer | ?Phaser.TimerEvent | Active health regeneration timer ]
+    [ exhausted | boolean | Whether all skill uses have been exhausted for this game ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ checkSkillActivation | (condition, params) | Checks whether the selected skill should activate for the given gameplay condition. ]
-[ canActivateSkill | (skill, params) | Determines whether a skill can be activated given cooldown, autoplay, and condition checks. ]
-[ activateSkill | (skill, params) | Applies a skill's effect, sets its cooldown, shows visual feedback, and triggers the notify event. ]
-[ notifySkillUsed | (skill) | Shows an on-screen banner announcing the skill that was just used. ]
-[ applySkillEffect | (skill) | Applies a skill's effect to the active modifiers based on its effect type. ]
-[ deactivateSkill | (skillId) | Reverts a skill's effect and removes it from the active skills list. ]
-[ startHealthRegen | (params) | Begins periodic health regeneration using the skill's interval and amount. ]
-[ stopHealthRegen | () | Stops any active health regeneration timer. ]
-[ JudgementConversion | () | Getters for skill effects, consumed by the Player class during gameplay. ]
-[ JudgementWindowMultiplier | () |  ]
-[ MaxHealthBonus | () |  ]
-[ NoteSpeedMultiplier | () |  ]
-[ HoldForgivenessMultiplier | () |  ]
-[ RollForgivenessMultiplier | () |  ]
-[ MineDamageMultiplier | () |  ]
-[ ScoreMultiplier | (judgement) | Returns the score multiplier applied for a specific judgement type. ]
-[ HealthGainMultiplier | () |  ]
-[ InputLagReduction | () |  ]
-[ update | () | Updates exhaustion state, expires finished skills, and refreshes the skill bar each frame. ]
-[ resetGame | () | Clears all active skills, cooldowns, effects, and usage count for a fresh game. ]
-[ SkillsUsed | () | Returns how many skills have been used during the current game. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ checkSkillActivation | (condition, params) | Checks whether the selected skill should activate for the given gameplay condition. ]
+    [ canActivateSkill | (skill, params) | Determines whether a skill can be activated given cooldown, autoplay, and condition checks. ]
+    [ activateSkill | (skill, params) | Applies a skill's effect, sets its cooldown, shows visual feedback, and triggers the notify event. ]
+    [ notifySkillUsed | (skill) | Shows an on-screen banner announcing the skill that was just used. ]
+    [ applySkillEffect | (skill) | Applies a skill's effect to the active modifiers based on its effect type. ]
+    [ deactivateSkill | (skillId) | Reverts a skill's effect and removes it from the active skills list. ]
+    [ startHealthRegen | (params) | Begins periodic health regeneration using the skill's interval and amount. ]
+    [ stopHealthRegen | () | Stops any active health regeneration timer. ]
+    [ getJudgementConversion | () | Getters for skill effects, consumed by the Player class during gameplay. ]
+    [ getJudgementWindowMultiplier | () |  ]
+    [ getMaxHealthBonus | () |  ]
+    [ getNoteSpeedMultiplier | () |  ]
+    [ getHoldForgivenessMultiplier | () |  ]
+    [ getRollForgivenessMultiplier | () |  ]
+    [ getMineDamageMultiplier | () |  ]
+    [ getScoreMultiplier | (judgement) | Returns the score multiplier applied for a specific judgement type. ]
+    [ getHealthGainMultiplier | () |  ]
+    [ getInputLagReduction | () |  ]
+    [ update | () | Updates exhaustion state, expires finished skills, and refreshes the skill bar each frame. ]
+    [ resetGame | () | Clears all active skills, cooldowns, effects, and usage count for a fresh game. ]
+    [ getSkillsUsed | () | Returns how many skills have been used during the current game. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -82,8 +84,8 @@ function update() {
   skills.update();
 }
 skills.resetGame();
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

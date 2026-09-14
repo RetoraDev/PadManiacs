@@ -54,6 +54,7 @@ class Text extends Phaser.Sprite {
     /** @type {number} Milliseconds between typewriter characters */
     this.typewriterInterval = this.config.typewriterInterval;
 
+    /** @type {string} Tint color applied to the rendered text (hex string) */
     this.tint = this.config.tint;
     
     if (this.config.typewriter) {

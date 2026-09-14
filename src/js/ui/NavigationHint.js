@@ -36,9 +36,13 @@ class NavigationHint extends Phaser.Sprite {
     this.items = [];
     /** @type {object} Timer handle for the alternate-mode cycling */
     this.alternateTimer = null;
+    /** @type {number} Player id currently displayed when cycling alternate mode */
     this.currentAlternatePlayer = 1;
+    /** @type {boolean} Whether player-switch refreshes are temporarily suppressed */
     this.ignorePlayerSwitch = false;
+    /** @type {boolean} Whether prompt caching is disabled */
     this.disableCache = disableCache || false;
+    /** @type {boolean} Whether the hints automatically cycle between players */
     this.alternateMode = Account.settings.alternateHintMode || false;
     
     /** @type {Phaser.Signal} Dispatched with the player id when the active player changes */
@@ -48,12 +52,14 @@ class NavigationHint extends Phaser.Sprite {
     /** @type {object} Cached parents keyed by player id and input source */
     this.parents = {};
     
+    /** @type {Object} Tracked width of each player's rendered hint row */
     this.sizes = {
       '1': 0,
       '2': 0
     };
     
     // Cache last state to avoid unnecessary refreshes
+    /** @type {Object} Last rendered state used to skip redundant refreshes */
     this.lastState = {
       inputSource: null,
       activePlayer: null,
@@ -91,6 +97,7 @@ class NavigationHint extends Phaser.Sprite {
       }
     };
     
+    /** @type {Function} Refresh callback invoked on gamepad presses */
     this.updateCondition = updateCondition;
     
     if (gamepad) gamepad.signals.pressed.any.add(this.updateCondition);

@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "AudioTemperatureMeter Class"]
+    [title: "AudioTemperatureMeter Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,49 +18,64 @@
 
     [heading: "Key Features"]
     [list]
-* Volume-based silence detection
-* BPM spike detection for intensity changes
-* Stop event awareness
-* Sample section highlighting
-[/list]
+    * Volume-based silence detection
+    * BPM spike detection for intensity changes
+    * Stop event awareness
+    * Sample section highlighting
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ scene | Phaser.Scene | The Phaser game scene ]
-[ audioElement | HTMLAudioElement | The game audio element to analyze ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ scene | Phaser.Scene | The Phaser game scene ]
+    [ audioElement | HTMLAudioElement | The game audio element to analyze ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ onHighTemperature | Phaser.Signal | Dispatched when the temperature switches to high ]
-[ onLowTemperature | Phaser.Signal | Dispatched when the temperature switches to low ]
-[ isHigh | boolean | Whether the meter currently reports a high state ]
-[ lastBPM | number | Most recently measured BPM value ]
-[ config | Object | Tunable detection settings for the meter ]
-[/table]
+    [ Property | Type | Description ]
+    [ scene | Object | The gameplay scene this meter belongs to ]
+    [ audio | HTMLAudioElement | Audio element whose volume is monitored ]
+    [ onHighTemperature | Phaser.Signal | Dispatched when the temperature switches to high ]
+    [ onLowTemperature | Phaser.Signal | Dispatched when the temperature switches to low ]
+    [ isHigh | boolean | Whether the meter currently reports a high state ]
+    [ sampleStartSec | number | Start of the sampled audio section in seconds ]
+    [ sampleEndSec | number | End of the sampled audio section in seconds ]
+    [ lastBPM | number | Most recently measured BPM value ]
+    [ bpmSpikeActive | boolean | Whether a BPM spike is currently being detected ]
+    [ bpmSpikeEndTime | number | Time when the active BPM spike ends ]
+    [ inStop | boolean | Whether the meter is inside a chart stop section ]
+    [ silenceStartTime | ?number | Time when silence was first detected ]
+    [ silenceEndTime | ?number | Time when silence last finished ]
+    [ volumeHistory | Array | Rolling history of recent loudness samples ]
+    [ config | Object | Tunable detection settings for the meter ]
+    [ audioContext | AudioContext | Web Audio context backing the analyser ]
+    [ analyser | AnalyserNode | Sine/frequency analyser reading loudness ]
+    [ bufferLength | number | Number of frequency bins in the analyser ]
+    [ dataArray | Uint8Array | Buffer receiving the frequency data ]
+    [ debugText | ?Text | Debug label showing live meter readings ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ init | () | Reads the song's sample start and length from the chart for temperature timing. Called once during construction to define the sample section window. ]
-[ setupVolumeDetection | () | Initializes the Web Audio API analyser for volume detection. Safe to call with no audio element; setup is skipped silently. ]
-[ Volume | () | Returns the current normalized loudness of the audio stream. Falls back to a neutral 0.5 when no analyser is available. ]
-[ CurrentBPM | (nowSec) | Returns the BPM in effect at the given playback time from chart changes. Falls back to the last measured BPM when no chart is available. ]
-[ checkForBPMSpike | (nowSec) | Detects significant BPM increases and activates a spike section. A 16-measure (64 beat) high section is triggered on large jumps. ]
-[ checkForSilence | (nowSec) | Samples audio volume and tracks periods of silence. Returns whether the current moment is silent and for how long. ]
-[ checkForStops | (nowSec) | Detects when playback passes through a chart stop event. Temporarily marks the meter as in a stop with a timed reset. ]
-[ update | (nowSec, beat) | Main per-frame evaluation that decides high or low temperature state. Combines sample section, BPM spike, silence, and stop rules, then dispatches signals. ]
-[ reset | () | Resets all detection state back to initial values. ]
-[ Temperature | () | Returns the temperature as a numeric value. ]
-[ isTemperatureHigh | () | Returns whether the meter currently reports a high temperature state. ]
-[ destroy | () | Cleans up signals and debug text used by the meter. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ init | () | Reads the song's sample start and length from the chart for temperature timing. Called once during construction to define the sample section window. ]
+    [ setupVolumeDetection | () | Initializes the Web Audio API analyser for volume detection. Safe to call with no audio element; setup is skipped silently. ]
+    [ getVolume | () | Returns the current normalized loudness of the audio stream. Falls back to a neutral 0.5 when no analyser is available. ]
+    [ getCurrentBPM | (nowSec) | Returns the BPM in effect at the given playback time from chart changes. Falls back to the last measured BPM when no chart is available. ]
+    [ checkForBPMSpike | (nowSec) | Detects significant BPM increases and activates a spike section. A 16-measure (64 beat) high section is triggered on large jumps. ]
+    [ checkForSilence | (nowSec) | Samples audio volume and tracks periods of silence. Returns whether the current moment is silent and for how long. ]
+    [ checkForStops | (nowSec) | Detects when playback passes through a chart stop event. Temporarily marks the meter as in a stop with a timed reset. ]
+    [ update | (nowSec, beat) | Main per-frame evaluation that decides high or low temperature state. Combines sample section, BPM spike, silence, and stop rules, then dispatches signals. ]
+    [ reset | () | Resets all detection state back to initial values. ]
+    [ getTemperature | () | Returns the temperature as a numeric value. ]
+    [ isTemperatureHigh | () | Returns whether the meter currently reports a high temperature state. ]
+    [ destroy | () | Cleans up signals and debug text used by the meter. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Creating a temperature meter for background effects
@@ -71,8 +86,8 @@ meter.onHighTemperature.add(() => {
 meter.onLowTemperature.add(() => {
   backgroundSprite.playAnimation("calm");
 });
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

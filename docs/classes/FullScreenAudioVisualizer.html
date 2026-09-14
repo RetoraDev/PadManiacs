@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "FullScreenAudioVisualizer Class"]
+    [title: "FullScreenAudioVisualizer Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,54 +18,56 @@
 
     [heading: "Key Features"]
     [list]
-* Multiple visualization types: bars, waveform, circular, symmetrical
-* Configurable bar colors, sizes, smoothing, and alpha
-* Static factory and browser support detection helpers
-[/list]
+    * Multiple visualization types: bars, waveform, circular, symmetrical
+    * Configurable bar colors, sizes, smoothing, and alpha
+    * Static factory and browser support detection helpers
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ audioElement | HTMLAudioElement | Audio element to analyze ]
-[ options | Object | Configuration options ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ audioElement | HTMLAudioElement | Audio element to analyze ]
+    [ options | Object | Configuration options ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ audioElement | HTMLAudioElement | The audio element being analyzed ]
-[ options | Object | Visualization configuration options ]
-[ graphics | Phaser.Graphics | Graphics object used for all drawing ]
-[ analyser | AnalyserNode|null | Analyser node providing audio data ]
-[ dataArray | Uint8Array|null | Raw frequency data buffer ]
-[ bufferLength | number | Length of the frequency buffer ]
-[ frequencyData | Uint8Array|null | Smoothed frequency data buffer ]
-[ isActive | boolean | Whether the visualizer is active and analyzing ]
-[/table]
+    [ Property | Type | Description ]
+    [ audioElement | HTMLAudioElement | The audio element being analyzed ]
+    [ options | Object | Visualization configuration options ]
+    [ graphics | Phaser.Graphics | Graphics object used for all drawing ]
+    [ analyser | AnalyserNode|null | Analyser node providing audio data ]
+    [ dataArray | Uint8Array|null | Raw frequency data buffer ]
+    [ bufferLength | number | Length of the frequency buffer ]
+    [ frequencyData | Uint8Array|null | Smoothed frequency data buffer ]
+    [ isActive | boolean | Whether the visualizer is active and analyzing ]
+    [ audioContext | AudioContext | Web Audio context driving the analyser ]
+    [ source | MediaElementAudioSourceNode | Audio source node linked to the audio element ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ setupAudioAnalysis | () | Creates the audio context and analyser, then connects the audio element source. ]
-[ connectAudioSource | () | Connects or reconnects the audio element to the analyser node. ]
-[ setAudioSource | (audioElement) | Swaps in a new audio element and reconnects it to the analyser. ]
-[ update | () | Fetches audio data, applies smoothing, and renders the configured visualization each frame. ]
-[ setVisualizationType | (type) | Changes the visualization style to one of the supported types. ]
-[ setBarColor | (color) | Sets the bar color used by the visualization. ]
-[ setAlpha | (alpha) | Sets the rendering alpha of the visualization. ]
-[ setOptions | (newOptions) | Merges new configuration options and re-applies analyser settings when present. ]
-[ Settings | () | Returns a copy of the current visualization settings. ]
-[ isReady | () | Returns whether the visualizer is active and ready for analysis. ]
-[ pause | () | Pauses visualization updates. ]
-[ resume | () | Resumes visualization updates. ]
-[ destroy | () | Stops analysis, disconnects audio nodes, closes the context, and frees resources. ]
-[ create | (audioElement, options) | Factory method to create a FullScreenAudioVisualizer with default settings. ]
-[ isSupported | () | Checks whether the browser supports Web Audio analysis. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ setupAudioAnalysis | () | Creates the audio context and analyser, then connects the audio element source. ]
+    [ connectAudioSource | () | Connects or reconnects the audio element to the analyser node. ]
+    [ setAudioSource | (audioElement) | Swaps in a new audio element and reconnects it to the analyser. ]
+    [ update | () | Fetches audio data, applies smoothing, and renders the configured visualization each frame. ]
+    [ setVisualizationType | (type) | Changes the visualization style to one of the supported types. ]
+    [ setBarColor | (color) | Sets the bar color used by the visualization. ]
+    [ setAlpha | (alpha) | Sets the rendering alpha of the visualization. ]
+    [ setOptions | (newOptions) | Merges new configuration options and re-applies analyser settings when present. ]
+    [ getSettings | () | Returns a copy of the current visualization settings. ]
+    [ isReady | () | Returns whether the visualizer is active and ready for analysis. ]
+    [ pause | () | Pauses visualization updates. ]
+    [ resume | () | Resumes visualization updates. ]
+    [ destroy | () | Stops analysis, disconnects audio nodes, closes the context, and frees resources. ]
+    [ create | (audioElement, options) | Factory method to create a FullScreenAudioVisualizer with default settings. ]
+    [ isSupported | () | Checks whether the browser supports Web Audio analysis. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -77,8 +79,8 @@ const viz = FullScreenAudioVisualizer.create(audioElement, {
 function update() {
   viz.update();
 }
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

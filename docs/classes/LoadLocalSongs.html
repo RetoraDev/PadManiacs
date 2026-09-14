@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "LoadLocalSongs Class"]
+    [title: "LoadLocalSongs Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,31 +18,31 @@
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ progressText | ProgressText | Bilingual progress text shown while songs load ]
-[ songs | Array&lt;Object&gt; | Collection of parsed local song charts ]
-[ parser | LocalSMParser | Parser used to read bundled .sm chart files ]
-[ loadingDots | LoadingDots | Animated loading indicator dots ]
-[/table]
+    [ Property | Type | Description ]
+    [ progressText | ProgressText | Bilingual progress text shown while songs load ]
+    [ songs | Array&lt;Object&gt; | Collection of parsed local song charts ]
+    [ parser | LocalSMParser | Parser used to read bundled .sm chart files ]
+    [ loadingDots | LoadingDots | Animated loading indicator dots ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ create | () | Sets up the loading UI, song collection, and parser, then starts loading the songs. ]
-[ loadSongs | () | Iterates over the default song folders, loads each one into the songs collection, and finishes the state once all of them have been attempted. ]
-[ loadSong | (folderName) | Loads a single bundled song from a folder by reading and parsing its .sm chart file, falling back to common alternative filenames if the folder does not share its name. ]
-[ finish | () | Publishes the collected songs to window.localSongs and advances to the Title state. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ create | () | Sets up the loading UI, song collection, and parser, then starts loading the songs. ]
+    [ loadSongs | () | Iterates over the default song folders, loads each one into the songs collection, and finishes the state once all of them have been attempted. ]
+    [ loadSong | (folderName) | Loads a single bundled song from a folder by reading and parsing its .sm chart file, falling back to common alternative filenames if the folder does not share its name. ]
+    [ finish | () | Publishes the collected songs to window.localSongs and advances to the Title state. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Runs during the boot chain and populates window.localSongs for the menu.
 game.state.add('LoadLocalSongs', LoadLocalSongs);
 game.state.start('LoadLocalSongs');
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

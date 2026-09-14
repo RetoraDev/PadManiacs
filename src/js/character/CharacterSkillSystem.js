@@ -326,6 +326,7 @@ class CharacterSkillSystem {
   startHealthRegen(params) {
     this.stopHealthRegen(); // Stop any existing regen
     
+    /** @type {?Phaser.TimerEvent} Active health regeneration timer */
     this.healthRegenTimer = game.time.events.loop(params.interval, () => {
       if (this.onHealthRegen) {
         this.onHealthRegen(params.amount);
@@ -431,6 +432,7 @@ class CharacterSkillSystem {
     if (!this.character) return;
     
     // Update exhausted state
+    /** @type {boolean} Whether all skill uses have been exhausted for this game */
     this.exhausted = this.skillsUsedThisGame >= this.character.skillLevel;
     
     // Update active skills

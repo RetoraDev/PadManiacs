@@ -82,7 +82,9 @@ class TextInput extends Phaser.Sprite {
     this.cursor.endFill();
     this.textLayer.addChild(this.cursor);
     
+    /** @type {number} Timestamp of the last cursor blink tick */
     this.lastCursorBlinkTime = 0;
+    /** @type {boolean} Whether the text cursor is currently visible */
     this.cursorVisible = false;
     
     /** @type {Phaser.Signal} Dispatched with the final text when confirmed */

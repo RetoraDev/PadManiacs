@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "SongSelect Class"]
+    [title: "SongSelect Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,52 +18,78 @@
 
     [heading: "Key Features"]
     [list]
-* Carousel listing of songs with audio and banner previews
-* High score display per song and a difficulty selection overlay
-* Single player and two-player multiplayer setup with per-player settings
-* Playlist actions for adding, removing and reordering songs
-[/list]
+    * Carousel listing of songs with audio and banner previews
+    * High score display per song and a difficulty selection overlay
+    * Single player and two-player multiplayer setup with per-player settings
+    * Playlist actions for adding, removing and reordering songs
+    [/list]
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ type | string | Source type of the song list being browsed ]
-[ playlistKey | string|null | Optional playlist key for the current song list ]
-[ autoSelect | boolean | Whether the initially selected song should start automatically ]
-[ selectedSong | Object|null | The currently selected song ]
-[ selectedDifficulty | number | Index of the selected difficulty within the song ]
-[ previewAudio | HTMLAudioElement | Audio element used for song previews ]
-[ windowManager1 | WindowManager | Window manager dedicated to player 1 ]
-[ windowManager2 | WindowManager | Window manager dedicated to player 2 ]
-[/table]
+    [ Property | Type | Description ]
+    [ type | string | Source type of the song list being browsed ]
+    [ playlistKey | string|null | Optional playlist key for the current song list ]
+    [ isActionMenuOpen | boolean | Whether the per-song action menu is currently open ]
+    [ actionsMenuBlocked | boolean | Whether opening the action menu is temporarily blocked ]
+    [ songs | Object[] | The song list presented in this state ]
+    [ startingIndex | number | Carousel index to start the song list at ]
+    [ autoSelect | boolean | Whether the initially selected song should start automatically ]
+    [ multiplayerState | Object | Shared multiplayer state mirror used across the UI ]
+    [ selectedSong | Object|null | The currently selected song ]
+    [ selectedDifficulty | number | Index of the selected difficulty within the song ]
+    [ previewAudio | HTMLAudioElement | Audio element used for song previews ]
+    [ bannerImg | HTMLImageElement | Image element caching the song banner pixels ]
+    [ navigationHint | NavigationHint | Hint prompts for the song select controls ]
+    [ autoplayText | Text | Autoplay indicator label ]
+    [ bannerSprite | CanvasBackground | Layer drawing the selected song banner ]
+    [ metadataText | Text | Label showing the song metadata (artist, BPM, etc.) ]
+    [ highScoreText | Text | Label showing the best score for the song ]
+    [ loadingDots | LoadingDots | Animated indicator shown while songs are loading ]
+    [ windowManager1 | WindowManager | Window manager dedicated to player 1 ]
+    [ windowManager2 | WindowManager | Window manager dedicated to player 2 ]
+    [ visibilityChangeListener | Function | Handler pausing or resuming previews on tab visibility changes ]
+    [ songCarousel | CarouselMenu | Carousel listing the available songs ]
+    [ difficultyCarousel | CarouselMenu | Carousel listing the song's difficulties ]
+    [ gamemodeCarousel | CarouselMenu | Carousel choosing the game mode (single or multiplayer) ]
+    [ multiplayerScreen | Phaser.Group | Group holding the multiplayer setup UI ]
+    [ player1Frame | Window | Player 1's settings window frame ]
+    [ player2Frame | Window | Player 2's settings window frame ]
+    [ p1ReadyBackground | Phaser.Sprite | Gradient overlay behind player 1's READY label ]
+    [ p2ReadyBackground | Phaser.Sprite | Gradient overlay behind player 2's READY label ]
+    [ p1ReadyText | Text | Player 1's READY label ]
+    [ p2ReadyText | Text | Player 2's READY label ]
+    [ playerJoinInstructionText | Text | Prompt asking player 2 to press start ]
+    [ startInstructionText | Text | Prompt shown once both players are ready ]
+    [ actionsMenu | CarouselMenu | Popup menu with per-song actions ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ init | (songs, index, autoSelect, type, playlistKey) | Phaser state hook that stores the song list, starting index and type. ]
-[ create | () | Phaser state hook that builds the selection UI and wires up previews. ]
-[ createSongSelectionMenu | () | Builds the song carousel menu, restores the starting index and previews. ]
-[ previewSong | (song) | Plays the audio preview and renders the banner and metadata for a song. ]
-[ displayHighScores | (song) | Displays the saved high scores for each difficulty of the given song. ]
-[ SongKey | (song) | Builds a stable storage key for a song based on its source. ]
-[ MetadataText | (data) | Builds the metadata text block displayed for a song. ]
-[ selectSong | (song, index) | Sets the selected song and shows its difficulty selection overlay. ]
-[ showDifficultySelection | (song) | Shows the carousel of difficulties available for the selected song. ]
-[ showGameModeSelection | (song, difficultyIndex) | Shows the game mode carousel offering single player or multiplayer. ]
-[ showMultiplayerScreen | (song, difficultyIndex) | Builds the two-player setup windows with per-player match settings. ]
-[ startMultiplayer | () | Starts the multiplayer gameplay state with the configured settings. ]
-[ populatePlayerFrame | (window, playerNumber) | Populates a player's setup window with autoplay, scroll, note and speed settings. ]
-[ startGame | (song, difficultyIndex, singlePlayer) | Starts the gameplay state for a song in single player or multiplayer. ]
-[ showActionsMenu | (playlistKey) | Opens the actions menu for the current song (playlists, move, stats, editor). ]
-[ showAddToPlaylistMenu | (song, omitKey) | Shows the playlist picker for adding a song, excluding one optional playlist. ]
-[ createPlaylistForSong | (song) | Prompts the player to name and create a new playlist for the song. ]
-[ closeActionsMenu | () | Closes the actions menu and restores the song carousel input. ]
-[ update | () | Phaser lifecycle hook called every frame; handles multiplayer readiness. ]
-[ shutdown | () | Phaser lifecycle hook called when leaving the state; stops previews. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ init | (songs, index, autoSelect, type, playlistKey) | Phaser state hook that stores the song list, starting index and type. ]
+    [ create | () | Phaser state hook that builds the selection UI and wires up previews. ]
+    [ createSongSelectionMenu | () | Builds the song carousel menu, restores the starting index and previews. ]
+    [ previewSong | (song) | Plays the audio preview and renders the banner and metadata for a song. ]
+    [ displayHighScores | (song) | Displays the saved high scores for each difficulty of the given song. ]
+    [ getSongKey | (song) | Builds a stable storage key for a song based on its source. ]
+    [ getMetadataText | (data) | Builds the metadata text block displayed for a song. ]
+    [ selectSong | (song, index) | Sets the selected song and shows its difficulty selection overlay. ]
+    [ showDifficultySelection | (song) | Shows the carousel of difficulties available for the selected song. ]
+    [ showGameModeSelection | (song, difficultyIndex) | Shows the game mode carousel offering single player or multiplayer. ]
+    [ showMultiplayerScreen | (song, difficultyIndex) | Builds the two-player setup windows with per-player match settings. ]
+    [ startMultiplayer | () | Starts the multiplayer gameplay state with the configured settings. ]
+    [ populatePlayerFrame | (window, playerNumber) | Populates a player's setup window with autoplay, scroll, note and speed settings. ]
+    [ startGame | (song, difficultyIndex, singlePlayer) | Starts the gameplay state for a song in single player or multiplayer. ]
+    [ showActionsMenu | (playlistKey) | Opens the actions menu for the current song (playlists, move, stats, editor). ]
+    [ showAddToPlaylistMenu | (song, omitKey) | Shows the playlist picker for adding a song, excluding one optional playlist. ]
+    [ createPlaylistForSong | (song) | Prompts the player to name and create a new playlist for the song. ]
+    [ closeActionsMenu | () | Closes the actions menu and restores the song carousel input. ]
+    [ update | () | Phaser lifecycle hook called every frame; handles multiplayer readiness. ]
+    [ shutdown | () | Phaser lifecycle hook called when leaving the state; stops previews. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Launch song select for the local song library
@@ -71,8 +97,8 @@ game.state.start("SongSelect", true, false, window.localSongs, 0, false, "local"
 
 // Start a game directly for a chosen song and difficulty
 game.state.start("Play", true, false, { chart: song, difficultyIndex: 0 });
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

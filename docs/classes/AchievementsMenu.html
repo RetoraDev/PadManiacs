@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "AchievementsMenu Class"]
+    [title: "AchievementsMenu Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,33 +18,33 @@
 
     [heading: "Key Features"]
     [list]
-* Carousel of unlocked or locked achievements
-* Toggle between sections with the Select button
-* Detail pane with unlock dates and experience rewards
-[/list]
+    * Carousel of unlocked or locked achievements
+    * Toggle between sections with the Select button
+    * Detail pane with unlock dates and experience rewards
+    [/list]
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ navigationHint | NavigationHint | On-screen overlay hinting button usage. ]
-[ showingUnlocked | boolean | Whether the list is showing unlocked achievements. ]
-[ detailsText | Text | Details pane for the selected achievement. ]
-[ carousel | CarouselMenu | Carousel listing achievement names. ]
-[ toggleText | Text | Header text showing the current achievements section. ]
-[/table]
+    [ Property | Type | Description ]
+    [ navigationHint | NavigationHint | On-screen overlay hinting button usage. ]
+    [ showingUnlocked | boolean | Whether the list is showing unlocked achievements. ]
+    [ detailsText | Text | Details pane for the selected achievement. ]
+    [ carousel | CarouselMenu | Carousel listing achievement names. ]
+    [ toggleText | Text | Header text showing the current achievements section. ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ create | () | Sets up the carousel, detail text, and addon behaviors for the state. ]
-[ createMenu | () | Builds the achievements carousel and toggling header text. ]
-[ updateAchievementsList | () | Rebuilds the carousel for the currently selected achievements section. ]
-[ showAchievementDetails | (achievement) | Writes the selected achievement's details into the detail pane. ]
-[ update | () | Toggles between unlocked and locked sections with the Select button. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ create | () | Sets up the carousel, detail text, and addon behaviors for the state. ]
+    [ createMenu | () | Builds the achievements carousel and toggling header text. ]
+    [ updateAchievementsList | () | Rebuilds the carousel for the currently selected achievements section. ]
+    [ showAchievementDetails | (achievement) | Writes the selected achievement's details into the detail pane. ]
+    [ update | () | Toggles between unlocked and locked sections with the Select button. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -52,8 +52,8 @@ game.state.start("AchievementsMenu");
 
 // Inspect unlock status for a custom achievement id
 Account.achievements.unlocked["custom_id"];
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

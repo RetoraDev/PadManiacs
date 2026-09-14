@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "Character Class"]
+    [title: "Character Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,66 +18,66 @@
 
     [heading: "Key Features"]
     [list]
-* Leveling and experience system
-* Skill, hair, and item unlocking
-* Appearance and clothing customization
-* Personality development from gameplay history
-[/list]
+    * Leveling and experience system
+    * Skill, hair, and item unlocking
+    * Appearance and clothing customization
+    * Personality development from gameplay history
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ data | Object | Initial character data ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ data | Object | Initial character data ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ name | string | Character display name ]
-[ level | number | Current character level ]
-[ experience | number | Current experience points ]
-[ skillLevel | number | Skill proficiency level ]
-[ unlockedSkills | Array | List of unlocked skill IDs ]
-[ selectedSkill | string|null | Currently selected skill ID ]
-[ appearance | Object | Character appearance configuration ]
-[ stats | Object | Cumulative gameplay statistics ]
-[ experienceStory | Array | History of experience gain events ]
-[ lastSkillLevelUp | number | Level at which the character last raised their skill level ]
-[ lastHairUnlockLevel | number | Level at which the character last unlocked a hair style ]
-[ lastItemUnlockLevel | number | Level at which the character last unlocked an item ]
-[ personality | string|null | Active personality ID ]
-[ developedPersonalities | Array | List of developed personality IDs ]
-[ personalityStudyHistory | Array | History of personality study results ]
-[ currentPersonalityIndex | number | Index of the current personality in the developed list ]
-[/table]
+    [ Property | Type | Description ]
+    [ name | string | Character display name ]
+    [ level | number | Current character level ]
+    [ experience | number | Current experience points ]
+    [ skillLevel | number | Skill proficiency level ]
+    [ unlockedSkills | Array | List of unlocked skill IDs ]
+    [ selectedSkill | string|null | Currently selected skill ID ]
+    [ appearance | Object | Character appearance configuration ]
+    [ stats | Object | Cumulative gameplay statistics ]
+    [ experienceStory | Array | History of experience gain events ]
+    [ lastSkillLevelUp | number | Level at which the character last raised their skill level ]
+    [ lastHairUnlockLevel | number | Level at which the character last unlocked a hair style ]
+    [ lastItemUnlockLevel | number | Level at which the character last unlocked an item ]
+    [ personality | string|null | Active personality ID ]
+    [ developedPersonalities | Array | List of developed personality IDs ]
+    [ personalityStudyHistory | Array | History of personality study results ]
+    [ currentPersonalityIndex | number | Index of the current personality in the developed list ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ LastExperienceStoryEntry | () | Returns the most recent experience story entry, or null when no history exists. ]
-[ addExperience | (amount) | Adds experience points and triggers level ups whenever thresholds are crossed. ]
-[ levelUp | () | Increases the character level and rolls for skill, hair, item, and skill level unlocks. ]
-[ unlockRandomSkill | () | Unlocks a random available skill, preferring ones matching the character's personality. ]
-[ unlockRandomHairStyle | () | Unlocks a random front or back hair style not yet owned by the account. ]
-[ unlockRandomItem | () | Unlocks a random clothing item not yet owned by the account. ]
-[ studyPersonalities | (gameResults) | Evaluates finished game results and may develop a new personality from eligible candidates. ]
-[ calculatePersonalityScore | (personality, gameResults) | Computes how well gameplay results satisfy a personality's development criteria. ]
-[ AvailableHairStyles | () | Returns all unlocked hair style IDs organized by front and back types. ]
-[ AvailableItems | () | Returns all unlocked clothing item IDs for the account. ]
-[ Item | (itemId) | Looks up a clothing item definition by its ID. ]
-[ Personlity | (itemId) | Looks up a personality definition by its ID. ]
-[ changeHairStyle | (type, hairId) | Applies a hair style if the character owns it. ]
-[ changeHairTint | (tint) | Sets the hair tint color for the character's appearance. ]
-[ changeClothing | (itemId) | Equips a clothing item if owned, handling tint layers and the special item slot. ]
-[ RequiredExperience | () | Returns the experience points required to reach the next level. ]
-[ ExperienceProgress | () | Returns the progress ratio toward the next level. ]
-[ canUseSkill | () | Checks whether the character has any unlocked skills to use. ]
-[ toJSON | () | Serializes the character into a plain object suitable for persistence. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ getLastExperienceStoryEntry | () | Returns the most recent experience story entry, or null when no history exists. ]
+    [ addExperience | (amount) | Adds experience points and triggers level ups whenever thresholds are crossed. ]
+    [ levelUp | () | Increases the character level and rolls for skill, hair, item, and skill level unlocks. ]
+    [ unlockRandomSkill | () | Unlocks a random available skill, preferring ones matching the character's personality. ]
+    [ unlockRandomHairStyle | () | Unlocks a random front or back hair style not yet owned by the account. ]
+    [ unlockRandomItem | () | Unlocks a random clothing item not yet owned by the account. ]
+    [ studyPersonalities | (gameResults) | Evaluates finished game results and may develop a new personality from eligible candidates. ]
+    [ calculatePersonalityScore | (personality, gameResults) | Computes how well gameplay results satisfy a personality's development criteria. ]
+    [ getAvailableHairStyles | () | Returns all unlocked hair style IDs organized by front and back types. ]
+    [ getAvailableItems | () | Returns all unlocked clothing item IDs for the account. ]
+    [ getItem | (itemId) | Looks up a clothing item definition by its ID. ]
+    [ getPersonlity | (itemId) | Looks up a personality definition by its ID. ]
+    [ changeHairStyle | (type, hairId) | Applies a hair style if the character owns it. ]
+    [ changeHairTint | (tint) | Sets the hair tint color for the character's appearance. ]
+    [ changeClothing | (itemId) | Equips a clothing item if owned, handling tint layers and the special item slot. ]
+    [ getRequiredExperience | () | Returns the experience points required to reach the next level. ]
+    [ getExperienceProgress | () | Returns the progress ratio toward the next level. ]
+    [ canUseSkill | () | Checks whether the character has any unlocked skills to use. ]
+    [ toJSON | () | Serializes the character into a plain object suitable for persistence. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -92,8 +92,8 @@ console.log(char.level, char.getExperienceProgress());
 char.changeHairStyle('front', 2);
 char.changeClothing('top_seifuku_red');
 console.log(char.toJSON());
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

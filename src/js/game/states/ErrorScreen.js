@@ -37,6 +37,7 @@ class ErrorScreen {
    * Renders the error splash and wires the recovery input handlers.
    */
   create() {
+    /** @type {Phaser.Graphics} Full-screen error background fill */
     this.background = game.add.graphics(0, 0);
     this.background.beginFill(0x4428bc, 1);
     this.background.drawRect(0, 0, game.width, game.height);

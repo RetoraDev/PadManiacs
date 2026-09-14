@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "DialogWindow Class"]
+    [title: "DialogWindow Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,56 +18,71 @@
 
     [heading: "Key Features"]
     [list]
-* Centered modal with an auto-sized window
-* Word-wrapped text with optional scrolling
-* Multiple selectable buttons with gamepad and mouse support
-* Mouse wheel text scrolling and clickable buttons
-* Dispatches onConfirm and onCancel signals
-[/list]
+    * Centered modal with an auto-sized window
+    * Word-wrapped text with optional scrolling
+    * Multiple selectable buttons with gamepad and mouse support
+    * Mouse wheel text scrolling and clickable buttons
+    * Dispatches onConfirm and onCancel signals
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ text | string | Dialog message text ]
-[ options | object | ={}] - Dialog options (position, buttons, scrolling, etc.) ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ text | string | Dialog message text ]
+    [ options={} | object | Dialog options (position, buttons, scrolling, etc.) ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ text | string | Raw dialog message text ]
-[ buttons | Array | Button labels shown at the bottom of the dialog ]
-[ selectedButton | number | Index of the currently selected button ]
-[/table]
+    [ Property | Type | Description ]
+    [ text | string | Raw dialog message text ]
+    [ buttons | Array | Button labels shown at the bottom of the dialog ]
+    [ selectedButton | number | Index of the currently selected button ]
+    [ enableTextScroll | boolean | Whether the text content can be scrolled with the pad ]
+    [ disableMouse | boolean | Whether mouse interaction is disabled ]
+    [ currentScroll | number | Current scroll offset of the text lines ]
+    [ maxScroll | number | Maximum scroll offset for the text content ]
+    [ fontTint | number | Tint color applied to text and buttons ]
+    [ isActive | boolean | Whether the dialog is active and can accept input ]
+    [ window | Window | The window frame that draws the dialog background ]
+    [ textLines | Array | Visible Text sprites showing the current lines ]
+    [ allTextLines | Array | All wrapped text lines, including those scrolled out of view ]
+    [ maxVisibleLines | number | Maximum number of text lines shown at once ]
+    [ buttonTexts | Array | Text sprites for each button label ]
+    [ scrollIndicator | Text | Blinking indicator that the text can be scrolled ]
+    [ scrollBar | Phaser.Graphics | Scroll bar showing the visible-text ratio ]
+    [ onConfirm | Phaser.Signal | Dispatched when a button is confirmed ]
+    [ onCancel | Phaser.Signal | Dispatched when the dialog is cancelled ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ createDialog | () | Builds the window frame, text content, buttons, and input handling. ]
-[ calculateWindowSize | () | Computes the window size needed for the wrapped text plus buttons. ]
-[ wrapText | (text) | Wraps the dialog text into lines that fit the maximum line width. ]
-[ breakLongWord | (word, charsPerLine) | Splits a word longer than one line into fixed-size chunks. ]
-[ TextWidth | (text) | Estimates the rendered width of a text string at 4px per character. ]
-[ createTextContent | (wrappedText) | Creates the visible text lines and the scroll indicator and scroll bar. ]
-[ createButtonElements | () | Creates the button texts, sizes them, and wires up mouse handlers. ]
-[ updateButtonSelection | () | Marks the button matching the selected index as selected. ]
-[ updateScrollIndicator | () | Creates or removes the blinking scroll indicator based on overflow. ]
-[ updateScrollBar | () | Draws the scroll bar sized to the visible-to-total text ratio. ]
-[ setupInputHandling | () | Creates the dialog signals and wires up gamepad button handlers. ]
-[ setupGamepadSignals | () | Subscribes the per-dialog handlers to the global gamepad signals. ]
-[ selectIndex | (index) | Selects the button at the given index and updates button visuals. ]
-[ refreshTextContent | () | Rebuilds the visible text lines and scroll bar for the current scroll. ]
-[ confirm | () | Confirms the selected button, dispatches onConfirm, then cleans up. ]
-[ cancel | () | Cancels the dialog, confirming the cancel-ish button or dispatching onCancel. ]
-[ update | () | Animates the selected button and handles mouse wheel text scrolling. ]
-[ cleanup | () | Removes the dialog's gamepad signal handlers after it closes. ]
-[ removeGamepadSignals | () | Unsubscribes all dialog handlers from the global gamepad signals. ]
-[ destroy | () | Destroys the dialog, its window, and its gamepad subscriptions. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ createDialog | () | Builds the window frame, text content, buttons, and input handling. ]
+    [ calculateWindowSize | () | Computes the window size needed for the wrapped text plus buttons. ]
+    [ wrapText | (text) | Wraps the dialog text into lines that fit the maximum line width. ]
+    [ breakLongWord | (word, charsPerLine) | Splits a word longer than one line into fixed-size chunks. ]
+    [ getTextWidth | (text) | Estimates the rendered width of a text string at 4px per character. ]
+    [ createTextContent | (wrappedText) | Creates the visible text lines and the scroll indicator and scroll bar. ]
+    [ createButtonElements | () | Creates the button texts, sizes them, and wires up mouse handlers. ]
+    [ updateButtonSelection | () | Marks the button matching the selected index as selected. ]
+    [ updateScrollIndicator | () | Creates or removes the blinking scroll indicator based on overflow. ]
+    [ updateScrollBar | () | Draws the scroll bar sized to the visible-to-total text ratio. ]
+    [ setupInputHandling | () | Creates the dialog signals and wires up gamepad button handlers. ]
+    [ setupGamepadSignals | () | Subscribes the per-dialog handlers to the global gamepad signals. ]
+    [ selectIndex | (index) | Selects the button at the given index and updates button visuals. ]
+    [ refreshTextContent | () | Rebuilds the visible text lines and scroll bar for the current scroll. ]
+    [ confirm | () | Confirms the selected button, dispatches onConfirm, then cleans up. ]
+    [ cancel | () | Cancels the dialog, confirming the cancel-ish button or dispatching onCancel. ]
+    [ update | () | Animates the selected button and handles mouse wheel text scrolling. ]
+    [ cleanup | () | Removes the dialog's gamepad signal handlers after it closes. ]
+    [ removeGamepadSignals | () | Unsubscribes all dialog handlers from the global gamepad signals. ]
+    [ destroy | () | Destroys the dialog, its window, and its gamepad subscriptions. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -78,8 +93,8 @@ const dialog = new DialogWindow('Delete save?', {
 dialog.onConfirm.add((index, label) => {
   if (index === 1) deleteSave();
 });
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

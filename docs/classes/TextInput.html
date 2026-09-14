@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "TextInput Class"]
+    [title: "TextInput Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,55 +18,57 @@
 
     [heading: "Key Features"]
     [list]
-* Character-by-character input with a blinking cursor
-* Charset whitelists and limited-character usage counts
-* Move, insert, and erase editing with multi-line support
-* Dispatches onConfirm and onCancel signals
-[/list]
+    * Character-by-character input with a blinking cursor
+    * Charset whitelists and limited-character usage counts
+    * Move, insert, and erase editing with multi-line support
+    * Dispatches onConfirm and onCancel signals
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ config | object | ={}] - Input configuration (text, limits, callbacks, etc.) ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ config={} | object | Input configuration (text, limits, callbacks, etc.) ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ config | object | Merged input configuration ]
-[ size | object | Window and cell dimensions ({ cells, width, height }) ]
-[ window | Window | Background window hosting the input text ]
-[ maxLength | number | Maximum number of characters allowed ]
-[ text | string | Current text being edited ]
-[ currentIndex | number | Cursor position within the text ]
-[ textLayer | Text | Text layer that renders and wraps the input text ]
-[ cursor | Phaser.Graphics | Blinking cursor rectangle ]
-[ onConfirm | Phaser.Signal | Dispatched with the final text when confirmed ]
-[ onCancel | Phaser.Signal | Dispatched with the current text when cancelled ]
-[/table]
+    [ Property | Type | Description ]
+    [ config | object | Merged input configuration ]
+    [ size | object | Window and cell dimensions ({ cells, width, height }) ]
+    [ window | Window | Background window hosting the input text ]
+    [ maxLength | number | Maximum number of characters allowed ]
+    [ text | string | Current text being edited ]
+    [ currentIndex | number | Cursor position within the text ]
+    [ textLayer | Text | Text layer that renders and wraps the input text ]
+    [ cursor | Phaser.Graphics | Blinking cursor rectangle ]
+    [ lastCursorBlinkTime | number | Timestamp of the last cursor blink tick ]
+    [ cursorVisible | boolean | Whether the text cursor is currently visible ]
+    [ onConfirm | Phaser.Signal | Dispatched with the final text when confirmed ]
+    [ onCancel | Phaser.Signal | Dispatched with the current text when cancelled ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ validateCharInput | (char) | Returns whether a character passes charset and usage-limit checks. ]
-[ countCharacter | (char) | Counts how many times a character appears in the current text. ]
-[ receiveInput | (key, input) | Handles an incoming key event, inserting glyphs or running actions. ]
-[ insertCharacter | (input) | Inserts a validated character at the cursor position. ]
-[ erase | () | Erases the character just before the cursor position. ]
-[ moveCursor | (dir) | Moves the cursor in the given direction across lines and wraps. ]
-[ MaxCharsPerLine | () | Returns the number of characters that fit on one input line. ]
-[ isAtMaxLength | () | Returns whether the text has reached its maximum length. ]
-[ LocalCursorPosition | () | Computes the cursor's cell position accounting for word wrapping. ]
-[ updateCursor | () | Rewrites the wrapped text layer and repositions the cursor sprite. ]
-[ update | () | Blinks the cursor and refreshes its visibility each frame. ]
-[ confirm | () | Dispatches the current text on onConfirm and destroys the input. ]
-[ cancel | () | Dispatches the current text on onCancel and destroys the input. ]
-[ destroy | () | Destroys the sprite and disposes the input signals. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ validateCharInput | (char) | Returns whether a character passes charset and usage-limit checks. ]
+    [ countCharacter | (char) | Counts how many times a character appears in the current text. ]
+    [ receiveInput | (key, input) | Handles an incoming key event, inserting glyphs or running actions. ]
+    [ insertCharacter | (input) | Inserts a validated character at the cursor position. ]
+    [ erase | () | Erases the character just before the cursor position. ]
+    [ moveCursor | (dir) | Moves the cursor in the given direction across lines and wraps. ]
+    [ getMaxCharsPerLine | () | Returns the number of characters that fit on one input line. ]
+    [ isAtMaxLength | () | Returns whether the text has reached its maximum length. ]
+    [ getLocalCursorPosition | () | Computes the cursor's cell position accounting for word wrapping. ]
+    [ updateCursor | () | Rewrites the wrapped text layer and repositions the cursor sprite. ]
+    [ update | () | Blinks the cursor and refreshes its visibility each frame. ]
+    [ confirm | () | Dispatches the current text on onConfirm and destroys the input. ]
+    [ cancel | () | Dispatches the current text on onCancel and destroys the input. ]
+    [ destroy | () | Destroys the sprite and disposes the input signals. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -76,8 +78,8 @@ const input = new TextInput({
   x: 120, y: 35, width: 14, height: 2,
   onConfirm: (name) => setName(name)
 });
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

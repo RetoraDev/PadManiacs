@@ -344,6 +344,7 @@ class NodeFileSystem {
       this.basePath = this.getBasePath();
       
       // Create file system object for DirectoryEntry
+      /** @type {Object} Pseudo filesystem exposed to DirectoryEntry instances */
       this.fileSystemObj = {
         name: 'nodefs',
         root: new NodeDirectoryEntry('', '/', this, `file://${this.basePath}`)

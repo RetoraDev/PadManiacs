@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "LoadSongFolder Class"]
+    [title: "LoadSongFolder Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,31 +18,31 @@
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ progressText | ProgressText | Bilingual progress text shown while a folder is selected ]
-[ parser | ExternalSMParser | Parser used to read the selected chart files ]
-[/table]
+    [ Property | Type | Description ]
+    [ progressText | ProgressText | Bilingual progress text shown while a folder is selected ]
+    [ parser | ExternalSMParser | Parser used to read the selected chart files ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ create | () | Shows the folder selection progress text, prepares the parser, and opens the native directory picker. ]
-[ showFileInput | () | Creates and opens a webkitdirectory file input, wiring up selection to processFiles and cancellation to an error message, with a fallback hint for non-webkit browsers. ]
-[ processFiles | (files) | Handles the picked files: dispatches a .zip to the ZIP processor, otherwise locates and parses the first .sm chart and starts SongSelect with that single song. ]
-[ processZipFile | (file) | Decompresses the selected .zip with JSZip and imports its contents, starting SongSelect with the first chart that is produced. ]
-[ processZipContent | (zipContent, callback) | Extracts the first .sm chart found in a decompressed ZIP, loads its audio, background, banner, lyrics, and BG change assets as object URLs, and invokes the callback with the finished chart. ]
-[ showError | (message) | Displays an error on the progress text and returns to the main menu after a delay. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ create | () | Shows the folder selection progress text, prepares the parser, and opens the native directory picker. ]
+    [ showFileInput | () | Creates and opens a webkitdirectory file input, wiring up selection to processFiles and cancellation to an error message, with a fallback hint for non-webkit browsers. ]
+    [ processFiles | (files) | Handles the picked files: dispatches a .zip to the ZIP processor, otherwise locates and parses the first .sm chart and starts SongSelect with that single song. ]
+    [ processZipFile | (file) | Decompresses the selected .zip with JSZip and imports its contents, starting SongSelect with the first chart that is produced. ]
+    [ processZipContent | (zipContent, callback) | Extracts the first .sm chart found in a decompressed ZIP, loads its audio, background, banner, lyrics, and BG change assets as object URLs, and invokes the callback with the finished chart. ]
+    [ showError | (message) | Displays an error on the progress text and returns to the main menu after a delay. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Opens a file picker so the player can select a folder or ZIP to play.
 game.state.add('LoadSongFolder', LoadSongFolder);
 game.state.start('LoadSongFolder');
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

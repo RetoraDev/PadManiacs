@@ -68,10 +68,15 @@ class MouseCursor {
     this.onUp = new Phaser.Signal();
     this.onWheel = new Phaser.Signal();
     
+    /** @type {Object} Button states from the previous frame, keyed by button id */
     this.prevState = {};
+    /** @type {Object} Buttons pressed in the current frame */
     this.pressed = {};
+    /** @type {Object} Buttons held down this frame */
     this.held = {};
+    /** @type {Object} Buttons released in the current frame */
     this.released = {};
+    /** @type {Object} Wheel direction flags set during this frame */
     this.wheel = {
       up: false,
       down: false

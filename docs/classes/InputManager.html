@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "InputManager Class"]
+    [title: "InputManager Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,30 +18,30 @@
 
     [heading: "Key Features"]
     [list]
-* Creates the gamepad and keyboard listeners
-* Wires up two per-player Gamepad controllers
-* Exposes global inputManager, gamepad1, gamepad2, and gamepad singletons
-[/list]
+    * Creates the gamepad and keyboard listeners
+    * Wires up two per-player Gamepad controllers
+    * Exposes global inputManager, gamepad1, gamepad2, and gamepad singletons
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ game | Phaser.Game | Phaser game instance ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ game | Phaser.Game | Phaser game instance ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ game | Phaser.Game | Phaser game instance ]
-[ gamepadListener | GamepadListener | Listener exposing gamepad connect/disconnect/button signals ]
-[ keyboardListener | KeyboardListener | Listener exposing global keyboard down/up signals ]
-[ gamepad1 | Gamepad | First player's Gamepad controller ]
-[ gamepad2 | Gamepad | Second player's Gamepad controller ]
-[ gamepad | AllPads | Aggregated AllPads controller for both players ]
-[/table]
+    [ Property | Type | Description ]
+    [ game | Phaser.Game | Phaser game instance ]
+    [ gamepadListener | GamepadListener | Listener exposing gamepad connect/disconnect/button signals ]
+    [ keyboardListener | KeyboardListener | Listener exposing global keyboard down/up signals ]
+    [ gamepad1 | Gamepad | First player's Gamepad controller ]
+    [ gamepad2 | Gamepad | Second player's Gamepad controller ]
+    [ gamepad | AllPads | Aggregated AllPads controller for both players ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -52,8 +52,8 @@ const pads = gamepad;
 mgr.gamepadListener.onDown.add((index, code) => {
   console.log('Button down on pad', index);
 });
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

@@ -56,9 +56,11 @@ class Results {
     this.finalAccuracy = player.accuracy;
     this.scoreRating = player.getScoreRating();
     
+    /** @type {HTMLAudioElement} Audio element playing the song preview */
     this.previewAudio = document.createElement("audio");
     this.previewAudio.volume = Account.settings.volume / 100;
     
+    /** @type {Function} Handler pausing or resuming the preview on tab visibility changes */
     this.visibilityChangeListener = () => {
       if (document.hidden) {
         this.previewAudio?.pause();
@@ -146,11 +148,15 @@ class Results {
     const difficulty = song.chart.difficulties[song.difficultyIndex];
     
     // Banner
+    /** @type {HTMLImageElement} Image element loading the song banner */
     this.bannerImg = document.createElement("img");
     
+    /** @type {HTMLCanvasElement} Canvas the banner is drawn onto */
     this.bannerCanvas = document.createElement("canvas");
+    /** @type {CanvasRenderingContext2D} 2D context of the banner canvas */
     this.bannerCtx = this.bannerCanvas.getContext("2d");
     
+    /** @type {Phaser.Sprite} Sprite displaying the banner texture */
     this.bannerSprite = game.add.sprite(160, 10);
     
     if (song.chart.audioUrl) {
@@ -174,7 +180,9 @@ class Results {
     // Song info
     const title = song.chart.titleTranslit || song.chart.title;
     
+    /** @type {Text} Label with the cleaned-up song title */
     this.songText = new Text(8, 10, `${title}`, FONTS.shaded);
+    /** @type {Text} Label with the difficulty type and rating */
     this.diffText = new Text(10, 20, `${difficulty.type} (${difficulty.rating})`);
     this.diffText.tint = window.getDifficultyColor(difficulty.rating, true);
     
@@ -184,24 +192,30 @@ class Results {
     const autoplay = this.gameData.autoplay;
     
     // Score
+    /** @type {Text} Final score label */
     this.scoreText = new Text(10, 30, __(`(Score|Puntaje): ${autoplay ? "---" : this.finalScore.toLocaleString()}`), FONTS.default);
     
     // Accuracy
+    /** @type {Text} Final accuracy percentage label */
     this.accuracyText = new Text(10, 40, __(`(Accuracy|Precisión): ${autoplay ? "---" : `${this.finalAccuracy.toFixed(2)}%`}`), FONTS.default);
     
     // Rating
+    /** @type {Text} Score rating label */
     this.ratingText = new Text(10, 50, __(`(Rating|Calificación): ${autoplay ? "AUTO" : this.scoreRating}`), FONTS.default);
     this.ratingText.tint = this.getRatingColor(this.scoreRating);
     
     // Combo
+    /** @type {Text} Maximum combo label */
     this.comboText = new Text(10, 60, __(`(Max Combo|Combo Máx): ${autoplay ? "---" : player.maxCombo}`), FONTS.default);
     
     // Judgements
+    /** @type {Text} Judgement count breakdown label */
     this.judgementsText = new Text(15, 70, autoplay ? __("AUTOPLAY ENABLED||AUTOPLAY ACTIVADO") : this.getJudgementsText(player.judgementCounts));
     this.judgementsText.tint = autoplay ? 0xff0000 : 0xffffff;
 
     // New record indicator
     if (!autoplay && this.isNewRecord) {
+      /** @type {?Text} "NEW RECORD!" celebration label */
       this.recordText = new Text(game.width / 2, 110, __("NEW RECORD!||¡NUEVO RÉCORD!"), FONTS.bold_shadow);
       this.recordText.anchor.x = 0.5;
       this.recordText.x += this.scoreText.width / 2;
@@ -264,6 +278,7 @@ class Results {
    * Builds the results navigation menu with continue, retry and quit options.
    */
   showMenu() {
+    /** @type {NavigationHint} Hint prompts for the results controls */
     this.navigationHint = new NavigationHint('general_no_b');
     
     const height = this.gameData.character ? 72 : 80;

@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "CharacterCroppedDisplay Class"]
+    [title: "CharacterCroppedDisplay Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,37 +18,39 @@
 
     [heading: "Key Features"]
     [list]
-* Applies a crop rectangle to all rendering layers
-* Adjusts the aura emission area to match the crop region
-* Re-crops layers after appearance updates
-[/list]
+    * Applies a crop rectangle to all rendering layers
+    * Adjusts the aura emission area to match the crop region
+    * Re-crops layers after appearance updates
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ x | number | Horizontal position ]
-[ y | number | Vertical position ]
-[ characterData | Object | Character data model ]
-[ cropArea | Object | Crop rectangle with x, y, w, and h ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ x | number | Horizontal position ]
+    [ y | number | Vertical position ]
+    [ characterData | Object | Character data model ]
+    [ cropArea | Object | Crop rectangle with x, y, w, and h ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ cropArea | Object | Crop rectangle applied to all layers ]
-[ auraRect | Object | Aura emission area matching the crop region ]
-[/table]
+    [ Property | Type | Description ]
+    [ cropArea | Object | Crop rectangle applied to all layers ]
+    [ auraRect | Object | Aura emission area matching the crop region ]
+    [ x | number | X position of the cropped display ]
+    [ y | number | Y position of the cropped display ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ cropSprite | () | Applies the configured crop rectangle to every sprite layer and aura region. ]
-[ updateAppearance | (newAppearance) | Rebuilds layers for new appearance data and re-applies the crop afterwards. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ cropSprite | () | Applies the configured crop rectangle to every sprite layer and aura region. ]
+    [ updateAppearance | (newAppearance) | Rebuilds layers for new appearance data and re-applies the crop afterwards. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -57,8 +59,8 @@ const display = new CharacterCroppedDisplay(0, 0, characterData, crop);
 game.world.addChild(display);
 display.updateAppearance({ frontHair: 2 });
 display.destroy();
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

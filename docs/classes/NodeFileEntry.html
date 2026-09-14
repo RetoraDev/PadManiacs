@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "NodeFileEntry Class"]
+    [title: "NodeFileEntry Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,21 +18,21 @@
 
     [heading: "Key Features"]
     [list]
-* Mimics the Cordova FileEntry API for NW.js environments
-* Provides createWriter and file callbacks compatible with Cordova patterns
-* Detects MIME types from file extensions
-[/list]
+    * Mimics the Cordova FileEntry API for NW.js environments
+    * Provides createWriter and file callbacks compatible with Cordova patterns
+    * Detects MIME types from file extensions
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ name | string | The file name ]
-[ fullPath | string | The relative path from the filesystem root ]
-[ fileSystem | NodeFileSystem | The parent NodeFileSystem instance ]
-[ nativeURL | string | The native file:// URL for this file ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ name | string | The file name ]
+    [ fullPath | string | The relative path from the filesystem root ]
+    [ fileSystem | NodeFileSystem | The parent NodeFileSystem instance ]
+    [ nativeURL | string | The native file:// URL for this file ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Reading a file via NodeFileEntry
@@ -45,8 +45,8 @@ reader.readEntries((entries) => {
     console.log('File size:', file.size, 'Type:', file.type);
   }, (err) => console.error(err));
 }, (err) => console.error(err));
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

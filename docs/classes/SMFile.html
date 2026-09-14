@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "SMFile Class"]
+    [title: "SMFile Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,26 +18,26 @@
 
     [heading: "Key Features"]
     [list]
-* Generates complete .SM file content from internal song data
-* Converts note data to measure-based SM notation with adaptive resolution
-* Handles freeze/hold tail generation and beat subdivision snapping
-* Supports custom resolutions beyond standard StepMania limits
-[/list]
+    * Generates complete .SM file content from internal song data
+    * Converts note data to measure-based SM notation with adaptive resolution
+    * Handles freeze/hold tail generation and beat subdivision snapping
+    * Supports custom resolutions beyond standard StepMania limits
+    [/list]
 
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ generateSM | (songData) | Generates the complete .SM file string from song data. ]
-[ generateNotesSection | (difficulty, notes) | Generates the #NOTES section string for a single difficulty. ]
-[ processFreezeNotes | (notes) | Processes freeze notes to generate their corresponding tail notes. ]
-[ convertMeasureToSM | (notes, measureNum) | Converts a group of notes within a single measure to SM row notation. Selects the appropriate resolution automatically. ]
-[ BeatResolution | (beat) | Determines the smallest beat subdivision that can represent a position. ]
-[ isBeatDivision | (beat, division) | Tests whether a beat position aligns to a given subdivision. ]
-[ generateCustomResolutionMeasure | (notes, totalRows) | Generates a measure with a custom row count beyond standard SM resolutions. ]
-[ resolveFileUrl | (filename, baseUrl) | Resolves a filename to a full URL using a base path. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ generateSM | (songData) | Generates the complete .SM file string from song data. ]
+    [ generateNotesSection | (difficulty, notes) | Generates the #NOTES section string for a single difficulty. ]
+    [ processFreezeNotes | (notes) | Processes freeze notes to generate their corresponding tail notes. ]
+    [ convertMeasureToSM | (notes, measureNum) | Converts a group of notes within a single measure to SM row notation. Selects the appropriate resolution automatically. ]
+    [ getBeatResolution | (beat) | Determines the smallest beat subdivision that can represent a position. ]
+    [ isBeatDivision | (beat, division) | Tests whether a beat position aligns to a given subdivision. ]
+    [ generateCustomResolutionMeasure | (notes, totalRows) | Generates a measure with a custom row count beyond standard SM resolutions. ]
+    [ resolveFileUrl | (filename, baseUrl) | Resolves a filename to a full URL using a base path. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Exporting a song back to .SM format
@@ -45,8 +45,8 @@ const smContent = SMFile.generateSM(songData);
 const blob = new Blob([smContent], { type: 'text/plain' });
 const url = URL.createObjectURL(blob);
 // Trigger download or save to file system
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

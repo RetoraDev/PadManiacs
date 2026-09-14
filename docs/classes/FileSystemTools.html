@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "FileSystemTools Class"]
+    [title: "FileSystemTools Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,28 +18,29 @@
 
     [heading: "Key Features"]
     [list]
-* Auto-detects runtime platform (NW.js, Cordova, or browser)
-* Delegates all operations to the platform-specific implementation
-* Provides uniform API for directory listing, file reading, and writing
-[/list]
+    * Auto-detects runtime platform (NW.js, Cordova, or browser)
+    * Delegates all operations to the platform-specific implementation
+    * Provides uniform API for directory listing, file reading, and writing
+    [/list]
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ platform | string | The detected runtime platform identifier ]
-[/table]
+    [ Property | Type | Description ]
+    [ platform | string | The detected runtime platform identifier ]
+    [ fileSystem | Object | The platform-specific filesystem adapter ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ detectPlatform | () | Determines the current runtime platform by checking for NW.js, Cordova, or falling back to the browser environment. ]
-[ BasePath | () | Returns the base directory path for the current platform. Only meaningful on NW.js; returns empty string on other platforms. ]
-[ canExitApp | () | Checks whether the application can be programmatically closed on this platform. ]
-[ exitApp | () | Terminates the application. Only works on NW.js and Cordova platforms. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ detectPlatform | () | Determines the current runtime platform by checking for NW.js, Cordova, or falling back to the browser environment. ]
+    [ getBasePath | () | Returns the base directory path for the current platform. Only meaningful on NW.js; returns empty string on other platforms. ]
+    [ canExitApp | () | Checks whether the application can be programmatically closed on this platform. ]
+    [ exitApp | () | Terminates the application. Only works on NW.js and Cordova platforms. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Accessing the file system from any platform
@@ -51,8 +52,8 @@ for (const fileEntry of files) {
   const content = await fs.readFileContent(file);
   console.log(file.name, content.substring(0, 100));
 }
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "CharacterCloseShot Class"]
+    [title: "CharacterCloseShot Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,19 +18,19 @@
 
     [heading: "Key Features"]
     [list]
-* Uses close shot crop area from CHARACTER_SYSTEM constants
-* Displays cropped character view for skill activation feedback
-[/list]
+    * Uses close shot crop area from CHARACTER_SYSTEM constants
+    * Displays cropped character view for skill activation feedback
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ x | number | Horizontal position ]
-[ y | number | Vertical position ]
-[ characterData | Object | Character data model ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ x | number | Horizontal position ]
+    [ y | number | Vertical position ]
+    [ characterData | Object | Character data model ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -38,8 +38,8 @@ const closeShot = new CharacterCloseShot(200, 100, characterData);
 game.world.addChild(closeShot);
 closeShot.updateAppearance({ top: 'top_seifuku_red' });
 closeShot.destroy();
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

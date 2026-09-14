@@ -296,22 +296,35 @@ function parseParam(value) {
   if (braced) {
     type = braced[1].trim();
     const rest = braced[2].trim();
-    const named = /^([\w$.\[]+)\]?\s*(?:-\s*)?(.*)$/.exec(rest);
+    const named = /^\[([\w$]+)(?:=([^\]]*))?\]\s*(?:-\s*)?(.*)$/.exec(rest);
     if (named) {
-      name = named[1].replace(/^\[|\]$/g, '');
-      description = named[2].trim();
+      name = named[1] + (named[2] !== undefined ? '=' + named[2].trim() : '');
+      description = named[3].trim();
     } else {
-      description = rest;
+      const plain = /^([\w$]+)\s*(?:-\s*)?(.*)$/.exec(rest);
+      if (plain) {
+        name = plain[1];
+        description = plain[2].trim();
+      } else {
+        description = rest;
+      }
     }
   } else {
-    const named = /^([\w$.\[]+)\]?\s*(?:-\s*)?(.*)$/.exec(value);
+    const named = /^\[([\w$]+)(?:=([^\]]*))?\]\s*(?:-\s*)?(.*)$/.exec(value);
     if (named) {
-      name = named[1].replace(/^\[|\]$/g, '');
-      description = named[2].trim();
+      name = named[1] + (named[2] !== undefined ? '=' + named[2].trim() : '');
+      description = named[3].trim();
       type = 'Object';
     } else {
-      description = value;
-      type = 'Object';
+      const plain = /^([\w$]+)\s*(?:-\s*)?(.*)$/.exec(value);
+      if (plain) {
+        name = plain[1];
+        description = plain[2].trim();
+        type = 'Object';
+      } else {
+        description = value;
+        type = 'Object';
+      }
     }
   }
 
@@ -494,7 +507,7 @@ function classifySlice(slice, delimiter, inClass) {
   const declMatch = /^(const|let|var)\s+([\w$]+)/.exec(slice);
   const thisMatch = /^this\.([\w$]+)/.exec(slice);
   const winMatch = /^window\.([\w$]+)/.exec(slice);
-  const modMatch = /^(?:(?:static|async)\s+)?(?:get|set\s+)?([\w$]+)$/.exec(slice);
+  const modMatch = /^(?:(?:static|async)\s+)?(?:get\s+|set\s+)?([\w$]+)$/.exec(slice);
 
   if (classMatch) return { type: 'class', name: classMatch[1] };
   if (fnMatch && delimiter === '(') return { type: 'function', name: fnMatch[1] };
@@ -785,6 +798,44 @@ function dokiTable(rows) {
   return out;
 }
 
+/**
+ * Joins DokiDocs sections into a body string with consistent indentation.
+ * Every non-code line is indented 4 spaces to match the hand-written tutorial
+ * pages, while the inner content of [codeblock] blocks stays verbatim at
+ * column 0 so code samples are not mangled.
+ * @param {Array<string>} sections - Raw section strings
+ * @returns {string} The assembled, indented body
+ */
+function assembleSections(sections) {
+  const parts = [];
+  for (const section of sections) {
+    const lines = section.split('\n');
+    let inCode = false;
+    const out = [];
+    for (const raw of lines) {
+      const line = raw.replace(/\s+$/, '');
+      const trimmed = line.trim();
+      if (!inCode && /^\[codeblock(?:[ \t]|\])/.test(trimmed)) {
+        inCode = true;
+        out.push('    ' + trimmed);
+        continue;
+      }
+      if (inCode && /^\[\/codeblock\]/.test(trimmed)) {
+        inCode = false;
+        out.push('    ' + trimmed);
+        continue;
+      }
+      if (inCode) {
+        out.push(line);
+      } else {
+        out.push(trimmed ? '    ' + trimmed : '');
+      }
+    }
+    parts.push(out.join('\n'));
+  }
+  return parts.join('\n');
+}
+
 function formatParams(params) {
   const names = params.map(p => p.name).filter(Boolean);
   return names.length ? `(${names.join(', ')})` : '()';
@@ -859,7 +910,7 @@ function generateClassPage(record, categoriesRef) {
     sections.push('');
   }
 
-  const body = sections.join('\n    ');
+  const body = assembleSections(sections);
   return htmlHead(record.name, '../') + body + htmlFoot();
 }
 
@@ -905,7 +956,7 @@ function generateGlobalsPage(globals) {
   }
   sections.push('');
 
-  const body = sections.join('\n    ');
+  const body = assembleSections(sections);
   return htmlHead('Global Scope', './') + body + htmlFoot();
 }
 
@@ -944,7 +995,7 @@ function generateIndexPage(classes, globals) {
     sections.push('');
   });
 
-  const body = sections.join('\n    ');
+  const body = assembleSections(sections);
   return htmlHead(GAME_NAME + ' Modding API Documentation', './') + body + htmlFoot();
 }
 

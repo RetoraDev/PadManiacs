@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "OnScreenKeyboard Class"]
+    [title: "OnScreenKeyboard Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,52 +18,52 @@
 
     [heading: "Key Features"]
     [list]
-* Renders a texture-based keyboard with individually mapped keys
-* Highlights the currently active key and shift state
-* Supports symbol and shift toggle keys plus action keys
-* Sends typed input to the window's focused element
-[/list]
+    * Renders a texture-based keyboard with individually mapped keys
+    * Highlights the currently active key and shift state
+    * Supports symbol and shift toggle keys plus action keys
+    * Sends typed input to the window's focused element
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ x | number | =60] - Initial horizontal position of the keyboard sprite ]
-[ y | number | =75] - Initial vertical position of the keyboard sprite ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ x=60 | number | Initial horizontal position of the keyboard sprite ]
+    [ y=75 | number | Initial vertical position of the keyboard sprite ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ keys | Object[] | Definitions of every key drawn on the keyboard texture ]
-[ highlight | Phaser.Graphics | Graphics object that draws the pressed key highlight ]
-[ visible | boolean | Whether the keyboard sprite is visible ]
-[ activeKey | ?Object | The key currently being pressed or hovered ]
-[ keyboardKey | ?Object | The key pressed via the physical keyboard ]
-[ previousShiftState | boolean | Shift state from the previous frame ]
-[ previousActiveKey | ?Object | Active key from the previous frame ]
-[ keycode | ?string | Key code of the last pressed key ]
-[ symbol | boolean | Whether the symbol key layer is active ]
-[ shift | boolean | Whether shift mode is active ]
-[ onDown | Phaser.Signal | Dispatched with the key and input value when a key is pressed ]
-[ onUp | Phaser.Signal | Dispatched with the key when a key is released ]
-[/table]
+    [ Property | Type | Description ]
+    [ keys | Object[] | Definitions of every key drawn on the keyboard texture ]
+    [ highlight | Phaser.Graphics | Graphics object that draws the pressed key highlight ]
+    [ visible | boolean | Whether the keyboard sprite is visible ]
+    [ activeKey | ?Object | The key currently being pressed or hovered ]
+    [ keyboardKey | ?Object | The key pressed via the physical keyboard ]
+    [ previousShiftState | boolean | Shift state from the previous frame ]
+    [ previousActiveKey | ?Object | Active key from the previous frame ]
+    [ keycode | ?string | Key code of the last pressed key ]
+    [ symbol | boolean | Whether the symbol key layer is active ]
+    [ shift | boolean | Whether shift mode is active ]
+    [ onDown | Phaser.Signal | Dispatched with the key and input value when a key is pressed ]
+    [ onUp | Phaser.Signal | Dispatched with the key when a key is released ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ addListeners | () | Registers keyboard listeners that map physical key presses to keyboard keys. ]
-[ KeyUnderPointer | (pointer) | Finds the key whose rectangle contains the given pointer position. ]
-[ toggleSymbol | () | Toggles the symbol layer and switches the keyboard texture frame. ]
-[ toggleShift | () | Toggles shift mode which uppercases typed input. ]
-[ onKeyDown | (key) | Handles a key press, computing the shifted input and dispatching signals. Action keys toggle shift or symbol or emit a raw enter/erase input instead. ]
-[ sendInput | (key, input) | Sends the typed input to the window's focused element if it supports receiving input. ]
-[ onKeyUp | (key) | Clears the active keycode and dispatches the key-up signal. ]
-[ update | () | Tracks the active key from the pointer or keyboard and redraws the highlight. Call every frame while the keyboard is on screen. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ addListeners | () | Registers keyboard listeners that map physical key presses to keyboard keys. ]
+    [ getKeyUnderPointer | (pointer) | Finds the key whose rectangle contains the given pointer position. ]
+    [ toggleSymbol | () | Toggles the symbol layer and switches the keyboard texture frame. ]
+    [ toggleShift | () | Toggles shift mode which uppercases typed input. ]
+    [ onKeyDown | (key) | Handles a key press, computing the shifted input and dispatching signals. Action keys toggle shift or symbol or emit a raw enter/erase input instead. ]
+    [ sendInput | (key={}, input='') | Sends the typed input to the window's focused element if it supports receiving input. ]
+    [ onKeyUp | (key) | Clears the active keycode and dispatches the key-up signal. ]
+    [ update | () | Tracks the active key from the pointer or keyboard and redraws the highlight. Call every frame while the keyboard is on screen. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -73,8 +73,8 @@ keyboard.onDown.add((key, input) => {
 });
 // Simulate pressing the first key
 keyboard.onKeyDown(keyboard.keys[0]);
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

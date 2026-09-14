@@ -24,14 +24,19 @@ class FirstPlayer extends Player {
     // Call parent with "left" side
     super(scene, "left", settings);
     
+    /** @type {Object} Gamepad assigned to player 1 */
     this.gamepad = gamepad1; // Use Player 1
     
+    /** @type {number} X position of player 1's health bar */
     this.HEALTH_X = 14;
+    /** @type {number} Width of player 1's health bar */
     this.HEALTH_WIDTH = 71;
+    /** @type {number} Width of player 1's accuracy bar */
     this.ACCURACY_BAR_WIDTH = 92;
     
     scene.p1JudgementText.x = this.renderer.calculateCenter();
     
+    /** @type {Object} HUD container for player 1 */
     this.hud = scene.p1Hud;
   }
 }

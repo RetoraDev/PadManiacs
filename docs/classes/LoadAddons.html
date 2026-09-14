@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "LoadAddons Class"]
+    [title: "LoadAddons Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,27 +18,27 @@
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ progressText | ProgressText | Bilingual progress text for the addon loading phase ]
-[ loadingDots | LoadingDots | Animated loading indicator dots ]
-[/table]
+    [ Property | Type | Description ]
+    [ progressText | ProgressText | Bilingual progress text for the addon loading phase ]
+    [ loadingDots | LoadingDots | Animated loading indicator dots ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ create | () | Shows the loading text and dots, then kicks off asynchronous addon initialization. ]
-[ initialize | () | Creates and initializes the global addon manager, executes global addon behaviors, gathers the resource list from mounted addons, and sends them to the Load state. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ create | () | Shows the loading text and dots, then kicks off asynchronous addon initialization. ]
+    [ initialize | () | Creates and initializes the global addon manager, executes global addon behaviors, gathers the resource list from mounted addons, and sends them to the Load state. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Part of the boot chain; addon resources end up in the Load state.
 game.state.add('LoadAddons', LoadAddons);
 game.state.start('LoadAddons');
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

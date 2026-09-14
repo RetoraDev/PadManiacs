@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "AllPads Class"]
+    [title: "AllPads Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,56 +18,57 @@
 
     [heading: "Key Features"]
     [list]
-* Polls every managed Gamepad and merges their input states
-* Tracks which player last provided input
-* Supports restricting aggregation to a single player
-[/list]
+    * Polls every managed Gamepad and merges their input states
+    * Tracks which player last provided input
+    * Supports restricting aggregation to a single player
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ game | Phaser.Game | Phaser game instance ]
-[ gamepads | Gamepad[] | Array of Gamepad instances to aggregate ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ game | Phaser.Game | Phaser game instance ]
+    [ gamepads | Gamepad[] | Array of Gamepad instances to aggregate ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ gamepads | Gamepad[] | The Gamepad instances whose input is aggregated ]
-[ lastPlayerId | number | Player index of the last pad that pressed a key ]
-[ singlePlayerId | number | Restrict polling to this player, or -1 for all pads ]
-[/table]
+    [ Property | Type | Description ]
+    [ gamepads | Gamepad[] | The Gamepad instances whose input is aggregated ]
+    [ lastPlayerId | number | Player index of the last pad that pressed a key ]
+    [ singlePlayerId | number | Restrict polling to this player, or -1 for all pads ]
+    [ lastInputSource | string | Input source of the most recent press across all pads ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ update | () | Polls every managed Gamepad and merges their states into this controller. Call once per frame instead of the base Gamepad update. ]
-[ updateMapping | () | Disabled: remapping is handled by the underlying Gamepad instances. ]
-[ setupKeyboard | () | Disabled: keyboard events are handled by the underlying Gamepad instances. ]
-[ setupGamepad | () | Disabled: gamepad events are handled by the underlying Gamepad instances. ]
-[ setupTouch | () | Disabled: touch controls belong to the individual Gamepad instances. ]
-[ setupInputDetection | () | Disabled: input detection is handled by the individual pads. ]
-[ detectInputSource | () | Disabled: input detection is handled by the individual pads. ]
-[ updateTouchControlsVisibility | () | Disabled: touch control visibility is managed by the individual pads. ]
-[ setupControllerTouchEvents | () | Disabled: touch events are wired by the individual pads. ]
-[ handleTouchStart | () | Disabled: touch handling is done by the individual pads. ]
-[ handleTouchMove | () | Disabled: touch handling is done by the individual pads. ]
-[ handleTouchEnd | () | Disabled: touch handling is done by the individual pads. ]
-[ ButtonFromTouch | () | Disabled: touch handling is done by the individual pads. ]
-[ isTouchControlled | () | Always returns false since AllPads itself does not handle touches. ]
-[ updateButtonStates | () | Disabled: edge states are merged from the individual pads. ]
-[ releaseAll | () | Releases every key on every managed pad and on this controller. ]
-[ press | (key) | Programmatically presses a key on the first managed gamepad. ]
-[ isDirectionPressed | () | Checks whether any managed pad is holding a direction key. ]
-[ Direction | () | Returns the direction vector of the first managed gamepad. ]
-[ vibrate | (duration) | Triggers vibration on every managed gamepad. ]
-[ reset | () | Resets the state of all managed gamepads. ]
-[ destroy | () | No-op: AllPads does not own listeners or DOM elements to clean up. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ update | () | Polls every managed Gamepad and merges their states into this controller. Call once per frame instead of the base Gamepad update. ]
+    [ updateMapping | () | Disabled: remapping is handled by the underlying Gamepad instances. ]
+    [ setupKeyboard | () | Disabled: keyboard events are handled by the underlying Gamepad instances. ]
+    [ setupGamepad | () | Disabled: gamepad events are handled by the underlying Gamepad instances. ]
+    [ setupTouch | () | Disabled: touch controls belong to the individual Gamepad instances. ]
+    [ setupInputDetection | () | Disabled: input detection is handled by the individual pads. ]
+    [ detectInputSource | () | Disabled: input detection is handled by the individual pads. ]
+    [ updateTouchControlsVisibility | () | Disabled: touch control visibility is managed by the individual pads. ]
+    [ setupControllerTouchEvents | () | Disabled: touch events are wired by the individual pads. ]
+    [ handleTouchStart | () | Disabled: touch handling is done by the individual pads. ]
+    [ handleTouchMove | () | Disabled: touch handling is done by the individual pads. ]
+    [ handleTouchEnd | () | Disabled: touch handling is done by the individual pads. ]
+    [ getButtonFromTouch | () | Disabled: touch handling is done by the individual pads. ]
+    [ isTouchControlled | () | Always returns false since AllPads itself does not handle touches. ]
+    [ updateButtonStates | () | Disabled: edge states are merged from the individual pads. ]
+    [ releaseAll | () | Releases every key on every managed pad and on this controller. ]
+    [ press | (key) | Programmatically presses a key on the first managed gamepad. ]
+    [ isDirectionPressed | () | Checks whether any managed pad is holding a direction key. ]
+    [ getDirection | () | Returns the direction vector of the first managed gamepad. ]
+    [ vibrate | (duration) | Triggers vibration on every managed gamepad. ]
+    [ reset | () | Resets the state of all managed gamepads. ]
+    [ destroy | () | No-op: AllPads does not own listeners or DOM elements to clean up. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -79,8 +80,8 @@ pads.signals.pressed.a.add(() => {
 pads.singlePlayerId = 2;
 // Read the merged state each frame
 if (pads.held.start) startGame();
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

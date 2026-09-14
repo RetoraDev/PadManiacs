@@ -28,11 +28,15 @@
  */
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
+    /** @type {Object} The gameplay scene this player belongs to */
     this.scene = scene;
+    /** @type {string} Lane position of this player ("center", "left" or "right") */
     this.playerSide = playerSide; // "center", "left", or "right"
     
+    /** @type {Object} Gamepad assigned to this player */
     this.gamepad = gamepad1;
     
+    /** @type {Object} HUD container this player renders into */
     this.hud = scene.hud;
     
     // Use ChartRenderer for rendering
@@ -65,9 +69,11 @@ class Player {
 
     /** @type {boolean} Whether AI auto-play is active */
     this.autoplay = settings.autoplay || scene.autoplay;
+    /** @type {Set} Hold notes being held by the autoplay AI */
     this.autoplayActiveHolds = new Set();
 
     // Gamepad keymap
+    /** @type {Object} Mapping of action names to column indices */
     this.keymap = {
       left: 0,
       down: 1,
@@ -80,6 +86,7 @@ class Player {
     // Game state
     /** @type {Array<boolean>} Current press state for each column */
     this.inputStates = [false, false, false, false];
+    /** @type {Array<boolean>} Press state for each column on the previous frame */
     this.lastInputStates = [false, false, false, false];
     /** @type {Object} Active hold notes keyed by column index */
     this.activeHolds = {};
@@ -87,6 +94,7 @@ class Player {
     this.heldColumns = new Set();
     /** @type {Array} History of all judgements received */
     this.judgementHistory = [];
+    /** @type {Array} Last checked beat for each column */
     this.lastNoteCheckBeats = [null, null, null, null];
     /** @type {number} Current accumulated score */
     this.score = 0;
@@ -98,12 +106,17 @@ class Player {
     this.maxHealth = 100;
     /** @type {number} Current player health */
     this.health = this.maxHealth;
+    /** @type {number} Health value before the latest change */
     this.previousHealth = this.health;
+    /** @type {Array} Record of timing measurements for each judgement */
     this.timingStory = [];
 
     // Game constants
+    /** @type {number} Seconds of leeway tolerated for hold notes */
     this.HOLD_FORGIVENESS = 0.3;
+    /** @type {number} Seconds of leeway tolerated for roll notes */
     this.ROLL_FORGIVENESS = 0.3;
+    /** @type {number} Interval between required roll taps in seconds */
     this.ROLL_REQUIRED_INTERVALS = 0.5;
     
     // Accuracy tracking
@@ -159,20 +172,31 @@ class Player {
     const accuracyBar = this.playerSide == 'right' ? this.scene.p2AccuracyBar : (this.scene.accuracyBar || this.scene.p1AccuracyBar);
     
     // Get UI elements or create placeholders 
+    /** @type {Object} Sprite that displays the last judgement result */
     this.judgementText = judgementText || new Text(-100, -100, "");
+    /** @type {Object} Text showing the current combo count */
     this.comboText = comboText || new Text(-100, -100, "");
+    /** @type {Object} Text showing the current score */
     this.scoreText = scoreText || new Text(-100, -100, "");
+    /** @type {Object} Text showing the current health */
     this.healthText = healthText || new Text(-100, -100, "");
+    /** @type {Object} Left anchor sprite of the lifebar */
     this.lifebarStart = lifebarStart || game.add.sprite();
+    /** @type {Object} Stretching middle sprite of the lifebar */
     this.lifebarMiddle = lifebarMiddle || game.add.sprite();
+    /** @type {Object} Right anchor sprite of the lifebar */
     this.lifebarEnd = lifebarEnd || game.add.sprite();
+    /** @type {Object} Accuracy bar sprite */
     this.accuracyBar = accuracyBar || game.add.sprite();
     
     this.updateAccuracy();
 
     // Define constants
+    /** @type {number} X position of the health bar */
     this.HEALTH_X = this.lifebarStart.x;
+    /** @type {number} Width of the variable area of the health bar */
     this.HEALTH_WIDTH = 145; // Width of the variable area of the health bar
+    /** @type {number} Width of the accuracy bar */
     this.ACCURACY_BAR_WIDTH = 187;
   }
   

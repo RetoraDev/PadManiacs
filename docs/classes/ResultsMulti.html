@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "ResultsMulti Class"]
+    [title: "ResultsMulti Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,39 +18,39 @@
 
     [heading: "Key Features"]
     [list]
-* Side-by-side score, accuracy, rating, combo and judgement breakdown for both players
-* Winner determination driven by score, then accuracy, combo and judgement quality
-* Records win counters and declares a DRAW or PLAYER N victory with a pulsing banner
-[/list]
+    * Side-by-side score, accuracy, rating, combo and judgement breakdown for both players
+    * Winner determination driven by score, then accuracy, combo and judgement quality
+    * Records win counters and declares a DRAW or PLAYER N victory with a pulsing banner
+    [/list]
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ gameResults | Object | Combined results for both players ]
-[ config | Object | The multiplayer configuration used for the match ]
-[ song | Object | The song that was played ]
-[ difficultyIndex | number | Index of the difficulty that was played ]
-[/table]
+    [ Property | Type | Description ]
+    [ gameResults | Object | Combined results for both players ]
+    [ config | Object | The multiplayer configuration used for the match ]
+    [ song | Object | The song that was played ]
+    [ difficultyIndex | number | Index of the difficulty that was played ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ init | (gameResults, config) | Phaser state hook that stores the game results and match configuration. ]
-[ create | () | Phaser state hook that builds the multiplayer results screen. ]
-[ displayResults | () | Renders the match summary, previews the audio and declares the winner. ]
-[ Winner | () | Determines the match winner by comparing score, accuracy, combo and judgements. ]
-[ showPlayerResults | (playerNumber) | Renders a single player's results panel on the appropriate side of the screen. ]
-[ showMenu | () | Builds the multiplayer results navigation menu. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ init | (gameResults, config) | Phaser state hook that stores the game results and match configuration. ]
+    [ create | () | Phaser state hook that builds the multiplayer results screen. ]
+    [ displayResults | () | Renders the match summary, previews the audio and declares the winner. ]
+    [ getWinner | () | Determines the match winner by comparing score, accuracy, combo and judgements. ]
+    [ showPlayerResults | (playerNumber) | Renders a single player's results panel on the appropriate side of the screen. ]
+    [ showMenu | () | Builds the multiplayer results navigation menu. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Open the multiplayer results for a finished match
 game.state.start("ResultsMulti", true, false, gameResults, config);
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

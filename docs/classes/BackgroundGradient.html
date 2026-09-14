@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "BackgroundGradient Class"]
+    [title: "BackgroundGradient Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,26 +18,26 @@
 
     [heading: "Key Features"]
     [list]
-* Loops the gradient alpha forever
-[/list]
+    * Loops the gradient alpha forever
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ min | Number | Minimum alpha value ]
-[ max | Number | Maximum alpha value ]
-[ time | Number | Full alpha cycle duration in milliseconds ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ min | Number | Minimum alpha value ]
+    [ max | Number | Maximum alpha value ]
+    [ time | Number | Full alpha cycle duration in milliseconds ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
 const bg = new BackgroundGradient(0.1, 0.5, 5000);
 game.add.existing(bg);
 bg.fadeIn();
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

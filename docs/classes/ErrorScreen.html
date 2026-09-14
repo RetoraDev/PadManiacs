@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "ErrorScreen Class"]
+    [title: "ErrorScreen Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,35 +18,36 @@
 
     [heading: "Key Features"]
     [list]
-* Displays crash message on a full-screen splash
-* Any key recovers to a configured state
-* Clicking opens the bug report page before recovering
-[/list]
+    * Displays crash message on a full-screen splash
+    * Any key recovers to a configured state
+    * Clicking opens the bug report page before recovering
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ message | string | Crash message shown to the player. ]
-[ recoverStateKey | string | State to restart into when the player recovers. ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ message | string | Crash message shown to the player. ]
+    [ recoverStateKey | string | State to restart into when the player recovers. ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ message | string | Crash message displayed to the player. ]
-[ recoverStateKey | string | State key to restart into on recovery. ]
-[/table]
+    [ Property | Type | Description ]
+    [ message | string | Crash message displayed to the player. ]
+    [ recoverStateKey | string | State key to restart into on recovery. ]
+    [ background | Phaser.Graphics | Full-screen error background fill ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ init | (message, recoverStateKey) | Stores the crash message and the state used to recover from the error. ]
-[ create | () | Renders the error splash and wires the recovery input handlers. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ init | (message, recoverStateKey) | Stores the crash message and the state used to recover from the error. ]
+    [ create | () | Renders the error splash and wires the recovery input handlers. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -54,8 +55,8 @@ game.state.start("ErrorScreen");
 
 // Provide a custom message and recovery state
 game.state.start("ErrorScreen", true, false, "Audio device failed", "MainMenu");
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

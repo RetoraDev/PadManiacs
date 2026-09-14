@@ -7,35 +7,35 @@
 </head>
 <body class="doki-hidden">
     <script src="./doki-loader.js"></script>
-[title: "PadManiaX Modding API Documentation"]
+    [title: "PadManiaX Modding API Documentation"]
 
     <p>This website provides detailed information about all core classes in PadManiaX <strong>1.2.1</strong>. Use this reference when creating addons to understand available APIs and modification points.</p>
 
     [heading: "Introduction"]
     <p>PadManiaX is a lightweight rhythm game that brings the StepMania experience to web and mobile devices with a retro pixel art aesthetic. The game features core rhythm gameplay mechanics of StepMania, a popular open source rhythm game.</p>
-    
+
     <p><a href="https://github.com/RetoraDev/PadManiacs">Explore Source code</a></p>
     <p><a href="https://retora.itch.io/padmaniacs">Play on itch.io</a></p>
-    
+
     <p>PadManiaX supports community-created modifications through an add-on system. Add-ons can:</p>
     [list]
     * Replace game assets (arrows, backgrounds, UI elements)
     * Add new behaviors and gameplay mechanics
     * Extend the game with new features
     [/list]
-    
+
     [heading: "How addons work"]
     <p>An addon is a folder that contains data that the game loads at startup, overwriting the assets and default game behavior.</p>
-    
+
     <p>In order for an addon to be considered valid, it must include the [code: "manifest.json"] file, a file that defines metadata, which parts of the game must be modified or extended, as well as the data and the code that must be loaded.</p>
-    
+
     <p>Add-ons are stored at a subfolder [code: "Addons/"] under local storage folder. All Addons you develop must be inside this folder so you can test them in the game.</p>
-    
+
     <p>You can download working sample add-ons to load in the game from <a href="https://retora.itch.io/padmaniacs/download/eyJleHBpcmVzIjoxNzc2MzA4MjQ4LCJpZCI6Mzk4OTgwNX0=.QIot74UL0TfHP+txH4R4uBGggY4=">itch.io</a>.</p>
-    
+
     [heading: "Tutorials"]
     <p>Learn how to create and modify PadManiaX with these step-by-step tutorials.</p>
-    
+
     [list]
     * <a href="tutorials/getting_started.html">Getting Started with Modding</a> - Learn the basics of creating your first addon
     * <a href="tutorials/manifest_format.html">Understanding the Manifest Format</a> - Complete guide to manifest.json structure
@@ -45,168 +45,168 @@
     * <a href="tutorials/character_system.html">Character System Guide</a> - Understanding characters, skills, and leveling
     * <a href="tutorials/achievements.html">Achievements System Guide</a> - Working with achievements and stats
     [/list]
-    
+
     [heading: "Global Scope"]
     <p>The game exposes a large set of global constants, variables, and functions that are available throughout the game and can be used in addons. These include version and environment information, font configurations, song folders, judgment windows, score values, character and achievement data, input systems, and more. For the complete reference, see the <a href="globals.html">Global Constants, Variables and Functions</a> page.</p>
-    
+
     [heading: "API"]
     <p>PadManiaX was built using <a href="https://github.com/photonstorm/phaser-ce">Phaser CE</a>, with Cordova for mobile file access and NW.js for desktop builds. See the documentation: <a href="https://cordova.apache.org/docs/en/latest/">Cordova Docs</a>, <a href="https://nwjs.io/docs/">NW.js Docs</a>, and <a href="https://github.com/photonstorm/phaser-ce">Phaser CE Docs</a>.</p>
-    
+
     <p>The game code is divided into different classes. All classes are accessible in the scope of addon file. Each of them plays a role, some more important than others. For example game screens visual or abstract elements, data managers, etc.</p>
-    
+
     [subheading: "Game States"]
     [table header]
-[ Name | Description ]
-[ <a href="classes/AchievementsMenu.html">AchievementsMenu</a> | Achievements viewing interface ]
-[ <a href="classes/Addons.html">Addons</a> | Addon Manager user interface ]
-[ <a href="classes/Boot.html">Boot</a> | Load critical assets, initialize input system, then start loading the game ]
-[ <a href="classes/CharacterSelect.html">CharacterSelect</a> | Character selection, creation, and customization ]
-[ <a href="classes/ChartModifiers.html">ChartModifiers</a> | Chart modifier and note rendering settings screen ]
-[ <a href="classes/Credits.html">Credits</a> | Credits screen ]
-[ <a href="classes/Editor.html">Editor</a> | Chart editing mode ]
-[ <a href="classes/ErrorScreen.html">ErrorScreen</a> | Error display screen shown when game crashes ]
-[ <a href="classes/FileSelect.html">FileSelect</a> | File system browser with navigation history and extension filtering ]
-[ <a href="classes/Jukebox.html">Jukebox</a> | Music player mode with visualizers ]
-[ <a href="classes/Keybindings.html">Keybindings</a> | Gamepad and keyboard keybindings UI ]
-[ <a href="classes/Load.html">Load</a> | Dynamic asset loading with progress tracking ]
-[ <a href="classes/LoadAddons.html">LoadAddons</a> | Initializes the addon manager and loads addon resources ]
-[ <a href="classes/LoadCordova.html">LoadCordova</a> | Initialize Cordova on mobile devices, initialize file system ]
-[ <a href="classes/LoadExternalSongFile.html">LoadExternalSongFile</a> | Loads a single external song file or ZIP archive ]
-[ <a href="classes/LoadExternalSongs.html">LoadExternalSongs</a> | Loads user-added songs from external storage ]
-[ <a href="classes/LoadLocalSongs.html">LoadLocalSongs</a> | Loads built-in default songs ]
-[ <a href="classes/LoadSongFolder.html">LoadSongFolder</a> | Loads a single song via file input ]
-[ <a href="classes/MainMenu.html">MainMenu</a> | Main Menu screen with navigation to all features ]
-[ <a href="classes/Play.html">Play</a> | Main gameplay state ]
-[ <a href="classes/Playlists.html">Playlists</a> | Playlist creation and management screen ]
-[ <a href="classes/PlayMulti.html">PlayMulti</a> | Two-player local multiplayer gameplay state ]
-[ <a href="classes/Results.html">Results</a> | Displays gameplay results and high scores ]
-[ <a href="classes/ResultsMulti.html">ResultsMulti</a> | Multiplayer results screen with winner declaration ]
-[ <a href="classes/Settings.html">Settings</a> | Settings user interface ]
-[ <a href="classes/SongSelect.html">SongSelect</a> | Song selection with previews and difficulty selection ]
-[ <a href="classes/SongStats.html">SongStats</a> | Per-song statistics, difficulties, scores and preview browser ]
-[ <a href="classes/StatsMenu.html">StatsMenu</a> | Player statistics display ]
-[ <a href="classes/Title.html">Title</a> | Title Screen with animated logo ]
-[/table]
+    [ Name | Description ]
+    [ <a href="classes/AchievementsMenu.html">AchievementsMenu</a> | Achievements viewing interface ]
+    [ <a href="classes/Addons.html">Addons</a> | Addon Manager user interface ]
+    [ <a href="classes/Boot.html">Boot</a> | Load critical assets, initialize input system, then start loading the game ]
+    [ <a href="classes/CharacterSelect.html">CharacterSelect</a> | Character selection, creation, and customization ]
+    [ <a href="classes/ChartModifiers.html">ChartModifiers</a> | Chart modifier and note rendering settings screen ]
+    [ <a href="classes/Credits.html">Credits</a> | Credits screen ]
+    [ <a href="classes/Editor.html">Editor</a> | Chart editing mode ]
+    [ <a href="classes/ErrorScreen.html">ErrorScreen</a> | Error display screen shown when game crashes ]
+    [ <a href="classes/FileSelect.html">FileSelect</a> | File system browser with navigation history and extension filtering ]
+    [ <a href="classes/Jukebox.html">Jukebox</a> | Music player mode with visualizers ]
+    [ <a href="classes/Keybindings.html">Keybindings</a> | Gamepad and keyboard keybindings UI ]
+    [ <a href="classes/Load.html">Load</a> | Dynamic asset loading with progress tracking ]
+    [ <a href="classes/LoadAddons.html">LoadAddons</a> | Initializes the addon manager and loads addon resources ]
+    [ <a href="classes/LoadCordova.html">LoadCordova</a> | Initialize Cordova on mobile devices, initialize file system ]
+    [ <a href="classes/LoadExternalSongFile.html">LoadExternalSongFile</a> | Loads a single external song file or ZIP archive ]
+    [ <a href="classes/LoadExternalSongs.html">LoadExternalSongs</a> | Loads user-added songs from external storage ]
+    [ <a href="classes/LoadLocalSongs.html">LoadLocalSongs</a> | Loads built-in default songs ]
+    [ <a href="classes/LoadSongFolder.html">LoadSongFolder</a> | Loads a single song via file input ]
+    [ <a href="classes/MainMenu.html">MainMenu</a> | Main Menu screen with navigation to all features ]
+    [ <a href="classes/Play.html">Play</a> | Main gameplay state ]
+    [ <a href="classes/Playlists.html">Playlists</a> | Playlist creation and management screen ]
+    [ <a href="classes/PlayMulti.html">PlayMulti</a> | Two-player local multiplayer gameplay state ]
+    [ <a href="classes/Results.html">Results</a> | Displays gameplay results and high scores ]
+    [ <a href="classes/ResultsMulti.html">ResultsMulti</a> | Multiplayer results screen with winner declaration ]
+    [ <a href="classes/Settings.html">Settings</a> | Settings user interface ]
+    [ <a href="classes/SongSelect.html">SongSelect</a> | Song selection with previews and difficulty selection ]
+    [ <a href="classes/SongStats.html">SongStats</a> | Per-song statistics, difficulties, scores and preview browser ]
+    [ <a href="classes/StatsMenu.html">StatsMenu</a> | Player statistics display ]
+    [ <a href="classes/Title.html">Title</a> | Title Screen with animated logo ]
+    [/table]
 
-    
+
     [subheading: "Core Game Classes"]
     [table header]
-[ Name | Description ]
-[ <a href="classes/AccuracyVisualizer.html">AccuracyVisualizer</a> | Displays timing accuracy history graph ]
-[ <a href="classes/AllPads.html">AllPads</a> | Handles multiple gamepads and distributes input ]
-[ <a href="classes/AudioTemperatureMeter.html">AudioTemperatureMeter</a> | Audio-based tempo meter for dynamic background effects ]
-[ <a href="classes/AudioVisualizer.html">AudioVisualizer</a> | Shows audio frequency spectrum ]
-[ <a href="classes/BackgroundMusic.html">BackgroundMusic</a> | Manages background music playback with caching ]
-[ <a href="classes/BPMVisualizer.html">BPMVisualizer</a> | Displays BPM changes and beat timing ]
-[ <a href="classes/ChartRenderer.html">ChartRenderer</a> | Renders notes, receptors, and chart elements ]
-[ <a href="classes/FirstPlayer.html">FirstPlayer</a> | First player gameplay instance using Player ]
-[ <a href="classes/FullScreenAudioVisualizer.html">FullScreenAudioVisualizer</a> | Advanced audio visualization for Jukebox ]
-[ <a href="classes/Gamepad.html">Gamepad</a> | Unified input system for keyboard, touchscreen, and gamepad ]
-[ <a href="classes/GamepadListener.html">GamepadListener</a> | Browser gamepad API listener ]
-[ <a href="classes/InputManager.html">InputManager</a> | Configures input system state and initializes listeners ]
-[ <a href="classes/KeyboardListener.html">KeyboardListener</a> | Keyboard input listener ]
-[ <a href="classes/Lyrics.html">Lyrics</a> | LRC lyrics synchronization system with color support ]
-[ <a href="classes/Metronome.html">Metronome</a> | Audio metronome system for timing assistance ]
-[ <a href="classes/NumericTypeOnScreenKeyboard.html">NumericTypeOnScreenKeyboard</a> | Numeric touchscreen keyboard ]
-[ <a href="classes/OffsetAssistant.html">OffsetAssistant</a> | Audio-video synchronization calibration tool ]
-[ <a href="classes/OnScreenKeyboard.html">OnScreenKeyboard</a> | Touchscreen on-screen keyboard overlay ]
-[ <a href="classes/Player.html">Player</a> | Handles all gameplay logic including note processing and scoring ]
-[ <a href="classes/ScreenRecorder.html">ScreenRecorder</a> | Video recording and screenshot functionality ]
-[ <a href="classes/SecondPlayer.html">SecondPlayer</a> | Second player gameplay instance for multiplayer ]
-[ <a href="classes/Visualizer.html">Visualizer</a> | Base class for gameplay visualizers ]
-[/table]
+    [ Name | Description ]
+    [ <a href="classes/AccuracyVisualizer.html">AccuracyVisualizer</a> | Displays timing accuracy history graph ]
+    [ <a href="classes/AllPads.html">AllPads</a> | Handles multiple gamepads and distributes input ]
+    [ <a href="classes/AudioTemperatureMeter.html">AudioTemperatureMeter</a> | Audio-based tempo meter for dynamic background effects ]
+    [ <a href="classes/AudioVisualizer.html">AudioVisualizer</a> | Shows audio frequency spectrum ]
+    [ <a href="classes/BackgroundMusic.html">BackgroundMusic</a> | Manages background music playback with caching ]
+    [ <a href="classes/BPMVisualizer.html">BPMVisualizer</a> | Displays BPM changes and beat timing ]
+    [ <a href="classes/ChartRenderer.html">ChartRenderer</a> | Renders notes, receptors, and chart elements ]
+    [ <a href="classes/FirstPlayer.html">FirstPlayer</a> | First player gameplay instance using Player ]
+    [ <a href="classes/FullScreenAudioVisualizer.html">FullScreenAudioVisualizer</a> | Advanced audio visualization for Jukebox ]
+    [ <a href="classes/Gamepad.html">Gamepad</a> | Unified input system for keyboard, touchscreen, and gamepad ]
+    [ <a href="classes/GamepadListener.html">GamepadListener</a> | Browser gamepad API listener ]
+    [ <a href="classes/InputManager.html">InputManager</a> | Configures input system state and initializes listeners ]
+    [ <a href="classes/KeyboardListener.html">KeyboardListener</a> | Keyboard input listener ]
+    [ <a href="classes/Lyrics.html">Lyrics</a> | LRC lyrics synchronization system with color support ]
+    [ <a href="classes/Metronome.html">Metronome</a> | Audio metronome system for timing assistance ]
+    [ <a href="classes/NumericTypeOnScreenKeyboard.html">NumericTypeOnScreenKeyboard</a> | Numeric touchscreen keyboard ]
+    [ <a href="classes/OffsetAssistant.html">OffsetAssistant</a> | Audio-video synchronization calibration tool ]
+    [ <a href="classes/OnScreenKeyboard.html">OnScreenKeyboard</a> | Touchscreen on-screen keyboard overlay ]
+    [ <a href="classes/Player.html">Player</a> | Handles all gameplay logic including note processing and scoring ]
+    [ <a href="classes/ScreenRecorder.html">ScreenRecorder</a> | Video recording and screenshot functionality ]
+    [ <a href="classes/SecondPlayer.html">SecondPlayer</a> | Second player gameplay instance for multiplayer ]
+    [ <a href="classes/Visualizer.html">Visualizer</a> | Base class for gameplay visualizers ]
+    [/table]
 
-    
+
     [subheading: "UI Classes"]
     [table header]
-[ Name | Description ]
-[ <a href="classes/Background.html">Background</a> | Generic background sprite with alpha tween ]
-[ <a href="classes/BackgroundGradient.html">BackgroundGradient</a> | Animated gradient background ]
-[ <a href="classes/BarChart.html">BarChart</a> | Bar chart for statistics display ]
-[ <a href="classes/CanvasBackground.html">CanvasBackground</a> | Canvas-based background rendering for dynamic content ]
-[ <a href="classes/CarouselMenu.html">CarouselMenu</a> | Vertical scrolling menu with animations and scrollbar ]
-[ <a href="classes/DialogWindow.html">DialogWindow</a> | Modal dialog windows for confirmations ]
-[ <a href="classes/ExperienceBar.html">ExperienceBar</a> | Visual experience progress bar ]
-[ <a href="classes/FuturisticLines.html">FuturisticLines</a> | Animated futuristic line effects ]
-[ <a href="classes/LineChart.html">LineChart</a> | Line chart for statistics display ]
-[ <a href="classes/LoadingDots.html">LoadingDots</a> | Animated loading indicator ]
-[ <a href="classes/Logo.html">Logo</a> | Animated logo for title screen ]
-[ <a href="classes/MouseCursor.html">MouseCursor</a> | Custom mouse cursor ]
-[ <a href="classes/NavigationHint.html">NavigationHint</a> | Displays input prompts in menus (0-7 frames) ]
-[ <a href="classes/NotificationSystem.html">NotificationSystem</a> | Global notification manager with achievement/exp support ]
-[ <a href="classes/NumberInput.html">NumberInput</a> | Numeric value input dialog ]
-[ <a href="classes/ProgressText.html">ProgressText</a> | Progress text for loading screens ]
-[ <a href="classes/SkillBar.html">SkillBar</a> | Visual skill level indicator (1-5 segments) ]
-[ <a href="classes/Text.html">Text</a> | Retro pixel text with typewriter and scrolling effects ]
-[ <a href="classes/TextInput.html">TextInput</a> | Text input dialog for character naming ]
-[ <a href="classes/Window.html">Window</a> | Customizable UI window with menu items and scrollbar ]
-[ <a href="classes/WindowManager.html">WindowManager</a> | Manages UI windows, focus, and navigation ]
-[/table]
+    [ Name | Description ]
+    [ <a href="classes/Background.html">Background</a> | Generic background sprite with alpha tween ]
+    [ <a href="classes/BackgroundGradient.html">BackgroundGradient</a> | Animated gradient background ]
+    [ <a href="classes/BarChart.html">BarChart</a> | Bar chart for statistics display ]
+    [ <a href="classes/CanvasBackground.html">CanvasBackground</a> | Canvas-based background rendering for dynamic content ]
+    [ <a href="classes/CarouselMenu.html">CarouselMenu</a> | Vertical scrolling menu with animations and scrollbar ]
+    [ <a href="classes/DialogWindow.html">DialogWindow</a> | Modal dialog windows for confirmations ]
+    [ <a href="classes/ExperienceBar.html">ExperienceBar</a> | Visual experience progress bar ]
+    [ <a href="classes/FuturisticLines.html">FuturisticLines</a> | Animated futuristic line effects ]
+    [ <a href="classes/LineChart.html">LineChart</a> | Line chart for statistics display ]
+    [ <a href="classes/LoadingDots.html">LoadingDots</a> | Animated loading indicator ]
+    [ <a href="classes/Logo.html">Logo</a> | Animated logo for title screen ]
+    [ <a href="classes/MouseCursor.html">MouseCursor</a> | Custom mouse cursor ]
+    [ <a href="classes/NavigationHint.html">NavigationHint</a> | Displays input prompts in menus (0-7 frames) ]
+    [ <a href="classes/NotificationSystem.html">NotificationSystem</a> | Global notification manager with achievement/exp support ]
+    [ <a href="classes/NumberInput.html">NumberInput</a> | Numeric value input dialog ]
+    [ <a href="classes/ProgressText.html">ProgressText</a> | Progress text for loading screens ]
+    [ <a href="classes/SkillBar.html">SkillBar</a> | Visual skill level indicator (1-5 segments) ]
+    [ <a href="classes/Text.html">Text</a> | Retro pixel text with typewriter and scrolling effects ]
+    [ <a href="classes/TextInput.html">TextInput</a> | Text input dialog for character naming ]
+    [ <a href="classes/Window.html">Window</a> | Customizable UI window with menu items and scrollbar ]
+    [ <a href="classes/WindowManager.html">WindowManager</a> | Manages UI windows, focus, and navigation ]
+    [/table]
 
-    
+
     [subheading: "Character System Classes"]
     [table header]
-[ Name | Description ]
-[ <a href="classes/Character.html">Character</a> | Character data model with leveling and experience ]
-[ <a href="classes/CharacterCloseShot.html">CharacterCloseShot</a> | Close-up character display for skill effects (36x7) ]
-[ <a href="classes/CharacterCroppedDisplay.html">CharacterCroppedDisplay</a> | Character display with cropping support ]
-[ <a href="classes/CharacterDisplay.html">CharacterDisplay</a> | Visual character sprite with layered rendering ]
-[ <a href="classes/CharacterManager.html">CharacterManager</a> | Manages multiple characters and persistence ]
-[ <a href="classes/CharacterPortrait.html">CharacterPortrait</a> | Cropped character portrait display (15x15) ]
-[ <a href="classes/CharacterSkillSystem.html">CharacterSkillSystem</a> | Skill activation and effect management ]
-[/table]
+    [ Name | Description ]
+    [ <a href="classes/Character.html">Character</a> | Character data model with leveling and experience ]
+    [ <a href="classes/CharacterCloseShot.html">CharacterCloseShot</a> | Close-up character display for skill effects (36x7) ]
+    [ <a href="classes/CharacterCroppedDisplay.html">CharacterCroppedDisplay</a> | Character display with cropping support ]
+    [ <a href="classes/CharacterDisplay.html">CharacterDisplay</a> | Visual character sprite with layered rendering ]
+    [ <a href="classes/CharacterManager.html">CharacterManager</a> | Manages multiple characters and persistence ]
+    [ <a href="classes/CharacterPortrait.html">CharacterPortrait</a> | Cropped character portrait display (15x15) ]
+    [ <a href="classes/CharacterSkillSystem.html">CharacterSkillSystem</a> | Skill activation and effect management ]
+    [/table]
 
-    
+
     [subheading: "Achievements and Stats Classes"]
     [table header]
-[ Name | Description ]
-[ <a href="classes/AchievementsManager.html">AchievementsManager</a> | Achievement tracking, unlocking, and stats management ]
-[/table]
+    [ Name | Description ]
+    [ <a href="classes/AchievementsManager.html">AchievementsManager</a> | Achievement tracking, unlocking, and stats management ]
+    [/table]
 
-    
+
     [subheading: "File System Classes"]
     [table header]
-[ Name | Description ]
-[ <a href="classes/CordovaFileSystem.html">CordovaFileSystem</a> | File system for Apache Cordova mobile apps ]
-[ <a href="classes/FallbackFileSystem.html">FallbackFileSystem</a> | Stub for web environments without file access ]
-[ <a href="classes/FileSystemTools.html">FileSystemTools</a> | Platform-agnostic file system access wrapper ]
-[ <a href="classes/FileTools.html">FileTools</a> | File utilities for Base64 conversion and export ]
-[ <a href="classes/NodeDirectoryEntry.html">NodeDirectoryEntry</a> | Cordova DirectoryEntry equivalent for Node.js ]
-[ <a href="classes/NodeFileEntry.html">NodeFileEntry</a> | Cordova FileEntry equivalent for Node.js ]
-[ <a href="classes/NodeFileSystem.html">NodeFileSystem</a> | File system for NW.js desktop apps ]
-[/table]
+    [ Name | Description ]
+    [ <a href="classes/CordovaFileSystem.html">CordovaFileSystem</a> | File system for Apache Cordova mobile apps ]
+    [ <a href="classes/FallbackFileSystem.html">FallbackFileSystem</a> | Stub for web environments without file access ]
+    [ <a href="classes/FileSystemTools.html">FileSystemTools</a> | Platform-agnostic file system access wrapper ]
+    [ <a href="classes/FileTools.html">FileTools</a> | File utilities for Base64 conversion and export ]
+    [ <a href="classes/NodeDirectoryEntry.html">NodeDirectoryEntry</a> | Cordova DirectoryEntry equivalent for Node.js ]
+    [ <a href="classes/NodeFileEntry.html">NodeFileEntry</a> | Cordova FileEntry equivalent for Node.js ]
+    [ <a href="classes/NodeFileSystem.html">NodeFileSystem</a> | File system for NW.js desktop apps ]
+    [/table]
 
-    
+
     [subheading: "Parser Classes"]
     [table header]
-[ Name | Description ]
-[ <a href="classes/ExternalSMParser.html">ExternalSMParser</a> | Parses .SM and .SSC files for external songs ]
-[ <a href="classes/LocalSMParser.html">LocalSMParser</a> | Parses StepMania .SM files for built-in songs ]
-[ <a href="classes/SMFile.html">SMFile</a> | StepMania file generation for chart export ]
-[/table]
+    [ Name | Description ]
+    [ <a href="classes/ExternalSMParser.html">ExternalSMParser</a> | Parses .SM and .SSC files for external songs ]
+    [ <a href="classes/LocalSMParser.html">LocalSMParser</a> | Parses StepMania .SM files for built-in songs ]
+    [ <a href="classes/SMFile.html">SMFile</a> | StepMania file generation for chart export ]
+    [/table]
 
-    
+
     [subheading: "Addon System Classes"]
     [table header]
-[ Name | Description ]
-[ <a href="classes/AddonManager.html">AddonManager</a> | Manages addon loading, execution, hibernation, and safe mode ]
-[/table]
+    [ Name | Description ]
+    [ <a href="classes/AddonManager.html">AddonManager</a> | Manages addon loading, execution, hibernation, and safe mode ]
+    [/table]
 
-    
+
     [subheading: "Playlist System Classes"]
     [table header]
-[ Name | Description ]
-[ <a href="classes/PlaylistManager.html">PlaylistManager</a> | Manages song playlists with localStorage persistence ]
-[/table]
+    [ Name | Description ]
+    [ <a href="classes/PlaylistManager.html">PlaylistManager</a> | Manages song playlists with localStorage persistence ]
+    [/table]
 
-    
+
     [subheading: "Utility Classes"]
     [table header]
-[ Name | Description ]
-[ <a href="classes/TimeUtils.html">TimeUtils</a> | Static utility methods for time formatting and validation ]
-[/table]
+    [ Name | Description ]
+    [ <a href="classes/TimeUtils.html">TimeUtils</a> | Static utility methods for time formatting and validation ]
+    [/table]
 
-    
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

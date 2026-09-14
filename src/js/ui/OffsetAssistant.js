@@ -85,11 +85,15 @@ class OffsetAssistant extends Phaser.Sprite {
     this.addChild(this.exitText);
     
     // Track button states
+    /** @type {boolean} A button held state from the previous frame */
     this.lastAPress = false;
+    /** @type {boolean} B button held state from the previous frame */
     this.lastBPress = false;
     
     // Track tick timing
+    /** @type {number} Timestamp of the last tick played */
     this.lastTickTime = 0;
+    /** @type {number} Timestamp of the next scheduled tick */
     this.nextTickTime = this.game.time.now;
     
     // Store calculated offsets for averaging
@@ -363,6 +367,7 @@ class OffsetAssistant extends Phaser.Sprite {
     // Make sure music is resumed even if destroyed unexpectedly
     this.resumeBackgroundMusic();
     
+    /** @type {boolean} Whether the assistant has been destroyed */
     this.destroyed = true;
     
     // Clean up all created objects

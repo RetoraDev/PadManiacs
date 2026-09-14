@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "FileSelect Class"]
+    [title: "FileSelect Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,44 +18,44 @@
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ extensions | Array&lt;string&gt;|null | Allowed file extensions, or null for any file ]
-[ onSelect | Function|null | Callback invoked when a file is selected ]
-[ onCancel | Function|null | Callback invoked when browsing is cancelled ]
-[ allowCancel | boolean | Whether the back/cancel action completes the state ]
-[ currentPath | string | Full path of the directory currently being browsed ]
-[ currentDir | Object|null | File entry for the current directory ]
-[ history | Array&lt;Object&gt; | Stack of previously visited directories ]
-[ fileSystem | FileSystemTools | Helper for listing and reading directories ]
-[/table]
+    [ Property | Type | Description ]
+    [ extensions | Array&lt;string&gt;|null | Allowed file extensions, or null for any file ]
+    [ onSelect | Function|null | Callback invoked when a file is selected ]
+    [ onCancel | Function|null | Callback invoked when browsing is cancelled ]
+    [ allowCancel | boolean | Whether the back/cancel action completes the state ]
+    [ currentPath | string | Full path of the directory currently being browsed ]
+    [ currentDir | Object|null | File entry for the current directory ]
+    [ history | Array&lt;Object&gt; | Stack of previously visited directories ]
+    [ fileSystem | FileSystemTools | Helper for listing and reading directories ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ init | (extensions, onSelect, onCancel, allowCancel) | Stores the extension filter, selection/cancel callbacks, and navigation defaults, restoring a previously saved file browser state if present. ]
-[ create | () | Builds the file browser UI: fades in the camera, adds the background layers and navigation hint, creates the path and empty-folder texts, and loads the current directory into the carousel. ]
-[ saveState | () | Persists the browser position (current path, selection, scroll offset, filters, and history) to window.fileSelectState so the state can be restored later. ]
-[ restoreState | (state) | Applies a previously saved file browser state to this instance, restoring the path, history, selection index, and scroll offset for the next load. ]
-[ loadDirectory | (dirEntry) | Lists the entries of the given (or root/file-system default) directory, filters them by the extension whitelist, builds a sorted carousel menu with parent navigation, restores any saved selection, and refreshes the path display. ]
-[ onEntrySelected | (entry) | Handles a carousel selection: directories are pushed into history and opened, while files are selected through the onSelect callback or advance to the main menu. ]
-[ goToParent | () | Navigates up one level, either to the previously visited directory from history or to the parent of the current path. ]
-[ goBack | () | Pops the most recent directory from history and reloads it. ]
-[ updatePathDisplay | () | Rewrites the path label with the current directory's full path, wrapping the text to fit the screen width. ]
-[ showError | (message) | Cleans up the browser UI and shows an error message, returning to the main menu after a short delay. ]
-[ update | () | Called each frame; refreshes the gamepad state so carousel navigation stays responsive. ]
-[ shutdown | () | Runs when the state is shut down: saves the browser position and destroys the loading dots and carousel widgets. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ init | (extensions, onSelect, onCancel, allowCancel) | Stores the extension filter, selection/cancel callbacks, and navigation defaults, restoring a previously saved file browser state if present. ]
+    [ create | () | Builds the file browser UI: fades in the camera, adds the background layers and navigation hint, creates the path and empty-folder texts, and loads the current directory into the carousel. ]
+    [ saveState | () | Persists the browser position (current path, selection, scroll offset, filters, and history) to window.fileSelectState so the state can be restored later. ]
+    [ restoreState | (state) | Applies a previously saved file browser state to this instance, restoring the path, history, selection index, and scroll offset for the next load. ]
+    [ loadDirectory | (dirEntry) | Lists the entries of the given (or root/file-system default) directory, filters them by the extension whitelist, builds a sorted carousel menu with parent navigation, restores any saved selection, and refreshes the path display. ]
+    [ onEntrySelected | (entry) | Handles a carousel selection: directories are pushed into history and opened, while files are selected through the onSelect callback or advance to the main menu. ]
+    [ goToParent | () | Navigates up one level, either to the previously visited directory from history or to the parent of the current path. ]
+    [ goBack | () | Pops the most recent directory from history and reloads it. ]
+    [ updatePathDisplay | () | Rewrites the path label with the current directory's full path, wrapping the text to fit the screen width. ]
+    [ showError | (message) | Cleans up the browser UI and shows an error message, returning to the main menu after a short delay. ]
+    [ update | () | Called each frame; refreshes the gamepad state so carousel navigation stays responsive. ]
+    [ shutdown | () | Runs when the state is shut down: saves the browser position and destroys the loading dots and carousel widgets. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Open the browser to a folder of screenshots (.png) and act on selection.
 game.state.add('FileSelect', FileSelect);
 game.state.start('FileSelect', true, false, ['png'],
   entry => console.log('Selected', entry), () => console.log('Cancelled'));
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

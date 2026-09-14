@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "NumericTypeOnScreenKeyboard Class"]
+    [title: "NumericTypeOnScreenKeyboard Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,25 +18,25 @@
 
     [heading: "Key Features"]
     [list]
-* Replaces the full keyboard with a compact numeric keypad
-* Adds add, subtract, enter, clear, and erase action keys
-[/list]
+    * Replaces the full keyboard with a compact numeric keypad
+    * Adds add, subtract, enter, clear, and erase action keys
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ x | number | Declared horizontal position (the base constructor places the sprite at 80, 70) ]
-[ y | number | Declared vertical position (the base constructor places the sprite at 80, 70) ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ x | number | Declared horizontal position (the base constructor places the sprite at 80, 70) ]
+    [ y | number | Declared vertical position (the base constructor places the sprite at 80, 70) ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ keys | Object[] | Numeric keypad definitions laid out on the numeric texture ]
-[/table]
+    [ Property | Type | Description ]
+    [ keys | Object[] | Numeric keypad definitions laid out on the numeric texture ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -44,8 +44,8 @@ const numpad = new NumericTypeOnScreenKeyboard(80, 70);
 numpad.onDown.add((key, input) => {
   console.log(`Numpad ${key.code} -> ${input}`);
 });
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

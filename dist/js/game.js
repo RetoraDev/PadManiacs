@@ -5,20 +5,45 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.2.1 dev
- * Build: 9/13/2026, 6:36:55 AM
+ * Build: 9/13/2026, 9:05:17 PM
  * Platform: Development
  * Debug: false
  * Minified: false
  */
 
-// Cache for localized strings
+/**
+ * Global localization helpers for the game.
+ *
+ * The public entry point is `window.__`, which translates a source string
+ * into the currently selected language. Strings follow two syntaxes:
+ *
+ * - `"English||Español"` splits alternatives with `||` and picks the one
+ *   matching the active language index (0 = English, 1 = Español).
+ * - `"(Confirm|Confirmar)"` wraps per-phrase alternatives in parentheses,
+ *   which are resolved based on the active language index.
+ *
+ * Both forms can be mixed in the same string, and results are cached in a
+ * `Map` that is cleared automatically whenever the language changes.
+ *
+ * Calling `__` also sets a truthy `_localized` marker on the returned string
+ * so UI code can avoid re-translating already-localized text.
+ */
+/** @type {Map} Cache of previously resolved translations keyed by string and language */
 const __cache = new Map();
+/** @type {number} Language index of the most recent translation (-1 before the first lookup) */
 let __currentLanguage = -1;
 
 // Pre-compile regex for performance
+/** @type {RegExp} Splits the `English||Español` alternatives in a string */
 const __splitRegex = /\|\|/;
+/** @type {RegExp} Matches a `(This|Esto)` phrase with its alternatives */
 const __parenRegex = /\(([^()]+)\)/g;
 
+/**
+ * Returns the currently selected language index, clearing the translation
+ * cache whenever the language changed since the last call.
+ * @returns {number} Language index in use (0 = English, 1 = Español)
+ */
 function __getLanguage() {
   let lang = 0;
   try {
@@ -33,6 +58,13 @@ function __getLanguage() {
   return lang;
 }
 
+/**
+ * Resolves `(This|Esto)` parenthesized alternatives inside a string, keeping
+ * the text as-is when no parentheses are present.
+ * @param {string} text - The string possibly containing parenthesized alternatives
+ * @param {number} lang - Language index used to pick the alternative
+ * @returns {string} Text with parenthesized alternatives resolved
+ */
 function __processParens(text, lang) {
   // Fast path: if no parentheses, return as-is
   if (text.indexOf('(') === -1) return text;
@@ -44,6 +76,15 @@ function __processParens(text, lang) {
   });
 }
 
+/**
+ * Localizes a source string into the active language.
+ *
+ * Supports `English||Español` and `(This|Esto)` syntaxes, caches the
+ * resolved result, and marks the string as localized via a truthy
+ * `_localized` property so it is not translated a second time.
+ * @param {string} text - Source string to translate
+ * @returns {string} The localized string
+ */
 window.__ = function(text) {
   if (typeof text !== 'string') return text;
   
@@ -77,6 +118,7 @@ window.__ = function(text) {
   return result;
 };
 
+/** @type {Function} Module-local alias for the global localization function */
 const __ = window.__;
 
 /** @type {string} Copyright notice */
@@ -6433,7 +6475,9 @@ class CharacterCroppedDisplay extends CharacterDisplay {
       h: cropArea.h
     };
     this.cropSprite();
+    /** @type {number} X position of the cropped display */
     this.x = x;
+    /** @type {number} Y position of the cropped display */
     this.y = y;
   }
 
@@ -7162,6 +7206,7 @@ class CharacterSkillSystem {
   startHealthRegen(params) {
     this.stopHealthRegen(); // Stop any existing regen
     
+    /** @type {?Phaser.TimerEvent} Active health regeneration timer */
     this.healthRegenTimer = game.time.events.loop(params.interval, () => {
       if (this.onHealthRegen) {
         this.onHealthRegen(params.amount);
@@ -7267,6 +7312,7 @@ class CharacterSkillSystem {
     if (!this.character) return;
     
     // Update exhausted state
+    /** @type {boolean} Whether all skill uses have been exhausted for this game */
     this.exhausted = this.skillsUsedThisGame >= this.character.skillLevel;
     
     // Update active skills
@@ -8348,6 +8394,7 @@ class Text extends Phaser.Sprite {
     /** @type {number} Milliseconds between typewriter characters */
     this.typewriterInterval = this.config.typewriterInterval;
 
+    /** @type {string} Tint color applied to the rendered text (hex string) */
     this.tint = this.config.tint;
     
     if (this.config.typewriter) {
@@ -8683,7 +8730,9 @@ class Window extends Phaser.Sprite {
     
     /** @type {number} Index of the first visible item */
     this.scrollOffset = 0;
+    /** @type {number} Vertical spacing between items in grid cells */
     this.itemOffset = 1;
+    /** @type {number} Number of items that fit in the visible area */
     this.visibleItems = height;
     /** @type {number} Index of the currently selected item */
     this.selectedIndex = 0;
@@ -8691,10 +8740,15 @@ class Window extends Phaser.Sprite {
     this.focus = false;
     /** @type {string} Window skin key used for frame sprites */
     this.skin = skin;
+    /** @type {string} Font key used for item text */
     this.font = "default";
+    /** @type {number} Tint color applied to item text */
     this.fontTint = 0x76fcde;
+    /** @type {boolean} Whether the selection highlight is disabled */
     this.disableHighlight = false;
+    /** @type {boolean} Whether the scroll bar is disabled */
     this.disableScrollBar = false;
+    /** @type {boolean} Whether mouse interaction is disabled */
     this.disableMouse = false;
 
     if (parent) {
@@ -8747,6 +8801,7 @@ class Window extends Phaser.Sprite {
 
   createWindowFrame() {
     // Window frame parts
+    /** @type {Array} Sprites that compose the window frame */
     this.frameParts = [];
 
     // Create corners and borders
@@ -8992,6 +9047,7 @@ class Window extends Phaser.Sprite {
    * @param {number} y - Y position for the highlight
    */
   forceHighlight(y) {
+    /** @type {?number} Fixed Y position for the highlight, or null when not forced */
     this.forcedHighlightY = y;
   }
   
@@ -9048,7 +9104,8 @@ class Window extends Phaser.Sprite {
     
     this.scrollBarTween.to({ alpha: 0 }, 1000, Phaser.Easing.Quadratic.Out, true, 500)
       .onComplete.add(() => {
-        this.scrollBarTween = null;
+/** @type {?Phaser.Tween} Tween animating the scroll bar fade */
+    this.scrollBarTween = null;
       });
   }
 
@@ -9243,8 +9300,11 @@ class Window extends Phaser.Sprite {
     this.onSelect.dispose();
     this.onConfirm.dispose();
     this.onCancel.dispose();
+    /** @type {Function} Confirmation handler, emptied when the window is cleared */
     this.confirm = () => {};
+    /** @type {Function} Cancel handler, emptied when the window is cleared */
     this.cancel = () => {};
+    /** @type {Function} Navigation handler, emptied when the window is cleared */
     this.navigate = () => {};
     this.frameParts.forEach(part => part.destroy());
     this.frameParts = [];
@@ -9256,6 +9316,7 @@ class Window extends Phaser.Sprite {
    * Makes the window sprite visible.
    */
   show() {
+    /** @type {boolean} Whether the window sprite is currently visible */
     this.visible = true;
   }
 
@@ -9271,6 +9332,7 @@ class Window extends Phaser.Sprite {
    */
   destroy() {
     this.clear();
+    /** @type {boolean} Whether the window has been disposed and can no longer be used */
     this.disposed = true;
     super.destroy();
   }
@@ -9710,11 +9772,17 @@ class DialogWindow extends Phaser.Sprite {
     this.buttons = buttons;
     /** @type {number} Index of the currently selected button */
     this.selectedButton = defaultButton;
+    /** @type {boolean} Whether the text content can be scrolled with the pad */
     this.enableTextScroll = enableTextScroll;
+    /** @type {boolean} Whether mouse interaction is disabled */
     this.disableMouse = disableMouse;
+    /** @type {number} Current scroll offset of the text lines */
     this.currentScroll = 0;
+    /** @type {number} Maximum scroll offset for the text content */
     this.maxScroll = 0;
+    /** @type {number} Tint color applied to text and buttons */
     this.fontTint = 0x76fcde;
+    /** @type {boolean} Whether the dialog is active and can accept input */
     this.isActive = true;
     
     if (parent) {
@@ -9733,6 +9801,7 @@ class DialogWindow extends Phaser.Sprite {
     // Create window background using Window class
     const { width, height, wrappedText } = this.calculateWindowSize();
     
+    /** @type {Window} The window frame that draws the dialog background */
     this.window = new Window(0, 0, width, height, "1", this);
     this.window.x -= this.window.size.width * 8 * this.anchor.x;
     this.window.y -= this.window.size.height * 8 * this.anchor.y;
@@ -9864,12 +9933,15 @@ class DialogWindow extends Phaser.Sprite {
    * @param {Array} wrappedText - Wrapped lines to display
    */
   createTextContent(wrappedText) {
+    /** @type {Array} Visible Text sprites showing the current lines */
     this.textLines = [];
+    /** @type {Array} All wrapped text lines, including those scrolled out of view */
     this.allTextLines = wrappedText;
     
     const startY = 8;
     const textAreaHeight = (this.window.size.height * 8) - 28; // Total available height for text (window height - padding - buttons)
     const lineHeight = 6;
+    /** @type {number} Maximum number of text lines shown at once */
     this.maxVisibleLines = Math.floor(textAreaHeight / lineHeight);
     
     this.maxScroll = Math.max(0, wrappedText.length - this.maxVisibleLines);
@@ -9892,6 +9964,7 @@ class DialogWindow extends Phaser.Sprite {
    * Creates the button texts, sizes them, and wires up mouse handlers.
    */
   createButtonElements() {
+    /** @type {Array} Text sprites for each button label */
     this.buttonTexts = [];
     const buttonAreaY = this.window.size.height * 8 - 12;
     
@@ -9950,6 +10023,7 @@ class DialogWindow extends Phaser.Sprite {
       const indicatorX = this.window.size.width * 8 - 8;
       const indicatorY = this.window.size.height * 8 - 20;
       
+      /** @type {Text} Blinking indicator that the text can be scrolled */
       this.scrollIndicator = new Text(indicatorX, indicatorY, ">", {
         ...FONTS.default,
         tint: this.fontTint
@@ -9989,6 +10063,7 @@ class DialogWindow extends Phaser.Sprite {
       const scrollBarY = textAreaY + (scrollProgress * availableScrollSpace);
       
       // Create scroll bar graphics
+      /** @type {Phaser.Graphics} Scroll bar showing the visible-text ratio */
       this.scrollBar = game.add.graphics(scrollBarX, scrollBarY);
       this.scrollBar.beginFill(this.fontTint, 0.8);
       this.scrollBar.drawRect(0, 0, 2, scrollBarHeight);
@@ -10001,7 +10076,9 @@ class DialogWindow extends Phaser.Sprite {
    * Creates the dialog signals and wires up gamepad button handlers.
    */
   setupInputHandling() {
+    /** @type {Phaser.Signal} Dispatched when a button is confirmed */
     this.onConfirm = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when the dialog is cancelled */
     this.onCancel = new Phaser.Signal();
     
     // Use gamepad signals instead of checking pressed states
@@ -10278,14 +10355,20 @@ class CarouselMenu extends Phaser.Sprite {
     this.hoveredIndex = 0;
     /** @type {number} Index of the first visible item */
     this.scrollOffset = 0;
+    /** @type {number} Height of a single item row in pixels */
     this.itemHeight = this.config.itemHeight;
+    /** @type {number} Vertical spacing between item rows in pixels */
     this.itemSpacing = this.config.itemSpacing;
+    /** @type {number} Combined pitch of one item row (height plus spacing) */
     this.totalItemHeight = this.itemHeight + this.itemSpacing;
     
+    /** @type {number} Number of items that fit in the visible viewport */
     this.visibleItems = Math.floor((height - this.config.margin.top - this.config.margin.bottom) / this.totalItemHeight);
     this.visibleItems = Math.max(1, this.visibleItems);
     
+    /** @type {boolean} Whether a scroll animation is currently in progress */
     this.isAnimating = false;
+    /** @type {boolean} Whether menu input is accepted */
     this.inputEnabled = true;
         
     // Scroll bar
@@ -10295,12 +10378,16 @@ class CarouselMenu extends Phaser.Sprite {
       this.scrollBar.alpha = 0; // Start hidden
       this.addChild(this.scrollBar);
       
+      /** @type {?Phaser.Tween} Tween animating the scroll bar fade */
       this.scrollBarTween = null;
     }
     
     // Track input state
+    /** @type {?number} Timestamp of the first press used for press-and-hold scrolling */
     this.firstPressTime = undefined;
+    /** @type {number} Timestamp of the last processed press */
     this.lastPress = 0;
+    /** @type {number} Timestamp of the last update tick */
     this.lastUpdate = 0;
     
     this.setupInput();
@@ -11641,9 +11728,13 @@ class NavigationHint extends Phaser.Sprite {
     this.items = [];
     /** @type {object} Timer handle for the alternate-mode cycling */
     this.alternateTimer = null;
+    /** @type {number} Player id currently displayed when cycling alternate mode */
     this.currentAlternatePlayer = 1;
+    /** @type {boolean} Whether player-switch refreshes are temporarily suppressed */
     this.ignorePlayerSwitch = false;
+    /** @type {boolean} Whether prompt caching is disabled */
     this.disableCache = disableCache || false;
+    /** @type {boolean} Whether the hints automatically cycle between players */
     this.alternateMode = Account.settings.alternateHintMode || false;
     
     /** @type {Phaser.Signal} Dispatched with the player id when the active player changes */
@@ -11653,12 +11744,14 @@ class NavigationHint extends Phaser.Sprite {
     /** @type {object} Cached parents keyed by player id and input source */
     this.parents = {};
     
+    /** @type {Object} Tracked width of each player's rendered hint row */
     this.sizes = {
       '1': 0,
       '2': 0
     };
     
     // Cache last state to avoid unnecessary refreshes
+    /** @type {Object} Last rendered state used to skip redundant refreshes */
     this.lastState = {
       inputSource: null,
       activePlayer: null,
@@ -11696,6 +11789,7 @@ class NavigationHint extends Phaser.Sprite {
       }
     };
     
+    /** @type {Function} Refresh callback invoked on gamepad presses */
     this.updateCondition = updateCondition;
     
     if (gamepad) gamepad.signals.pressed.any.add(this.updateCondition);
@@ -12467,7 +12561,9 @@ class TextInput extends Phaser.Sprite {
     this.cursor.endFill();
     this.textLayer.addChild(this.cursor);
     
+    /** @type {number} Timestamp of the last cursor blink tick */
     this.lastCursorBlinkTime = 0;
+    /** @type {boolean} Whether the text cursor is currently visible */
     this.cursorVisible = false;
     
     /** @type {Phaser.Signal} Dispatched with the final text when confirmed */
@@ -12885,7 +12981,9 @@ class NumberInput extends TextInput {
     } else {
       displayValue = Math.floor(value).toString();
     }
+    /** @type {string} Current value rendered as text */
     this.text = displayValue;
+    /** @type {number} Cursor position within the text */
     this.currentIndex = this.text.length;
     this.updateCursor();
   }
@@ -12962,9 +13060,13 @@ class NotificationSystem {
     this.currentNotification = null;
     /** @type {number} Default display duration in milliseconds */
     this.duration = 3000;
+    /** @type {number} Line height used to layout notification text */
     this.lineHeight = 8;
+    /** @type {number} Padding around the notification text */
     this.padding = 8;
+    /** @type {number} Maximum text width before wrapping in pixels */
     this.maxLineWidth = 160;
+    /** @type {number} Width of a single character in pixels */
     this.charWidth = 4;
     
     /** @type {Window|null} The window displaying the current notification */
@@ -13118,6 +13220,7 @@ class NotificationSystem {
    */
   animateNotificationTint(notification) {
     let tintAnimationIndex = 0;
+    /** @type {?Phaser.TimerEvent} Timer cycling the notification window tint */
     this.tintAnimationLoop = game.time.events.loop(100, () => {
       if (!this.notificationWindow) return;
       
@@ -13306,6 +13409,7 @@ class NotificationSystem {
    */
   preserveCurrentNotification() {
     if (this.currentNotification && this.notificationWindow) {
+      /** @type {?Object} Copy of the current notification saved across state changes */
       this.preservedNotification = {
         ...this.currentNotification,
         remainingTime: this.currentNotification.endTime - Date.now()
@@ -13476,6 +13580,7 @@ class Lyrics {
    * @param {string} rawLrc - Raw LRC file contents
    */
   setLrc(rawLrc) {
+    /** @type {Object} Metadata tags parsed from the LRC file */
     this.tags = {};
     this.lrcData = [];
     this.rangeLrc = [];
@@ -13767,11 +13872,15 @@ class OffsetAssistant extends Phaser.Sprite {
     this.addChild(this.exitText);
     
     // Track button states
+    /** @type {boolean} A button held state from the previous frame */
     this.lastAPress = false;
+    /** @type {boolean} B button held state from the previous frame */
     this.lastBPress = false;
     
     // Track tick timing
+    /** @type {number} Timestamp of the last tick played */
     this.lastTickTime = 0;
+    /** @type {number} Timestamp of the next scheduled tick */
     this.nextTickTime = this.game.time.now;
     
     // Store calculated offsets for averaging
@@ -14045,6 +14154,7 @@ class OffsetAssistant extends Phaser.Sprite {
     // Make sure music is resumed even if destroyed unexpectedly
     this.resumeBackgroundMusic();
     
+    /** @type {boolean} Whether the assistant has been destroyed */
     this.destroyed = true;
     
     // Clean up all created objects
@@ -14128,10 +14238,15 @@ class MouseCursor {
     this.onUp = new Phaser.Signal();
     this.onWheel = new Phaser.Signal();
     
+    /** @type {Object} Button states from the previous frame, keyed by button id */
     this.prevState = {};
+    /** @type {Object} Buttons pressed in the current frame */
     this.pressed = {};
+    /** @type {Object} Buttons held down this frame */
     this.held = {};
+    /** @type {Object} Buttons released in the current frame */
     this.released = {};
+    /** @type {Object} Wheel direction flags set during this frame */
     this.wheel = {
       up: false,
       down: false
@@ -14631,6 +14746,7 @@ class FileSystemTools {
     this.platform = this.detectPlatform();
     
     if (this.platform === 'nwjs') {
+      /** @type {Object} The platform-specific filesystem adapter */
       this.fileSystem = new NodeFileSystem();
     } else if (this.platform === 'cordova') {
       this.fileSystem = new CordovaFileSystem();
@@ -15084,6 +15200,7 @@ class NodeFileSystem {
       this.basePath = this.getBasePath();
       
       // Create file system object for DirectoryEntry
+      /** @type {Object} Pseudo filesystem exposed to DirectoryEntry instances */
       this.fileSystemObj = {
         name: 'nodefs',
         root: new NodeDirectoryEntry('', '/', this, `file://${this.basePath}`)
@@ -15873,9 +15990,11 @@ class ScreenRecorder {
 
     try {
       // Create a scaled canvas for high-resolution recording
+      /** @type {HTMLCanvasElement} Canvas rendered at the scaled recording resolution */
       this.scaledCanvas = document.createElement('canvas');
       this.scaledCanvas.width = this.canvas.width * this.scale;
       this.scaledCanvas.height = this.canvas.height * this.scale;
+      /** @type {CanvasRenderingContext2D} 2D context of the scaled recording canvas */
       this.scaledContext = this.scaledCanvas.getContext('2d');
       
       // Set scaling quality
@@ -16807,10 +16926,13 @@ class Gamepad {
    * @param {Object} gamepadMap - Mapping of action names to gamepad button codes
    */
   updateMapping(keyboardMap, gamepadMap) {
+    /** @type {Object} Mapping of action names to keyboard key codes */
     this.keyboardMap = keyboardMap || DEFAULT_KEYBOARD_MAPPING;
+    /** @type {Object} Mapping of action names to gamepad button codes */
     this.gamepadMap = gamepadMap || DEFAULT_GAMEPAD_MAPPING;
     
     // Reset gamepad for new mapping
+    /** @type {boolean} Whether held state should be re-released on the next update */
     this.dontUpdateThisTime = true;
     this.setupKeyboard();
   }
@@ -16824,6 +16946,7 @@ class Gamepad {
     this.releaseAll();
     
     // Create reverse mapping for quick lookup
+    /** @type {Object} Reverse lookup of key codes to action names */
     this.keyCodeToAction = {};
     for (const [action, keyCodes] of Object.entries(this.keyboardMap)) {
       keyCodes.forEach(keyCode => {
@@ -17530,6 +17653,7 @@ class AllPads extends Gamepad {
           this.pressed[key] = true;
           anyPressed = key;
           this.lastPlayerId = pad.playerIndex + 1;
+          /** @type {string} Input source of the most recent press across all pads */
           this.lastInputSource = pad.lastInputSource;
         }
         
@@ -18490,6 +18614,7 @@ class AudioVisualizer extends Visualizer {
       }
     } catch (error) {
       console.warn('Audio visualizer not supported:', error);
+      /** @type {boolean} Whether the visualizer is running and drawing */
       this.active = false;
     }
   }
@@ -18739,6 +18864,7 @@ class FullScreenAudioVisualizer {
     try {
       // Create audio context if not already created
       if (!this.audioContext) {
+        /** @type {AudioContext} Web Audio context driving the analyser */
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
       }
       
@@ -18778,6 +18904,7 @@ class FullScreenAudioVisualizer {
       }
       
       // Create new source and connect
+      /** @type {MediaElementAudioSourceNode} Audio source node linked to the audio element */
       this.source = this.audioContext.createMediaElementSource(this.audioElement);
       this.source.connect(this.analyser);
       this.analyser.connect(this.audioContext.destination);
@@ -21858,6 +21985,7 @@ class Load {
       this.loadedCount++;
     });
 
+    /** @type {ProgressText} Text showing loading progress of assets */
     this.progressText = new ProgressText(__("Loading assets...||Cargando recursos..."));
   }
 
@@ -26135,26 +26263,33 @@ class SongSelect {
     /** @type {string|null} Optional playlist key for the current song list */
     this.playlistKey = playlistKey;
     
+    /** @type {boolean} Whether the per-song action menu is currently open */
     this.isActionMenuOpen = false;
+    /** @type {boolean} Whether opening the action menu is temporarily blocked */
     this.actionsMenuBlocked = false;
     
-    /** @type {Object[]} The song list presented in this state */
-    /** @type {number} Carousel index to start the song list at */
+    let selectedSongs;
+    let selectedStartingIndex;
     switch (type) {
       case "local":
-        this.songs = songs || window.localSongs || [];
-        this.startingIndex = index || Account.songSelectStartingIndex.local || 0;
+        selectedSongs = songs || window.localSongs || [];
+        selectedStartingIndex = index || Account.songSelectStartingIndex.local || 0;
         break;
       case "external":
-        this.songs = songs || window.externalSongs || [];
-        this.startingIndex = index || Account.songSelectStartingIndex.external || 0;
+        selectedSongs = songs || window.externalSongs || [];
+        selectedStartingIndex = index || Account.songSelectStartingIndex.external || 0;
         break;
       case "auto":
       default:
-        this.songs = songs || window.selectedSongs || [];
-        this.startingIndex = index || window.selectStartingIndex || 0;
+        selectedSongs = songs || window.selectedSongs || [];
+        selectedStartingIndex = index || window.selectStartingIndex || 0;
         break;
     }
+    
+    /** @type {Object[]} The song list presented in this state */
+    this.songs = selectedSongs;
+    /** @type {number} Carousel index to start the song list at */
+    this.startingIndex = selectedStartingIndex;
     
     window.selectedSongs = this.songs;
     
@@ -26169,6 +26304,7 @@ class SongSelect {
     window.multiplayerState.player1.ready = false;
     window.multiplayerState.player2.ready = false;
     window.multiplayerState.player2.joined = false;
+    /** @type {Object} Shared multiplayer state mirror used across the UI */
     this.multiplayerState = window.multiplayerState;
     
     if (this.startingIndex + 1 > this.songs.length) {
@@ -26202,19 +26338,26 @@ class SongSelect {
     this.previewAudio = this.previewAudio || document.createElement("audio");
     this.previewAudio.volume = Account.settings.volume / 100;
     
+    /** @type {HTMLImageElement} Image element caching the song banner pixels */
     this.bannerImg = this.bannerImg || document.createElement("img");
     
+    /** @type {NavigationHint} Hint prompts for the song select controls */
     this.navigationHint = new NavigationHint('song_select');
     this.navigationHint.ignorePlayerSwitch = true;
     
+    /** @type {Text} Autoplay indicator label */
     this.autoplayText = new Text(4, 132, "");
     
+    /** @type {CanvasBackground} Layer drawing the selected song banner */
     this.bannerSprite = new CanvasBackground(4, 4);
 
+    /** @type {Text} Label showing the song metadata (artist, BPM, etc.) */
     this.metadataText = new Text(102, 4, "");
     
+    /** @type {Text} Label showing the best score for the song */
     this.highScoreText = new Text(game.width / 2 + 8, 58, "");
     
+    /** @type {LoadingDots} Animated indicator shown while songs are loading */
     this.loadingDots = new LoadingDots();
     this.loadingDots.y -= 8;
     this.loadingDots.visible = false;
@@ -26227,6 +26370,7 @@ class SongSelect {
     this.windowManager1.gamepad = gamepad1;
     this.windowManager2.gamepad = gamepad2;
     
+    /** @type {Function} Handler pausing or resuming previews on tab visibility changes */
     this.visibilityChangeListener = () => {
       if (document.hidden) {
         this.previewAudio?.pause();
@@ -26258,6 +26402,7 @@ class SongSelect {
     const width = game.width / 2;
     const height = 100;
 
+    /** @type {CarouselMenu} Carousel listing the available songs */
     this.songCarousel = new CarouselMenu(x, y, width, height, {
       bgcolor: "#9b59b6",
       fgcolor: "#ffffff",
@@ -26501,6 +26646,7 @@ class SongSelect {
     
     this.actionsMenuBlocked = true;
     
+    /** @type {CarouselMenu} Carousel listing the song's difficulties */
     this.difficultyCarousel = new CarouselMenu(x, y, width, height, {
       bgcolor: "#e67e22",
       fgcolor: "#ffffff",
@@ -26550,6 +26696,7 @@ class SongSelect {
     const width = game.width / 2;
     const height = game.height;
 
+    /** @type {CarouselMenu} Carousel choosing the game mode (single or multiplayer) */
     this.gamemodeCarousel = new CarouselMenu(x, y, width, height, {
       bgcolor: "#e67e22",
       fgcolor: "#ffffff",
@@ -26581,9 +26728,12 @@ class SongSelect {
    * @param {number} difficultyIndex - Index of the chosen difficulty
    */
   showMultiplayerScreen(song, difficultyIndex) {
+    /** @type {Phaser.Group} Group holding the multiplayer setup UI */
     this.multiplayerScreen = game.add.group();
     
+    /** @type {Window} Player 1's settings window frame */
     this.player1Frame = this.windowManager1.createWindow(1, 5, 14, 10, "1", this.multiplayerScreen);
+    /** @type {Window} Player 2's settings window frame */
     this.player2Frame = this.windowManager2.createWindow(15.5, 5, 14, 10, "1", this.multiplayerScreen);
     
     this.populatePlayerFrame(this.player1Frame, 1);
@@ -26592,13 +26742,17 @@ class SongSelect {
     this.windowManager1.focus(this.player1Frame);
             
     // Create ready text
+    /** @type {Phaser.Sprite} Gradient overlay behind player 1's READY label */
     this.p1ReadyBackground = createGradientBackground(this.player1Frame.x + this.player1Frame.size.width * 8 / 2, this.player1Frame.y + this.player1Frame.size.height * 8 / 2, this.player1Frame.size.width * 8, 10);
+    /** @type {Phaser.Sprite} Gradient overlay behind player 2's READY label */
     this.p2ReadyBackground = createGradientBackground(this.player2Frame.x + this.player2Frame.size.width * 8 / 2, this.player2Frame.y + this.player2Frame.size.height * 8 / 2, this.player2Frame.size.width * 8, 10);
     
     this.p1ReadyBackground.anchor.set(0.5);
     this.p2ReadyBackground.anchor.set(0.5);
     
+    /** @type {Text} Player 1's READY label */
     this.p1ReadyText = new Text(0, 1, __("READY||LISTO"), null, this.p1ReadyBackground);
+    /** @type {Text} Player 2's READY label */
     this.p2ReadyText = new Text(0, 1, __("READY||LISTO"), null, this.p2ReadyBackground);
     
     this.p1ReadyText.anchor.set(0.5);
@@ -26608,10 +26762,12 @@ class SongSelect {
     this.multiplayerScreen.addChild(this.p2ReadyBackground);
 
     // Prompt player 2 to press start
+    /** @type {Text} Prompt asking player 2 to press start */
     this.playerJoinInstructionText = new Text(120 + 55, 50 + 32, __("PLAYER 2\n< PRESS START >||JUGADOR 2\n< PRESIONA START >"), null, this.multiplayerScreen);
     this.playerJoinInstructionText.anchor.set(0.5);
     
     // Prompt both players to press start
+    /** @type {Text} Prompt shown once both players are ready */
     this.startInstructionText = new Text(game.width / 2, 100, __("PRESS START TO BEGIN||PRESIONA START PARA COMENZAR"), null, this.multiplayerScreen);
     this.startInstructionText.visible = false;
     this.startInstructionText.anchor.set(0.5);
@@ -26714,6 +26870,7 @@ class SongSelect {
     this.songCarousel.visible = false;
     this.songCarousel.inputEnabled = false;
     
+    /** @type {CarouselMenu} Popup menu with per-song actions */
     this.actionsMenu = new CarouselMenu(0, 35, game.width / 2, 100, {
       bgcolor: '#2c3e50',
       fgcolor: '#ffffff',
@@ -30124,6 +30281,7 @@ class Play {
     if (typeof song.difficultyIndex != undefined && typeof difficultyIndex != undefined) {
       song.difficultyIndex = difficultyIndex;
     }
+    /** @type {Object} The unmodified song object passed into the state */
     this.originalSong = song;
     /** @type {Object} A deep clone of the chart used for gameplay */
     this.song = structuredClone(song);
@@ -30131,15 +30289,25 @@ class Play {
     this.difficultyIndex = typeof difficultyIndex != undefined ? difficultyIndex : song.difficultyIndex;
     /** @type {Object|null} The player renderer and judgement objects */
     this.player = null;
+    /** @type {Array} Queue of background preload tasks */
     this.backgroundQueue = [];
+    /** @type {Object} Cache of preloaded background elements by file name */
     this.preloadedBackgroundElements = {};
+    /** @type {?Object} The background element currently on screen */
     this.currentBackground = null;
+    /** @type {boolean} Whether gameplay is currently paused */
     this.isPaused = false;
+    /** @type {number} Timestamp when the current pause started */
     this.pauseStartTime = 0;
+    /** @type {number} Total accumulated pause duration in milliseconds */
     this.totalPausedDuration = 0;
+    /** @type {boolean} Whether the song start is held until audio is ready */
     this.pendingSongStart = false;
+    /** @type {?Function} Handler notified when the audio element ends */
     this.audioEndListener = null;
+    /** @type {boolean} Whether the song has started playing */
     this.started = false;
+    /** @type {number} Audio timeline offset used to sync the chart */
     this.startTime = 0;
     /** @type {boolean} Whether the note roadmap is being played by the computer */
     this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
@@ -30147,16 +30315,27 @@ class Play {
     this.playlistKey = playlistKey;
     /** @type {number} The user's global timing offset in milliseconds */
     this.userOffset = Account.settings.userOffset || 0;
+    /** @type {number} Timestamp of the last video sync update */
     this.lastVideoUpdateTime = 0;
+    /** @type {?Lyrics} Lyrics renderer for the current song */
     this.lyrics = null;
+    /** @type {boolean} Whether the chart includes a lyrics file */
     this.hasLyricsFile = this.song.chart.lyricsContent ? true : false;
+    /** @type {string} Active visualizer type from account settings */
     this.visualizerType = Account.settings.visualizer || 'NONE';
+    /** @type {number} Timestamp of the last visualizer redraw */
     this.lastVisualizerUpdateTime = 0;
+    /** @type {?Metronome} Beats-per-minute metronome display */
     this.metronome = null;
+    /** @type {?ScreenRecorder} Recorder capturing the playthrough */
     this.gameRecorder = null;
+    /** @type {boolean} Whether this is an editor playtest run */
     this.playtestMode = playtestMode;
+    /** @type {boolean} Whether the full combo overlay animation has started */
     this.fullComboAnimationStarted = false;
+    /** @type {boolean} Whether the full combo overlay animation has finished */
     this.fullComboAnimationEnded = false;
+    /** @type {boolean} Whether the shots are currently flying on screen */
     this.shootingDown = false;
     
     // Initialize character system
@@ -30164,6 +30343,7 @@ class Play {
     this.characterManager = new CharacterManager();
     /** @type {Object|null} The character active for this playthrough */
     this.currentCharacter = this.characterManager.getCurrentCharacter();
+    /** @type {CharacterSkillSystem} Tracks character skills used during the playthrough */
     this.skillSystem = new CharacterSkillSystem(this, this.currentCharacter);
     
     // Update stats
@@ -30198,10 +30378,13 @@ class Play {
     window.p = this;
     
     // Game constants
+    /** @type {Object} Timing windows used to judge each note */
     this.JUDGE_WINDOWS = JUDGE_WINDOWS;
     
+    /** @type {Object} Score values awarded for each judgement */
     this.SCORE_VALUES = SCORE_VALUES;
     
+    /** @type {number} Fixed playback delay in milliseconds */
     this.FIXED_DELAY = 2000; 
   }
   
@@ -30218,10 +30401,13 @@ class Play {
     game.camera.fadeIn(0x000000);
     
     // Create background
+    /** @type {Phaser.Group} Layer holding the background elements */
     this.backgroundLayer = game.add.group();
+    /** @type {CanvasBackground} The chart background rendered as a canvas */
     this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 1;
     
+    /** @type {Function} Handler pausing or resuming the game on tab visibility changes */
     this.visibilityChangeListener = () => {
       if (document.hidden) {
         if (!this.isPaused) this.pause();
@@ -30403,6 +30589,7 @@ class Play {
   setupAudio() {
     return new Promise(resolve => {
       // Create audio element and wait for it to load
+      /** @type {HTMLAudioElement} Audio element used for the song playback */
       this.audio = this.audio || document.createElement("audio");
       this.audio.volume = Account.settings.volume / 100;
       this.audio.currentTime = 0;
@@ -30476,55 +30663,70 @@ class Play {
    * Builds the heads-up display with lifebar, score, combo, accuracy and text.
    */
   createHud() {
+    /** @type {BackgroundGradient} Animated gradient behind the HUD */
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
+    /** @type {Phaser.Sprite} Root sprite of the HUD */
     this.hud = game.add.sprite(0, 0);
     
+    /** @type {Phaser.Sprite} Full-screen flash shape keyed by the temperature meter */
     this.hudFlashShape = game.add.sprite(game.width / 2, game.height / 2, 'ui_hud_flash_shape');
     this.hudFlashShape.anchor.set(0.5);
     this.hudFlashShape.alpha = 0;
     this.hud.addChild(this.hudFlashShape);
     
+    /** @type {Phaser.Sprite} Top HUD strip */
     this.hudTop = game.add.sprite(0, -40, 'ui_hud_background_top');
     this.hudTop.alpha = 0;
     this.hud.addChild(this.hudTop);
     
+    /** @type {Phaser.Sprite} Bottom HUD strip */
     this.hudBottom = game.add.sprite(0, 40, 'ui_hud_background_bottom');
     this.hudBottom.alpha = 0;
     this.hud.addChild(this.hudBottom);
     
+    /** @type {Phaser.Sprite} Overlay sprite sitting above the HUD */
     this.overHud = game.add.sprite(0, 0);
     
     const difficulty = this.song.chart.difficulties[this.difficultyIndex];
     
+    /** @type {Phaser.Sprite} Banner showing the difficulty name */
     this.difficultyBanner = game.add.sprite(0, 0, "ui_difficulty_banner", 0);
     this.difficultyBanner.tint = window.getDifficultyColor(difficulty.rating, true);
     this.hudTop.addChild(this.difficultyBanner);
     
+    /** @type {Text} Label of the current difficulty */
     this.difficultyTypeText = new Text(5, 1, difficulty.type.substr(0, 9), FONTS.default, this.difficultyBanner);
     this.difficultyTypeText.alpha = 0.7;
     game.add.tween(this.difficultyTypeText).to({ alpha: 1 }, 400, "Linear", true).repeat(-1).yoyo(true);
     
     const title = this.song.chart.titleTranslit || this.song.chart.title;
     
+    /** @type {Text} Scrolling song title label */
     this.songTitleText = new Text(41, 1, "", null, this.hudTop);
     this.songTitleText.write(title, 41);
     
+    /** @type {Text} Name of the active character */
     this.playerName = new Text(5, 9, "", FONTS.tiny_shaded, this.hudTop);
     this.playerName.write(this.currentCharacter ? this.currentCharacter.name : "NONE", 8);
     
     this.playerName.tint = this.currentCharacter ? Math.max(0x787878, this.currentCharacter.appearance.tints?.hair || 0x787878) : 0xffffff;
     
+    /** @type {SkillBar} Bar showing the character's skill usage */
     this.skillBar = new SkillBar(6, 16);
     this.hudTop.addChild(this.skillBar);
     
     if (!this.currentCharacter) this.skillBar.visible = false;
     
+    /** @type {Text} Numeric score label */
     this.scoreText = new Text(35, 14, "0".repeat(9), FONTS.tiny_number, this.hudTop);
     
+    /** @type {Phaser.Sprite} Left segment of the lifebar */
     this.lifebarStart = game.add.sprite(37, 9, "ui_lifebar", 0);
+    /** @type {Phaser.Sprite} Stretching middle segment of the lifebar */
     this.lifebarMiddle = game.add.sprite(1, 0, "ui_lifebar", 1);
     this.lifebarMiddle.width = 145;
+    /** @type {Phaser.Sprite} Right segment of the lifebar */
     this.lifebarEnd = game.add.sprite(146, 0, "ui_lifebar", 2);
     
     this.hudTop.addChild(this.lifebarStart);
@@ -30532,17 +30734,22 @@ class Play {
     this.lifebarStart.addChild(this.lifebarEnd);
     
     // Autoplay text
+    /** @type {Text} Label shown while autoplay is enabled */
     this.autoplayText = new Text(4, 120, this.autoplay ? "AUTOPLAY" : "", FONTS.tiny_stroke, this.hud);
     
+    /** @type {Text} Numeric health label */
     this.healthText = new Text(185, 9, "100", FONTS.tiny_number, this.hudTop);
     
+    /** @type {Phaser.Sprite} Sprite showing the last judgement result */
     this.judgementText = game.add.sprite(game.width / 2, 75, "judgement", 0);
     this.judgementText.alpha = 0;
     this.judgementText.anchor.set(0.5);
     
+    /** @type {Phaser.Sprite} Accuracy bar sprite */
     this.accuracyBar = game.add.sprite(51, 136, "ui_accuracy_bar");
     this.hudBottom.addChild(this.accuracyBar);
     
+    /** @type {Text} Current combo count label */
     this.comboText = new Text(240 - 1, 140 - 6, "0", FONTS.biscuitlocker_combo, this.hudBottom);
     this.comboText.anchor.set(1);
   }
@@ -30558,6 +30765,7 @@ class Play {
     // Remove existing visualizer
     if (this.visualizer) {
       this.visualizer.destroy();
+      /** @type {?Object} The active visualizer instance, or null when none is shown */
       this.visualizer = null;
     }
 
@@ -30595,6 +30803,7 @@ class Play {
       this.stopHudFlash();
     });
     
+    /** @type {AudioTemperatureMeter} Meter tracking the song's audio temperature */
     this.temperature = meter;
   }
   
@@ -30615,6 +30824,7 @@ class Play {
       const lyricsPosition = Account.settings.lyricsPosition ? 40 : 90;
       
       // Create lyrics text element
+      /** @type {?Text} On-screen label rendering the current lyrics line */
       this.lyricsText = new Text(game.width / 2, lyricsPosition, "", FONTS.default_stroke);
       this.lyricsText.anchor.set(0.5);
       
@@ -30894,6 +31104,7 @@ class Play {
     }
     
     // Create overlay parent
+    /** @type {Phaser.Sprite} Full combo celebration overlay */
     this.fullComboOverlay = game.add.sprite(0, 0);
     
     const flawless = this.player.accuracy >= 99.75;
@@ -30907,11 +31118,13 @@ class Play {
     bitmap.context.fillStyle = gradient;
     bitmap.context.fillRect(0, 0, game.width, game.height);
     
+    /** @type {Phaser.Sprite} Gradient layer over the full combo background */
     this.fullComboGradient = game.add.sprite(0, 0, bitmap);
     this.fullComboGradient.alpha = 0;
     this.fullComboOverlay.addChild(this.fullComboGradient);
     
     // Create full combo message
+    /** @type {Phaser.Graphics} Bordered bar behind the full combo message */
     this.fullComboBg = game.add.graphics(0, game.height / 2);
     this.fullComboBg.beginFill(0x000000, 1);
     this.fullComboBg.drawRect(0, 0, game.width, 10);
@@ -30924,6 +31137,7 @@ class Play {
     this.fullComboBg.scale.y = 0;
     this.fullComboOverlay.addChild(this.fullComboBg);
     
+    /** @type {Text} "FULL COMBO!!" or "FLAWLESS!!" message */
     this.fullComboText = new Text(game.width, 6, flawless ? "FLAWLESS!!" : "FULL COMBO!!", "", FONTS.default);
     this.fullComboText.anchor.x = 0.5;
     this.fullComboText.anchor.y = 0.5;
@@ -31108,6 +31322,7 @@ class Play {
       }
       
       // Use the preloaded background
+      /** @type {HTMLVideoElement} Video element currently used as the background */
       this.video = element;
       
       onloadCallback?.();
@@ -31221,6 +31436,7 @@ class Play {
     // Handle fade in
     if (bg.fadeIn && bg.fadeIn > 0) {
       this.backgroundSprite.alpha = 0;
+      /** @type {?Phaser.Tween} Tween animating the current background fade-in */
       this._bgFadeTween = game.add.tween(this.backgroundSprite)
         .to({ alpha: targetAlpha }, bg.fadeIn * 1000, Phaser.Easing.Quadratic.InOut, true);
     } else {
@@ -31232,6 +31448,7 @@ class Play {
       // Calculate duration until fade out starts
       // We need to know when this background will be replaced
       // Since we don't know when the next BG change is, we store the fadeOut info
+      /** @type {?Object} Pending fade-out parameters for the current background */
       this._pendingFadeOut = {
         duration: bg.fadeOut * 1000,
         targetAlpha: 0
@@ -31261,6 +31478,7 @@ class Play {
     
     switch (parseInt(bg.effect)) {
       case 1: // Stretch - horizontal distortion
+        /** @type {?number} Interval id driving the active background effect */
         this._bgEffectTimer = setInterval(() => {
           if (!this.backgroundSprite || this.shootingDown) {
             clearInterval(this._bgEffectTimer);
@@ -31539,12 +31757,14 @@ class Play {
    * Shows the pause menu with continue, autoplay, restart, retry and quit options.
    */
   showPauseMenu() {
+    /** @type {Phaser.Graphics} Dark overlay dimming the gameplay behind the pause menu */
     this.pauseBg = game.add.graphics(0, 0);
     
     this.pauseBg.beginFill(0x000000, 0.6);
     this.pauseBg.drawRect(0, 0, game.width, game.height);
     this.pauseBg.endFill();
     
+    /** @type {Text} Label listing the current judgement counts */
     this.pauseStatsText = new Text(game.width - 20, game.height / 2 + 4, "", FONTS.default);
     this.pauseStatsText.anchor.set(1, 0.5);
     this.pauseStatsText.tint = 0xECECEC;
@@ -31553,6 +31773,7 @@ class Play {
     
     this.pauseStatsText.write(statsContent);
     
+    /** @type {CarouselMenu} Pause menu options (continue, autoplay, restart, quit) */
     this.pauseCarousel = new CarouselMenu(10, game.height / 2 - 20, 80, 60, {
       bgcolor: "brown",
       fgcolor: "#ffffff",
@@ -31688,6 +31909,7 @@ class Play {
     if (gamepad.pressed.start && !this.lastStart) {
       this.togglePause();
     }
+    /** @type {boolean} Start button state from the previous frame */
     this.lastStart = gamepad.pressed.start;
     
     // Update skill system
@@ -31860,6 +32082,7 @@ class PlayMulti extends Play {
     this.config = config;
     
     // Disable character system
+    /** @type {null} No character is used in multiplayer */
     this.currentCharacter = null;
     this.skillSystem.character = null;
   }
@@ -31875,19 +32098,24 @@ class PlayMulti extends Play {
    * Builds the split multiplayer HUD with per-player score, lifebar and combo.
    */
   createHud() {
+    /** @type {BackgroundGradient} Animated gradient behind the HUD */
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
+    /** @type {Phaser.Sprite} Root sprite of the HUD */
     this.hud = game.add.sprite(0, 0);
         
+    /** @type {Phaser.Sprite} Full-screen flash shape keyed by the temperature meter */
     this.hudFlashShape = game.add.sprite(game.width / 2, game.height / 2, 'ui_hud_flash_shape_multi');
     this.hudFlashShape.anchor.set(0.5);
     this.hudFlashShape.alpha = 0;
     this.hud.addChild(this.hudFlashShape);
     
+    /** @type {Phaser.Sprite} Top HUD strip */
     this.hudTop = game.add.sprite(0, -40, 'ui_hud_background_top_multi');
     this.hudTop.alpha = 0;
     this.hud.addChild(this.hudTop);
     
+    /** @type {Phaser.Sprite} Bottom HUD strip */
     this.hudBottom = game.add.sprite(0, 40, 'ui_hud_background_bottom_multi');
     this.hudBottom.alpha = 0;
     this.hud.addChild(this.hudBottom);
@@ -31900,16 +32128,19 @@ class PlayMulti extends Play {
     this.p2Hud = game.add.sprite(0, 0, "ui_hud_player_parent_multi", 1);
     this.hudTop.addChild(this.p2Hud);
     
+    /** @type {Phaser.Sprite} Overlay sprite sitting above the HUD */
     this.overHud = game.add.sprite(0, 0);
     
     // Get song difficulty
     const difficulty = this.song.chart.difficulties[this.song.difficultyIndex];
     
+    /** @type {Phaser.Sprite} Banner showing the difficulty name */
     this.difficultyBanner = game.add.sprite(game.width / 2, 0, "ui_difficulty_banner_multi", 0);
     this.difficultyBanner.tint = window.getDifficultyColor(difficulty.rating, true);
     this.difficultyBanner.anchor.x = 0.5;
     this.hudTop.addChild(this.difficultyBanner);
     
+    /** @type {Text} Label of the current difficulty */
     this.difficultyTypeText = new Text(0, 1, difficulty.type.substr(0, 9), FONTS.default, this.difficultyBanner);
     this.difficultyTypeText.anchor.x = 0.5;
     this.difficultyTypeText.alpha = 0.7;
@@ -31919,14 +32150,17 @@ class PlayMulti extends Play {
     const title = this.song.chart.titleTranslit || this.song.chart.title;
     
     // Song title text
+    /** @type {Text} Song title label */
     this.songTitleText = new Text(game.width / 2, 11, "", null, this.hudTop);
     this.songTitleText.anchor.x = 0.5;
     this.songTitleText.write(title, 21);
     
     // P1 Health Text
+    /** @type {Text} Player 1's health label */
     this.p1HealthText = new Text(1, 3, "100", FONTS.tiny_number, this.p1Hud);
     
     // P2 Health Text
+    /** @type {Text} Player 2's health label */
     this.p2HealthText = new Text(game.width - 1, 3, "100", FONTS.tiny_number, this.p2Hud);
     this.p2HealthText.anchor.x = 1;
     
@@ -31935,62 +32169,79 @@ class PlayMulti extends Play {
     this.p2HealthText.tint = 0x96918e;
     
     // P1 Score Text 
+    /** @type {Text} Player 1's score label */
     this.p1ScoreText = new Text(16, 7, "00000000", FONTS.tiny_number, this.p1Hud);
     
     // P2 Score Text 
+    /** @type {Text} Player 2's score label */
     this.p2ScoreText = new Text(game.width - 16, 7, "00000000", FONTS.tiny_number, this.p2Hud);
     this.p2ScoreText.anchor.x = 1;
     
     // P1 Judgement Text
+    /** @type {Phaser.Sprite} Player 1's judgement result sprite */
     this.p1JudgementText = game.add.sprite(0, 75, "judgement", 0);
     this.p1JudgementText.alpha = 0;
     this.p1JudgementText.anchor.set(0.5);
 
     // P2 Judgement Text
+    /** @type {Phaser.Sprite} Player 2's judgement result sprite */
     this.p2JudgementText = game.add.sprite(0, 75, "judgement", 0);
     this.p2JudgementText.alpha = 0;
     this.p2JudgementText.anchor.set(0.5);
     
     // P1 Accuracy Bar
+    /** @type {Phaser.Sprite} Player 1's accuracy bar */
     this.p1AccuracyBar = game.add.sprite(2, 136, "ui_accuracy_bar_multi");
     this.hud.addChild(this.p1AccuracyBar);
     
     // P2 Accuracy Bar
+    /** @type {Phaser.Sprite} Player 2's accuracy bar */
     this.p2AccuracyBar = game.add.sprite(146, 136, "ui_accuracy_bar_multi");
     this.hud.addChild(this.p2AccuracyBar);
     
     // P1 Combo Number
+    /** @type {Text} Player 1's combo count label */
     this.p1ComboText = new Text(1, 140 - 6, "0", FONTS.biscuitlocker_combo, this.hudBottom);
     this.p1ComboText.anchor.y = 1;
 
     // P2 Combo Number
+    /** @type {Text} Player 2's combo count label */
     this.p2ComboText = new Text(240 - 1, 140 - 6, "0", FONTS.biscuitlocker_combo, this.hudBottom);
     this.p2ComboText.anchor.set(1);
     
     // P1 Lifebar
+    /** @type {Phaser.Sprite} Left segment of player 1's lifebar */
     this.p1LifebarStart = game.add.sprite(14, 3, "ui_lifebar", 0);
+    /** @type {Phaser.Sprite} Stretching middle segment of player 1's lifebar */
     this.p1LifebarMiddle = game.add.sprite(1, 0, "ui_lifebar", 1);
     this.p1LifebarMiddle.width = 71;
+    /** @type {Phaser.Sprite} Right segment of player 1's lifebar */
     this.p1LifebarEnd = game.add.sprite(14, 0, "ui_lifebar", 2);
     this.p1LifebarStart.addChild(this.p1LifebarMiddle);
     this.p1LifebarStart.addChild(this.p1LifebarEnd);
     this.p1Hud.addChild(this.p1LifebarStart);
     
     // P2 Lifebar
+    /** @type {Phaser.Sprite} Left segment of player 2's lifebar */
     this.p2LifebarStart = game.add.sprite(153, 3, "ui_lifebar", 0);
+    /** @type {Phaser.Sprite} Stretching middle segment of player 2's lifebar */
     this.p2LifebarMiddle = game.add.sprite(1, 0, "ui_lifebar", 1);
     this.p2LifebarMiddle.width = 71;
+    /** @type {Phaser.Sprite} Right segment of player 2's lifebar */
     this.p2LifebarEnd = game.add.sprite(105, 0, "ui_lifebar", 2);
     this.p2LifebarStart.addChild(this.p2LifebarMiddle);
     this.p2LifebarStart.addChild(this.p2LifebarEnd);
     this.p2Hud.addChild(this.p2LifebarStart);
     
     // Autoplay texts
+    /** @type {Text} Shared label shown while autoplay or metronome is enabled */
     this.autoplayText = new Text(game.width / 2, 93, "METRONOME", FONTS.tiny_stroke, this.hud);
     this.autoplayText.anchor.x = 0.5;
     
+    /** @type {Text} Player 1's autoplay label */
     this.p1AutoplayText = new Text(2, 16, "AUTOPLAY", FONTS.tiny_stroke, this.hud);
     
+    /** @type {Text} Player 2's autoplay label */
     this.p2AutoplayText = new Text(190, 16, "AUTOPLAY", FONTS.tiny_stroke, this.hud);
     this.p2AutoplayText.anchor.x = 1;
   }
@@ -32006,9 +32257,12 @@ class PlayMulti extends Play {
    * Spawns the FirstPlayer and SecondPlayer with their own input settings.
    */
   setupPlayer() {
+    /** @type {FirstPlayer} Player 1's gameplay controller */
     this.player1 = new FirstPlayer(this, this.config.player1.settings);
+    /** @type {SecondPlayer} Player 2's gameplay controller */
     this.player2 = new SecondPlayer(this, this.config.player2.settings);
     
+    /** @type {FirstPlayer|SecondPlayer} The currently focused player */
     this.player = this.player1;
   }
   
@@ -32133,6 +32387,7 @@ class PlayMulti extends Play {
     // Update visualizer
     if (this.visualizer && game.time.now - this.lastVisualizerUpdateTime >= game.time.elapsedMS * 2) {
       this.visualizer.update();
+      /** @type {number} Timestamp of the last visualizer redraw */
       this.lastVisualizerUpdateTime = game.time.now;
     }
     
@@ -32239,9 +32494,11 @@ class Results {
     this.finalAccuracy = player.accuracy;
     this.scoreRating = player.getScoreRating();
     
+    /** @type {HTMLAudioElement} Audio element playing the song preview */
     this.previewAudio = document.createElement("audio");
     this.previewAudio.volume = Account.settings.volume / 100;
     
+    /** @type {Function} Handler pausing or resuming the preview on tab visibility changes */
     this.visibilityChangeListener = () => {
       if (document.hidden) {
         this.previewAudio?.pause();
@@ -32329,11 +32586,15 @@ class Results {
     const difficulty = song.chart.difficulties[song.difficultyIndex];
     
     // Banner
+    /** @type {HTMLImageElement} Image element loading the song banner */
     this.bannerImg = document.createElement("img");
     
+    /** @type {HTMLCanvasElement} Canvas the banner is drawn onto */
     this.bannerCanvas = document.createElement("canvas");
+    /** @type {CanvasRenderingContext2D} 2D context of the banner canvas */
     this.bannerCtx = this.bannerCanvas.getContext("2d");
     
+    /** @type {Phaser.Sprite} Sprite displaying the banner texture */
     this.bannerSprite = game.add.sprite(160, 10);
     
     if (song.chart.audioUrl) {
@@ -32357,7 +32618,9 @@ class Results {
     // Song info
     const title = song.chart.titleTranslit || song.chart.title;
     
+    /** @type {Text} Label with the cleaned-up song title */
     this.songText = new Text(8, 10, `${title}`, FONTS.shaded);
+    /** @type {Text} Label with the difficulty type and rating */
     this.diffText = new Text(10, 20, `${difficulty.type} (${difficulty.rating})`);
     this.diffText.tint = window.getDifficultyColor(difficulty.rating, true);
     
@@ -32367,24 +32630,30 @@ class Results {
     const autoplay = this.gameData.autoplay;
     
     // Score
+    /** @type {Text} Final score label */
     this.scoreText = new Text(10, 30, __(`(Score|Puntaje): ${autoplay ? "---" : this.finalScore.toLocaleString()}`), FONTS.default);
     
     // Accuracy
+    /** @type {Text} Final accuracy percentage label */
     this.accuracyText = new Text(10, 40, __(`(Accuracy|Precisión): ${autoplay ? "---" : `${this.finalAccuracy.toFixed(2)}%`}`), FONTS.default);
     
     // Rating
+    /** @type {Text} Score rating label */
     this.ratingText = new Text(10, 50, __(`(Rating|Calificación): ${autoplay ? "AUTO" : this.scoreRating}`), FONTS.default);
     this.ratingText.tint = this.getRatingColor(this.scoreRating);
     
     // Combo
+    /** @type {Text} Maximum combo label */
     this.comboText = new Text(10, 60, __(`(Max Combo|Combo Máx): ${autoplay ? "---" : player.maxCombo}`), FONTS.default);
     
     // Judgements
+    /** @type {Text} Judgement count breakdown label */
     this.judgementsText = new Text(15, 70, autoplay ? __("AUTOPLAY ENABLED||AUTOPLAY ACTIVADO") : this.getJudgementsText(player.judgementCounts));
     this.judgementsText.tint = autoplay ? 0xff0000 : 0xffffff;
 
     // New record indicator
     if (!autoplay && this.isNewRecord) {
+      /** @type {?Text} "NEW RECORD!" celebration label */
       this.recordText = new Text(game.width / 2, 110, __("NEW RECORD!||¡NUEVO RÉCORD!"), FONTS.bold_shadow);
       this.recordText.anchor.x = 0.5;
       this.recordText.x += this.scoreText.width / 2;
@@ -32447,6 +32716,7 @@ class Results {
    * Builds the results navigation menu with continue, retry and quit options.
    */
   showMenu() {
+    /** @type {NavigationHint} Hint prompts for the results controls */
     this.navigationHint = new NavigationHint('general_no_b');
     
     const height = this.gameData.character ? 72 : 80;
@@ -37544,11 +37814,15 @@ class Credits {
     this.returnStateParams = returnStateParams;
     /** @type {boolean} Whether input is being awaited after the finale. */
     this.isWaitingForInput = false;
+    /** @type {number} Interval in milliseconds between background slides */
     this.backgroundInterval = 8000;
     /** @type {Array} URLs of backgrounds available for the slideshow. */
     this.availableBackgrounds = [];
+    /** @type {?Array} BPM changes associated with the credits chart */
     this.bpmChanges = null;
+    /** @type {?Array} Stop timing events associated with the credits chart */
     this.stops = null;
+    /** @type {number} Gameplay timestamp used to sync the credits roll */
     this.startTime = 0;
   }
 
@@ -37561,6 +37835,7 @@ class Credits {
     this.setupBackground();
     this.startBackgroundMusic();
     
+    /** @type {Phaser.Group} Group holding every scrolling credits line */
     this.creditsContainer = game.add.group();
     
     const creditsContent = [
@@ -37619,8 +37894,11 @@ class Credits {
       currentY += credit.spacing;
     });
     
+    /** @type {number} Bottom edge of the credits content used to detect the end */
     this.totalHeight = currentY;
+    /** @type {number} Initial scroll position of the credits container */
     this.startY = this.creditsContainer.y;
+    /** @type {boolean} Whether the credits roll has finished */
     this.creditsComplete = false;
     
     addonManager.executeStateBehaviors(this.constructor.name, this);
@@ -37630,6 +37908,7 @@ class Credits {
    * Creates the background sprite and starts the artwork slideshow timer.
    */
   setupBackground() {
+    /** @type {Phaser.Sprite} Sprite drawing the current credits background */
     this.backgroundSprite = game.add.sprite(0, 0);
     this.backgroundSprite.alpha = 0.7;
     
@@ -37637,6 +37916,7 @@ class Credits {
     
     if (this.availableBackgrounds.length > 0) {
       this.showNextBackground();
+      /** @type {?Phaser.TimerEvent} Timer cycling the background artwork */
       this.backgroundTimer = game.time.events.loop(this.backgroundInterval, this.showNextBackground, this);
     } else {
       this.backgroundSprite.loadTexture("ui_background_gradient");
@@ -37720,6 +38000,7 @@ class Credits {
     if (songsWithAudio.length > 0) {
       const randomSong = game.rnd.pick(songsWithAudio);
       
+      /** @type {HTMLAudioElement} Audio element looping a random song during credits */
       this.creditsMusic = document.createElement("audio");
       this.creditsMusic.src = randomSong.audioUrl;
       this.creditsMusic.volume = Account.settings.volume / 100;
@@ -37848,6 +38129,7 @@ class Credits {
    * Shows the thank-you message and waits for input to leave the screen.
    */
   onCreditsComplete() {
+    /** @type {Text} Blinking thank-you message shown at the finale */
     this.continueText = new Text(game.width / 2, game.height / 2, __("Thank you for playing||Gracias por jugar"), FONTS.bold_shadow);
     this.continueText.anchor.set(0.5);
     this.continueText.alpha = 0;
@@ -37928,6 +38210,7 @@ class ErrorScreen {
    * Renders the error splash and wires the recovery input handlers.
    */
   create() {
+    /** @type {Phaser.Graphics} Full-screen error background fill */
     this.background = game.add.graphics(0, 0);
     this.background.beginFill(0x4428bc, 1);
     this.background.drawRect(0, 0, game.width, game.height);
@@ -39137,7 +39420,9 @@ class ChartRenderer {
  */
 class AudioTemperatureMeter {
   constructor(scene, audioElement) {
+    /** @type {Object} The gameplay scene this meter belongs to */
     this.scene = scene;
+    /** @type {HTMLAudioElement} Audio element whose volume is monitored */
     this.audio = audioElement;
     
     /** @type {Phaser.Signal} Dispatched when the temperature switches to high */
@@ -39147,15 +39432,23 @@ class AudioTemperatureMeter {
     
     /** @type {boolean} Whether the meter currently reports a high state */
     this.isHigh = false;
+    /** @type {number} Start of the sampled audio section in seconds */
     this.sampleStartSec = 9999;
+    /** @type {number} End of the sampled audio section in seconds */
     this.sampleEndSec = 9999 + 1;
     /** @type {number} Most recently measured BPM value */
     this.lastBPM = 120;
+    /** @type {boolean} Whether a BPM spike is currently being detected */
     this.bpmSpikeActive = false;
+    /** @type {number} Time when the active BPM spike ends */
     this.bpmSpikeEndTime = 0;
+    /** @type {boolean} Whether the meter is inside a chart stop section */
     this.inStop = false;
+    /** @type {?number} Time when silence was first detected */
     this.silenceStartTime = null;
+    /** @type {?number} Time when silence last finished */
     this.silenceEndTime = null;
+    /** @type {Array} Rolling history of recent loudness samples */
     this.volumeHistory = [];
     
     /** @type {Object} Tunable detection settings for the meter */
@@ -39200,10 +39493,14 @@ class AudioTemperatureMeter {
     if (!this.audio) return;
     
     try {
+      /** @type {AudioContext} Web Audio context backing the analyser */
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      /** @type {AnalyserNode} Sine/frequency analyser reading loudness */
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 256;
+      /** @type {number} Number of frequency bins in the analyser */
       this.bufferLength = this.analyser.frequencyBinCount;
+      /** @type {Uint8Array} Buffer receiving the frequency data */
       this.dataArray = new Uint8Array(this.bufferLength);
       
       const source = this.audioContext.createMediaElementSource(this.audio);
@@ -39449,6 +39746,7 @@ class AudioTemperatureMeter {
   }
   
   createDebugText() {
+    /** @type {?Text} Debug label showing live meter readings */
     this.debugText = new Text(4, 50, "", FONTS.default);
     this.debugText.tint = 0x00ff00;
     game.add.existing(this.debugText);
@@ -39579,11 +39877,15 @@ class AudioTemperatureMeter {
  */
 class Player {
   constructor(scene, playerSide = "center", settings = {}) {
+    /** @type {Object} The gameplay scene this player belongs to */
     this.scene = scene;
+    /** @type {string} Lane position of this player ("center", "left" or "right") */
     this.playerSide = playerSide; // "center", "left", or "right"
     
+    /** @type {Object} Gamepad assigned to this player */
     this.gamepad = gamepad1;
     
+    /** @type {Object} HUD container this player renders into */
     this.hud = scene.hud;
     
     // Use ChartRenderer for rendering
@@ -39616,9 +39918,11 @@ class Player {
 
     /** @type {boolean} Whether AI auto-play is active */
     this.autoplay = settings.autoplay || scene.autoplay;
+    /** @type {Set} Hold notes being held by the autoplay AI */
     this.autoplayActiveHolds = new Set();
 
     // Gamepad keymap
+    /** @type {Object} Mapping of action names to column indices */
     this.keymap = {
       left: 0,
       down: 1,
@@ -39631,6 +39935,7 @@ class Player {
     // Game state
     /** @type {Array<boolean>} Current press state for each column */
     this.inputStates = [false, false, false, false];
+    /** @type {Array<boolean>} Press state for each column on the previous frame */
     this.lastInputStates = [false, false, false, false];
     /** @type {Object} Active hold notes keyed by column index */
     this.activeHolds = {};
@@ -39638,6 +39943,7 @@ class Player {
     this.heldColumns = new Set();
     /** @type {Array} History of all judgements received */
     this.judgementHistory = [];
+    /** @type {Array} Last checked beat for each column */
     this.lastNoteCheckBeats = [null, null, null, null];
     /** @type {number} Current accumulated score */
     this.score = 0;
@@ -39649,12 +39955,17 @@ class Player {
     this.maxHealth = 100;
     /** @type {number} Current player health */
     this.health = this.maxHealth;
+    /** @type {number} Health value before the latest change */
     this.previousHealth = this.health;
+    /** @type {Array} Record of timing measurements for each judgement */
     this.timingStory = [];
 
     // Game constants
+    /** @type {number} Seconds of leeway tolerated for hold notes */
     this.HOLD_FORGIVENESS = 0.3;
+    /** @type {number} Seconds of leeway tolerated for roll notes */
     this.ROLL_FORGIVENESS = 0.3;
+    /** @type {number} Interval between required roll taps in seconds */
     this.ROLL_REQUIRED_INTERVALS = 0.5;
     
     // Accuracy tracking
@@ -39710,20 +40021,31 @@ class Player {
     const accuracyBar = this.playerSide == 'right' ? this.scene.p2AccuracyBar : (this.scene.accuracyBar || this.scene.p1AccuracyBar);
     
     // Get UI elements or create placeholders 
+    /** @type {Object} Sprite that displays the last judgement result */
     this.judgementText = judgementText || new Text(-100, -100, "");
+    /** @type {Object} Text showing the current combo count */
     this.comboText = comboText || new Text(-100, -100, "");
+    /** @type {Object} Text showing the current score */
     this.scoreText = scoreText || new Text(-100, -100, "");
+    /** @type {Object} Text showing the current health */
     this.healthText = healthText || new Text(-100, -100, "");
+    /** @type {Object} Left anchor sprite of the lifebar */
     this.lifebarStart = lifebarStart || game.add.sprite();
+    /** @type {Object} Stretching middle sprite of the lifebar */
     this.lifebarMiddle = lifebarMiddle || game.add.sprite();
+    /** @type {Object} Right anchor sprite of the lifebar */
     this.lifebarEnd = lifebarEnd || game.add.sprite();
+    /** @type {Object} Accuracy bar sprite */
     this.accuracyBar = accuracyBar || game.add.sprite();
     
     this.updateAccuracy();
 
     // Define constants
+    /** @type {number} X position of the health bar */
     this.HEALTH_X = this.lifebarStart.x;
+    /** @type {number} Width of the variable area of the health bar */
     this.HEALTH_WIDTH = 145; // Width of the variable area of the health bar
+    /** @type {number} Width of the accuracy bar */
     this.ACCURACY_BAR_WIDTH = 187;
   }
   
@@ -40677,14 +40999,19 @@ class FirstPlayer extends Player {
     // Call parent with "left" side
     super(scene, "left", settings);
     
+    /** @type {Object} Gamepad assigned to player 1 */
     this.gamepad = gamepad1; // Use Player 1
     
+    /** @type {number} X position of player 1's health bar */
     this.HEALTH_X = 14;
+    /** @type {number} Width of player 1's health bar */
     this.HEALTH_WIDTH = 71;
+    /** @type {number} Width of player 1's accuracy bar */
     this.ACCURACY_BAR_WIDTH = 92;
     
     scene.p1JudgementText.x = this.renderer.calculateCenter();
     
+    /** @type {Object} HUD container for player 1 */
     this.hud = scene.p1Hud;
   }
 }
@@ -40715,14 +41042,19 @@ class SecondPlayer extends Player {
     // Call parent with "right" side
     super(scene, "right", settings);
     
+    /** @type {Object} Gamepad assigned to player 2 */
     this.gamepad = gamepad2; // Use Player 2
     
+    /** @type {number} X position of player 2's health bar */
     this.HEALTH_X = 104;
+    /** @type {number} Width of player 2's health bar */
     this.HEALTH_WIDTH = 71;
+    /** @type {number} Width of player 2's accuracy bar */
     this.ACCURACY_BAR_WIDTH = 92;
     
     scene.p2JudgementText.x = this.renderer.calculateCenter();
     
+    /** @type {Object} HUD container for player 2 */
     this.hud = scene.p2Hud;
   }
 }

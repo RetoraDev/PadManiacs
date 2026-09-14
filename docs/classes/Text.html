@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "Text Class"]
+    [title: "Text Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,48 +18,49 @@
 
     [heading: "Key Features"]
     [list]
-* Typewriter reveal effect with configurable interval
-* Scrolling marquee mode for overflowing text
-* Word wrapping helpers for multi-line layout
-* Renders with a Phaser.RetroFont pixel glyph set
-[/list]
+    * Typewriter reveal effect with configurable interval
+    * Scrolling marquee mode for overflowing text
+    * Word wrapping helpers for multi-line layout
+    * Renders with a Phaser.RetroFont pixel glyph set
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ x | number | X position ]
-[ y | number | Y position ]
-[ text | string | =&quot;&quot;] - Initial text content ]
-[ config | object | ={}] - Overrides for FONTS.default, tint, and typewriter options ]
-[ parent | object | Optional Phaser.Group or PIXI container to add this text sprite to ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ x | number | X position ]
+    [ y | number | Y position ]
+    [ text=&quot;&quot; | string | Initial text content ]
+    [ config={} | object | Overrides for FONTS.default, tint, and typewriter options ]
+    [ parent | object | Optional Phaser.Group or PIXI container to add this text sprite to ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ config | object | Merged font, tint, and effect configuration ]
-[ texture | Phaser.RetroFont | Retro font texture that renders the glyphs ]
-[ timer | Phaser.Timer | Timer driving typewriter and scroll effects ]
-[ typewriterInterval | number | Milliseconds between typewriter characters ]
-[/table]
+    [ Property | Type | Description ]
+    [ config | object | Merged font, tint, and effect configuration ]
+    [ texture | Phaser.RetroFont | Retro font texture that renders the glyphs ]
+    [ timer | Phaser.Timer | Timer driving typewriter and scroll effects ]
+    [ typewriterInterval | number | Milliseconds between typewriter characters ]
+    [ tint | string | Tint color applied to the rendered text (hex string) ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ write | (text, max) | Sets the displayed text, capping it to a max visible length when given. Longer text switches to the scrolling marquee mode instead. ]
-[ typewrite | (text, callback) | Reveals the text one character at a time using the typewriter timer. ]
-[ scrollwrite | (text, visibleLength, scrollSpeed, separation) | Starts a looping marquee scroll of the given text and returns controls. ]
-[ stopScrolling | () | Stops any running typewriter or scroll timer, halting effect updates. ]
-[ isScrolling | () | Returns whether a scrolling or typewriter effect is currently running. ]
-[ wrapOld | (maxWidth, lineSpacing) | Wraps the current text to a maximum pixel width, breaking long words. ]
-[ MaxCharsPerLine | (maxWidth) | Computes how many characters fit on a line at the given pixel width. ]
-[ WrappedText | (maxWidth) | Returns the current text wrapped into lines for a given pixel width. ]
-[ wrap | (maxWidth) | Wraps and rewrites the current text to a maximum pixel width. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ write | (text, max) | Sets the displayed text, capping it to a max visible length when given. Longer text switches to the scrolling marquee mode instead. ]
+    [ typewrite | (text, callback) | Reveals the text one character at a time using the typewriter timer. ]
+    [ scrollwrite | (text, visibleLength=5, scrollSpeed=200, separation=5) | Starts a looping marquee scroll of the given text and returns controls. ]
+    [ stopScrolling | () | Stops any running typewriter or scroll timer, halting effect updates. ]
+    [ isScrolling | () | Returns whether a scrolling or typewriter effect is currently running. ]
+    [ wrapOld | (maxWidth, lineSpacing=1) | Wraps the current text to a maximum pixel width, breaking long words. ]
+    [ getMaxCharsPerLine | (maxWidth) | Computes how many characters fit on a line at the given pixel width. ]
+    [ getWrappedText | (maxWidth) | Returns the current text wrapped into lines for a given pixel width. ]
+    [ wrap | (maxWidth) | Wraps and rewrites the current text to a maximum pixel width. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -70,8 +71,8 @@ const typed = new Text(8, 16, 'Loading...', { typewriter: true });
 
 const ticker = new Text(8, 24, 'Queue', FONTS.small);
 ticker.scrollwrite('A very long scrolling message', 12, 150);
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

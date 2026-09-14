@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "ExperienceBar Class"]
+    [title: "ExperienceBar Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,49 +18,49 @@
 
     [heading: "Key Features"]
     [list]
-* Clamped 0-1 progress updates
-* Built-in background, fill and border graphics
-[/list]
+    * Clamped 0-1 progress updates
+    * Built-in background, fill and border graphics
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ x | Number | X position of the bar ]
-[ y | Number | Y position of the bar ]
-[ width | Number | Width of the bar ]
-[ height | Number | Height of the bar ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ x | Number | X position of the bar ]
+    [ y | Number | Y position of the bar ]
+    [ width | Number | Width of the bar ]
+    [ height | Number | Height of the bar ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ barWidth | Number | Width of the bar ]
-[ barHeight | Number | Height of the bar ]
-[ progress | Number | Current progress between 0 and 1 ]
-[ background | Phaser.Graphics | Dark track behind the fill ]
-[ bar | Phaser.Graphics | Teal fill scaled by progress ]
-[ border | Phaser.Graphics | White border around the bar ]
-[/table]
+    [ Property | Type | Description ]
+    [ barWidth | Number | Width of the bar ]
+    [ barHeight | Number | Height of the bar ]
+    [ progress | Number | Current progress between 0 and 1 ]
+    [ background | Phaser.Graphics | Dark track behind the fill ]
+    [ bar | Phaser.Graphics | Teal fill scaled by progress ]
+    [ border | Phaser.Graphics | White border around the bar ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ setProgress | (progress) | Sets the progress value clamped to 0-1 and redraws the fill. ]
-[ updateBar | () | Redraws the fill graphics to match the current progress. ]
-[ destroy | () | Destroys the track, fill, border and the bar sprite itself. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ setProgress | (progress) | Sets the progress value clamped to 0-1 and redraws the fill. ]
+    [ updateBar | () | Redraws the fill graphics to match the current progress. ]
+    [ destroy | () | Destroys the track, fill, border and the bar sprite itself. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
 const bar = new ExperienceBar(10, 10, 300, 20);
 game.add.existing(bar);
 bar.setProgress(0.75);
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

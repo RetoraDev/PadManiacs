@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "ScreenRecorder Class"]
+    [title: "ScreenRecorder Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,56 +18,58 @@
 
     [heading: "Key Features"]
     [list]
-* WebM video recording via MediaRecorder at scaled resolution
-* Optional audio capture from the game audio element or microphone
-* High-resolution PNG screenshot capture
-* File saving for Cordova, NWjs, and browser environments
-[/list]
+    * WebM video recording via MediaRecorder at scaled resolution
+    * Optional audio capture from the game audio element or microphone
+    * High-resolution PNG screenshot capture
+    * File saving for Cordova, NWjs, and browser environments
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ game | Object | The Phaser game instance ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ game | Object | The Phaser game instance ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ game | Object | The Phaser game instance ]
-[ mediaRecorder | MediaRecorder|null | Active MediaRecorder instance ]
-[ recordedBlobs | Array | Blobs collected during the current recording ]
-[ isRecording | boolean | Whether recording is currently active ]
-[ stream | MediaStream|null | The captured output stream ]
-[ videoBitsPerSecond | number | Target bitrate for recorded video ]
-[ videoFrameRate | number | Frame rate captured from the scaled canvas ]
-[ scale | number | Scale factor for videos TODO: rename it to videoScale ]
-[ imageScale | number | Scale factor applied to screenshots ]
-[ canvas | HTMLCanvasElement | Phaser CE game canvas element ]
-[/table]
+    [ Property | Type | Description ]
+    [ game | Object | The Phaser game instance ]
+    [ mediaRecorder | MediaRecorder|null | Active MediaRecorder instance ]
+    [ recordedBlobs | Array | Blobs collected during the current recording ]
+    [ isRecording | boolean | Whether recording is currently active ]
+    [ stream | MediaStream|null | The captured output stream ]
+    [ videoBitsPerSecond | number | Target bitrate for recorded video ]
+    [ videoFrameRate | number | Frame rate captured from the scaled canvas ]
+    [ scale | number | Scale factor for videos TODO: rename it to videoScale ]
+    [ imageScale | number | Scale factor applied to screenshots ]
+    [ canvas | HTMLCanvasElement | Phaser CE game canvas element ]
+    [ scaledCanvas | HTMLCanvasElement | Canvas rendered at the scaled recording resolution ]
+    [ scaledContext | CanvasRenderingContext2D | 2D context of the scaled recording canvas ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ start | (audioElement, audioDelay) | Starts recording the game canvas, optionally adding audio to the stream. ]
-[ startRenderingLoop | () | Continuously draws the game canvas onto the scaled recording canvas each frame. ]
-[ stop | () | Stops the active recording session and triggers saving and cleanup. ]
-[ pause | () | Pauses the recording if one is in progress. ]
-[ resume | () | Resumes a paused recording. ]
-[ screenshot | () | Captures a scaled PNG screenshot of the current game world and saves it to a file. ]
-[ save | (filename) | Bundles recorded blobs into a WebM file and saves it. ]
-[ saveFile | (filename, blob) | Writes a blob to disk using the file system tools on Cordova/NWjs or a download link in browsers. ]
-[ addAudioToStream | (audioElement, audioDelay) | Attaches audio tracks to the recording stream from the audio element or microphone. ]
-[ addAudioAfterStart | (audioElement, audioDelay) | Adds audio tracks to an already-started recording by pausing, modifying, and resuming. ]
-[ cleanup | () | Stops stream tracks and releases the scaled canvas and recorder references. ]
-[ isSupported | () | Checks whether canvas capture streaming and MediaRecorder are supported by the browser. ]
-[ State | () | Returns the current MediaRecorder state. ]
-[ setScale | (newScale) | Changes the scale factor applied to recorded videos. ]
-[ Scale | () | Returns the current video scale factor. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ start | (audioElement, audioDelay=0) | Starts recording the game canvas, optionally adding audio to the stream. ]
+    [ startRenderingLoop | () | Continuously draws the game canvas onto the scaled recording canvas each frame. ]
+    [ stop | () | Stops the active recording session and triggers saving and cleanup. ]
+    [ pause | () | Pauses the recording if one is in progress. ]
+    [ resume | () | Resumes a paused recording. ]
+    [ screenshot | () | Captures a scaled PNG screenshot of the current game world and saves it to a file. ]
+    [ save | (filename) | Bundles recorded blobs into a WebM file and saves it. ]
+    [ saveFile | (filename, blob) | Writes a blob to disk using the file system tools on Cordova/NWjs or a download link in browsers. ]
+    [ addAudioToStream | (audioElement, audioDelay=0) | Attaches audio tracks to the recording stream from the audio element or microphone. ]
+    [ addAudioAfterStart | (audioElement, audioDelay=0) | Adds audio tracks to an already-started recording by pausing, modifying, and resuming. ]
+    [ cleanup | () | Stops stream tracks and releases the scaled canvas and recorder references. ]
+    [ isSupported | () | Checks whether canvas capture streaming and MediaRecorder are supported by the browser. ]
+    [ getState | () | Returns the current MediaRecorder state. ]
+    [ setScale | (newScale) | Changes the scale factor applied to recorded videos. ]
+    [ getScale | () | Returns the current video scale factor. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -77,8 +79,8 @@ recorder.pause();
 recorder.resume();
 recorder.stop();
 recorder.screenshot();
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

@@ -67,14 +67,20 @@ class CarouselMenu extends Phaser.Sprite {
     this.hoveredIndex = 0;
     /** @type {number} Index of the first visible item */
     this.scrollOffset = 0;
+    /** @type {number} Height of a single item row in pixels */
     this.itemHeight = this.config.itemHeight;
+    /** @type {number} Vertical spacing between item rows in pixels */
     this.itemSpacing = this.config.itemSpacing;
+    /** @type {number} Combined pitch of one item row (height plus spacing) */
     this.totalItemHeight = this.itemHeight + this.itemSpacing;
     
+    /** @type {number} Number of items that fit in the visible viewport */
     this.visibleItems = Math.floor((height - this.config.margin.top - this.config.margin.bottom) / this.totalItemHeight);
     this.visibleItems = Math.max(1, this.visibleItems);
     
+    /** @type {boolean} Whether a scroll animation is currently in progress */
     this.isAnimating = false;
+    /** @type {boolean} Whether menu input is accepted */
     this.inputEnabled = true;
         
     // Scroll bar
@@ -84,12 +90,16 @@ class CarouselMenu extends Phaser.Sprite {
       this.scrollBar.alpha = 0; // Start hidden
       this.addChild(this.scrollBar);
       
+      /** @type {?Phaser.Tween} Tween animating the scroll bar fade */
       this.scrollBarTween = null;
     }
     
     // Track input state
+    /** @type {?number} Timestamp of the first press used for press-and-hold scrolling */
     this.firstPressTime = undefined;
+    /** @type {number} Timestamp of the last processed press */
     this.lastPress = 0;
+    /** @type {number} Timestamp of the last update tick */
     this.lastUpdate = 0;
     
     this.setupInput();

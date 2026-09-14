@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "Visualizer Class"]
+    [title: "Visualizer Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,44 +18,44 @@
 
     [heading: "Key Features"]
     [list]
-* Provides graphics object for subclass rendering
-* Active state toggle for enabling and disabling updates
-* Clear and destroy lifecycle methods
-[/list]
+    * Provides graphics object for subclass rendering
+    * Active state toggle for enabling and disabling updates
+    * Clear and destroy lifecycle methods
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ scene | Object | The Phaser game state scene ]
-[ x | number | Horizontal position ]
-[ y | number | Vertical position ]
-[ width | number | Display width in pixels ]
-[ height | number | Display height in pixels ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ scene | Object | The Phaser game state scene ]
+    [ x | number | Horizontal position ]
+    [ y | number | Vertical position ]
+    [ width | number | Display width in pixels ]
+    [ height | number | Display height in pixels ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ scene | Object | The owning Phaser game state scene ]
-[ x | number | Horizontal position in pixels ]
-[ y | number | Vertical position in pixels ]
-[ width | number | Display width in pixels ]
-[ height | number | Display height in pixels ]
-[ graphics | Phaser.Graphics | Graphics object used for all drawing operations ]
-[ active | boolean | Whether the visualizer is actively updating ]
-[/table]
+    [ Property | Type | Description ]
+    [ scene | Object | The owning Phaser game state scene ]
+    [ x | number | Horizontal position in pixels ]
+    [ y | number | Vertical position in pixels ]
+    [ width | number | Display width in pixels ]
+    [ height | number | Display height in pixels ]
+    [ graphics | Phaser.Graphics | Graphics object used for all drawing operations ]
+    [ active | boolean | Whether the visualizer is actively updating ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ update | () | Updates the visualizer each frame. Intended to be overridden by subclasses. ]
-[ destroy | () | Destroys the underlying graphics object and frees resources. ]
-[ clear | () | Clears all drawn content from the graphics object. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ update | () | Updates the visualizer each frame. Intended to be overridden by subclasses. ]
+    [ destroy | () | Destroys the underlying graphics object and frees resources. ]
+    [ clear | () | Clears all drawn content from the graphics object. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -68,8 +68,8 @@ class MyVisualizer extends Visualizer {
   }
 }
 const viz = new MyVisualizer(scene, 0, 0, 200, 50);
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

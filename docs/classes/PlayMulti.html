@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "PlayMulti Class"]
+    [title: "PlayMulti Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,38 +18,71 @@
 
     [heading: "Key Features"]
     [list]
-* Two independent players sharing one chart with separate scores, lifebars and combos
-* Split-layout HUD with per-player score, accuracy, combo and judgement text
-* Per-player autoplay flags plus a shared metronome assist tick display
-[/list]
+    * Two independent players sharing one chart with separate scores, lifebars and combos
+    * Split-layout HUD with per-player score, accuracy, combo and judgement text
+    * Per-player autoplay flags plus a shared metronome assist tick display
+    [/list]
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ config | Object | The multiplayer configuration with per-player settings ]
-[ p1Hud | Phaser.Sprite | HUD container for player 1 ]
-[ p2Hud | Phaser.Sprite | HUD container for player 2 ]
-[/table]
+    [ Property | Type | Description ]
+    [ config | Object | The multiplayer configuration with per-player settings ]
+    [ currentCharacter | null | No character is used in multiplayer ]
+    [ backgroundGradient | BackgroundGradient | Animated gradient behind the HUD ]
+    [ hud | Phaser.Sprite | Root sprite of the HUD ]
+    [ hudFlashShape | Phaser.Sprite | Full-screen flash shape keyed by the temperature meter ]
+    [ hudTop | Phaser.Sprite | Top HUD strip ]
+    [ hudBottom | Phaser.Sprite | Bottom HUD strip ]
+    [ p1Hud | Phaser.Sprite | HUD container for player 1 ]
+    [ p2Hud | Phaser.Sprite | HUD container for player 2 ]
+    [ overHud | Phaser.Sprite | Overlay sprite sitting above the HUD ]
+    [ difficultyBanner | Phaser.Sprite | Banner showing the difficulty name ]
+    [ difficultyTypeText | Text | Label of the current difficulty ]
+    [ songTitleText | Text | Song title label ]
+    [ p1HealthText | Text | Player 1's health label ]
+    [ p2HealthText | Text | Player 2's health label ]
+    [ p1ScoreText | Text | Player 1's score label ]
+    [ p2ScoreText | Text | Player 2's score label ]
+    [ p1JudgementText | Phaser.Sprite | Player 1's judgement result sprite ]
+    [ p2JudgementText | Phaser.Sprite | Player 2's judgement result sprite ]
+    [ p1AccuracyBar | Phaser.Sprite | Player 1's accuracy bar ]
+    [ p2AccuracyBar | Phaser.Sprite | Player 2's accuracy bar ]
+    [ p1ComboText | Text | Player 1's combo count label ]
+    [ p2ComboText | Text | Player 2's combo count label ]
+    [ p1LifebarStart | Phaser.Sprite | Left segment of player 1's lifebar ]
+    [ p1LifebarMiddle | Phaser.Sprite | Stretching middle segment of player 1's lifebar ]
+    [ p1LifebarEnd | Phaser.Sprite | Right segment of player 1's lifebar ]
+    [ p2LifebarStart | Phaser.Sprite | Left segment of player 2's lifebar ]
+    [ p2LifebarMiddle | Phaser.Sprite | Stretching middle segment of player 2's lifebar ]
+    [ p2LifebarEnd | Phaser.Sprite | Right segment of player 2's lifebar ]
+    [ autoplayText | Text | Shared label shown while autoplay or metronome is enabled ]
+    [ p1AutoplayText | Text | Player 1's autoplay label ]
+    [ p2AutoplayText | Text | Player 2's autoplay label ]
+    [ player1 | FirstPlayer | Player 1's gameplay controller ]
+    [ player2 | SecondPlayer | Player 2's gameplay controller ]
+    [ player | FirstPlayer|SecondPlayer | The currently focused player ]
+    [ lastVisualizerUpdateTime | number | Timestamp of the last visualizer redraw ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ init | (config, _, __, ___, playlistKey) | Phaser state hook that forwards the shared chart to Play.init and stores the config. ]
-[ create | () | Phaser state hook that builds the shared HUD and player layout. ]
-[ createHud | () | Builds the split multiplayer HUD with per-player score, lifebar and combo. ]
-[ createVisualizer | () | Creates the shared center visualizer in the multiplayer HUD layout. ]
-[ setupPlayer | () | Spawns the FirstPlayer and SecondPlayer with their own input settings. ]
-[ StatsContent | () | Overrides the pause stats block for the multiplayer layout. ]
-[ GameResults | () | Collects both players' results into a combined multiplayer result object. ]
-[ restartSong | () | Restarts the multiplayer game with the same configuration. ]
-[ songEnd | () | Finalizes the multiplayer run and opens the ResultsMulti state. ]
-[ checkFullCombo | (player) | Shows the full combo or flawless banner for a player when achieved. ]
-[ update | () | Phaser lifecycle hook called every frame; updates both players. ]
-[ render | () | Phaser render hook that renders both players' note objects. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ init | (config, _, __, ___, playlistKey) | Phaser state hook that forwards the shared chart to Play.init and stores the config. ]
+    [ create | () | Phaser state hook that builds the shared HUD and player layout. ]
+    [ createHud | () | Builds the split multiplayer HUD with per-player score, lifebar and combo. ]
+    [ createVisualizer | () | Creates the shared center visualizer in the multiplayer HUD layout. ]
+    [ setupPlayer | () | Spawns the FirstPlayer and SecondPlayer with their own input settings. ]
+    [ getStatsContent | () | Overrides the pause stats block for the multiplayer layout. ]
+    [ getGameResults | () | Collects both players' results into a combined multiplayer result object. ]
+    [ restartSong | () | Restarts the multiplayer game with the same configuration. ]
+    [ songEnd | () | Finalizes the multiplayer run and opens the ResultsMulti state. ]
+    [ checkFullCombo | (player) | Shows the full combo or flawless banner for a player when achieved. ]
+    [ update | () | Phaser lifecycle hook called every frame; updates both players. ]
+    [ render | () | Phaser render hook that renders both players' note objects. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Launch a local multiplayer game for two configured players
@@ -59,8 +92,8 @@ game.state.start("PlayMulti", true, false, {
   player1: { settings: { autoplay: false } },
   player2: { settings: { autoplay: true } }
 });
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

@@ -165,7 +165,9 @@ class NumberInput extends TextInput {
     } else {
       displayValue = Math.floor(value).toString();
     }
+    /** @type {string} Current value rendered as text */
     this.text = displayValue;
+    /** @type {number} Cursor position within the text */
     this.currentIndex = this.text.length;
     this.updateCursor();
   }

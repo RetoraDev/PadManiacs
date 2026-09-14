@@ -52,11 +52,17 @@ class DialogWindow extends Phaser.Sprite {
     this.buttons = buttons;
     /** @type {number} Index of the currently selected button */
     this.selectedButton = defaultButton;
+    /** @type {boolean} Whether the text content can be scrolled with the pad */
     this.enableTextScroll = enableTextScroll;
+    /** @type {boolean} Whether mouse interaction is disabled */
     this.disableMouse = disableMouse;
+    /** @type {number} Current scroll offset of the text lines */
     this.currentScroll = 0;
+    /** @type {number} Maximum scroll offset for the text content */
     this.maxScroll = 0;
+    /** @type {number} Tint color applied to text and buttons */
     this.fontTint = 0x76fcde;
+    /** @type {boolean} Whether the dialog is active and can accept input */
     this.isActive = true;
     
     if (parent) {
@@ -75,6 +81,7 @@ class DialogWindow extends Phaser.Sprite {
     // Create window background using Window class
     const { width, height, wrappedText } = this.calculateWindowSize();
     
+    /** @type {Window} The window frame that draws the dialog background */
     this.window = new Window(0, 0, width, height, "1", this);
     this.window.x -= this.window.size.width * 8 * this.anchor.x;
     this.window.y -= this.window.size.height * 8 * this.anchor.y;
@@ -206,12 +213,15 @@ class DialogWindow extends Phaser.Sprite {
    * @param {Array} wrappedText - Wrapped lines to display
    */
   createTextContent(wrappedText) {
+    /** @type {Array} Visible Text sprites showing the current lines */
     this.textLines = [];
+    /** @type {Array} All wrapped text lines, including those scrolled out of view */
     this.allTextLines = wrappedText;
     
     const startY = 8;
     const textAreaHeight = (this.window.size.height * 8) - 28; // Total available height for text (window height - padding - buttons)
     const lineHeight = 6;
+    /** @type {number} Maximum number of text lines shown at once */
     this.maxVisibleLines = Math.floor(textAreaHeight / lineHeight);
     
     this.maxScroll = Math.max(0, wrappedText.length - this.maxVisibleLines);
@@ -234,6 +244,7 @@ class DialogWindow extends Phaser.Sprite {
    * Creates the button texts, sizes them, and wires up mouse handlers.
    */
   createButtonElements() {
+    /** @type {Array} Text sprites for each button label */
     this.buttonTexts = [];
     const buttonAreaY = this.window.size.height * 8 - 12;
     
@@ -292,6 +303,7 @@ class DialogWindow extends Phaser.Sprite {
       const indicatorX = this.window.size.width * 8 - 8;
       const indicatorY = this.window.size.height * 8 - 20;
       
+      /** @type {Text} Blinking indicator that the text can be scrolled */
       this.scrollIndicator = new Text(indicatorX, indicatorY, ">", {
         ...FONTS.default,
         tint: this.fontTint
@@ -331,6 +343,7 @@ class DialogWindow extends Phaser.Sprite {
       const scrollBarY = textAreaY + (scrollProgress * availableScrollSpace);
       
       // Create scroll bar graphics
+      /** @type {Phaser.Graphics} Scroll bar showing the visible-text ratio */
       this.scrollBar = game.add.graphics(scrollBarX, scrollBarY);
       this.scrollBar.beginFill(this.fontTint, 0.8);
       this.scrollBar.drawRect(0, 0, 2, scrollBarHeight);
@@ -343,7 +356,9 @@ class DialogWindow extends Phaser.Sprite {
    * Creates the dialog signals and wires up gamepad button handlers.
    */
   setupInputHandling() {
+    /** @type {Phaser.Signal} Dispatched when a button is confirmed */
     this.onConfirm = new Phaser.Signal();
+    /** @type {Phaser.Signal} Dispatched when the dialog is cancelled */
     this.onCancel = new Phaser.Signal();
     
     // Use gamepad signals instead of checking pressed states

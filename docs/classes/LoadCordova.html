@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "LoadCordova Class"]
+    [title: "LoadCordova Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,21 +18,21 @@
 
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ create | () | Detects the current environment: on Cordova it injects cordova.js and waits for the device to be ready, otherwise it builds the folder structure immediately. ]
-[ loadScript | () | Shows the loading dots, injects the cordova.js script into the page, and registers a back button handler for mobile devices once the Cordova device is ready. ]
-[ createFolderStructure | () | Creates the main storage directory along with its addons, screenshots, songs, and editor output subdirectories, then continues to the next startup state. ]
-[ continue | () | Advances to the LoadAddons state to continue the startup sequence. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ create | () | Detects the current environment: on Cordova it injects cordova.js and waits for the device to be ready, otherwise it builds the folder structure immediately. ]
+    [ loadScript | () | Shows the loading dots, injects the cordova.js script into the page, and registers a back button handler for mobile devices once the Cordova device is ready. ]
+    [ createFolderStructure | () | Creates the main storage directory along with its addons, screenshots, songs, and editor output subdirectories, then continues to the next startup state. ]
+    [ continue | () | Advances to the LoadAddons state to continue the startup sequence. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Added to the boot chain so storage directories exist before song loading.
 game.state.add('LoadCordova', LoadCordova);
 game.state.start('LoadCordova');
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

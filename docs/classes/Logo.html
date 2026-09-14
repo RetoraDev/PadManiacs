@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "Logo Class"]
+    [title: "Logo Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,22 +18,22 @@
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ mainShape | Phaser.Sprite | Main logo shape that can be tweaked ]
-[ logoTween | Phaser.Tween | Infinite yoyo pulse tween on the main shape ]
-[/table]
+    [ Property | Type | Description ]
+    [ mainShape | Phaser.Sprite | Main logo shape that can be tweaked ]
+    [ logoTween | Phaser.Tween | Infinite yoyo pulse tween on the main shape ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ intro | (callback) | Plays the intro animation, fading the main shape in and then starting an infinite breathing pulse before invoking the callback. ]
-[ outro | (callback) | Plays the outro animation: spawns a flash shape, scales it up while fading, flashes the camera white and fades to white before calling the callback. ]
-[ effect | (amountLayers, time, invert) | Spawns several logo shapes that fade in and out in a staggered yoyo cascade for a shockwave flourish. ]
-[ addShape | (tint, x, y) | Creates a centered tinted logo shape child at the given local offset. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ intro | (callback) | Plays the intro animation, fading the main shape in and then starting an infinite breathing pulse before invoking the callback. ]
+    [ outro | (callback) | Plays the outro animation: spawns a flash shape, scales it up while fading, flashes the camera white and fades to white before calling the callback. ]
+    [ effect | (amountLayers=5, time=1000, invert=false) | Spawns several logo shapes that fade in and out in a staggered yoyo cascade for a shockwave flourish. ]
+    [ addShape | (tint=0xffffff, x=0, y=0) | Creates a centered tinted logo shape child at the given local offset. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -42,8 +42,8 @@ game.add.existing(logo);
 logo.intro(() => {
   logo.effect(5, 1000);
 });
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

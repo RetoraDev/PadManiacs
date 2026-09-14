@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "Keybindings Class"]
+    [title: "Keybindings Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,52 +18,52 @@
 
     [heading: "Key Features"]
     [list]
-* Remap keyboard and gamepad controls per player
-* Swaps conflicting bindings automatically
-* Unmaps or resets bindings to defaults
-[/list]
+    * Remap keyboard and gamepad controls per player
+    * Swaps conflicting bindings automatically
+    * Unmaps or resets bindings to defaults
+    [/list]
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ futuristicLines | FuturisticLines | Animated background line decoration. ]
-[ backgroundGradient | BackgroundGradient | Scrolling gradient background effect. ]
-[ navigationHint | NavigationHint | On-screen overlay hinting button usage. ]
-[ windowManager | WindowManager | Manager for stacked dialog windows. ]
-[ waitOverlayActive | boolean | Whether the key wait overlay is currently active. ]
-[ pendingChanges | Object | Staged keyboard and gamepad mapping edits. ]
-[ notifications | Array | Notifications currently queued for display. ]
-[ notificationContainer | Phaser.Group | Container holding notification sprites. ]
-[/table]
+    [ Property | Type | Description ]
+    [ futuristicLines | FuturisticLines | Animated background line decoration. ]
+    [ backgroundGradient | BackgroundGradient | Scrolling gradient background effect. ]
+    [ navigationHint | NavigationHint | On-screen overlay hinting button usage. ]
+    [ windowManager | WindowManager | Manager for stacked dialog windows. ]
+    [ waitOverlayActive | boolean | Whether the key wait overlay is currently active. ]
+    [ pendingChanges | Object | Staged keyboard and gamepad mapping edits. ]
+    [ notifications | Array | Notifications currently queued for display. ]
+    [ notificationContainer | Phaser.Group | Container holding notification sprites. ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ create | () | Sets up the keybindings menu UI, background effects, and input listeners. ]
-[ update | () | Advances gamepad input, window management, and notifications each frame. ]
-[ shutdown | () | Commits staged binding changes, persists the account, and cleans up UI. ]
-[ showNotification | (text, duration) | Shows a transient notification banner that fades out after a duration. ]
-[ updateNotifications | () | Ages notifications each frame and removes those whose time has elapsed. ]
-[ showKeybindingsMenu | () | Builds the main keybindings window with per-player edit and reset options. ]
-[ showKeyboardCustomization | (playerNum, selectedIndex, returnIndex) | Opens the keyboard remapping window for one player. ]
-[ showGamepadCustomization | (playerNum, selectedIndex, returnIndex) | Opens the gamepad remapping window for one player. ]
-[ showKeyWaitOverlay | (message, listenKeyboard, listenGamepad, onSubmit, onCancel) | Shows a modal overlay that waits for the next key or button press. ]
-[ cleanupWaitOverlay | () | Destroys the active wait overlay and restores the navigation hint. ]
-[ mapKeyboardKey | (playerNum, mappingKey, index, keyCode) | Assigns a key code to a keyboard slot, resolving conflicts by swapping. ]
-[ mapGamepadKey | (playerNum, mappingKey, buttonCode) | Assigns a button code to a gamepad slot, resolving conflicts by swapping. ]
-[ findKeyboardKeyConflict | (playerKey, mappingKey, index, keyCode) | Searches pending keyboard mappings for a conflicting key code. ]
-[ findGamepadKeyConflict | (playerKey, mappingKey, buttonCode) | Searches pending gamepad mappings for a conflicting button code. ]
-[ unmapKeyboardKey | (playerNum, mappingKey, index) | Clears a keyboard binding slot and trims trailing null entries. ]
-[ unmapGamepadKey | (playerNum, mappingKey) | Clears a gamepad binding slot. ]
-[ KeyboardKeyDisplay | (playerKey, mappingKey, index) | Resolves the display label for a keyboard binding slot. ]
-[ GamepadButtonDisplay | (playerKey, mappingKey) | Resolves the display label for a gamepad binding slot. ]
-[ KeyName | (keyCode) | Converts a Phaser key code into its display name using the key tables. ]
-[ formatKeyName | (name) | Formats a raw key table name into a human-friendly label. ]
-[ confirmDialog | (message, onConfirm, onCancel, confirmText, cancelText) | Shows a modal dialog with confirm and cancel buttons. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ create | () | Sets up the keybindings menu UI, background effects, and input listeners. ]
+    [ update | () | Advances gamepad input, window management, and notifications each frame. ]
+    [ shutdown | () | Commits staged binding changes, persists the account, and cleans up UI. ]
+    [ showNotification | (text, duration) | Shows a transient notification banner that fades out after a duration. ]
+    [ updateNotifications | () | Ages notifications each frame and removes those whose time has elapsed. ]
+    [ showKeybindingsMenu | () | Builds the main keybindings window with per-player edit and reset options. ]
+    [ showKeyboardCustomization | (playerNum, selectedIndex, returnIndex) | Opens the keyboard remapping window for one player. ]
+    [ showGamepadCustomization | (playerNum, selectedIndex, returnIndex) | Opens the gamepad remapping window for one player. ]
+    [ showKeyWaitOverlay | (message, listenKeyboard, listenGamepad, onSubmit, onCancel) | Shows a modal overlay that waits for the next key or button press. ]
+    [ cleanupWaitOverlay | () | Destroys the active wait overlay and restores the navigation hint. ]
+    [ mapKeyboardKey | (playerNum, mappingKey, index, keyCode) | Assigns a key code to a keyboard slot, resolving conflicts by swapping. ]
+    [ mapGamepadKey | (playerNum, mappingKey, buttonCode) | Assigns a button code to a gamepad slot, resolving conflicts by swapping. ]
+    [ findKeyboardKeyConflict | (playerKey, mappingKey, index, keyCode) | Searches pending keyboard mappings for a conflicting key code. ]
+    [ findGamepadKeyConflict | (playerKey, mappingKey, buttonCode) | Searches pending gamepad mappings for a conflicting button code. ]
+    [ unmapKeyboardKey | (playerNum, mappingKey, index) | Clears a keyboard binding slot and trims trailing null entries. ]
+    [ unmapGamepadKey | (playerNum, mappingKey) | Clears a gamepad binding slot. ]
+    [ getKeyboardKeyDisplay | (playerKey, mappingKey, index) | Resolves the display label for a keyboard binding slot. ]
+    [ getGamepadButtonDisplay | (playerKey, mappingKey) | Resolves the display label for a gamepad binding slot. ]
+    [ getKeyName | (keyCode) | Converts a Phaser key code into its display name using the key tables. ]
+    [ formatKeyName | (name) | Formats a raw key table name into a human-friendly label. ]
+    [ confirmDialog | (message, onConfirm, onCancel, confirmText, cancelText) | Shows a modal dialog with confirm and cancel buttons. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -72,8 +72,8 @@ game.state.start("Keybindings");
 
 // Read a binding elsewhere, e.g. when the modal captures a key
 const upKeys = Account.mapping.keyboard.player1.up;
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

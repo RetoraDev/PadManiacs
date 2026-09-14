@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "Gamepad Class"]
+    [title: "Gamepad Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,73 +18,77 @@
 
     [heading: "Key Features"]
     [list]
-* Tracks held, pressed, and released state for every action every frame
-* Accepts input from keyboard, on-screen touch buttons, and HTML5 gamepads
-* Dispatches Phaser signals when keys are pressed or released
-* Detects the active input source to show touch controls and drive vibration
-[/list]
+    * Tracks held, pressed, and released state for every action every frame
+    * Accepts input from keyboard, on-screen touch buttons, and HTML5 gamepads
+    * Dispatches Phaser signals when keys are pressed or released
+    * Detects the active input source to show touch controls and drive vibration
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ game | Phaser.Game | Phaser game instance ]
-[ keyboardMap | Object | Mapping of action names to keyboard key codes ]
-[ gamepadMap | Object | Mapping of action names to gamepad button codes ]
-[ playerIndex | number | =0] - Player index this gamepad handles (0 or 1) ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ game | Phaser.Game | Phaser game instance ]
+    [ keyboardMap | Object | Mapping of action names to keyboard key codes ]
+    [ gamepadMap | Object | Mapping of action names to gamepad button codes ]
+    [ playerIndex=0 | number | Player index this gamepad handles (0 or 1) ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ game | Phaser.Game | Phaser game instance this controller belongs to ]
-[ playerIndex | number | Player index (0 for player 1, 1 for player 2) ]
-[ keys | string[] | Names of the action keys this gamepad tracks ]
-[ held | Object&lt;string, boolean&gt; | Current held state of every action key ]
-[ pressed | Object&lt;string, boolean&gt; | Single-frame pressed edge state of every action key ]
-[ released | Object&lt;string, boolean&gt; | Single-frame released edge state of every action key ]
-[ prevState | Object&lt;string, boolean&gt; | Held state from the previous frame ]
-[ signals | Object | Phaser signals dispatched when keys are pressed or released ]
-[ activeTouches | Map&lt;number, string&gt; | Active touch identifiers mapped to their button key ]
-[ maxTouches | number | Maximum number of simultaneous touches tracked ]
-[ lastInputSource | string | The most recently detected input source ('none', 'keyboard', 'touch' or 'gamepad') ]
-[ inputDetectionTimeout | ?number | Timeout ID that auto-hides touch controls after inactivity ]
-[ touchControlsVisible | boolean | Whether the touch controls are currently shown ]
-[ gamepadState | Object | Current state of the physical gamepad including connection status ]
-[ controllerElement | ?HTMLElement | Touch controller parent element ]
-[ dpadElements | Object&lt;string, HTMLElement&gt; | Directional pad button elements ]
-[ buttonElements | Object&lt;string, HTMLElement&gt; | Action button elements ]
-[/table]
+    [ Property | Type | Description ]
+    [ game | Phaser.Game | Phaser game instance this controller belongs to ]
+    [ playerIndex | number | Player index (0 for player 1, 1 for player 2) ]
+    [ keys | string[] | Names of the action keys this gamepad tracks ]
+    [ held | Object&lt;string, boolean&gt; | Current held state of every action key ]
+    [ pressed | Object&lt;string, boolean&gt; | Single-frame pressed edge state of every action key ]
+    [ released | Object&lt;string, boolean&gt; | Single-frame released edge state of every action key ]
+    [ prevState | Object&lt;string, boolean&gt; | Held state from the previous frame ]
+    [ signals | Object | Phaser signals dispatched when keys are pressed or released ]
+    [ activeTouches | Map&lt;number, string&gt; | Active touch identifiers mapped to their button key ]
+    [ maxTouches | number | Maximum number of simultaneous touches tracked ]
+    [ lastInputSource | string | The most recently detected input source ('none', 'keyboard', 'touch' or 'gamepad') ]
+    [ inputDetectionTimeout | ?number | Timeout ID that auto-hides touch controls after inactivity ]
+    [ touchControlsVisible | boolean | Whether the touch controls are currently shown ]
+    [ keyboardMap | Object | Mapping of action names to keyboard key codes ]
+    [ gamepadMap | Object | Mapping of action names to gamepad button codes ]
+    [ dontUpdateThisTime | boolean | Whether held state should be re-released on the next update ]
+    [ keyCodeToAction | Object | Reverse lookup of key codes to action names ]
+    [ gamepadState | Object | Current state of the physical gamepad including connection status ]
+    [ controllerElement | ?HTMLElement | Touch controller parent element ]
+    [ dpadElements | Object&lt;string, HTMLElement&gt; | Directional pad button elements ]
+    [ buttonElements | Object&lt;string, HTMLElement&gt; | Action button elements ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ updateMapping | (keyboardMap, gamepadMap) | Updates the keyboard and gamepad mappings and rebuilds the keyboard capture. Existing held state is released and the previous keyboard wiring is torn down. ]
-[ setupKeyboard | () | Builds the reverse keycode lookup and captures the keys used by this player. Registers global keyboard handlers that update held state for mapped actions. ]
-[ setupGamepad | () | Registers gamepad connect, disconnect, press, and release handlers. Only events for this player's pad index are applied to this gamepad. ]
-[ setupTouch | () | Enables on-screen touch controls, but only for player 1. Fetches the DOM controller elements and wires their touch events. ]
-[ detectInputSource | (source) | Records the source of the latest input and schedules touch control auto-hide. ]
-[ updateTouchControlsVisibility | () | Shows or hides the touch controller based on device and input source. ]
-[ setupControllerTouchEvents | () | Attaches touch handlers to the controller DOM element. ]
-[ handleTouchStart | (e) | Tracks a new touch and presses the button beneath its starting point. ]
-[ handleTouchMove | (e) | Re-evaluates which button a moving touch is over and switches held keys. ]
-[ handleTouchEnd | (e) | Releases the key a touch was holding and stops tracking the touch. ]
-[ ButtonFromTouch | (touch) | Resolves the controller button key under a given touch point. ]
-[ ButtonForAction | (action) | Returns a display label for the gamepad button bound to an action. ]
-[ update | () | Refreshes pressed/released edge states and dispatches Phaser signals. Call this once per frame from the game loop. ]
-[ isTouchControlled | (key) | Checks whether a key is currently being held by a touch input. ]
-[ updateButtonStates | () | Computes pressed and released edge states from held and previous state. ]
-[ releaseAll | () | Clears held, pressed, and released state for every action key. ]
-[ press | (key) | Programmatically presses a key as a user input would. ]
-[ isDirectionPressed | () | Checks whether any direction action is currently held. ]
-[ Direction | () | Computes a normalized direction vector from the held direction keys. ]
-[ vibrate | (duration) | Vibrates the device or gamepad based on the last detected input source. ]
-[ reset | () | Releases all keys and clears active touches and button highlight states. ]
-[ destroy | () | Removes all listeners, signals, and DOM elements associated with this gamepad. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ updateMapping | (keyboardMap, gamepadMap) | Updates the keyboard and gamepad mappings and rebuilds the keyboard capture. Existing held state is released and the previous keyboard wiring is torn down. ]
+    [ setupKeyboard | () | Builds the reverse keycode lookup and captures the keys used by this player. Registers global keyboard handlers that update held state for mapped actions. ]
+    [ setupGamepad | () | Registers gamepad connect, disconnect, press, and release handlers. Only events for this player's pad index are applied to this gamepad. ]
+    [ setupTouch | () | Enables on-screen touch controls, but only for player 1. Fetches the DOM controller elements and wires their touch events. ]
+    [ detectInputSource | (source) | Records the source of the latest input and schedules touch control auto-hide. ]
+    [ updateTouchControlsVisibility | () | Shows or hides the touch controller based on device and input source. ]
+    [ setupControllerTouchEvents | () | Attaches touch handlers to the controller DOM element. ]
+    [ handleTouchStart | (e) | Tracks a new touch and presses the button beneath its starting point. ]
+    [ handleTouchMove | (e) | Re-evaluates which button a moving touch is over and switches held keys. ]
+    [ handleTouchEnd | (e) | Releases the key a touch was holding and stops tracking the touch. ]
+    [ getButtonFromTouch | (touch) | Resolves the controller button key under a given touch point. ]
+    [ getButtonForAction | (action) | Returns a display label for the gamepad button bound to an action. ]
+    [ update | () | Refreshes pressed/released edge states and dispatches Phaser signals. Call this once per frame from the game loop. ]
+    [ isTouchControlled | (key) | Checks whether a key is currently being held by a touch input. ]
+    [ updateButtonStates | () | Computes pressed and released edge states from held and previous state. ]
+    [ releaseAll | () | Clears held, pressed, and released state for every action key. ]
+    [ press | (key) | Programmatically presses a key as a user input would. ]
+    [ isDirectionPressed | () | Checks whether any direction action is currently held. ]
+    [ getDirection | () | Computes a normalized direction vector from the held direction keys. ]
+    [ vibrate | (duration=100) | Vibrates the device or gamepad based on the last detected input source. ]
+    [ reset | () | Releases all keys and clears active touches and button highlight states. ]
+    [ destroy | () | Removes all listeners, signals, and DOM elements associated with this gamepad. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -96,8 +100,8 @@ pad.signals.pressed.up.add(() => {
 pad.updateMapping(newKeyboardMap, newGamepadMap);
 // Read raw state in your update loop
 if (pad.pressed.a) player.jump();
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

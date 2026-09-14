@@ -116,10 +116,13 @@ class Gamepad {
    * @param {Object} gamepadMap - Mapping of action names to gamepad button codes
    */
   updateMapping(keyboardMap, gamepadMap) {
+    /** @type {Object} Mapping of action names to keyboard key codes */
     this.keyboardMap = keyboardMap || DEFAULT_KEYBOARD_MAPPING;
+    /** @type {Object} Mapping of action names to gamepad button codes */
     this.gamepadMap = gamepadMap || DEFAULT_GAMEPAD_MAPPING;
     
     // Reset gamepad for new mapping
+    /** @type {boolean} Whether held state should be re-released on the next update */
     this.dontUpdateThisTime = true;
     this.setupKeyboard();
   }
@@ -133,6 +136,7 @@ class Gamepad {
     this.releaseAll();
     
     // Create reverse mapping for quick lookup
+    /** @type {Object} Reverse lookup of key codes to action names */
     this.keyCodeToAction = {};
     for (const [action, keyCodes] of Object.entries(this.keyboardMap)) {
       keyCodes.forEach(keyCode => {

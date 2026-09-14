@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "FirstPlayer Class"]
+    [title: "FirstPlayer Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,27 +18,38 @@
 
     [heading: "Key Features"]
     [list]
-* Uses gamepad1 for input
-* Left-side screen positioning
-* P1-specific HUD elements
-[/list]
+    * Uses gamepad1 for input
+    * Left-side screen positioning
+    * P1-specific HUD elements
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ scene | Phaser.Scene | The Phaser game scene ]
-[ settings | Object | Gameplay configuration overrides ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ scene | Phaser.Scene | The Phaser game scene ]
+    [ settings | Object | Gameplay configuration overrides ]
+    [/table]
 
-    
+
+    [heading: "Properties"]
+    [table header]
+    [ Property | Type | Description ]
+    [ gamepad | Object | Gamepad assigned to player 1 ]
+    [ HEALTH_X | number | X position of player 1's health bar ]
+    [ HEALTH_WIDTH | number | Width of player 1's health bar ]
+    [ ACCURACY_BAR_WIDTH | number | Width of player 1's accuracy bar ]
+    [ hud | Object | HUD container for player 1 ]
+    [/table]
+
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Creating a first player in a gameplay scene
 const p1 = new FirstPlayer(scene, { speedMod: "X-MOD" });
 p1.update();
 console.log(p1.score, p1.getScoreRating());
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

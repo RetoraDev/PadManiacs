@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "Metronome Class"]
+    [title: "Metronome Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,49 +18,49 @@
 
     [heading: "Key Features"]
     [list]
-* Quarter, eighth, sixteenth, and thirty-second beat divisions
-* Note-triggered mode that ticks on actual note beats
-* Toggle via scene select button binding
-[/list]
+    * Quarter, eighth, sixteenth, and thirty-second beat divisions
+    * Note-triggered mode that ticks on actual note beats
+    * Toggle via scene select button binding
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ scene | Object | The Phaser game state scene ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ scene | Object | The Phaser game state scene ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ scene | Object | The owning Phaser game state scene ]
-[ mode | string | Current metronome mode from account settings ]
-[ enabled | boolean | Whether the metronome ticks are active ]
-[ beatDivisions | Object | Map of mode names to beat division multipliers ]
-[ lastDivisionValue | number | Last division value to detect beat crossings ]
-[ currentDivision | number | Division multiplier of the current mode ]
-[ noteIndex | number | Current note index to check ]
-[ lastNoteBeat | number | Last note beat that triggered a tick ]
-[ notes | Array | Array of unique note beats ]
-[/table]
+    [ Property | Type | Description ]
+    [ scene | Object | The owning Phaser game state scene ]
+    [ mode | string | Current metronome mode from account settings ]
+    [ enabled | boolean | Whether the metronome ticks are active ]
+    [ beatDivisions | Object | Map of mode names to beat division multipliers ]
+    [ lastDivisionValue | number | Last division value to detect beat crossings ]
+    [ currentDivision | number | Division multiplier of the current mode ]
+    [ noteIndex | number | Current note index to check ]
+    [ lastNoteBeat | number | Last note beat that triggered a tick ]
+    [ notes | Array | Array of unique note beats ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ update | () | Updates the metronome each frame, dispatching to the active mode's update logic. ]
-[ updateBeatMode | () | Plays a tick whenever the beat crosses into a new subdivision value. ]
-[ updateNoteMode | () | Triggers ticks as the song time reaches the beat of each chart note. ]
-[ initializeNotes | () | Builds a sorted list of unique note beats from the current difficulty chart. ]
-[ CurrentDivisionValue | (beat) | Computes the current subdivision value by scaling the beat with the mode's multiplier. ]
-[ playTick | () | Plays the metronome tick sound effect. ]
-[ toggle | () | Toggles the metronome enabled state when the mode is not OFF. ]
-[ resetNoteMode | () | Resets note mode state so ticks restart from the beginning of the chart. ]
-[ setMode | (mode) | Changes the metronome mode and reconfigures enabled state and tracking. ]
-[ destroy | () | Disables the metronome, resets state, and cleans up the status text display. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ update | () | Updates the metronome each frame, dispatching to the active mode's update logic. ]
+    [ updateBeatMode | () | Plays a tick whenever the beat crosses into a new subdivision value. ]
+    [ updateNoteMode | () | Triggers ticks as the song time reaches the beat of each chart note. ]
+    [ initializeNotes | () | Builds a sorted list of unique note beats from the current difficulty chart. ]
+    [ getCurrentDivisionValue | (beat) | Computes the current subdivision value by scaling the beat with the mode's multiplier. ]
+    [ playTick | () | Plays the metronome tick sound effect. ]
+    [ toggle | () | Toggles the metronome enabled state when the mode is not OFF. ]
+    [ resetNoteMode | () | Resets note mode state so ticks restart from the beginning of the chart. ]
+    [ setMode | (mode) | Changes the metronome mode and reconfigures enabled state and tracking. ]
+    [ destroy | () | Disables the metronome, resets state, and cleans up the status text display. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -70,8 +70,8 @@ metro.toggle();
 function update() {
   metro.update();
 }
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

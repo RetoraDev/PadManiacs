@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "Results Class"]
+    [title: "Results Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,40 +18,55 @@
 
     [heading: "Key Features"]
     [list]
-* Shows final score, accuracy, letter rating, max combo and judgement breakdown
-* Saves high scores and celebrates a new record with a pulsing banner
-* Character portrait with an animated experience and level-up progression
-* Navigation menu to continue, retry or quit back to the main menu
-[/list]
+    * Shows final score, accuracy, letter rating, max combo and judgement breakdown
+    * Saves high scores and celebrates a new record with a pulsing banner
+    * Character portrait with an animated experience and level-up progression
+    * Navigation menu to continue, retry or quit back to the main menu
+    [/list]
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ gameData | Object | The payload passed from the Play state ]
-[ isNewRecord | boolean | Whether the run set a new high score ]
-[ finalScore | number | The final score to display ]
-[ finalAccuracy | number | The final accuracy percentage to display ]
-[ scoreRating | string | The letter rating achieved for the run ]
-[/table]
+    [ Property | Type | Description ]
+    [ gameData | Object | The payload passed from the Play state ]
+    [ isNewRecord | boolean | Whether the run set a new high score ]
+    [ finalScore | number | The final score to display ]
+    [ finalAccuracy | number | The final accuracy percentage to display ]
+    [ scoreRating | string | The letter rating achieved for the run ]
+    [ previewAudio | HTMLAudioElement | Audio element playing the song preview ]
+    [ visibilityChangeListener | Function | Handler pausing or resuming the preview on tab visibility changes ]
+    [ bannerImg | HTMLImageElement | Image element loading the song banner ]
+    [ bannerCanvas | HTMLCanvasElement | Canvas the banner is drawn onto ]
+    [ bannerCtx | CanvasRenderingContext2D | 2D context of the banner canvas ]
+    [ bannerSprite | Phaser.Sprite | Sprite displaying the banner texture ]
+    [ songText | Text | Label with the cleaned-up song title ]
+    [ diffText | Text | Label with the difficulty type and rating ]
+    [ scoreText | Text | Final score label ]
+    [ accuracyText | Text | Final accuracy percentage label ]
+    [ ratingText | Text | Score rating label ]
+    [ comboText | Text | Maximum combo label ]
+    [ judgementsText | Text | Judgement count breakdown label ]
+    [ recordText | ?Text | &quot;NEW RECORD!&quot; celebration label ]
+    [ navigationHint | NavigationHint | Hint prompts for the results controls ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ init | (gameData) | Phaser state hook that stores the game data and resets the result fields. ]
-[ create | () | Phaser state hook that saves the high score and builds the results screen. ]
-[ saveHighScore | (song, difficulty, player) | Saves the run's score to the account if it beats the current high score. ]
-[ hashString | (str) | Hashes a string into a compact 32-bit base-36 identifier. ]
-[ displayResults | () | Renders the banner, song info, score, accuracy, rating and combo texts. ]
-[ showCharacterExp | () | Shows the character portrait and animates the experience gain. ]
-[ showMenu | () | Builds the results navigation menu with continue, retry and quit options. ]
-[ JudgementsText | (judgements) | Formats the judgement counts into a multi-line summary. ]
-[ RatingColor | (rating) | Maps a letter rating to its display tint color. ]
-[ update | () | Phaser lifecycle hook called every frame to poll gamepad input. ]
-[ shutdown | () | Phaser lifecycle hook called when leaving the state; stops the preview audio. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ init | (gameData) | Phaser state hook that stores the game data and resets the result fields. ]
+    [ create | () | Phaser state hook that saves the high score and builds the results screen. ]
+    [ saveHighScore | (song, difficulty, player) | Saves the run's score to the account if it beats the current high score. ]
+    [ hashString | (str) | Hashes a string into a compact 32-bit base-36 identifier. ]
+    [ displayResults | () | Renders the banner, song info, score, accuracy, rating and combo texts. ]
+    [ showCharacterExp | () | Shows the character portrait and animates the experience gain. ]
+    [ showMenu | () | Builds the results navigation menu with continue, retry and quit options. ]
+    [ getJudgementsText | (judgements) | Formats the judgement counts into a multi-line summary. ]
+    [ getRatingColor | (rating) | Maps a letter rating to its display tint color. ]
+    [ update | () | Phaser lifecycle hook called every frame to poll gamepad input. ]
+    [ shutdown | () | Phaser lifecycle hook called when leaving the state; stops the preview audio. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Open results for a finished playthrough
@@ -62,8 +77,8 @@ game.state.start("Results", true, false, {
   autoplay: false,
   expGain: 120
 });
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

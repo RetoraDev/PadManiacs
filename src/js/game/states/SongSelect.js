@@ -35,26 +35,33 @@ class SongSelect {
     /** @type {string|null} Optional playlist key for the current song list */
     this.playlistKey = playlistKey;
     
+    /** @type {boolean} Whether the per-song action menu is currently open */
     this.isActionMenuOpen = false;
+    /** @type {boolean} Whether opening the action menu is temporarily blocked */
     this.actionsMenuBlocked = false;
     
-    /** @type {Object[]} The song list presented in this state */
-    /** @type {number} Carousel index to start the song list at */
+    let selectedSongs;
+    let selectedStartingIndex;
     switch (type) {
       case "local":
-        this.songs = songs || window.localSongs || [];
-        this.startingIndex = index || Account.songSelectStartingIndex.local || 0;
+        selectedSongs = songs || window.localSongs || [];
+        selectedStartingIndex = index || Account.songSelectStartingIndex.local || 0;
         break;
       case "external":
-        this.songs = songs || window.externalSongs || [];
-        this.startingIndex = index || Account.songSelectStartingIndex.external || 0;
+        selectedSongs = songs || window.externalSongs || [];
+        selectedStartingIndex = index || Account.songSelectStartingIndex.external || 0;
         break;
       case "auto":
       default:
-        this.songs = songs || window.selectedSongs || [];
-        this.startingIndex = index || window.selectStartingIndex || 0;
+        selectedSongs = songs || window.selectedSongs || [];
+        selectedStartingIndex = index || window.selectStartingIndex || 0;
         break;
     }
+    
+    /** @type {Object[]} The song list presented in this state */
+    this.songs = selectedSongs;
+    /** @type {number} Carousel index to start the song list at */
+    this.startingIndex = selectedStartingIndex;
     
     window.selectedSongs = this.songs;
     
@@ -69,6 +76,7 @@ class SongSelect {
     window.multiplayerState.player1.ready = false;
     window.multiplayerState.player2.ready = false;
     window.multiplayerState.player2.joined = false;
+    /** @type {Object} Shared multiplayer state mirror used across the UI */
     this.multiplayerState = window.multiplayerState;
     
     if (this.startingIndex + 1 > this.songs.length) {
@@ -102,19 +110,26 @@ class SongSelect {
     this.previewAudio = this.previewAudio || document.createElement("audio");
     this.previewAudio.volume = Account.settings.volume / 100;
     
+    /** @type {HTMLImageElement} Image element caching the song banner pixels */
     this.bannerImg = this.bannerImg || document.createElement("img");
     
+    /** @type {NavigationHint} Hint prompts for the song select controls */
     this.navigationHint = new NavigationHint('song_select');
     this.navigationHint.ignorePlayerSwitch = true;
     
+    /** @type {Text} Autoplay indicator label */
     this.autoplayText = new Text(4, 132, "");
     
+    /** @type {CanvasBackground} Layer drawing the selected song banner */
     this.bannerSprite = new CanvasBackground(4, 4);
 
+    /** @type {Text} Label showing the song metadata (artist, BPM, etc.) */
     this.metadataText = new Text(102, 4, "");
     
+    /** @type {Text} Label showing the best score for the song */
     this.highScoreText = new Text(game.width / 2 + 8, 58, "");
     
+    /** @type {LoadingDots} Animated indicator shown while songs are loading */
     this.loadingDots = new LoadingDots();
     this.loadingDots.y -= 8;
     this.loadingDots.visible = false;
@@ -127,6 +142,7 @@ class SongSelect {
     this.windowManager1.gamepad = gamepad1;
     this.windowManager2.gamepad = gamepad2;
     
+    /** @type {Function} Handler pausing or resuming previews on tab visibility changes */
     this.visibilityChangeListener = () => {
       if (document.hidden) {
         this.previewAudio?.pause();
@@ -158,6 +174,7 @@ class SongSelect {
     const width = game.width / 2;
     const height = 100;
 
+    /** @type {CarouselMenu} Carousel listing the available songs */
     this.songCarousel = new CarouselMenu(x, y, width, height, {
       bgcolor: "#9b59b6",
       fgcolor: "#ffffff",
@@ -401,6 +418,7 @@ class SongSelect {
     
     this.actionsMenuBlocked = true;
     
+    /** @type {CarouselMenu} Carousel listing the song's difficulties */
     this.difficultyCarousel = new CarouselMenu(x, y, width, height, {
       bgcolor: "#e67e22",
       fgcolor: "#ffffff",
@@ -450,6 +468,7 @@ class SongSelect {
     const width = game.width / 2;
     const height = game.height;
 
+    /** @type {CarouselMenu} Carousel choosing the game mode (single or multiplayer) */
     this.gamemodeCarousel = new CarouselMenu(x, y, width, height, {
       bgcolor: "#e67e22",
       fgcolor: "#ffffff",
@@ -481,9 +500,12 @@ class SongSelect {
    * @param {number} difficultyIndex - Index of the chosen difficulty
    */
   showMultiplayerScreen(song, difficultyIndex) {
+    /** @type {Phaser.Group} Group holding the multiplayer setup UI */
     this.multiplayerScreen = game.add.group();
     
+    /** @type {Window} Player 1's settings window frame */
     this.player1Frame = this.windowManager1.createWindow(1, 5, 14, 10, "1", this.multiplayerScreen);
+    /** @type {Window} Player 2's settings window frame */
     this.player2Frame = this.windowManager2.createWindow(15.5, 5, 14, 10, "1", this.multiplayerScreen);
     
     this.populatePlayerFrame(this.player1Frame, 1);
@@ -492,13 +514,17 @@ class SongSelect {
     this.windowManager1.focus(this.player1Frame);
             
     // Create ready text
+    /** @type {Phaser.Sprite} Gradient overlay behind player 1's READY label */
     this.p1ReadyBackground = createGradientBackground(this.player1Frame.x + this.player1Frame.size.width * 8 / 2, this.player1Frame.y + this.player1Frame.size.height * 8 / 2, this.player1Frame.size.width * 8, 10);
+    /** @type {Phaser.Sprite} Gradient overlay behind player 2's READY label */
     this.p2ReadyBackground = createGradientBackground(this.player2Frame.x + this.player2Frame.size.width * 8 / 2, this.player2Frame.y + this.player2Frame.size.height * 8 / 2, this.player2Frame.size.width * 8, 10);
     
     this.p1ReadyBackground.anchor.set(0.5);
     this.p2ReadyBackground.anchor.set(0.5);
     
+    /** @type {Text} Player 1's READY label */
     this.p1ReadyText = new Text(0, 1, __("READY||LISTO"), null, this.p1ReadyBackground);
+    /** @type {Text} Player 2's READY label */
     this.p2ReadyText = new Text(0, 1, __("READY||LISTO"), null, this.p2ReadyBackground);
     
     this.p1ReadyText.anchor.set(0.5);
@@ -508,10 +534,12 @@ class SongSelect {
     this.multiplayerScreen.addChild(this.p2ReadyBackground);
 
     // Prompt player 2 to press start
+    /** @type {Text} Prompt asking player 2 to press start */
     this.playerJoinInstructionText = new Text(120 + 55, 50 + 32, __("PLAYER 2\n< PRESS START >||JUGADOR 2\n< PRESIONA START >"), null, this.multiplayerScreen);
     this.playerJoinInstructionText.anchor.set(0.5);
     
     // Prompt both players to press start
+    /** @type {Text} Prompt shown once both players are ready */
     this.startInstructionText = new Text(game.width / 2, 100, __("PRESS START TO BEGIN||PRESIONA START PARA COMENZAR"), null, this.multiplayerScreen);
     this.startInstructionText.visible = false;
     this.startInstructionText.anchor.set(0.5);
@@ -614,6 +642,7 @@ class SongSelect {
     this.songCarousel.visible = false;
     this.songCarousel.inputEnabled = false;
     
+    /** @type {CarouselMenu} Popup menu with per-song actions */
     this.actionsMenu = new CarouselMenu(0, 35, game.width / 2, 100, {
       bgcolor: '#2c3e50',
       fgcolor: '#ffffff',

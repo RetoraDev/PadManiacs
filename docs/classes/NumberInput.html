@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "NumberInput Class"]
+    [title: "NumberInput Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,43 +18,45 @@
 
     [heading: "Key Features"]
     [list]
-* Clamped numeric range with min and max enforcement
-* Decimal place support with fixed formatting
-* Increment and decrement on gamepad up/down
-* Dispatches the numeric value on confirm or cancel
-[/list]
+    * Clamped numeric range with min and max enforcement
+    * Decimal place support with fixed formatting
+    * Increment and decrement on gamepad up/down
+    * Dispatches the numeric value on confirm or cancel
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ config | object | ={}] - Config with min, max, decimals, and initial text ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ config={} | object | Config with min, max, decimals, and initial text ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ min | number | Minimum allowed value ]
-[ max | number | Maximum allowed value ]
-[ decimals | number | Number of decimal places to display ]
-[/table]
+    [ Property | Type | Description ]
+    [ min | number | Minimum allowed value ]
+    [ max | number | Maximum allowed value ]
+    [ decimals | number | Number of decimal places to display ]
+    [ text | string | Current value rendered as text ]
+    [ currentIndex | number | Cursor position within the text ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ NumericValue | () | Parses the current text into a number clamped to the configured range. ]
-[ validateCharInput | (char) | Validates characters for numeric input, guarding minus and decimal signs. ]
-[ receiveInput | (key, input) | Handles input, mapping up/down to increment/decrement actions. ]
-[ increment | () | Increases the value by one step of the configured decimal precision. ]
-[ decrement | () | Decreases the value by one step of the configured decimal precision. ]
-[ setValue | (value) | Sets and displays a value, clamped to the configured range. ]
-[ clampAndUpdateDisplay | () | Reclamps the current text's value and refreshes its formatted display. ]
-[ confirm | () | Dispatches the clamped numeric value on onConfirm and destroys the input. ]
-[ cancel | () | Dispatches the clamped numeric value on onCancel and destroys the input. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ getNumericValue | () | Parses the current text into a number clamped to the configured range. ]
+    [ validateCharInput | (char) | Validates characters for numeric input, guarding minus and decimal signs. ]
+    [ receiveInput | (key, input) | Handles input, mapping up/down to increment/decrement actions. ]
+    [ increment | () | Increases the value by one step of the configured decimal precision. ]
+    [ decrement | () | Decreases the value by one step of the configured decimal precision. ]
+    [ setValue | (value) | Sets and displays a value, clamped to the configured range. ]
+    [ clampAndUpdateDisplay | () | Reclamps the current text's value and refreshes its formatted display. ]
+    [ confirm | () | Dispatches the clamped numeric value on onConfirm and destroys the input. ]
+    [ cancel | () | Dispatches the clamped numeric value on onCancel and destroys the input. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -63,8 +65,8 @@ const input = new NumberInput({
   min: 0, max: 10, decimals: 0,
   onConfirm: (value) => setSpeed(value)
 });
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

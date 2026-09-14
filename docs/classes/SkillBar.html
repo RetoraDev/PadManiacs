@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "SkillBar Class"]
+    [title: "SkillBar Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,42 +18,42 @@
 
     [heading: "Key Features"]
     [list]
-* Five segment sprites toggled individually
-* Update hooks from value and visibleParts
-[/list]
+    * Five segment sprites toggled individually
+    * Update hooks from value and visibleParts
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ x | Number | X position of the bar ]
-[ y | Number | Y position of the bar ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ x | Number | X position of the bar ]
+    [ y | Number | Y position of the bar ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ parts | Array&lt;Phaser.Sprite&gt; | Segment sprites making up the bar ]
-[ visibleParts | Number | How many of the five segments are shown ]
-[ value | Number | Current rating 1-5 that fills segments ]
-[/table]
+    [ Property | Type | Description ]
+    [ parts | Array&lt;Phaser.Sprite&gt; | Segment sprites making up the bar ]
+    [ visibleParts | Number | How many of the five segments are shown ]
+    [ value | Number | Current rating 1-5 that fills segments ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ update | () | Phaser lifecycle hook called every frame. Toggles each segment's visibility and frame based on visibleParts and value. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ update | () | Phaser lifecycle hook called every frame. Toggles each segment's visibility and frame based on visibleParts and value. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
 const bar = new SkillBar(100, 200);
 game.add.existing(bar);
 bar.value = 3;
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

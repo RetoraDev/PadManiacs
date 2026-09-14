@@ -76,6 +76,7 @@ class AllPads extends Gamepad {
           this.pressed[key] = true;
           anyPressed = key;
           this.lastPlayerId = pad.playerIndex + 1;
+          /** @type {string} Input source of the most recent press across all pads */
           this.lastInputSource = pad.lastInputSource;
         }
         

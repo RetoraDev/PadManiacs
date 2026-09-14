@@ -64,6 +64,7 @@ class FullScreenAudioVisualizer {
     try {
       // Create audio context if not already created
       if (!this.audioContext) {
+        /** @type {AudioContext} Web Audio context driving the analyser */
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
       }
       
@@ -103,6 +104,7 @@ class FullScreenAudioVisualizer {
       }
       
       // Create new source and connect
+      /** @type {MediaElementAudioSourceNode} Audio source node linked to the audio element */
       this.source = this.audioContext.createMediaElementSource(this.audioElement);
       this.source.connect(this.analyser);
       this.analyser.connect(this.audioContext.destination);

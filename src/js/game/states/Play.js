@@ -34,6 +34,7 @@ class Play {
     if (typeof song.difficultyIndex != undefined && typeof difficultyIndex != undefined) {
       song.difficultyIndex = difficultyIndex;
     }
+    /** @type {Object} The unmodified song object passed into the state */
     this.originalSong = song;
     /** @type {Object} A deep clone of the chart used for gameplay */
     this.song = structuredClone(song);
@@ -41,15 +42,25 @@ class Play {
     this.difficultyIndex = typeof difficultyIndex != undefined ? difficultyIndex : song.difficultyIndex;
     /** @type {Object|null} The player renderer and judgement objects */
     this.player = null;
+    /** @type {Array} Queue of background preload tasks */
     this.backgroundQueue = [];
+    /** @type {Object} Cache of preloaded background elements by file name */
     this.preloadedBackgroundElements = {};
+    /** @type {?Object} The background element currently on screen */
     this.currentBackground = null;
+    /** @type {boolean} Whether gameplay is currently paused */
     this.isPaused = false;
+    /** @type {number} Timestamp when the current pause started */
     this.pauseStartTime = 0;
+    /** @type {number} Total accumulated pause duration in milliseconds */
     this.totalPausedDuration = 0;
+    /** @type {boolean} Whether the song start is held until audio is ready */
     this.pendingSongStart = false;
+    /** @type {?Function} Handler notified when the audio element ends */
     this.audioEndListener = null;
+    /** @type {boolean} Whether the song has started playing */
     this.started = false;
+    /** @type {number} Audio timeline offset used to sync the chart */
     this.startTime = 0;
     /** @type {boolean} Whether the note roadmap is being played by the computer */
     this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
@@ -57,16 +68,27 @@ class Play {
     this.playlistKey = playlistKey;
     /** @type {number} The user's global timing offset in milliseconds */
     this.userOffset = Account.settings.userOffset || 0;
+    /** @type {number} Timestamp of the last video sync update */
     this.lastVideoUpdateTime = 0;
+    /** @type {?Lyrics} Lyrics renderer for the current song */
     this.lyrics = null;
+    /** @type {boolean} Whether the chart includes a lyrics file */
     this.hasLyricsFile = this.song.chart.lyricsContent ? true : false;
+    /** @type {string} Active visualizer type from account settings */
     this.visualizerType = Account.settings.visualizer || 'NONE';
+    /** @type {number} Timestamp of the last visualizer redraw */
     this.lastVisualizerUpdateTime = 0;
+    /** @type {?Metronome} Beats-per-minute metronome display */
     this.metronome = null;
+    /** @type {?ScreenRecorder} Recorder capturing the playthrough */
     this.gameRecorder = null;
+    /** @type {boolean} Whether this is an editor playtest run */
     this.playtestMode = playtestMode;
+    /** @type {boolean} Whether the full combo overlay animation has started */
     this.fullComboAnimationStarted = false;
+    /** @type {boolean} Whether the full combo overlay animation has finished */
     this.fullComboAnimationEnded = false;
+    /** @type {boolean} Whether the shots are currently flying on screen */
     this.shootingDown = false;
     
     // Initialize character system
@@ -74,6 +96,7 @@ class Play {
     this.characterManager = new CharacterManager();
     /** @type {Object|null} The character active for this playthrough */
     this.currentCharacter = this.characterManager.getCurrentCharacter();
+    /** @type {CharacterSkillSystem} Tracks character skills used during the playthrough */
     this.skillSystem = new CharacterSkillSystem(this, this.currentCharacter);
     
     // Update stats
@@ -108,10 +131,13 @@ class Play {
     window.p = this;
     
     // Game constants
+    /** @type {Object} Timing windows used to judge each note */
     this.JUDGE_WINDOWS = JUDGE_WINDOWS;
     
+    /** @type {Object} Score values awarded for each judgement */
     this.SCORE_VALUES = SCORE_VALUES;
     
+    /** @type {number} Fixed playback delay in milliseconds */
     this.FIXED_DELAY = 2000; 
   }
   
@@ -128,10 +154,13 @@ class Play {
     game.camera.fadeIn(0x000000);
     
     // Create background
+    /** @type {Phaser.Group} Layer holding the background elements */
     this.backgroundLayer = game.add.group();
+    /** @type {CanvasBackground} The chart background rendered as a canvas */
     this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 1;
     
+    /** @type {Function} Handler pausing or resuming the game on tab visibility changes */
     this.visibilityChangeListener = () => {
       if (document.hidden) {
         if (!this.isPaused) this.pause();
@@ -313,6 +342,7 @@ class Play {
   setupAudio() {
     return new Promise(resolve => {
       // Create audio element and wait for it to load
+      /** @type {HTMLAudioElement} Audio element used for the song playback */
       this.audio = this.audio || document.createElement("audio");
       this.audio.volume = Account.settings.volume / 100;
       this.audio.currentTime = 0;
@@ -386,55 +416,70 @@ class Play {
    * Builds the heads-up display with lifebar, score, combo, accuracy and text.
    */
   createHud() {
+    /** @type {BackgroundGradient} Animated gradient behind the HUD */
     this.backgroundGradient = new BackgroundGradient(0, 0.4, 5000);
 
+    /** @type {Phaser.Sprite} Root sprite of the HUD */
     this.hud = game.add.sprite(0, 0);
     
+    /** @type {Phaser.Sprite} Full-screen flash shape keyed by the temperature meter */
     this.hudFlashShape = game.add.sprite(game.width / 2, game.height / 2, 'ui_hud_flash_shape');
     this.hudFlashShape.anchor.set(0.5);
     this.hudFlashShape.alpha = 0;
     this.hud.addChild(this.hudFlashShape);
     
+    /** @type {Phaser.Sprite} Top HUD strip */
     this.hudTop = game.add.sprite(0, -40, 'ui_hud_background_top');
     this.hudTop.alpha = 0;
     this.hud.addChild(this.hudTop);
     
+    /** @type {Phaser.Sprite} Bottom HUD strip */
     this.hudBottom = game.add.sprite(0, 40, 'ui_hud_background_bottom');
     this.hudBottom.alpha = 0;
     this.hud.addChild(this.hudBottom);
     
+    /** @type {Phaser.Sprite} Overlay sprite sitting above the HUD */
     this.overHud = game.add.sprite(0, 0);
     
     const difficulty = this.song.chart.difficulties[this.difficultyIndex];
     
+    /** @type {Phaser.Sprite} Banner showing the difficulty name */
     this.difficultyBanner = game.add.sprite(0, 0, "ui_difficulty_banner", 0);
     this.difficultyBanner.tint = window.getDifficultyColor(difficulty.rating, true);
     this.hudTop.addChild(this.difficultyBanner);
     
+    /** @type {Text} Label of the current difficulty */
     this.difficultyTypeText = new Text(5, 1, difficulty.type.substr(0, 9), FONTS.default, this.difficultyBanner);
     this.difficultyTypeText.alpha = 0.7;
     game.add.tween(this.difficultyTypeText).to({ alpha: 1 }, 400, "Linear", true).repeat(-1).yoyo(true);
     
     const title = this.song.chart.titleTranslit || this.song.chart.title;
     
+    /** @type {Text} Scrolling song title label */
     this.songTitleText = new Text(41, 1, "", null, this.hudTop);
     this.songTitleText.write(title, 41);
     
+    /** @type {Text} Name of the active character */
     this.playerName = new Text(5, 9, "", FONTS.tiny_shaded, this.hudTop);
     this.playerName.write(this.currentCharacter ? this.currentCharacter.name : "NONE", 8);
     
     this.playerName.tint = this.currentCharacter ? Math.max(0x787878, this.currentCharacter.appearance.tints?.hair || 0x787878) : 0xffffff;
     
+    /** @type {SkillBar} Bar showing the character's skill usage */
     this.skillBar = new SkillBar(6, 16);
     this.hudTop.addChild(this.skillBar);
     
     if (!this.currentCharacter) this.skillBar.visible = false;
     
+    /** @type {Text} Numeric score label */
     this.scoreText = new Text(35, 14, "0".repeat(9), FONTS.tiny_number, this.hudTop);
     
+    /** @type {Phaser.Sprite} Left segment of the lifebar */
     this.lifebarStart = game.add.sprite(37, 9, "ui_lifebar", 0);
+    /** @type {Phaser.Sprite} Stretching middle segment of the lifebar */
     this.lifebarMiddle = game.add.sprite(1, 0, "ui_lifebar", 1);
     this.lifebarMiddle.width = 145;
+    /** @type {Phaser.Sprite} Right segment of the lifebar */
     this.lifebarEnd = game.add.sprite(146, 0, "ui_lifebar", 2);
     
     this.hudTop.addChild(this.lifebarStart);
@@ -442,17 +487,22 @@ class Play {
     this.lifebarStart.addChild(this.lifebarEnd);
     
     // Autoplay text
+    /** @type {Text} Label shown while autoplay is enabled */
     this.autoplayText = new Text(4, 120, this.autoplay ? "AUTOPLAY" : "", FONTS.tiny_stroke, this.hud);
     
+    /** @type {Text} Numeric health label */
     this.healthText = new Text(185, 9, "100", FONTS.tiny_number, this.hudTop);
     
+    /** @type {Phaser.Sprite} Sprite showing the last judgement result */
     this.judgementText = game.add.sprite(game.width / 2, 75, "judgement", 0);
     this.judgementText.alpha = 0;
     this.judgementText.anchor.set(0.5);
     
+    /** @type {Phaser.Sprite} Accuracy bar sprite */
     this.accuracyBar = game.add.sprite(51, 136, "ui_accuracy_bar");
     this.hudBottom.addChild(this.accuracyBar);
     
+    /** @type {Text} Current combo count label */
     this.comboText = new Text(240 - 1, 140 - 6, "0", FONTS.biscuitlocker_combo, this.hudBottom);
     this.comboText.anchor.set(1);
   }
@@ -468,6 +518,7 @@ class Play {
     // Remove existing visualizer
     if (this.visualizer) {
       this.visualizer.destroy();
+      /** @type {?Object} The active visualizer instance, or null when none is shown */
       this.visualizer = null;
     }
 
@@ -505,6 +556,7 @@ class Play {
       this.stopHudFlash();
     });
     
+    /** @type {AudioTemperatureMeter} Meter tracking the song's audio temperature */
     this.temperature = meter;
   }
   
@@ -525,6 +577,7 @@ class Play {
       const lyricsPosition = Account.settings.lyricsPosition ? 40 : 90;
       
       // Create lyrics text element
+      /** @type {?Text} On-screen label rendering the current lyrics line */
       this.lyricsText = new Text(game.width / 2, lyricsPosition, "", FONTS.default_stroke);
       this.lyricsText.anchor.set(0.5);
       
@@ -804,6 +857,7 @@ class Play {
     }
     
     // Create overlay parent
+    /** @type {Phaser.Sprite} Full combo celebration overlay */
     this.fullComboOverlay = game.add.sprite(0, 0);
     
     const flawless = this.player.accuracy >= 99.75;
@@ -817,11 +871,13 @@ class Play {
     bitmap.context.fillStyle = gradient;
     bitmap.context.fillRect(0, 0, game.width, game.height);
     
+    /** @type {Phaser.Sprite} Gradient layer over the full combo background */
     this.fullComboGradient = game.add.sprite(0, 0, bitmap);
     this.fullComboGradient.alpha = 0;
     this.fullComboOverlay.addChild(this.fullComboGradient);
     
     // Create full combo message
+    /** @type {Phaser.Graphics} Bordered bar behind the full combo message */
     this.fullComboBg = game.add.graphics(0, game.height / 2);
     this.fullComboBg.beginFill(0x000000, 1);
     this.fullComboBg.drawRect(0, 0, game.width, 10);
@@ -834,6 +890,7 @@ class Play {
     this.fullComboBg.scale.y = 0;
     this.fullComboOverlay.addChild(this.fullComboBg);
     
+    /** @type {Text} "FULL COMBO!!" or "FLAWLESS!!" message */
     this.fullComboText = new Text(game.width, 6, flawless ? "FLAWLESS!!" : "FULL COMBO!!", "", FONTS.default);
     this.fullComboText.anchor.x = 0.5;
     this.fullComboText.anchor.y = 0.5;
@@ -1018,6 +1075,7 @@ class Play {
       }
       
       // Use the preloaded background
+      /** @type {HTMLVideoElement} Video element currently used as the background */
       this.video = element;
       
       onloadCallback?.();
@@ -1131,6 +1189,7 @@ class Play {
     // Handle fade in
     if (bg.fadeIn && bg.fadeIn > 0) {
       this.backgroundSprite.alpha = 0;
+      /** @type {?Phaser.Tween} Tween animating the current background fade-in */
       this._bgFadeTween = game.add.tween(this.backgroundSprite)
         .to({ alpha: targetAlpha }, bg.fadeIn * 1000, Phaser.Easing.Quadratic.InOut, true);
     } else {
@@ -1142,6 +1201,7 @@ class Play {
       // Calculate duration until fade out starts
       // We need to know when this background will be replaced
       // Since we don't know when the next BG change is, we store the fadeOut info
+      /** @type {?Object} Pending fade-out parameters for the current background */
       this._pendingFadeOut = {
         duration: bg.fadeOut * 1000,
         targetAlpha: 0
@@ -1171,6 +1231,7 @@ class Play {
     
     switch (parseInt(bg.effect)) {
       case 1: // Stretch - horizontal distortion
+        /** @type {?number} Interval id driving the active background effect */
         this._bgEffectTimer = setInterval(() => {
           if (!this.backgroundSprite || this.shootingDown) {
             clearInterval(this._bgEffectTimer);
@@ -1449,12 +1510,14 @@ class Play {
    * Shows the pause menu with continue, autoplay, restart, retry and quit options.
    */
   showPauseMenu() {
+    /** @type {Phaser.Graphics} Dark overlay dimming the gameplay behind the pause menu */
     this.pauseBg = game.add.graphics(0, 0);
     
     this.pauseBg.beginFill(0x000000, 0.6);
     this.pauseBg.drawRect(0, 0, game.width, game.height);
     this.pauseBg.endFill();
     
+    /** @type {Text} Label listing the current judgement counts */
     this.pauseStatsText = new Text(game.width - 20, game.height / 2 + 4, "", FONTS.default);
     this.pauseStatsText.anchor.set(1, 0.5);
     this.pauseStatsText.tint = 0xECECEC;
@@ -1463,6 +1526,7 @@ class Play {
     
     this.pauseStatsText.write(statsContent);
     
+    /** @type {CarouselMenu} Pause menu options (continue, autoplay, restart, quit) */
     this.pauseCarousel = new CarouselMenu(10, game.height / 2 - 20, 80, 60, {
       bgcolor: "brown",
       fgcolor: "#ffffff",
@@ -1598,6 +1662,7 @@ class Play {
     if (gamepad.pressed.start && !this.lastStart) {
       this.togglePause();
     }
+    /** @type {boolean} Start button state from the previous frame */
     this.lastStart = gamepad.pressed.start;
     
     // Update skill system

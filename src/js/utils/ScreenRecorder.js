@@ -71,9 +71,11 @@ class ScreenRecorder {
 
     try {
       // Create a scaled canvas for high-resolution recording
+      /** @type {HTMLCanvasElement} Canvas rendered at the scaled recording resolution */
       this.scaledCanvas = document.createElement('canvas');
       this.scaledCanvas.width = this.canvas.width * this.scale;
       this.scaledCanvas.height = this.canvas.height * this.scale;
+      /** @type {CanvasRenderingContext2D} 2D context of the scaled recording canvas */
       this.scaledContext = this.scaledCanvas.getContext('2d');
       
       // Set scaling quality

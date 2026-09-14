@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "TimeUtils Class"]
+    [title: "TimeUtils Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,20 +18,20 @@
 
     [heading: "Key Features"]
     [list]
-* Time value validation
-* Minutes and seconds formatting
-* Milliseconds to seconds display
-[/list]
+    * Time value validation
+    * Minutes and seconds formatting
+    * Milliseconds to seconds display
+    [/list]
 
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ isValidTime | (time) | Checks whether a time value is a valid finite number. ]
-[ formatTime | (time) | Formats a time value in seconds to a minutes:seconds display string. ]
-[ formatSeconds | (time) | Formats a millisecond value to a seconds display with two decimal places. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ isValidTime | (time) | Checks whether a time value is a valid finite number. ]
+    [ formatTime | (time) | Formats a time value in seconds to a minutes:seconds display string. ]
+    [ formatSeconds | (time) | Formats a millisecond value to a seconds display with two decimal places. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -39,8 +39,8 @@ TimeUtils.isValidTime(42.5);          // true
 TimeUtils.formatTime(125);            // "2:05"
 TimeUtils.formatSeconds(3500);        // "3.50s"
 TimeUtils.formatTime(NaN);            // "--:--"
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

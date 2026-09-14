@@ -27,7 +27,9 @@
  */
 class AudioTemperatureMeter {
   constructor(scene, audioElement) {
+    /** @type {Object} The gameplay scene this meter belongs to */
     this.scene = scene;
+    /** @type {HTMLAudioElement} Audio element whose volume is monitored */
     this.audio = audioElement;
     
     /** @type {Phaser.Signal} Dispatched when the temperature switches to high */
@@ -37,15 +39,23 @@ class AudioTemperatureMeter {
     
     /** @type {boolean} Whether the meter currently reports a high state */
     this.isHigh = false;
+    /** @type {number} Start of the sampled audio section in seconds */
     this.sampleStartSec = 9999;
+    /** @type {number} End of the sampled audio section in seconds */
     this.sampleEndSec = 9999 + 1;
     /** @type {number} Most recently measured BPM value */
     this.lastBPM = 120;
+    /** @type {boolean} Whether a BPM spike is currently being detected */
     this.bpmSpikeActive = false;
+    /** @type {number} Time when the active BPM spike ends */
     this.bpmSpikeEndTime = 0;
+    /** @type {boolean} Whether the meter is inside a chart stop section */
     this.inStop = false;
+    /** @type {?number} Time when silence was first detected */
     this.silenceStartTime = null;
+    /** @type {?number} Time when silence last finished */
     this.silenceEndTime = null;
+    /** @type {Array} Rolling history of recent loudness samples */
     this.volumeHistory = [];
     
     /** @type {Object} Tunable detection settings for the meter */
@@ -90,10 +100,14 @@ class AudioTemperatureMeter {
     if (!this.audio) return;
     
     try {
+      /** @type {AudioContext} Web Audio context backing the analyser */
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      /** @type {AnalyserNode} Sine/frequency analyser reading loudness */
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 256;
+      /** @type {number} Number of frequency bins in the analyser */
       this.bufferLength = this.analyser.frequencyBinCount;
+      /** @type {Uint8Array} Buffer receiving the frequency data */
       this.dataArray = new Uint8Array(this.bufferLength);
       
       const source = this.audioContext.createMediaElementSource(this.audio);
@@ -339,6 +353,7 @@ class AudioTemperatureMeter {
   }
   
   createDebugText() {
+    /** @type {?Text} Debug label showing live meter readings */
     this.debugText = new Text(4, 50, "", FONTS.default);
     this.debugText.tint = 0x00ff00;
     game.add.existing(this.debugText);

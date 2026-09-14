@@ -51,6 +51,7 @@ class Lyrics {
    * @param {string} rawLrc - Raw LRC file contents
    */
   setLrc(rawLrc) {
+    /** @type {Object} Metadata tags parsed from the LRC file */
     this.tags = {};
     this.lrcData = [];
     this.rangeLrc = [];

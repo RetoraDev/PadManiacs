@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "ExternalSMParser Class"]
+    [title: "ExternalSMParser Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,24 +18,24 @@
 
     [heading: "Key Features"]
     [list]
-* Supports both .SM and .SSC StepMania file formats
-* Resolves media URLs from an in-memory file map via object URLs
-* Handles SSC multi-chart sections with per-chart difficulty metadata
-* Converts beat-based note timing to seconds
-[/list]
+    * Supports both .SM and .SSC StepMania file formats
+    * Resolves media URLs from an in-memory file map via object URLs
+    * Handles SSC multi-chart sections with per-chart difficulty metadata
+    * Converts beat-based note timing to seconds
+    [/list]
 
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ parseSM | (files, smContent) | Parses raw .SM or .SSC content, delegating to parseSSC when appropriate. ]
-[ readFileContent | (file) | Reads a File object as text via FileTools. ]
-[ parseSSC | (files, sscContent) | Parses .SSC format content with header and per-chart section support. ]
-[ convertSSCNotes | (noteData, bpmChanges, stops) | Converts SSC note measure data into the internal note array format. ]
-[ LastBpm | (bpmChanges, time, valueType) | Finds the BPM change entry active at a given time value. ]
-[ beatToSec | (bpmChanges, stops, beat) | Converts a beat position to seconds accounting for BPM changes and stops. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ parseSM | (files, smContent) | Parses raw .SM or .SSC content, delegating to parseSSC when appropriate. ]
+    [ readFileContent | (file) | Reads a File object as text via FileTools. ]
+    [ parseSSC | (files, sscContent) | Parses .SSC format content with header and per-chart section support. ]
+    [ convertSSCNotes | (noteData, bpmChanges, stops) | Converts SSC note measure data into the internal note array format. ]
+    [ getLastBpm | (bpmChanges, time, valueType) | Finds the BPM change entry active at a given time value. ]
+    [ beatToSec | (bpmChanges, stops, beat) | Converts a beat position to seconds accounting for BPM changes and stops. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Parsing an externally imported .SM file
@@ -44,8 +44,8 @@ const files = {}; // map of lowercase filenames to File objects
 const smText = await FileTools.readTextFile(smFileObject);
 const songData = await parser.parseSM(files, smText);
 console.log(songData.title, Object.keys(songData.notes).length, 'charts');
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

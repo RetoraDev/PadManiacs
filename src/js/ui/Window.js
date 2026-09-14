@@ -46,7 +46,9 @@ class Window extends Phaser.Sprite {
     
     /** @type {number} Index of the first visible item */
     this.scrollOffset = 0;
+    /** @type {number} Vertical spacing between items in grid cells */
     this.itemOffset = 1;
+    /** @type {number} Number of items that fit in the visible area */
     this.visibleItems = height;
     /** @type {number} Index of the currently selected item */
     this.selectedIndex = 0;
@@ -54,10 +56,15 @@ class Window extends Phaser.Sprite {
     this.focus = false;
     /** @type {string} Window skin key used for frame sprites */
     this.skin = skin;
+    /** @type {string} Font key used for item text */
     this.font = "default";
+    /** @type {number} Tint color applied to item text */
     this.fontTint = 0x76fcde;
+    /** @type {boolean} Whether the selection highlight is disabled */
     this.disableHighlight = false;
+    /** @type {boolean} Whether the scroll bar is disabled */
     this.disableScrollBar = false;
+    /** @type {boolean} Whether mouse interaction is disabled */
     this.disableMouse = false;
 
     if (parent) {
@@ -110,6 +117,7 @@ class Window extends Phaser.Sprite {
 
   createWindowFrame() {
     // Window frame parts
+    /** @type {Array} Sprites that compose the window frame */
     this.frameParts = [];
 
     // Create corners and borders
@@ -355,6 +363,7 @@ class Window extends Phaser.Sprite {
    * @param {number} y - Y position for the highlight
    */
   forceHighlight(y) {
+    /** @type {?number} Fixed Y position for the highlight, or null when not forced */
     this.forcedHighlightY = y;
   }
   
@@ -411,7 +420,8 @@ class Window extends Phaser.Sprite {
     
     this.scrollBarTween.to({ alpha: 0 }, 1000, Phaser.Easing.Quadratic.Out, true, 500)
       .onComplete.add(() => {
-        this.scrollBarTween = null;
+/** @type {?Phaser.Tween} Tween animating the scroll bar fade */
+    this.scrollBarTween = null;
       });
   }
 
@@ -606,8 +616,11 @@ class Window extends Phaser.Sprite {
     this.onSelect.dispose();
     this.onConfirm.dispose();
     this.onCancel.dispose();
+    /** @type {Function} Confirmation handler, emptied when the window is cleared */
     this.confirm = () => {};
+    /** @type {Function} Cancel handler, emptied when the window is cleared */
     this.cancel = () => {};
+    /** @type {Function} Navigation handler, emptied when the window is cleared */
     this.navigate = () => {};
     this.frameParts.forEach(part => part.destroy());
     this.frameParts = [];
@@ -619,6 +632,7 @@ class Window extends Phaser.Sprite {
    * Makes the window sprite visible.
    */
   show() {
+    /** @type {boolean} Whether the window sprite is currently visible */
     this.visible = true;
   }
 
@@ -634,6 +648,7 @@ class Window extends Phaser.Sprite {
    */
   destroy() {
     this.clear();
+    /** @type {boolean} Whether the window has been disposed and can no longer be used */
     this.disposed = true;
     super.destroy();
   }

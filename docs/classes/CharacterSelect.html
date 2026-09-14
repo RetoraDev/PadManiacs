@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "CharacterSelect Class"]
+    [title: "CharacterSelect Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,75 +18,75 @@
 
     [heading: "Key Features"]
     [list]
-* Carousel roster of the player's characters with select, skill, customize and delete actions
-* Guided creation wizard covering skin, hair, clothing and a final name step
-* RGB color picker for tinting hair and per-layer item colors with named color output
-[/list]
+    * Carousel roster of the player's characters with select, skill, customize and delete actions
+    * Guided creation wizard covering skin, hair, clothing and a final name step
+    * RGB color picker for tinting hair and per-layer item colors with named color output
+    [/list]
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ characterManager | CharacterManager | Manages the saved characters and their persistence ]
-[ selectedCharacter | Object | The character currently selected in the menu ]
-[ navigationHint | NavigationHint | Contextual hint bar with button labels ]
-[ characterDisplay | CharacterDisplay | The rendered character sprite shown on screen ]
-[ creationStep | number | Index of the current step in the creation wizard ]
-[ newCharacterAppearance | Object | Appearance object being edited during creation ]
-[/table]
+    [ Property | Type | Description ]
+    [ characterManager | CharacterManager | Manages the saved characters and their persistence ]
+    [ selectedCharacter | Object | The character currently selected in the menu ]
+    [ navigationHint | NavigationHint | Contextual hint bar with button labels ]
+    [ characterDisplay | CharacterDisplay | The rendered character sprite shown on screen ]
+    [ creationStep | number | Index of the current step in the creation wizard ]
+    [ newCharacterAppearance | Object | Appearance object being edited during creation ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ create | () | Phaser state hook that sets up the lobby background, the character manager and the main interface elements, then refreshes the display. ]
-[ createUI | () | Creates the initial interface objects and resets transient menu references. ]
-[ createDetailsText | () | Creates the text elements and bars used to display character information. ]
-[ showHomeUI | () | Returns to the home screen, clearing menus and listing all characters. ]
-[ clearAllMenus | () | Destroys all open menus and resets the transient UI references. ]
-[ writeCharacterInformation | () | Writes the selected character's name, level, experience, skill and details. ]
-[ updateDetails | (title, description, showCharacterInfo) | Updates the shared details panel with the given title and description text. ]
-[ selectCharacter | (character) | Selects the given character and refreshes the display. ]
-[ updateDisplay | () | Rebuilds the character display sprite and refreshes the information text. ]
-[ showCharacterList | () | Builds the carousel listing all characters plus add/remove options. ]
-[ showActionMenu | () | Shows the per-character action menu: select, skill, customize or delete. ]
-[ confirmSelection | () | Persists the current character as the active playable character. ]
-[ setSkill | () | Shows the skill selection carousel for the selected character. ]
-[ updateSkillPreview | (skillId) | Builds and displays a preview text describing the given skill. ]
-[ customizeCharacter | () | Opens the customization menu listing the appearance slots to edit. ]
-[ updateEquipmentText | (slotId) | Updates the details panel describing the item equipped in the given slot. ]
-[ colorToName | (color, step) | Converts a numeric color to the closest named or descriptive color string. ]
-[ CurrentSlotItem | (slotId) | Returns the item data currently equipped in the given appearance slot. ]
-[ showSlotItems | (slotId) | Lists the unlocked items available for the given appearance slot. ]
-[ previewSlotItem | (slotId, item) | Temporarily previews an item on the character display without saving. ]
-[ refreshCharacter | (appearance, hardReset) | Re-renders the character display using the given appearance overrides. ]
-[ equipSlotItem | (slotId, item) | Equips the chosen item on the character and persists it to the account. ]
-[ showLayerColorMenu | (slotId, item) | Lists the layers of a multi-layer item so each one can be tinted. ]
-[ customizeLayerColor | (slotId, item, layerIndex, defaultColor) | Opens the color input for tinting a single layer of an item. ]
-[ applyLayerColorToCharacter | (colorKey, color) | Applies the new layer tint to the character and re-renders the display. ]
-[ customizeItemColor | (slotId, item) | Opens the color input for tinting a single-slot clothing item. ]
-[ applyItemColorToCharacter | (slotId, color) | Applies a new tint to a clothing slot and re-renders the character. ]
-[ customizeAuraColor | (slotId, item) | Opens the color input for tinting an aura/special effect item. ]
-[ customizeHairColor | () | Opens the color input for tinting the character's hair. ]
-[ showColorInput | (title, defaultColor, onColorChange, onConfirm, onCancel) | Shows an RGB color picker driven by the gamepad, calling back on every change. ]
-[ cleanupColorUI | () | Destroys the active color input UI and restores the general hints. ]
-[ deleteCharacter | () | Confirms and deletes the selected character, then returns to the list. ]
-[ confirm | (message, onConfirm, onCancel, recommended) | Shows a Yes/No dialog for the given message and routes the result. ]
-[ startCharacterCreation | () | Resets the creation state and starts the new character creation wizard. ]
-[ showCreationStep | () | Renders the current creation step UI and wires up its input handler. ]
-[ showCreationNavigationMenu | () | Shows the Next/Previous/Cancel navigation options for the wizard. ]
-[ creationCustomizeSkinTone | (callback) | Step handler letting the player cycle through the available skin tones. ]
-[ creationCustomizeHairColor | (callback) | Step handler with an RGB picker for choosing the new character hair color. ]
-[ creationCustomizeHairStyle | (type, callback) | Step handler letting the player choose a front or back hair style. ]
-[ creationCustomizeSlot | (slotId, callback) | Step handler listing the unlocked clothing items for picking a slot. ]
-[ creationNameCharacter | (callback) | Step handler that shows the on-screen keyboard to name the character. ]
-[ generateName | () | Generates a random default name from the character name syllables. ]
-[ cancelCharacterCreation | () | Cleans up the creation objects and returns to the character list. ]
-[ cleanupColorUI | () | Cleans up the creation color-picker UI and restores the general hints. ]
-[ update | () | Phaser lifecycle hook called every frame to poll input and update windows. ]
-[ shutdown | () | Phaser lifecycle hook called when leaving the state; persists characters. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ create | () | Phaser state hook that sets up the lobby background, the character manager and the main interface elements, then refreshes the display. ]
+    [ createUI | () | Creates the initial interface objects and resets transient menu references. ]
+    [ createDetailsText | () | Creates the text elements and bars used to display character information. ]
+    [ showHomeUI | () | Returns to the home screen, clearing menus and listing all characters. ]
+    [ clearAllMenus | () | Destroys all open menus and resets the transient UI references. ]
+    [ writeCharacterInformation | () | Writes the selected character's name, level, experience, skill and details. ]
+    [ updateDetails | (title, description, showCharacterInfo) | Updates the shared details panel with the given title and description text. ]
+    [ selectCharacter | (character) | Selects the given character and refreshes the display. ]
+    [ updateDisplay | () | Rebuilds the character display sprite and refreshes the information text. ]
+    [ showCharacterList | () | Builds the carousel listing all characters plus add/remove options. ]
+    [ showActionMenu | () | Shows the per-character action menu: select, skill, customize or delete. ]
+    [ confirmSelection | () | Persists the current character as the active playable character. ]
+    [ setSkill | () | Shows the skill selection carousel for the selected character. ]
+    [ updateSkillPreview | (skillId) | Builds and displays a preview text describing the given skill. ]
+    [ customizeCharacter | () | Opens the customization menu listing the appearance slots to edit. ]
+    [ updateEquipmentText | (slotId) | Updates the details panel describing the item equipped in the given slot. ]
+    [ colorToName | (color, step) | Converts a numeric color to the closest named or descriptive color string. ]
+    [ getCurrentSlotItem | (slotId) | Returns the item data currently equipped in the given appearance slot. ]
+    [ showSlotItems | (slotId) | Lists the unlocked items available for the given appearance slot. ]
+    [ previewSlotItem | (slotId, item) | Temporarily previews an item on the character display without saving. ]
+    [ refreshCharacter | (appearance, hardReset) | Re-renders the character display using the given appearance overrides. ]
+    [ equipSlotItem | (slotId, item) | Equips the chosen item on the character and persists it to the account. ]
+    [ showLayerColorMenu | (slotId, item) | Lists the layers of a multi-layer item so each one can be tinted. ]
+    [ customizeLayerColor | (slotId, item, layerIndex, defaultColor) | Opens the color input for tinting a single layer of an item. ]
+    [ applyLayerColorToCharacter | (colorKey, color) | Applies the new layer tint to the character and re-renders the display. ]
+    [ customizeItemColor | (slotId, item) | Opens the color input for tinting a single-slot clothing item. ]
+    [ applyItemColorToCharacter | (slotId, color) | Applies a new tint to a clothing slot and re-renders the character. ]
+    [ customizeAuraColor | (slotId, item) | Opens the color input for tinting an aura/special effect item. ]
+    [ customizeHairColor | () | Opens the color input for tinting the character's hair. ]
+    [ showColorInput | (title, defaultColor, onColorChange, onConfirm, onCancel) | Shows an RGB color picker driven by the gamepad, calling back on every change. ]
+    [ cleanupColorUI | () | Destroys the active color input UI and restores the general hints. ]
+    [ deleteCharacter | () | Confirms and deletes the selected character, then returns to the list. ]
+    [ confirm | (message, onConfirm, onCancel, recommended) | Shows a Yes/No dialog for the given message and routes the result. ]
+    [ startCharacterCreation | () | Resets the creation state and starts the new character creation wizard. ]
+    [ showCreationStep | () | Renders the current creation step UI and wires up its input handler. ]
+    [ showCreationNavigationMenu | () | Shows the Next/Previous/Cancel navigation options for the wizard. ]
+    [ creationCustomizeSkinTone | (callback) | Step handler letting the player cycle through the available skin tones. ]
+    [ creationCustomizeHairColor | (callback) | Step handler with an RGB picker for choosing the new character hair color. ]
+    [ creationCustomizeHairStyle | (type, callback) | Step handler letting the player choose a front or back hair style. ]
+    [ creationCustomizeSlot | (slotId, callback) | Step handler listing the unlocked clothing items for picking a slot. ]
+    [ creationNameCharacter | (callback) | Step handler that shows the on-screen keyboard to name the character. ]
+    [ generateName | () | Generates a random default name from the character name syllables. ]
+    [ cancelCharacterCreation | () | Cleans up the creation objects and returns to the character list. ]
+    [ cleanupColorUI | () | Cleans up the creation color-picker UI and restores the general hints. ]
+    [ update | () | Phaser lifecycle hook called every frame to poll input and update windows. ]
+    [ shutdown | () | Phaser lifecycle hook called when leaving the state; persists characters. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Launch the character select screen from a modded state
@@ -96,8 +96,8 @@ game.state.start("CharacterSelect");
 const charManager = new CharacterManager();
 const active = charManager.getCurrentCharacter();
 console.log("Active character:", active && active.name);
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

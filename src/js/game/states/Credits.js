@@ -35,11 +35,15 @@ class Credits {
     this.returnStateParams = returnStateParams;
     /** @type {boolean} Whether input is being awaited after the finale. */
     this.isWaitingForInput = false;
+    /** @type {number} Interval in milliseconds between background slides */
     this.backgroundInterval = 8000;
     /** @type {Array} URLs of backgrounds available for the slideshow. */
     this.availableBackgrounds = [];
+    /** @type {?Array} BPM changes associated with the credits chart */
     this.bpmChanges = null;
+    /** @type {?Array} Stop timing events associated with the credits chart */
     this.stops = null;
+    /** @type {number} Gameplay timestamp used to sync the credits roll */
     this.startTime = 0;
   }
 
@@ -52,6 +56,7 @@ class Credits {
     this.setupBackground();
     this.startBackgroundMusic();
     
+    /** @type {Phaser.Group} Group holding every scrolling credits line */
     this.creditsContainer = game.add.group();
     
     const creditsContent = [
@@ -110,8 +115,11 @@ class Credits {
       currentY += credit.spacing;
     });
     
+    /** @type {number} Bottom edge of the credits content used to detect the end */
     this.totalHeight = currentY;
+    /** @type {number} Initial scroll position of the credits container */
     this.startY = this.creditsContainer.y;
+    /** @type {boolean} Whether the credits roll has finished */
     this.creditsComplete = false;
     
     addonManager.executeStateBehaviors(this.constructor.name, this);
@@ -121,6 +129,7 @@ class Credits {
    * Creates the background sprite and starts the artwork slideshow timer.
    */
   setupBackground() {
+    /** @type {Phaser.Sprite} Sprite drawing the current credits background */
     this.backgroundSprite = game.add.sprite(0, 0);
     this.backgroundSprite.alpha = 0.7;
     
@@ -128,6 +137,7 @@ class Credits {
     
     if (this.availableBackgrounds.length > 0) {
       this.showNextBackground();
+      /** @type {?Phaser.TimerEvent} Timer cycling the background artwork */
       this.backgroundTimer = game.time.events.loop(this.backgroundInterval, this.showNextBackground, this);
     } else {
       this.backgroundSprite.loadTexture("ui_background_gradient");
@@ -211,6 +221,7 @@ class Credits {
     if (songsWithAudio.length > 0) {
       const randomSong = game.rnd.pick(songsWithAudio);
       
+      /** @type {HTMLAudioElement} Audio element looping a random song during credits */
       this.creditsMusic = document.createElement("audio");
       this.creditsMusic.src = randomSong.audioUrl;
       this.creditsMusic.volume = Account.settings.volume / 100;
@@ -339,6 +350,7 @@ class Credits {
    * Shows the thank-you message and waits for input to leave the screen.
    */
   onCreditsComplete() {
+    /** @type {Text} Blinking thank-you message shown at the finale */
     this.continueText = new Text(game.width / 2, game.height / 2, __("Thank you for playing||Gracias por jugar"), FONTS.bold_shadow);
     this.continueText.anchor.set(0.5);
     this.continueText.alpha = 0;

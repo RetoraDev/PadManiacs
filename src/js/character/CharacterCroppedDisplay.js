@@ -36,7 +36,9 @@ class CharacterCroppedDisplay extends CharacterDisplay {
       h: cropArea.h
     };
     this.cropSprite();
+    /** @type {number} X position of the cropped display */
     this.x = x;
+    /** @type {number} Y position of the cropped display */
     this.y = y;
   }
 

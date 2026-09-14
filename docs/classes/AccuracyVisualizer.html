@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "AccuracyVisualizer Class"]
+    [title: "AccuracyVisualizer Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,37 +18,37 @@
 
     [heading: "Key Features"]
     [list]
-* Real-time timing accuracy line graph
-* Automatic history trimming to fit display width
-* Green line rendering with zero-baseline reference
-[/list]
+    * Real-time timing accuracy line graph
+    * Automatic history trimming to fit display width
+    * Green line rendering with zero-baseline reference
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ scene | Object | The Phaser game state scene ]
-[ x | number | Horizontal position ]
-[ y | number | Vertical position ]
-[ width | number | Display width in pixels ]
-[ height | number | Display height in pixels ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ scene | Object | The Phaser game state scene ]
+    [ x | number | Horizontal position ]
+    [ y | number | Vertical position ]
+    [ width | number | Display width in pixels ]
+    [ height | number | Display height in pixels ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ accuracyHistory | Array | Timing accuracy history from the player ]
-[ maxHistoryLength | number | Maximum number of history points visible at once ]
-[/table]
+    [ Property | Type | Description ]
+    [ accuracyHistory | Array | Timing accuracy history from the player ]
+    [ maxHistoryLength | number | Maximum number of history points visible at once ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ update | () | Draws the accuracy history graph by reading timing data from the active player. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ update | () | Draws the accuracy history graph by reading timing data from the active player. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -56,8 +56,8 @@ const accViz = new AccuracyVisualizer(scene, 0, 0, 300, 50);
 scene.update = function () {
   accViz.update();
 };
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

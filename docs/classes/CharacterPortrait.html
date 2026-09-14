@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "CharacterPortrait Class"]
+    [title: "CharacterPortrait Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,19 +18,19 @@
 
     [heading: "Key Features"]
     [list]
-* Uses portrait crop area from CHARACTER_SYSTEM constants
-* Inherits all layered rendering from CharacterCroppedDisplay
-[/list]
+    * Uses portrait crop area from CHARACTER_SYSTEM constants
+    * Inherits all layered rendering from CharacterCroppedDisplay
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ x | number | Horizontal position ]
-[ y | number | Vertical position ]
-[ characterData | Object | Character data model ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ x | number | Horizontal position ]
+    [ y | number | Vertical position ]
+    [ characterData | Object | Character data model ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -38,8 +38,8 @@ const portrait = new CharacterPortrait(100, 50, characterData);
 game.world.addChild(portrait);
 portrait.updateAppearance({ top: 'top_seifuku_red' });
 portrait.destroy();
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

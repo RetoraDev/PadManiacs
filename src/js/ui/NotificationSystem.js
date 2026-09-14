@@ -31,9 +31,13 @@ class NotificationSystem {
     this.currentNotification = null;
     /** @type {number} Default display duration in milliseconds */
     this.duration = 3000;
+    /** @type {number} Line height used to layout notification text */
     this.lineHeight = 8;
+    /** @type {number} Padding around the notification text */
     this.padding = 8;
+    /** @type {number} Maximum text width before wrapping in pixels */
     this.maxLineWidth = 160;
+    /** @type {number} Width of a single character in pixels */
     this.charWidth = 4;
     
     /** @type {Window|null} The window displaying the current notification */
@@ -187,6 +191,7 @@ class NotificationSystem {
    */
   animateNotificationTint(notification) {
     let tintAnimationIndex = 0;
+    /** @type {?Phaser.TimerEvent} Timer cycling the notification window tint */
     this.tintAnimationLoop = game.time.events.loop(100, () => {
       if (!this.notificationWindow) return;
       
@@ -375,6 +380,7 @@ class NotificationSystem {
    */
   preserveCurrentNotification() {
     if (this.currentNotification && this.notificationWindow) {
+      /** @type {?Object} Copy of the current notification saved across state changes */
       this.preservedNotification = {
         ...this.currentNotification,
         remainingTime: this.currentNotification.endTime - Date.now()

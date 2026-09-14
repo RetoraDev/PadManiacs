@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "NodeDirectoryEntry Class"]
+    [title: "NodeDirectoryEntry Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,21 +18,21 @@
 
     [heading: "Key Features"]
     [list]
-* Mimics the Cordova DirectoryEntry API for NW.js environments
-* Supports directory creation, recursive removal, and file listing
-* Bridges Node.js fs operations to Cordova-style callbacks
-[/list]
+    * Mimics the Cordova DirectoryEntry API for NW.js environments
+    * Supports directory creation, recursive removal, and file listing
+    * Bridges Node.js fs operations to Cordova-style callbacks
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ name | string | The directory name ]
-[ fullPath | string | The relative path from the filesystem root ]
-[ fileSystem | NodeFileSystem | The parent NodeFileSystem instance ]
-[ nativeURL | string | The native file:// URL for this directory ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ name | string | The directory name ]
+    [ fullPath | string | The relative path from the filesystem root ]
+    [ fileSystem | NodeFileSystem | The parent NodeFileSystem instance ]
+    [ nativeURL | string | The native file:// URL for this directory ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Listing subdirectories through a NodeDirectoryEntry
@@ -44,8 +44,8 @@ reader.readEntries((entries) => {
     console.log('Found directory:', dir.name);
   });
 }, (err) => console.error(err));
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

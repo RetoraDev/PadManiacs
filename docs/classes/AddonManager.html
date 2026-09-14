@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "AddonManager Class"]
+    [title: "AddonManager Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,53 +18,53 @@
 
     [heading: "Key Features"]
     [list]
-* Discovers and loads addons from the external storage directory
-* Executes addon behaviours in sandboxed contexts per game state
-* Supports enable, disable, hibernate, and wake lifecycle operations
-* Manages addon assets for Phaser resource loading
-* Provides safe mode to skip all addon loading on startup
-[/list]
+    * Discovers and loads addons from the external storage directory
+    * Executes addon behaviours in sandboxed contexts per game state
+    * Supports enable, disable, hibernate, and wake lifecycle operations
+    * Manages addon assets for Phaser resource loading
+    * Provides safe mode to skip all addon loading on startup
+    [/list]
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ addons | Map&lt;string, Object&gt; | Map of addon IDs to addon descriptor objects ]
-[ enabledAddons | Set&lt;string&gt; | Set of enabled addon IDs ]
-[ hibernatingAddons | Set&lt;string&gt; | Set of hibernating addon IDs ]
-[ safeMode | boolean | Whether safe mode is active, preventing addon loading ]
-[ isInitialized | boolean | Whether the manager has finished initialising ]
-[/table]
+    [ Property | Type | Description ]
+    [ addons | Map&lt;string, Object&gt; | Map of addon IDs to addon descriptor objects ]
+    [ enabledAddons | Set&lt;string&gt; | Set of enabled addon IDs ]
+    [ hibernatingAddons | Set&lt;string&gt; | Set of hibernating addon IDs ]
+    [ safeMode | boolean | Whether safe mode is active, preventing addon loading ]
+    [ isInitialized | boolean | Whether the manager has finished initialising ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ initialize | () | Initialises the addon manager by loading saved settings and discovering addons. Skips loading entirely when safe mode is enabled. ]
-[ loadAddons | () | Orchestrates addon discovery from storage and processing of enabled addons. ]
-[ loadAddonsFromStorage | () | Scans the addons directory on the file system and loads each addon. ]
-[ loadAddonFromDirectory | (addonDir, fileSystem) | Loads a single addon from its directory, reading its manifest and files. ]
-[ processAddons | () | Processes assets and behaviours for all enabled addons. ]
-[ processAddonAssets | (addon) | Registers addon assets from the manifest into the addon's asset list. ]
-[ processAddonBehaviors | (addon) | Loads behaviour script content for each state defined in the manifest. ]
-[ executeBehavior | (addon, stateName, context, extraParams) | Executes a behaviour script for an addon in a sandboxed context. ]
-[ executeGlobalBehaviors | () | Runs the 'Global' behaviour for all active, non-hibernating addons. ]
-[ executeStateBehaviors | (stateName, stateInstance, extraParams) | Runs behaviours for a specific game state across all active addons. ]
-[ parseVersion | (version) | Splits a version string into a three-element numeric array. ]
-[ compareVersions | (v1, v2) | Compares two parsed version arrays. ]
-[ enableAddon | (addonId) | Enables an addon and persists the setting. ]
-[ disableAddon | (addonId) | Disables an addon and persists the setting. ]
-[ hibernateAddon | (addonId) | Moves an addon into hibernation, disabling it until explicitly woken. ]
-[ wakeAddon | (addonId) | Wakes a hibernating addon, re-enabling it. ]
-[ uninstallAddon | (addonId) | Permanently removes an addon by deleting its directory and registry entry. ]
-[ setSafeMode | (enabled) | Enables or disables safe mode globally. ]
-[ AddonList | () | Returns a serialisable list of all loaded addons with their status. ]
-[ ResourceList | () | Collects all assets from active, non-hibernating addons for Phaser loading. ]
-[ saveAddonSettings | () | Persists the current enabled, hibernating, and safe mode state to the account. ]
-[ needsReload | () | Checks whether the saved settings differ from the current in-memory state. ]
-[ setsEqual | (set1, set2) | Tests whether two Sets contain the same elements. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ initialize | () | Initialises the addon manager by loading saved settings and discovering addons. Skips loading entirely when safe mode is enabled. ]
+    [ loadAddons | () | Orchestrates addon discovery from storage and processing of enabled addons. ]
+    [ loadAddonsFromStorage | () | Scans the addons directory on the file system and loads each addon. ]
+    [ loadAddonFromDirectory | (addonDir, fileSystem) | Loads a single addon from its directory, reading its manifest and files. ]
+    [ processAddons | () | Processes assets and behaviours for all enabled addons. ]
+    [ processAddonAssets | (addon) | Registers addon assets from the manifest into the addon's asset list. ]
+    [ processAddonBehaviors | (addon) | Loads behaviour script content for each state defined in the manifest. ]
+    [ executeBehavior | (addon, stateName, context, extraParams) | Executes a behaviour script for an addon in a sandboxed context. ]
+    [ executeGlobalBehaviors | () | Runs the 'Global' behaviour for all active, non-hibernating addons. ]
+    [ executeStateBehaviors | (stateName, stateInstance, extraParams) | Runs behaviours for a specific game state across all active addons. ]
+    [ parseVersion | (version) | Splits a version string into a three-element numeric array. ]
+    [ compareVersions | (v1, v2) | Compares two parsed version arrays. ]
+    [ enableAddon | (addonId) | Enables an addon and persists the setting. ]
+    [ disableAddon | (addonId) | Disables an addon and persists the setting. ]
+    [ hibernateAddon | (addonId) | Moves an addon into hibernation, disabling it until explicitly woken. ]
+    [ wakeAddon | (addonId) | Wakes a hibernating addon, re-enabling it. ]
+    [ uninstallAddon | (addonId) | Permanently removes an addon by deleting its directory and registry entry. ]
+    [ setSafeMode | (enabled) | Enables or disables safe mode globally. ]
+    [ getAddonList | () | Returns a serialisable list of all loaded addons with their status. ]
+    [ getResourceList | () | Collects all assets from active, non-hibernating addons for Phaser loading. ]
+    [ saveAddonSettings | () | Persists the current enabled, hibernating, and safe mode state to the account. ]
+    [ needsReload | () | Checks whether the saved settings differ from the current in-memory state. ]
+    [ setsEqual | (set1, set2) | Tests whether two Sets contain the same elements. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Listing all loaded addons and their status
@@ -76,8 +76,8 @@ mgr.getAddonList().forEach(addon => {
 
 // Executing state behaviours when entering a game state
 mgr.executeStateBehaviors('Gameplay', gameState, { difficulty: 'Hard' });
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

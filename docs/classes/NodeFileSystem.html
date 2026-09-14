@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "NodeFileSystem Class"]
+    [title: "NodeFileSystem Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,37 +18,38 @@
 
     [heading: "Key Features"]
     [list]
-* Uses Node.js fs and path modules for native file access
-* Auto-detects NW.js and plain Node.js working directories
-* Provides a Promise-based API consistent with CordovaFileSystem
-[/list]
+    * Uses Node.js fs and path modules for native file access
+    * Auto-detects NW.js and plain Node.js working directories
+    * Provides a Promise-based API consistent with CordovaFileSystem
+    [/list]
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ fs | Object | The Node.js fs module reference ]
-[ path | Object | The Node.js path module reference ]
-[ basePath | string | The resolved base directory path ]
-[/table]
+    [ Property | Type | Description ]
+    [ fs | Object | The Node.js fs module reference ]
+    [ path | Object | The Node.js path module reference ]
+    [ basePath | string | The resolved base directory path ]
+    [ fileSystemObj | Object | Pseudo filesystem exposed to DirectoryEntry instances ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ BasePath | () | Resolves the base directory path for NW.js or Node.js environments. ]
-[ Directory | (path) | Resolves a directory path and returns a NodeDirectoryEntry. ]
-[ listDirectories | (dirEntry) | Lists immediate child directories within a NodeDirectoryEntry. ]
-[ listAllDirectories | (startDir) | Recursively lists all subdirectories under a root directory. ]
-[ listFiles | (dirEntry) | Lists immediate child files within a directory entry. ]
-[ File | (fileEntry) | Retrieves the file object from a file entry. ]
-[ readFileContent | (file) | Reads the full text content of a file object. ]
-[ saveFile | (dirEntry, fileName) | Creates or opens a file for saving data. ]
-[ createEmptyFile | (dirEntry, fileName, isAppend) | Creates an empty file or opens an existing one for appending. ]
-[ writeFile | (fileEntry, dataObj, isAppend) | Writes data to an existing file entry. ]
-[ createDirectory | (rootDirEntry, dirName) | Creates a new subdirectory inside a parent directory. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ getBasePath | () | Resolves the base directory path for NW.js or Node.js environments. ]
+    [ getDirectory | (path) | Resolves a directory path and returns a NodeDirectoryEntry. ]
+    [ listDirectories | (dirEntry) | Lists immediate child directories within a NodeDirectoryEntry. ]
+    [ listAllDirectories | (startDir) | Recursively lists all subdirectories under a root directory. ]
+    [ listFiles | (dirEntry) | Lists immediate child files within a directory entry. ]
+    [ getFile | (fileEntry) | Retrieves the file object from a file entry. ]
+    [ readFileContent | (file) | Reads the full text content of a file object. ]
+    [ saveFile | (dirEntry, fileName) | Creates or opens a file for saving data. ]
+    [ createEmptyFile | (dirEntry, fileName, isAppend) | Creates an empty file or opens an existing one for appending. ]
+    [ writeFile | (fileEntry, dataObj, isAppend) | Writes data to an existing file entry. ]
+    [ createDirectory | (rootDirEntry, dirName) | Creates a new subdirectory inside a parent directory. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Reading song data from the file system in an NW.js build
@@ -63,8 +64,8 @@ for (const dir of subDirs) {
     console.log(`${dir.name}/${fileEntry.name}: ${content.length} bytes`);
   }
 }
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

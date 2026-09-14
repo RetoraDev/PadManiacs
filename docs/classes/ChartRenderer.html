@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "ChartRenderer Class"]
+    [title: "ChartRenderer Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,66 +18,66 @@
 
     [heading: "Key Features"]
     [list]
-* Falling and rising scroll direction rendering
-* Hold and roll note body rendering
-* Mine note animation and display
-* Beat line, speed change, and background change overlays
-* Object pooling for sprite reuse
-[/list]
+    * Falling and rising scroll direction rendering
+    * Hold and roll note body rendering
+    * Mine note animation and display
+    * Beat line, speed change, and background change overlays
+    * Object pooling for sprite reuse
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ scene | Phaser.Scene | The Phaser game scene ]
-[ song | Object | Song data containing chart and metadata ]
-[ difficultyIndex | number | Index into the chart's difficulty array ]
-[ options | Object | Rendering and gameplay configuration options ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ scene | Phaser.Scene | The Phaser game scene ]
+    [ song | Object | Song data containing chart and metadata ]
+    [ difficultyIndex | number | Index into the chart's difficulty array ]
+    [ options | Object | Rendering and gameplay configuration options ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ scrollDirection | string | Scroll direction: &quot;falling&quot; or &quot;rising&quot; ]
-[ VERTICAL_SEPARATION | number | Vertical pixel spacing between note rows ]
-[ NOTE_SPEED_MULTIPLIER | number | Base note speed multiplier including screen constant ]
-[ JUDGE_LINE | number | Y position of the judgement line ]
-[ DIRECTION | number | Render direction: -1 for falling, 1 for rising ]
-[ COLUMN_SIZE | number | Width of each note column ]
-[ COLUMN_SEPARATION | number | Gap between note columns ]
-[ receptors | Array | Receptor sprites for each of the four columns ]
-[ difficulty | Object | The selected difficulty from the chart ]
-[ notes | Array | Note data for the selected difficulty ]
-[ bpmChanges | Array | BPM change markers from the chart ]
-[ stops | Array | Stop events from the chart ]
-[/table]
+    [ Property | Type | Description ]
+    [ scrollDirection | string | Scroll direction: &quot;falling&quot; or &quot;rising&quot; ]
+    [ VERTICAL_SEPARATION | number | Vertical pixel spacing between note rows ]
+    [ NOTE_SPEED_MULTIPLIER | number | Base note speed multiplier including screen constant ]
+    [ JUDGE_LINE | number | Y position of the judgement line ]
+    [ DIRECTION | number | Render direction: -1 for falling, 1 for rising ]
+    [ COLUMN_SIZE | number | Width of each note column ]
+    [ COLUMN_SEPARATION | number | Gap between note columns ]
+    [ receptors | Array | Receptor sprites for each of the four columns ]
+    [ difficulty | Object | The selected difficulty from the chart ]
+    [ notes | Array | Note data for the selected difficulty ]
+    [ bpmChanges | Array | BPM change markers from the chart ]
+    [ stops | Array | Stop events from the chart ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ load | (song, difficultyIndex) | Loads a song's chart data for the given difficulty into the renderer. Cleans up any previously pooled note sprites before reloading. ]
-[ recreate | (song, difficultyIndex, options) | Destroys this renderer and returns a fresh instance for the given chart. Used to rebuild the renderer with different chart data or options. ]
-[ initialize | () | Sets up receptor sprites, explosion effects, and the chart background. Called once during construction to build the initial visual layout. ]
-[ calculateVerticalPosition | (note, now, beat) | Computes the on-screen Y position of a note for the current scroll direction. Also returns the past-scroll distance and hold body height for freeze notes. ]
-[ CurrentBPM | (beat) | Returns the BPM in effect at the given beat position. ]
-[ beatToSec | (beat) | Converts a beat position to seconds, accounting for BPM changes and stops. ]
-[ secToBeat | (sec) | Converts a time in seconds to a beat position, accounting for stops. ]
-[ render | (now, beat) | Main render entry point called each frame. Dispatches to the falling or rising renderer and draws optional overlay elements. ]
-[ renderFalling | (now, beat) | Renders all notes in a falling scroll direction with miss checking and z-ordering. Called by render() when the scroll direction is set to &quot;falling&quot;. ]
-[ renderRising | (now, beat) | Renders all notes in a rising scroll direction with miss checking and z-ordering. Called by render() when the scroll direction is set to &quot;rising&quot;. ]
-[ renderMine | (note, x, yPos) | Positions and animates a mine note's sprite at the given coordinates. Reuses pooled sprites or creates new ones on demand. ]
-[ renderArrow | (note, x, yPos) | Positions an arrow note's sprite, applying its color frame and column rotation. Reuses pooled sprites or creates new ones on demand. ]
-[ renderHoldNote | (note, x, yPos, bodyHeight, now, beat, direction) | Renders hold and roll note bodies and endpoints with active hold tracking. Handles miss checking, active-state trimming, and tinting for holds. ]
-[ renderTimeLines | (now, beat) | Renders beat division lines for the visible measures on screen. Cleans up off-screen and stuck timeline sprite objects. ]
-[ renderSpeedChanges | (now, beat) | Draws BPM change and stop indicator lines with tags on the chart. Redraws the speed-mod overlay graphics each time it is called. ]
-[ renderBGChanges | (now, beat) | Draws background change indicator lines with tags on the chart. Redraws the background-change overlay graphics each time it is called. ]
-[ createExplosion | (note, type) | Spawns and animates an explosion effect at the matching receptor position. Uses normal or mine explosion textures depending on the type requested. ]
-[ toggleHoldExplosion | (column, visible) | Shows or hides the active-hold explosion glow on a receptor. ]
-[ destroy | () | Destroys all sprite groups and graphics used for rendering the chart. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ load | (song, difficultyIndex) | Loads a song's chart data for the given difficulty into the renderer. Cleans up any previously pooled note sprites before reloading. ]
+    [ recreate | (song, difficultyIndex, options) | Destroys this renderer and returns a fresh instance for the given chart. Used to rebuild the renderer with different chart data or options. ]
+    [ initialize | () | Sets up receptor sprites, explosion effects, and the chart background. Called once during construction to build the initial visual layout. ]
+    [ calculateVerticalPosition | (note, now, beat) | Computes the on-screen Y position of a note for the current scroll direction. Also returns the past-scroll distance and hold body height for freeze notes. ]
+    [ getCurrentBPM | (beat) | Returns the BPM in effect at the given beat position. ]
+    [ beatToSec | (beat) | Converts a beat position to seconds, accounting for BPM changes and stops. ]
+    [ secToBeat | (sec) | Converts a time in seconds to a beat position, accounting for stops. ]
+    [ render | (now, beat) | Main render entry point called each frame. Dispatches to the falling or rising renderer and draws optional overlay elements. ]
+    [ renderFalling | (now, beat) | Renders all notes in a falling scroll direction with miss checking and z-ordering. Called by render() when the scroll direction is set to &quot;falling&quot;. ]
+    [ renderRising | (now, beat) | Renders all notes in a rising scroll direction with miss checking and z-ordering. Called by render() when the scroll direction is set to &quot;rising&quot;. ]
+    [ renderMine | (note, x, yPos) | Positions and animates a mine note's sprite at the given coordinates. Reuses pooled sprites or creates new ones on demand. ]
+    [ renderArrow | (note, x, yPos) | Positions an arrow note's sprite, applying its color frame and column rotation. Reuses pooled sprites or creates new ones on demand. ]
+    [ renderHoldNote | (note, x, yPos, bodyHeight, now, beat, direction) | Renders hold and roll note bodies and endpoints with active hold tracking. Handles miss checking, active-state trimming, and tinting for holds. ]
+    [ renderTimeLines | (now, beat) | Renders beat division lines for the visible measures on screen. Cleans up off-screen and stuck timeline sprite objects. ]
+    [ renderSpeedChanges | (now, beat) | Draws BPM change and stop indicator lines with tags on the chart. Redraws the speed-mod overlay graphics each time it is called. ]
+    [ renderBGChanges | (now, beat) | Draws background change indicator lines with tags on the chart. Redraws the background-change overlay graphics each time it is called. ]
+    [ createExplosion | (note, type) | Spawns and animates an explosion effect at the matching receptor position. Uses normal or mine explosion textures depending on the type requested. ]
+    [ toggleHoldExplosion | (column, visible) | Shows or hides the active-hold explosion glow on a receptor. ]
+    [ destroy | () | Destroys all sprite groups and graphics used for rendering the chart. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Creating a ChartRenderer for a song
@@ -89,8 +89,8 @@ const renderer = new ChartRenderer(scene, songData, 0, {
 });
 // Render at current time
 renderer.render(currentTime, currentBeat);
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

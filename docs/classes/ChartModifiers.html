@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "ChartModifiers Class"]
+    [title: "ChartModifiers Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,33 +18,33 @@
 
     [heading: "Key Features"]
     [list]
-* Toggle switches for No Jumps, No Hands, No Freezes, No Mines, Mirrored and Randomized
-* Inline note colors, note speed and speed mod options when opened outside of Settings
-* Applies and saves the modifiers to the account before returning to the calling state
-[/list]
+    * Toggle switches for No Jumps, No Hands, No Freezes, No Mines, Mirrored and Randomized
+    * Inline note colors, note speed and speed mod options when opened outside of Settings
+    * Applies and saves the modifiers to the account before returning to the calling state
+    [/list]
 
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ futuristicLines | FuturisticLines | Decorative animated background line effect ]
-[ backgroundGradient | BackgroundGradient | Ambient gradient overlay for the menu background ]
-[ navigationHint | NavigationHint | On-screen hint bar with contextual button labels ]
-[ modifiers | Object | The current chart modifier flags being edited ]
-[ windowManager | WindowManager | Manages the settings window and its focus ]
-[/table]
+    [ Property | Type | Description ]
+    [ futuristicLines | FuturisticLines | Decorative animated background line effect ]
+    [ backgroundGradient | BackgroundGradient | Ambient gradient overlay for the menu background ]
+    [ navigationHint | NavigationHint | On-screen hint bar with contextual button labels ]
+    [ modifiers | Object | The current chart modifier flags being edited ]
+    [ windowManager | WindowManager | Manages the settings window and its focus ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ init | (returnState, returnParams) | Phaser state hook that stores the state to return to after applying. ]
-[ create | () | Phaser state hook that sets up the background and builds the settings window. ]
-[ update | () | Phaser lifecycle hook called every frame to poll gamepad input. ]
-[ showMenu | () | Builds the settings window with the modifier and rendering options. ]
-[ confirmDialog | (message, onConfirm, onCancel, confirmText, cancelText) | Shows a modal confirmation dialog with the given message and buttons. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ init | (returnState, returnParams) | Phaser state hook that stores the state to return to after applying. ]
+    [ create | () | Phaser state hook that sets up the background and builds the settings window. ]
+    [ update | () | Phaser lifecycle hook called every frame to poll gamepad input. ]
+    [ showMenu | () | Builds the settings window with the modifier and rendering options. ]
+    [ confirmDialog | (message, onConfirm, onCancel, confirmText, cancelText) | Shows a modal confirmation dialog with the given message and buttons. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Launch chart modifiers and resume gameplay afterwards
@@ -52,8 +52,8 @@ game.state.start("ChartModifiers", true, false, "Play", song, 0);
 
 // Read the active chart modifiers
 console.log(Account.settings.chartModifiers);
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

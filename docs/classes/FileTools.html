@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "FileTools Class"]
+    [title: "FileTools Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,25 +18,25 @@
 
     [heading: "Key Features"]
     [list]
-* Converts URLs to Base64 data URIs
-* Strips data URI prefixes to extract raw Base64 strings
-* Parses song data for chart export
-* Resolves file paths, names, and extensions
-[/list]
+    * Converts URLs to Base64 data URIs
+    * Strips data URI prefixes to extract raw Base64 strings
+    * Parses song data for chart export
+    * Resolves file paths, names, and extensions
+    [/list]
 
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ extractBase64 | (dataUrl) | Strips the data URI prefix from a data URI string, returning raw Base64. ]
-[ Filename | (url) | Extracts the filename portion from a URL or file path. ]
-[ Directory | (url) | Extracts the directory portion from a URL or file path. ]
-[ Extension | (url) | Extracts the file extension from a URL or file path. ]
-[ loadTextFile | (url) | Fetches a text file from a URL using XMLHttpRequest. ]
-[ readTextFile | (file) | Reads a File object as text using FileReader. ]
-[ readBinaryFile | (file) | Reads a File object as a binary string using FileReader. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ extractBase64 | (dataUrl) | Strips the data URI prefix from a data URI string, returning raw Base64. ]
+    [ getFilename | (url) | Extracts the filename portion from a URL or file path. ]
+    [ getDirectory | (url) | Extracts the directory portion from a URL or file path. ]
+    [ getExtension | (url) | Extracts the file extension from a URL or file path. ]
+    [ loadTextFile | (url) | Fetches a text file from a URL using XMLHttpRequest. ]
+    [ readTextFile | (file) | Reads a File object as text using FileReader. ]
+    [ readBinaryFile | (file) | Reads a File object as a binary string using FileReader. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Converting a remote image URL to a Base64 string
@@ -49,8 +49,8 @@ if (base64) {
 // Extracting a filename from a full path
 const name = FileTools.getFilename('Songs/MySong/audio.mp3');
 console.log(name); // "audio.mp3"
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

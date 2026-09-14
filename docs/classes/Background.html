@@ -7,7 +7,7 @@
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-[title: "Background Class"]
+    [title: "Background Class"]
 
     <a href="../">← Back to index</a>
 
@@ -18,39 +18,39 @@
 
     [heading: "Key Features"]
     [list]
-* Optional looping alpha pulsation
-* Manual fade in/out helpers
-[/list]
+    * Optional looping alpha pulsation
+    * Manual fade in/out helpers
+    [/list]
 
     [heading: "Constructor"]
     [table header]
-[ Parameter | Type | Description ]
-[ key | String | Texture key of the background image ]
-[ tween | Boolean | Whether to automatically oscillate alpha ]
-[ min | Number | Minimum alpha value ]
-[ max | Number | Maximum alpha value ]
-[ time | Number | Duration of the alpha tween in milliseconds ]
-[/table]
+    [ Parameter | Type | Description ]
+    [ key | String | Texture key of the background image ]
+    [ tween | Boolean | Whether to automatically oscillate alpha ]
+    [ min | Number | Minimum alpha value ]
+    [ max | Number | Maximum alpha value ]
+    [ time | Number | Duration of the alpha tween in milliseconds ]
+    [/table]
 
-    
+
     [heading: "Properties"]
     [table header]
-[ Property | Type | Description ]
-[ alpha | Number | Current alpha value ]
-[ minAlpha | Number | Minimum alpha value ]
-[ maxAlpha | Number | Maximum alpha value ]
-[ tweenTime | Number | Alpha tween duration in milliseconds ]
-[/table]
+    [ Property | Type | Description ]
+    [ alpha | Number | Current alpha value ]
+    [ minAlpha | Number | Minimum alpha value ]
+    [ maxAlpha | Number | Maximum alpha value ]
+    [ tweenTime | Number | Alpha tween duration in milliseconds ]
+    [/table]
 
-    
+
     [heading: "Methods"]
     [table header]
-[ Method | Parameters | Description ]
-[ fadeIn | () | Fades the background sprite up to its maximum alpha using a linear tween. ]
-[ fadeOut | () | Fades the background sprite down to its minimum alpha using a linear tween. ]
-[/table]
+    [ Method | Parameters | Description ]
+    [ fadeIn | () | Fades the background sprite up to its maximum alpha using a linear tween. ]
+    [ fadeOut | () | Fades the background sprite down to its minimum alpha using a linear tween. ]
+    [/table]
 
-    
+
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Modding usage example
@@ -58,8 +58,8 @@ const bg = new Background('my_background', true, 0.1, 0.5, 1000);
 game.add.existing(bg);
 bg.fadeIn();
 bg.fadeOut();
-[/codeblock]
-    
+    [/codeblock]
+
     [footer: "&copy; Retora 2026"]
 </body>
 </html>

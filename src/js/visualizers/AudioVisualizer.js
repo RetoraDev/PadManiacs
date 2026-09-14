@@ -59,6 +59,7 @@ class AudioVisualizer extends Visualizer {
       }
     } catch (error) {
       console.warn('Audio visualizer not supported:', error);
+      /** @type {boolean} Whether the visualizer is running and drawing */
       this.active = false;
     }
   }

@@ -24,14 +24,19 @@ class SecondPlayer extends Player {
     // Call parent with "right" side
     super(scene, "right", settings);
     
+    /** @type {Object} Gamepad assigned to player 2 */
     this.gamepad = gamepad2; // Use Player 2
     
+    /** @type {number} X position of player 2's health bar */
     this.HEALTH_X = 104;
+    /** @type {number} Width of player 2's health bar */
     this.HEALTH_WIDTH = 71;
+    /** @type {number} Width of player 2's accuracy bar */
     this.ACCURACY_BAR_WIDTH = 92;
     
     scene.p2JudgementText.x = this.renderer.calculateCenter();
     
+    /** @type {Object} HUD container for player 2 */
     this.hud = scene.p2Hud;
   }
 }

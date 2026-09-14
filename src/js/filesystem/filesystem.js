@@ -29,6 +29,7 @@ class FileSystemTools {
     this.platform = this.detectPlatform();
     
     if (this.platform === 'nwjs') {
+      /** @type {Object} The platform-specific filesystem adapter */
       this.fileSystem = new NodeFileSystem();
     } else if (this.platform === 'cordova') {
       this.fileSystem = new CordovaFileSystem();
