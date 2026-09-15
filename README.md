@@ -102,9 +102,9 @@ Accessible from the main menu, the Add-on Manager allows you to:
 
 Copyright © 2026 RETORA
 
-This software is provided under the PadManiacs License. See the LICENSE file for complete terms.
+PadManiacs is free software licensed under the GNU General Public License version 3 (or any later version), with an additional permission requiring that the attribution "PadManiacs by RETORA" be preserved in all copies and modified versions. Modified versions may not be distributed under the name "PadManiacs" or any confusingly similar name. See the LICENSE file for complete terms.
 
 Third-party components:
 - Uses StepMania chart format specification
-- Includes Phaser CE, Eruda.js, and Terser.js libraries
+- Includes Phaser CE, Eruda.js, Terser.js, and JSZip libraries
 - All third-party content remains under their original licenses

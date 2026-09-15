@@ -1,11 +1,11 @@
 /**
  * PadManiacs Rhythm Game
  * Copyright (C) RETORA 2026
- * Licensed under the PadManiacs License (see LICENSE file for full terms)
+ * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.2.1 dev
- * Build: 9/13/2026, 9:05:17 PM
+ * Build: 9/14/2026, 8:06:15 PM
  * Platform: Development
  * Debug: false
  * Minified: false

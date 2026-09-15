@@ -36,6 +36,7 @@
     "url": "git+https://github.com/RetoraDev/PadManiacs.git"
   },
   "author": "RetoraDev",
+  "license": "GPL-3.0-or-later",
   "engines": {
     "node": ">=14.0.0",
     "npm": ">=6.0.0"

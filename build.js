@@ -200,7 +200,7 @@ class BuildSystem {
     return `/**
  * PadManiacs Rhythm Game
  * Copyright ${this.copyright}
- * Licensed under the PadManiacs License (see LICENSE file for full terms)
+ * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: ${this.versionName}
