@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width">
+    <meta charset="UTF-8">
+    <title>Getting Started with Modding - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+  
+    [title: "Getting Started with Modding"]
+    <a href="../">← Back to index</a>
+    
+    <p>Learn how to create your first PadManiaX addon from scratch.</p>
+    
+    [heading: "Prerequisites"]
+    <p>Before you begin modding PadManiaX, you should have:</p>
+    [list]
+    * Basic understanding of JavaScript
+    * Text editor or code editor
+    * PadManiaX installed on your device
+    * File manager app (for mobile development)
+    [/list]
+    
+    [heading: "Development Tools"]
+    
+    [subheading: "Mobile Development with Acode"]
+    <p>If you're developing on mobile, we recommend using <strong>Acode</strong> - a powerful mobile code editor.</p>
+    
+    [subheading: "Desktop Development"]
+    <p>For desktop development, any code editor works: Visual Studio Code (recommended), Sublime Text, or Atom.</p>
+    
+    [heading: "Your First Addon"]
+    
+    [subheading: "Step 1: Create Addon Directory"]
+    <p>Navigate to your PadManiaX data directory and create a new folder in the <code>"Addons"</code> folder:</p>
+    [list]
+    * Path on desktop: [code: "[Game Folder]/data/Addons/MyFirstAddon/"]
+    * Path on mobile: [code: "/storage/emulated/0/PadManiacs/Addons/MyFirstAddon/"]
+    [/list]
+    
+    [subheading: "Step 2: Create Manifest File"]
+    <p>Create a <code>manifest.json</code> file with basic information:</p>
+    [codeblock json]
+{
+  "id": "my-first-addon",
+  "name": "My First Addon",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "description": "My very first PadManiaX addon!"
+}
+    [/codeblock]
+    
+    [subheading: "Step 3: Test Your Addon"]
+    <p>Launch PadManiaX and check if your addon appears in the Addon Manager:</p>
+    [list]
+    * Go to Main Menu → Extras → Addon Manager
+    * Your addon should appear in the list
+    * Enable it if it's disabled
+    [/list]
+    
+    [heading: "Understanding the Basics"]
+    
+    [subheading: "Addon Structure"]
+    [codeblock]
+MyFirstAddon/
+├── manifest.json     # Required: Addon metadata
+├── icon.png          # Optional: Addon icon
+├── assets/           # Optional: Game assets to replace
+└── behaviors/        # Optional: JavaScript code files
+    ├── global.js     # Runs when addon loads
+    └── menu.js       # Runs in MainMenu state
+    [/codeblock]
+    
+    [subheading: "Required JavaScript Knowledge"]
+    <p>You'll need basic JavaScript knowledge for modding:</p>
+    [list]
+    * Variables and functions
+    * Objects and arrays
+    * Event handling
+    * Basic DOM manipulation (for web concepts)
+    [/list]
+    
+    <p>Recommended JavaScript learning resources:</p>
+    [list]
+    * <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide">MDN JavaScript Guide</a>
+    * <a href="https://javascript.info/">The Modern JavaScript Tutorial</a>
+    * <a href="https://www.w3schools.com/js/">W3Schools JavaScript Tutorial</a>
+    [/list]
+    
+    [heading: "Development Tips"]
+    
+    [subheading: "Enable Debug Console"]
+    <p>PadManiaX has a hidden developer console using Eruda. To enable it:</p>
+    [codeblock js]
+// Add this in any file of your addon
+eruda.init();
+    [/codeblock]
+    
+    <p><strong>Eruda</strong> is a mobile web debugger that provides console, elements inspection, and network monitoring. <a href="https://github.com/liriliri/eruda">Learn more about Eruda</a>.</p>
+    
+    [subheading: "Restart the Game"]
+    <p>You can restart the game programmatically:</p>
+    [codeblock js]
+bootGame(); // Restarts the entire game
+    [/codeblock]
+    
+    [heading: "Examples"]
+    
+    [subheading: "Hello World"]
+    [codeblock js]
+eruda.init(); // To initialize the console
+
+this.helloWorldText = new Text(2, 2, "Hello World");
+
+console.log("Hello World");
+    [/codeblock]
+    
+    [subheading: "Simple Character Mod"]
+    [codeblock js]
+// behaviors/global.js
+console.log("My character mod loaded!");
+
+// Add a custom skill
+CHARACTER_SKILLS.push({
+  id: "mod_skill",
+  name: "Modder's Touch",
+  description: "A custom skill from an addon",
+  activationCondition: "on_combo",
+  effect: "modify_score_gain",
+  effectParams: { multiplier: 1.2, judgement: "marvelous", threshold: 50 },
+  duration: 10000,
+  cooldown: 45000
+});
+
+// Add a custom achievement
+ACHIEVEMENT_DEFINITIONS.push({
+  id: "mod_achievement",
+  name: "Mod User",
+  category: ACHIEVEMENT_CATEGORIES.MISC,
+  description: {
+    unachieved: "Use a modded skill",
+    achieved: "You used a modded skill!"
+  },
+  expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.COMMON,
+  condition: (stats, lastSong) => lastSong.skillsUsed > 0,
+  hidden: false
+});
+    [/codeblock]
+    
+    <p>You can download working sample add-ons to load in the game from <a href="https://retora.itch.io/padmaniacs/download/eyJleHBpcmVzIjoxNzc2MzA4MjQ4LCJpZCI6Mzk4OTgwNX0=.QIot74UL0TfHP+txH4R4uBGggY4=">itch.io</a>.</p>
+
+    [heading: "Next Steps"]
+    <p>Now that you've created your first addon, check out these tutorials:</p>
+    [list]
+    * <a href="manifest_format.html">Understanding the Manifest Format</a>
+    * <a href="asset_replacement.html">Asset Replacement Tutorial</a>
+    * <a href="behavior_scripts.html">Creating Behavior Scripts</a>
+    [/list]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

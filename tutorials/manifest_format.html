@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width">
+    <meta charset="UTF-8">
+    <title>Understanding the Manifest Format - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+  
+    [title: "Understanding the Manifest Format"]
+    <a href="../">← Back to index</a>
+    
+    <p>Complete guide to the manifest.json file structure and all available options.</p>
+    
+    [heading: "What is the Manifest?"]
+    <p>The <code>manifest.json</code> file is the heart of your addon. It tells PadManiaX:</p>
+    [list]
+    * Basic information about your addon
+    * What assets to load and replace
+    * What behavior scripts to execute
+    [/list]
+    
+    [heading: "Basic Manifest Structure"]
+    
+    [codeblock json]
+    {
+      "id": "unique-addon-id",
+      "name": "Display Name",
+      "version": "1.0.0",
+      "author": "Your Name",
+      "description": "What this addon does",
+      "icon": "icon.png"
+    }
+    [/codeblock]
+    
+    [heading: "Required Fields"]
+    
+    [table header]
+    [ Field | Type | Description | Example ]
+    [ id | String | Unique identifier for your addon | "my-custom-theme" ]
+    [ name | String | Display name shown in Addon Manager | "Custom Theme Pack" ]
+    [ version | String | Version number using semantic versioning | "1.0.0" ]
+    [/table]
+    
+    [heading: "Optional Fields"]
+    
+    [table header]
+    [ Field | Type | Description | Example ]
+    [ author | String | Addon creator name | "Your Name" ]
+    [ description | String | Short description of addon | "Adds new arrow skins" ]
+    [ icon | String | Path to addon icon image | "assets/icon.png" ]
+    [ assets | Object | Asset replacement mappings | { "arrows": "assets/new_arrows.png" } ]
+    [ behaviors | Object | Behavior script mappings | { "MainMenu": "behaviors/menu.js" } ]
+    [/table]
+    
+    [heading: "Complete Example"]
+    
+    [codeblock json]
+    {
+      "id": "custom-arrow-pack",
+      "name": "Custom Arrow Pack",
+      "version": "2.1.0",
+      "author": "Arrow Designer",
+      "description": "Replaces all arrow graphics with custom designs",
+      "icon": "icon.png",
+      
+      "assets": {
+        "arrows": "assets/custom_arrows.png",
+        "receptor": "assets/custom_receptor.png",
+        "explosion": "assets/custom_explosion.png"
+      },
+      
+      "behaviors": {
+        "Global": "behaviors/global.js",
+        "MainMenu": "behaviors/menu.js",
+        "Play": "behaviors/gameplay.js"
+      }
+    }
+    [/codeblock]
+    
+    [heading: "Assets Field Explained"]
+    <p>The <code>assets</code> field maps game asset keys to your custom files:</p>
+    
+    [codeblock json]
+    "assets": {
+      "game_asset_key": "path/to/your/file.png"
+    }
+    [/codeblock]
+    
+    [subheading: "Common Asset Keys"]
+    [table header]
+    [ Key | Description | Default File ]
+    [ arrows | Note arrows spritesheet | chart/arrows.png ]
+    [ receptor | Receptor spritesheet | chart/receptor.png ]
+    [ explosion | Note explosion effect | chart/explosion.png ]
+    [ ui_window_1 | Brown window skin | ui/window_1.png ]
+    [ ui_background_gradient | Background gradient | ui/background_gradient.png ]
+    [ ui_logo_shape | Logo shape | ui/logo_shape.png ]
+    [/table]
+    
+    [heading: "Behaviors Field Explained"]
+    <p>The <code>behaviors</code> field maps game states to your JavaScript files:</p>
+    
+    [codeblock json]
+    "behaviors": {
+      "StateName": "path/to/behavior.js"
+    }
+    [/codeblock]
+    
+    [subheading: "Available Game States"]
+    [table header]
+    [ State | Description | When Executed ]
+    [ Global | Global scope | When addon is loaded ]
+    [ Boot | Initial loading | Game startup ]
+    [ Title | Title screen | When title screen loads ]
+    [ MainMenu | Main menu | When main menu loads ]
+    [ SongSelect | Song selection | When selecting songs ]
+    [ Play | Gameplay | During rhythm gameplay ]
+    [ Results | Results screen | After song completion ]
+    [/table]
+    
+    [heading: "Dependencies and Compatibility"]
+    
+    [subheading: "Dependencies"]
+    <p>Specify other addons your addon requires:</p>
+    [codeblock json]
+    "dependencies": {
+      "required-addon-id": "minimum-version",
+      "optional-addon-id": "1.0.0"
+    }
+    [/codeblock]
+    
+    [subheading: "Compatibility"]
+    <p>Define which game versions your addon works with:</p>
+    [codeblock json]
+    "compatibility": {
+      "minVersion": "0.0.5",  // Minimum game version
+      "maxVersion": "2.0.0"   // Maximum game version (optional)
+    }
+    [/codeblock]
+    
+    [heading: "Best Practices"]
+    
+    [subheading: "ID Naming Convention"]
+    [list]
+    * Use lowercase letters, numbers, and hyphens
+    * Make it unique and descriptive
+    * Include your username if possible
+    * Examples: <code>"johns-arrow-pack"</code>, <code>"custom-ui-theme"</code>
+    [/list]
+    
+    [subheading: "Versioning"]
+    [list]
+    * Use semantic versioning: MAJOR.MINOR.PATCH
+    * MAJOR: Breaking changes
+    * MINOR: New features, backward compatible
+    * PATCH: Bug fixes
+    [/list]
+    
+    [subheading: "File Organization"]
+    [codeblock]
+    MyAddon/
+    ├── manifest.json
+    ├── icon.png
+    ├── assets/
+    │   ├── arrows.png
+    │   ├── receptor.png
+    │   └── explosion.png
+    └── behaviors/
+        ├── global.js
+        ├── menu.js
+        └── gameplay.js
+    [/codeblock]
+    
+    [heading: "Troubleshooting"]
+    
+    [subheading: "Common Errors"]
+    [table header]
+    [ Error | Cause | Solution ]
+    [ Addon not appearing | Invalid manifest.json | Check JSON syntax ]
+    [ Assets not loading | Wrong asset key | Verify asset key names ]
+    [ Script errors | JavaScript syntax error | Check console, then fix errors ]
+    [/table]
+    
+    [subheading: "Debugging Tips"]
+    <p>Enable the developer console to see errors:</p>
+    [codeblock js]
+    eruda.init(); // Enable debug console
+    console.log("Addon loaded!"); // Log messages
+    [/codeblock]
+    
+    [heading: "Next Steps"]
+    <p>Now that you've understood manifest format, check out these tutorials:</p>
+    [list]
+    * <a href="asset_replacement.html">Asset Replacement Tutorial</a>
+    * <a href="behavior_scripts.html">Creating Behavior Scripts</a>
+    [/list]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

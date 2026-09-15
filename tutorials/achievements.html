@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Achievements System Guide - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+    
+    [title: "Achievements System Guide"]
+    <a href="../">← Back to index</a>
+    
+    <p>Learn how to work with the achievements system, including adding custom achievements and tracking player stats.</p>
+    
+    [heading: "Overview"]
+    <p>The achievements system tracks player progress across multiple categories, unlocks achievements when conditions are met, and awards experience points to the current character.</p>
+    
+    [heading: "Achievement Categories"]
+    [table header]
+    [ Category | Description | Example Achievements ]
+    [ Gameplay | Core gameplay milestones | First game, Combo 100, Perfect game ]
+    [ Character | Character progression | First character, Level 50, Skill collector ]
+    [ Progression | Overall progress | Games played, Total score, High scores ]
+    [ Mastery | Difficulty mastery | All difficulties, Rating 15+ songs ]
+    [ Time | Time-based milestones | 1 hour played, Night owl, Weekly streak ]
+    [ Holidays | Holiday-specific | Play on holidays ]
+    [ Editor | Chart editor | First arrow, Chart creator, Export songs ]
+    [ Misc | Miscellaneous | Bug reports, Game rating ]
+    [/table]
+    
+    [heading: "Achievement Structure"]
+    [codeblock json]
+    {
+      "id": "combo_1000",
+      "name": "Chain Master",
+      "category": "Gameplay",
+      "description": {
+        "unachieved": "Reach 1000 combo",
+        "achieved": "You reached 1000 combo!"
+      },
+      "expReward": 10,
+      "condition": "stats => stats.maxCombo >= 1000",
+      "hidden": false
+    }
+    [/codeblock]
+    
+    [heading: "Adding Custom Achievements"]
+    <p>Modders can add custom achievements by extending the ACHIEVEMENT_DEFINITIONS array:</p>
+    [codeblock javascript]
+    // In your addon's global behavior
+    ACHIEVEMENT_DEFINITIONS.push({
+      id: "my_custom_achievement",
+      name: "My Custom Achievement",
+      category: ACHIEVEMENT_CATEGORIES.MISC,
+      description: {
+        unachieved: "Complete my custom challenge",
+        achieved: "You completed my custom challenge!"
+      },
+      expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+      condition: (stats, lastSong) => {
+        // Custom condition logic
+        return stats.totalGamesPlayed >= 50 && lastSong.accuracy >= 95;
+      },
+      hidden: false
+    });
+    [/codeblock]
+    
+    [heading: "Achievement Experience Rewards"]
+    [table header]
+    [ Rarity | Value | Use Case ]
+    [ COMMON | 5 XP | Easy achievements ]
+    [ UNCOMMON | 10 XP | Medium difficulty ]
+    [ RARE | 20 XP | Challenging achievements ]
+    [ EPIC | 35 XP | Very difficult ]
+    [ LEGENDARY | 64 XP | Extremely rare/grindy ]
+    [/table]
+    
+    [heading: "Player Statistics"]
+    
+    [subheading: "Gameplay Stats"]
+    [codeblock javascript]
+    Account.stats = {
+      totalGamesPlayed: 0,
+      totalTimePlayed: 0,
+      totalScore: 0,
+      maxCombo: 0,
+      perfectGames: 0,
+      totalNotesHit: 0,
+      totalMarvelous: 0,
+      totalPerfect: 0,
+      totalGreat: 0,
+      totalGood: 0,
+      totalBoo: 0,
+      totalMiss: 0
+    };
+    [/codeblock]
+    
+    [subheading: "Progression Stats"]
+    [codeblock javascript]
+    Account.stats = {
+      currentStreak: 0,
+      longestStreak: 0,
+      highScoresSet: 0,
+      charactersCreated: 0,
+      maxCharacterLevel: 1,
+      skillsUnlocked: 0
+    };
+    [/codeblock]
+    
+    [subheading: "Time-Based Stats"]
+    [codeblock javascript]
+    Account.stats = {
+      playedAtNight: false,
+      playedEarlyMorning: false,
+      playedWeekend: false,
+      playedHoliday: false,
+      totalPlaySessions: 0,
+      averageSessionTime: 0,
+      longestSession: 0
+    };
+    [/codeblock]
+    
+    [heading: "Working with AchievementsManager"]
+    
+    [subheading: "Checking Achievements"]
+    [codeblock javascript]
+    // Achievements are automatically checked after each game
+    // But you can also check manually:
+    const achievementsManager = new AchievementsManager();
+    const newAchievements = achievementsManager.checkAchievements();
+    
+    if (newAchievements.length > 0) {
+      newAchievements.forEach(achievement => {
+        console.log(`Unlocked: ${achievement.name}`);
+        notifications.showAchievement(achievement);
+      });
+    }
+    [/codeblock]
+    
+    [subheading: "Getting Achievement Lists"]
+    [codeblock javascript]
+    const achievementsManager = new AchievementsManager();
+    
+    // Get all unlocked achievements
+    const unlocked = achievementsManager.getUnlockedAchievements();
+    
+    // Get locked achievements (not hidden)
+    const locked = achievementsManager.getLockedAchievements();
+    
+    // Get hidden locked achievements
+    const hidden = achievementsManager.getHiddenAchievements();
+    
+    // Get completion percentage
+    const percent = achievementsManager.getCompletionPercentage();
+    [/codeblock]
+    
+    [subheading: "Tracking Custom Stats"]
+    <p>You can add custom statistics to track in your addon:</p>
+    [codeblock javascript]
+    // Add custom stat to Account
+    if (!Account.stats.myCustomStat) {
+      Account.stats.myCustomStat = 0;
+    }
+    
+    // Update stat
+    Account.stats.myCustomStat++;
+    saveAccount();
+    
+    // Create achievement that uses custom stat
+    ACHIEVEMENT_DEFINITIONS.push({
+      id: "custom_stat_achievement",
+      name: "Custom Stat Master",
+      category: ACHIEVEMENT_CATEGORIES.MISC,
+      description: {
+        unachieved: "Reach 100 in custom stat",
+        achieved: "You reached 100 in custom stat!"
+      },
+      expReward: ACHIEVEMENTS.EXPERIENCE_VALUES.RARE,
+      condition: stats => stats.myCustomStat >= 100,
+      hidden: false
+    });
+    [/codeblock]
+    
+    [heading: "Session and Time Tracking"]
+    
+    [subheading: "Play Session Management"]
+    <p>The AchievementsManager automatically tracks play sessions:</p>
+    [codeblock javascript]
+    // Get current session duration
+    const currentSession = achievementsManager.getCurrentSessionTime();
+    
+    // Get formatted total play time
+    const totalTime = achievementsManager.getTimePlayedFormatted();
+    // Returns: "5h 23m 45s"
+    [/codeblock]
+    
+    [subheading: "Play Streaks"]
+    <p>Daily play streaks are automatically tracked:</p>
+    [list]
+    * Streak updates when player plays on consecutive days
+    * Longest streak is recorded separately
+    * Streak-based achievements (3, 7, 14, 30, 90 days)
+    [/list]
+    
+    [heading: "Holiday Achievements"]
+    <p>The game includes automatic holiday detection. Holidays are defined in the getHolidays() method:</p>
+    [codeblock javascript]
+    // Check if today is a holiday
+    const { month, date } = achievementsManager.getDate();
+    const isHoliday = achievementsManager.isHoliday(month, date);
+    
+    if (isHoliday) {
+      const holidayName = achievementsManager.getHolidayName(month, date);
+      console.log(`Today is ${holidayName}!`);
+    }
+    [/codeblock]
+    
+    [heading: "Example: Custom Achievement Display"]
+    [codeblock javascript]
+    // Create a custom achievement display in your addon
+    function showAchievementProgress() {
+      const achievementsManager = new AchievementsManager();
+      const unlocked = achievementsManager.getTotalUnlockedCount();
+      const total = achievementsManager.getTotalAchievementsCount();
+      const percent = achievementsManager.getCompletionPercentage();
+      
+      const message = `ACHIEVEMENTS: ${unlocked}/${total} (${percent}%)
+      
+      RECENT UNLOCKS:`;
+      
+      const recent = achievementsManager.newAchievements.slice(-3);
+      recent.forEach(ach => {
+        message += `\n- ${ach.name}`;
+      });
+      
+      notifications.show(message, 5000);
+    }
+    [/codeblock]
+    
+    [heading: "Best Practices"]
+    [list]
+    * Always call saveAccount() after updating stats
+    * Use existing stat categories when possible
+    * Test achievement conditions thoroughly
+    * Consider performance when checking conditions frequently
+    * Use appropriate experience rewards for achievement difficulty
+    * Document custom achievements for users
+    [/list]
+    
+    [heading: "Next Steps"]
+    <p>Now that you've understood the achievements system, check out:</p>
+    [list]
+    * <a href="character_system.html">Character System Guide</a>
+    * <a href="behavior_scripts.html">Creating Behavior Scripts</a>
+    [/list]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

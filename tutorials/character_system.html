@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Character System Guide - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+    
+    [title: "Character System Guide"]
+    <a href="../">← Back to index</a>
+    
+    <p>Learn how to work with the character system, including leveling, skills, and customization.</p>
+    
+    [heading: "Overview"]
+    <p>The character system in PadManiaX allows players to create and level up characters that gain experience from gameplay. Characters can unlock skills, hair styles, and cosmetic items as they progress.</p>
+    
+    [heading: "Character Basics"]
+    
+    [subheading: "Creating a Character"]
+    <p>Characters can be created from the Character Select menu:</p>
+    [list]
+    * Navigate to Main Menu → Character Select
+    * Select "+ ADD CHARACTER"
+    * Customize appearance (skin tone, hair color, hair style, clothing, accessory)
+    * Enter a name (max 6 characters)
+    [/list]
+    
+    [subheading: "Character Data Structure"]
+    [codeblock json]
+    {
+      "name": "EIRI",
+      "level": 1,
+      "experience": 0,
+      "skillLevel": 1,
+      "unlockedSkills": ["focus_boost"],
+      "selectedSkill": "focus_boost",
+      "appearance": {
+        "skinTone": 0,
+        "hairColor": 0xa8705a,
+        "frontHair": "1",
+        "backHair": "1",
+        "clothing": "school_uniform",
+        "accessory": null
+      },
+      "stats": {
+        "gamesPlayed": 0,
+        "totalScore": 0,
+        "maxCombo": 0,
+        "perfectGames": 0,
+        "skillsUsed": 0
+      }
+    }
+    [/codeblock]
+    
+    [heading: "Leveling and Experience"]
+    
+    [subheading: "Gaining Experience"]
+    <p>Experience is earned by playing songs with a character selected. Factors affecting experience gain:</p>
+    [table header]
+    [ Factor | Bonus Range | Requirement ]
+    [ Completion | 0-2 XP | Minimum 70% accuracy ]
+    [ Accuracy | 1-8 XP | Based on final accuracy ]
+    [ Max Combo | 2-8 XP | Based on highest combo ]
+    [ Full Combo | 8 XP | Zero misses throughout song ]
+    [ Perfect Game | 4 XP | All marvelous/perfect judgments ]
+    [ Difficulty | 1-3 XP | Higher difficulty = more XP ]
+    [ Skill Usage | 1-5 XP | Per skill used during gameplay ]
+    [/table]
+    
+    [subheading: "Level Up Rewards"]
+    <p>When a character levels up, they may receive:</p>
+    [list]
+    * <strong>New Skills</strong> - 60% chance every level after level 4
+    * <strong>New Hair Styles</strong> - 50% chance every 2 levels after level 2
+    * <strong>New Items</strong> - 40% chance every 2 levels after level 3
+    * <strong>Skill Level Increase</strong> - 40% chance every level (max level 5)
+    [/list]
+    
+    [heading: "Skills System"]
+    
+    [subheading: "Skill Types"]
+    <p>Skills are categorized by their effect type:</p>
+    [table header]
+    [ Type | Description | Example ]
+    [ Conversion | Changes judgment types | Safety Net (Miss → Boo) ]
+    [ Boost | Increases stats temporarily | Focus Boost (wider judgment windows) ]
+    [ Regen | Restores health over time | Health Regeneration ]
+    [ Protection | Prevents negative effects | Combo Shield ]
+    [ Modifier | Changes game mechanics | Time Dilation (slower notes) ]
+    [/table]
+    
+    [subheading: "Skill Activation Conditions"]
+    [codeblock javascript]
+    // Skills activate automatically when conditions are met:
+    on_miss           // When you get a Miss
+    on_combo          // When combo reaches threshold (e.g., 50)
+    on_low_health     // When health drops below threshold (e.g., 30%)
+    on_high_combo     // When combo reaches high threshold (e.g., 100)
+    on_perfect_streak // After consecutive perfects (e.g., 10)
+    on_mine_hit       // Before hitting a mine
+    on_critical_health // When health is critically low (e.g., 15%)
+    [/codeblock]
+    
+    [subheading: "Adding Custom Skills"]
+    <p>Modders can add custom skills by extending the CHARACTER_SKILLS array:</p>
+    [codeblock javascript]
+    // In your addon's global behavior
+    CHARACTER_SKILLS.push({
+      id: "my_custom_skill",
+      name: "My Custom Skill",
+      description: "Does something awesome",
+      activationCondition: "on_combo",
+      effect: "modify_score_gain",
+      effectParams: { multiplier: 1.5, judgement: "marvelous", threshold: 100 },
+      duration: 8000,
+      cooldown: 30000
+    });
+    [/codeblock]
+    
+    [heading: "Character Customization"]
+    
+    [subheading: "Appearance Options"]
+    [table header]
+    [ Category | Options | Unlock Method ]
+    [ Skin Tone | Light, Dark | Default ]
+    [ Hair Color | Any RGB color | Default ]
+    [ Front Hair | 8+ styles | Level up / Achievements ]
+    [ Back Hair | 8+ styles | Level up / Achievements ]
+    [ Clothing | 10+ items | Level up / Achievements ]
+    [ Accessories | 5+ items | Level up / Achievements ]
+    [/table]
+    
+    [subheading: "Modifying Character Appearance in Code"]
+    [codeblock javascript]
+    // Get current character
+    const characterManager = new CharacterManager();
+    const character = characterManager.getCurrentCharacter();
+    
+    // Change appearance
+    character.appearance.hairColor = 0xFF6699;
+    character.appearance.frontHair = "3";
+    character.appearance.clothing = "daring_clothing";
+    
+    // Save changes
+    characterManager.saveToAccount();
+    
+    // Update display
+    characterDisplay.updateAppearance(character.appearance);
+    [/codeblock]
+    
+    [heading: "Character API Reference"]
+    
+    [subheading: "CharacterManager Methods"]
+    [table header]
+    [ Method | Description ]
+    [ getCurrentCharacter() | Returns the active character or null ]
+    [ getCharacterList() | Returns array of all characters ]
+    [ createCharacter(name, appearance) | Creates a new character ]
+    [ deleteCharacter(name) | Deletes a character ]
+    [ updateCharacterStats(gameResults) | Updates stats and awards XP ]
+    [/table]
+    
+    [subheading: "Character Methods"]
+    [table header]
+    [ Method | Description ]
+    [ addExperience(amount) | Adds XP and triggers level-ups ]
+    [ getRequiredExperience() | Returns XP needed for next level ]
+    [ getExperienceProgress() | Returns progress (0-1) toward next level ]
+    [ canUseSkill() | Returns whether character has skills ]
+    [/table]
+    
+    [heading: "Example: Character Info Display"]
+    [codeblock javascript]
+    // Create a character info display in your addon
+    function showCharacterInfo() {
+      const characterManager = new CharacterManager();
+      const character = characterManager.getCurrentCharacter();
+      
+      if (!character) {
+        notifications.show("No character selected!");
+        return;
+      }
+      
+      const info = `${character.name} (Lv.${character.level})
+      XP: ${character.experience}/${character.getRequiredExperience()}
+      Skill Level: ${character.skillLevel}
+      Skills: ${character.unlockedSkills.length}
+      Games: ${character.stats.gamesPlayed}
+      Max Combo: ${character.stats.maxCombo}`;
+      
+      notifications.show(info, 5000);
+    }
+    [/codeblock]
+    
+    [heading: "Best Practices"]
+    [list]
+    * Always use CharacterManager methods instead of modifying Account directly
+    * Check if a character exists before accessing properties
+    * Save character data after modifications using saveToAccount()
+    * Test skill effects thoroughly as they can impact game balance
+    * Consider skill cooldowns when designing custom skills
+    [/list]
+    
+    [heading: "Next Steps"]
+    <p>Now that you've understood the character system, check out:</p>
+    [list]
+    * <a href="achievements.html">Achievements System Guide</a>
+    * <a href="behavior_scripts.html">Creating Behavior Scripts</a>
+    [/list]
+    
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>
