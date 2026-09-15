@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.2.1 dev
- * Build: 9/14/2026, 8:06:15 PM
+ * Build: 9/15/2026, 12:51:27 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -153,7 +153,7 @@ const FONTS = {
   },
   default_shadow: {
     credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
-    font: "font_defaul_shadow",
+    font: "font_default_shadow",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 4,
     fontHeight: 7,
@@ -161,7 +161,7 @@ const FONTS = {
   },
   default_stroke: {
     credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
-    font: "font_defaul_stroke",
+    font: "font_default_stroke",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 5,
     fontHeight: 8,

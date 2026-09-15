@@ -30,7 +30,7 @@ const FONTS = {
   },
   default_shadow: {
     credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
-    font: "font_defaul_shadow",
+    font: "font_default_shadow",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 4,
     fontHeight: 7,
@@ -38,7 +38,7 @@ const FONTS = {
   },
   default_stroke: {
     credit: __("From TIC-80 tiny computer. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com||De la mini computadora TIC-80. Copyright (c) 2017-2023 Vadim Grigoruk @nesbox // grigoruk@gmail.com"),
-    font: "font_defaul_stroke",
+    font: "font_default_stroke",
     fontMap: DEFAULT_FONT_MAP,
     fontWidth: 5,
     fontHeight: 8,

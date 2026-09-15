@@ -87,11 +87,17 @@
     [subheading: "Font Assets"]
     [table header]
     [ Key | Description | Default File | Characters ]
-    [ font_tiny | Default font | fonts/tiny.png | A-Z, 0-9, symbols ]
-    [ font_shaded | Shaded font | fonts/shaded.png | With drop shadow ]
-    [ font_stroke | Outlined font | fonts/stroke.png | Better visibility ]
-    [ font_number | Number font | fonts/number.png | Optimized numbers ]
-    [ font_combo | Combo font | fonts/combo.png | Large combo display ]
+    [ default | Default font | fonts/default.png | DEFAULT_FONT_MAP ]
+    [ default_shadow | Font with shadow | fonts/default_shadow.png | DEFAULT_FONT_MAP ]
+    [ default_stroke | Outlined font | fonts/default_stroke.png | DEFAULT_FONT_MAP ]
+    [ bold | Bold font | fonts/bold.png | A-Z, a-z, 0-9, symbols ]
+    [ bold_shadow | Bold font with shadow | fonts/bold_shadow.png | DEFAULT_FONT_MAP ]
+    [ bold_stroke | Bold outlined font | fonts/bold_stroke.png | DEFAULT_FONT_MAP ]
+    [ tiny_default | Default tiny font | fonts/tiny_default.png | TINY_FONT_MAP ]
+    [ tiny_shaded | Tiny shaded font | fonts/tiny_shaded.png | TINY_FONT_MAP ]
+    [ tiny_stroke | Tiny outlined font | fonts/tiny_stroke.png | TINY_FONT_MAP ]
+    [ tiny_number | Tiny numeric font | fonts/tiny_number.png | 1-9 and space ]
+    [ biscuitlocker_combo | Combo font by <a href="https://biscuitlocker.itch.io">BiscuitLocker</a> | fonts/biscuitlocker_combo.png | 1-9 and space ]
     [/table]
     
     [heading: "Advanced Asset Techniques"]
@@ -129,6 +135,8 @@
     [6] [7] [8]  - Bottom row (corners and bottom edge)
     [/codeblock]
     
+    Frames 9 and 10 are the arrow animation 
+    
     [heading: "Creating Custom Assets"]
     
     [subheading: "Tools for Asset Creation"]
@@ -139,18 +147,6 @@
     * <strong>Acode</strong> - Mobile file management for testing
     [/list]
     
-    [subheading: "Color Palette"]
-    <p>PadManiaX uses a retro color palette. Recommended colors:</p>
-    [codeblock plaintext]
-    Primary colors:
-    - Brown: #8B4513 (UI windows)
-    - Cyan: #76FCFF (Text highlights)
-    - White: #FFFFFF (Text)
-    
-    Note colors (see frame order above)
-    Game uses various colors for different note speeds
-    [/codeblock]
-    
     [heading: "Testing Your Assets"]
     
     [subheading: "Enable Debug Mode"]
@@ -159,15 +155,6 @@
     eruda.init(); // Enable console
     console.log("Testing custom assets...");
     [/codeblock]
-    
-    [subheading: "Common Issues"]
-    [table header]
-    [ Issue | Cause | Solution ]
-    [ Asset not loading | Wrong file path | Check manifest paths ]
-    [ Wrong colors | Incorrect frame order | Verify spritesheet order ]
-    [ Performance issues | Large file size | Optimize image size ]
-    [ Missing frames | Wrong dimensions | Match original dimensions ]
-    [/table]
     
     [heading: "Example: Custom Arrow Pack"]
     
@@ -193,10 +180,10 @@
     NeonArrows/
     ├── manifest.json
     └── assets/
-        ├── neon_arrows.png     (16x192 - 12 frames of 16x16)
-        ├── neon_receptor.png   (16x48 - 3 frames of 16x16)
-        ├── neon_explosion.png  (Single image)
-        └── neon_mine.png       (16x128 - 8 frames of 16x16)
+        ├── neon_arrows.png     (220x20 - 12 frames of 20x20)
+        ├── neon_receptor.png   (60x20 - 3 frames of 20x20)
+        ├── neon_explosion.png  (Single image of 20x20)
+        └── neon_mine.png       (80x40 - 8 frames of 20x20)
     [/codeblock]
     
     [heading: "Best Practices"]
