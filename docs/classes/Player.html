@@ -90,6 +90,8 @@
     [ Method | Parameters | Description ]
     [ calculateTotalNotes | () | Counts the total number of hittable notes in the chart for accuracy calculation. Called once during initialization to set the baseline for accuracy scoring. ]
     [ findClosestNote | (column, beat, noteTypes, searchRangeSeconds) | Finds the nearest unhit note in a given column within a time range. Used by input handling and auto-play to identify which note to judge. ]
+    [ findPastNote | (column, beat, noteTypes) | Finds a past note that might not be detected by Autoplay logic. Used by autoplay to avoid leaving hit past notes unhit ]
+    [ findNotesInJudgeWindow | (column, beat, noteTypes, judgeWindow) | Find all notes of specified types within judge window This method is actually unused. ]
     [ processNoteIfInWindow | (note, currentTime, column, callback) | Checks if a note falls within the judgement window and triggers the callback. Prevents double-judging the same note by tracking last checked beats per column. ]
     [ autoPlay | () | AI auto-play logic that simulates perfect inputs for all notes. Processes regular notes and holds automatically each frame when enabled. ]
     [ handleInput | (column, isKeyDown) | Core input handler that processes key press and release events. Routes to regular note checking, hold start/release, and roll tapping logic. ]

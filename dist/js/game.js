@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.2.1 dev
- * Build: 9/15/2026, 12:51:27 PM
+ * Build: 10/13/2026, 11:11:52 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -31934,11 +31934,6 @@ class Play {
       this.metronome.toggle();
     }
     
-    // Update assist tick metronome
-    if (this.metronome) {
-      this.metronome.update();
-    }
-    
     // Update autoplay text
     let text = "";
     if (this.autoplay) {
@@ -31983,6 +31978,9 @@ class Play {
    * Phaser render hook that renders the player's note objects.
    */
   render() {
+    if (this.metronome) {
+      this.metronome.update();
+    }
     if (this.player) {
       this.player.render();
     }
@@ -32734,7 +32732,7 @@ class Results {
     if (Account.settings.autoplay) {
       menu.addItem(__("Disable Autoplay||Desactivar Autoplay"), () => {
         Account.settings.autoplay = false;
-        game.state.start("SongSelect", window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
+        game.state.start("SongSelect", null, window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
       });
     }
     menu.addItem(__("Retry||Reintentar"), () => game.state.start("Play", true, false, this.gameData.song, this.gameData.song.difficultyIndex, undefined, undefined, this.gameData.playlistKey));
@@ -39909,7 +39907,8 @@ class Player {
     });
     
     // Copy references from renderer
-/** @type {Array} Chart note data for this difficulty */
+    
+    /** @type {Array} Chart note data for this difficulty */
     this.notes = this.renderer.notes;
     /** @type {Array} BPM change markers from the chart */
     this.bpmChanges = this.renderer.bpmChanges;
@@ -40128,14 +40127,54 @@ class Player {
       return currentTimeDelta < closestTimeDelta ? current : closest;
     });
   }
-
+  
+  /**
+   * Finds a past note that might not be detected by Autoplay logic.
+   * Used by autoplay to avoid leaving hit past notes unhit
+   * @param {number} column - Column index (0-3)
+   * @param {number} beat - Current beat position
+   * @param {Array<string>} noteTypes - Note types to search for
+   * @returns {Object|null} Closest matching note or null
+   */
+  findPastNote(column, beat, noteTypes) {
+    const candidateNotes = [];
+    
+    for (const note of this.notes) {
+      if (
+        note.column < 0 || note.column == column &&
+        noteTypes.includes(note.type) &&
+        note.beat <= beat &&
+        !note.hit
+      ) {
+        candidateNotes.push(note);
+      }
+    };
+    
+    if (candidateNotes.length === 0) return null;
+    
+    // Find closest by beat
+    return candidateNotes.reduce((closest, current) => {
+      const currentTimeDelta = Math.abs(current.beat - beat);
+      const closestTimeDelta = Math.abs(closest.beat - beat);
+      return currentTimeDelta < closestTimeDelta ? current : closest;
+    });
+  }
+  
+  /**
+   * Find all notes of specified types within judge window
+   * This method is actually unused.
+   * @param {number} column - Column index (0-3)
+   * @param {number} beat - Current beat position
+   * @param {Array<string>} noteTypes - Note types to search for
+   * @param {number} judgeWindow - The search window in seconds
+   */
   findNotesInJudgeWindow(column, beat, noteTypes, judgeWindow) {
     // Find all notes of specified types within judge window
     return this.notes.filter(n => 
       !n.hit && 
       n.column === column && 
       noteTypes.includes(n.type) && 
-      Math.abs(n.beat - beat) <= judgeWindow
+      Math.abs(n.sec - sec) <= judgeWindow
     );
   }
 
@@ -40169,47 +40208,56 @@ class Player {
    * AI auto-play logic that simulates perfect inputs for all notes.
    * Processes regular notes and holds automatically each frame when enabled.
    */
-  // AI autolay method
   autoPlay() {
     if (!this.scene.startTime || this.scene.isPaused) return;
     
     const { now, beat } = this.scene.getCurrentTime();
     
-    // Process regular notes for auto-play
-    for (let column = 0; column < 4; column++) {
-      const closestNote = this.findClosestNote(column, beat, "1");
-      
-      if (closestNote) {
-        const delta = closestNote.beat - beat;
-        
-        // Check if note is within window
-        if (delta <= 0 && !this.inputStates[column]) {
-          // Simulate perfect input - press and immediately release
-          this.handleInput(column, true);
-          this.handleInput(column, false);
-        }
-      }
-    }
+    const SEARCH_TIME_LONG = this.renderer.beatToSec(1/24);
+    const SEARCH_TIME_SHORT = this.renderer.beatToSec(1/32);
     
-    // Process freezes for auto-play
     for (let column = 0; column < 4; column++) {
-      const holdNote = this.findClosestNote(column, beat, ["2", "4"]);
-      
-      if (holdNote && !this.autoplayActiveHolds.has(column)) {
-        const delta = holdNote.beat - beat;
-        if (delta <= 0) {
-          // Start hold
-          this.handleInput(column, true);
-          this.autoplayActiveHolds.add(column);
+      // Process freezes for auto-play
+      const processFreezes = () => {
+        const holdNote = this.findPastNote(column, beat, ["2", "4"]);
+        
+        if (holdNote && !this.autoplayActiveHolds.has(column)) {
+          const delta = holdNote.beat - beat;
+          
+          if (delta <= 0 && !this.inputStates[column]) {
+            // Start hold
+            this.handleInput(column, true);
+            this.autoplayActiveHolds.add(column);
+          }
         }
-      }
+        
+        // Check if we should release completed holds
+        const activeHold = this.activeHolds[column];
+        if (activeHold && activeHold.progress >= activeHold.note.secLength) {
+          this.handleInput(column, false);
+          this.autoplayActiveHolds.delete(column);
+        }
+      };
       
-      // Check if we should release completed holds
-      const activeHold = this.activeHolds[column];
-      if (activeHold && activeHold.progress >= activeHold.note.secLength) {
-        this.handleInput(column, false);
-        this.autoplayActiveHolds.delete(column);
-      }
+      // Process regular notes
+      const processRegularNotes = () => {
+        const closestNote = this.findClosestNote(column, beat, ["1"], SEARCH_TIME_LONG)
+                            || this.findPastNote(column, beat, ["1"]);
+        
+        if (closestNote && !this.autoplayActiveHolds.has(column)) {
+          const delta = closestNote.beat - beat;
+          
+          // Check if note is within window
+          if (delta <= 0 && !this.inputStates[column]) {
+            // Simulate perfect input immediately
+            this.handleInput(column, true);
+            game.time.events.add(0, () => this.handleInput(column, false));
+          }
+        }
+      };
+      
+      processFreezes();
+      processRegularNotes();
     }
     
     // Clean up any holds that are no longer active but we think they are

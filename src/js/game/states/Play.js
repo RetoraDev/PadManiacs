@@ -1687,11 +1687,6 @@ class Play {
       this.metronome.toggle();
     }
     
-    // Update assist tick metronome
-    if (this.metronome) {
-      this.metronome.update();
-    }
-    
     // Update autoplay text
     let text = "";
     if (this.autoplay) {
@@ -1736,6 +1731,9 @@ class Play {
    * Phaser render hook that renders the player's note objects.
    */
   render() {
+    if (this.metronome) {
+      this.metronome.update();
+    }
     if (this.player) {
       this.player.render();
     }
