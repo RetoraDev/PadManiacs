@@ -236,7 +236,7 @@ class OnScreenKeyboard extends Phaser.Sprite {
    * Call every frame while the keyboard is on screen.
    */
   update() {
-    
+    const pointer = game.input.activePointer;
     
     if (pointer.isDown) {
       this.activeKey = this.getKeyUnderPointer(pointer);

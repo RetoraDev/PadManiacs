@@ -611,21 +611,21 @@ class Editor {
       const text = this.isPlaying
         ? __(
             `(Playing|Reproduciendo)
-  (TIME|TIEMPO): ${formatedTime}
-  (BEAT|BEAT): ${this.cursorBeat.toFixed(0)}
-  (BPM|BPM): ${currentBpm}`
+ (TIME|TIEMPO): ${formatedTime}
+ (BEAT|BEAT): ${this.cursorBeat.toFixed(0)}
+ (BPM|BPM): ${currentBpm}`
           )
         : __(
             `(EDITING|EDITANDO): ${diff.type} (${diff.rating})
-  (SNAP|SNAP): 1/${this.snapDivision}
-  (TIME|TIEMPO): ${formatedTime}
-  (BEAT|BEAT): ${this.cursorBeat.toFixed(3)}
-  (BPM|BPM): ${currentBpm}
-  (NOTES|NOTAS): ${noteCount}
-  (SELECTED|SELECCIONADAS): ${this.selectedNotes.length}`
+ (SNAP|SNAP): 1/${this.snapDivision}
+ (TIME|TIEMPO): ${formatedTime}
+ (BEAT|BEAT): ${this.cursorBeat.toFixed(3)}
+ (BPM|BPM): ${currentBpm}
+ (NOTES|NOTAS): ${noteCount}
+ (SELECTED|SELECCIONADAS): ${this.selectedNotes.length}`
           );
       
-      const bgText = __(`(BG|Fondo): ${this.getCurrentBgFileName()}`);
+      const bgText = __(`(BG|Fondo): ${this.getCurrentBgFileName()}`) + (this.isPlaying && this.metronome.enabled ? `\nMETRONOME: ${this.metronome.mode}`: '');
       
       if (text != this.infoText.texture.text) this.infoText.write(text);
       if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 45);
@@ -860,9 +860,11 @@ class Editor {
       this.togglePlayback();
     }
     
-    // Toggle metronome with start
-    if (gamepad.pressed.start) {
-      this.metronome.toggle();
+    // Metronome controls
+    if (this.isPlaying) {
+      if (gamepad.pressed.start) {
+        this.metronome.toggle();
+      }
     }
 
     // Handle context menu with START

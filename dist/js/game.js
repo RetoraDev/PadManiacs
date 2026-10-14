@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.2.1 dev
- * Build: 10/13/2026, 11:11:52 PM
- * Platform: Development
+ * Version: v1.2.1
+ * Build: 10/14/2026, 12:18:21 AM
+ * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
  */
@@ -125,7 +125,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.2.1 dev";
+const VERSION = "v1.2.1";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -859,7 +859,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -16448,7 +16448,7 @@ class Metronome {
     
     if (this.mode === 'Note') {
       this.updateNoteMode();
-    } else {
+    } else if (this.mode !== 'OFF') {
       this.updateBeatMode();
     }
   }
@@ -18009,7 +18009,7 @@ class OnScreenKeyboard extends Phaser.Sprite {
    * Call every frame while the keyboard is on screen.
    */
   update() {
-    
+    const pointer = game.input.activePointer;
     
     if (pointer.isDown) {
       this.activeKey = this.getKeyUnderPointer(pointer);
@@ -32732,7 +32732,7 @@ class Results {
     if (Account.settings.autoplay) {
       menu.addItem(__("Disable Autoplay||Desactivar Autoplay"), () => {
         Account.settings.autoplay = false;
-        game.state.start("SongSelect", null, window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
+        game.state.start("SongSelect", true, false, null, window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
       });
     }
     menu.addItem(__("Retry||Reintentar"), () => game.state.start("Play", true, false, this.gameData.song, this.gameData.song.difficultyIndex, undefined, undefined, this.gameData.playlistKey));
@@ -35083,21 +35083,21 @@ class Editor {
       const text = this.isPlaying
         ? __(
             `(Playing|Reproduciendo)
-  (TIME|TIEMPO): ${formatedTime}
-  (BEAT|BEAT): ${this.cursorBeat.toFixed(0)}
-  (BPM|BPM): ${currentBpm}`
+ (TIME|TIEMPO): ${formatedTime}
+ (BEAT|BEAT): ${this.cursorBeat.toFixed(0)}
+ (BPM|BPM): ${currentBpm}`
           )
         : __(
             `(EDITING|EDITANDO): ${diff.type} (${diff.rating})
-  (SNAP|SNAP): 1/${this.snapDivision}
-  (TIME|TIEMPO): ${formatedTime}
-  (BEAT|BEAT): ${this.cursorBeat.toFixed(3)}
-  (BPM|BPM): ${currentBpm}
-  (NOTES|NOTAS): ${noteCount}
-  (SELECTED|SELECCIONADAS): ${this.selectedNotes.length}`
+ (SNAP|SNAP): 1/${this.snapDivision}
+ (TIME|TIEMPO): ${formatedTime}
+ (BEAT|BEAT): ${this.cursorBeat.toFixed(3)}
+ (BPM|BPM): ${currentBpm}
+ (NOTES|NOTAS): ${noteCount}
+ (SELECTED|SELECCIONADAS): ${this.selectedNotes.length}`
           );
       
-      const bgText = __(`(BG|Fondo): ${this.getCurrentBgFileName()}`);
+      const bgText = __(`(BG|Fondo): ${this.getCurrentBgFileName()}`) + (this.isPlaying && this.metronome.enabled ? `\nMETRONOME: ${this.metronome.mode}`: '');
       
       if (text != this.infoText.texture.text) this.infoText.write(text);
       if (bgText != this.bgInfoText.texture.text) this.bgInfoText.write(bgText, 45);
@@ -35332,9 +35332,11 @@ class Editor {
       this.togglePlayback();
     }
     
-    // Toggle metronome with start
-    if (gamepad.pressed.start) {
-      this.metronome.toggle();
+    // Metronome controls
+    if (this.isPlaying) {
+      if (gamepad.pressed.start) {
+        this.metronome.toggle();
+      }
     }
 
     // Handle context menu with START

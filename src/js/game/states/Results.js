@@ -296,7 +296,7 @@ class Results {
     if (Account.settings.autoplay) {
       menu.addItem(__("Disable Autoplay||Desactivar Autoplay"), () => {
         Account.settings.autoplay = false;
-        game.state.start("SongSelect", null, window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
+        game.state.start("SongSelect", true, false, null, window.selectStartingIndex, true, "auto", this.gameData.playlistKey);
       });
     }
     menu.addItem(__("Retry||Reintentar"), () => game.state.start("Play", true, false, this.gameData.song, this.gameData.song.difficultyIndex, undefined, undefined, this.gameData.playlistKey));

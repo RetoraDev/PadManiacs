@@ -64,7 +64,7 @@ class Metronome {
     
     if (this.mode === 'Note') {
       this.updateNoteMode();
-    } else {
+    } else if (this.mode !== 'OFF') {
       this.updateBeatMode();
     }
   }
