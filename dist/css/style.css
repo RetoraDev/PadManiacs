@@ -18,6 +18,8 @@
   --debug-border: #ddd;
   --debug-hover: #eee;
   --debug-active: #ddd;
+  --rhythm-pad-btn-width: 72px;
+  --rhythm-pad-btn-height: 64px;
 }
 
 body {
@@ -53,7 +55,7 @@ body {
 }
 
 #controller_parent {
-  display: none;
+  display: .;
   width: 100%;
   opacity: 0.8;
   pointer-events: none;
@@ -197,9 +199,9 @@ body {
   background: radial-gradient(ellipse at center, var(--capsule-light) 0%, var(--capsule-dark) 100%);
 }
 .squareBtn {
-  width: 72px;
-  height: 64px;
-  border-radius: 10px;
+  width: var(--rhythm-pad-btn-width);
+  height: var(--rhythm-pad-btn-height);
+  border-radius: 13%;
 }
 .btnPressed {
   opacity: 0.5;

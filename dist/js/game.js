@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.2.1
- * Build: 10/14/2026, 12:18:21 AM
+ * Build: 10/14/2026, 10:23:21 PM
  * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
@@ -15916,6 +15916,21 @@ window.multiplayerState = {
     draw: 0
   }
 };
+
+// New method to keep consistent rhythm pad size on mobile devices with different screen sizes 
+const __updateRhythmPadSize = () => {
+  if (!document.body || !document.body.style) return;
+  
+  const buttonWidth = Math.min(window.innerWidth * 0.2, 240);
+  const buttonHeight = buttonWidth * 0.888888;
+  
+  document.body.style.setProperty("--rhythm-pad-btn-width", `${buttonWidth}px`);
+  document.body.style.setProperty("--rhythm-pad-btn-height", `${buttonHeight}px`);
+};
+              
+__updateRhythmPadSize();
+              
+window.addEventListener("resize", () => __updateRhythmPadSize());
 
 /**
  * @class ScreenRecorder

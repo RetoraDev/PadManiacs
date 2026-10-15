@@ -239,3 +239,18 @@ window.multiplayerState = {
     draw: 0
   }
 };
+
+// New method to keep consistent rhythm pad size on mobile devices with different screen sizes 
+const __updateRhythmPadSize = () => {
+  if (!document.body || !document.body.style) return;
+  
+  const buttonWidth = Math.min(window.innerWidth * 0.2, 240);
+  const buttonHeight = buttonWidth * 0.888888;
+  
+  document.body.style.setProperty("--rhythm-pad-btn-width", `${buttonWidth}px`);
+  document.body.style.setProperty("--rhythm-pad-btn-height", `${buttonHeight}px`);
+};
+              
+__updateRhythmPadSize();
+              
+window.addEventListener("resize", () => __updateRhythmPadSize());
