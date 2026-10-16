@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.2.1
- * Build: 10/14/2026, 10:23:21 PM
- * Platform: Android (Cordova)
+ * Version: v1.2.1 dev
+ * Build: 10/15/2026, 8:13:13 PM
+ * Platform: Development
  * Debug: false
  * Minified: false
  */
@@ -125,7 +125,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.2.1";
+const VERSION = "v1.2.1 dev";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -859,7 +859,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -16437,6 +16437,15 @@ class Metronome {
       'Thirty-seconds': 8, // Every eighth beat (1, 1.125, 1.25, 1.375...)
       'Note': 'Note'       // Special mode - plays when notes reach their beat time
     };
+    /** @type {Object} Map of mode names to mode index */
+    this.modes = {
+      'OFF': 0,
+      'Quarters': 1,
+      'Eighths': 2,
+      'Sixteenths': 3,
+      'Thirty-seconds': 4,
+      'Note': 5
+    };
     
     /** @type {number} Last division value to detect beat crossings */
     this.lastDivisionValue = -1;
@@ -16450,9 +16459,6 @@ class Metronome {
     this.lastNoteBeat = -1; // Last note beat that triggered a tick
     /** @type {Array} Array of unique note beats */
     this.notes = []; // Array of unique note beats
-    
-    // Bind the toggle method to the scene
-    this.scene.onSelectPressed = this.toggle.bind(this);
   }
 
   /**
@@ -16577,6 +16583,38 @@ class Metronome {
     this.lastDivisionValue = -1; // Reset to ensure tick plays on next division
     this.resetNoteMode(); // Reset note mode state
   }
+  
+  /**
+   * Sets previous metronome mode
+   */
+  previousMode() {
+    const modeNames = Object.keys(this.modes);
+    
+    const max = this.modes.length - 1;
+    const currentMode = this.modes[this.mode];
+    
+    if (currentMode <= 0) {
+      // Ignore
+    } else {
+      this.setMode(modeNames[currentMode - 1]);
+    }
+  }
+  
+  /**
+   * Sets next metronome mode
+   */
+  nextMode() {
+    const modeNames = Object.keys(this.modes);
+    
+    const max = this.modes.length - 1;
+    const currentMode = this.modes[this.mode];
+    
+    if (currentMode >= max) {
+      // Ignore
+    } else {
+      this.setMode(modeNames[currentMode + 1]);
+    }
+  }
 
   /**
    * Resets note mode state so ticks restart from the beginning of the chart.
@@ -16592,18 +16630,11 @@ class Metronome {
    * @param {string} mode - One of the supported mode keys
    */
   setMode(mode) {
-    if (this.beatDivisions.hasOwnProperty(mode)) {
+    if (this.modes.hasOwnProperty(mode)) {
       this.mode = mode;
       this.currentDivision = this.beatDivisions[mode];
       this.lastDivisionValue = -1; // Reset division tracking
       this.resetNoteMode(); // Reset note mode state
-      
-      // Update enabled state based on mode
-      this.enabled = mode !== 'OFF';
-      
-      // Update account settings
-      //Account.settings.metronome = mode;
-      //saveAccount();
     }
   }
 
@@ -34501,14 +34532,6 @@ class Jukebox {
  * gamepad and mouse driven editing canvas with note placement, selection,
  * area selection, freezes, mines, BPM changes, stops and background changes.
  * Charts can be imported from StepMania packages or exported as zip files.
- * @example
- * // Modding usage example
- * // Switch to the chart editor from another state
- * game.state.start("Editor");
- *
- * // Export or inspect the in-memory chart object
- * const chart = window.editorSongData.chart;
- * window.e.song.chart.difficulties.forEach(d => console.log(d.type, d.rating));
  */
 class Editor {
   /**
@@ -34562,7 +34585,6 @@ class Editor {
       extra: {}
     };
     
-    // For debugging
     window.e = this;
 
     this.divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 192];
@@ -35153,7 +35175,7 @@ class Editor {
   updateCursorPosition() {
     this.cursorSprite.clear();
 
-    if (!this.isAreaSelecting) {
+    if (!this.isAreaSelecting && !this.isPlaying) {
       const leftOffset = this.chartRenderer.calculateLeftOffset();
       const x = leftOffset + this.cursorColumn * (this.chartRenderer.COLUMN_SIZE + this.chartRenderer.COLUMN_SEPARATION);
       const y = this.chartRenderer.JUDGE_LINE;
@@ -35305,14 +35327,23 @@ class Editor {
       }
     }
 
-    if (gamepad.held.a && (gamepad.pressed.up || gamepad.pressed.down)) {
-      if (!this.isAreaSelecting) {
-        this.startAreaSelection();
-      }
-    } else if (gamepad.held.a && (gamepad.pressed.left || gamepad.pressed.right)) {
-      if (!this.isAreaSelecting) {
-        this.changeSnapDivision(gamepad.pressed.left ? -1 : 1);
-        this.holdADirectionTime = game.time.now;
+    if (!this.isPlaying) {
+      if (gamepad.held.a && (gamepad.pressed.up || gamepad.pressed.down)) {
+        if (!this.isAreaSelecting) {
+          this.startAreaSelection();
+        }
+      } else if (gamepad.held.a && (gamepad.pressed.left || gamepad.pressed.right)) {
+        if (!this.isAreaSelecting) {
+          this.changeSnapDivision(gamepad.pressed.left ? -1 : 1);
+          this.holdADirectionTime = game.time.now;
+        } else {
+          if (gamepad.pressed.left) {
+            this.moveCursor(-1, 0);
+          }
+          if (gamepad.pressed.right) {
+            this.moveCursor(1, 0);
+          }
+        }
       } else {
         if (gamepad.pressed.left) {
           this.moveCursor(-1, 0);
@@ -35320,13 +35351,6 @@ class Editor {
         if (gamepad.pressed.right) {
           this.moveCursor(1, 0);
         }
-      }
-    } else {
-      if (gamepad.pressed.left) {
-        this.moveCursor(-1, 0);
-      }
-      if (gamepad.pressed.right) {
-        this.moveCursor(1, 0);
       }
     }
 
@@ -35345,12 +35369,21 @@ class Editor {
     // Toggle playback with SELECT
     if (gamepad.pressed.select && !gamepad.held.start) {
       this.togglePlayback();
+      this.updateCursorPosition();
     }
     
     // Metronome controls
     if (this.isPlaying) {
       if (gamepad.pressed.start) {
         this.metronome.toggle();
+      }
+      if (this.metronome.enabled) {
+        if (gamepad.pressed.left) {
+          this.metronome.previousMode();
+        }
+        if (gamepad.pressed.right) {
+          this.metronome.nextMode();
+        }
       }
     }
 

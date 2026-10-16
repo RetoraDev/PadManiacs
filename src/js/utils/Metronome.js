@@ -38,6 +38,15 @@ class Metronome {
       'Thirty-seconds': 8, // Every eighth beat (1, 1.125, 1.25, 1.375...)
       'Note': 'Note'       // Special mode - plays when notes reach their beat time
     };
+    /** @type {Object} Map of mode names to mode index */
+    this.modes = {
+      'OFF': 0,
+      'Quarters': 1,
+      'Eighths': 2,
+      'Sixteenths': 3,
+      'Thirty-seconds': 4,
+      'Note': 5
+    };
     
     /** @type {number} Last division value to detect beat crossings */
     this.lastDivisionValue = -1;
@@ -51,9 +60,6 @@ class Metronome {
     this.lastNoteBeat = -1; // Last note beat that triggered a tick
     /** @type {Array} Array of unique note beats */
     this.notes = []; // Array of unique note beats
-    
-    // Bind the toggle method to the scene
-    this.scene.onSelectPressed = this.toggle.bind(this);
   }
 
   /**
@@ -178,6 +184,38 @@ class Metronome {
     this.lastDivisionValue = -1; // Reset to ensure tick plays on next division
     this.resetNoteMode(); // Reset note mode state
   }
+  
+  /**
+   * Sets previous metronome mode
+   */
+  previousMode() {
+    const modeNames = Object.keys(this.modes);
+    
+    const max = this.modes.length - 1;
+    const currentMode = this.modes[this.mode];
+    
+    if (currentMode <= 0) {
+      // Ignore
+    } else {
+      this.setMode(modeNames[currentMode - 1]);
+    }
+  }
+  
+  /**
+   * Sets next metronome mode
+   */
+  nextMode() {
+    const modeNames = Object.keys(this.modes);
+    
+    const max = this.modes.length - 1;
+    const currentMode = this.modes[this.mode];
+    
+    if (currentMode >= max) {
+      // Ignore
+    } else {
+      this.setMode(modeNames[currentMode + 1]);
+    }
+  }
 
   /**
    * Resets note mode state so ticks restart from the beginning of the chart.
@@ -193,18 +231,11 @@ class Metronome {
    * @param {string} mode - One of the supported mode keys
    */
   setMode(mode) {
-    if (this.beatDivisions.hasOwnProperty(mode)) {
+    if (this.modes.hasOwnProperty(mode)) {
       this.mode = mode;
       this.currentDivision = this.beatDivisions[mode];
       this.lastDivisionValue = -1; // Reset division tracking
       this.resetNoteMode(); // Reset note mode state
-      
-      // Update enabled state based on mode
-      this.enabled = mode !== 'OFF';
-      
-      // Update account settings
-      //Account.settings.metronome = mode;
-      //saveAccount();
     }
   }
 

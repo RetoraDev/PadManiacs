@@ -14,14 +14,6 @@
  * gamepad and mouse driven editing canvas with note placement, selection,
  * area selection, freezes, mines, BPM changes, stops and background changes.
  * Charts can be imported from StepMania packages or exported as zip files.
- * @example
- * // Modding usage example
- * // Switch to the chart editor from another state
- * game.state.start("Editor");
- *
- * // Export or inspect the in-memory chart object
- * const chart = window.editorSongData.chart;
- * window.e.song.chart.difficulties.forEach(d => console.log(d.type, d.rating));
  */
 class Editor {
   /**
@@ -75,7 +67,6 @@ class Editor {
       extra: {}
     };
     
-    // For debugging
     window.e = this;
 
     this.divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 192];
@@ -666,7 +657,7 @@ class Editor {
   updateCursorPosition() {
     this.cursorSprite.clear();
 
-    if (!this.isAreaSelecting) {
+    if (!this.isAreaSelecting && !this.isPlaying) {
       const leftOffset = this.chartRenderer.calculateLeftOffset();
       const x = leftOffset + this.cursorColumn * (this.chartRenderer.COLUMN_SIZE + this.chartRenderer.COLUMN_SEPARATION);
       const y = this.chartRenderer.JUDGE_LINE;
@@ -818,14 +809,23 @@ class Editor {
       }
     }
 
-    if (gamepad.held.a && (gamepad.pressed.up || gamepad.pressed.down)) {
-      if (!this.isAreaSelecting) {
-        this.startAreaSelection();
-      }
-    } else if (gamepad.held.a && (gamepad.pressed.left || gamepad.pressed.right)) {
-      if (!this.isAreaSelecting) {
-        this.changeSnapDivision(gamepad.pressed.left ? -1 : 1);
-        this.holdADirectionTime = game.time.now;
+    if (!this.isPlaying) {
+      if (gamepad.held.a && (gamepad.pressed.up || gamepad.pressed.down)) {
+        if (!this.isAreaSelecting) {
+          this.startAreaSelection();
+        }
+      } else if (gamepad.held.a && (gamepad.pressed.left || gamepad.pressed.right)) {
+        if (!this.isAreaSelecting) {
+          this.changeSnapDivision(gamepad.pressed.left ? -1 : 1);
+          this.holdADirectionTime = game.time.now;
+        } else {
+          if (gamepad.pressed.left) {
+            this.moveCursor(-1, 0);
+          }
+          if (gamepad.pressed.right) {
+            this.moveCursor(1, 0);
+          }
+        }
       } else {
         if (gamepad.pressed.left) {
           this.moveCursor(-1, 0);
@@ -833,13 +833,6 @@ class Editor {
         if (gamepad.pressed.right) {
           this.moveCursor(1, 0);
         }
-      }
-    } else {
-      if (gamepad.pressed.left) {
-        this.moveCursor(-1, 0);
-      }
-      if (gamepad.pressed.right) {
-        this.moveCursor(1, 0);
       }
     }
 
@@ -858,12 +851,21 @@ class Editor {
     // Toggle playback with SELECT
     if (gamepad.pressed.select && !gamepad.held.start) {
       this.togglePlayback();
+      this.updateCursorPosition();
     }
     
     // Metronome controls
     if (this.isPlaying) {
       if (gamepad.pressed.start) {
         this.metronome.toggle();
+      }
+      if (this.metronome.enabled) {
+        if (gamepad.pressed.left) {
+          this.metronome.previousMode();
+        }
+        if (gamepad.pressed.right) {
+          this.metronome.nextMode();
+        }
       }
     }
 
