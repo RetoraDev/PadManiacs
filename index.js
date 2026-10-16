@@ -785,7 +785,7 @@ class InteractiveInterface {
         if (pathname === '/') {
           pathname = '/index.html';
           if (mode === 'src') {
-            console.log(this.color(`→ Rewrote / to /index.html`, 'gray'));
+            console.log(this.color(`→ Rewrote / to /index.html`, 'dim'));
           }
         }
         

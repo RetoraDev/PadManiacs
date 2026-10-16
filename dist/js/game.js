@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.2.1 dev
- * Build: 10/15/2026, 8:13:13 PM
+ * Build: 10/15/2026, 8:26:26 PM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -16465,11 +16465,11 @@ class Metronome {
    * Updates the metronome each frame, dispatching to the active mode's update logic.
    */
   update() {
-    if (!this.enabled) return;
+    if (!this.enabled || this.mode == 'OFF') return;
     
     if (this.mode === 'Note') {
       this.updateNoteMode();
-    } else if (this.mode !== 'OFF') {
+    } else {
       this.updateBeatMode();
     }
   }

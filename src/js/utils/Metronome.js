@@ -66,11 +66,11 @@ class Metronome {
    * Updates the metronome each frame, dispatching to the active mode's update logic.
    */
   update() {
-    if (!this.enabled) return;
+    if (!this.enabled || this.mode == 'OFF') return;
     
     if (this.mode === 'Note') {
       this.updateNoteMode();
-    } else if (this.mode !== 'OFF') {
+    } else {
       this.updateBeatMode();
     }
   }

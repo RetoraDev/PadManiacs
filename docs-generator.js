@@ -22,6 +22,7 @@ const CATEGORY_ORDER = [
   'Utility Classes'
 ];
 
+// TODO: Turn hardcoded html content into html templates in their own files
 const INDEX_STATIC = `[heading: "Introduction"]
 <p>PadManiaX is a lightweight rhythm game that brings the StepMania experience to web and mobile devices with a retro pixel art aesthetic. The game features core rhythm gameplay mechanics of StepMania, a popular open source rhythm game.</p>
 
