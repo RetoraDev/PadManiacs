@@ -177,6 +177,20 @@ class CordovaFileSystem {
   }
   
   /**
+   * Deletes a file from the filesystem.
+   * @param {Object} fileEntry - The file entry to delete
+   * @returns {Promise<boolean>} Resolves true once the file is removed
+   */
+  deleteFile(fileEntry) {
+    return new Promise((resolve, reject) => {
+      fileEntry.remove(
+        () => resolve(true),
+        err => reject(err)
+      );
+    });
+  }
+  
+  /**
    * Creates a new subdirectory inside a parent directory.
    * @param {Object} rootDirEntry - The parent directory entry
    * @param {string} dirName - The name of the directory to create

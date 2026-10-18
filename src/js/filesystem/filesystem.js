@@ -96,6 +96,10 @@ class FileSystemTools {
     return this.fileSystem.writeFile(fileEntry, dataObj, isAppend);
   }
   
+  deleteFile(fileEntry) {
+    return this.fileSystem.deleteFile(fileEntry);
+  }
+  
   createDirectory(rootDirEntry, dirName) {
     return this.fileSystem.createDirectory(rootDirEntry, dirName);
   }

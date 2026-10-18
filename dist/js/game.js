@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.2.1 dev
- * Build: 10/15/2026, 8:26:26 PM
- * Platform: Development
+ * Version: v1.2.1
+ * Build: 10/18/2026, 5:26:38 AM
+ * Platform: Web
  * Debug: false
  * Minified: false
  */
@@ -125,7 +125,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.2.1 dev";
+const VERSION = "v1.2.1";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -426,6 +426,10 @@ const NAVIGATION_HINT_PRESETS = {
     { position: "right", icon: "start", text: __("CREATE||CREAR") },
     { position: "right", icon: "a", text: __("JOIN||UNIRSE") },
     { position: "right", icon: "b", text: __("BACK||VOLVER") }
+  ],
+  decode_avi: [
+    { position: "right", icon: "select", text: __(" +|| +") },
+    { position: "right", icon: "b", text: __("CANCEL||CANCELAR") }
   ],
 };
 
@@ -859,7 +863,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -3336,7 +3340,7 @@ const CHARACTER_ITEMS = [
 
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
-  version: 1.2, // 1.2.0
+  version: 1.3, // 1.3.0
   settings: {
     volume: 100,
     sfxVolume: 100,
@@ -3373,6 +3377,13 @@ const DEFAULT_ACCOUNT = {
       'NO MINES': false,
       'MIRRORED': false,
       'RANDOMIZED': false 
+    },
+    // AVI bgvideo decoding (FFmpeg.wasm)
+    aviSettings: {
+      ffmpegPreset: 'ultrafast',
+      crf: 32,
+      scaleToGameRes: false,
+      deleteOriginal: false
     },
     // Addon system settings
     safeMode: false,
@@ -14813,6 +14824,10 @@ class FileSystemTools {
     return this.fileSystem.writeFile(fileEntry, dataObj, isAppend);
   }
   
+  deleteFile(fileEntry) {
+    return this.fileSystem.deleteFile(fileEntry);
+  }
+  
   createDirectory(rootDirEntry, dirName) {
     return this.fileSystem.createDirectory(rootDirEntry, dirName);
   }
@@ -15079,25 +15094,42 @@ class NodeFileEntry {
     
     try {
       const writer = {
-        write: (data) => {
+        write: (data, onDone, onError) => {
+          const done = () => { if (onDone) onDone(); };
+          const fail = err => { if (onError) onError(err); else errorCallback(err); };
           try {
-            if (data instanceof Blob) {
-              // Convert Blob to Buffer
+            if (typeof Blob !== 'undefined' && data instanceof Blob) {
+              // Convert Blob to Buffer; finish only once the data is on disk
               const reader = new FileReader();
               reader.onload = () => {
-                fs.writeFileSync(fullPath, Buffer.from(reader.result));
+                try {
+                  fs.writeFileSync(fullPath, Buffer.from(reader.result));
+                  done();
+                } catch (error) {
+                  fail(error);
+                }
               };
-              reader.onerror = () => errorCallback(reader.error);
+              reader.onerror = () => fail(reader.error);
               reader.readAsArrayBuffer(data);
             } else if (typeof data === 'string') {
               fs.writeFileSync(fullPath, data);
+              done();
             } else if (data instanceof ArrayBuffer) {
               fs.writeFileSync(fullPath, Buffer.from(data));
+              done();
+            } else if (data && data.buffer instanceof ArrayBuffer) {
+              // Typed arrays (e.g. Uint8Array)
+              fs.writeFileSync(fullPath, Buffer.from(data.buffer, data.byteOffset, data.byteLength));
+              done();
+            } else if (data == null) {
+              fs.writeFileSync(fullPath, '');
+              done();
             } else {
               fs.writeFileSync(fullPath, data);
+              done();
             }
           } catch (error) {
-            errorCallback(error);
+            fail(error);
           }
         }
       };
@@ -15350,15 +15382,24 @@ class NodeFileSystem {
   }
   
   /**
-   * Creates or opens a file for saving data.
+   * Creates or opens a file for saving data, writing fileData when provided.
    * @param {NodeDirectoryEntry} dirEntry - The parent directory
+   * @param {string|Blob|ArrayBuffer} [fileData] - Optional data to write into the file
    * @param {string} fileName - The file name to save
-   * @returns {Promise<NodeFileEntry>} Resolves with the file entry
+   * @returns {Promise<NodeFileEntry>} Resolves with the file entry once written
    */
   saveFile(dirEntry, fileData, fileName) {
     return new Promise((resolve, reject) => {
       dirEntry.getFile(fileName, { create: true, exclusive: false }, 
-        fileEntry => resolve(fileEntry),
+        fileEntry => {
+          if (fileData === undefined || fileData === null) {
+            resolve(fileEntry);
+            return;
+          }
+          this.writeFile(fileEntry, fileData)
+            .then(() => resolve(fileEntry))
+            .catch(err => reject(err));
+        },
         error => reject(error)
       );
     });
@@ -15381,7 +15422,7 @@ class NodeFileSystem {
   }
   
   /**
-   * Writes data to an existing file entry.
+   * Writes data to an existing file entry, resolving once the data is on disk.
    * @param {NodeFileEntry} fileEntry - The file entry to write to
    * @param {string|Blob|ArrayBuffer} dataObj - The data to write
    * @param {boolean} isAppend - Whether to append instead of overwrite
@@ -15391,11 +15432,31 @@ class NodeFileSystem {
     return new Promise((resolve, reject) => {
       fileEntry.createWriter(
         writer => {
-          writer.write(dataObj);
-          resolve(writer);
+          writer.write(dataObj, () => resolve(writer), reject);
         },
         err => reject(err)
       );
+    });
+  }
+  
+  /**
+   * Deletes a file from the filesystem.
+   * @param {NodeFileEntry} fileEntry - The file entry to delete
+   * @returns {Promise<boolean>} Resolves true once the file is removed
+   */
+  deleteFile(fileEntry) {
+    return new Promise((resolve, reject) => {
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const fullPath = path.join(this.basePath, fileEntry.fullPath);
+        fs.unlink(fullPath, err => {
+          if (err) reject(err);
+          else resolve(true);
+        });
+      } catch (error) {
+        reject(error);
+      }
     });
   }
   
@@ -15594,6 +15655,20 @@ class CordovaFileSystem {
   }
   
   /**
+   * Deletes a file from the filesystem.
+   * @param {Object} fileEntry - The file entry to delete
+   * @returns {Promise<boolean>} Resolves true once the file is removed
+   */
+  deleteFile(fileEntry) {
+    return new Promise((resolve, reject) => {
+      fileEntry.remove(
+        () => resolve(true),
+        err => reject(err)
+      );
+    });
+  }
+  
+  /**
    * Creates a new subdirectory inside a parent directory.
    * @param {Object} rootDirEntry - The parent directory entry
    * @param {string} dirName - The name of the directory to create
@@ -15667,6 +15742,10 @@ class FallbackFileSystem {
   }
   
   writeFile(fileEntry, dataObj, isAppend) {
+    return Promise.reject(new Error('File system not available in this environment'));
+  }
+  
+  deleteFile(fileEntry) {
     return Promise.reject(new Error('File system not available in this environment'));
   }
   
@@ -16704,6 +16783,494 @@ class TimeUtils {
     
     const seconds = time / 1000 % 60;
     return `${seconds.toFixed(2)}s`;
+  }
+}
+
+/**
+ * @class AviTranscoder
+ * @category Utils
+ * @summary FFmpeg.wasm wrapper that decodes AVI (MPEG-4 Part 2) backgrounds to H.264 MP4
+ * @constructor
+ * @features
+ * Lazily spawns a classic Web Worker running the ffmpeg-wasm-lite core
+ * Converts AVI bytes into an H.264 MP4 Blob using the account's ffmpeg settings
+ * Reports encoding progress and supports preset / CRF / scale-to-game-resolution options
+ * @description
+ * AviTranscoder bridges the game and the bundled FFmpeg.wasm lite build
+ * (lib/ffmpeg). Browsers cannot natively decode MPEG-4 Part 2 video stored in
+ * .avi containers, so background videos of that kind are transcoded to H.264
+ * MP4 blobs before Play loads them. The worker stays alive between conversions.
+ * @example
+ * const blob = await AviTranscoder.convertToBlob(aviBytes, {
+ *   preset: 'ultrafast',
+ *   crf: 32,
+ *   scaleHeight: game.height
+ * });
+ * const url = URL.createObjectURL(blob);
+ */
+class AviTranscoder {
+  /**
+   * Directory (relative to the page URL) that holds the FFmpeg wasm assets.
+   * @type {string}
+   */
+  static FF_DIR = "lib/ffmpeg/";
+
+  /** @type {Worker|null} Shared ffmpeg worker instance */
+  static worker = null;
+  /** @type {number} Monotonic message id counter for the worker protocol */
+  static msgId = 0;
+  /** @type {Map<number, {resolve:Function, reject:Function}>} Pending worker requests */
+  static pending = new Map();
+  /** @type {Promise|null} Cached LOAD promise so the core initializes once */
+  static ready = null;
+  /** @type {number} Job counter used to give each conversion unique FS paths */
+  static jobCounter = 0;
+
+  /**
+   * Session cache of decoded MP4s keyed by song folder + file name.
+   * Bounded LRU so returning to SongSelect never re-encodes a video while
+   * memory stays capped. Entries are plain references: URLs are never revoked
+   * because in-memory song objects may still point at them; eviction only
+   * drops our reference so the blob becomes collectable once nothing uses it.
+   * @type {Map<string, {blob: Blob, url: string, size: number}>}
+   */
+  static cache = new Map();
+  /** @type {number} Maximum number of decoded videos kept in the cache */
+  static CACHE_MAX_ENTRIES = 8;
+  /** @type {number} Maximum total bytes kept in the cache (256 MB) */
+  static CACHE_MAX_BYTES = 256 * 1024 * 1024;
+
+  /**
+   * Builds the cache key for one AVI reference of a song.
+   * @param {Object} song - Parsed chart/song object
+   * @param {string} fileName - Chart file name (e.g. "bg.avi")
+   * @returns {string} Stable cache key
+   */
+  static cacheKey(song, fileName) {
+    const base =
+      (song && (song.externalPath || song.baseUrl || song.folderName || song.title)) || "";
+    return (base + "::" + fileName).toLowerCase();
+  }
+
+  /**
+   * Looks up a cached decode and refreshes its recency.
+   * @param {string} key - Cache key from cacheKey()
+   * @returns {{blob: Blob, url: string, size: number}|null} Cached entry or null
+   */
+  static getCached(key) {
+    const entry = AviTranscoder.cache.get(key);
+    if (!entry) return null;
+    AviTranscoder.cache.delete(key);
+    AviTranscoder.cache.set(key, entry);
+    return entry;
+  }
+
+  /**
+   * Stores a decoded MP4 in the cache and evicts oldest entries when over budget.
+   * @param {string} key - Cache key from cacheKey()
+   * @param {Blob} blob - Decoded MP4 blob
+   * @param {string} url - Object URL of the blob
+   */
+  static putCached(key, blob, url) {
+    AviTranscoder.cache.delete(key);
+    AviTranscoder.cache.set(key, { blob, url, size: blob ? blob.size : 0 });
+    AviTranscoder.evictCache();
+  }
+
+  /**
+   * Evicts oldest cache entries until both the entry count and byte budget fit.
+   */
+  static evictCache() {
+    let totalBytes = 0;
+    for (const entry of AviTranscoder.cache.values()) totalBytes += entry.size || 0;
+
+    while (
+      AviTranscoder.cache.size > AviTranscoder.CACHE_MAX_ENTRIES ||
+      (totalBytes > AviTranscoder.CACHE_MAX_BYTES && AviTranscoder.cache.size > 1)
+    ) {
+      const oldestKey = AviTranscoder.cache.keys().next().value;
+      const oldest = AviTranscoder.cache.get(oldestKey);
+      AviTranscoder.cache.delete(oldestKey);
+      totalBytes -= oldest ? oldest.size || 0 : 0;
+    }
+  }
+
+  /**
+   * Builds an absolute URL for an asset inside the ffmpeg directory.
+   * @param {string} file - File name inside lib/ffmpeg
+   * @returns {string} Absolute URL resolvable from the worker
+   */
+  static assetUrl(file) {
+    return new URL(AviTranscoder.FF_DIR + file, location.href).href;
+  }
+
+  /**
+   * Sends a message to the ffmpeg worker and returns its reply.
+   * @param {string} type - Worker message type (LOAD, EXEC, WRITE_FILE, ...)
+   * @param {Object} data - Payload for the worker
+   * @returns {Promise<*>} Resolves with the worker's data payload
+   */
+  static send(type, data) {
+    return new Promise((resolve, reject) => {
+      const id = AviTranscoder.msgId++;
+      AviTranscoder.pending.set(id, { resolve, reject });
+      AviTranscoder.worker.postMessage({ id, type, data });
+    });
+  }
+
+  /**
+   * Spawns the worker and loads the WASM core once per session.
+   * @param {Function} [onLog] - Receives each ffmpeg log line ({message})
+   * @param {Function} [onProgress] - Receives ffmpeg progress ({progress, time})
+   * @returns {Promise<void>} Resolves when the core is ready to exec
+   */
+  static ensureLoaded(onLog, onProgress) {
+    if (AviTranscoder.ready) return AviTranscoder.ready;
+
+    AviTranscoder.ready = new Promise((resolve, reject) => {
+      AviTranscoder.worker = new Worker(AviTranscoder.FF_DIR + "ffmpeg-worker.js");
+      AviTranscoder.worker.onmessage = ev => {
+        const m = ev.data;
+        if (m.type === "LOG") {
+          if (onLog) onLog(m.data);
+          return;
+        }
+        if (m.type === "PROGRESS") {
+          if (onProgress) onProgress(m.data);
+          return;
+        }
+        const p = AviTranscoder.pending.get(m.id);
+        if (!p) return;
+        AviTranscoder.pending.delete(m.id);
+        if (m.type === "ERROR") p.reject(new Error(m.data));
+        else p.resolve(m.data);
+      };
+      AviTranscoder.worker.onerror = e => {
+        reject(new Error("FFmpeg worker failed: " + (e.message || "unknown")));
+      };
+      AviTranscoder.send("LOAD", {
+        coreURL: AviTranscoder.assetUrl("ffmpeg-core.js"),
+        wasmURL: AviTranscoder.assetUrl("ffmpeg-core.wasm")
+      }).then(resolve, reject);
+    });
+
+    AviTranscoder.ready.catch(() => { AviTranscoder.ready = null; });
+    return AviTranscoder.ready;
+  }
+
+  /**
+   * Transcodes raw AVI (or any ffmpeg-readable) bytes into an H.264 MP4 Blob.
+   * @param {Uint8Array} inputBytes - Raw video file bytes
+   * @param {Object} [options] - Encoding options
+   * @param {string} [options.preset='ultrafast'] - libx264 preset
+   * @param {number} [options.crf=32] - Constant rate factor (18 near-lossless .. 32 tiny)
+   * @param {number} [options.scaleHeight=0] - When > 0, scale output to this height (even width kept)
+   * @param {string} [options.inputExt='.avi'] - Input extension hint for the virtual input path
+   * @param {Function} [options.onProgress] - Receives 0..1 progress
+   * @param {Function} [options.onLog] - Receives ffmpeg log lines
+   * @returns {Promise<Blob>} The encoded video/mp4 blob
+   */
+  static async convertToBlob(inputBytes, options = {}) {
+    const {
+      preset = "ultrafast",
+      crf = 32,
+      scaleHeight = 0,
+      inputExt = ".avi",
+      onProgress,
+      onLog
+    } = options;
+
+    await AviTranscoder.ensureLoaded(onLog, onProgress);
+
+    const jobId = ++AviTranscoder.jobCounter;
+    const inName = `/input_${jobId}${inputExt}`;
+    const outName = `/output_${jobId}.mp4`;
+
+    try {
+      await AviTranscoder.send("WRITE_FILE", { path: inName, data: inputBytes });
+
+      const args = ["-hide_banner", "-nostdin", "-i", inName];
+      if (scaleHeight > 0) {
+        args.push("-vf", `scale=-2:${Math.round(scaleHeight)}:flags=bicubic`);
+      }
+      args.push(
+        "-c:v", "libx264",
+        "-preset", String(preset),
+        "-crf", String(crf),
+        "-pix_fmt", "yuv420p",
+        "-an",
+        "-movflags", "+faststart",
+        "-y", outName
+      );
+
+      const ret = await AviTranscoder.send("EXEC", { args, timeout: -1 });
+      if (ret !== 0) {
+        throw new Error(`FFmpeg exited with code ${ret} while converting ${inName}`);
+      }
+
+      const data = await AviTranscoder.send("READ_FILE", { path: outName, encoding: "binary" });
+      return new Blob([data], { type: "video/mp4" });
+    } finally {
+      AviTranscoder.send("DELETE_FILE", { path: inName }).catch(() => {});
+      AviTranscoder.send("DELETE_FILE", { path: outName }).catch(() => {});
+    }
+  }
+
+  /**
+   * Terminates the worker and forgets the loaded core (frees the ~7 MB WASM heap).
+   */
+  static shutdown() {
+    if (AviTranscoder.worker) {
+      AviTranscoder.worker.terminate();
+      AviTranscoder.worker = null;
+    }
+    AviTranscoder.pending.forEach(p => p.reject(new Error("FFmpeg worker shut down")));
+    AviTranscoder.pending.clear();
+    AviTranscoder.ready = null;
+  }
+}
+
+/**
+ * @class AviTools
+ * @category Utils
+ * @summary Song-level helpers for detecting, decoding and rewriting AVI backgrounds
+ * @constructor
+ * @features
+ * Detects AVI references in a song (#BACKGROUND, #BGCHANGES video entries, videoUrl)
+ * Reads AVI bytes from external song file maps or by fetching resolved URLs
+ * Applies in-memory replacements so Play uses the decoded MP4 blob URLs
+ * Patches .SM chart text so Decode & Replace updates the chart on disk
+ * @description
+ * AviTools works on the parsed song data structures produced by LocalSMParser
+ * and ExternalSMParser. It never touches the filesystem itself; persistence is
+ * handled by the DecodeAvi state through FileSystemTools.
+ * @example
+ * if (AviTools.songHasAvi(song)) {
+ *   game.state.start("DecodeAvi", true, false, { mode: 'play', song });
+ * }
+ */
+class AviTools {
+  /**
+   * Checks whether a file name refers to an AVI video.
+   * @param {string} name - File name to test
+   * @returns {boolean} True when the name ends with .avi
+   */
+  static isAviFileName(name) {
+    return typeof name === "string" && /\.avi$/i.test(name.trim());
+  }
+
+  /**
+   * Collects every AVI reference inside a parsed song.
+   * References already swapped for a decoded MP4 (session-marked) are skipped.
+   * @param {Object} song - Parsed chart/song object
+   * @returns {Array<Object>} References: {kind, fileName, [index]} kind is 'background' (#BACKGROUND) or 'bgchange' (#BGCHANGES entry)
+   */
+  static getAviRefs(song) {
+    const refs = [];
+    if (!song) return refs;
+
+    const alreadyDecoded = name =>
+      !!(song.__decodedAvi && song.__decodedAvi[String(name).toLowerCase()]);
+
+    if (AviTools.isAviFileName(song.background) && !alreadyDecoded(song.background)) {
+      refs.push({ kind: "background", fileName: song.background });
+    }
+
+    if (Array.isArray(song.backgrounds)) {
+      song.backgrounds.forEach((bg, index) => {
+        if (bg && AviTools.isAviFileName(bg.file) && !alreadyDecoded(bg.file)) {
+          refs.push({ kind: "bgchange", fileName: bg.file, index });
+        }
+      });
+    }
+
+    if (AviTools.isAviFileName(song.video) && !alreadyDecoded(song.video)) {
+      refs.push({ kind: "video", fileName: song.video });
+    }
+
+    return refs;
+  }
+
+  /**
+   * Lists the unique AVI file names referenced by a song.
+   * @param {Object} song - Parsed chart/song object
+   * @returns {Array<string>} Unique lowercased-preserving file names
+   */
+  static getAviFileNames(song) {
+    const names = AviTools.getAviRefs(song).map(r => r.fileName);
+    return names.filter((name, i) => names.indexOf(name) === i);
+  }
+
+  /**
+   * Checks whether a song contains any AVI background/video reference that
+   * still needs decoding. Already-decoded references are reclaimed from the
+   * session cache first, so songs rescanned after Results (or reloaded from
+   * disk) jump straight to Play without prompting or re-encoding.
+   * @param {Object} song - Parsed chart/song object
+   * @returns {boolean} True when at least one undecoded AVI reference exists
+   */
+  static songHasAvi(song) {
+    AviTools.reclaimDecoded(song);
+    return AviTools.getAviRefs(song).length > 0;
+  }
+
+  /**
+   * Re-attaches cached decoded MP4s to a (possibly freshly parsed) song object.
+   * For every AVI reference whose decode is still in the session cache, the
+   * song's URL/filename fields are swapped in memory and the reference is
+   * marked decoded. Uncached references are left untouched.
+   * @param {Object} song - Parsed chart/song object
+   */
+  static reclaimDecoded(song) {
+    if (!song || typeof AviTranscoder === "undefined" || !AviTranscoder.cache) return;
+
+    AviTools.getAviRefs(song).forEach(ref => {
+      const entry = AviTranscoder.getCached(AviTranscoder.cacheKey(song, ref.fileName));
+      if (entry) {
+        AviTools.applyReplacement(song, ref.fileName, entry.url, null, entry.blob);
+      }
+    });
+  }
+
+  /**
+   * Finds the resolved URL currently backing a song file name, if any.
+   * @param {Object} song - Parsed chart/song object
+   * @param {string} fileName - Chart file name (e.g. "bg.avi")
+   * @returns {string|null} A playable URL or null when unknown
+   */
+  static findUrlFor(song, fileName) {
+    if (!song || !fileName) return null;
+    const lower = fileName.toLowerCase();
+
+    if (song.background && song.background.toLowerCase() === lower && song.backgroundUrl) {
+      return song.backgroundUrl;
+    }
+
+    if (Array.isArray(song.backgrounds)) {
+      for (const bg of song.backgrounds) {
+        if (bg && bg.file && bg.file.toLowerCase() === lower && bg.url) {
+          return bg.url;
+        }
+      }
+    }
+
+    if (song.video && song.video.toLowerCase() === lower && song.videoUrl) {
+      return song.videoUrl;
+    }
+
+    return null;
+  }
+
+  /**
+   * Reads the raw bytes of a chart-referenced file.
+   * Uses the in-memory file map for external songs, or fetches the resolved URL
+   * for local/built-in songs.
+   * @param {Object} song - Parsed chart/song object
+   * @param {string} fileName - Chart file name (e.g. "bg.avi")
+   * @returns {Promise<ArrayBuffer>} Raw file bytes
+   */
+  static async readFileBytes(song, fileName) {
+    if (song && song.files && song.files[fileName.toLowerCase()]) {
+      return await song.files[fileName.toLowerCase()].arrayBuffer();
+    }
+
+    const url = AviTools.findUrlFor(song, fileName);
+    if (url) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} fetching ${fileName}`);
+      }
+      return await response.arrayBuffer();
+    }
+
+    throw new Error(`Couldn't locate AVI file: ${fileName}`);
+  }
+
+  /**
+   * Rewrites every in-memory reference from an AVI file to its decoded replacement.
+   * Keeps the original chart file names when newFileName is not given, so the
+   * transient Decode & Play flow never desyncs from the chart on disk.
+   * @param {Object} song - Parsed chart/song object
+   * @param {string} fileName - Original AVI chart file name
+   * @param {string} newUrl - Blob URL of the decoded MP4
+   * @param {string} [newFileName] - New chart file name (e.g. "bg.mp4") when replacing on disk
+   * @param {Blob} [blob] - Decoded MP4 blob, registered in the song's file map when given
+   */
+  static applyReplacement(song, fileName, newUrl, newFileName = null, blob = null) {
+    if (!song || !fileName) return;
+    const lower = fileName.toLowerCase();
+    const resolvedName = newFileName || fileName;
+
+    // Mark the original AVI name as decoded so detection stops reporting it
+    // (transient Decode & Play keeps the .avi chart name but plays the MP4).
+    song.__decodedAvi = song.__decodedAvi || {};
+    song.__decodedAvi[lower] = newUrl;
+
+    if (song.background && song.background.toLowerCase() === lower) {
+      song.background = resolvedName;
+      song.backgroundUrl = newUrl;
+    }
+
+    if (Array.isArray(song.backgrounds)) {
+      song.backgrounds.forEach(bg => {
+        if (bg && bg.file && bg.file.toLowerCase() === lower) {
+          bg.file = resolvedName;
+          bg.url = newUrl;
+          bg.type = "video";
+        }
+      });
+    }
+
+    if (song.video && song.video.toLowerCase() === lower) {
+      song.video = resolvedName;
+      song.videoUrl = newUrl;
+    }
+
+    if (song.files && blob) {
+      song.files[resolvedName.toLowerCase()] = new File([blob], resolvedName, { type: "video/mp4" });
+    }
+  }
+
+  /**
+   * Replaces AVI file names inside raw .SM/.SSC chart text with their MP4 counterparts.
+   * @param {string} content - Raw chart text
+   * @param {Object} nameMap - Map of old file name (key) to new file name
+   * @returns {string} Patched chart text
+   */
+  static patchSMContent(content, nameMap) {
+    if (!content || !nameMap) return content;
+    let out = content;
+    Object.keys(nameMap).forEach(oldName => {
+      const newName = nameMap[oldName];
+      if (!oldName || !newName || oldName === newName) return;
+      // Chart file names are plain tokens; replace case-insensitively as whole names.
+      const escaped = oldName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      out = out.replace(new RegExp(escaped, "gi"), newName);
+    });
+    return out;
+  }
+
+  /**
+   * Builds the MP4 counterpart name for an AVI chart file name.
+   * @param {string} fileName - Original AVI file name
+   * @returns {string} File name with the .avi extension swapped for .mp4
+   */
+  static toMp4Name(fileName) {
+    return fileName.replace(/\.avi$/i, ".mp4");
+  }
+
+  /**
+   * Whether the current runtime can write back into an external song folder.
+   * @param {Object} song - Parsed chart/song object
+   * @returns {boolean} True for storage-backed external songs on NW.js/Cordova
+   */
+  static canPersist(song) {
+    return !!(
+      song &&
+      song.isExternal &&
+      song.externalPath &&
+      (CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS || CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA)
+    );
   }
 }
 
@@ -21500,6 +22067,13 @@ class Boot {
       game.input.mouse.enabled = true;
     }
     
+    if (currentVersion >= 1.3) {
+      // AVI bgvideo decode settings (added in 1.3)
+      if (!Account.settings.aviSettings) {
+        Account.settings.aviSettings = { ...DEFAULT_ACCOUNT.settings.aviSettings };
+      }
+    }
+    
     Account.version = currentVersion;
     saveAccount();
   }
@@ -21543,7 +22117,9 @@ class Boot {
     game.state.add("Settings", Settings);
     game.state.add("ChartModifiers", ChartModifiers);
     game.state.add("Keybindings", Keybindings);
+    game.state.add("AviSettings", AviSettings);
     game.state.add("SongSelect", SongSelect);
+    game.state.add("DecodeAvi", DecodeAvi);
     game.state.add("SongStats", SongStats);
     game.state.add("FileSelect", FileSelect);
     game.state.add("CharacterSelect", CharacterSelect);
@@ -22503,6 +23079,8 @@ class LoadExternalSongs {
           if (chart && chart.difficulties && chart.difficulties.length > 0) {
             // Chart file parsed successfully
             chart.folderName = dirEntry.name || `External_Song_${smFileName}`;
+            // Relative path usable with FileSystemTools.getDirectory (NW.js/Cordova storage)
+            chart.externalPath = (dirEntry.fullPath || "").replace(/^\//, "");
             chart.isLocal = true;
             chart.isExternal = true;
             chart.loaded = true;
@@ -23081,6 +23659,7 @@ class LoadExternalSongFile {
       if (chart && chart.difficulties && chart.difficulties.length > 0) {
         // Chart file parsed successfully
         chart.folderName = dirEntry.name || `External_Song_${this.fileName.toLowerCase()}`;
+        chart.externalPath = this.filePath;
         chart.isExternal = true;
         chart.loaded = true;
         this.finish(chart);
@@ -24658,6 +25237,9 @@ class Settings {
     // Chart Modifiers
     settingsWindow.addItem(__("(Chart Modifiers|Modificadores de Chart)"), ">", () => this.showChartModifiersMenu());
     
+    // AVI bgvideo decoding settings
+    settingsWindow.addItem(__("(AVI Bgvideo Settings|Ajustes de Bgvideo AVI)"), ">", () => this.showAviSettingsMenu());
+    
     // Danger zone
     settingsWindow.addItem(__("(Erase Highscores|Borrar Highscores)"), "", () => this.confirmEraseHighscores());
     settingsWindow.addItem(__("(Import Backup Data|Importar Datos de Respaldo)"), "", () => this.importBackupData());
@@ -24818,6 +25400,13 @@ class Settings {
    */
   showChartModifiersMenu() {
     game.state.start("ChartModifiers", true, false, "MainMenu");
+  }
+
+  /**
+   * Opens the AVI bgvideo decoding settings state.
+   */
+  showAviSettingsMenu() {
+    game.state.start("AviSettings", true, false, "Settings");
   }
 
   /**
@@ -25909,6 +26498,137 @@ class Keybindings {
 }
 
 /**
+ * @class AviSettings
+ * @category Game States
+ * @summary AVI bgvideo decoding settings screen (FFmpeg.wasm)
+ * @constructor
+ * @features
+ * FFmpeg preset selector (ultrafast .. medium) for AVI to H.264 conversion
+ * Quality (CRF) slider from 18 (near-lossless) to 32 (tiny)
+ * Optional scaling of decoded videos to the game resolution
+ * Optional deletion of the original .avi files after a successful Decode & Replace
+ * @description
+ * AviSettings edits Account.settings.aviSettings, which control how the
+ * DecodeAvi state transcodes AVI background videos with the bundled
+ * FFmpeg.wasm lite build. It mirrors the layout of Keybindings and
+ * ChartModifiers and returns to the state that opened it.
+ * @example
+ * // Open from Settings
+ * game.state.start("AviSettings");
+ */
+class AviSettings {
+  /**
+   * Phaser state hook that stores the state to return to after editing.
+   * @param {string} [returnState='Settings'] - Name of the state to return to
+   */
+  init(returnState = "Settings") {
+    /** @type {string} Game state to start when leaving this screen */
+    this.returnState = returnState;
+  }
+
+  /**
+   * Phaser state hook that sets up the background and builds the settings window.
+   */
+  create() {
+    game.camera.fadeIn(0x000000);
+
+    /** @type {FuturisticLines} Decorative animated background line effect */
+    this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Ambient gradient overlay for the menu background */
+    this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} On-screen hint bar with contextual button labels */
+    this.navigationHint = new NavigationHint("general");
+
+    /** @type {WindowManager} Manages the settings window and its focus */
+    this.windowManager = new WindowManager();
+
+    gamepad.releaseAll();
+
+    /** @type {Object} Working copy of the AVI decoding settings */
+    this.settings = Object.assign(
+      {},
+      DEFAULT_ACCOUNT.settings.aviSettings,
+      Account.settings.aviSettings || {}
+    );
+
+    this.showMenu();
+
+    addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+
+  /**
+   * Phaser lifecycle hook called every frame to poll gamepad input.
+   */
+  update() {
+    gamepad.update();
+    this.windowManager.update();
+  }
+
+  /**
+   * Builds the settings window with every AVI decoding option.
+   */
+  showMenu() {
+    const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
+    settingsWindow.fontTint = 0x76fcde;
+
+    /** @type {Window} The settings window being edited */
+    this.settingsWindow = settingsWindow;
+
+    // FFmpeg preset
+    const presets = ["ultrafast", "superfast", "veryfast", "faster", "fast", "medium"];
+    const currentPresetIndex = Math.max(0, presets.indexOf(this.settings.ffmpegPreset));
+    settingsWindow.addSettingItem(
+      __("FFmpeg Preset||Preset de FFmpeg"),
+      presets,
+      currentPresetIndex,
+      index => {
+        this.settings.ffmpegPreset = presets[index];
+      }
+    );
+
+    // Quality (CRF)
+    settingsWindow.addRangeItem(
+      __("Quality (CRF)||Calidad (CRF)"),
+      18,
+      32,
+      1,
+      this.settings.crf,
+      "",
+      value => {
+        this.settings.crf = value;
+      }
+    );
+
+    // Scale to game resolution
+    settingsWindow.addSettingItem(
+      __("Scale to Game Resolution||Escalar a Resolución del Juego"),
+      [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
+      this.settings.scaleToGameRes ? 0 : 1,
+      index => {
+        this.settings.scaleToGameRes = index === 0;
+      }
+    );
+
+    // Delete original AVI
+    settingsWindow.addSettingItem(
+      __("Delete Original AVI||Eliminar AVI Original"),
+      [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
+      this.settings.deleteOriginal ? 0 : 1,
+      index => {
+        this.settings.deleteOriginal = index === 0;
+      }
+    );
+
+    settingsWindow.addItem(__("BACK||VOLVER"), "", () => {
+      this.windowManager.remove(settingsWindow, true);
+      Account.settings.aviSettings = this.settings;
+      saveAccount();
+      game.state.start(this.returnState, true, false);
+    }, true);
+  }
+}
+
+/**
  * @class FileSelect
  * @category Game States
  * @summary File system browser with navigation history and extension filtering
@@ -26827,12 +27547,25 @@ class SongSelect {
   }
   
   /**
-   * Starts the multiplayer gameplay state with the configured settings.
+   * Starts the multiplayer gameplay state with the configured settings,
+   * asking about AVI backgrounds first when the song needs decoding.
    */
   startMultiplayer() {
     this.multiplayerScreen.destroy();
     this.multiplayerScreen = null;
-    
+
+    const song = this.multiplayerState.song;
+
+    if (AviTools.songHasAvi(song)) {
+      this.promptAviDecode(song, {
+        targetState: "PlayMulti",
+        targetParams: [this.multiplayerState]
+      }, () => {
+        game.state.start("PlayMulti", true, false, this.multiplayerState);
+      });
+      return;
+    }
+
     // Start gameplay with selected song and settings 
     game.state.start("PlayMulti", true, false, this.multiplayerState);
   }
@@ -26895,16 +27628,105 @@ class SongSelect {
 
   /**
    * Starts the gameplay state for a song in single player or multiplayer.
+   * When the song references AVI backgrounds, asks what to do first
+   * (decode & play, decode & edit the chart, or play as is).
    * @param {Object} song - The selected song
    * @param {number} difficultyIndex - Index of the chosen difficulty
    * @param {boolean} singlePlayer - Whether to launch single player or multiplayer
    */
   startGame(song, difficultyIndex, singlePlayer = true) {
-    // Start gameplay with selected song
-    game.state.start(singlePlayer ? "Play" : "PlayMulti", true, false, {
+    const targetState = singlePlayer ? "Play" : "PlayMulti";
+    const targetParams = [{
       chart: song,
       difficultyIndex
-    }, difficultyIndex, undefined, undefined, this.playlistKey);
+    }, difficultyIndex, undefined, undefined, this.playlistKey];
+
+    if (AviTools.songHasAvi(song)) {
+      this.promptAviDecode(song, { targetState, targetParams }, () => {
+        game.state.start(targetState, true, false, ...targetParams);
+      });
+      return;
+    }
+
+    // Start gameplay with selected song
+    game.state.start(targetState, true, false, ...targetParams);
+  }
+
+  /**
+   * Shows the AVI background prompt for a song and routes the chosen action.
+   * Storage-backed external songs also get a "Decode & Edit SM File" option,
+   * guarded by a confirmation dialog because it edits the chart permanently.
+   * @param {Object} song - The song whose AVI backgrounds need decoding
+   * @param {Object} decodeOptions - targetState/targetParams forwarded to DecodeAvi
+   * @param {Function} launch - Starts the target state without decoding ("Play as is")
+   */
+  promptAviDecode(song, decodeOptions, launch) {
+    const startDecode = mode => {
+      game.state.start("DecodeAvi", true, false, Object.assign({}, decodeOptions, {
+        mode,
+        song,
+        backState: "SongSelect",
+        backParams: [this.songs, this.songCarousel.selectedIndex, this.autoSelect, this.type, this.playlistKey]
+      }));
+    };
+
+    if (AviTools.canPersist(song)) {
+      const dialog = new DialogWindow(
+        __("This song has AVI backgrounds that can't be played directly.\nWhat do you want to do?||Esta canción tiene fondos AVI que no se pueden reproducir directamente.\n¿Qué quieres hacer?"),
+        {
+          buttons: [
+            __("Play as is||Jugar como está"),
+            __("Decode & Play||Decodificar y Jugar"),
+            __("Decode & Edit SM File||Decodificar y Editar SM")
+          ]
+        }
+      );
+      dialog.onConfirm.add(buttonIndex => {
+        dialog.destroy();
+        if (buttonIndex === 1) {
+          startDecode("play");
+        } else if (buttonIndex === 2) {
+          this.confirmAviReplace(() => startDecode("replace"));
+        } else if (buttonIndex === 0) {
+          launch();
+        }
+      });
+    } else {
+      const dialog = new DialogWindow(
+        __("AVI Bgvideos aren't supported here. Decode the bgvideos for this session?||Los bgvideos AVI no son compatibles aquí. ¿Decodificar los bgvideos para esta sesión?"),
+        {
+          buttons: [
+            __("Decode & Play||Decodificar y Jugar"),
+            __("Play as is||Jugar como está")
+          ]
+        }
+      );
+      dialog.onConfirm.add(buttonIndex => {
+        dialog.destroy();
+        if (buttonIndex === 0) {
+          startDecode("play");
+        } else if (buttonIndex === 1) {
+          launch();
+        }
+      });
+    }
+  }
+
+  /**
+   * Shows the warning dialog shown before a permanent Decode & Edit SM File run.
+   * @param {Function} onConfirm - Called when the user accepts the warning
+   */
+  confirmAviReplace(onConfirm) {
+    const dialog = new DialogWindow(
+      __("This will write MP4 files next to the song and permanently edit its .SM chart. Continue?||Esto escribirá archivos MP4 junto a la canción y editará su chart .SM de forma permanente. ¿Continuar?"),
+      { buttons: [__("Yes||Sí"), __("No||No")], defaultButton: 1 }
+    );
+    dialog.onConfirm.add(buttonIndex => {
+      dialog.destroy();
+      if (buttonIndex === 0) {
+        onConfirm();
+      }
+    });
   }
 
   /**
@@ -27279,6 +28101,405 @@ class SongSelect {
     }
     
     gamepad.singlePlayerId = -1;
+  }
+}
+
+/**
+ * @class DecodeAvi
+ * @category Game States
+ * @summary Decodes AVI background videos to H.264 MP4 with FFmpeg.wasm
+ * @constructor
+ * @features
+ * Decodes every AVI background (#BACKGROUND, #BGCHANGES, #BGVIDEO) of a song
+ * Decode & Play mode swaps the in-memory URLs with MP4 blob URLs, then starts the target state
+ * Decode & Replace mode also writes ${name}.mp4 next to the chart and patches the .SM/.SSC file
+ * Honors Account.settings.aviSettings (preset, CRF, scale to game resolution, delete original)
+ * @description
+ * Browsers cannot play MPEG-4 Part 2 video stored in .avi containers. DecodeAvi
+ * runs before Play when a song references AVI backgrounds: it transcodes each
+ * AVI into an H.264 MP4 via the bundled FFmpeg.wasm lite build, then either
+ * continues to the target state with blob URLs (Decode & Play) or persists the
+ * MP4 files and rewrites the chart on disk first (Decode & Replace).
+ * @example
+ * // Decode & play a song that has AVI backgrounds
+ * game.state.start("DecodeAvi", true, false, {
+ *   mode: "play",
+ *   song,
+ *   targetState: "Play",
+ *   targetParams: [{ chart: song, difficultyIndex: 0 }, 0, undefined, undefined, null]
+ * });
+ */
+class DecodeAvi {
+  /**
+   * Stores the decode job description.
+   * @param {Object} options - Job options
+   * @param {string} [options.mode='play'] - 'play' (transient) or 'replace' (write MP4 + patch chart)
+   * @param {Object} options.song - The parsed song/chart whose AVI backgrounds should be decoded
+   * @param {string} [options.targetState='SongSelect'] - State to start when decoding finishes
+   * @param {Array} [options.targetParams=[]] - Parameters forwarded to the target state
+   * @param {string} [options.backState='MainMenu'] - State to return to when decoding fails
+   * @param {Array} [options.backParams=[]] - Parameters forwarded to the back state
+   */
+  init(options = {}) {
+    /** @type {string} Decode mode: 'play' or 'replace' */
+    this.mode = options.mode === "replace" ? "replace" : "play";
+    /** @type {Object} The song whose AVI backgrounds are being decoded */
+    this.song = options.song;
+    /** @type {string} Game state to start once decoding finishes */
+    this.targetState = options.targetState || "SongSelect";
+    /** @type {Array} Parameters forwarded to the target state */
+    this.targetParams = options.targetParams || [];
+    /** @type {string} Game state to return to when decoding fails */
+    this.backState = options.backState || "MainMenu";
+    /** @type {Array} Parameters forwarded to the back state on failure */
+    this.backParams = options.backParams || [];
+    /** @type {boolean} Set when the player cancelled decoding with SELECT + B */
+    this.canceled = false;
+    /** @type {boolean} Set once run() has settled (finished, failed or cancelled) */
+    this.runSettled = false;
+    /** @type {boolean} Set once a game state has been started from this screen */
+    this.exited = false;
+  }
+
+  /**
+   * Phaser state hook that builds the decode screen and starts the conversion.
+   */
+  create() {
+    game.camera.fadeIn(0x000000);
+
+    /** @type {FuturisticLines} Decorative animated background line effect */
+    this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Ambient gradient overlay for the loading background */
+    this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} On-screen hint bar showing the SELECT + B cancel combo */
+    this.navigationHint = new NavigationHint("decode_avi");
+    /** @type {WindowManager} Manages the status window */
+    this.windowManager = new WindowManager();
+
+    gamepad.releaseAll();
+
+    const statusWindow = this.windowManager.createWindow(3, 4, 22, 9, "1");
+    statusWindow.fontTint = 0x76fcde;
+    /** @type {Window} Status window showing the current decode step */
+    this.statusWindow = statusWindow;
+
+    /** @type {Text} Title line inside the status window */
+    this.titleText = new Text(8, 8, __("Decoding AVI Backgrounds||Decodificando Fondos AVI"), {
+      ...FONTS.default,
+      tint: 0x76fcde
+    });
+    statusWindow.addChild(this.titleText);
+
+    /** @type {Text} Current file / stage line */
+    this.statusText = new Text(8, 18, "", { ...FONTS.default });
+    statusWindow.addChild(this.statusText);
+
+    /** @type {Phaser.Graphics} Progress bar backing shape */
+    this.progressBack = game.add.graphics(8, 30);
+    this.progressBack.beginFill(0x22272e, 1);
+    this.progressBack.drawRect(0, 0, 160, 6);
+    this.progressBack.endFill();
+    statusWindow.addChild(this.progressBack);
+
+    /** @type {Phaser.Graphics} Progress bar fill */
+    this.progressFill = game.add.graphics(8, 30);
+    this.progressFill.beginFill(0x76fcde, 1);
+    this.progressFill.drawRect(0, 0, 0, 6);
+    this.progressFill.endFill();
+    statusWindow.addChild(this.progressFill);
+
+    this.run().catch(error => {
+      this.runSettled = true;
+      if (this.canceled) {
+        this.goBack();
+      } else {
+        this.showError(error);
+      }
+    });
+  }
+
+  /**
+   * Phaser lifecycle hook called every frame to poll gamepad input
+   * and watch for the SELECT + B cancel combo.
+   */
+  update() {
+    gamepad.update();
+    this.windowManager.update();
+
+    if (this.canceled || this.exited) return;
+
+    const held = gamepad.held || {};
+    const pressed = gamepad.pressed || {};
+    const cancelCombo =
+      (held.select && pressed.b) ||
+      (held.b && pressed.select);
+    if (cancelCombo) this.cancel();
+  }
+
+  /**
+   * Cancels decoding instantly: kills the FFmpeg worker so the in-flight
+   * conversion rejects immediately, then returns to the back state.
+   */
+  cancel() {
+    if (this.canceled) return;
+    this.canceled = true;
+
+    // run() already settled (error dialog on screen) — leave right away.
+    if (this.runSettled) {
+      this.goBack();
+      return;
+    }
+
+    this.setStatus(__("Cancelling...||Cancelando..."));
+    AviTranscoder.shutdown();
+  }
+
+  /**
+   * Throws when the player has cancelled, so pending awaits stop promptly.
+   */
+  throwIfCanceled() {
+    if (this.canceled) {
+      throw new Error("canceled");
+    }
+  }
+
+  /**
+   * Updates the status line and progress bar.
+   * @param {string} message - Status text to display
+   * @param {number} [fraction=0] - Progress fraction from 0 to 1
+   */
+  setStatus(message, fraction = null) {
+    if (this.statusText) this.statusText.text = message;
+    if (fraction !== null && this.progressFill) {
+      const width = Math.max(0, Math.min(160, Math.round(fraction * 160)));
+      this.progressFill.clear();
+      this.progressFill.beginFill(0x76fcde, 1);
+      this.progressFill.drawRect(0, 0, width, 6);
+      this.progressFill.endFill();
+    }
+  }
+
+  /**
+   * Decodes every AVI reference of the song, persists replacements when needed,
+   * then starts the target state.
+   * @returns {Promise<void>} Resolves once the target state has been started
+   */
+  async run() {
+    if (!this.song) {
+      throw new Error("DecodeAvi started without a song");
+    }
+
+    const fileNames = AviTools.getAviFileNames(this.song);
+    if (fileNames.length === 0) {
+      // Nothing to decode — bail out gracefully into the target state.
+      this.finish();
+      return;
+    }
+
+    const aviSettings = Object.assign(
+      {},
+      DEFAULT_ACCOUNT.settings.aviSettings,
+      Account.settings.aviSettings || {}
+    );
+
+    /** @type {boolean} Whether the MP4 files should be written back to the song folder */
+    const persist = this.mode === "replace" && AviTools.canPersist(this.song);
+    /** @type {Object} Map of old AVI chart names to new MP4 chart names */
+    const nameMap = {};
+
+    let done = 0;
+    for (const fileName of fileNames) {
+      this.throwIfCanceled();
+      this.setStatus(
+        __("Decoding||Decodificando") + ` ${fileName} (${done + 1}/${fileNames.length})`,
+        done / fileNames.length
+      );
+
+      const cacheKey = AviTranscoder.cacheKey(this.song, fileName);
+      const cached = AviTranscoder.getCached(cacheKey);
+
+      let blob;
+      let blobUrl;
+      if (cached) {
+        // Already decoded earlier this session — reuse it instantly.
+        blob = cached.blob;
+        blobUrl = cached.url;
+        this.setStatus(
+          __("Decoded (cached)||Decodificado (en caché)") + ` ${fileName} (${done + 1}/${fileNames.length})`,
+          (done + 1) / fileNames.length
+        );
+      } else {
+        const bytes = new Uint8Array(await AviTools.readFileBytes(this.song, fileName));
+        this.throwIfCanceled();
+
+        blob = await AviTranscoder.convertToBlob(bytes, {
+          preset: aviSettings.ffmpegPreset,
+          crf: aviSettings.crf,
+          scaleHeight: aviSettings.scaleToGameRes ? game.height : 0,
+          inputExt: ".avi",
+          onProgress: p => {
+            if (p && typeof p.progress === "number") {
+              const overall = (done + Math.max(0, Math.min(1, p.progress))) / fileNames.length;
+              this.setStatus(
+                __("Decoding||Decodificando") + ` ${fileName} (${done + 1}/${fileNames.length})`,
+                overall
+              );
+            }
+          }
+        });
+        this.throwIfCanceled();
+
+        blobUrl = URL.createObjectURL(blob);
+        AviTranscoder.putCached(cacheKey, blob, blobUrl);
+      }
+
+      if (persist) {
+        const newFileName = AviTools.toMp4Name(fileName);
+        const written = await this.persistFile(fileName, newFileName, blob);
+        if (written) {
+          nameMap[fileName] = newFileName;
+          AviTools.applyReplacement(this.song, fileName, blobUrl, newFileName, blob);
+          if (aviSettings.deleteOriginal) {
+            await this.deleteOriginal(fileName);
+          }
+        } else {
+          // Could not write next to the chart — fall back to a transient swap.
+          AviTools.applyReplacement(this.song, fileName, blobUrl, null, blob);
+        }
+      } else {
+        AviTools.applyReplacement(this.song, fileName, blobUrl, null, blob);
+      }
+
+      done++;
+    }
+
+    if (persist && Object.keys(nameMap).length > 0) {
+      this.throwIfCanceled();
+      this.setStatus(__("Updating Chart...||Actualizando Chart..."), 1);
+      await this.patchChartFile(nameMap);
+      this.throwIfCanceled();
+    }
+
+    this.setStatus(__("Done||Listo"), 1);
+    this.finish();
+  }
+
+  /**
+   * Writes the decoded MP4 into the song's folder on external storage.
+   * @param {string} fileName - Original AVI chart file name
+   * @param {string} newFileName - MP4 file name to write
+   * @param {Blob} blob - Decoded MP4 blob
+   * @returns {Promise<boolean>} True when the file was written successfully
+   */
+  async persistFile(fileName, newFileName, blob) {
+    try {
+      const fileSystem = new FileSystemTools();
+      if (fileSystem.platform === "fallback") return false;
+
+      const dirEntry = await fileSystem.getDirectory(this.song.externalPath);
+      const fileEntry = await fileSystem.saveFile(dirEntry, null, newFileName);
+      await fileSystem.writeFile(fileEntry, blob);
+      return true;
+    } catch (error) {
+      console.warn(`Couldn't write ${newFileName} next to the chart:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Deletes the original AVI file from the song folder when the setting is enabled.
+   * @param {string} fileName - Original AVI chart file name
+   * @returns {Promise<boolean>} True when the file was deleted
+   */
+  async deleteOriginal(fileName) {
+    try {
+      const fileSystem = new FileSystemTools();
+      if (fileSystem.platform === "fallback") return false;
+
+      const dirEntry = await fileSystem.getDirectory(this.song.externalPath);
+      const entries = await fileSystem.listFiles(dirEntry);
+      const target = entries.find(e => e.name && e.name.toLowerCase() === fileName.toLowerCase());
+      if (!target) return false;
+
+      const fileEntry = await fileSystem.getFile(target);
+      await fileSystem.deleteFile(fileEntry);
+      return true;
+    } catch (error) {
+      console.warn(`Couldn't delete original AVI ${fileName}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Rewrites the song's .SM/.SSC chart text so AVI references point at the MP4s.
+   * @param {Object} nameMap - Map of old AVI chart names to new MP4 chart names
+   * @returns {Promise<void>} Resolves once the chart has been rewritten (or skipped)
+   */
+  async patchChartFile(nameMap) {
+    try {
+      const fileSystem = new FileSystemTools();
+      if (fileSystem.platform === "fallback") return;
+
+      const dirEntry = await fileSystem.getDirectory(this.song.externalPath);
+      const entries = await fileSystem.listFiles(dirEntry);
+      const chartEntry = entries.find(e => {
+        if (!e.name) return false;
+        const lower = e.name.toLowerCase();
+        return lower.endsWith(".sm") || lower.endsWith(".ssc");
+      });
+      if (!chartEntry) return;
+
+      const chartFile = await fileSystem.getFile(chartEntry);
+      const content = await fileSystem.readFileContent(chartFile);
+      const patched = AviTools.patchSMContent(content, nameMap);
+
+      if (patched !== content) {
+        await fileSystem.writeFile(chartFile, patched);
+      }
+    } catch (error) {
+      console.warn("Couldn't patch the chart file:", error);
+    }
+  }
+
+  /**
+   * Starts the target state with the (possibly patched) song parameters.
+   */
+  finish() {
+    if (this.canceled || this.exited) return;
+    this.exited = true;
+    game.state.start(this.targetState, true, false, ...this.targetParams);
+  }
+
+  /**
+   * Returns to the back state (used after cancelling a decode run).
+   */
+  goBack() {
+    if (this.exited) return;
+    this.exited = true;
+    game.state.start(this.backState, true, false, ...this.backParams);
+  }
+
+  /**
+   * Shows a decode error and offers to return to song select.
+   * @param {Error} error - The failure that aborted decoding
+   */
+  showError(error) {
+    if (this.exited) return;
+    console.error("AVI decoding failed:", error);
+    if (this.statusText) {
+      this.statusText.text = __("AVI decoding failed:||Falló la decodificación AVI:") + " " + (error && error.message ? error.message : error);
+    }
+
+    const dialog = new DialogWindow(
+      __("AVI decoding failed. Return to song select?||La decodificación AVI falló. ¿Volver a selección de canción?"),
+      { buttons: [__("Yes||Sí"), __("No||No")] }
+    );
+    dialog.onConfirm.add(buttonIndex => {
+      dialog.destroy();
+      if (buttonIndex === 0) {
+        this.goBack();
+      }
+    });
   }
 }
 
@@ -37909,6 +39130,7 @@ class Credits {
       { text: "StepMania Team", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "photonstorm", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "itch.io", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "devilanirudh (ffmpeg-wasm-lite)", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: __("You!||¡Tú!"), font: FONTS.bold_shadow, tint: [0xffffff, 0x05ff00], spacing: 25 },
       
       { text: COPYRIGHT, font: FONTS.default_shadow, tint: 0x888888, spacing: 40 },

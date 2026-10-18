@@ -60,6 +60,10 @@ class FallbackFileSystem {
     return Promise.reject(new Error('File system not available in this environment'));
   }
   
+  deleteFile(fileEntry) {
+    return Promise.reject(new Error('File system not available in this environment'));
+  }
+  
   createDirectory(rootDirEntry, dirName) {
     return Promise.reject(new Error('File system not available in this environment'));
   }

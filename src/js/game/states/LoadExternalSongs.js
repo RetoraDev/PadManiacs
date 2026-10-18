@@ -223,6 +223,8 @@ class LoadExternalSongs {
           if (chart && chart.difficulties && chart.difficulties.length > 0) {
             // Chart file parsed successfully
             chart.folderName = dirEntry.name || `External_Song_${smFileName}`;
+            // Relative path usable with FileSystemTools.getDirectory (NW.js/Cordova storage)
+            chart.externalPath = (dirEntry.fullPath || "").replace(/^\//, "");
             chart.isLocal = true;
             chart.isExternal = true;
             chart.loaded = true;
