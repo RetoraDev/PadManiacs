@@ -197,7 +197,7 @@ class DecodeAvi {
     );
 
     /** @type {boolean} Whether the MP4 files should be written back to the song folder */
-    const persist = this.mode === "replace" && AviTools.canPersist(this.song);
+    const persist = false//this.mode === "replace" && AviTools.canPersist(this.song);
     /** @type {Object} Map of old AVI chart names to new MP4 chart names */
     const nameMap = {};
 

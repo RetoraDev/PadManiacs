@@ -5,8 +5,8 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.2.1
- * Build: 10/18/2026, 5:26:38 AM
- * Platform: Web
+ * Build: 10/18/2026, 7:35:11 AM
+ * Platform: Android (Cordova)
  * Debug: false
  * Minified: false
  */
@@ -863,7 +863,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -16813,7 +16813,7 @@ class AviTranscoder {
    * Directory (relative to the page URL) that holds the FFmpeg wasm assets.
    * @type {string}
    */
-  static FF_DIR = "lib/ffmpeg/";
+  static FF_DIR = "./lib/ffmpeg/";
 
   /** @type {Worker|null} Shared ffmpeg worker instance */
   static worker = null;
@@ -16901,7 +16901,7 @@ class AviTranscoder {
    * @returns {string} Absolute URL resolvable from the worker
    */
   static assetUrl(file) {
-    return new URL(AviTranscoder.FF_DIR + file, location.href).href;
+    return `${AviTranscoder.FF_DIR}${file}`;
   }
 
   /**
@@ -16946,11 +16946,13 @@ class AviTranscoder {
         else p.resolve(m.data);
       };
       AviTranscoder.worker.onerror = e => {
-        reject(new Error("FFmpeg worker failed: " + (e.message || "unknown")));
+        reject(new Error("FFmpeg worker failed: " + (e.message || e.data || "unknown")));
       };
       AviTranscoder.send("LOAD", {
-        coreURL: AviTranscoder.assetUrl("ffmpeg-core.js"),
-        wasmURL: AviTranscoder.assetUrl("ffmpeg-core.wasm")
+        //coreURL: AviTranscoder.assetUrl("ffmpeg-core.js"),
+        //wasmURL: AviTranscoder.assetUrl("ffmpeg-core.wasm")
+        coreURL: "./ffmpeg-core.js",
+        wasmURL: "./ffmpeg-core.wasm"
       }).then(resolve, reject);
     });
 
@@ -17171,18 +17173,30 @@ class AviTools {
    */
   static async readFileBytes(song, fileName) {
     if (song && song.files && song.files[fileName.toLowerCase()]) {
-      return await song.files[fileName.toLowerCase()].arrayBuffer();
+      return await FileTools.readAsArrayBuffer(new Blob(song.files[fileName.toLowerCase())]);
     }
 
     const url = AviTools.findUrlFor(song, fileName);
+    
     if (url) {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} fetching ${fileName}`);
-      }
-      return await response.arrayBuffer();
+      return await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'arraybuffer';
+        
+        xhr.onload = async function() {
+          if (this.status === 200) {
+            const result = await FileTools.readAsArrayBuffer(xhr.response);
+            resolve(result);
+          } else {
+            reject();
+          }
+        };
+        xhr.onerror = reject;
+        xhr.send();
+      });
     }
-
+    
     throw new Error(`Couldn't locate AVI file: ${fileName}`);
   }
 
@@ -20252,10 +20266,9 @@ class FileTools {
   /**
    * Converts a URL (http, file, blob, or data) into a Base64 data URI string.
    * @param {string} url - The URL to convert
-   * @param {string} [type] - The MIME type hint
    * @returns {Promise<string>} Resolves with the data URI or empty string on failure
    */
-  static async urlToDataURL(url, type) {
+  static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
       if (typeof url !== "string") {
         resolve("");
@@ -20442,7 +20455,7 @@ class FileTools {
    * @param {File} file - The File object to read
    * @returns {Promise<string>} Resolves with the text content
    */
-  static readTextFile(file) {
+  static readAsText(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
@@ -20456,12 +20469,34 @@ class FileTools {
    * @param {File} file - The File object to read
    * @returns {Promise<string>} Resolves with the binary string content
    */
-  static readBinaryFile(file) {
+  static readAsBinaryString(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
       reader.onerror = () => reject(reader.error);
       reader.readAsBinaryString(file);
+    });
+  }
+  
+  // NOTE: Kept for compatibility
+  static readBinaryFile(file) {
+    return FileTools.readAsBinaryString(file);
+  }
+  static readTextFile(file) {
+    return FileTools.readAsText(file);
+  }
+  
+  /**
+   * Reads a File object as ArrayBuffer using FileReader.
+   * @param {File} file - The File object to read
+   * @returns {Promise<ArrayBuffer>} Resolves with the ArrayBuffer content
+   */
+  static readAsArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsArrayBuffer(file);
     });
   }
   
@@ -28303,7 +28338,7 @@ class DecodeAvi {
     );
 
     /** @type {boolean} Whether the MP4 files should be written back to the song folder */
-    const persist = this.mode === "replace" && AviTools.canPersist(this.song);
+    const persist = false//this.mode === "replace" && AviTools.canPersist(this.song);
     /** @type {Object} Map of old AVI chart names to new MP4 chart names */
     const nameMap = {};
 

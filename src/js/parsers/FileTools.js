@@ -30,10 +30,9 @@ class FileTools {
   /**
    * Converts a URL (http, file, blob, or data) into a Base64 data URI string.
    * @param {string} url - The URL to convert
-   * @param {string} [type] - The MIME type hint
    * @returns {Promise<string>} Resolves with the data URI or empty string on failure
    */
-  static async urlToDataURL(url, type) {
+  static async urlToDataURL(url) {
     return new Promise((resolve, reject) => {
       if (typeof url !== "string") {
         resolve("");
@@ -220,7 +219,7 @@ class FileTools {
    * @param {File} file - The File object to read
    * @returns {Promise<string>} Resolves with the text content
    */
-  static readTextFile(file) {
+  static readAsText(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
@@ -234,12 +233,34 @@ class FileTools {
    * @param {File} file - The File object to read
    * @returns {Promise<string>} Resolves with the binary string content
    */
-  static readBinaryFile(file) {
+  static readAsBinaryString(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
       reader.onerror = () => reject(reader.error);
       reader.readAsBinaryString(file);
+    });
+  }
+  
+  // NOTE: Kept for compatibility
+  static readBinaryFile(file) {
+    return FileTools.readAsBinaryString(file);
+  }
+  static readTextFile(file) {
+    return FileTools.readAsText(file);
+  }
+  
+  /**
+   * Reads a File object as ArrayBuffer using FileReader.
+   * @param {File} file - The File object to read
+   * @returns {Promise<ArrayBuffer>} Resolves with the ArrayBuffer content
+   */
+  static readAsArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsArrayBuffer(file);
     });
   }
   

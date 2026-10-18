@@ -25,7 +25,7 @@ class AviTranscoder {
    * Directory (relative to the page URL) that holds the FFmpeg wasm assets.
    * @type {string}
    */
-  static FF_DIR = "lib/ffmpeg/";
+  static FF_DIR = "./lib/ffmpeg/";
 
   /** @type {Worker|null} Shared ffmpeg worker instance */
   static worker = null;
@@ -113,7 +113,7 @@ class AviTranscoder {
    * @returns {string} Absolute URL resolvable from the worker
    */
   static assetUrl(file) {
-    return new URL(AviTranscoder.FF_DIR + file, location.href).href;
+    return `${AviTranscoder.FF_DIR}${file}`;
   }
 
   /**
@@ -158,11 +158,13 @@ class AviTranscoder {
         else p.resolve(m.data);
       };
       AviTranscoder.worker.onerror = e => {
-        reject(new Error("FFmpeg worker failed: " + (e.message || "unknown")));
+        reject(new Error("FFmpeg worker failed: " + (e.message || e.data || "unknown")));
       };
       AviTranscoder.send("LOAD", {
-        coreURL: AviTranscoder.assetUrl("ffmpeg-core.js"),
-        wasmURL: AviTranscoder.assetUrl("ffmpeg-core.wasm")
+        //coreURL: AviTranscoder.assetUrl("ffmpeg-core.js"),
+        //wasmURL: AviTranscoder.assetUrl("ffmpeg-core.wasm")
+        coreURL: "./ffmpeg-core.js",
+        wasmURL: "./ffmpeg-core.wasm"
       }).then(resolve, reject);
     });
 
@@ -383,18 +385,30 @@ class AviTools {
    */
   static async readFileBytes(song, fileName) {
     if (song && song.files && song.files[fileName.toLowerCase()]) {
-      return await song.files[fileName.toLowerCase()].arrayBuffer();
+      return await FileTools.readAsArrayBuffer(new Blob(song.files[fileName.toLowerCase())]);
     }
 
     const url = AviTools.findUrlFor(song, fileName);
+    
     if (url) {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} fetching ${fileName}`);
-      }
-      return await response.arrayBuffer();
+      return await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'arraybuffer';
+        
+        xhr.onload = async function() {
+          if (this.status === 200) {
+            const result = await FileTools.readAsArrayBuffer(xhr.response);
+            resolve(result);
+          } else {
+            reject();
+          }
+        };
+        xhr.onerror = reject;
+        xhr.send();
+      });
     }
-
+    
     throw new Error(`Couldn't locate AVI file: ${fileName}`);
   }
 
