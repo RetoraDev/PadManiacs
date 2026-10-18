@@ -223,25 +223,42 @@ class NodeFileEntry {
     
     try {
       const writer = {
-        write: (data) => {
+        write: (data, onDone, onError) => {
+          const done = () => { if (onDone) onDone(); };
+          const fail = err => { if (onError) onError(err); else errorCallback(err); };
           try {
-            if (data instanceof Blob) {
-              // Convert Blob to Buffer
+            if (typeof Blob !== 'undefined' && data instanceof Blob) {
+              // Convert Blob to Buffer; finish only once the data is on disk
               const reader = new FileReader();
               reader.onload = () => {
-                fs.writeFileSync(fullPath, Buffer.from(reader.result));
+                try {
+                  fs.writeFileSync(fullPath, Buffer.from(reader.result));
+                  done();
+                } catch (error) {
+                  fail(error);
+                }
               };
-              reader.onerror = () => errorCallback(reader.error);
+              reader.onerror = () => fail(reader.error);
               reader.readAsArrayBuffer(data);
             } else if (typeof data === 'string') {
               fs.writeFileSync(fullPath, data);
+              done();
             } else if (data instanceof ArrayBuffer) {
               fs.writeFileSync(fullPath, Buffer.from(data));
+              done();
+            } else if (data && data.buffer instanceof ArrayBuffer) {
+              // Typed arrays (e.g. Uint8Array)
+              fs.writeFileSync(fullPath, Buffer.from(data.buffer, data.byteOffset, data.byteLength));
+              done();
+            } else if (data == null) {
+              fs.writeFileSync(fullPath, '');
+              done();
             } else {
               fs.writeFileSync(fullPath, data);
+              done();
             }
           } catch (error) {
-            errorCallback(error);
+            fail(error);
           }
         }
       };
@@ -494,15 +511,24 @@ class NodeFileSystem {
   }
   
   /**
-   * Creates or opens a file for saving data.
+   * Creates or opens a file for saving data, writing fileData when provided.
    * @param {NodeDirectoryEntry} dirEntry - The parent directory
+   * @param {string|Blob|ArrayBuffer} [fileData] - Optional data to write into the file
    * @param {string} fileName - The file name to save
-   * @returns {Promise<NodeFileEntry>} Resolves with the file entry
+   * @returns {Promise<NodeFileEntry>} Resolves with the file entry once written
    */
   saveFile(dirEntry, fileData, fileName) {
     return new Promise((resolve, reject) => {
       dirEntry.getFile(fileName, { create: true, exclusive: false }, 
-        fileEntry => resolve(fileEntry),
+        fileEntry => {
+          if (fileData === undefined || fileData === null) {
+            resolve(fileEntry);
+            return;
+          }
+          this.writeFile(fileEntry, fileData)
+            .then(() => resolve(fileEntry))
+            .catch(err => reject(err));
+        },
         error => reject(error)
       );
     });
@@ -525,7 +551,7 @@ class NodeFileSystem {
   }
   
   /**
-   * Writes data to an existing file entry.
+   * Writes data to an existing file entry, resolving once the data is on disk.
    * @param {NodeFileEntry} fileEntry - The file entry to write to
    * @param {string|Blob|ArrayBuffer} dataObj - The data to write
    * @param {boolean} isAppend - Whether to append instead of overwrite
@@ -535,11 +561,31 @@ class NodeFileSystem {
     return new Promise((resolve, reject) => {
       fileEntry.createWriter(
         writer => {
-          writer.write(dataObj);
-          resolve(writer);
+          writer.write(dataObj, () => resolve(writer), reject);
         },
         err => reject(err)
       );
+    });
+  }
+  
+  /**
+   * Deletes a file from the filesystem.
+   * @param {NodeFileEntry} fileEntry - The file entry to delete
+   * @returns {Promise<boolean>} Resolves true once the file is removed
+   */
+  deleteFile(fileEntry) {
+    return new Promise((resolve, reject) => {
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const fullPath = path.join(this.basePath, fileEntry.fullPath);
+        fs.unlink(fullPath, err => {
+          if (err) reject(err);
+          else resolve(true);
+        });
+      } catch (error) {
+        reject(error);
+      }
     });
   }
   

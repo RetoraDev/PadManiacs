@@ -82,6 +82,7 @@ class Credits {
       { text: "StepMania Team", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "photonstorm", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "itch.io", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "devilanirudh (ffmpeg-wasm-lite)", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: __("You!||¡Tú!"), font: FONTS.bold_shadow, tint: [0xffffff, 0x05ff00], spacing: 25 },
       
       { text: COPYRIGHT, font: FONTS.default_shadow, tint: 0x888888, spacing: 40 },

@@ -155,6 +155,13 @@ class Boot {
       game.input.mouse.enabled = true;
     }
     
+    if (currentVersion >= 1.3) {
+      // AVI bgvideo decode settings (added in 1.3)
+      if (!Account.settings.aviSettings) {
+        Account.settings.aviSettings = { ...DEFAULT_ACCOUNT.settings.aviSettings };
+      }
+    }
+    
     Account.version = currentVersion;
     saveAccount();
   }
@@ -198,7 +205,9 @@ class Boot {
     game.state.add("Settings", Settings);
     game.state.add("ChartModifiers", ChartModifiers);
     game.state.add("Keybindings", Keybindings);
+    game.state.add("AviSettings", AviSettings);
     game.state.add("SongSelect", SongSelect);
+    game.state.add("DecodeAvi", DecodeAvi);
     game.state.add("SongStats", SongStats);
     game.state.add("FileSelect", FileSelect);
     game.state.add("CharacterSelect", CharacterSelect);

@@ -1,6 +1,6 @@
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
-  version: 1.2, // 1.2.0
+  version: 1.3, // 1.3.0
   settings: {
     volume: 100,
     sfxVolume: 100,
@@ -37,6 +37,13 @@ const DEFAULT_ACCOUNT = {
       'NO MINES': false,
       'MIRRORED': false,
       'RANDOMIZED': false 
+    },
+    // AVI bgvideo decoding (FFmpeg.wasm)
+    aviSettings: {
+      ffmpegPreset: 'ultrafast',
+      crf: 32,
+      scaleToGameRes: false,
+      deleteOriginal: false
     },
     // Addon system settings
     safeMode: false,

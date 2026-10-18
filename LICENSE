@@ -717,9 +717,23 @@ Public License instead of this License.  But first, please read
 
 THIRD-PARTY COMPONENTS
 Third-party components included in this software (Phaser CE, Eruda.js,
-Terser.js, JSZip) are governed by their own licenses (MIT/BSD/GPL) and
-may be used, modified, and distributed according to those licenses
-regardless of the terms of this document.
+Terser.js, JSZip, ffmpeg-wasm-lite) are governed by their own licenses
+(MIT/BSD/GPL) and may be used, modified, and distributed according to
+those licenses regardless of the terms of this document.
+
+FFMPEG-WASM-LITE NOTICE
+This software bundles ffmpeg-wasm-lite, a minimal FFmpeg.wasm build used
+to decode .AVI background videos to MP4 in the browser, Copyright (C)
+devilanirudh, licensed under the GNU General Public License version 2 or
+later (GPL-2.0-or-later). Source:
+https://github.com/devilanirudh/ffmpeg-wasm-lite
+The bundled FFmpeg WebAssembly core (ffmpeg-core.js, ffmpeg-core.wasm,
+ffmpeg-worker.js) is derived from ffmpeg-wasm-lite, ffmpeg.wasm
+(https://github.com/ffmpegwasm/ffmpeg.wasm) and FFmpeg
+(https://ffmpeg.org). FFmpeg is licensed under the LGPL v2.1+ or GPL
+v2+ depending on build configuration; ffmpeg.wasm and ffmpeg-wasm-lite
+remain under their own licenses, all of which are available from the
+respective project sources.
 
 STEPMANIA FORMAT DISCLAIMER
 This software uses the StepMania (.sm and .ssc) chart format

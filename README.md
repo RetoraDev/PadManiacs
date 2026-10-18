@@ -50,6 +50,10 @@ You can add as many songs as desired.
 
 > Note in browser you can't load songs this way. Use "Load Single Song" instead
 
+### AVI background videos
+
+Browsers can't play `.AVI` backgrounds natively. When a song references one, the game offers to decode it to MP4 with [ffmpeg-wasm-lite](https://github.com/devilanirudh/ffmpeg-wasm-lite) (a minimal FFmpeg.wasm build by devilanirudh) before playing. Decoded videos are cached in memory for the rest of the session, so you only decode each video once. On desktop/Android you can also pick "Decode & Edit SM File" to write the MP4s next to the song and update its chart permanently. Decoding can be cancelled anytime with SELECT + B.
+
 ## Character System
 
 You can customize and level up your own avatar with RPG-style progression. Create characters with unique appearances, unlock items, skills, and watch them grow as you play.
@@ -90,13 +94,11 @@ Accessible from the main menu, the Add-on Manager allows you to:
 ## Known Limitations
 
 - SSC chart format support is not implemented
-- Background videos work, but .AVI format is not supported by HTML5 video players
+- .AVI background videos are not playable by browsers directly; they are decoded to MP4 with ffmpeg-wasm-lite on demand, which can take a few minutes for long videos
 - Web version requires manual song loading
 - Double charts are not supported since it's hard to implement Single Player Doubles on mobile
 - Most mobile file browsers may require selecting individual files one by one
 - Limited HTML5 gamepad API makes some gamepads unusable with the game. In such case, users will need to use X360CE and similar programs
-- Saved data sometimes could be too large for some low-end devices 
-- Some mobile devices prevent external songs to be loaded due for security
 
 ## License
 
@@ -107,4 +109,5 @@ PadManiacs is free software licensed under the GNU General Public License versio
 Third-party components:
 - Uses StepMania chart format specification
 - Includes Phaser CE, Eruda.js, Terser.js, and JSZip libraries
+- Includes [ffmpeg-wasm-lite](https://github.com/devilanirudh/ffmpeg-wasm-lite) by devilanirudh (GPL-2.0-or-later) for decoding AVI background videos to MP4 in the browser
 - All third-party content remains under their original licenses

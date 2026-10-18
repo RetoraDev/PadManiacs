@@ -304,6 +304,10 @@ const NAVIGATION_HINT_PRESETS = {
     { position: "right", icon: "a", text: __("JOIN||UNIRSE") },
     { position: "right", icon: "b", text: __("BACK||VOLVER") }
   ],
+  decode_avi: [
+    { position: "right", icon: "select", text: __(" +|| +") },
+    { position: "right", icon: "b", text: __("CANCEL||CANCELAR") }
+  ],
 };
 
 /** @type {array} Default built-in song folders */

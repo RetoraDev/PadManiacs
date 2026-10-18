@@ -82,6 +82,7 @@ class BuildSystem {
       'js/utils/ScreenRecorder.js',
       'js/utils/Metronome.js',
       'js/utils/TimeUtils.js',
+      'js/utils/AviTranscoder.js',
       
       // Input
       'js/input/GamepadListener.js',
@@ -126,8 +127,10 @@ class BuildSystem {
       'js/game/states/Settings.js',
       'js/game/states/ChartModifiers.js',
       'js/game/states/Keybindings.js',
+      'js/game/states/AviSettings.js',
       'js/game/states/FileSelect.js',
       'js/game/states/SongSelect.js',
+      'js/game/states/DecodeAvi.js',
       'js/game/states/SongStats.js',
       'js/game/states/CharacterSelect.js',
       'js/game/states/AchievementsMenu.js',
@@ -416,6 +419,14 @@ class BuildSystem {
     if (fs.existsSync(jszipSrc)) {
       fs.copyFileSync(jszipSrc, jszipDest);
       this.log('jszip.js copied to lib/', 'success');
+    }
+    
+    // Copy FFmpeg.wasm lite (AVI bgvideo decoding) to lib/ffmpeg
+    const ffmpegSrc = path.join(this.config.libDir, 'ffmpeg');
+    const ffmpegDest = path.join(libDest, 'ffmpeg');
+    if (fs.existsSync(ffmpegSrc)) {
+      this.copyDir(ffmpegSrc, ffmpegDest);
+      this.log('ffmpeg copied to lib/ffmpeg', 'success');
     }
   }
 

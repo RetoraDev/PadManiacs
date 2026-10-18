@@ -81,6 +81,7 @@ class LoadExternalSongFile {
       if (chart && chart.difficulties && chart.difficulties.length > 0) {
         // Chart file parsed successfully
         chart.folderName = dirEntry.name || `External_Song_${this.fileName.toLowerCase()}`;
+        chart.externalPath = this.filePath;
         chart.isExternal = true;
         chart.loaded = true;
         this.finish(chart);

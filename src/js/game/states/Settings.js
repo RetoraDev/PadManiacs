@@ -511,6 +511,9 @@ class Settings {
     // Chart Modifiers
     settingsWindow.addItem(__("(Chart Modifiers|Modificadores de Chart)"), ">", () => this.showChartModifiersMenu());
     
+    // AVI bgvideo decoding settings
+    settingsWindow.addItem(__("(AVI Bgvideo Settings|Ajustes de Bgvideo AVI)"), ">", () => this.showAviSettingsMenu());
+    
     // Danger zone
     settingsWindow.addItem(__("(Erase Highscores|Borrar Highscores)"), "", () => this.confirmEraseHighscores());
     settingsWindow.addItem(__("(Import Backup Data|Importar Datos de Respaldo)"), "", () => this.importBackupData());
@@ -671,6 +674,13 @@ class Settings {
    */
   showChartModifiersMenu() {
     game.state.start("ChartModifiers", true, false, "MainMenu");
+  }
+
+  /**
+   * Opens the AVI bgvideo decoding settings state.
+   */
+  showAviSettingsMenu() {
+    game.state.start("AviSettings", true, false, "Settings");
   }
 
   /**

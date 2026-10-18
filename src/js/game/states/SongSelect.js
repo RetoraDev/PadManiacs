@@ -553,12 +553,25 @@ class SongSelect {
   }
   
   /**
-   * Starts the multiplayer gameplay state with the configured settings.
+   * Starts the multiplayer gameplay state with the configured settings,
+   * asking about AVI backgrounds first when the song needs decoding.
    */
   startMultiplayer() {
     this.multiplayerScreen.destroy();
     this.multiplayerScreen = null;
-    
+
+    const song = this.multiplayerState.song;
+
+    if (AviTools.songHasAvi(song)) {
+      this.promptAviDecode(song, {
+        targetState: "PlayMulti",
+        targetParams: [this.multiplayerState]
+      }, () => {
+        game.state.start("PlayMulti", true, false, this.multiplayerState);
+      });
+      return;
+    }
+
     // Start gameplay with selected song and settings 
     game.state.start("PlayMulti", true, false, this.multiplayerState);
   }
@@ -621,16 +634,105 @@ class SongSelect {
 
   /**
    * Starts the gameplay state for a song in single player or multiplayer.
+   * When the song references AVI backgrounds, asks what to do first
+   * (decode & play, decode & edit the chart, or play as is).
    * @param {Object} song - The selected song
    * @param {number} difficultyIndex - Index of the chosen difficulty
    * @param {boolean} singlePlayer - Whether to launch single player or multiplayer
    */
   startGame(song, difficultyIndex, singlePlayer = true) {
-    // Start gameplay with selected song
-    game.state.start(singlePlayer ? "Play" : "PlayMulti", true, false, {
+    const targetState = singlePlayer ? "Play" : "PlayMulti";
+    const targetParams = [{
       chart: song,
       difficultyIndex
-    }, difficultyIndex, undefined, undefined, this.playlistKey);
+    }, difficultyIndex, undefined, undefined, this.playlistKey];
+
+    if (AviTools.songHasAvi(song)) {
+      this.promptAviDecode(song, { targetState, targetParams }, () => {
+        game.state.start(targetState, true, false, ...targetParams);
+      });
+      return;
+    }
+
+    // Start gameplay with selected song
+    game.state.start(targetState, true, false, ...targetParams);
+  }
+
+  /**
+   * Shows the AVI background prompt for a song and routes the chosen action.
+   * Storage-backed external songs also get a "Decode & Edit SM File" option,
+   * guarded by a confirmation dialog because it edits the chart permanently.
+   * @param {Object} song - The song whose AVI backgrounds need decoding
+   * @param {Object} decodeOptions - targetState/targetParams forwarded to DecodeAvi
+   * @param {Function} launch - Starts the target state without decoding ("Play as is")
+   */
+  promptAviDecode(song, decodeOptions, launch) {
+    const startDecode = mode => {
+      game.state.start("DecodeAvi", true, false, Object.assign({}, decodeOptions, {
+        mode,
+        song,
+        backState: "SongSelect",
+        backParams: [this.songs, this.songCarousel.selectedIndex, this.autoSelect, this.type, this.playlistKey]
+      }));
+    };
+
+    if (AviTools.canPersist(song)) {
+      const dialog = new DialogWindow(
+        __("This song has AVI backgrounds that can't be played directly.\nWhat do you want to do?||Esta canción tiene fondos AVI que no se pueden reproducir directamente.\n¿Qué quieres hacer?"),
+        {
+          buttons: [
+            __("Play as is||Jugar como está"),
+            __("Decode & Play||Decodificar y Jugar"),
+            __("Decode & Edit SM File||Decodificar y Editar SM")
+          ]
+        }
+      );
+      dialog.onConfirm.add(buttonIndex => {
+        dialog.destroy();
+        if (buttonIndex === 1) {
+          startDecode("play");
+        } else if (buttonIndex === 2) {
+          this.confirmAviReplace(() => startDecode("replace"));
+        } else if (buttonIndex === 0) {
+          launch();
+        }
+      });
+    } else {
+      const dialog = new DialogWindow(
+        __("AVI Bgvideos aren't supported here. Decode the bgvideos for this session?||Los bgvideos AVI no son compatibles aquí. ¿Decodificar los bgvideos para esta sesión?"),
+        {
+          buttons: [
+            __("Decode & Play||Decodificar y Jugar"),
+            __("Play as is||Jugar como está")
+          ]
+        }
+      );
+      dialog.onConfirm.add(buttonIndex => {
+        dialog.destroy();
+        if (buttonIndex === 0) {
+          startDecode("play");
+        } else if (buttonIndex === 1) {
+          launch();
+        }
+      });
+    }
+  }
+
+  /**
+   * Shows the warning dialog shown before a permanent Decode & Edit SM File run.
+   * @param {Function} onConfirm - Called when the user accepts the warning
+   */
+  confirmAviReplace(onConfirm) {
+    const dialog = new DialogWindow(
+      __("This will write MP4 files next to the song and permanently edit its .SM chart. Continue?||Esto escribirá archivos MP4 junto a la canción y editará su chart .SM de forma permanente. ¿Continuar?"),
+      { buttons: [__("Yes||Sí"), __("No||No")], defaultButton: 1 }
+    );
+    dialog.onConfirm.add(buttonIndex => {
+      dialog.destroy();
+      if (buttonIndex === 0) {
+        onConfirm();
+      }
+    });
   }
 
   /**
