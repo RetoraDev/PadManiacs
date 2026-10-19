@@ -5,7 +5,7 @@
  * @constructor
  * @description
  * A loading state that scans external storage (or, on non-mobile platforms, lets the
- * user pick a directory) for StepMania songs, parsing every .sm or .ssc chart file found.
+ * user pick a directory) for StepMania songs, parsing every .sm chart file found.
  * It supports sequential and batched parallel loading with progress feedback, caches the
  * results in window.externalSongs for the rest of the game, and then transitions into
  * the requested next state.
@@ -190,7 +190,7 @@ class LoadExternalSongs {
   }
 
   /**
-   * Reads all files inside a directory, finds its .sm/.ssc chart files, and returns the
+   * Reads all files inside a directory, finds its .sm chart files, and returns the
    * first chart that parses successfully, or null if the folder is not a chart folder.
    * @param {Object} dirEntry - Directory entry to scan for chart files
    * @returns {Promise<Object|null>} The parsed chart, or null if none could be loaded
@@ -205,9 +205,7 @@ class LoadExternalSongs {
         chartFiles[file.name.toLowerCase()] = file;
       }
 
-      const chartFileNames = Object.keys(chartFiles).filter(name => 
-        name.endsWith(".sm") || name.endsWith(".ssc")
-      );
+      const chartFileNames = Object.keys(chartFiles).filter(name => name.endsWith(".sm"));
 
       if (chartFileNames.length === 0) {
         // No chart files the folder is empty or is not a chart folder
@@ -400,16 +398,14 @@ class LoadExternalSongs {
   }
 
   /**
-   * Finds the .sm/.ssc files within a picked folder and returns the first chart that
+   * Finds the .sm files within a picked folder and returns the first chart that
    * parses successfully, or null if the folder holds no loadable chart.
    * @param {Object} files - Map of lowercased filenames to picked File objects
    * @param {string} folderName - Name of the folder being processed
    * @returns {Promise<Object|null>} The parsed chart, or null if none could be loaded
    */
   async processSongFiles(files, folderName) {
-    const chartFileNames = Object.keys(files).filter(name => 
-      name.endsWith(".sm") || name.endsWith(".ssc")
-    );
+    const chartFileNames = Object.keys(files).filter(name => name.endsWith(".sm"));
     
     if (chartFileNames.length === 0) {
       return null;

@@ -124,7 +124,7 @@ class Settings {
     
     // Metronome setting
     const metronomeOptions = [
-      { key: 'Off', label: __("(Off|Apagado)") },
+      { key: 'OFF', label: __("(Off|Apagado)") },
       { key: 'Note', label: __("(Note|Nota)") },
       { key: 'Quarters', label: __("(Quarters|Negras)") },
       { key: 'Eighths', label: __("(Eighths|Corcheas)") },

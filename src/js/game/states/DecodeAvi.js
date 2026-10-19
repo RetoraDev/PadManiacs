@@ -6,7 +6,7 @@
  * @features
  * Decodes every AVI background (#BACKGROUND, #BGCHANGES, #BGVIDEO) of a song
  * Decode & Play mode swaps the in-memory URLs with MP4 blob URLs, then starts the target state
- * Decode & Replace mode also writes ${name}.mp4 next to the chart and patches the .SM/.SSC file
+ * Decode & Replace mode also writes ${name}.mp4 next to the chart and patches the .SM file
  * Honors Account.settings.aviSettings (preset, CRF, scale to game resolution, delete original)
  * @description
  * Browsers cannot play MPEG-4 Part 2 video stored in .avi containers. DecodeAvi
@@ -329,7 +329,7 @@ class DecodeAvi {
   }
 
   /**
-   * Rewrites the song's .SM/.SSC chart text so AVI references point at the MP4s.
+   * Rewrites the song's .SM chart text so AVI references point at the MP4s.
    * @param {Object} nameMap - Map of old AVI chart names to new MP4 chart names
    * @returns {Promise<void>} Resolves once the chart has been rewritten (or skipped)
    */

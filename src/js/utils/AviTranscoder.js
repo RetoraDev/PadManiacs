@@ -538,7 +538,7 @@ class AviTools {
   }
 
   /**
-   * Replaces AVI file names inside raw .SM/.SSC chart text with their MP4 counterparts.
+   * Replaces AVI file names inside raw .SM chart text with their MP4 counterparts.
    * @param {string} content - Raw chart text
    * @param {Object} nameMap - Map of old file name (key) to new file name
    * @returns {string} Patched chart text

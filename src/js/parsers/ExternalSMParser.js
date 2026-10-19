@@ -1,19 +1,14 @@
 /**
  * @class ExternalSMParser
  * @category Parser Classes
- * @summary Parses .SM and .SSC files for external songs
+ * @summary Parses .SM files for external songs
  * @constructor
- * @features
- * Supports both .SM and .SSC StepMania file formats
- * Resolves media URLs from an in-memory file map via object URLs
- * Handles SSC multi-chart sections with per-chart difficulty metadata
- * Converts beat-based note timing to seconds
  * @description
  * ExternalSMParser handles user-imported songs stored in an external
  * directory. Unlike LocalSMParser it works entirely from an in-memory
  * file map and creates blob/object URLs for media playback. It supports
- * both the classic .SM format and the extended .SSC format which allows
- * per-chart BPM overrides and additional metadata.
+ * both the classic .SM format which allows per-chart BPM overrides and
+ * additional metadata.
  * @example
  * // Parsing an externally imported .SM file
  * const parser = new ExternalSMParser();
@@ -25,7 +20,7 @@
 class ExternalSMParser {
   // TODO: Make this class use SMFile
   /**
-   * Parses raw .SM or .SSC content, delegating to parseSSC when appropriate.
+   * Parses raw .SM content and returns a song object
    * @param {Object} files - A map of lowercase filenames to File objects
    * @param {string} smContent - The raw text content of the file
    * @returns {Promise<Object>} The parsed song data object
@@ -35,7 +30,7 @@ class ExternalSMParser {
     let isSSC = smContent.includes("#VERSION:");
 
     if (isSSC) {
-      return this.parseSSC(files, smContent);
+      throw "SSC format is not supported yet"
     }
 
     // Clean and parse SM content
@@ -307,194 +302,6 @@ class ExternalSMParser {
    */
   readFileContent(file) {
     return FileTools.readTextFile(file);
-  }
-
-  /**
-   * Parses .SSC format content with header and per-chart section support.
-   * @param {Object} files - A map of lowercase filenames to File objects
-   * @param {string} sscContent - The raw .SSC file text
-   * @returns {Object} The parsed song data object
-   */
-  parseSSC(files, sscContent) {
-    const sections = sscContent.split(/\/\/-+/);
-    const headerSection = sections[0];
-    const chartSections = sections.slice(1);
-
-    const out = {
-      bpmChanges: [],
-      stops: [],
-      notes: {},
-      backgrounds: [],
-      banner: "no-media",
-      difficulties: [],
-      background: "no-media",
-      cdtitle: null,
-      audioUrl: null,
-      videoUrl: null,
-      files: files,
-      sampleStart: 0,
-      sampleLength: 10
-    };
-
-    // Parse global metadata
-    const headerTags = {};
-    headerSection
-      .split("\n")
-      .filter(line => line.trim().startsWith("#"))
-      .forEach(line => {
-        const [key, ...rest] = line.slice(1).split(":");
-        let value = rest.join(":").trim().replace(/;+$/, "");
-        if (["BPMS", "STOPS", "BGCHANGES"].includes(key)) {
-          value = value
-            .split(",")
-            .map(v => v.trim())
-            .join(",");
-        }
-        headerTags[key] = value;
-      });
-
-    // Get audio file URL
-    if (headerTags.MUSIC && files[headerTags.MUSIC.toLowerCase()]) {
-      const audioFile = files[headerTags.MUSIC.toLowerCase()];
-      out.audioUrl = audioFile.localURL ? audioFile.localURL : URL.createObjectURL(audioFile);
-      out.audio = headerTags.MUSIC;
-    }
-
-    Object.assign(out, {
-      title: headerTags.TITLE || "",
-      subtitle: headerTags.SUBTITLE || "",
-      artist: headerTags.ARTIST || "",
-      titleTranslit: headerTags.TITLETRANSLIT || "",
-      subtitleTranslit: headerTags.SUBTITLETRANSLIT || "",
-      artistTranslit: headerTags.ARTISTTRANSLIT || "",
-      genre: headerTags.GENRE || "",
-      credit: headerTags.CREDIT || "",
-      offset: Number(headerTags.OFFSET) || 0,
-      sampleStart: Number(headerTags.SAMPLESTART) || 0,
-      sampleLength: Number(headerTags.SAMPLELENGTH) || 10
-    });
-
-    // Get banner
-    if (headerTags.BANNER && files[headerTags.BANNER.toLowerCase()]) {
-      const bannerFile = files[headerTags.BANNER.toLowerCase()];
-      out.banner = bannerFile.name;
-      out.bannerUrl = bannerFile.localURL ? bannerFile.localURL : URL.createObjectURL(bannerFile);
-    }
-
-    // Get background
-    if (headerTags.BACKGROUND && files[headerTags.BACKGROUND.toLowerCase()]) {
-      const bgFile = files[headerTags.BACKGROUND.toLowerCase()];
-      out.background = bgFile.name;
-      out.backgroundUrl = bgFile.localURL ? bgFile.localURL : URL.createObjectURL(bgFile);
-    }
-
-    // Parse BPMs
-    if (headerTags.BPMS) {
-      const bpmList = headerTags.BPMS.split(",").map(entry => {
-        const [beat, bpm] = entry.split("=");
-        return { beat: Number(beat), bpm: Number(bpm) };
-      });
-      out.bpmChanges = bpmList;
-    }
-
-    // Parse stops
-    if (headerTags.STOPS) {
-      const stopList = headerTags.STOPS.split(",").map(entry => {
-        const [beat, len] = entry.split("=");
-        return { beat: Number(beat), len: Number(len) };
-      });
-      out.stops = stopList;
-    }
-
-    // Process BPM changes and stops timing
-    if (out.bpmChanges.length > 0) {
-      out.bpmChanges.sort((a, b) => a.beat - b.beat);
-      out.bpmChanges[0].sec = 0;
-      for (let i = 1; i < out.bpmChanges.length; i++) {
-        out.bpmChanges[i].sec = this.beatToSec(out.bpmChanges, out.stops, out.bpmChanges[i].beat);
-      }
-      for (let i = 0; i < out.stops.length; i++) {
-        out.stops[i].sec = this.beatToSec(out.bpmChanges, out.stops, out.stops[i].beat);
-      }
-    }
-
-    // Parse chart sections (simplified - you may want to expand this)
-    chartSections.forEach(section => {
-      const lines = section.split("\n").filter(line => line.trim() !== "");
-      const chartTags = {};
-      let inNotes = false;
-      let noteData = [];
-
-      lines.forEach(line => {
-        if (line.startsWith("#")) {
-          if (line.startsWith("#NOTES")) {
-            inNotes = true;
-          } else if (!line.startsWith("#NOTEDATA") && !line.startsWith("#CHARTNAME")) {
-            const [key, ...rest] = line.slice(1).split(":");
-            const value = rest.join(":").trim().replace(/;+$/, "");
-            chartTags[key] = value;
-          }
-        } else if (inNotes) {
-          if (line.trim() === ";") {
-            inNotes = false;
-          } else {
-            noteData.push(line.trim());
-          }
-        }
-      });
-
-      if (chartTags.DIFFICULTY && chartTags.METER) {
-        const difficultyKey = `${chartTags.DIFFICULTY}${chartTags.METER}`;
-        out.difficulties.push({
-          type: chartTags.DIFFICULTY,
-          rating: chartTags.METER
-        });
-
-        // Convert note data to our format (simplified)
-        out.notes[difficultyKey] = this.convertSSCNotes(noteData, out.bpmChanges, out.stops);
-      }
-    });
-
-    return out;
-  }
-
-  /**
-   * Converts SSC note measure data into the internal note array format.
-   * @param {Array<string>} noteData - Array of measure strings from the SSC file
-   * @param {Array} bpmChanges - BPM change entries for timing conversion
-   * @param {Array} stops - Stop entries for timing conversion
-   * @returns {Array<Object>} The processed note array
-   */
-  convertSSCNotes(noteData, bpmChanges, stops) {
-    const notes = [];
-    let measureIndex = 0;
-
-    noteData.forEach(measure => {
-      const rows = measure.split("\n").filter(row => row.trim() !== "");
-      const rowsPerMeasure = rows.length;
-
-      rows.forEach((row, rowIndex) => {
-        const beat = measureIndex * 4 + (rowIndex / rowsPerMeasure) * 4;
-
-        for (let column = 0; column < 4 && column < row.length; column++) {
-          const noteChar = row[column];
-          if (noteChar !== "0" && noteChar !== "3") {
-            // Skip empty and hold ends
-            const note = {
-              type: noteChar,
-              beat: beat,
-              sec: this.beatToSec(bpmChanges, stops, beat),
-              column: column
-            };
-            notes.push(note);
-          }
-        }
-      });
-
-      measureIndex++;
-    });
-
-    return notes;
   }
 
   /**

@@ -101,6 +101,8 @@ class Boot {
     
     const forceMigrateCharacters = false;
     
+    if (Account.settings.metronome === 'Off') Account.settings.metronome = 'OFF';
+    
     // Version 1.1 has better character customization
     if (oldVersion < 1.1 || forceMigrateCharacters) {
       // Convert old version characters to new character system

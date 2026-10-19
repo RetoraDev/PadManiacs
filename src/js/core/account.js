@@ -17,7 +17,7 @@ const DEFAULT_ACCOUNT = {
     userOffset: 0,
     scrollDirection: "falling",
     visualizer: "BPM",
-    metronome: "Off",
+    metronome: "OFF",
     beatLines: false,
     beatsPerMeasure: 4, // TODO: Make this configurable
     speedMod: "X-MOD",

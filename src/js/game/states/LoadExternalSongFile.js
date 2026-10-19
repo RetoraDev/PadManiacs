@@ -5,8 +5,8 @@
  * @constructor
  * @description
  * Loads one individually chosen song from external storage. Given a chart filename and
- * its directory, it parses the .sm/.ssc chart directly, or unzips a .zip archive and
- * imports its chart and associated assets before handoff.
+ * its directory, it parses the .sm chart directly, or unzips a .zip archive and imports
+ * its chart and associated assets before handoff.
  * @example
  * // Load an individual song file and jump straight to the song select screen.
  * game.state.add('LoadExternalSongFile', LoadExternalSongFile);

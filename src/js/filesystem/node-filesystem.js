@@ -312,7 +312,6 @@ class NodeFileEntry {
       'avi': 'video/x-msvideo',
       'mov': 'video/quicktime',
       'sm': 'text/plain',
-      'ssc': 'text/plain',
       'json': 'application/json',
       'txt': 'text/plain'
     };
