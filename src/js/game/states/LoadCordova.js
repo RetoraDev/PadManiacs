@@ -55,7 +55,9 @@ class LoadCordova {
    */
   async createFolderStructure() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
-      const fileSystem = new FileSystemTools();
+      this.fileSystemTools = new FileSystemTools();
+      
+      const fileSystem = this.fileSystemTools;
       
       const rootDir = await fileSystem.getDirectory("");
       
@@ -65,9 +67,53 @@ class LoadCordova {
       await fileSystem.createDirectory(gameDir, SCREENSHOTS_DIRECTORY);
       await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
       await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
+      
+      this.checkFfmpegBundle();
+    } else {
+      this.continue();
     }
+  }
+  
+  /**
+   * Check if the bundled ffmpeg lib needs to be copied to external folder and copies them
+   */
+  async checkFfmpegBundle() {
+    const fileSystem = this.fileSystemTools;
+    
+    const gameDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY);
+    
+    const ffDir = await fileSystem.createDirectory(gameDir, FF_DIR_NAME);
+    
+    window.ff_bundle_dir = ffDir.nativeURL || window.ff_dir;
+    
+    // Check ffmpeg-wasm-lite files 
+    const fileNames = [
+      "ffmpeg-core.js",
+      "ffmpeg-core.wasm",
+      "ffmpeg-worker.js"
+    ];
+    const presentFileNames = [];
+    
+    const entries = await fileSystem.listFiles(ffDir);
+    
+    entries.forEach(fileEntry => {
+      presentFileNames.push(fileEntry.name);
+    });
+    
+    const filesToCopy = fileNames.filter(n => !presentFileNames.includes(n));
+     
+    for (const fileName of filesToCopy) {
+      const file = await fetch(window.ff_dir + fileName);
+      const blob = await file.blob();
+      
+      this.progressText.write(__(`(Copying|Copiando) ${fileName}`));
+      
+      await fileSystem.saveFile(ffDir, blob, fileName);
+    }
+    
     this.continue();
   }
+
   /**
    * Advances to the LoadAddons state to continue the startup sequence.
    */

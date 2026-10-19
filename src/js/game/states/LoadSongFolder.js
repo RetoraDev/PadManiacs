@@ -144,96 +144,108 @@ class LoadSongFolder {
     // Find .sm file
     let smFile = null;
     let smFilename = null;
-
+  
     zipContent.forEach((relativePath, file) => {
-      if (relativePath.toLowerCase().endsWith(".sm") && !smFile) {
+      if (!smFile && !file.dir && relativePath.toLowerCase().endsWith(".sm")) {
         smFile = file;
         smFilename = relativePath;
       }
     });
-
+  
     if (!smFile) {
       this.showError(__("No .sm file found in ZIP||No se encontró el archivo .sm en el ZIP"));
       return;
     }
-
+  
     // Parse SM file
     const smContent = await smFile.async("text");
     const basePath = smFilename.split("/").slice(0, -1).join("/");
     const chart = await new LocalSMParser().parseSM(smContent, basePath);
-
+  
     if (chart.error) {
       this.showError(__("Error in SM file||Error en el archivo SM"));
       return;
     }
-
+  
     chart.folderName = `Single_External_${smFilename}`;
     chart.loaded = true;
-    
-    // Helper function to find and load file from ZIP
+    chart.files = {};
+  
+    // Helper: find a zip entry for a given filename
+    const findEntry = (filename) => {
+      if (!filename) return null;
+  
+      // 1. Exact match
+      let entry = zipContent.file(filename);
+      if (entry) return entry;
+  
+      // 2. Relative to SM base path
+      if (basePath) {
+        entry = zipContent.file(basePath + "/" + filename);
+        if (entry) return entry;
+      }
+  
+      // 3. Case-insensitive, match on basename (safer than includes)
+      const targetBase = filename.toLowerCase().split("/").pop();
+      let found = null;
+      zipContent.forEach((relativePath, file) => {
+        if (found || file.dir) return;
+        const entryBase = relativePath.toLowerCase().split("/").pop();
+        if (entryBase === targetBase) found = file;
+      });
+      return found;
+    };
+  
     const loadFileFromZip = async (filename, targetProp) => {
       if (!filename) return null;
-
-      // Try to find the file in ZIP
-      let fileEntry = zipContent.file(filename);
-
-      // If not found, try with relative path
-      if (!fileEntry && basePath) {
-        fileEntry = zipContent.file(basePath + "/" + filename);
+  
+      const fileEntry = findEntry(filename);
+      if (!fileEntry) return null;
+  
+      const blob = await fileEntry.async("blob");
+  
+      // Build a standard File and store it under its lowercase basename
+      const fileObj = new File([blob], filename, { type: blob.type || "" });
+      chart.files[filename.toLowerCase()] = fileObj;
+  
+      // Create object URL for immediate use
+      const objectUrl = URL.createObjectURL(blob);
+  
+      if (targetProp === "audio") {
+        chart.audio = filename;
+        chart.audioUrl = objectUrl;
+      } else if (targetProp === "background") {
+        chart.background = filename;
+        chart.backgroundUrl = objectUrl;
+      } else if (targetProp === "banner") {
+        chart.banner = filename;
+        chart.bannerUrl = objectUrl;
+      } else if (targetProp === "lyrics") {
+        chart.lyrics = filename;
+        chart.lyricsContent = await fileEntry.async("text");
       }
-
-      // If still not found, search case-insensitive
-      if (!fileEntry) {
-        zipContent.forEach((relativePath, file) => {
-          if (relativePath.toLowerCase().includes(filename.toLowerCase())) {
-            fileEntry = file;
-          }
-        });
-      }
-
-      if (fileEntry) {
-        const blob = await fileEntry.async("blob");
-        
-        // Create object URL for immediate use
-        const objectUrl = URL.createObjectURL(blob);
-
-        if (targetProp === "audio") {
-          chart.audio = filename;
-          chart.audioUrl = objectUrl;
-        } else if (targetProp === "background") {
-          chart.background = filename;
-          chart.backgroundUrl = objectUrl;
-        } else if (targetProp === "banner") {
-          chart.banner = filename;
-          chart.bannerUrl = objectUrl;
-        } else if (targetProp === "lyrics") {
-          chart.lyrics = filename;
-          chart.lyricsContent = await fileEntry.async("text");
-        }
-
-        return objectUrl;
-      }
-
-      return null;
+      // "extra" (BG change files) only need .url returned + entry in chart.files
+  
+      return objectUrl;
     };
-    
+  
     // Load main files
     await loadFileFromZip(chart.audio, "audio");
     await loadFileFromZip(chart.background, "background");
     await loadFileFromZip(chart.banner, "banner");
     await loadFileFromZip(chart.lyrics, "lyrics");
-
+  
     // Load BG change files
     if (chart.backgrounds) {
       for (const bg of chart.backgrounds) {
-        if (bg.file != "" && bg.file != "-nosongbg-") {
+        if (bg.file && bg.file !== "-nosongbg-") {
           bg.url = await loadFileFromZip(bg.file, "extra");
         }
       }
     }
-    
+  
     callback(chart);
-  }  
+  }
   
   /**
    * Displays an error on the progress text and returns to the main menu after a delay.

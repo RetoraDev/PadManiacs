@@ -667,6 +667,8 @@ class SongSelect {
    * @param {Function} launch - Starts the target state without decoding ("Play as is")
    */
   promptAviDecode(song, decodeOptions, launch) {
+    this.highScoreText.visible = false;
+    
     const startDecode = mode => {
       game.state.start("DecodeAvi", true, false, Object.assign({}, decodeOptions, {
         mode,
@@ -675,54 +677,59 @@ class SongSelect {
         backParams: [this.songs, this.songCarousel.selectedIndex, this.autoSelect, this.type, this.playlistKey]
       }));
     };
-
-    if (AviTools.canPersist(song)) {
-      const dialog = new DialogWindow(
-        __("This song has AVI backgrounds that can't be played directly.\nWhat do you want to do?||Esta canción tiene fondos AVI que no se pueden reproducir directamente.\n¿Qué quieres hacer?"),
-        {
-          buttons: [
-            __("Play as is||Jugar como está"),
-            __("Decode & Play||Decodificar y Jugar"),
-            __("Decode & Edit SM File||Decodificar y Editar SM")
-          ]
-        }
-      );
-      dialog.onConfirm.add(buttonIndex => {
-        dialog.destroy();
-        if (buttonIndex === 1) {
+  
+    var dialog = new DialogWindow(
+      __("This song has AVI backgrounds that can't be played directly.\nWhat do you want to do?||Esta canción tiene fondos AVI que no se pueden reproducir directamente.\n¿Qué quieres hacer?"),
+      {
+        buttons: [
+          __("Decode & Play||Decodificar y Jugar"),
+          __("Play as is||Jugar como está")
+        ]
+      }
+    );
+    dialog.onConfirm.add(buttonIndex => {
+      dialog.destroy();
+      if (buttonIndex === 0) {
+        if (AviTools.canPersist(song)) {
+          dialog = new DialogWindow(
+            __("Do you want to replace the original video files with their MP4 versions?||¿Quieres reemplazar los archivos de video originales por sus versiones MP4?"),
+            {
+              buttons: [
+                __("Yes||Sí"),
+                __("No||No")
+              ]
+            }
+          );
+          dialog.onConfirm.add(buttonIndex => {
+            dialog.destroy();
+            if (buttonIndex === 1) {
+              startDecode("play");
+            } else if (buttonIndex === 2) {
+              this.confirmAviReplace(() => startDecode("replace"), launch);
+            } else if (buttonIndex === 0) {
+              launch();
+            }
+          });
+          dialog.onCancel.add(buttonIndex => {
+            launch();
+          });
+        } else {
           startDecode("play");
-        } else if (buttonIndex === 2) {
-          this.confirmAviReplace(() => startDecode("replace"));
-        } else if (buttonIndex === 0) {
-          launch();
         }
-      });
-    } else {
-      const dialog = new DialogWindow(
-        __("AVI Bgvideos aren't supported here. Decode the bgvideos for this session?||Los bgvideos AVI no son compatibles aquí. ¿Decodificar los bgvideos para esta sesión?"),
-        {
-          buttons: [
-            __("Decode & Play||Decodificar y Jugar"),
-            __("Play as is||Jugar como está")
-          ]
-        }
-      );
-      dialog.onConfirm.add(buttonIndex => {
-        dialog.destroy();
-        if (buttonIndex === 0) {
-          startDecode("play");
-        } else if (buttonIndex === 1) {
-          launch();
-        }
-      });
-    }
+      } else if (buttonIndex === 1) {
+        launch();
+      }
+    });
+    dialog.onCancel.add(buttonIndex => {
+      launch();
+    });
   }
 
   /**
    * Shows the warning dialog shown before a permanent Decode & Edit SM File run.
    * @param {Function} onConfirm - Called when the user accepts the warning
    */
-  confirmAviReplace(onConfirm) {
+  confirmAviReplace(onConfirm, onCancel) {
     const dialog = new DialogWindow(
       __("This will write MP4 files next to the song and permanently edit its .SM chart. Continue?||Esto escribirá archivos MP4 junto a la canción y editará su chart .SM de forma permanente. ¿Continuar?"),
       { buttons: [__("Yes||Sí"), __("No||No")], defaultButton: 1 }
@@ -731,6 +738,8 @@ class SongSelect {
       dialog.destroy();
       if (buttonIndex === 0) {
         onConfirm();
+      } else {
+        onCancel(); 
       }
     });
   }

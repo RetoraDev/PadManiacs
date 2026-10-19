@@ -197,7 +197,7 @@ class DecodeAvi {
     );
 
     /** @type {boolean} Whether the MP4 files should be written back to the song folder */
-    const persist = false//this.mode === "replace" && AviTools.canPersist(this.song);
+    const persist = this.mode === "replace" && AviTools.canPersist(this.song);
     /** @type {Object} Map of old AVI chart names to new MP4 chart names */
     const nameMap = {};
 
@@ -223,7 +223,14 @@ class DecodeAvi {
           (done + 1) / fileNames.length
         );
       } else {
-        const bytes = new Uint8Array(await AviTools.readFileBytes(this.song, fileName));
+        let bytes;
+        
+        if (this.song.files) {
+          bytes = new Uint8Array(await FileTools.readAsArrayBuffer(this.song.files[fileName.toLowerCase()]));
+        } else {
+          throw new Error("No way to get the video file");
+        }
+        
         this.throwIfCanceled();
 
         blob = await AviTranscoder.convertToBlob(bytes, {
@@ -231,6 +238,7 @@ class DecodeAvi {
           crf: aviSettings.crf,
           scaleHeight: aviSettings.scaleToGameRes ? game.height : 0,
           inputExt: ".avi",
+          onLog: data => console.log(data.message),
           onProgress: p => {
             if (p && typeof p.progress === "number") {
               const overall = (done + Math.max(0, Math.min(1, p.progress))) / fileNames.length;

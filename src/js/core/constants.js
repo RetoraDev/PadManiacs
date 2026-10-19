@@ -13,6 +13,9 @@ window.LOG_PERSONALITY_STUDY = window.DEBUG;
 /** @type {boolean} Whether to unlock all clothing items for development */
 window.UNLOCK_ALL_CLOTHES = false;
 
+window.ff_dir = './lib/ffmpeg/';
+window.ff_bundle_dir = null;
+
 /** @type {string} Character map for the default font */
 const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★áéíóúüñÁÉÍÓÚÜÑ";
 /** @type {string} Character map for the tiny font */
@@ -727,4 +730,4 @@ const DEFAULT_GAMEPAD_MAPPING = {
 };
 
 /** @type {array} Supported video file extensions for external songs */
-const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg"];
+const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg", "mpeg4"];

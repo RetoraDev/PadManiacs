@@ -29,6 +29,8 @@ const SONGS_DIRECTORY = "Songs";
 const EDITOR_OUTPUT_DIRECTORY = "Edits";
 /** @type {string} Backups directory name */
 const BACKUPS_DIRECTORY = "Backups";
+/** @type {string} ffmpeg-wasm-lite bundle files directory name */
+const FF_DIR_NAME = "Decoder";
 
 /** @type {boolean} Enable parallel asset loading */
 const ENABLE_PARALLEL_LOADING = true;

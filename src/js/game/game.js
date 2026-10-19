@@ -254,3 +254,60 @@ const __updateRhythmPadSize = () => {
 __updateRhythmPadSize();
               
 window.addEventListener("resize", () => __updateRhythmPadSize());
+
+class XhrFetchResponse {
+  constructor(url) {
+    this.xhr = new XMLHttpRequest();
+    this.status = 200;
+    this.ok = true;
+    this.url = url;
+    
+    // Placeholders
+    this.type = "basic";
+    this.body = new ReadableStream();
+    this.bodyUsed = false;
+    this.headers = new Headers();
+    this.redirected = "false";
+    this.statusText = "OK";
+    
+    this.send = (responseType) => {
+      return new Promise((resolve, reject) => {
+        const self = this;
+        this.xhr.open('GET', this.url, true);
+        this.xhr.responseType = responseType;
+        console.log('resolving', url, 'as', responseType);
+        this.xhr.onload = function() {
+          self.status = this.status;
+          if (this.status === 200) {
+            self.ok = true;
+            console.log('resolved');
+            resolve(self.xhr.response);
+          } else {
+            self.ok = false;
+            console.log('failed');
+            reject(self.status);
+          }
+        };
+        this.xhr.onerror = () => {
+          self.status = this.status;
+          status.ok = false;
+          console.log('failed with', self.status);
+          reject(self.status);
+        };
+        this.xhr.send();
+      });
+    };
+    
+    const responseTypes = ["text", "json", "blob", "arrayBuffer", "textStream"];
+    
+    for (const type of responseTypes) {
+      this[type] = () => {
+        return this.send(type.toLowerCase());
+      };
+    }
+  }
+}
+
+const fetch = url => new Promise((resolve, reject) => {
+  resolve(new XhrFetchResponse(url));
+});

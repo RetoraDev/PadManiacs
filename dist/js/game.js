@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.2.1
- * Build: 10/18/2026, 7:35:11 AM
- * Platform: Android (Cordova)
+ * Version: v1.2.1 dev
+ * Build: 10/19/2026, 2:08:20 AM
+ * Platform: Development
  * Debug: false
  * Minified: false
  */
@@ -125,7 +125,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.2.1";
+const VERSION = "v1.2.1 dev";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -135,6 +135,9 @@ window.LOG_PERSONALITY_STUDY = window.DEBUG;
 
 /** @type {boolean} Whether to unlock all clothing items for development */
 window.UNLOCK_ALL_CLOTHES = false;
+
+window.ff_dir = './lib/ffmpeg/';
+window.ff_bundle_dir = null;
 
 /** @type {string} Character map for the default font */
 const DEFAULT_FONT_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;¡!¿?()[]{}/\\+-×*\"' <>=%@#$&|~^_•∥▶❤★áéíóúüñÁÉÍÓÚÜÑ";
@@ -850,7 +853,7 @@ const DEFAULT_GAMEPAD_MAPPING = {
 };
 
 /** @type {array} Supported video file extensions for external songs */
-const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg"];
+const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg", "mpeg4"];
 
 // Environment detection constants
 /** @type {Object} Environment type definitions (UNKNOWN, NWJS, CORDOVA, WEB) */
@@ -863,7 +866,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.CORDOVA;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -883,6 +886,8 @@ const SONGS_DIRECTORY = "Songs";
 const EDITOR_OUTPUT_DIRECTORY = "Edits";
 /** @type {string} Backups directory name */
 const BACKUPS_DIRECTORY = "Backups";
+/** @type {string} ffmpeg-wasm-lite bundle files directory name */
+const FF_DIR_NAME = "Decoder";
 
 /** @type {boolean} Enable parallel asset loading */
 const ENABLE_PARALLEL_LOADING = true;
@@ -16011,6 +16016,63 @@ __updateRhythmPadSize();
               
 window.addEventListener("resize", () => __updateRhythmPadSize());
 
+class XhrFetchResponse {
+  constructor(url) {
+    this.xhr = new XMLHttpRequest();
+    this.status = 200;
+    this.ok = true;
+    this.url = url;
+    
+    // Placeholders
+    this.type = "basic";
+    this.body = new ReadableStream();
+    this.bodyUsed = false;
+    this.headers = new Headers();
+    this.redirected = "false";
+    this.statusText = "OK";
+    
+    this.send = (responseType) => {
+      return new Promise((resolve, reject) => {
+        const self = this;
+        this.xhr.open('GET', this.url, true);
+        this.xhr.responseType = responseType;
+        console.log('resolving', url, 'as', responseType);
+        this.xhr.onload = function() {
+          self.status = this.status;
+          if (this.status === 200) {
+            self.ok = true;
+            console.log('resolved');
+            resolve(self.xhr.response);
+          } else {
+            self.ok = false;
+            console.log('failed');
+            reject(self.status);
+          }
+        };
+        this.xhr.onerror = () => {
+          self.status = this.status;
+          status.ok = false;
+          console.log('failed with', self.status);
+          reject(self.status);
+        };
+        this.xhr.send();
+      });
+    };
+    
+    const responseTypes = ["text", "json", "blob", "arrayBuffer", "textStream"];
+    
+    for (const type of responseTypes) {
+      this[type] = () => {
+        return this.send(type.toLowerCase());
+      };
+    }
+  }
+}
+
+const fetch = url => new Promise((resolve, reject) => {
+  resolve(new XhrFetchResponse(url));
+});
+
 /**
  * @class ScreenRecorder
  * @category Core Game Classes
@@ -16810,10 +16872,12 @@ class TimeUtils {
  */
 class AviTranscoder {
   /**
-   * Directory (relative to the page URL) that holds the FFmpeg wasm assets.
+   * Directory URL that holds the FFmpeg wasm assets.
    * @type {string}
    */
-  static FF_DIR = "./lib/ffmpeg/";
+  static get FF_DIR() {
+    return CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA ? window.ff_bundle_dir || window.ff_dir : window.ff_dir;
+  }
 
   /** @type {Worker|null} Shared ffmpeg worker instance */
   static worker = null;
@@ -16896,15 +16960,6 @@ class AviTranscoder {
   }
 
   /**
-   * Builds an absolute URL for an asset inside the ffmpeg directory.
-   * @param {string} file - File name inside lib/ffmpeg
-   * @returns {string} Absolute URL resolvable from the worker
-   */
-  static assetUrl(file) {
-    return `${AviTranscoder.FF_DIR}${file}`;
-  }
-
-  /**
    * Sends a message to the ffmpeg worker and returns its reply.
    * @param {string} type - Worker message type (LOAD, EXEC, WRITE_FILE, ...)
    * @param {Object} data - Payload for the worker
@@ -16925,6 +16980,129 @@ class AviTranscoder {
    * @returns {Promise<void>} Resolves when the core is ready to exec
    */
   static ensureLoaded(onLog, onProgress) {
+    if (AviTranscoder.ready) return AviTranscoder.ready;
+  
+    AviTranscoder.ready = new Promise((resolve, reject) => {
+      // Cordova caches file:// worker scripts aggressively — cache-bust it.
+      const workerUrl = AviTranscoder.FF_DIR + "ffmpeg-worker.js?v=" + Date.now();
+      console.log("[AviTranscoder] spawning worker at", workerUrl);
+  
+      AviTranscoder.worker = new Worker(workerUrl);
+  
+      let workerReachedUs = false;
+  
+      AviTranscoder.worker.onmessage = ev => {
+        const m = ev.data;
+        workerReachedUs = true;
+  
+        // ─── Diagnostic channel from the instrumented worker ───
+        if (m.type === "BOOT") {
+          console.log(
+            "%c[worker " + (m.data && m.data.stage) + "]",
+            "color:#0af;font-weight:bold",
+            m.data
+          );
+          // If the worker couldn't even importScripts the core, the pending
+          // LOAD promise will be rejected by the ERROR message that follows,
+          // but if only BOOT stages arrive with a failure stage and no ERROR,
+          // reject here so the UI doesn't hang.
+          const stage = m.data && m.data.stage;
+          if (
+            stage === "importScripts-FAILED" ||
+            stage === "factory-MISSING" ||
+            stage === "createFFmpegCore-FAILED" ||
+            stage === "uncaught-error" ||
+            stage === "unhandled-rejection"
+          ) {
+            // The worker will also send an ERROR with id; this is a fallback
+            // in case it was killed before posting it.
+            setTimeout(() => {
+              if (AviTranscoder.ready && AviTranscoder.pending.size > 0) {
+                const pendingLoad = AviTranscoder.pending.get(0);
+                if (pendingLoad) {
+                  AviTranscoder.pending.delete(0);
+                  pendingLoad.reject(
+                    new Error(
+                      "Worker failed at stage '" + stage + "': " +
+                      JSON.stringify(m.data)
+                    )
+                  );
+                }
+              }
+            }, 0);
+          }
+          return;
+        }
+  
+        if (m.type === "LOG") {
+          if (onLog) onLog(m.data);
+          return;
+        }
+        if (m.type === "PROGRESS") {
+          if (onProgress) onProgress(m.data);
+          return;
+        }
+  
+        const p = AviTranscoder.pending.get(m.id);
+        if (!p) {
+          console.warn("[AviTranscoder] stray worker reply:", m);
+          return;
+        }
+        AviTranscoder.pending.delete(m.id);
+        if (m.type === "ERROR") p.reject(new Error(m.data));
+        else p.resolve(m.data);
+      };
+  
+      AviTranscoder.worker.onerror = e => {
+        if (e && e.preventDefault) e.preventDefault();
+  
+        // Cordova often leaves message/filename empty on file:// workers.
+        console.error("[AviTranscoder] WORKER ONERROR:", {
+          message: e && e.message,
+          filename: e && e.filename,
+          lineno: e && e.lineno,
+          colno: e && e.colno,
+          error: e && e.error,
+          type: e && e.type,
+          workerReachedUs,
+          workerUrl,
+        });
+  
+        if (!workerReachedUs) {
+          // No BOOT message ever arrived → the worker script never ran.
+          // This is the file:// worker restriction on Android WebView.
+          reject(new Error(
+            "Worker never executed at " + workerUrl + ". " +
+            "This is an origin/CSP/path problem — file:// workers are blocked " +
+            "by Android WebView. onerror: " + JSON.stringify({
+              message: e && e.message,
+              filename: e && e.filename,
+            })
+          ));
+        } else {
+          reject(new Error(
+            "FFmpeg worker failed: " +
+            ((e && e.message) || (e && e.type) || "unknown") +
+            (e && e.filename ? " @ " + e.filename + ":" + e.lineno : "")
+          ));
+        }
+      };
+  
+      AviTranscoder.worker.onmessageerror = e => {
+        console.error("[AviTranscoder] WORKER MESSAGEERROR:", e);
+      };
+  
+      AviTranscoder.send("LOAD", {
+        coreURL: "./ffmpeg-core.js",
+        wasmURL: "./ffmpeg-core.wasm"
+      }).then(resolve, reject);
+    });
+  
+    AviTranscoder.ready.catch(() => { AviTranscoder.ready = null; });
+    return AviTranscoder.ready;
+  }
+  
+  static ensureLoaded_old(onLog, onProgress) {
     if (AviTranscoder.ready) return AviTranscoder.ready;
 
     AviTranscoder.ready = new Promise((resolve, reject) => {
@@ -16949,8 +17127,6 @@ class AviTranscoder {
         reject(new Error("FFmpeg worker failed: " + (e.message || e.data || "unknown")));
       };
       AviTranscoder.send("LOAD", {
-        //coreURL: AviTranscoder.assetUrl("ffmpeg-core.js"),
-        //wasmURL: AviTranscoder.assetUrl("ffmpeg-core.wasm")
         coreURL: "./ffmpeg-core.js",
         wasmURL: "./ffmpeg-core.wasm"
       }).then(resolve, reject);
@@ -16959,6 +17135,7 @@ class AviTranscoder {
     AviTranscoder.ready.catch(() => { AviTranscoder.ready = null; });
     return AviTranscoder.ready;
   }
+
 
   /**
    * Transcodes raw AVI (or any ffmpeg-readable) bytes into an H.264 MP4 Blob.
@@ -16979,9 +17156,9 @@ class AviTranscoder {
       scaleHeight = 0,
       inputExt = ".avi",
       onProgress,
-      onLog
+      onLog,
     } = options;
-
+    
     await AviTranscoder.ensureLoaded(onLog, onProgress);
 
     const jobId = ++AviTranscoder.jobCounter;
@@ -16989,7 +17166,8 @@ class AviTranscoder {
     const outName = `/output_${jobId}.mp4`;
 
     try {
-      await AviTranscoder.send("WRITE_FILE", { path: inName, data: inputBytes });
+      console.log('Writing input file...');
+      await AviTranscoder.send("WRITE_FILE", { path: inName, data: new Uint8Array(inputBytes) });
 
       const args = ["-hide_banner", "-nostdin", "-i", inName];
       if (scaleHeight > 0) {
@@ -17005,6 +17183,7 @@ class AviTranscoder {
         "-y", outName
       );
 
+      console.log('Executing conversion...');
       const ret = await AviTranscoder.send("EXEC", { args, timeout: -1 });
       if (ret !== 0) {
         throw new Error(`FFmpeg exited with code ${ret} while converting ${inName}`);
@@ -17161,43 +17340,6 @@ class AviTools {
     }
 
     return null;
-  }
-
-  /**
-   * Reads the raw bytes of a chart-referenced file.
-   * Uses the in-memory file map for external songs, or fetches the resolved URL
-   * for local/built-in songs.
-   * @param {Object} song - Parsed chart/song object
-   * @param {string} fileName - Chart file name (e.g. "bg.avi")
-   * @returns {Promise<ArrayBuffer>} Raw file bytes
-   */
-  static async readFileBytes(song, fileName) {
-    if (song && song.files && song.files[fileName.toLowerCase()]) {
-      return await FileTools.readAsArrayBuffer(new Blob(song.files[fileName.toLowerCase())]);
-    }
-
-    const url = AviTools.findUrlFor(song, fileName);
-    
-    if (url) {
-      return await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.responseType = 'arraybuffer';
-        
-        xhr.onload = async function() {
-          if (this.status === 200) {
-            const result = await FileTools.readAsArrayBuffer(xhr.response);
-            resolve(result);
-          } else {
-            reject();
-          }
-        };
-        xhr.onerror = reject;
-        xhr.send();
-      });
-    }
-    
-    throw new Error(`Couldn't locate AVI file: ${fileName}`);
   }
 
   /**
@@ -20609,6 +20751,7 @@ class LocalSMParser {
     out.sampleStart = 0;
     out.sampleLength = 10;
     out.baseUrl = baseUrl;
+    out.fileUrls = {};
 
     for (let i in sm) {
       let p = sm[i];
@@ -20663,6 +20806,7 @@ class LocalSMParser {
                 const ext = bgEntry.file.split(".").pop().toLowerCase();
                 bgEntry.type = VIDEO_EXTENSIONS.includes(ext) ? "video" : "image";
                 bgEntry.url = this.resolveFileUrl(bgEntry.file, baseUrl);
+                out.fileUrls[bgEntry.file.toLowerCase()] = bgEntry.url;
               }
 
               // Calculate timing
@@ -20679,18 +20823,21 @@ class LocalSMParser {
           if (p[1]) {
             out.banner = p[1];
             out.bannerUrl = this.resolveFileUrl(p[1], baseUrl);
+            out.fileUrls[out.banner.toLowerCase()] = out.bannerUrl;
           }
           break;
         case "#CDTITLE":
           if (p[1]) {
             out.cdtitle = p[1];
             out.cdtitleUrl = this.resolveFileUrl(p[1], baseUrl);
+            out.fileUrls[out.cdtitle.toLowerCase()] = out.cdtitleUrl;
           }
           break;
         case "#LYRICSPATH":
           if (p[1]) {
             out.lyrics = p[1];
             out.lyricsContent = await this.loadTextFile(baseUrl + p[1]);
+            out.fileUrls[out.lyrics.toLowerCase()] = baseUrl + p[1];
           }
           break;
         case "#SAMPLESTART":
@@ -20703,12 +20850,14 @@ class LocalSMParser {
           if (p[1]) {
             out.background = p[1];
             out.backgroundUrl = this.resolveFileUrl(p[1], baseUrl);
+            out.fileUrls[out.background.toLowerCase()] = out.backgroundUrl;
           }
           break;
           case "#MUSIC":
           if (p[1]) {
             out.audio = p[1];
             out.audioUrl = this.resolveFileUrl(p[1], baseUrl);
+            out.fileUrls[out.audio.toLowerCase()] = out.audioUrl;
           }
           break;
         case "#OFFSET":
@@ -21151,7 +21300,7 @@ class ExternalSMParser {
                 note[c].type = nt[c];
                 break;
               default:
-                throw `invalid note type ${nt[c]}`;
+                console.warn(`invalid note type ${nt[c]}`);
             }
             note[c].beat = b;
             note[c].sec = this.beatToSec(out.bpmChanges, out.stops, b);
@@ -22713,7 +22862,9 @@ class LoadCordova {
    */
   async createFolderStructure() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
-      const fileSystem = new FileSystemTools();
+      this.fileSystemTools = new FileSystemTools();
+      
+      const fileSystem = this.fileSystemTools;
       
       const rootDir = await fileSystem.getDirectory("");
       
@@ -22723,9 +22874,53 @@ class LoadCordova {
       await fileSystem.createDirectory(gameDir, SCREENSHOTS_DIRECTORY);
       await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
       await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
+      
+      this.checkFfmpegBundle();
+    } else {
+      this.continue();
     }
+  }
+  
+  /**
+   * Check if the bundled ffmpeg lib needs to be copied to external folder and copies them
+   */
+  async checkFfmpegBundle() {
+    const fileSystem = this.fileSystemTools;
+    
+    const gameDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY);
+    
+    const ffDir = await fileSystem.createDirectory(gameDir, FF_DIR_NAME);
+    
+    window.ff_bundle_dir = ffDir.nativeURL || window.ff_dir;
+    
+    // Check ffmpeg-wasm-lite files 
+    const fileNames = [
+      "ffmpeg-core.js",
+      "ffmpeg-core.wasm",
+      "ffmpeg-worker.js"
+    ];
+    const presentFileNames = [];
+    
+    const entries = await fileSystem.listFiles(ffDir);
+    
+    entries.forEach(fileEntry => {
+      presentFileNames.push(fileEntry.name);
+    });
+    
+    const filesToCopy = fileNames.filter(n => !presentFileNames.includes(n));
+     
+    for (const fileName of filesToCopy) {
+      const file = await fetch(window.ff_dir + fileName);
+      const blob = await file.blob();
+      
+      this.progressText.write(__(`(Copying|Copiando) ${fileName}`));
+      
+      await fileSystem.saveFile(ffDir, blob, fileName);
+    }
+    
     this.continue();
   }
+
   /**
    * Advances to the LoadAddons state to continue the startup sequence.
    */
@@ -23508,96 +23703,108 @@ class LoadSongFolder {
     // Find .sm file
     let smFile = null;
     let smFilename = null;
-
+  
     zipContent.forEach((relativePath, file) => {
-      if (relativePath.toLowerCase().endsWith(".sm") && !smFile) {
+      if (!smFile && !file.dir && relativePath.toLowerCase().endsWith(".sm")) {
         smFile = file;
         smFilename = relativePath;
       }
     });
-
+  
     if (!smFile) {
       this.showError(__("No .sm file found in ZIP||No se encontró el archivo .sm en el ZIP"));
       return;
     }
-
+  
     // Parse SM file
     const smContent = await smFile.async("text");
     const basePath = smFilename.split("/").slice(0, -1).join("/");
     const chart = await new LocalSMParser().parseSM(smContent, basePath);
-
+  
     if (chart.error) {
       this.showError(__("Error in SM file||Error en el archivo SM"));
       return;
     }
-
+  
     chart.folderName = `Single_External_${smFilename}`;
     chart.loaded = true;
-    
-    // Helper function to find and load file from ZIP
+    chart.files = {};
+  
+    // Helper: find a zip entry for a given filename
+    const findEntry = (filename) => {
+      if (!filename) return null;
+  
+      // 1. Exact match
+      let entry = zipContent.file(filename);
+      if (entry) return entry;
+  
+      // 2. Relative to SM base path
+      if (basePath) {
+        entry = zipContent.file(basePath + "/" + filename);
+        if (entry) return entry;
+      }
+  
+      // 3. Case-insensitive, match on basename (safer than includes)
+      const targetBase = filename.toLowerCase().split("/").pop();
+      let found = null;
+      zipContent.forEach((relativePath, file) => {
+        if (found || file.dir) return;
+        const entryBase = relativePath.toLowerCase().split("/").pop();
+        if (entryBase === targetBase) found = file;
+      });
+      return found;
+    };
+  
     const loadFileFromZip = async (filename, targetProp) => {
       if (!filename) return null;
-
-      // Try to find the file in ZIP
-      let fileEntry = zipContent.file(filename);
-
-      // If not found, try with relative path
-      if (!fileEntry && basePath) {
-        fileEntry = zipContent.file(basePath + "/" + filename);
+  
+      const fileEntry = findEntry(filename);
+      if (!fileEntry) return null;
+  
+      const blob = await fileEntry.async("blob");
+  
+      // Build a standard File and store it under its lowercase basename
+      const fileObj = new File([blob], filename, { type: blob.type || "" });
+      chart.files[filename.toLowerCase()] = fileObj;
+  
+      // Create object URL for immediate use
+      const objectUrl = URL.createObjectURL(blob);
+  
+      if (targetProp === "audio") {
+        chart.audio = filename;
+        chart.audioUrl = objectUrl;
+      } else if (targetProp === "background") {
+        chart.background = filename;
+        chart.backgroundUrl = objectUrl;
+      } else if (targetProp === "banner") {
+        chart.banner = filename;
+        chart.bannerUrl = objectUrl;
+      } else if (targetProp === "lyrics") {
+        chart.lyrics = filename;
+        chart.lyricsContent = await fileEntry.async("text");
       }
-
-      // If still not found, search case-insensitive
-      if (!fileEntry) {
-        zipContent.forEach((relativePath, file) => {
-          if (relativePath.toLowerCase().includes(filename.toLowerCase())) {
-            fileEntry = file;
-          }
-        });
-      }
-
-      if (fileEntry) {
-        const blob = await fileEntry.async("blob");
-        
-        // Create object URL for immediate use
-        const objectUrl = URL.createObjectURL(blob);
-
-        if (targetProp === "audio") {
-          chart.audio = filename;
-          chart.audioUrl = objectUrl;
-        } else if (targetProp === "background") {
-          chart.background = filename;
-          chart.backgroundUrl = objectUrl;
-        } else if (targetProp === "banner") {
-          chart.banner = filename;
-          chart.bannerUrl = objectUrl;
-        } else if (targetProp === "lyrics") {
-          chart.lyrics = filename;
-          chart.lyricsContent = await fileEntry.async("text");
-        }
-
-        return objectUrl;
-      }
-
-      return null;
+      // "extra" (BG change files) only need .url returned + entry in chart.files
+  
+      return objectUrl;
     };
-    
+  
     // Load main files
     await loadFileFromZip(chart.audio, "audio");
     await loadFileFromZip(chart.background, "background");
     await loadFileFromZip(chart.banner, "banner");
     await loadFileFromZip(chart.lyrics, "lyrics");
-
+  
     // Load BG change files
     if (chart.backgrounds) {
       for (const bg of chart.backgrounds) {
-        if (bg.file != "" && bg.file != "-nosongbg-") {
+        if (bg.file && bg.file !== "-nosongbg-") {
           bg.url = await loadFileFromZip(bg.file, "extra");
         }
       }
     }
-    
+  
     callback(chart);
-  }  
+  }
   
   /**
    * Displays an error on the progress text and returns to the main menu after a delay.
@@ -27696,6 +27903,8 @@ class SongSelect {
    * @param {Function} launch - Starts the target state without decoding ("Play as is")
    */
   promptAviDecode(song, decodeOptions, launch) {
+    this.highScoreText.visible = false;
+    
     const startDecode = mode => {
       game.state.start("DecodeAvi", true, false, Object.assign({}, decodeOptions, {
         mode,
@@ -27704,54 +27913,59 @@ class SongSelect {
         backParams: [this.songs, this.songCarousel.selectedIndex, this.autoSelect, this.type, this.playlistKey]
       }));
     };
-
-    if (AviTools.canPersist(song)) {
-      const dialog = new DialogWindow(
-        __("This song has AVI backgrounds that can't be played directly.\nWhat do you want to do?||Esta canción tiene fondos AVI que no se pueden reproducir directamente.\n¿Qué quieres hacer?"),
-        {
-          buttons: [
-            __("Play as is||Jugar como está"),
-            __("Decode & Play||Decodificar y Jugar"),
-            __("Decode & Edit SM File||Decodificar y Editar SM")
-          ]
-        }
-      );
-      dialog.onConfirm.add(buttonIndex => {
-        dialog.destroy();
-        if (buttonIndex === 1) {
+  
+    var dialog = new DialogWindow(
+      __("This song has AVI backgrounds that can't be played directly.\nWhat do you want to do?||Esta canción tiene fondos AVI que no se pueden reproducir directamente.\n¿Qué quieres hacer?"),
+      {
+        buttons: [
+          __("Decode & Play||Decodificar y Jugar"),
+          __("Play as is||Jugar como está")
+        ]
+      }
+    );
+    dialog.onConfirm.add(buttonIndex => {
+      dialog.destroy();
+      if (buttonIndex === 0) {
+        if (AviTools.canPersist(song)) {
+          dialog = new DialogWindow(
+            __("Do you want to replace the original video files with their MP4 versions?||¿Quieres reemplazar los archivos de video originales por sus versiones MP4?"),
+            {
+              buttons: [
+                __("Yes||Sí"),
+                __("No||No")
+              ]
+            }
+          );
+          dialog.onConfirm.add(buttonIndex => {
+            dialog.destroy();
+            if (buttonIndex === 1) {
+              startDecode("play");
+            } else if (buttonIndex === 2) {
+              this.confirmAviReplace(() => startDecode("replace"), launch);
+            } else if (buttonIndex === 0) {
+              launch();
+            }
+          });
+          dialog.onCancel.add(buttonIndex => {
+            launch();
+          });
+        } else {
           startDecode("play");
-        } else if (buttonIndex === 2) {
-          this.confirmAviReplace(() => startDecode("replace"));
-        } else if (buttonIndex === 0) {
-          launch();
         }
-      });
-    } else {
-      const dialog = new DialogWindow(
-        __("AVI Bgvideos aren't supported here. Decode the bgvideos for this session?||Los bgvideos AVI no son compatibles aquí. ¿Decodificar los bgvideos para esta sesión?"),
-        {
-          buttons: [
-            __("Decode & Play||Decodificar y Jugar"),
-            __("Play as is||Jugar como está")
-          ]
-        }
-      );
-      dialog.onConfirm.add(buttonIndex => {
-        dialog.destroy();
-        if (buttonIndex === 0) {
-          startDecode("play");
-        } else if (buttonIndex === 1) {
-          launch();
-        }
-      });
-    }
+      } else if (buttonIndex === 1) {
+        launch();
+      }
+    });
+    dialog.onCancel.add(buttonIndex => {
+      launch();
+    });
   }
 
   /**
    * Shows the warning dialog shown before a permanent Decode & Edit SM File run.
    * @param {Function} onConfirm - Called when the user accepts the warning
    */
-  confirmAviReplace(onConfirm) {
+  confirmAviReplace(onConfirm, onCancel) {
     const dialog = new DialogWindow(
       __("This will write MP4 files next to the song and permanently edit its .SM chart. Continue?||Esto escribirá archivos MP4 junto a la canción y editará su chart .SM de forma permanente. ¿Continuar?"),
       { buttons: [__("Yes||Sí"), __("No||No")], defaultButton: 1 }
@@ -27760,6 +27974,8 @@ class SongSelect {
       dialog.destroy();
       if (buttonIndex === 0) {
         onConfirm();
+      } else {
+        onCancel(); 
       }
     });
   }
@@ -28338,7 +28554,7 @@ class DecodeAvi {
     );
 
     /** @type {boolean} Whether the MP4 files should be written back to the song folder */
-    const persist = false//this.mode === "replace" && AviTools.canPersist(this.song);
+    const persist = this.mode === "replace" && AviTools.canPersist(this.song);
     /** @type {Object} Map of old AVI chart names to new MP4 chart names */
     const nameMap = {};
 
@@ -28364,7 +28580,14 @@ class DecodeAvi {
           (done + 1) / fileNames.length
         );
       } else {
-        const bytes = new Uint8Array(await AviTools.readFileBytes(this.song, fileName));
+        let bytes;
+        
+        if (this.song.files) {
+          bytes = new Uint8Array(await FileTools.readAsArrayBuffer(this.song.files[fileName.toLowerCase()]));
+        } else {
+          throw new Error("No way to get the video file");
+        }
+        
         this.throwIfCanceled();
 
         blob = await AviTranscoder.convertToBlob(bytes, {
@@ -28372,6 +28595,7 @@ class DecodeAvi {
           crf: aviSettings.crf,
           scaleHeight: aviSettings.scaleToGameRes ? game.height : 0,
           inputExt: ".avi",
+          onLog: data => console.log(data.message),
           onProgress: p => {
             if (p && typeof p.progress === "number") {
               const overall = (done + Math.max(0, Math.min(1, p.progress))) / fileNames.length;

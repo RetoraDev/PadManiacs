@@ -69,6 +69,7 @@ class LocalSMParser {
     out.sampleStart = 0;
     out.sampleLength = 10;
     out.baseUrl = baseUrl;
+    out.fileUrls = {};
 
     for (let i in sm) {
       let p = sm[i];
@@ -123,6 +124,7 @@ class LocalSMParser {
                 const ext = bgEntry.file.split(".").pop().toLowerCase();
                 bgEntry.type = VIDEO_EXTENSIONS.includes(ext) ? "video" : "image";
                 bgEntry.url = this.resolveFileUrl(bgEntry.file, baseUrl);
+                out.fileUrls[bgEntry.file.toLowerCase()] = bgEntry.url;
               }
 
               // Calculate timing
@@ -139,18 +141,21 @@ class LocalSMParser {
           if (p[1]) {
             out.banner = p[1];
             out.bannerUrl = this.resolveFileUrl(p[1], baseUrl);
+            out.fileUrls[out.banner.toLowerCase()] = out.bannerUrl;
           }
           break;
         case "#CDTITLE":
           if (p[1]) {
             out.cdtitle = p[1];
             out.cdtitleUrl = this.resolveFileUrl(p[1], baseUrl);
+            out.fileUrls[out.cdtitle.toLowerCase()] = out.cdtitleUrl;
           }
           break;
         case "#LYRICSPATH":
           if (p[1]) {
             out.lyrics = p[1];
             out.lyricsContent = await this.loadTextFile(baseUrl + p[1]);
+            out.fileUrls[out.lyrics.toLowerCase()] = baseUrl + p[1];
           }
           break;
         case "#SAMPLESTART":
@@ -163,12 +168,14 @@ class LocalSMParser {
           if (p[1]) {
             out.background = p[1];
             out.backgroundUrl = this.resolveFileUrl(p[1], baseUrl);
+            out.fileUrls[out.background.toLowerCase()] = out.backgroundUrl;
           }
           break;
           case "#MUSIC":
           if (p[1]) {
             out.audio = p[1];
             out.audioUrl = this.resolveFileUrl(p[1], baseUrl);
+            out.fileUrls[out.audio.toLowerCase()] = out.audioUrl;
           }
           break;
         case "#OFFSET":

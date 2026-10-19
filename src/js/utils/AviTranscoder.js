@@ -22,10 +22,12 @@
  */
 class AviTranscoder {
   /**
-   * Directory (relative to the page URL) that holds the FFmpeg wasm assets.
+   * Directory URL that holds the FFmpeg wasm assets.
    * @type {string}
    */
-  static FF_DIR = "./lib/ffmpeg/";
+  static get FF_DIR() {
+    return CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA ? window.ff_bundle_dir || window.ff_dir : window.ff_dir;
+  }
 
   /** @type {Worker|null} Shared ffmpeg worker instance */
   static worker = null;
@@ -108,15 +110,6 @@ class AviTranscoder {
   }
 
   /**
-   * Builds an absolute URL for an asset inside the ffmpeg directory.
-   * @param {string} file - File name inside lib/ffmpeg
-   * @returns {string} Absolute URL resolvable from the worker
-   */
-  static assetUrl(file) {
-    return `${AviTranscoder.FF_DIR}${file}`;
-  }
-
-  /**
    * Sends a message to the ffmpeg worker and returns its reply.
    * @param {string} type - Worker message type (LOAD, EXEC, WRITE_FILE, ...)
    * @param {Object} data - Payload for the worker
@@ -137,6 +130,129 @@ class AviTranscoder {
    * @returns {Promise<void>} Resolves when the core is ready to exec
    */
   static ensureLoaded(onLog, onProgress) {
+    if (AviTranscoder.ready) return AviTranscoder.ready;
+  
+    AviTranscoder.ready = new Promise((resolve, reject) => {
+      // Cordova caches file:// worker scripts aggressively — cache-bust it.
+      const workerUrl = AviTranscoder.FF_DIR + "ffmpeg-worker.js?v=" + Date.now();
+      console.log("[AviTranscoder] spawning worker at", workerUrl);
+  
+      AviTranscoder.worker = new Worker(workerUrl);
+  
+      let workerReachedUs = false;
+  
+      AviTranscoder.worker.onmessage = ev => {
+        const m = ev.data;
+        workerReachedUs = true;
+  
+        // ─── Diagnostic channel from the instrumented worker ───
+        if (m.type === "BOOT") {
+          console.log(
+            "%c[worker " + (m.data && m.data.stage) + "]",
+            "color:#0af;font-weight:bold",
+            m.data
+          );
+          // If the worker couldn't even importScripts the core, the pending
+          // LOAD promise will be rejected by the ERROR message that follows,
+          // but if only BOOT stages arrive with a failure stage and no ERROR,
+          // reject here so the UI doesn't hang.
+          const stage = m.data && m.data.stage;
+          if (
+            stage === "importScripts-FAILED" ||
+            stage === "factory-MISSING" ||
+            stage === "createFFmpegCore-FAILED" ||
+            stage === "uncaught-error" ||
+            stage === "unhandled-rejection"
+          ) {
+            // The worker will also send an ERROR with id; this is a fallback
+            // in case it was killed before posting it.
+            setTimeout(() => {
+              if (AviTranscoder.ready && AviTranscoder.pending.size > 0) {
+                const pendingLoad = AviTranscoder.pending.get(0);
+                if (pendingLoad) {
+                  AviTranscoder.pending.delete(0);
+                  pendingLoad.reject(
+                    new Error(
+                      "Worker failed at stage '" + stage + "': " +
+                      JSON.stringify(m.data)
+                    )
+                  );
+                }
+              }
+            }, 0);
+          }
+          return;
+        }
+  
+        if (m.type === "LOG") {
+          if (onLog) onLog(m.data);
+          return;
+        }
+        if (m.type === "PROGRESS") {
+          if (onProgress) onProgress(m.data);
+          return;
+        }
+  
+        const p = AviTranscoder.pending.get(m.id);
+        if (!p) {
+          console.warn("[AviTranscoder] stray worker reply:", m);
+          return;
+        }
+        AviTranscoder.pending.delete(m.id);
+        if (m.type === "ERROR") p.reject(new Error(m.data));
+        else p.resolve(m.data);
+      };
+  
+      AviTranscoder.worker.onerror = e => {
+        if (e && e.preventDefault) e.preventDefault();
+  
+        // Cordova often leaves message/filename empty on file:// workers.
+        console.error("[AviTranscoder] WORKER ONERROR:", {
+          message: e && e.message,
+          filename: e && e.filename,
+          lineno: e && e.lineno,
+          colno: e && e.colno,
+          error: e && e.error,
+          type: e && e.type,
+          workerReachedUs,
+          workerUrl,
+        });
+  
+        if (!workerReachedUs) {
+          // No BOOT message ever arrived → the worker script never ran.
+          // This is the file:// worker restriction on Android WebView.
+          reject(new Error(
+            "Worker never executed at " + workerUrl + ". " +
+            "This is an origin/CSP/path problem — file:// workers are blocked " +
+            "by Android WebView. onerror: " + JSON.stringify({
+              message: e && e.message,
+              filename: e && e.filename,
+            })
+          ));
+        } else {
+          reject(new Error(
+            "FFmpeg worker failed: " +
+            ((e && e.message) || (e && e.type) || "unknown") +
+            (e && e.filename ? " @ " + e.filename + ":" + e.lineno : "")
+          ));
+        }
+      };
+  
+      AviTranscoder.worker.onmessageerror = e => {
+        console.error("[AviTranscoder] WORKER MESSAGEERROR:", e);
+      };
+  
+      AviTranscoder.send("LOAD", {
+        coreURL: "./ffmpeg-core.js",
+        wasmURL: "./ffmpeg-core.wasm"
+      }).then(resolve, reject);
+    });
+  
+    AviTranscoder.ready.catch(() => { AviTranscoder.ready = null; });
+    return AviTranscoder.ready;
+  }
+  
+  static ensureLoaded_old(onLog, onProgress) {
     if (AviTranscoder.ready) return AviTranscoder.ready;
 
     AviTranscoder.ready = new Promise((resolve, reject) => {
@@ -161,8 +277,6 @@ class AviTranscoder {
         reject(new Error("FFmpeg worker failed: " + (e.message || e.data || "unknown")));
       };
       AviTranscoder.send("LOAD", {
-        //coreURL: AviTranscoder.assetUrl("ffmpeg-core.js"),
-        //wasmURL: AviTranscoder.assetUrl("ffmpeg-core.wasm")
         coreURL: "./ffmpeg-core.js",
         wasmURL: "./ffmpeg-core.wasm"
       }).then(resolve, reject);
@@ -171,6 +285,7 @@ class AviTranscoder {
     AviTranscoder.ready.catch(() => { AviTranscoder.ready = null; });
     return AviTranscoder.ready;
   }
+
 
   /**
    * Transcodes raw AVI (or any ffmpeg-readable) bytes into an H.264 MP4 Blob.
@@ -191,9 +306,9 @@ class AviTranscoder {
       scaleHeight = 0,
       inputExt = ".avi",
       onProgress,
-      onLog
+      onLog,
     } = options;
-
+    
     await AviTranscoder.ensureLoaded(onLog, onProgress);
 
     const jobId = ++AviTranscoder.jobCounter;
@@ -201,7 +316,8 @@ class AviTranscoder {
     const outName = `/output_${jobId}.mp4`;
 
     try {
-      await AviTranscoder.send("WRITE_FILE", { path: inName, data: inputBytes });
+      console.log('Writing input file...');
+      await AviTranscoder.send("WRITE_FILE", { path: inName, data: new Uint8Array(inputBytes) });
 
       const args = ["-hide_banner", "-nostdin", "-i", inName];
       if (scaleHeight > 0) {
@@ -217,6 +333,7 @@ class AviTranscoder {
         "-y", outName
       );
 
+      console.log('Executing conversion...');
       const ret = await AviTranscoder.send("EXEC", { args, timeout: -1 });
       if (ret !== 0) {
         throw new Error(`FFmpeg exited with code ${ret} while converting ${inName}`);
@@ -373,43 +490,6 @@ class AviTools {
     }
 
     return null;
-  }
-
-  /**
-   * Reads the raw bytes of a chart-referenced file.
-   * Uses the in-memory file map for external songs, or fetches the resolved URL
-   * for local/built-in songs.
-   * @param {Object} song - Parsed chart/song object
-   * @param {string} fileName - Chart file name (e.g. "bg.avi")
-   * @returns {Promise<ArrayBuffer>} Raw file bytes
-   */
-  static async readFileBytes(song, fileName) {
-    if (song && song.files && song.files[fileName.toLowerCase()]) {
-      return await FileTools.readAsArrayBuffer(new Blob(song.files[fileName.toLowerCase())]);
-    }
-
-    const url = AviTools.findUrlFor(song, fileName);
-    
-    if (url) {
-      return await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.responseType = 'arraybuffer';
-        
-        xhr.onload = async function() {
-          if (this.status === 200) {
-            const result = await FileTools.readAsArrayBuffer(xhr.response);
-            resolve(result);
-          } else {
-            reject();
-          }
-        };
-        xhr.onerror = reject;
-        xhr.send();
-      });
-    }
-    
-    throw new Error(`Couldn't locate AVI file: ${fileName}`);
   }
 
   /**
