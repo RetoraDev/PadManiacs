@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.2.1 dev
- * Build: 10/19/2026, 2:08:20 AM
+ * Build: 10/19/2026, 4:05:48 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -15645,7 +15645,7 @@ class CordovaFileSystem {
    * Writes data to an existing file entry.
    * @param {Object} fileEntry - The file entry to write to
    * @param {string|Blob} dataObj - The data to write
-   * @param {boolean} isAppend - Whether to append instead of overwrite
+   * @param {boolean} isAppend - This is not used and take any effect 
    * @returns {Promise<Object>} Resolves with the file writer
    */
   writeFile(fileEntry, dataObj, isAppend) {
@@ -15766,6 +15766,9 @@ let Account = {
   ...DEFAULT_ACCOUNT,
   ...JSON.parse(localStorage.getItem("Account") || "{}")
 };
+
+/** @type {File} Saves the original File class from being overwrited by Cordova */
+const _File = window.File;
 
 /**
  * Saves account data to localStorage
@@ -17412,7 +17415,11 @@ class AviTools {
    * @returns {string} File name with the .avi extension swapped for .mp4
    */
   static toMp4Name(fileName) {
-    return fileName.replace(/\.avi$/i, ".mp4");
+    const parts = fileName.split('.');
+    parts.pop();
+    const noExt = parts.join('.');
+    
+    return `${noExt}.mp4`;
   }
 
   /**
@@ -23764,7 +23771,7 @@ class LoadSongFolder {
       const blob = await fileEntry.async("blob");
   
       // Build a standard File and store it under its lowercase basename
-      const fileObj = new File([blob], filename, { type: blob.type || "" });
+      const fileObj = new _File([blob], filename, { type: blob.type || "" });
       chart.files[filename.toLowerCase()] = fileObj;
   
       // Create object URL for immediate use
@@ -27938,12 +27945,10 @@ class SongSelect {
           );
           dialog.onConfirm.add(buttonIndex => {
             dialog.destroy();
-            if (buttonIndex === 1) {
-              startDecode("play");
-            } else if (buttonIndex === 2) {
+            if (buttonIndex === 0) {
               this.confirmAviReplace(() => startDecode("replace"), launch);
-            } else if (buttonIndex === 0) {
-              launch();
+            } else if (buttonIndex === 1) {
+              startDecode("play");
             }
           });
           dialog.onCancel.add(buttonIndex => {
@@ -28614,7 +28619,7 @@ class DecodeAvi {
 
       if (persist) {
         const newFileName = AviTools.toMp4Name(fileName);
-        const written = await this.persistFile(fileName, newFileName, blob);
+        const written = await this.persistFile(newFileName, blob);
         if (written) {
           nameMap[fileName] = newFileName;
           AviTools.applyReplacement(this.song, fileName, blobUrl, newFileName, blob);
@@ -28645,19 +28650,16 @@ class DecodeAvi {
 
   /**
    * Writes the decoded MP4 into the song's folder on external storage.
-   * @param {string} fileName - Original AVI chart file name
-   * @param {string} newFileName - MP4 file name to write
+   * @param {string} fileName - Video file name
    * @param {Blob} blob - Decoded MP4 blob
    * @returns {Promise<boolean>} True when the file was written successfully
    */
-  async persistFile(fileName, newFileName, blob) {
+  async persistFile(fileName, blob) {
     try {
       const fileSystem = new FileSystemTools();
       if (fileSystem.platform === "fallback") return false;
-
       const dirEntry = await fileSystem.getDirectory(this.song.externalPath);
-      const fileEntry = await fileSystem.saveFile(dirEntry, null, newFileName);
-      await fileSystem.writeFile(fileEntry, blob);
+      const file = await fileSystem.saveFile(dirEntry, blob, fileName);
       return true;
     } catch (error) {
       console.warn(`Couldn't write ${newFileName} next to the chart:`, error);
@@ -28680,8 +28682,7 @@ class DecodeAvi {
       const target = entries.find(e => e.name && e.name.toLowerCase() === fileName.toLowerCase());
       if (!target) return false;
 
-      const fileEntry = await fileSystem.getFile(target);
-      await fileSystem.deleteFile(fileEntry);
+      await fileSystem.deleteFile(target);
       return true;
     } catch (error) {
       console.warn(`Couldn't delete original AVI ${fileName}:`, error);
@@ -28704,16 +28705,17 @@ class DecodeAvi {
       const chartEntry = entries.find(e => {
         if (!e.name) return false;
         const lower = e.name.toLowerCase();
-        return lower.endsWith(".sm") || lower.endsWith(".ssc");
+        return lower.endsWith(".sm")
       });
       if (!chartEntry) return;
 
       const chartFile = await fileSystem.getFile(chartEntry);
+      
       const content = await fileSystem.readFileContent(chartFile);
       const patched = AviTools.patchSMContent(content, nameMap);
 
       if (patched !== content) {
-        await fileSystem.writeFile(chartFile, patched);
+        await fileSystem.writeFile(chartEntry, patched);
       }
     } catch (error) {
       console.warn("Couldn't patch the chart file:", error);

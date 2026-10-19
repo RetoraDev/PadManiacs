@@ -562,7 +562,11 @@ class AviTools {
    * @returns {string} File name with the .avi extension swapped for .mp4
    */
   static toMp4Name(fileName) {
-    return fileName.replace(/\.avi$/i, ".mp4");
+    const parts = fileName.split('.');
+    parts.pop();
+    const noExt = parts.join('.');
+    
+    return `${noExt}.mp4`;
   }
 
   /**

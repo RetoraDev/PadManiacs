@@ -205,7 +205,7 @@ class LoadSongFolder {
       const blob = await fileEntry.async("blob");
   
       // Build a standard File and store it under its lowercase basename
-      const fileObj = new File([blob], filename, { type: blob.type || "" });
+      const fileObj = new _File([blob], filename, { type: blob.type || "" });
       chart.files[filename.toLowerCase()] = fileObj;
   
       // Create object URL for immediate use

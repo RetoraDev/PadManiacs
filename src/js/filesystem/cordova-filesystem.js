@@ -162,7 +162,7 @@ class CordovaFileSystem {
    * Writes data to an existing file entry.
    * @param {Object} fileEntry - The file entry to write to
    * @param {string|Blob} dataObj - The data to write
-   * @param {boolean} isAppend - Whether to append instead of overwrite
+   * @param {boolean} isAppend - This is not used and take any effect 
    * @returns {Promise<Object>} Resolves with the file writer
    */
   writeFile(fileEntry, dataObj, isAppend) {

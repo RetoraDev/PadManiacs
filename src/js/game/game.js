@@ -6,6 +6,9 @@ let Account = {
   ...JSON.parse(localStorage.getItem("Account") || "{}")
 };
 
+/** @type {File} Saves the original File class from being overwrited by Cordova */
+const _File = window.File;
+
 /**
  * Saves account data to localStorage
  */

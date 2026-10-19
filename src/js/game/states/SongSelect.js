@@ -702,12 +702,10 @@ class SongSelect {
           );
           dialog.onConfirm.add(buttonIndex => {
             dialog.destroy();
-            if (buttonIndex === 1) {
-              startDecode("play");
-            } else if (buttonIndex === 2) {
+            if (buttonIndex === 0) {
               this.confirmAviReplace(() => startDecode("replace"), launch);
-            } else if (buttonIndex === 0) {
-              launch();
+            } else if (buttonIndex === 1) {
+              startDecode("play");
             }
           });
           dialog.onCancel.add(buttonIndex => {

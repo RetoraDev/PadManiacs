@@ -257,7 +257,7 @@ class DecodeAvi {
 
       if (persist) {
         const newFileName = AviTools.toMp4Name(fileName);
-        const written = await this.persistFile(fileName, newFileName, blob);
+        const written = await this.persistFile(newFileName, blob);
         if (written) {
           nameMap[fileName] = newFileName;
           AviTools.applyReplacement(this.song, fileName, blobUrl, newFileName, blob);
@@ -288,19 +288,16 @@ class DecodeAvi {
 
   /**
    * Writes the decoded MP4 into the song's folder on external storage.
-   * @param {string} fileName - Original AVI chart file name
-   * @param {string} newFileName - MP4 file name to write
+   * @param {string} fileName - Video file name
    * @param {Blob} blob - Decoded MP4 blob
    * @returns {Promise<boolean>} True when the file was written successfully
    */
-  async persistFile(fileName, newFileName, blob) {
+  async persistFile(fileName, blob) {
     try {
       const fileSystem = new FileSystemTools();
       if (fileSystem.platform === "fallback") return false;
-
       const dirEntry = await fileSystem.getDirectory(this.song.externalPath);
-      const fileEntry = await fileSystem.saveFile(dirEntry, null, newFileName);
-      await fileSystem.writeFile(fileEntry, blob);
+      const file = await fileSystem.saveFile(dirEntry, blob, fileName);
       return true;
     } catch (error) {
       console.warn(`Couldn't write ${newFileName} next to the chart:`, error);
@@ -323,8 +320,7 @@ class DecodeAvi {
       const target = entries.find(e => e.name && e.name.toLowerCase() === fileName.toLowerCase());
       if (!target) return false;
 
-      const fileEntry = await fileSystem.getFile(target);
-      await fileSystem.deleteFile(fileEntry);
+      await fileSystem.deleteFile(target);
       return true;
     } catch (error) {
       console.warn(`Couldn't delete original AVI ${fileName}:`, error);
@@ -347,16 +343,17 @@ class DecodeAvi {
       const chartEntry = entries.find(e => {
         if (!e.name) return false;
         const lower = e.name.toLowerCase();
-        return lower.endsWith(".sm") || lower.endsWith(".ssc");
+        return lower.endsWith(".sm")
       });
       if (!chartEntry) return;
 
       const chartFile = await fileSystem.getFile(chartEntry);
+      
       const content = await fileSystem.readFileContent(chartFile);
       const patched = AviTools.patchSMContent(content, nameMap);
 
       if (patched !== content) {
-        await fileSystem.writeFile(chartFile, patched);
+        await fileSystem.writeFile(chartEntry, patched);
       }
     } catch (error) {
       console.warn("Couldn't patch the chart file:", error);
