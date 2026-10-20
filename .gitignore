@@ -5,7 +5,6 @@
 .nosearch
 *.apk
 *.exe
-!src/static/neutralino/bin/*.exe
 *build.zip
 log.txt
 save/

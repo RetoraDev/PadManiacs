@@ -23,10 +23,10 @@
   "modes": {
     "window": {
       "title": "PadManiacs",
-      "width": 960,
-      "height": 560,
-      "minWidth": 480,
-      "minHeight": 280,
+      "width": 480,
+      "height": 280,
+      "minWidth": 240,
+      "minHeight": 140,
       "center": true,
       "fullScreen": false,
       "alwaysOnTop": false,
