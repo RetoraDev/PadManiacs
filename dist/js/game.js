@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0 dev
- * Build: 10/20/2026, 10:02:53 AM
+ * Build: 10/20/2026, 10:12:46 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -15821,26 +15821,6 @@ let Account = {
   ...JSON.parse(localStorage.getItem("Account") || "{}")
 };
 
-/**
- * Migrates persisted account data to the current format.
- *
- * Timing model change (1.4): note sync now runs off the audio element's own
- * clock with output-latency compensation, and the offset convention flipped so
- * that a positive value means "audio arrives late". To keep every existing user
- * feeling exactly as in sync as before, the old stored offset is negated once.
- */
-const migrateAccount = () => {
-  if (Account.version !== undefined && Account.version < 1.4) {
-    if (Account.settings && typeof Account.settings.userOffset === "number") {
-      Account.settings.userOffset = -Account.settings.userOffset;
-    }
-    Account.version = DEFAULT_ACCOUNT.version;
-    saveAccount();
-  }
-};
-
-migrateAccount();
-
 /** @type {File} Saves the original File class from being overwrited by Cordova */
 const _File = window.File;
 
@@ -22147,6 +22127,14 @@ class Boot {
       // AVI bgvideo decode settings (added in 1.3)
       if (!Account.settings.aviSettings) {
         Account.settings.aviSettings = { ...DEFAULT_ACCOUNT.settings.aviSettings };
+      }
+    }
+    
+    // Version 1.4: offset sign convention flipped so positive = audio delay.
+    // Negate stored offset once so existing calibrations feel identical.
+    if (oldVersion < 1.4) {
+      if (typeof Account.settings.userOffset === "number") {
+        Account.settings.userOffset = -Account.settings.userOffset;
       }
     }
     

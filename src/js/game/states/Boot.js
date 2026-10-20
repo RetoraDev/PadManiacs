@@ -164,6 +164,14 @@ class Boot {
       }
     }
     
+    // Version 1.4: offset sign convention flipped so positive = audio delay.
+    // Negate stored offset once so existing calibrations feel identical.
+    if (oldVersion < 1.4) {
+      if (typeof Account.settings.userOffset === "number") {
+        Account.settings.userOffset = -Account.settings.userOffset;
+      }
+    }
+    
     Account.version = currentVersion;
     saveAccount();
   }
