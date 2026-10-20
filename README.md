@@ -110,4 +110,17 @@ Third-party components:
 - Uses StepMania chart format specification
 - Includes Phaser CE, Eruda.js, Terser.js, and JSZip libraries
 - Includes [ffmpeg-wasm-lite](https://github.com/devilanirudh/ffmpeg-wasm-lite) by devilanirudh (GPL-2.0-or-later) for decoding AVI background videos to MP4 in the browser
+- Desktop builds are packaged with [Neutralinojs](https://neutralino.js.org) (MIT License) as the application runtime
 - All third-party content remains under their original licenses
+
+## Contributing
+
+PadManiacs is the work of RETORA and is developed in the open. Bug reports, fixes, documentation improvements, and other contributions are welcome.
+
+Please follow these rules:
+
+- **No rebranding or forking-as-PadManiacs.** Do not redistribute PadManiacs, or any modified version of it, under the name "PadManiacs" or any confusingly similar name without prior written permission from RETORA. Forks and derivative works must use a clearly different name and must not imply endorsement by or affiliation with RETORA.
+- **Don't mess up the code.** Keep changes focused and minimal. Do not reformat, rewrite, or "clean up" unrelated code, and do not introduce gratuitous changes. Respect the existing architecture, conventions, and style.
+- **Preserve attribution.** All copies and modified versions must keep the attribution "PadManiacs by RETORA" and the complete license notice.
+
+These requirements reflect the additional permissions in the LICENSE file. If you intend to fork, rebrand, or heavily modify PadManiacs, please reach out to RETORA first.

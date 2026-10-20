@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.3.0
- * Build: 10/19/2026, 9:36:12 PM
- * Platform: Desktop (Neutralino.js)
+ * Version: v1.3.0 dev
+ * Build: 10/19/2026, 11:36:17 PM
+ * Platform: Development
  * Debug: false
  * Minified: false
  */
@@ -125,7 +125,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.3.0";
+const VERSION = "v1.3.0 dev";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -866,7 +866,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.NEUTRALINO;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -39202,6 +39202,7 @@ class Credits {
       { text: "photonstorm", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "itch.io", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "devilanirudh (ffmpeg-wasm-lite)", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "Neutralinojs", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: __("You!||¡Tú!"), font: FONTS.bold_shadow, tint: [0xffffff, 0x05ff00], spacing: 25 },
       
       { text: COPYRIGHT, font: FONTS.default_shadow, tint: 0x888888, spacing: 40 },
