@@ -15,6 +15,7 @@ class InteractiveInterface {
   constructor() {
     this.currentSelection = 0;
     this.busy = false;
+    this.awaitingKey = false;
     this.currentServer = null;
     this.menuStack = [];
     this.cliArgs = this.parseCLIArgs();
@@ -83,6 +84,7 @@ class InteractiveInterface {
       { label: 'Zip Align: Off', action: () => this.toggleZipAlign() },
       { label: 'Debug: Off', action: () => this.toggleDebug() },
       { label: 'Packaging: On', action: () => this.togglePack() },
+      { label: 'Web in dist: On', action: () => this.toggleWebBase() },
       { label: 'Start Build', action: () => this.startCustomBuild() },
       { label: 'Back to Build Menu', action: () => this.showBuildMenu() }
     ];
@@ -92,7 +94,8 @@ class InteractiveInterface {
       minify: false,
       zipalign: false,
       debug: false,
-      noPack: false
+      noPack: false,
+      noWebBase: false
     };
     
     this.currentMenu = this.mainMenu;
@@ -114,6 +117,7 @@ class InteractiveInterface {
       debug: false,
       zipalign: false,
       noPack: false,
+      noWebBase: false,
       docs: false,
       headless: false,
       help: false
@@ -166,6 +170,9 @@ class InteractiveInterface {
           break;
         case '--no-pack':
           parsed.noPack = true;
+          break;
+        case '--no-web-base':
+          parsed.noWebBase = true;
           break;
         case '--headless':
           parsed.headless = true;
@@ -232,6 +239,7 @@ class InteractiveInterface {
     console.log('  --all            Build all platforms (default)');
     console.log('  --minify         Enable minification');
     console.log('  --no-pack        Skip packaging (no zip/apk/resources.neu; stage to dist/)');
+    console.log('  --no-web-base    Keep dist/ as the built platform (skip web re-stage)');
     console.log('  --debug          Enable debug mode');
     console.log('  --zipalign       Enable APK zip alignment');
     console.log('');
@@ -289,6 +297,9 @@ class InteractiveInterface {
     }
     if (this.cliArgs.noPack) {
       args.push('--no-pack');
+    }
+    if (this.cliArgs.noWebBase) {
+      args.push('--no-web-base');
     }
     
     // Flag should exit when it ends
@@ -444,6 +455,21 @@ class InteractiveInterface {
     this.busy = false;
     this.drawMenu();
   }
+
+  /**
+   * Waits for a single keypress, then runs the callback. While waiting, the
+   * global menu-navigation handler is suppressed (via awaitingKey) so the same
+   * keystroke cannot both dismiss this prompt AND activate a menu item, which
+   * previously caused an unwanted second build to start on Enter.
+   * @param {Function} callback - Runs after the keypress
+   */
+  waitForKey(callback) {
+    this.awaitingKey = true;
+    this.rl.input.once('data', () => {
+      this.awaitingKey = false;
+      callback();
+    });
+  }
   
   showBuildMenu() {
     this.currentMenu = this.buildMenu;
@@ -485,6 +511,7 @@ class InteractiveInterface {
     this.customBuildMenu[2].label = `Zip Align: ${this.color(this.customBuildOptions.zipalign ? 'ON' : 'OFF', this.customBuildOptions.zipalign ? 'green' : 'red')}`;
     this.customBuildMenu[3].label = `Debug: ${this.color(this.customBuildOptions.debug ? 'ON' : 'OFF', this.customBuildOptions.debug ? 'green' : 'red')}`;
     this.customBuildMenu[4].label = `Packaging: ${this.color(this.customBuildOptions.noPack ? 'OFF' : 'ON', this.customBuildOptions.noPack ? 'red' : 'green')}`;
+    this.customBuildMenu[5].label = `Web in dist: ${this.color(this.customBuildOptions.noWebBase ? 'OFF' : 'ON', this.customBuildOptions.noWebBase ? 'red' : 'green')}`;
   }
 
   togglePlatform() {
@@ -518,6 +545,12 @@ class InteractiveInterface {
     this.updateCustomBuildLabels();
     this.drawMenu();
   }
+
+  toggleWebBase() {
+    this.customBuildOptions.noWebBase = !this.customBuildOptions.noWebBase;
+    this.updateCustomBuildLabels();
+    this.drawMenu();
+  }
   
   showCodeReminders() {
     this.clearScreen();
@@ -530,7 +563,7 @@ class InteractiveInterface {
     if (reminders.length === 0) {
       console.log(this.color('✓ No code reminders found!', 'green'));
       console.log(this.color('\nPress any key to return to menu...', 'dim'));
-      this.rl.input.once('data', () => this.showMainMenu());
+      this.waitForKey(() => this.showMainMenu());
       return;
     }
     
@@ -659,7 +692,7 @@ class InteractiveInterface {
     });
     
     console.log(this.color('\nPress any key to return to menu...', 'dim'));
-    this.rl.input.once('data', () => this.showMainMenu());
+    this.waitForKey(() => this.showMainMenu());
   }
 
   generateRemindersSummary(reminders) {
@@ -705,6 +738,9 @@ class InteractiveInterface {
     }
     if (this.customBuildOptions.noPack) {
       args.push('--no-pack');
+    }
+    if (this.customBuildOptions.noWebBase) {
+      args.push('--no-web-base');
     }
     this.runBuild(args);
   }
@@ -782,7 +818,7 @@ class InteractiveInterface {
         console.log(this.color(error.message, 'dim'));
         if (this.executingCliBuild) return this.exit();
         console.log(this.color('Press any key to return to menu...', 'dim'));
-        this.rl.input.once('data', () => this.showMainMenu());
+        this.waitForKey(() => this.showMainMenu());
         resolve();
       });
 
@@ -793,7 +829,7 @@ class InteractiveInterface {
           console.log(`\n${this.color('Build cancelled.', 'yellow')}`);
           if (this.executingCliBuild) return this.exit();
           console.log(this.color('Press any key to return to menu...', 'dim'));
-          this.rl.input.once('data', () => this.showMainMenu());
+          this.waitForKey(() => this.showMainMenu());
           return resolve();
         }
 
@@ -802,15 +838,15 @@ class InteractiveInterface {
           if (this.executingCliBuild) return this.exit();
           console.log(this.color('Press any key to return to menu...', 'dim'));
           if (this.isTermux() && !args.includes('--no-install') && args.includes('--cordova')) {
-            this.rl.input.once('data', () => this.showOpenApkConfirm());
+            this.waitForKey(() => this.showOpenApkConfirm());
           } else {
-            this.rl.input.once('data', () => this.showMainMenu());
+            this.waitForKey(() => this.showMainMenu());
           }
         } else {
           console.log(`\n${this.color(`Build failed! (exit code ${code})`, 'red')}`);
           if (this.executingCliBuild) return this.exit();
           console.log(this.color('Press any key to return to menu...', 'dim'));
-          this.rl.input.once('data', () => this.showMainMenu());
+          this.waitForKey(() => this.showMainMenu());
         }
         resolve();
       });
@@ -1073,7 +1109,7 @@ class InteractiveInterface {
   returnToMenuAfterError() {
     console.log(this.color('Press any key to return to menu...', 'dim'));
     
-    this.rl.input.once('data', () => {
+    this.waitForKey(() => {
       this.cleanupServer();
       this.showMainMenu();
     });
@@ -1194,7 +1230,7 @@ class InteractiveInterface {
     
     console.log(this.color('Press any key to return to menu...', 'dim'));
     
-    this.rl.input.once('data', () => this.showMainMenu());
+    this.waitForKey(() => this.showMainMenu());
   }
 
   runDocs() {
@@ -1215,7 +1251,7 @@ class InteractiveInterface {
     
     console.log(this.color('Press any key to return to menu...', 'dim'));
     
-    this.rl.input.once('data', () => this.showMainMenu());
+    this.waitForKey(() => this.showMainMenu());
   }
 
   executeCLIDocs() {
@@ -1286,7 +1322,7 @@ class InteractiveInterface {
     
     console.log(`\n${this.color('Press any key to return to menu...', 'dim')}`);
     
-    this.rl.input.once('data', () => {
+    this.waitForKey(() => {
       this.showMainMenu();
     });
   }
@@ -1318,7 +1354,12 @@ class InteractiveInterface {
     this.rl.input.on('data', (key) => {
       if (key === '\u0003') { // Ctrl+C
         this.exit();
-      } else if (key === '\u001b[A') { // Up arrow
+        return;
+      }
+      // While waiting for a "press any key" prompt, ignore all other keys here:
+      // the one-shot handler owns this keystroke.
+      if (this.awaitingKey) return;
+      if (key === '\u001b[A') { // Up arrow
         this.handleInput('up');
       } else if (key === '\u001b[B') { // Down arrow
         this.handleInput('down');

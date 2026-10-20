@@ -16,6 +16,7 @@ class BuildSystem {
         minify: false,
         zipalign: false,
         noPack: false, // skip archive/packaging steps (zip/7z/apk/neu build)
+        noWebBase: false, // don't re-stage dist/ as web after a platform build
         ...flags
       }
     };
@@ -245,6 +246,7 @@ class BuildSystem {
       if (arg === '--all') this.config.flags.platform = 'all';
       if (arg === '--minify') this.config.flags.minify = true;
       if (arg === '--no-pack' || arg === '--no-pack=' || arg === '--nopack') this.config.flags.noPack = true;
+      if (arg === '--no-web-base') this.config.flags.noWebBase = true;
     });
   }
 
@@ -392,10 +394,10 @@ class BuildSystem {
     }
   }
 
-  copyLibFiles(platform) {
+  copyLibFiles(platform, destDir = this.config.distDir) {
     this.log('Copying lib files...', 'info');
     
-    const libDest = path.join(this.config.distDir, 'lib');
+    const libDest = path.join(destDir, 'lib');
     this.ensureDir(libDest);
     
     // Copy the Neutralino client library when targeting the desktop build
@@ -498,11 +500,11 @@ class BuildSystem {
     }
   }
   
-  processIndexHTML(platform) {
+  processIndexHTML(platform, destDir = this.config.distDir) {
     this.log(`Processing index.html for ${this.getPlatformDisplayName(platform)}...`, 'info');
     
     const htmlSrc = path.join(this.config.srcDir, 'index.html');
-    const htmlDest = path.join(this.config.distDir, 'index.html');
+    const htmlDest = path.join(destDir, 'index.html');
     
     if (fs.existsSync(htmlSrc)) {
       let htmlContent = fs.readFileSync(htmlSrc, 'utf8');
@@ -920,17 +922,24 @@ class BuildSystem {
       }
 
       // Create platform-specific game.js (Neutralino environment)
-      const jsDest = path.join(tempNlDir, 'resources', 'js');
+      const resourcesRoot = path.join(tempNlDir, 'resources');
+      const jsDest = path.join(resourcesRoot, 'js');
       this.ensureDir(jsDest);
       const neutralinoGameJS = await this.concatenateFiles('neutralino');
       fs.writeFileSync(path.join(jsDest, 'game.js'), neutralinoGameJS);
 
       // Copy the already-processed web assets into the Neutralino resources dir
-      this.copyDir(this.config.distDir, path.join(tempNlDir, 'resources'),
-        ['www.zip', 'padmaniacs-*.zip', 'padmaniacs-*.apk', 'padmaniacs-*.apk.idsig', 'temp', 'cordova', 'js', 'lib']);
+      this.copyDir(this.config.distDir, resourcesRoot,
+        ['www.zip', 'padmaniacs-*.zip', 'padmaniacs-*.apk', 'padmaniacs-*.apk.idsig', 'temp', 'cordova', 'js', 'lib', 'index.html']);
 
-      // Copy shared libs (phaser, jszip, eruda, ffmpeg)
-      this.copyDir(path.join(this.config.distDir, 'lib'), path.join(tempNlDir, 'resources', 'lib'));
+      // Copy shared libs (phaser, jszip, eruda, ffmpeg, neutralino client)
+      this.copyDir(path.join(this.config.distDir, 'lib'), path.join(resourcesRoot, 'lib'));
+      this.copyLibFiles('neutralino', resourcesRoot);
+
+      // Generate the Neutralino-specific index.html (adds the neutralino.js
+      // client + Neutralino.init() before the game). dist/ stays web, so this
+      // must be produced here rather than copied from dist.
+      this.processIndexHTML('neutralino', resourcesRoot);
 
       // Neutralino keeps app metadata + favicon at the resource root
       const iconSrc = path.join(this.config.srcDir, 'icon.png');
@@ -1140,30 +1149,52 @@ class BuildSystem {
   
   async buildForPlatform() {
     const platform = this.config.flags.platform;
-    
+
     if (platform === 'all') {
-      // Build base files first
+      // Build the web base into dist/ first: platform targets read from dist/.
       await this.buildBaseFiles('web');
-      
-      // Then build each platform with their specific environment
+
+      // Then build each platform into its own temp/output. dist/ stays web.
       await this.buildAndroid();
       await this.buildNeutralino();
+
+      // Optionally package the web build (www.zip) from the web dist/.
       await this.buildWeb();
     } else if (platform === 'web') {
       await this.buildBaseFiles('web');
       await this.buildWeb();
     } else if (platform === 'neutralino') {
-      await this.buildBaseFiles('neutralino');
+      // Platform targets read from dist/, so stage the web base first, then
+      // build the Neutralino package. dist/ is re-staged afterwards (as web by
+      // default) so opening dist/ remains a deployable web build.
+      await this.buildBaseFiles('web');
       await this.buildNeutralino();
-      await this.buildWeb();
+      await this.finalizeWebDist('neutralino');
     } else if (platform === 'cordova') {
-      await this.buildBaseFiles('cordova');
+      await this.buildBaseFiles('web');
       await this.buildAndroid();
-      await this.buildWeb();
+      await this.finalizeWebDist('cordova');
     } else if (platform === 'none') {
       await this.buildBaseFiles('none');
       this.log('Development build complete', 'success');
     }
+  }
+
+  /**
+   * Re-stages dist/ after a non-web platform build. By default dist/ is set
+   * back to the plain web platform so opening dist/ (e.g. github.io/dist)
+   * always works. When noWebBase is set, dist/ is instead re-staged as the
+   * platform that was just built, so the exploded output reflects it.
+   * @param {string} platform - The non-web platform that was built
+   */
+  async finalizeWebDist(platform) {
+    if (this.config.flags.noWebBase) {
+      this.log(`Re-staging dist/ as ${this.getPlatformDisplayName(platform)} (--no-web-base)`, 'info');
+      await this.buildBaseFiles(platform);
+      return;
+    }
+    await this.buildBaseFiles('web');
+    this.log('dist/ restored to the web platform build', 'success');
   }
 
   async buildBaseFiles(platform) {
