@@ -25,6 +25,8 @@ class OffsetAssistant extends Phaser.Sprite {
     
     /** @type {Array} Raw tap timestamps in milliseconds */
     this.taps = [];
+    /** @type {Array<number>} Real timestamps (ms) at which each tick actually sounded */
+    this.tickTimes = [];
     /** @type {number} Confidence required to consider the offset reliable */
     this.confidenceThreshold = 0.8;
     /** @type {number} Maximum number of taps kept for measurement */
@@ -37,6 +39,12 @@ class OffsetAssistant extends Phaser.Sprite {
     this.tickInterval = 60000 / this.tickBPM; // 500ms per tick
     /** @type {number} Snap interval in milliseconds for rounding offsets */
     this.snapMs = 1;
+    /** @type {number} Largest offset (ms) the assistant will ever report/save */
+    this.maxOffset = 500;
+    /** @type {number} A tap more than this (ms) from the nearest tick is discarded */
+    this.outlierMs = 200;
+    /** @type {number} Dead-zone (ms): measured offsets within +/- this snap to 0 */
+    this.deadZoneMs = 15;
     
     // Store background music state
     /** @type {boolean} Whether background music was playing before calibration */
@@ -158,6 +166,7 @@ class OffsetAssistant extends Phaser.Sprite {
     this.playTickSound();
     this.lastTickTime = this.game.time.now;
     this.nextTickTime = this.lastTickTime;
+    this.tickTimes.push(this.lastTickTime);
   }
 
   /**
@@ -173,6 +182,11 @@ class OffsetAssistant extends Phaser.Sprite {
       this.playTickSound();
       this.lastTickTime = currentTime;
       this.nextTickTime = currentTime + this.tickInterval;
+      this.tickTimes.push(currentTime);
+      // Keep only recent tick timestamps so lookups stay cheap
+      if (this.tickTimes.length > this.maxTaps + 4) {
+        this.tickTimes.shift();
+      }
     }
   }
 
@@ -207,65 +221,115 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 
   /**
-   * Measures each tap against the expected tick timing, averages the offsets,
-   * and updates the readout with a confidence color (white/yellow/green).
+   * Measures each tap against the nearest real tick timestamp, averages the
+   * offsets robustly (median with MAD-based outlier rejection), and updates the
+   * readout with a confidence color (white/yellow/green).
+   *
+   * Sign convention: positive offset means the player taps late relative to the
+   * heard tick, i.e. audio arrives later than the visuals (positive = audio delay).
    */
   calculateOffset() {
-    if (this.taps.length < 2) {
+    if (this.taps.length < 2 || this.tickTimes.length === 0) {
       this.offsetText.write("Offset: 0ms");
       this.offsetText.tint = 0xFFFFFF;
       return;
     }
     
-    // Calculate offset for each tap relative to the nearest tick
+    // Measure each tap against the closest real tick that sounded before/around it
     const currentOffsets = [];
     
     for (let i = 0; i < this.taps.length; i++) {
       const tapTime = this.taps[i];
+      const tickTime = this.findNearestTickTime(tapTime);
+      if (tickTime === null) continue;
       
-      // Find the nearest tick time
-      const ticksSinceStart = Math.round((tapTime - this.taps[0]) / this.tickInterval);
-      const expectedTapTime = this.taps[0] + (ticksSinceStart * this.tickInterval);
-      
-      // Calculate offset for this tap
-      const offset = tapTime - expectedTapTime;
-      currentOffsets.push(offset);
+      const offset = tapTime - tickTime;
+      if (Math.abs(offset) <= this.outlierMs) {
+        currentOffsets.push(offset);
+      }
     }
     
-    // Calculate average offset from all taps
-    const averageOffset = currentOffsets.reduce((a, b) => a + b, 0) / currentOffsets.length;
-    
-    // Round to nearest
-    const roundedOffset = Math.round(averageOffset / this.snapMs) * this.snapMs;
-    
-    // Store this calculated offset for final averaging
-    this.calculatedOffsets.push(roundedOffset);
-    
-    // Keep only recent calculated offsets
-    if (this.calculatedOffsets.length > 5) {
-      this.calculatedOffsets.shift();
+    if (currentOffsets.length === 0) {
+      this.offsetText.write("Offset: 0ms");
+      this.offsetText.tint = 0xFFFF00;
+      return;
     }
     
-    // Calculate final average offset from all calculations
-    const finalAverageOffset = this.calculatedOffsets.length > 0 
-      ? Math.round(this.calculatedOffsets.reduce((a, b) => a + b, 0) / this.calculatedOffsets.length / this.snapMs) * this.snapMs
-      : roundedOffset;
+    // Robust central value and spread (median + MAD)
+    const medianOffset = this.median(currentOffsets);
+    const mad = this.median(currentOffsets.map(o => Math.abs(o - medianOffset)));
+    const robustStdDev = mad * 1.4826;
     
-    // Calculate confidence based on tap consistency
-    const confidence = this.calculateConfidence(currentOffsets);
+    // Reject taps that deviate too far from the median (2.5 * robust spread)
+    const filtered = currentOffsets.filter(o => Math.abs(o - medianOffset) <= Math.max(robustStdDev * 2.5, this.deadZoneMs));
+    const usedOffsets = filtered.length > 0 ? filtered : currentOffsets;
     
-    // Update display with the final averaged offset
-    const offsetDisplay = `Offset: ${finalAverageOffset}ms`;
-    this.offsetText.write(offsetDisplay);
+    // Use the median of the surviving taps as the measured offset
+    let measured = this.median(usedOffsets);
+    
+    // Collapse tiny values to exactly 0 so "in sync" reads as 0
+    if (Math.abs(measured) < this.deadZoneMs) measured = 0;
+    
+    // Clamp to the supported range
+    measured = Phaser.Math.clamp(measured, -this.maxOffset, this.maxOffset);
+    
+    const finalAverageOffset = Math.round(measured / this.snapMs) * this.snapMs;
+    
+    // Confidence from the robust spread of the surviving taps
+    const confidence = this.calculateConfidence(usedOffsets);
+    const enoughSamples = usedOffsets.length >= 8;
+    
+    // Update display with the measured offset
+    this.offsetText.write(`Offset: ${finalAverageOffset}ms`);
     
     // Change color based on confidence
-    if (this.taps.length >= this.requiredTaps && confidence >= this.confidenceThreshold) {
+    if (this.taps.length >= this.requiredTaps && enoughSamples && confidence >= this.confidenceThreshold) {
       this.offsetText.tint = 0x00FF00; // Green - confident
     } else if (this.taps.length >= 4) {
       this.offsetText.tint = 0xFFFF00; // Yellow - somewhat confident
     } else {
       this.offsetText.tint = 0xFFFFFF; // White - not confident
     }
+    
+    // Remember the latest measurement for averaging on exit
+    this.calculatedOffsets.push(finalAverageOffset);
+    if (this.calculatedOffsets.length > 5) {
+      this.calculatedOffsets.shift();
+    }
+  }
+  
+  /**
+   * Finds the timestamp of the tick closest to a given tap time.
+   * @param {number} tapTime - Tap timestamp in milliseconds
+   * @returns {number|null} Nearest tick timestamp, or null if none recorded
+   */
+  findNearestTickTime(tapTime) {
+    if (this.tickTimes.length === 0) return null;
+    
+    let nearest = this.tickTimes[0];
+    let nearestDelta = Math.abs(tapTime - nearest);
+    
+    for (let i = 1; i < this.tickTimes.length; i++) {
+      const delta = Math.abs(tapTime - this.tickTimes[i]);
+      if (delta < nearestDelta) {
+        nearest = this.tickTimes[i];
+        nearestDelta = delta;
+      }
+    }
+    
+    return nearest;
+  }
+  
+  /**
+   * Computes the median of a numeric array without mutating the input.
+   * @param {Array<number>} values - Input values
+   * @returns {number} The median value (0 for an empty array)
+   */
+  median(values) {
+    if (values.length === 0) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
   }
 
   /**
@@ -291,16 +355,6 @@ class OffsetAssistant extends Phaser.Sprite {
     
     return Math.min(1, confidence);
   }
-  
-  /**
-   * Rounds an offset value to the nearest snap interval.
-   * @param {number} num - Offset value in milliseconds
-   * @returns {number} The offset rounded to the snap interval
-   */
-  roundToSnapMs(num) {
-    const rounded = Math.round(num / this.snapMs);
-    return rounded >= 0 ? rounded * this.snapMs : (rounded + 1) * this.snapMs;
-  }
 
   /**
    * Gives brief visual feedback by scaling the instruction text.
@@ -317,27 +371,24 @@ class OffsetAssistant extends Phaser.Sprite {
    * cleans up, and returns to the settings menu.
    */
   exit() {
-    // Calculate final offset average
+    // Calculate final offset as the median of recent measurements
     let finalOffset = 0;
     
     if (this.calculatedOffsets.length > 0) {
-      finalOffset = this.roundToSnapMs(this.calculatedOffsets.reduce((a, b) => a + b, 0) / this.calculatedOffsets.length);
-      
-      // Update account settings with the final averaged offset
-      Account.settings.userOffset = finalOffset;
-      saveAccount();
-      
-      // Show confirmation
-      notifications.show(`Offset set to ${finalOffset}ms`);
+      finalOffset = Math.round(this.median(this.calculatedOffsets) / this.snapMs) * this.snapMs;
     } else if (this.taps.length > 0) {
-      // Fallback to last calculation if no averages stored
+      // Fallback: read the value currently displayed
       const currentOffset = this.parseOffsetText();
-      if (currentOffset !== null) {
-        Account.settings.userOffset = Math.floor(currentOffset * 100) * 100;
-        saveAccount();
-        notifications.show(`Offset set to ${currentOffset}ms`);
-      }
+      if (currentOffset !== null) finalOffset = currentOffset;
     }
+    
+    finalOffset = Phaser.Math.clamp(finalOffset, -this.maxOffset, this.maxOffset);
+    
+    Account.settings.userOffset = finalOffset;
+    saveAccount();
+    
+    // Show confirmation
+    notifications.show(`Offset set to ${finalOffset}ms`);
     
     // Resume background music
     this.resumeBackgroundMusic();

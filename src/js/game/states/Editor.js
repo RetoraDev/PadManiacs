@@ -157,6 +157,11 @@ class Editor {
     if (this.song.chart.audioUrl) {
       this.audio.src = this.song.chart.audioUrl;
     }
+    
+    // Create a shared AudioContext for output latency measurement (BT compensation)
+    /** @type {AudioContext|null} Audio context for latency compensation */
+    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    this.audioContext.createMediaElementSource(this.audio).connect(this.audioContext.destination);
 
     this.initalSetup();
 
@@ -749,7 +754,19 @@ class Editor {
   getCurrentTime() {
     if (this.isPlaying) {
       const chartOffset = this.song.chart.offset || 0;
-      const currentTime = ((game.time.now - this.playStartTime + (chartOffset*1000)) / 1000) + this.playOffset;
+      let currentTime;
+      
+      // Read the real audio clock so the editor playhead stays in sync with
+      // what is actually heard, matching the Play state's timing model.
+      if (this.audio && this.audio.src && !isNaN(this.audio.currentTime)) {
+        currentTime = this.audio.currentTime
+          + chartOffset
+          - this.getAudioOutputLatency()
+          - this.getAudioOffset();
+      } else {
+        currentTime = ((game.time.now - this.playStartTime + (chartOffset*1000)) / 1000) + this.playOffset;
+      }
+      
       const currentBeat = this.chartRenderer.secToBeat(currentTime);
       return {
         now: currentTime,
@@ -762,6 +779,23 @@ class Editor {
         beat: this.cursorBeat
       };
     }
+  }
+  
+  /**
+   * Reads the audio output latency from the active audio context, if any.
+   * @returns {number} Latency in seconds
+   */
+  getAudioOutputLatency() {
+    const context = this.audioContext
+      || (this.visualizer && this.visualizer.audioContext);
+    
+    if (!context) return 0;
+    
+    const latency = typeof context.outputLatency === "number"
+      ? context.outputLatency
+      : context.baseLatency;
+    
+    return typeof latency === "number" && isFinite(latency) ? latency : 0;
   }
 
   /**
@@ -951,7 +985,7 @@ class Editor {
     if (!this.isPlaying && this.audio && this.audio.src) {
       this.abortPreview();
 
-      this.audio.currentTime = start + this.getAudioOffset();
+      this.audio.currentTime = Math.max(0, start - this.getAudioOffset());
 
       this.previewEndHandler = () => {
         this.audio.pause();

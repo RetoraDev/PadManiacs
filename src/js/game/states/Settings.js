@@ -411,8 +411,8 @@ class Settings {
     // Global offset
     settingsWindow.addRangeItem(
       __("(Global Offset|Offset Global)"),
-      -2000,
-      2000,
+      -1000,
+      1000,
       1,
       Account.settings.userOffset,
       "ms",

@@ -66,8 +66,10 @@ class Play {
     this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
     /** @type {string} Optional playlist key the current song belongs to */
     this.playlistKey = playlistKey;
-    /** @type {number} The user's global timing offset in milliseconds */
-    this.userOffset = Account.settings.userOffset || 0;
+    /** @type {number} The user's global timing offset in milliseconds (positive = audio arrives late) */
+    this.userOffset = Phaser.Math.clamp(Account.settings.userOffset || 0, -1000, 1000);
+    /** @type {number} Audio playback position (seconds) captured when paused */
+    this.pausedAudioTime = 0;
     /** @type {number} Timestamp of the last video sync update */
     this.lastVideoUpdateTime = 0;
     /** @type {?Lyrics} Lyrics renderer for the current song */
@@ -609,15 +611,18 @@ class Play {
     this.setInitialBackground();
     
     const FIXED_DELAY = this.FIXED_DELAY; 
-    const DELAY = FIXED_DELAY + this.userOffset;
+    // Positive userOffset means the audio output is delayed, so we give it more
+    // lead-in. Never let the pre-roll delay collapse to zero or go negative, or
+    // the audio would be scheduled in the past and every note would start overdue.
+    const DELAY = Math.max(0, FIXED_DELAY + this.userOffset);
     
     this.showSongInfo();
     
     const chartOffset = this.song.chart.offset || 0;
     
-    this.startTime = game.time.now + FIXED_DELAY - chartOffset * 1000;
+    this.startTime = game.time.now + DELAY - chartOffset * 1000;
     
-    game.time.events.add(DELAY / 2, () => this.checkModifiersScreenButton());
+    game.time.events.add(Math.max(0, DELAY / 2), () => this.checkModifiersScreenButton());
     
     game.time.events.add(DELAY, () => {
       this.audio?.play();
@@ -1482,6 +1487,7 @@ class Play {
     if (!this.started) return;
     this.isPaused = true;
     this.pauseStartTime = game.time.now;
+    this.pausedAudioTime = this.audio ? this.audio.currentTime : 0;
     this.audio?.pause();
     this.video?.pause();
     this.showPauseMenu();
@@ -1574,22 +1580,64 @@ class Play {
   
   /**
    * Returns the current play time in seconds and beats, accounting for pauses.
+   *
+   * Once the song is running the position is read from the audio element's own
+   * playback clock rather than the wall clock. The audio clock is the only
+   * source that reflects what the player actually hears, so it stays in sync
+   * across devices (including Bluetooth headphones whose output lags by a
+   * variable amount) instead of drifting against a fixed timer.
+   *
+   * The configured output latency is subtracted because it is the delay between
+   * the audio clock position and the sound reaching the ears; the user offset is
+   * then subtracted as a residual (positive offset = audio arrives late, so the
+   * visuals wait for it).
+   *
    * @returns {Object} Object with numeric "now" and "beat" fields
    */
   getCurrentTime() {
-    if (this.isPaused) {
-      const elapsed = this.pauseStartTime - this.startTime - this.totalPausedDuration + this.userOffset;
-      return {
-        now: elapsed / 1000,
-        beat: this.secToBeat(elapsed / 1000)
-      };
+    const chartOffset = this.song.chart.offset || 0;
+    let elapsed;
+    
+    if (this.started && this.audio && !isNaN(this.audio.currentTime)) {
+      // Real audio position in milliseconds, using the paused snapshot while paused
+      const audioMs = this.isPaused ? this.pausedAudioTime * 1000 : this.audio.currentTime * 1000;
+      
+      // Latency + user offset, both subtract because positive means "audio arrives late"
+      elapsed = audioMs
+        + chartOffset * 1000
+        - this.getAudioOutputLatency() * 1000
+        - this.userOffset;
     } else {
-      const elapsed = game.time.now - this.startTime - this.totalPausedDuration + this.userOffset;
-      return {
-        now: elapsed / 1000,
-        beat: this.secToBeat(elapsed / 1000)
-      };
+      // Pre-roll (before the audio starts): keep the wall-clock countdown
+      if (this.isPaused) {
+        elapsed = this.pauseStartTime - this.startTime - this.totalPausedDuration;
+      } else {
+        elapsed = game.time.now - this.startTime - this.totalPausedDuration;
+      }
     }
+    
+    return {
+      now: elapsed / 1000,
+      beat: this.secToBeat(elapsed / 1000)
+    };
+  }
+  
+  /**
+   * Reads the audio output latency from the active audio context, if any.
+   * Falls back to zero when the API is unavailable (e.g. plain HTMLAudio).
+   * @returns {number} Latency in seconds
+   */
+  getAudioOutputLatency() {
+    const context = (this.temperature && this.temperature.audioContext)
+      || (this.visualizer && this.visualizer.audioContext);
+    
+    if (!context) return 0;
+    
+    const latency = typeof context.outputLatency === "number"
+      ? context.outputLatency
+      : context.baseLatency;
+    
+    return typeof latency === "number" && isFinite(latency) ? latency : 0;
   }
   
   /**

@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.3.0
- * Build: 10/20/2026, 12:24:19 AM
- * Platform: Web
+ * Version: v1.3.0 dev
+ * Build: 10/20/2026, 10:02:53 AM
+ * Platform: Development
  * Debug: false
  * Minified: false
  */
@@ -125,7 +125,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.3.0";
+const VERSION = "v1.3.0 dev";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -866,7 +866,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -3344,7 +3344,7 @@ const CHARACTER_ITEMS = [
 
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
-  version: 1.3, // 1.3.0
+  version: 1.4, // 1.4.0
   settings: {
     volume: 100,
     sfxVolume: 100,
@@ -13827,6 +13827,8 @@ class OffsetAssistant extends Phaser.Sprite {
     
     /** @type {Array} Raw tap timestamps in milliseconds */
     this.taps = [];
+    /** @type {Array<number>} Real timestamps (ms) at which each tick actually sounded */
+    this.tickTimes = [];
     /** @type {number} Confidence required to consider the offset reliable */
     this.confidenceThreshold = 0.8;
     /** @type {number} Maximum number of taps kept for measurement */
@@ -13839,6 +13841,12 @@ class OffsetAssistant extends Phaser.Sprite {
     this.tickInterval = 60000 / this.tickBPM; // 500ms per tick
     /** @type {number} Snap interval in milliseconds for rounding offsets */
     this.snapMs = 1;
+    /** @type {number} Largest offset (ms) the assistant will ever report/save */
+    this.maxOffset = 500;
+    /** @type {number} A tap more than this (ms) from the nearest tick is discarded */
+    this.outlierMs = 200;
+    /** @type {number} Dead-zone (ms): measured offsets within +/- this snap to 0 */
+    this.deadZoneMs = 15;
     
     // Store background music state
     /** @type {boolean} Whether background music was playing before calibration */
@@ -13960,6 +13968,7 @@ class OffsetAssistant extends Phaser.Sprite {
     this.playTickSound();
     this.lastTickTime = this.game.time.now;
     this.nextTickTime = this.lastTickTime;
+    this.tickTimes.push(this.lastTickTime);
   }
 
   /**
@@ -13975,6 +13984,11 @@ class OffsetAssistant extends Phaser.Sprite {
       this.playTickSound();
       this.lastTickTime = currentTime;
       this.nextTickTime = currentTime + this.tickInterval;
+      this.tickTimes.push(currentTime);
+      // Keep only recent tick timestamps so lookups stay cheap
+      if (this.tickTimes.length > this.maxTaps + 4) {
+        this.tickTimes.shift();
+      }
     }
   }
 
@@ -14009,65 +14023,115 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 
   /**
-   * Measures each tap against the expected tick timing, averages the offsets,
-   * and updates the readout with a confidence color (white/yellow/green).
+   * Measures each tap against the nearest real tick timestamp, averages the
+   * offsets robustly (median with MAD-based outlier rejection), and updates the
+   * readout with a confidence color (white/yellow/green).
+   *
+   * Sign convention: positive offset means the player taps late relative to the
+   * heard tick, i.e. audio arrives later than the visuals (positive = audio delay).
    */
   calculateOffset() {
-    if (this.taps.length < 2) {
+    if (this.taps.length < 2 || this.tickTimes.length === 0) {
       this.offsetText.write("Offset: 0ms");
       this.offsetText.tint = 0xFFFFFF;
       return;
     }
     
-    // Calculate offset for each tap relative to the nearest tick
+    // Measure each tap against the closest real tick that sounded before/around it
     const currentOffsets = [];
     
     for (let i = 0; i < this.taps.length; i++) {
       const tapTime = this.taps[i];
+      const tickTime = this.findNearestTickTime(tapTime);
+      if (tickTime === null) continue;
       
-      // Find the nearest tick time
-      const ticksSinceStart = Math.round((tapTime - this.taps[0]) / this.tickInterval);
-      const expectedTapTime = this.taps[0] + (ticksSinceStart * this.tickInterval);
-      
-      // Calculate offset for this tap
-      const offset = tapTime - expectedTapTime;
-      currentOffsets.push(offset);
+      const offset = tapTime - tickTime;
+      if (Math.abs(offset) <= this.outlierMs) {
+        currentOffsets.push(offset);
+      }
     }
     
-    // Calculate average offset from all taps
-    const averageOffset = currentOffsets.reduce((a, b) => a + b, 0) / currentOffsets.length;
-    
-    // Round to nearest
-    const roundedOffset = Math.round(averageOffset / this.snapMs) * this.snapMs;
-    
-    // Store this calculated offset for final averaging
-    this.calculatedOffsets.push(roundedOffset);
-    
-    // Keep only recent calculated offsets
-    if (this.calculatedOffsets.length > 5) {
-      this.calculatedOffsets.shift();
+    if (currentOffsets.length === 0) {
+      this.offsetText.write("Offset: 0ms");
+      this.offsetText.tint = 0xFFFF00;
+      return;
     }
     
-    // Calculate final average offset from all calculations
-    const finalAverageOffset = this.calculatedOffsets.length > 0 
-      ? Math.round(this.calculatedOffsets.reduce((a, b) => a + b, 0) / this.calculatedOffsets.length / this.snapMs) * this.snapMs
-      : roundedOffset;
+    // Robust central value and spread (median + MAD)
+    const medianOffset = this.median(currentOffsets);
+    const mad = this.median(currentOffsets.map(o => Math.abs(o - medianOffset)));
+    const robustStdDev = mad * 1.4826;
     
-    // Calculate confidence based on tap consistency
-    const confidence = this.calculateConfidence(currentOffsets);
+    // Reject taps that deviate too far from the median (2.5 * robust spread)
+    const filtered = currentOffsets.filter(o => Math.abs(o - medianOffset) <= Math.max(robustStdDev * 2.5, this.deadZoneMs));
+    const usedOffsets = filtered.length > 0 ? filtered : currentOffsets;
     
-    // Update display with the final averaged offset
-    const offsetDisplay = `Offset: ${finalAverageOffset}ms`;
-    this.offsetText.write(offsetDisplay);
+    // Use the median of the surviving taps as the measured offset
+    let measured = this.median(usedOffsets);
+    
+    // Collapse tiny values to exactly 0 so "in sync" reads as 0
+    if (Math.abs(measured) < this.deadZoneMs) measured = 0;
+    
+    // Clamp to the supported range
+    measured = Phaser.Math.clamp(measured, -this.maxOffset, this.maxOffset);
+    
+    const finalAverageOffset = Math.round(measured / this.snapMs) * this.snapMs;
+    
+    // Confidence from the robust spread of the surviving taps
+    const confidence = this.calculateConfidence(usedOffsets);
+    const enoughSamples = usedOffsets.length >= 8;
+    
+    // Update display with the measured offset
+    this.offsetText.write(`Offset: ${finalAverageOffset}ms`);
     
     // Change color based on confidence
-    if (this.taps.length >= this.requiredTaps && confidence >= this.confidenceThreshold) {
+    if (this.taps.length >= this.requiredTaps && enoughSamples && confidence >= this.confidenceThreshold) {
       this.offsetText.tint = 0x00FF00; // Green - confident
     } else if (this.taps.length >= 4) {
       this.offsetText.tint = 0xFFFF00; // Yellow - somewhat confident
     } else {
       this.offsetText.tint = 0xFFFFFF; // White - not confident
     }
+    
+    // Remember the latest measurement for averaging on exit
+    this.calculatedOffsets.push(finalAverageOffset);
+    if (this.calculatedOffsets.length > 5) {
+      this.calculatedOffsets.shift();
+    }
+  }
+  
+  /**
+   * Finds the timestamp of the tick closest to a given tap time.
+   * @param {number} tapTime - Tap timestamp in milliseconds
+   * @returns {number|null} Nearest tick timestamp, or null if none recorded
+   */
+  findNearestTickTime(tapTime) {
+    if (this.tickTimes.length === 0) return null;
+    
+    let nearest = this.tickTimes[0];
+    let nearestDelta = Math.abs(tapTime - nearest);
+    
+    for (let i = 1; i < this.tickTimes.length; i++) {
+      const delta = Math.abs(tapTime - this.tickTimes[i]);
+      if (delta < nearestDelta) {
+        nearest = this.tickTimes[i];
+        nearestDelta = delta;
+      }
+    }
+    
+    return nearest;
+  }
+  
+  /**
+   * Computes the median of a numeric array without mutating the input.
+   * @param {Array<number>} values - Input values
+   * @returns {number} The median value (0 for an empty array)
+   */
+  median(values) {
+    if (values.length === 0) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
   }
 
   /**
@@ -14093,16 +14157,6 @@ class OffsetAssistant extends Phaser.Sprite {
     
     return Math.min(1, confidence);
   }
-  
-  /**
-   * Rounds an offset value to the nearest snap interval.
-   * @param {number} num - Offset value in milliseconds
-   * @returns {number} The offset rounded to the snap interval
-   */
-  roundToSnapMs(num) {
-    const rounded = Math.round(num / this.snapMs);
-    return rounded >= 0 ? rounded * this.snapMs : (rounded + 1) * this.snapMs;
-  }
 
   /**
    * Gives brief visual feedback by scaling the instruction text.
@@ -14119,27 +14173,24 @@ class OffsetAssistant extends Phaser.Sprite {
    * cleans up, and returns to the settings menu.
    */
   exit() {
-    // Calculate final offset average
+    // Calculate final offset as the median of recent measurements
     let finalOffset = 0;
     
     if (this.calculatedOffsets.length > 0) {
-      finalOffset = this.roundToSnapMs(this.calculatedOffsets.reduce((a, b) => a + b, 0) / this.calculatedOffsets.length);
-      
-      // Update account settings with the final averaged offset
-      Account.settings.userOffset = finalOffset;
-      saveAccount();
-      
-      // Show confirmation
-      notifications.show(`Offset set to ${finalOffset}ms`);
+      finalOffset = Math.round(this.median(this.calculatedOffsets) / this.snapMs) * this.snapMs;
     } else if (this.taps.length > 0) {
-      // Fallback to last calculation if no averages stored
+      // Fallback: read the value currently displayed
       const currentOffset = this.parseOffsetText();
-      if (currentOffset !== null) {
-        Account.settings.userOffset = Math.floor(currentOffset * 100) * 100;
-        saveAccount();
-        notifications.show(`Offset set to ${currentOffset}ms`);
-      }
+      if (currentOffset !== null) finalOffset = currentOffset;
     }
+    
+    finalOffset = Phaser.Math.clamp(finalOffset, -this.maxOffset, this.maxOffset);
+    
+    Account.settings.userOffset = finalOffset;
+    saveAccount();
+    
+    // Show confirmation
+    notifications.show(`Offset set to ${finalOffset}ms`);
     
     // Resume background music
     this.resumeBackgroundMusic();
@@ -15769,6 +15820,26 @@ let Account = {
   ...DEFAULT_ACCOUNT,
   ...JSON.parse(localStorage.getItem("Account") || "{}")
 };
+
+/**
+ * Migrates persisted account data to the current format.
+ *
+ * Timing model change (1.4): note sync now runs off the audio element's own
+ * clock with output-latency compensation, and the offset convention flipped so
+ * that a positive value means "audio arrives late". To keep every existing user
+ * feeling exactly as in sync as before, the old stored offset is negated once.
+ */
+const migrateAccount = () => {
+  if (Account.version !== undefined && Account.version < 1.4) {
+    if (Account.settings && typeof Account.settings.userOffset === "number") {
+      Account.settings.userOffset = -Account.settings.userOffset;
+    }
+    Account.version = DEFAULT_ACCOUNT.version;
+    saveAccount();
+  }
+};
+
+migrateAccount();
 
 /** @type {File} Saves the original File class from being overwrited by Cordova */
 const _File = window.File;
@@ -25196,8 +25267,8 @@ class Settings {
     // Global offset
     settingsWindow.addRangeItem(
       __("(Global Offset|Offset Global)"),
-      -2000,
-      2000,
+      -1000,
+      1000,
       1,
       Account.settings.userOffset,
       "ms",
@@ -31651,8 +31722,10 @@ class Play {
     this.autoplay = typeof autoplay !== "undefined" ? autoplay : Account.settings.autoplay;
     /** @type {string} Optional playlist key the current song belongs to */
     this.playlistKey = playlistKey;
-    /** @type {number} The user's global timing offset in milliseconds */
-    this.userOffset = Account.settings.userOffset || 0;
+    /** @type {number} The user's global timing offset in milliseconds (positive = audio arrives late) */
+    this.userOffset = Phaser.Math.clamp(Account.settings.userOffset || 0, -1000, 1000);
+    /** @type {number} Audio playback position (seconds) captured when paused */
+    this.pausedAudioTime = 0;
     /** @type {number} Timestamp of the last video sync update */
     this.lastVideoUpdateTime = 0;
     /** @type {?Lyrics} Lyrics renderer for the current song */
@@ -32194,15 +32267,18 @@ class Play {
     this.setInitialBackground();
     
     const FIXED_DELAY = this.FIXED_DELAY; 
-    const DELAY = FIXED_DELAY + this.userOffset;
+    // Positive userOffset means the audio output is delayed, so we give it more
+    // lead-in. Never let the pre-roll delay collapse to zero or go negative, or
+    // the audio would be scheduled in the past and every note would start overdue.
+    const DELAY = Math.max(0, FIXED_DELAY + this.userOffset);
     
     this.showSongInfo();
     
     const chartOffset = this.song.chart.offset || 0;
     
-    this.startTime = game.time.now + FIXED_DELAY - chartOffset * 1000;
+    this.startTime = game.time.now + DELAY - chartOffset * 1000;
     
-    game.time.events.add(DELAY / 2, () => this.checkModifiersScreenButton());
+    game.time.events.add(Math.max(0, DELAY / 2), () => this.checkModifiersScreenButton());
     
     game.time.events.add(DELAY, () => {
       this.audio?.play();
@@ -33067,6 +33143,7 @@ class Play {
     if (!this.started) return;
     this.isPaused = true;
     this.pauseStartTime = game.time.now;
+    this.pausedAudioTime = this.audio ? this.audio.currentTime : 0;
     this.audio?.pause();
     this.video?.pause();
     this.showPauseMenu();
@@ -33159,22 +33236,64 @@ class Play {
   
   /**
    * Returns the current play time in seconds and beats, accounting for pauses.
+   *
+   * Once the song is running the position is read from the audio element's own
+   * playback clock rather than the wall clock. The audio clock is the only
+   * source that reflects what the player actually hears, so it stays in sync
+   * across devices (including Bluetooth headphones whose output lags by a
+   * variable amount) instead of drifting against a fixed timer.
+   *
+   * The configured output latency is subtracted because it is the delay between
+   * the audio clock position and the sound reaching the ears; the user offset is
+   * then subtracted as a residual (positive offset = audio arrives late, so the
+   * visuals wait for it).
+   *
    * @returns {Object} Object with numeric "now" and "beat" fields
    */
   getCurrentTime() {
-    if (this.isPaused) {
-      const elapsed = this.pauseStartTime - this.startTime - this.totalPausedDuration + this.userOffset;
-      return {
-        now: elapsed / 1000,
-        beat: this.secToBeat(elapsed / 1000)
-      };
+    const chartOffset = this.song.chart.offset || 0;
+    let elapsed;
+    
+    if (this.started && this.audio && !isNaN(this.audio.currentTime)) {
+      // Real audio position in milliseconds, using the paused snapshot while paused
+      const audioMs = this.isPaused ? this.pausedAudioTime * 1000 : this.audio.currentTime * 1000;
+      
+      // Latency + user offset, both subtract because positive means "audio arrives late"
+      elapsed = audioMs
+        + chartOffset * 1000
+        - this.getAudioOutputLatency() * 1000
+        - this.userOffset;
     } else {
-      const elapsed = game.time.now - this.startTime - this.totalPausedDuration + this.userOffset;
-      return {
-        now: elapsed / 1000,
-        beat: this.secToBeat(elapsed / 1000)
-      };
+      // Pre-roll (before the audio starts): keep the wall-clock countdown
+      if (this.isPaused) {
+        elapsed = this.pauseStartTime - this.startTime - this.totalPausedDuration;
+      } else {
+        elapsed = game.time.now - this.startTime - this.totalPausedDuration;
+      }
     }
+    
+    return {
+      now: elapsed / 1000,
+      beat: this.secToBeat(elapsed / 1000)
+    };
+  }
+  
+  /**
+   * Reads the audio output latency from the active audio context, if any.
+   * Falls back to zero when the API is unavailable (e.g. plain HTMLAudio).
+   * @returns {number} Latency in seconds
+   */
+  getAudioOutputLatency() {
+    const context = (this.temperature && this.temperature.audioContext)
+      || (this.visualizer && this.visualizer.audioContext);
+    
+    if (!context) return 0;
+    
+    const latency = typeof context.outputLatency === "number"
+      ? context.outputLatency
+      : context.baseLatency;
+    
+    return typeof latency === "number" && isFinite(latency) ? latency : 0;
   }
   
   /**
@@ -35967,6 +36086,11 @@ class Editor {
     if (this.song.chart.audioUrl) {
       this.audio.src = this.song.chart.audioUrl;
     }
+    
+    // Create a shared AudioContext for output latency measurement (BT compensation)
+    /** @type {AudioContext|null} Audio context for latency compensation */
+    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    this.audioContext.createMediaElementSource(this.audio).connect(this.audioContext.destination);
 
     this.initalSetup();
 
@@ -36559,7 +36683,19 @@ class Editor {
   getCurrentTime() {
     if (this.isPlaying) {
       const chartOffset = this.song.chart.offset || 0;
-      const currentTime = ((game.time.now - this.playStartTime + (chartOffset*1000)) / 1000) + this.playOffset;
+      let currentTime;
+      
+      // Read the real audio clock so the editor playhead stays in sync with
+      // what is actually heard, matching the Play state's timing model.
+      if (this.audio && this.audio.src && !isNaN(this.audio.currentTime)) {
+        currentTime = this.audio.currentTime
+          + chartOffset
+          - this.getAudioOutputLatency()
+          - this.getAudioOffset();
+      } else {
+        currentTime = ((game.time.now - this.playStartTime + (chartOffset*1000)) / 1000) + this.playOffset;
+      }
+      
       const currentBeat = this.chartRenderer.secToBeat(currentTime);
       return {
         now: currentTime,
@@ -36572,6 +36708,23 @@ class Editor {
         beat: this.cursorBeat
       };
     }
+  }
+  
+  /**
+   * Reads the audio output latency from the active audio context, if any.
+   * @returns {number} Latency in seconds
+   */
+  getAudioOutputLatency() {
+    const context = this.audioContext
+      || (this.visualizer && this.visualizer.audioContext);
+    
+    if (!context) return 0;
+    
+    const latency = typeof context.outputLatency === "number"
+      ? context.outputLatency
+      : context.baseLatency;
+    
+    return typeof latency === "number" && isFinite(latency) ? latency : 0;
   }
 
   /**
@@ -36761,7 +36914,7 @@ class Editor {
     if (!this.isPlaying && this.audio && this.audio.src) {
       this.abortPreview();
 
-      this.audio.currentTime = start + this.getAudioOffset();
+      this.audio.currentTime = Math.max(0, start - this.getAudioOffset());
 
       this.previewEndHandler = () => {
         this.audio.pause();
