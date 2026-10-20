@@ -202,7 +202,7 @@ class Boot {
     game.onMenuIn = new Phaser.Signal();
 
     game.state.add("Load", Load);
-    game.state.add("LoadCordova", LoadCordova);
+    game.state.add("LoadPlatform", LoadPlatform);
     game.state.add("LoadAddons", LoadAddons);
     game.state.add("LoadLocalSongs", LoadLocalSongs);
     game.state.add("LoadExternalSongs", LoadExternalSongs);
@@ -630,6 +630,6 @@ class Boot {
       }
     ];
     
-    game.state.start("Load", true, false, window.gameResources, "LoadCordova");
+    game.state.start("Load", true, false, window.gameResources, "LoadPlatform");
   }
 }

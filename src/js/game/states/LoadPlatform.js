@@ -1,19 +1,20 @@
 /**
- * @class LoadCordova
+ * @class LoadPlatform
  * @category Game States
- * @summary Initialize Cordova on mobile devices, initialize file system
+ * @summary Initialize platform (Cordova, Neutralino) and file system
  * @constructor
  * @description
  * A conditional startup state that runs before any external storage is accessed. When
  * the game is running inside a Cordova environment the Cordova script is injected and
- * the filesystem is created once the device is ready; on other platforms the game
- * proceeds straight to building the required directory structure.
+ * the filesystem is created once the device is ready; on Neutralino it initializes the
+ * Neutralino client and creates the required directory structure; on other platforms
+ * it builds the folder structure immediately.
  * @example
  * // Added to the boot chain so storage directories exist before song loading.
- * game.state.add('LoadCordova', LoadCordova);
- * game.state.start('LoadCordova');
+ * game.state.add('LoadPlatform', LoadPlatform);
+ * game.state.start('LoadPlatform');
  */
-class LoadCordova {
+class LoadPlatform {
   /**
    * Detects the current environment: on Cordova it injects cordova.js and waits for
    * the device to be ready, otherwise it builds the folder structure immediately.
@@ -54,6 +55,15 @@ class LoadCordova {
    * @returns {Promise<void>} Resolves once the folders have been created
    */
   async createFolderStructure() {
+    // Initialize Neutralino client if running in Neutralino environment
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && window.Neutralino) {
+      try {
+        await Neutralino.init();
+      } catch (e) {
+        console.warn("Neutralino.init() failed:", e);
+      }
+    }
+    
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
       this.fileSystemTools = new FileSystemTools();
       
