@@ -101,6 +101,8 @@ class Metronome {
     // Initialize notes array if empty
     if (this.notes.length === 0) {
       this.initializeNotes();
+      // After initialization, find the correct starting index for the current song position
+      this.syncNoteIndexToCurrentBeat(currentBeat);
     }
     
     // If we've processed all notes, return
@@ -121,6 +123,28 @@ class Metronome {
         this.noteIndex++;
       }
     }
+  }
+  
+  /**
+   * Syncs the note index to the current song beat so the metronome
+   * starts ticking from the current position instead of the beginning
+   * of the chart. This fixes the delay when toggling Note mode mid-song.
+   * @param {number} currentBeat - Current song beat position
+   */
+  syncNoteIndexToCurrentBeat(currentBeat) {
+    // Binary search for the first note >= currentBeat
+    let left = 0;
+    let right = this.notes.length;
+    while (left < right) {
+      const mid = Math.floor((left + right) / 2);
+      if (this.notes[mid] < currentBeat) {
+        left = mid + 1;
+      } else {
+        right = mid;
+      }
+    }
+    this.noteIndex = left;
+    this.lastNoteBeat = left > 0 ? this.notes[left - 1] : -1;
   }
 
   /**
