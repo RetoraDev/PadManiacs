@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>NeutralinoFileEntry - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+    [title: "NeutralinoFileEntry Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Cordova FileEntry equivalent for Neutralino.js</p>
+
+    [heading: "Description"]
+    <p>NeutralinoFileEntry wraps a single file behind the same interface Cordova's FileEntry exposes. The returned file descriptor carries a server-backed localURL (mounted via Neutralino.server.mount) so higher-level code can use it directly as a media URL, matching the NW.js file:// and Cordova localURL behaviour on other platforms.</p>
+
+    [heading: "Key Features"]
+    [list]
+    * Mimics the Cordova FileEntry API on top of Neutralino.filesystem
+    * Supports string, ArrayBuffer, typed array and Blob writes
+    * Exposes localURL served over Neutralino's HTTP server for media loading
+    [/list]
+
+    [heading: "Constructor"]
+    [table header]
+    [ Parameter | Type | Description ]
+    [ name | string | The file name ]
+    [ fullPath | string | The relative path from the application base directory ]
+    [ fileSystem | NeutralinoFileSystem | The parent NeutralinoFileSystem instance ]
+    [ nativeURL | string | The server URL for this file ]
+    [/table]
+
+
+    [heading: "Methods"]
+    [table header]
+    [ Method | Parameters | Description ]
+    [ baseName | (path) | Returns the last segment of a path. ]
+    [/table]
+
+
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Reading a file via NeutralinoFileEntry
+const fs = new NeutralinoFileSystem();
+const dir = await fs.getDirectory('data/Songs/MySong/');
+const reader = dir.createReader();
+reader.readEntries((entries) => {
+  const fileEntry = entries.find(e => e.isFile && e.name === 'song.sm');
+  fileEntry.file((file) => {
+    console.log('File size:', file.size, 'URL:', file.localURL);
+  }, (err) => console.error(err));
+}, (err) => console.error(err));
+    [/codeblock]
+
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

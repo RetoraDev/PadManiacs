@@ -14,11 +14,11 @@
     <p>Platform-agnostic file system access wrapper</p>
 
     [heading: "Description"]
-    <p>FileSystemTools wraps platform-specific file system implementations behind a single consistent API. It detects the current runtime on construction and selects the appropriate backend (NodeFileSystem, CordovaFileSystem, or FallbackFileSystem) so that the rest of the application never needs to care about the environment.</p>
+    <p>FileSystemTools wraps platform-specific file system implementations behind a single consistent API. It detects the current runtime on construction and selects the appropriate backend (NeutralinoFileSystem, CordovaFileSystem, or FallbackFileSystem) so that the rest of the application never needs to care about the environment.</p>
 
     [heading: "Key Features"]
     [list]
-    * Auto-detects runtime platform (NW.js, Cordova, or browser)
+    * Auto-detects runtime platform (Neutralino, Cordova, or browser)
     * Delegates all operations to the platform-specific implementation
     * Provides uniform API for directory listing, file reading, and writing
     [/list]
@@ -34,10 +34,10 @@
     [heading: "Methods"]
     [table header]
     [ Method | Parameters | Description ]
-    [ detectPlatform | () | Determines the current runtime platform by checking for NW.js, Cordova, or falling back to the browser environment. ]
-    [ getBasePath | () | Returns the base directory path for the current platform. Only meaningful on NW.js; returns empty string on other platforms. ]
+    [ detectPlatform | () | Determines the current runtime platform by checking for Neutralino, Cordova, or falling back to the browser environment. ]
+    [ getBasePath | () | Returns the base directory path for the current platform. Only meaningful on Neutralino; returns empty string on other platforms. ]
     [ canExitApp | () | Checks whether the application can be programmatically closed on this platform. ]
-    [ exitApp | () | Terminates the application. Only works on NW.js and Cordova platforms. ]
+    [ exitApp | () | Terminates the application. Only works on Neutralino and Cordova platforms. ]
     [/table]
 
 

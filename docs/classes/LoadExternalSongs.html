@@ -14,7 +14,7 @@
     <p>Loads user-added songs from external storage</p>
 
     [heading: "Description"]
-    <p>A loading state that scans external storage (or, on non-mobile platforms, lets the user pick a directory) for StepMania songs, parsing every .sm or .ssc chart file found. It supports sequential and batched parallel loading with progress feedback, caches the results in window.externalSongs for the rest of the game, and then transitions into the requested next state.</p>
+    <p>A loading state that scans external storage (or, on non-mobile platforms, lets the user pick a directory) for StepMania songs, parsing every .sm chart file found. It supports sequential and batched parallel loading with progress feedback, caches the results in window.externalSongs for the rest of the game, and then transitions into the requested next state.</p>
 
     [heading: "Properties"]
     [table header]
@@ -45,7 +45,7 @@
     [ processDirectoryBatch | (batch) | Loads every directory in a batch concurrently, tolerating individual failures. ]
     [ loadDirectoriesSequential | (directories) | Loads the given directories one at a time, ensuring only a single song is parsed at any moment. ]
     [ processSongDirectoryWithTracking | (dirEntry) | Loads one directory while tracking its progress: it waits for a free parallel slot, parses the folder, records success or failure, and refreshes the progress display. ]
-    [ processSongDirectory | (dirEntry) | Reads all files inside a directory, finds its .sm/.ssc chart files, and returns the first chart that parses successfully, or null if the folder is not a chart folder. ]
+    [ processSongDirectory | (dirEntry) | Reads all files inside a directory, finds its .sm chart files, and returns the first chart that parses successfully, or null if the folder is not a chart folder. ]
     [ updateProgress | () | Writes the current load progress percentage and loaded/failed counts to the progress text overlay. ]
     [ showFileInput | () | Opens a native webkitdirectory file picker and forwards the chosen files to the processing pipeline on selection. ]
     [ processFileInput | (files) | Groups the files picked by the user into per-directory maps and processes them, either in parallel batches or sequentially. ]
@@ -53,7 +53,7 @@
     [ processFileDirectoryBatch | (directories, batch) | Processes a single batch of picked directories concurrently, tolerating failures. ]
     [ processFileDirectoriesSequential | (directories, dirNames) | Processes every picked directory sequentially, one at a time. ]
     [ processSongFilesWithTracking | (files, folderName) | Parses the files of one picked folder while tracking progress and refresh the progress display once the folder has been processed. ]
-    [ processSongFiles | (files, folderName) | Finds the .sm/.ssc files within a picked folder and returns the first chart that parses successfully, or null if the folder holds no loadable chart. ]
+    [ processSongFiles | (files, folderName) | Finds the .sm files within a picked folder and returns the first chart that parses successfully, or null if the folder holds no loadable chart. ]
     [ showError | (message) | Displays an error message on the progress text and returns to the main menu after a short delay. ]
     [ finish | (resetIndex) | Sorts the loaded songs, caches them in window.externalSongs, and starts the next state, defaulting to the song select screen, or shows an error if nothing loaded. ]
     [/table]

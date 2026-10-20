@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>AviTranscoder - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+    [title: "AviTranscoder Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>FFmpeg.wasm wrapper that decodes AVI (MPEG-4 Part 2) backgrounds to H.264 MP4</p>
+
+    [heading: "Description"]
+    <p>AviTranscoder bridges the game and the bundled FFmpeg.wasm lite build (lib/ffmpeg). Browsers cannot natively decode MPEG-4 Part 2 video stored in .avi containers, so background videos of that kind are transcoded to H.264 MP4 blobs before Play loads them. The worker stays alive between conversions.</p>
+
+    [heading: "Key Features"]
+    [list]
+    * Lazily spawns a classic Web Worker running the ffmpeg-wasm-lite core
+    * Converts AVI bytes into an H.264 MP4 Blob using the account's ffmpeg settings
+    * Reports encoding progress and supports preset / CRF / scale-to-game-resolution options
+    [/list]
+
+    [heading: "Methods"]
+    [table header]
+    [ Method | Parameters | Description ]
+    [ FF_DIR | () | Directory URL that holds the FFmpeg wasm assets. ]
+    [ cacheKey | (song, fileName) | Builds the cache key for one AVI reference of a song. ]
+    [ getCached | (key) | Looks up a cached decode and refreshes its recency. ]
+    [ putCached | (key, blob, url) | Stores a decoded MP4 in the cache and evicts oldest entries when over budget. ]
+    [ evictCache | () | Evicts oldest cache entries until both the entry count and byte budget fit. ]
+    [ send | (type, data) | Sends a message to the ffmpeg worker and returns its reply. ]
+    [ ensureLoaded | (onLog, onProgress) | Spawns the worker and loads the WASM core once per session. ]
+    [ shutdown | () | Terminates the worker and forgets the loaded core (frees the ~7 MB WASM heap). ]
+    [/table]
+
+
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+const blob = await AviTranscoder.convertToBlob(aviBytes, {
+  preset: 'ultrafast',
+  crf: 32,
+  scaleHeight: game.height
+});
+const url = URL.createObjectURL(blob);
+    [/codeblock]
+
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

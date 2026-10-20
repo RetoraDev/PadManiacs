@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>AviSettings - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+    [title: "AviSettings Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>AVI bgvideo decoding settings screen (FFmpeg.wasm)</p>
+
+    [heading: "Description"]
+    <p>AviSettings edits Account.settings.aviSettings, which control how the DecodeAvi state transcodes AVI background videos with the bundled FFmpeg.wasm lite build. It mirrors the layout of Keybindings and ChartModifiers and returns to the state that opened it.</p>
+
+    [heading: "Key Features"]
+    [list]
+    * FFmpeg preset selector (ultrafast .. medium) for AVI to H.264 conversion
+    * Quality (CRF) slider from 18 (near-lossless) to 32 (tiny)
+    * Optional scaling of decoded videos to the game resolution
+    * Optional deletion of the original .avi files after a successful Decode &amp; Replace
+    [/list]
+
+    [heading: "Properties"]
+    [table header]
+    [ Property | Type | Description ]
+    [ returnState | string | Game state to start when leaving this screen ]
+    [ futuristicLines | FuturisticLines | Decorative animated background line effect ]
+    [ backgroundGradient | BackgroundGradient | Ambient gradient overlay for the menu background ]
+    [ navigationHint | NavigationHint | On-screen hint bar with contextual button labels ]
+    [ windowManager | WindowManager | Manages the settings window and its focus ]
+    [ settings | Object | Working copy of the AVI decoding settings ]
+    [ settingsWindow | Window | The settings window being edited ]
+    [/table]
+
+
+    [heading: "Methods"]
+    [table header]
+    [ Method | Parameters | Description ]
+    [ init | (returnState='Settings') | Phaser state hook that stores the state to return to after editing. ]
+    [ create | () | Phaser state hook that sets up the background and builds the settings window. ]
+    [ update | () | Phaser lifecycle hook called every frame to poll gamepad input. ]
+    [ showMenu | () | Builds the settings window with every AVI decoding option. ]
+    [/table]
+
+
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Open from Settings
+game.state.start("AviSettings");
+    [/codeblock]
+
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

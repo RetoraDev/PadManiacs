@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>DecodeAvi - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+    [title: "DecodeAvi Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Decodes AVI background videos to H.264 MP4 with FFmpeg.wasm</p>
+
+    [heading: "Description"]
+    <p>Browsers cannot play MPEG-4 Part 2 video stored in .avi containers. DecodeAvi runs before Play when a song references AVI backgrounds: it transcodes each AVI into an H.264 MP4 via the bundled FFmpeg.wasm lite build, then either continues to the target state with blob URLs (Decode &amp; Play) or persists the MP4 files and rewrites the chart on disk first (Decode &amp; Replace).</p>
+
+    [heading: "Key Features"]
+    [list]
+    * Decodes every AVI background (#BACKGROUND, #BGCHANGES, #BGVIDEO) of a song
+    * Decode &amp; Play mode swaps the in-memory URLs with MP4 blob URLs, then starts the target state
+    * Decode &amp; Replace mode also writes ${name}.mp4 next to the chart and patches the .SM file
+    * Honors Account.settings.aviSettings (preset, CRF, scale to game resolution, delete original)
+    [/list]
+
+    [heading: "Properties"]
+    [table header]
+    [ Property | Type | Description ]
+    [ mode | string | Decode mode: 'play' or 'replace' ]
+    [ song | Object | The song whose AVI backgrounds are being decoded ]
+    [ targetState | string | Game state to start once decoding finishes ]
+    [ targetParams | Array | Parameters forwarded to the target state ]
+    [ backState | string | Game state to return to when decoding fails ]
+    [ backParams | Array | Parameters forwarded to the back state on failure ]
+    [ canceled | boolean | Set when the player cancelled decoding with SELECT + B ]
+    [ runSettled | boolean | Set once run() has settled (finished, failed or cancelled) ]
+    [ exited | boolean | Set once a game state has been started from this screen ]
+    [ futuristicLines | FuturisticLines | Decorative animated background line effect ]
+    [ backgroundGradient | BackgroundGradient | Ambient gradient overlay for the loading background ]
+    [ navigationHint | NavigationHint | On-screen hint bar showing the SELECT + B cancel combo ]
+    [ windowManager | WindowManager | Manages the status window ]
+    [ statusWindow | Window | Status window showing the current decode step ]
+    [ titleText | Text | Title line inside the status window ]
+    [ statusText | Text | Current file / stage line ]
+    [ progressBack | Phaser.Graphics | Progress bar backing shape ]
+    [ progressFill | Phaser.Graphics | Progress bar fill ]
+    [/table]
+
+
+    [heading: "Methods"]
+    [table header]
+    [ Method | Parameters | Description ]
+    [ init | (options, options) | Stores the decode job description. ]
+    [ create | () | Phaser state hook that builds the decode screen and starts the conversion. ]
+    [ update | () | Phaser lifecycle hook called every frame to poll gamepad input and watch for the SELECT + B cancel combo. ]
+    [ cancel | () | Cancels decoding instantly: kills the FFmpeg worker so the in-flight conversion rejects immediately, then returns to the back state. ]
+    [ throwIfCanceled | () | Throws when the player has cancelled, so pending awaits stop promptly. ]
+    [ setStatus | (message, fraction=0) | Updates the status line and progress bar. ]
+    [ run | () | Decodes every AVI reference of the song, persists replacements when needed, then starts the target state. ]
+    [ persistFile | (fileName, blob) | Writes the decoded MP4 into the song's folder on external storage. ]
+    [ deleteOriginal | (fileName) | Deletes the original AVI file from the song folder when the setting is enabled. ]
+    [ patchChartFile | (nameMap) | Rewrites the song's .SM chart text so AVI references point at the MP4s. ]
+    [ finish | () | Starts the target state with the (possibly patched) song parameters. ]
+    [ goBack | () | Returns to the back state (used after cancelling a decode run). ]
+    [ showError | (error) | Shows a decode error and offers to return to song select. ]
+    [/table]
+
+
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Decode & play a song that has AVI backgrounds
+game.state.start("DecodeAvi", true, false, {
+  mode: "play",
+  song,
+  targetState: "Play",
+  targetParams: [{ chart: song, difficultyIndex: 0 }, 0, undefined, undefined, null]
+});
+    [/codeblock]
+
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>
