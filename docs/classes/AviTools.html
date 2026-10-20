@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>AviTools - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+    [title: "AviTools Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Song-level helpers for detecting, decoding and rewriting AVI backgrounds</p>
+
+    [heading: "Description"]
+    <p>AviTools works on the parsed song data structures produced by LocalSMParser and ExternalSMParser. It never touches the filesystem itself; persistence is handled by the DecodeAvi state through FileSystemTools.</p>
+
+    [heading: "Key Features"]
+    [list]
+    * Detects AVI references in a song (#BACKGROUND, #BGCHANGES video entries, videoUrl)
+    * Reads AVI bytes from external song file maps or by fetching resolved URLs
+    * Applies in-memory replacements so Play uses the decoded MP4 blob URLs
+    * Patches .SM chart text so Decode &amp; Replace updates the chart on disk
+    [/list]
+
+    [heading: "Methods"]
+    [table header]
+    [ Method | Parameters | Description ]
+    [ isAviFileName | (name) | Checks whether a file name refers to an AVI video. ]
+    [ getAviRefs | (song) | Collects every AVI reference inside a parsed song. References already swapped for a decoded MP4 (session-marked) are skipped. ]
+    [ getAviFileNames | (song) | Lists the unique AVI file names referenced by a song. ]
+    [ songHasAvi | (song) | Checks whether a song contains any AVI background/video reference that still needs decoding. Already-decoded references are reclaimed from the session cache first, so songs rescanned after Results (or reloaded from disk) jump straight to Play without prompting or re-encoding. ]
+    [ reclaimDecoded | (song) | Re-attaches cached decoded MP4s to a (possibly freshly parsed) song object. For every AVI reference whose decode is still in the session cache, the song's URL/filename fields are swapped in memory and the reference is marked decoded. Uncached references are left untouched. ]
+    [ findUrlFor | (song, fileName) | Finds the resolved URL currently backing a song file name, if any. ]
+    [ applyReplacement | (song, fileName, newUrl, newFileName, blob) | Rewrites every in-memory reference from an AVI file to its decoded replacement. Keeps the original chart file names when newFileName is not given, so the transient Decode &amp; Play flow never desyncs from the chart on disk. ]
+    [ patchSMContent | (content, nameMap) | Replaces AVI file names inside raw .SM chart text with their MP4 counterparts. ]
+    [ toMp4Name | (fileName) | Builds the MP4 counterpart name for an AVI chart file name. ]
+    [ canPersist | (song) | Whether the current runtime can write back into an external song folder. ]
+    [/table]
+
+
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+if (AviTools.songHasAvi(song)) {
+  game.state.start("DecodeAvi", true, false, { mode: 'play', song });
+}
+    [/codeblock]
+
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

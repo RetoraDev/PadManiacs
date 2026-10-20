@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>NeutralinoDirectoryEntry - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+    [title: "NeutralinoDirectoryEntry Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>Cordova DirectoryEntry equivalent for Neutralino.js</p>
+
+    [heading: "Description"]
+    <p>NeutralinoDirectoryEntry provides a Cordova-compatible DirectoryEntry interface over the Neutralino native filesystem API so that addon and song code can interact with directories identically across Cordova, NW.js and Neutralino platforms. Directory and file URLs are served through Neutralino's built-in HTTP server (mounted at /pmfs), so media referenced by nativeURL works in the webview without blob conversion.</p>
+
+    [heading: "Key Features"]
+    [list]
+    * Mimics the Cordova DirectoryEntry API on top of Neutralino.filesystem
+    * Bridges async Neutralino native calls to Cordova-style callbacks
+    * Exposes server-mounted URLs so external assets load over HTTP
+    [/list]
+
+    [heading: "Constructor"]
+    [table header]
+    [ Parameter | Type | Description ]
+    [ name | string | The directory name ]
+    [ fullPath | string | The relative path from the application base directory ]
+    [ fileSystem | NeutralinoFileSystem | The parent NeutralinoFileSystem instance ]
+    [ nativeURL | string | The server URL for this directory ]
+    [/table]
+
+
+    [heading: "Methods"]
+    [table header]
+    [ Method | Parameters | Description ]
+    [ joinRelative | (base, child) | Joins a relative path with a child segment, collapsing duplicate slashes. ]
+    [ baseName | (path) | Returns the last segment of a path. ]
+    [/table]
+
+
+    [heading: "Example Usage (Modding)"]
+    [codeblock javascript]
+// Listing subdirectories through a NeutralinoDirectoryEntry
+const fs = new NeutralinoFileSystem();
+const root = await fs.getDirectory('data/Songs/');
+const reader = root.createReader();
+reader.readEntries((entries) => {
+  entries.filter(e => e.isDirectory).forEach(dir => {
+    console.log('Found directory:', dir.name);
+  });
+}, (err) => console.error(err));
+    [/codeblock]
+
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

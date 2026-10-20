@@ -22,6 +22,7 @@
     [ create | () | Detects the current environment: on Cordova it injects cordova.js and waits for the device to be ready, otherwise it builds the folder structure immediately. ]
     [ loadScript | () | Shows the loading dots, injects the cordova.js script into the page, and registers a back button handler for mobile devices once the Cordova device is ready. ]
     [ createFolderStructure | () | Creates the main storage directory along with its addons, screenshots, songs, and editor output subdirectories, then continues to the next startup state. ]
+    [ checkFfmpegBundle | () | Check if the bundled ffmpeg lib needs to be copied to external folder and copies them ]
     [ continue | () | Advances to the LoadAddons state to continue the startup sequence. ]
     [/table]
 

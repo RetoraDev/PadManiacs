@@ -2401,7 +2401,7 @@ class Editor {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NEUTRALINO) {
       await this.saveFileToFilesystem(blob, filename);
     }
   }
