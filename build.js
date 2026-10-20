@@ -15,6 +15,7 @@ class BuildSystem {
         platform: 'all', // 'web', 'cordova', 'neutralino', 'all', 'none'
         minify: false,
         zipalign: false,
+        noPack: false, // skip archive/packaging steps (zip/7z/apk/neu build)
         ...flags
       }
     };
@@ -243,6 +244,7 @@ class BuildSystem {
       if (arg === '--web') this.config.flags.platform = 'web';
       if (arg === '--all') this.config.flags.platform = 'all';
       if (arg === '--minify') this.config.flags.minify = true;
+      if (arg === '--no-pack' || arg === '--no-pack=' || arg === '--nopack') this.config.flags.noPack = true;
     });
   }
 
@@ -756,6 +758,10 @@ class BuildSystem {
   }
 
   createZipArchive(sourceDir, outputFile) {
+    if (this.config.flags.noPack) {
+      this.log(`Skipping zip (--no-pack): ${sourceDir}`, 'info');
+      return true;
+    }
     this.log(`Creating zip: ${sourceDir} → ${outputFile}`, 'info');
     try {
       if (this.hasZip()) {
@@ -773,6 +779,10 @@ class BuildSystem {
   }
 
   create7zArchive(sourceDir, outputFile) {
+    if (this.config.flags.noPack) {
+      this.log(`Skipping 7z archive (--no-pack): ${sourceDir}`, 'info');
+      return true;
+    }
     this.log(`Creating 7z archive: ${sourceDir} → ${outputFile}`, 'info');
     try {
       if (this.has7Zip()) {
@@ -840,7 +850,12 @@ class BuildSystem {
 
   async buildWeb() {
     this.log('Building web platform...', 'info');
-    
+
+    if (this.config.flags.noPack) {
+      this.log('Skipping web packaging (--no-pack); dist/ contains the web build', 'info');
+      return;
+    }
+
     // Create temporary web build directory
     const tempWebDir = path.join(this.config.distDir, 'temp', 'web');
     this.ensureDir(tempWebDir);
@@ -928,7 +943,15 @@ class BuildSystem {
       // Split the built resources.neu per platform, one zip each.
       // `neu build` (or an equivalent pack step) is run by the caller; here we
       // simply package the staged neutralino project plus resources.neu.
-      this.packageNeutralinoPlatforms(tempNlDir);
+      if (this.config.flags.noPack) {
+        // Keep an exploded, inspectable copy in dist/ instead of a resources.neu
+        // bundle; skip `neu build` and the per-platform zips entirely.
+        const explodedDir = path.join(this.config.distDir, 'neutralino');
+        this.copyDir(tempNlDir, explodedDir);
+        this.log('Skipping Neutralino packaging (--no-pack); staged to dist/neutralino/', 'info');
+      } else {
+        this.packageNeutralinoPlatforms(tempNlDir);
+      }
 
       this.log('Neutralino platform build complete', 'success');
     } catch (error) {
@@ -1063,7 +1086,18 @@ class BuildSystem {
       // First create unsigned APK using zip from temp directory
       const unsignedUnalignedApkName = `padmaniacs-v${this.packageInfo.version}-android-unsigned-unaligned.apk`;
       const unsignedUnalignedApkPath = path.join(this.config.distDir, unsignedUnalignedApkName);
-      
+
+      if (this.config.flags.noPack) {
+        // Keep an exploded, inspectable Android project in dist/android/
+        // instead of producing (and signing) an APK.
+        const explodedDir = path.join(this.config.distDir, 'android');
+        this.copyDir(tempAndroidDir, explodedDir);
+        fs.rmSync(path.join(this.config.distDir, 'temp'), { recursive: true });
+        this.log('Skipping Android packaging (--no-pack); staged to dist/android/', 'info');
+        this.log('Android platform build complete', 'success');
+        return;
+      }
+
       if (this.createZipArchive(tempAndroidDir, '../../' + unsignedUnalignedApkName)) {
         // Apply zipalign
         let unsignedApkName = `padmaniacs-v${this.packageInfo.version}-android-unsigned.apk`;
@@ -1159,7 +1193,8 @@ class BuildSystem {
     this.log('Starting build process...', 'info');
     this.log(`Platform: ${this.config.flags.platform}`, 'info');
     this.log(`Minify: ${this.config.flags.minify}`, 'info');
-    this.log(`Debug: ${this.config.flags.debug}\n`, 'info');
+    this.log(`Debug: ${this.config.flags.debug}`, 'info');
+    this.log(`Packaging: ${this.config.flags.noPack ? 'disabled (--no-pack)' : 'enabled'}\n`, 'info');
     
     // Clean and create dist directory
     if (fs.existsSync(this.config.distDir)) {
@@ -1187,6 +1222,14 @@ class BuildSystem {
           const stats = fs.statSync(filePath);
           this.log(`  - ${file} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`, 'info');
         });
+      } else if (this.config.flags.noPack) {
+        const staged = files.filter(file => {
+          const full = path.join(this.config.distDir, file);
+          return fs.existsSync(full) && fs.statSync(full).isDirectory() && file !== 'temp';
+        });
+        this.log('Packaging disabled (--no-pack). Staged output:', 'info');
+        this.log(`  - ${this.config.distDir}/ (${files.length} entries)`, 'info');
+        staged.forEach(dir => this.log(`  - ${this.config.distDir}/${dir}/`, 'info'));
       }
       
     } catch (error) {

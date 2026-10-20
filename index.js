@@ -82,6 +82,7 @@ class InteractiveInterface {
       { label: 'Minify: Off', action: () => this.toggleMinify() },
       { label: 'Zip Align: Off', action: () => this.toggleZipAlign() },
       { label: 'Debug: Off', action: () => this.toggleDebug() },
+      { label: 'Packaging: On', action: () => this.togglePack() },
       { label: 'Start Build', action: () => this.startCustomBuild() },
       { label: 'Back to Build Menu', action: () => this.showBuildMenu() }
     ];
@@ -90,7 +91,8 @@ class InteractiveInterface {
       platform: 'all',
       minify: false,
       zipalign: false,
-      debug: false
+      debug: false,
+      noPack: false
     };
     
     this.currentMenu = this.mainMenu;
@@ -111,6 +113,7 @@ class InteractiveInterface {
       minify: false,
       debug: false,
       zipalign: false,
+      noPack: false,
       docs: false,
       headless: false,
       help: false
@@ -160,6 +163,9 @@ class InteractiveInterface {
           break;
         case '--no-install':
           parsed.noInstall = true;
+          break;
+        case '--no-pack':
+          parsed.noPack = true;
           break;
         case '--headless':
           parsed.headless = true;
@@ -225,6 +231,7 @@ class InteractiveInterface {
     console.log('  --web            Build web platform only');
     console.log('  --all            Build all platforms (default)');
     console.log('  --minify         Enable minification');
+    console.log('  --no-pack        Skip packaging (no zip/apk/resources.neu; stage to dist/)');
     console.log('  --debug          Enable debug mode');
     console.log('  --zipalign       Enable APK zip alignment');
     console.log('');
@@ -280,6 +287,9 @@ class InteractiveInterface {
     if (this.cliArgs.zipalign) {
       args.push('--zipalign');
     }
+    if (this.cliArgs.noPack) {
+      args.push('--no-pack');
+    }
     
     // Flag should exit when it ends
     this.executingCliBuild = true;
@@ -293,14 +303,33 @@ class InteractiveInterface {
     }
   }
   
-  async runBuildHeadless(args) {
-    try {
-      process.argv = ['node', 'build.js', ...args];
-      process.exit(0);
-    } catch (error) {
-      console.error(this.color('Build failed:', 'red'), error.message);
+  runBuildHeadless(args) {
+    // Spawn the build in a child process with inherited stdio so its exit code
+    // is propagated and Ctrl+C can cancel it (SIGINT is forwarded to the child).
+    const buildJsPath = path.join(__dirname, 'build.js');
+    const child = spawn(process.execPath, [buildJsPath, ...args], {
+      cwd: process.cwd(),
+      stdio: 'inherit',
+      detached: process.platform !== 'win32',
+    });
+
+    let cancelled = false;
+    const onSigint = () => {
+      if (cancelled) return;
+      cancelled = true;
+      this.killProcessTree(child);
+    };
+    process.on('SIGINT', onSigint);
+
+    child.on('close', (code) => {
+      process.removeListener('SIGINT', onSigint);
+      process.exit(cancelled ? 130 : (code || 0));
+    });
+    child.on('error', (error) => {
+      process.removeListener('SIGINT', onSigint);
+      console.error(this.color('Build failed to start:', 'red'), error.message);
       process.exit(1);
-    }
+    });
   }
 
   executeCLIServe(mode) {
@@ -455,6 +484,7 @@ class InteractiveInterface {
     this.customBuildMenu[1].label = `Minify: ${this.color(this.customBuildOptions.minify ? 'ON' : 'OFF', this.customBuildOptions.minify ? 'green' : 'red')}`;
     this.customBuildMenu[2].label = `Zip Align: ${this.color(this.customBuildOptions.zipalign ? 'ON' : 'OFF', this.customBuildOptions.zipalign ? 'green' : 'red')}`;
     this.customBuildMenu[3].label = `Debug: ${this.color(this.customBuildOptions.debug ? 'ON' : 'OFF', this.customBuildOptions.debug ? 'green' : 'red')}`;
+    this.customBuildMenu[4].label = `Packaging: ${this.color(this.customBuildOptions.noPack ? 'OFF' : 'ON', this.customBuildOptions.noPack ? 'red' : 'green')}`;
   }
 
   togglePlatform() {
@@ -479,6 +509,12 @@ class InteractiveInterface {
   
   toggleDebug() {
     this.customBuildOptions.debug = !this.customBuildOptions.debug;
+    this.updateCustomBuildLabels();
+    this.drawMenu();
+  }
+
+  togglePack() {
+    this.customBuildOptions.noPack = !this.customBuildOptions.noPack;
     this.updateCustomBuildLabels();
     this.drawMenu();
   }
@@ -667,46 +703,118 @@ class InteractiveInterface {
     if (this.customBuildOptions.debug) {
       args.push('--debug');
     }
+    if (this.customBuildOptions.noPack) {
+      args.push('--no-pack');
+    }
     this.runBuild(args);
   }
 
-  async runBuild(args) {
+  killProcessTree(child) {
+    if (!child || child.killed || child.exitCode !== null) return;
+    try {
+      if (process.platform === 'win32') {
+        spawn('taskkill', ['/pid', String(child.pid), '/T', '/F']);
+      } else if (process.platform === 'darwin' || process.platform === 'linux') {
+        // Negative pid targets the whole process group (build.js spawns
+        // execSync subprocesses like zip/neu/apksigner that must also die).
+        try {
+          process.kill(-child.pid, 'SIGKILL');
+        } catch (e) {
+          // Fall back to killing just the direct child if group kill fails.
+          child.kill('SIGKILL');
+        }
+      } else {
+        child.kill('SIGKILL');
+      }
+    } catch (e) {
+      // Process already gone; nothing to do.
+    }
+  }
+
+  runBuild(args) {
     this.clearScreen();
     this.drawLogo();
-    
+
     this.busy = true;
-    
+
     console.log(this.color('Starting build process...\n', 'yellow'));
     console.log(this.color('Build Arguments:', 'cyan'), args.join(' '));
+    console.log(this.color('Press Ctrl+C to cancel the build', 'dim'));
     console.log(this.color('─'.repeat(50), 'dim') + '\n');
-    
-    try {
-      this.currentBuild = new BuildSystem();
-      
-      await this.currentBuild.build(args);
-      
-      this.currentBuild = null;
-      
-      console.log(`\n${this.color('Build completed successfully!', 'green')}`);
-      
-      if (this.executingCliBuild) {
-        this.exit();
-        return;
-      }
-      
-      console.log(this.color('Press any key to return to menu...', 'dim'));
-      
-      if (this.isTermux() && !args.includes("--no-install") && args.includes("--cordova")) {
-        this.rl.input.once('data', () => this.showOpenApkConfirm());
-      } else {
+
+    return new Promise((resolve) => {
+      // Run the build in a child process so the parent event loop stays
+      // responsive and Ctrl+C can cancel it mid-build. stdio is inherited so
+      // tool progress (zip/neu/apksigner) is still visible in this terminal.
+      const buildJsPath = path.join(__dirname, 'build.js');
+      const child = spawn(process.execPath, [buildJsPath, ...args], {
+        cwd: process.cwd(),
+        stdio: 'inherit',
+        detached: process.platform !== 'win32',
+      });
+      this.currentBuildProc = child;
+
+      let cancelled = false;
+
+      const onSigint = () => {
+        if (cancelled) return;
+        cancelled = true;
+        console.log(`\n${this.color('Cancelling build...', 'yellow')}`);
+        this.killProcessTree(child);
+      };
+      const onKey = (key) => {
+        if (key === '\u0003') onSigint();
+      };
+
+      process.on('SIGINT', onSigint);
+      this.rl.input.on('data', onKey);
+
+      const cleanup = () => {
+        process.removeListener('SIGINT', onSigint);
+        this.rl.input.removeListener('data', onKey);
+        this.currentBuildProc = null;
+        this.busy = false;
+      };
+
+      child.on('error', (error) => {
+        cleanup();
+        console.log(`\n${this.color('Build failed to start!', 'red')}`);
+        console.log(this.color(error.message, 'dim'));
+        if (this.executingCliBuild) return this.exit();
+        console.log(this.color('Press any key to return to menu...', 'dim'));
         this.rl.input.once('data', () => this.showMainMenu());
-      }
-    } catch (error) {
-      console.log(`\n${this.color('Build failed!', 'red')}`);
-      console.log(this.color('Press any key to return to menu...', 'dim'));
-      
-      this.rl.input.once('data', () => this.showMainMenu());
-    }
+        resolve();
+      });
+
+      child.on('close', (code) => {
+        cleanup();
+
+        if (cancelled) {
+          console.log(`\n${this.color('Build cancelled.', 'yellow')}`);
+          if (this.executingCliBuild) return this.exit();
+          console.log(this.color('Press any key to return to menu...', 'dim'));
+          this.rl.input.once('data', () => this.showMainMenu());
+          return resolve();
+        }
+
+        if (code === 0) {
+          console.log(`\n${this.color('Build completed successfully!', 'green')}`);
+          if (this.executingCliBuild) return this.exit();
+          console.log(this.color('Press any key to return to menu...', 'dim'));
+          if (this.isTermux() && !args.includes('--no-install') && args.includes('--cordova')) {
+            this.rl.input.once('data', () => this.showOpenApkConfirm());
+          } else {
+            this.rl.input.once('data', () => this.showMainMenu());
+          }
+        } else {
+          console.log(`\n${this.color(`Build failed! (exit code ${code})`, 'red')}`);
+          if (this.executingCliBuild) return this.exit();
+          console.log(this.color('Press any key to return to menu...', 'dim'));
+          this.rl.input.once('data', () => this.showMainMenu());
+        }
+        resolve();
+      });
+    });
   }
 
   serveProject(mode) {
@@ -1184,6 +1292,12 @@ class InteractiveInterface {
   }
 
   exit() {
+    // While a build is running, Ctrl+C should cancel the build, not quit the
+    // app. The active build's own handler performs the cancellation.
+    if (this.currentBuildProc) {
+      this.killProcessTree(this.currentBuildProc);
+      return;
+    }
     this.cleanupServer();
     this.rl.close();
     process.exit(0);

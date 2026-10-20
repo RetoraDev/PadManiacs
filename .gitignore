@@ -17,4 +17,6 @@ dist/www.zip
 dist/*.apk
 dist/*.apk.idsig
 dist/padmaniacs-*.zip
+dist/neutralino/
+dist/android/
 src/static/android_app/res/xml/config.xml.bak
