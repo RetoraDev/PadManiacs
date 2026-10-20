@@ -5,6 +5,7 @@
 .nosearch
 *.apk
 *.exe
+!src/static/neutralino/bin/*.exe
 *build.zip
 log.txt
 save/
@@ -17,4 +18,3 @@ dist/*.apk
 dist/*.apk.idsig
 dist/padmaniacs-*.zip
 src/static/android_app/res/xml/config.xml.bak
-src/static/nw/

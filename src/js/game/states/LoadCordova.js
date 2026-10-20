@@ -54,7 +54,7 @@ class LoadCordova {
    * @returns {Promise<void>} Resolves once the folders have been created
    */
   async createFolderStructure() {
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
       this.fileSystemTools = new FileSystemTools();
       
       const fileSystem = this.fileSystemTools;

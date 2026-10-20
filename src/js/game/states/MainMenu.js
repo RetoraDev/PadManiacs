@@ -256,7 +256,7 @@ class MainMenu {
     
     game.onMenuIn.dispatch('home', carousel);
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
       carousel.addItem(__("Exit||Salir"), () => this.confirmExit());
       carousel.onCancel.add(() => this.confirmExit());
     }
@@ -297,13 +297,13 @@ class MainMenu {
       crop: false
     });
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
       carousel.addItem(__("User Songs||Canciones de Usuario"), () => this.loadExternalSongs());
       if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) carousel.addItem(__("Filesystem||Sistema de Archivos"), () => this.startFileSelect());
     }
     carousel.addItem(__("Load Single Song||Cargar Canción Individual"), () => this.loadSingleSong());
     
-    if (window.externalSongs && (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS)) {
+    if (window.externalSongs && (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO)) {
       carousel.addItem(__("Reload User Songs||Recargar Canciones de Usuario"), () => {
         backgroundMusic.refreshCache();
         window.externalSongs = undefined;
@@ -328,7 +328,7 @@ class MainMenu {
       crop: false
     });
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS || window.DEBUG) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO || window.DEBUG) {
       carousel.addItem(__("Addon Manager||Gestor de Addons"), () => this.showAddonManager());
     }
     carousel.addItem(__("Jukebox||Jukebox"), () => this.startJukebox());
@@ -440,8 +440,8 @@ class MainMenu {
           case ENVIRONMENT.CORDOVA:
             navigator.app.exitApp();
             break;
-          case ENVIRONMENT.NWJS:
-            nw?.App?.quit?.();
+          case ENVIRONMENT.NEUTRALINO:
+            Neutralino?.app?.exit?.();
             break;
         }
       },
@@ -496,7 +496,7 @@ class MainMenu {
    * Starts the Jukebox, optionally prompting to load external songs first.
    */
   startJukebox() {
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
       if (!window.externalSongs) {
         this.confirmDialog(
           __("Load extra songs from external storage?||¿Cargar canciones extras desde almacenamiento externo?"),

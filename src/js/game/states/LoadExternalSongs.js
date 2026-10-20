@@ -63,7 +63,7 @@ class LoadExternalSongs {
     /** @type {Set<string>} Names of directories currently being loaded */
     this.currentlyLoading = new Set();
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
       this.loadSongsFromStorage();
     } else {
       this.showFileInput();

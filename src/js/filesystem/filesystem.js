@@ -4,14 +4,14 @@
  * @summary Platform-agnostic file system access wrapper
  * @constructor
  * @features
- * Auto-detects runtime platform (NW.js, Cordova, or browser)
+ * Auto-detects runtime platform (Neutralino, Cordova, or browser)
  * Delegates all operations to the platform-specific implementation
  * Provides uniform API for directory listing, file reading, and writing
  * @description
  * FileSystemTools wraps platform-specific file system implementations behind a single
  * consistent API. It detects the current runtime on construction and selects the
- * appropriate backend (NodeFileSystem, CordovaFileSystem, or FallbackFileSystem) so
- * that the rest of the application never needs to care about the environment.
+ * appropriate backend (NeutralinoFileSystem, CordovaFileSystem, or FallbackFileSystem)
+ * so that the rest of the application never needs to care about the environment.
  * @example
  * // Accessing the file system from any platform
  * const fs = new FileSystemTools();
@@ -28,9 +28,9 @@ class FileSystemTools {
     /** @type {string} The detected runtime platform identifier */
     this.platform = this.detectPlatform();
     
-    if (this.platform === 'nwjs') {
+    if (this.platform === 'neutralino') {
       /** @type {Object} The platform-specific filesystem adapter */
-      this.fileSystem = new NodeFileSystem();
+      this.fileSystem = new NeutralinoFileSystem();
     } else if (this.platform === 'cordova') {
       this.fileSystem = new CordovaFileSystem();
     } else {
@@ -41,14 +41,14 @@ class FileSystemTools {
   }
 
   /**
-   * Determines the current runtime platform by checking for NW.js, Cordova,
+   * Determines the current runtime platform by checking for Neutralino, Cordova,
    * or falling back to the browser environment.
-   * @returns {string} One of 'nwjs', 'cordova', or 'fallback'
+   * @returns {string} One of 'neutralino', 'cordova', or 'fallback'
    */
   detectPlatform() {
-    // Check for NW.js
-    if (typeof nw !== 'undefined' && nw.process) {
-      return 'nwjs';
+    // Check for Neutralino.js (client connected, native API available)
+    if (typeof Neutralino !== 'undefined' && typeof NL_PATH !== 'undefined') {
+      return 'neutralino';
     }
     
     // Check for Cordova
@@ -107,11 +107,11 @@ class FileSystemTools {
   // Additional utility methods
   /**
    * Returns the base directory path for the current platform.
-   * Only meaningful on NW.js; returns empty string on other platforms.
+   * Only meaningful on Neutralino; returns empty string on other platforms.
    * @returns {string} The base path or an empty string
    */
   getBasePath() {
-    if (this.platform === 'nwjs' && this.fileSystem.getBasePath) {
+    if (this.platform === 'neutralino' && this.fileSystem.getBasePath) {
       return this.fileSystem.getBasePath();
     }
     return '';
@@ -122,16 +122,16 @@ class FileSystemTools {
    * @returns {boolean} True if the platform supports app exit
    */
   canExitApp() {
-    return this.platform === 'nwjs' || this.platform === 'cordova';
+    return this.platform === 'neutralino' || this.platform === 'cordova';
   }
 
   /**
-   * Terminates the application. Only works on NW.js and Cordova platforms.
+   * Terminates the application. Only works on Neutralino and Cordova platforms.
    */
   exitApp() {
-    if (this.platform === 'nwjs') {
-      if (typeof nw !== 'undefined' && nw.App) {
-        nw.App.quit();
+    if (this.platform === 'neutralino') {
+      if (typeof Neutralino !== 'undefined' && Neutralino.app) {
+        Neutralino.app.exit();
       }
     } else if (this.platform === 'cordova') {
       if (typeof navigator !== 'undefined' && navigator.app) {

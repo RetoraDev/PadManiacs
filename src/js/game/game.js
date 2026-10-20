@@ -82,8 +82,8 @@ window.openExternalUrl = url => {
     case ENVIRONMENT.CORDOVA:
       navigator.app.loadUrl(encodedUrl, { openExternal: true });
       break;
-    case ENVIRONMENT.NWJS:
-      nw.Shell.openExternal(encodedUrl);
+    case ENVIRONMENT.NEUTRALINO:
+      Neutralino.os.open(encodedUrl);
       break;
     case ENVIRONMENT.WEB:
     default:

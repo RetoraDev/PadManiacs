@@ -61,7 +61,7 @@ class InteractiveInterface {
       { label: 'Production Build (All Platforms)', action: () => this.runBuild(['--all', '--minify']) },
       { label: 'Web Platform Only', action: () => this.runBuild(['--web']) },
       { label: 'Android Platform Only', action: () => this.runBuild(['--cordova', '--zipalign']) },
-      { label: 'Windows Platform Only', action: () => this.runBuild(['--nwjs']) },
+      { label: 'Desktop (Neutralino) Platform Only', action: () => this.runBuild(['--neutralino']) },
       { label: 'Custom Build...', action: () => this.showCustomBuildMenu() },
       { label: 'Back to Main Menu', action: () => this.showMainMenu() }
     ];
@@ -103,7 +103,7 @@ class InteractiveInterface {
       serveSrc: false,
       build: false,
       cordova: false,
-      nwjs: false,
+      neutralino: false,
       noInstall: false,
       none: false,
       web: false,
@@ -134,8 +134,8 @@ class InteractiveInterface {
           parsed.cordova = true;
           parsed.build = true;
           break;
-        case '--nwjs':
-          parsed.nwjs = true;
+        case '--neutralino':
+          parsed.neutralino = true;
           parsed.build = true;
           break;
         case '--web':
@@ -221,7 +221,7 @@ class InteractiveInterface {
     
     console.log(this.color('Build Options:', 'yellow'));
     console.log('  --cordova        Build Android platform only');
-    console.log('  --nwjs           Build Windows platform only');
+    console.log('  --neutralino     Build Desktop (Neutralino.js) platform only');
     console.log('  --web            Build web platform only');
     console.log('  --all            Build all platforms (default)');
     console.log('  --minify         Enable minification');
@@ -257,8 +257,8 @@ class InteractiveInterface {
     // Determine platform
     if (this.cliArgs.cordova) {
       args.push('--cordova');
-    } else if (this.cliArgs.nwjs) {
-      args.push('--nwjs');
+    } else if (this.cliArgs.neutralino) {
+      args.push('--neutralino');
     } else if (this.cliArgs.web) {
       args.push('--web');
     } else if (this.cliArgs.none) {
@@ -458,7 +458,7 @@ class InteractiveInterface {
   }
 
   togglePlatform() {
-    const platforms = ['all', 'web', 'cordova', 'nwjs', 'none'];
+    const platforms = ['all', 'web', 'cordova', 'neutralino', 'none'];
     const currentIndex = platforms.indexOf(this.customBuildOptions.platform);
     this.customBuildOptions.platform = platforms[(currentIndex + 1) % platforms.length];
     this.updateCustomBuildLabels();
@@ -1151,10 +1151,10 @@ class InteractiveInterface {
           requires: "zip command to build www.zip"
         },
         {
-          name: "Windows",
-          description: "NW.JS Package for Windows",
-          supported: testSystem.hasZip(),
-          requires: "7-zip command to package nw.js"
+          name: "Desktop",
+          description: "Neutralino.js package (Linux/Windows/macOS, per-platform zips)",
+          supported: testSystem.hasZip() && testSystem.hasNeu(),
+          requires: "zip command and the Neutralino CLI (neu) to bundle resources.neu"
         },
         {
           name: "Android",

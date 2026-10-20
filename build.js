@@ -12,7 +12,7 @@ class BuildSystem {
       libDir: './lib',
       flags: {
         debug: false,
-        platform: 'all', // 'web', 'cordova', 'nwjs', 'all', 'none'
+        platform: 'all', // 'web', 'cordova', 'neutralino', 'all', 'none'
         minify: false,
         zipalign: false,
         ...flags
@@ -71,7 +71,7 @@ class BuildSystem {
       
       // Filesystem
       'js/filesystem/filesystem.js',
-      'js/filesystem/node-filesystem.js',
+      'js/filesystem/neutralino-filesystem.js',
       'js/filesystem/cordova-filesystem.js',
       'js/filesystem/fallback-filesystem.js',
       
@@ -219,7 +219,7 @@ class BuildSystem {
       'none': 'Development',
       'web': 'Web',
       'cordova': 'Android (Cordova)',
-      'nwjs': 'Windows (NW.js)',
+      'neutralino': 'Desktop (Neutralino.js)',
       'all': 'All Platforms'
     };
     return platformMap[platform] || platform;
@@ -239,7 +239,7 @@ class BuildSystem {
       if (arg === '--none') this.config.flags.platform = 'none';
       if (arg === '--cordova') this.config.flags.platform = 'cordova';
       if (arg === '--zipalign') this.config.flags.zipalign = true;
-      if (arg === '--nwjs') this.config.flags.platform = 'nwjs';
+      if (arg === '--neutralino') this.config.flags.platform = 'neutralino';
       if (arg === '--web') this.config.flags.platform = 'web';
       if (arg === '--all') this.config.flags.platform = 'all';
       if (arg === '--minify') this.config.flags.minify = true;
@@ -284,7 +284,7 @@ class BuildSystem {
         'none': 'ENVIRONMENT.UNKNOWN',
         'web': 'ENVIRONMENT.WEB',
         'cordova': 'ENVIRONMENT.CORDOVA', 
-        'nwjs': 'ENVIRONMENT.NWJS'
+        'neutralino': 'ENVIRONMENT.NEUTRALINO'
       };
       const currentEnv = envMap[platform] || 'ENVIRONMENT.WEB';
       content = content.replace(
@@ -390,11 +390,21 @@ class BuildSystem {
     }
   }
 
-  copyLibFiles() {
+  copyLibFiles(platform) {
     this.log('Copying lib files...', 'info');
     
     const libDest = path.join(this.config.distDir, 'lib');
     this.ensureDir(libDest);
+    
+    // Copy the Neutralino client library when targeting the desktop build
+    if (platform === 'neutralino') {
+      const nlClientSrc = path.join(this.config.srcDir, 'static/neutralino/resources/js/neutralino.js');
+      const nlClientDest = path.join(libDest, 'neutralino.js');
+      if (fs.existsSync(nlClientSrc)) {
+        fs.copyFileSync(nlClientSrc, nlClientDest);
+        this.log('neutralino.js copied to lib/', 'success');
+      }
+    }
     
     // Copy Phaser to lib folder
     const phaserLib = this.config.flags.debug ? 'phaser.js' : 'phaser.min.js';
@@ -500,6 +510,13 @@ class BuildSystem {
       
       // Build the proper script tags in correct order
       let scriptTags = '';
+      
+      // Add the Neutralino client + init before the game so NL_PATH and the
+      // native filesystem API exist when the game boots.
+      if (platform === 'neutralino') {
+        scriptTags += '  <script src="./lib/neutralino.js"></script>\n';
+        scriptTags += '  <script>window.Neutralino && Neutralino.init();</script>\n';
+      }
       
       // Add phaser from lib (always first)
       scriptTags += `  <script src="./lib/${this.config.flags.debug ? 'phaser.js' : 'phaser.min.js'}"></script>\n`;
@@ -711,6 +728,15 @@ class BuildSystem {
     }
   }
 
+  hasNeu() {
+    try {
+      execSync('neu --help', { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   hasApkSigner() {
     try {
       execSync('apksigner --help', { stdio: 'ignore' });
@@ -834,55 +860,173 @@ class BuildSystem {
     fs.rmSync(path.join(this.config.distDir, 'temp'), { recursive: true });
   }
   
-  async buildNWJS() {
-    this.log('Building NW.js Windows platform...', 'info');
-    
-    const nwStatic = path.join(this.config.srcDir, 'static/nw');
-    if (fs.existsSync(nwStatic)) {
-      // Create temporary NW.js build directory
-      const tempNwDir = path.join(this.config.distDir, 'temp', 'nw');
-      this.ensureDir(tempNwDir);
-      
-      // Copy NW.js binaries to temp directory
-      this.copyDir(nwStatic, tempNwDir, [".placeholder"]);
-      
-      // Replace version in temp package.json by current version
-      const packageJsonPath = path.join(tempNwDir, 'package.json');
-      if (fs.existsSync(packageJsonPath)) {
-        try {
-          const packageContent = fs.readFileSync(packageJsonPath, 'utf8');
-          const updatedContent = packageContent.replace('"version": "%"', `"version": "${this.packageInfo.version}"`);
-          fs.writeFileSync(packageJsonPath, updatedContent);
-          this.log(`Set NW.js package.json version to: ${this.packageInfo.version}`, 'success');
-        } catch (error) {
-          this.log('Failed to set NW.js package.json version', 'warning');
-          console.error(error);
-        }
-      }
-      
-      // Create platform-specific game.js for NW.js
-      const jsDest = path.join(tempNwDir, 'www/js');
-      this.ensureDir(jsDest);
-      const nwjsGameJS = await this.concatenateFiles('nwjs');
-      fs.writeFileSync(path.join(jsDest, 'game.js'), nwjsGameJS);
-      
-      // Copy other web files to NW.js www folder (no cordova)
-      this.copyDir(this.config.distDir, path.join(tempNwDir, 'www'), ['www.zip', 'padmaniacs-*.zip', '*.apk', '*.apk.idsig', 'temp', 'cordova', 'js']);
-      
-      // Create 7z archive for NW.js from temp directory
-      const nwZipName = `padmaniacs-v${this.packageInfo.version}-nwjs-win-x64.zip`;
-      const nwZipPath = path.join('../../', nwZipName);
-      if (this.create7zArchive(tempNwDir, nwZipPath)) {
-        this.log('NW.js platform build complete', 'success');
-      } else {
-        this.log('NW.js platform build failed - 7z command unavailable', 'warning');
-      }
-      
-      // Clean up temp directory
-      fs.rmSync(path.join(this.config.distDir, 'temp'), { recursive: true });
-    } else {
-      this.log('NW.js static files not found at: ' + nwStatic, 'warning');
+  async buildNeutralino() {
+    this.log('Building Desktop (Neutralino.js) platform...', 'info');
+
+    const neutralinoStatic = path.join(this.config.srcDir, 'static/neutralino');
+    if (!fs.existsSync(neutralinoStatic)) {
+      this.log('Neutralino static files not found at: ' + neutralinoStatic, 'warning');
+      return;
     }
+
+    // Neutralino binaries are committed read-only on some filesystems and the
+    // shared-storage fuse mount drops the +x bit, so always stage into the
+    // writable temp dir and set the executable bit there.
+    const tempRoot = path.join(require('os').tmpdir(), `padmaniacs-neutralino-${process.pid}`);
+    const tempNlDir = path.join(tempRoot, 'neutralino');
+    this.ensureDir(tempNlDir);
+
+    try {
+      // Copy Neutralino binaries + client library
+      this.copyDir(path.join(neutralinoStatic, 'bin'), path.join(tempNlDir, 'bin'));
+      this.copyDir(path.join(neutralinoStatic, 'resources'), path.join(tempNlDir, 'resources'));
+
+      // Restore executable bits on unix binaries
+      const binDir = path.join(tempNlDir, 'bin');
+      fs.readdirSync(binDir).forEach(file => {
+        if (file.startsWith('neutralino-linux') || file.startsWith('neutralino-mac')) {
+          try { fs.chmodSync(path.join(binDir, file), 0o755); } catch (e) {}
+        }
+      });
+
+      // Copy the Neutralino project config template
+      const configTemplate = path.join(neutralinoStatic, 'neutralino.config.json');
+      const configPath = path.join(tempNlDir, 'neutralino.config.json');
+      if (fs.existsSync(configTemplate)) {
+        fs.copyFileSync(configTemplate, configPath);
+      }
+
+      // Patch the config version placeholder
+      if (fs.existsSync(configPath)) {
+        const configContent = fs.readFileSync(configPath, 'utf8');
+        const updatedConfig = configContent.replace('"version": "%"', `"version": "${this.packageInfo.version}"`);
+        fs.writeFileSync(configPath, updatedConfig);
+        this.log(`Set Neutralino version to: ${this.packageInfo.version}`, 'success');
+      }
+
+      // Create platform-specific game.js (Neutralino environment)
+      const jsDest = path.join(tempNlDir, 'resources', 'js');
+      this.ensureDir(jsDest);
+      const neutralinoGameJS = await this.concatenateFiles('neutralino');
+      fs.writeFileSync(path.join(jsDest, 'game.js'), neutralinoGameJS);
+
+      // Copy the already-processed web assets into the Neutralino resources dir
+      this.copyDir(this.config.distDir, path.join(tempNlDir, 'resources'),
+        ['www.zip', 'padmaniacs-*.zip', 'padmaniacs-*.apk', 'padmaniacs-*.apk.idsig', 'temp', 'cordova', 'js', 'lib']);
+
+      // Copy shared libs (phaser, jszip, eruda, ffmpeg)
+      this.copyDir(path.join(this.config.distDir, 'lib'), path.join(tempNlDir, 'resources', 'lib'));
+
+      // Neutralino keeps app metadata + favicon at the resource root
+      const iconSrc = path.join(this.config.srcDir, 'icon.png');
+      const iconsDir = path.join(tempNlDir, 'resources', 'icons');
+      this.ensureDir(iconsDir);
+      if (fs.existsSync(iconSrc)) {
+        fs.copyFileSync(iconSrc, path.join(iconsDir, 'appIcon.png'));
+      }
+
+      // Split the built resources.neu per platform, one zip each.
+      // `neu build` (or an equivalent pack step) is run by the caller; here we
+      // simply package the staged neutralino project plus resources.neu.
+      this.packageNeutralinoPlatforms(tempNlDir);
+
+      this.log('Neutralino platform build complete', 'success');
+    } catch (error) {
+      this.log(`Neutralino build failed: ${error.message}`, 'error', error);
+    } finally {
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
+  }
+
+  /**
+   * Generates resources.neu and produces one distributable zip per platform.
+   * Neutralino's resources.neu is a platform-independent ASAR-style bundle, so a
+   * single bundle is shared by every binary; only the executable differs.
+   * @param {string} tempNlDir - Staged Neutralino project directory
+   */
+  packageNeutralinoPlatforms(tempNlDir) {
+    // Bundle the resources with the Neutralino CLI (writes resources.neu and
+    // patches windows executables). Requires the `neu` CLI on PATH.
+    let resourcesNeu = path.join(tempNlDir, 'resources.neu');
+    try {
+      execSync('neu build', { cwd: tempNlDir, stdio: 'inherit' });
+    } catch (error) {
+      this.log('Neu CLI failed; attempting to reuse an existing resources.neu', 'warning');
+    }
+
+    // Locate resources.neu (neu build writes it under the project's dist dir)
+    if (!fs.existsSync(resourcesNeu)) {
+      resourcesNeu = this.findFile(tempNlDir, 'resources.neu');
+    }
+    if (!resourcesNeu) {
+      this.log('Could not locate resources.neu; aborting platform packaging', 'error');
+      return;
+    }
+
+    const platforms = [
+      { bin: 'neutralino-linux_arm64',     out: `padmaniacs-v${this.packageInfo.version}-neutralino-linux-arm64.zip` },
+      { bin: 'neutralino-linux_armhf',     out: `padmaniacs-v${this.packageInfo.version}-neutralino-linux-armhf.zip` },
+      { bin: 'neutralino-linux_x64',       out: `padmaniacs-v${this.packageInfo.version}-neutralino-linux-x64.zip` },
+      { bin: 'neutralino-win_x64.exe',     out: `padmaniacs-v${this.packageInfo.version}-neutralino-win-x64.zip` },
+      { bin: 'neutralino-mac_x64',         out: `padmaniacs-v${this.packageInfo.version}-neutralino-mac-x64.zip` },
+      { bin: 'neutralino-mac_arm64',       out: `padmaniacs-v${this.packageInfo.version}-neutralino-mac-arm64.zip` },
+      { bin: 'neutralino-mac_universal',   out: `padmaniacs-v${this.packageInfo.version}-neutralino-mac-universal.zip` },
+    ];
+
+    const binDir = path.join(tempNlDir, 'bin');
+    const neuDistDir = path.join(tempNlDir, 'dist');
+    const configPath = path.join(tempNlDir, 'neutralino.config.json');
+    const binaryName = this.packageInfo.name || 'padmaniacs';
+
+    for (const { bin, out } of platforms) {
+      // Prefer the renamed + patched binaries that `neu build` emits, falling
+      // back to the raw staged binaries when the CLI was unavailable.
+      const neuName = bin.replace(/^neutralino-/, binaryName + '-');
+      const neuCandidate = neuDistDir ? this.findFile(neuDistDir, neuName) : null;
+      const sourceBin = neuCandidate || path.join(binDir, bin);
+      if (!sourceBin || !fs.existsSync(sourceBin)) {
+        this.log(`Skipping missing binary: ${bin}`, 'warning');
+        continue;
+      }
+
+      // Build a per-platform staging dir: <binaryName><ext>, resources.neu, config
+      const stageDir = path.join(tempNlDir, 'stage', out.replace(/\.zip$/, ''));
+      this.ensureDir(stageDir);
+
+      const isExe = bin.endsWith('.exe');
+      const targetBin = path.join(stageDir, binaryName + (isExe ? '.exe' : ''));
+      fs.copyFileSync(sourceBin, targetBin);
+      if (!isExe) {
+        try { fs.chmodSync(targetBin, 0o755); } catch (e) {}
+      }
+      fs.copyFileSync(resourcesNeu, path.join(stageDir, 'resources.neu'));
+      fs.copyFileSync(configPath, path.join(stageDir, 'neutralino.config.json'));
+
+      const zipPath = path.resolve(this.config.distDir, out);
+      this.createZipArchive(stageDir, zipPath);
+
+      fs.rmSync(stageDir, { recursive: true, force: true });
+    }
+  }
+
+  /**
+   * Recursively finds the first file with the given name under a directory.
+   * @param {string} dir - Directory to search
+   * @param {string} name - File name to look for
+   * @returns {string|null} The full path or null
+   */
+  findFile(dir, name) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        const found = this.findFile(full, name);
+        if (found) return found;
+      } else if (entry.name === name) {
+        return full;
+      }
+    }
+    return null;
   }
   
   async buildAndroid() {
@@ -969,14 +1113,14 @@ class BuildSystem {
       
       // Then build each platform with their specific environment
       await this.buildAndroid();
-      await this.buildNWJS();
+      await this.buildNeutralino();
       await this.buildWeb();
     } else if (platform === 'web') {
       await this.buildBaseFiles('web');
       await this.buildWeb();
-    } else if (platform === 'nwjs') {
-      await this.buildBaseFiles('nwjs');
-      await this.buildNWJS();
+    } else if (platform === 'neutralino') {
+      await this.buildBaseFiles('neutralino');
+      await this.buildNeutralino();
       await this.buildWeb();
     } else if (platform === 'cordova') {
       await this.buildBaseFiles('cordova');
@@ -1002,7 +1146,7 @@ class BuildSystem {
     // Copy other files to base dist
     this.copyAssets();
     this.copyCSS();
-    this.copyLibFiles();
+    this.copyLibFiles(platform);
     this.copyStaticFiles();
     this.processIndexHTML(platform);
   }

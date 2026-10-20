@@ -10,7 +10,7 @@
     "build:dev": "node build.js --none debug",
     "build:web": "node build.js --web",
     "build:cordova": "node build.js --cordova",
-    "build:nwjs": "node build.js --nwjs",
+    "build:neutralino": "node build.js --neutralino",
     "build:min": "node build.js --all --minify",
     "build:dev": "node build.js --none",
     "build:release": "node build.js --all --minify --zipalign",
