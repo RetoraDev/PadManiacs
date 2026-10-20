@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0 dev
- * Build: 10/20/2026, 10:24:50 AM
+ * Build: 10/20/2026, 10:42:47 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -25764,7 +25764,14 @@ class Keybindings {
    */
   update() {
     gamepad.update();
-    this.windowManager.update();
+    
+    // When the key wait overlay is active, don't process window navigation
+    // to prevent the same key press from triggering both the overlay and
+    // the underlying menu (double UI issue).
+    if (!this.waitOverlayActive) {
+      this.windowManager.update();
+    }
+    
     this.updateNotifications();
   }
   
