@@ -192,6 +192,11 @@ class Keybindings {
       this.showGamepadCustomization(2);
     });
     
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window) {
+      settingsWindow.addItem(__("Fullscreen (F11)||Pantalla Completa (F11)"), "", () => {}, false);
+    }
+    settingsWindow.addItem(__("Screenshot (PrintScreen)||Captura de Pantalla (Impr Pant)"), "", () => {}, false);
+    
     settingsWindow.addItem(__("Reset To Defaults||Restablecer"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(

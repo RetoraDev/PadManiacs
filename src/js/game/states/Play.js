@@ -152,6 +152,25 @@ class Play {
     if (backgroundMusic) {
       backgroundMusic.stop();
     }
+
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window && this.song) {
+      try {
+        let chartTitle = '';
+        let chartAuthor = '';
+        if (this.song.chart) {
+          chartTitle = this.song.chart.title || this.song.title || '';
+          chartAuthor = this.song.chart.author || this.song.author || '';
+        }
+        if (!chartTitle && this.song.title) chartTitle = this.song.title;
+        if (!chartAuthor && this.song.author) chartAuthor = this.song.author;
+        let title = chartTitle;
+        if (chartAuthor) title += ' (Chart by ' + chartAuthor + ')';
+        title += ' - PadManiacs';
+        Neutralino.window.setTitle(title);
+      } catch (e) {
+        console.warn('Failed to set Neutralino window title', e);
+      }
+    }
     
     game.camera.fadeIn(0x000000);
     
@@ -1703,6 +1722,48 @@ class Play {
    */
   update() {
     gamepad.update();
+
+    // Neutralino: fullscreen toggle (F11)
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window && game.input && game.input.keyboard) {
+      const f11Down = game.input.keyboard.isDown(Phaser.KeyCode.F11);
+      if (f11Down && !this._lastF11Key) {
+        try {
+          Neutralino.window.isFullScreen().then(isFs => {
+            try {
+              if (isFs) {
+                Neutralino.window.exitFullScreen();
+              } else {
+                Neutralino.window.setFullScreen();
+              }
+            } catch (e) {
+              console.warn('Failed to toggle fullscreen', e);
+            }
+          }).catch(() => {
+            try {
+              Neutralino.window.setFullScreen();
+            } catch (e) {}
+          });
+        } catch (e) {
+          console.warn('Failed to check fullscreen state', e);
+        }
+      }
+      this._lastF11Key = f11Down;
+    }
+
+    // Screenshot (PrintScreen)
+    if (game.input && game.input.keyboard) {
+      const prtscDown = game.input.keyboard.isDown(Phaser.KeyCode.PRINT_SCREEN);
+      if (prtscDown && !this._lastPrintScreenKey) {
+        try {
+          if (game.recorder && typeof game.recorder.screenshot === 'function') {
+            game.recorder.screenshot();
+          }
+        } catch (e) {
+          console.warn('Failed to take screenshot', e);
+        }
+      }
+      this._lastPrintScreenKey = prtscDown;
+    }
         
     if (this.isPaused) return;
     
@@ -1792,6 +1853,12 @@ class Play {
    */
   shutdown() {
     this.shootingDown = true;
+
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window) {
+      try {
+        Neutralino.window.setTitle('PadManiacs');
+      } catch (e) {}
+    }
     
     if (this._bgEffectTimer) {
       clearInterval(this._bgEffectTimer);
