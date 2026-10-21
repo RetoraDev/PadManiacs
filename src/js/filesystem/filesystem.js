@@ -180,15 +180,16 @@ class FileSystemTools {
   }
 
   /**
-   * Moves a file or folder to trash (Neutralino only)
-   * @param {string} path 
+   * Executes a shell command (Neutralino only)
+   * @param {string} command 
+   * @param {Object} options 
    * @returns {Promise<any>}
    */
-  trashItem(path) {
-    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.trashItem) {
-      return Neutralino.os.trashItem(path);
+  execCommand(command, options = {}) {
+    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
+      return Neutralino.os.execCommand(command, options);
     }
-    return Promise.reject(new Error('trashItem not supported on this platform'));
+    return Promise.reject(new Error('execCommand not supported on this platform'));
   }
 
   /**

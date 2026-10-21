@@ -165,14 +165,27 @@ class Boot {
       // AVI bgvideo decode settings (added in 1.3)
       if (!Account.settings.aviSettings) {
         Account.settings.aviSettings = { ...DEFAULT_ACCOUNT.settings.aviSettings };
+      } else {
+        if (typeof Account.settings.aviSettings.useSystemFfmpeg === 'undefined') {
+          Account.settings.aviSettings.useSystemFfmpeg = false;
+        }
       }
     }
     
-    // Version 1.4: offset sign convention flipped so positive = audio delay.
-    // Negate stored offset once so existing calibrations feel identical.
-    if (oldVersion < 1.4) {
-      if (typeof Account.settings.userOffset === "number") {
-        Account.settings.userOffset = -Account.settings.userOffset;
+    // Version 1.3: add AVI settings
+    if (oldVersion < 1.3) {
+      if (!Account.settings.aviSettings) {
+        Account.settings.aviSettings = { ...DEFAULT_ACCOUNT.settings.aviSettings };
+      }
+      if (typeof Account.settings.aviSettings.useSystemFfmpeg === 'undefined') {
+        Account.settings.aviSettings.useSystemFfmpeg = false;
+      }
+    } else if (oldVersion >= 1.3 && oldVersion < 1.4) {
+      if (!Account.settings.aviSettings) {
+        Account.settings.aviSettings = { ...DEFAULT_ACCOUNT.settings.aviSettings };
+      }
+      if (typeof Account.settings.aviSettings.useSystemFfmpeg === 'undefined') {
+        Account.settings.aviSettings.useSystemFfmpeg = false;
       }
     }
     

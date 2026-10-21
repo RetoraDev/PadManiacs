@@ -1,6 +1,6 @@
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
-  version: 1.4, // 1.4.0
+  version: 1.4, // 1.3.0
   firstRun: true,
   settings: {
     volume: 100,
@@ -44,7 +44,8 @@ const DEFAULT_ACCOUNT = {
       ffmpegPreset: 'ultrafast',
       crf: 32,
       scaleToGameRes: false,
-      deleteOriginal: false
+      deleteOriginal: false,
+      useSystemFfmpeg: false
     },
     // Addon system settings
     safeMode: false,
