@@ -38,16 +38,13 @@ class LoadExternalSongs {
     /** @type {ProgressText} Bilingual progress text shown while songs load */
     this.progressText = new ProgressText(__("Loading External Songs...||Cargando canciones externas..."));
     
-    /** @type {FileSystemTools} Helper for reading directories and files */
-    this.fileSystem = new FileSystemTools();
-    
     if (window.externalSongs) {
       /** @type {Array<Object>} Parsed external song charts */
       this.songs = window.externalSongs;
       this.finish(window.lastExternalSongIndex || 0);
       return;
     }
-    
+
     /** @type {Array<Object>} Parsed external song charts collected so far */
     this.songs = [];
     /** @type {ExternalSMParser} Parser used to read external chart files */
@@ -62,8 +59,11 @@ class LoadExternalSongs {
     this.totalCount = 0;
     /** @type {Set<string>} Names of directories currently being loaded */
     this.currentlyLoading = new Set();
+
+    this.fileSystem = new FileSystemTools();
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+      this.targetDirectory = EXTERNAL_DIRECTORY + SONGS_DIRECTORY;
       this.loadSongsFromStorage();
     } else {
       this.showFileInput();
@@ -77,8 +77,15 @@ class LoadExternalSongs {
    */
   async loadSongsFromStorage() {
     try {
-      const rootDir = await this.fileSystem.getDirectory(EXTERNAL_DIRECTORY + SONGS_DIRECTORY);
-      const allDirs = await this.fileSystem.listAllDirectories(rootDir);
+      this.targetDirectory = EXTERNAL_DIRECTORY + SONGS_DIRECTORY;
+      const rootDir = await this.fileSystem.getDirectory(this.targetDirectory);
+      let allDirs = [];
+      try {
+        allDirs = await this.fileSystem.listAllDirectories(rootDir);
+      } catch (e) {
+        console.warn('listAllDirectories failed, trying manual scan', e);
+        allDirs = [];
+      }
       allDirs.unshift(rootDir);
 
       this.totalCount = allDirs.length;
@@ -431,8 +438,7 @@ class LoadExternalSongs {
   }
   
   /**
-   * Displays an error message on the progress text and returns to the main menu after
-   * a short delay.
+   * Writes an error message and returns to the main menu after a short delay.
    * @param {string} message - Error message to display
    */
   showError(message) {
@@ -441,7 +447,7 @@ class LoadExternalSongs {
       game.state.start("MainMenu");
     });
   }
-  
+
   /**
    * Sorts the loaded songs, caches them in window.externalSongs, and starts the next
    * state, defaulting to the song select screen, or shows an error if nothing loaded.

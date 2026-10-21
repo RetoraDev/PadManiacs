@@ -311,17 +311,21 @@ class NeutralinoFileSystem {
     if (typeof NL_PATH !== 'undefined' && NL_PATH) {
       return NL_PATH;
     }
+    if (typeof window !== 'undefined' && window.NL_PATH) {
+      return window.NL_PATH;
+    }
     return '.';
   }
 
   /**
-   * Converts a relative path into an absolute path for Neutralino native calls.
+   * Resolves a relative path into an absolute path for Neutralino native calls.
    * @param {string} relativePath - Path relative to the base directory
    * @returns {string} The absolute filesystem path
    */
   resolvePath(relativePath) {
     const relative = (relativePath || '').replace(/^\/+/, '').replace(/\/+$/, '');
     if (!relative) return this.basePath;
+    if ((relativePath || '').startsWith(this.basePath)) return relativePath.replace(/\/+$/, '');
     return `${this.basePath}/${relative}`.replace(/\/+/g, '/');
   }
 

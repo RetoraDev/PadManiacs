@@ -48,6 +48,10 @@ class LoadExternalSongFile {
     /** @type {ExternalSMParser} Parser used to read external chart files */
     this.parser = new ExternalSMParser();
     
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+      this.fileSystem.fileSystem.basePath = '';
+    }
+    
     if (this.fileName.endsWith('.zip')) {
       this.loadZipFileData();
     } else {

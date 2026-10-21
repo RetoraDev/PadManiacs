@@ -139,4 +139,65 @@ class FileSystemTools {
       }
     }
   }
+
+  /**
+   * Shows a native open dialog (Neutralino only)
+   * @param {string} title 
+   * @param {Object} options 
+   * @returns {Promise<Array<string>>}
+   */
+  showOpenDialog(title, options = {}) {
+    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showOpenDialog) {
+      return Neutralino.os.showOpenDialog(title, options);
+    }
+    return Promise.reject(new Error('showOpenDialog not supported on this platform'));
+  }
+
+  /**
+   * Shows a native folder dialog (Neutralino only)
+   * @param {string} title 
+   * @param {Object} options 
+   * @returns {Promise<string>}
+   */
+  showFolderDialog(title, options = {}) {
+    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showFolderDialog) {
+      return Neutralino.os.showFolderDialog(title, options);
+    }
+    return Promise.reject(new Error('showFolderDialog not supported on this platform'));
+  }
+
+  /**
+   * Shows a native save dialog (Neutralino only)
+   * @param {string} title 
+   * @param {Object} options 
+   * @returns {Promise<string>}
+   */
+  showSaveDialog(title, options = {}) {
+    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showSaveDialog) {
+      return Neutralino.os.showSaveDialog(title, options);
+    }
+    return Promise.reject(new Error('showSaveDialog not supported on this platform'));
+  }
+
+  /**
+   * Moves a file or folder to trash (Neutralino only)
+   * @param {string} path 
+   * @returns {Promise<any>}
+   */
+  trashItem(path) {
+    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.trashItem) {
+      return Neutralino.os.trashItem(path);
+    }
+    return Promise.reject(new Error('trashItem not supported on this platform'));
+  }
+
+  /**
+   * Direct access to Neutralino filesystem
+   */
+  get neutralinoFs() {
+    if (this.platform === 'neutralino') {
+      return this.fileSystem;
+    }
+    return null;
+  }
 }
