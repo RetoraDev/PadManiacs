@@ -91,6 +91,10 @@ class Boot {
     if (!Account.mapping || !Account.mapping.keyboard.player1 || !Account.mapping.gamepad.player1) {
       Account.mapping = DEFAULT_ACCOUNT.mapping;
     }
+
+    if (typeof Account.firstRun === 'undefined') {
+      Account.firstRun = true;
+    }
     
     // Add background opacity field 
     if (isNaN(Account.settings.backgroundOpacity) || typeof Account.settings.backgroundOpacity == undefined) Account.settings.backgroundOpacity = 0.3; 

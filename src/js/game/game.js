@@ -14,6 +14,16 @@ const _File = window.File;
  */
 const saveAccount = () => localStorage.setItem("Account", JSON.stringify(Account));
 
+// Auto-switch to Canvas on first run for Neutralino on Linux/Mac (poor WebGL)
+if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && Account.firstRun) {
+  const poorGL = window.PAD_IS_LINUX || window.PAD_IS_MAC;
+  if (poorGL && Account.settings && Account.settings.renderer === 0) {
+    Account.settings.renderer = 1; // Canvas
+  }
+  Account.firstRun = false;
+  saveAccount();
+}
+
 /**
  * Initializes and starts the Phaser game
  */

@@ -2,13 +2,16 @@
   "$schema": "https://raw.githubusercontent.com/neutralinojs/neutralinojs/main/schemas/neutralino.config.schema.json",
   "applicationId": "com.retora.padmaniacs",
   "version": "%",
+  "author": "Retora, https://retora.itch.io",
+  "description": "Pocket Pixel Art StepMania Clone",
+  "copyright": "© Retora 2026",
   "defaultMode": "window",
-  "port": 0,
+  "port": 5050,
   "documentRoot": "/resources/",
   "url": "/",
   "enableServer": true,
   "enableNativeAPI": true,
-  "tokenSecurity": "one-time",
+  "tokenSecurity": "none",
   "logging": {
     "enabled": true,
     "writeToLogFile": true
@@ -23,20 +26,22 @@
   "modes": {
     "window": {
       "title": "PadManiacs",
-      "width": 480,
-      "height": 280,
+      "width": 720,
+      "height": 420,
       "minWidth": 240,
       "minHeight": 140,
       "center": true,
       "fullScreen": false,
       "alwaysOnTop": false,
       "icon": "/resources/icons/appIcon.png",
-      "enableInspector": false,
+      "enableInspector": %,
       "borderless": false,
       "maximize": false,
       "hidden": false,
       "resizable": true,
-      "exitProcessOnClose": false
+      "exitProcessOnClose": true,
+      "useLogicalPixels": true,
+      "injectClientLibrary": true
     }
   },
   "cli": {

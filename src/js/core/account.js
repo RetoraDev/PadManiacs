@@ -1,6 +1,7 @@
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
   version: 1.4, // 1.4.0
+  firstRun: true,
   settings: {
     volume: 100,
     sfxVolume: 100,

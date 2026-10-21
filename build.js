@@ -117,7 +117,7 @@ class BuildSystem {
       // Game states
       'js/game/states/Boot.js',
       'js/game/states/Load.js',
-      'js/game/states/LoadCordova.js',
+      'js/game/states/LoadPlatform.js',
       'js/game/states/LoadAddons.js',
       'js/game/states/LoadLocalSongs.js',
       'js/game/states/LoadExternalSongs.js',
@@ -515,13 +515,17 @@ class BuildSystem {
       // Build the proper script tags in correct order
       let scriptTags = '';
       
-      // Add the Neutralino client + init before the game so NL_PATH and the
-      // native filesystem API exist when the game boots.
+      // Neutralino's server prepends the globals (NL_TOKEN, NL_PORT, ...) to
+      // the response of the script whose path ends in "neutralino.js". With
+      // tokenSecurity "one-time" the token is returned ONLY on the first such
+      // request, so this script must be the single one that fetches it: do NOT
+      // also load __neutralino_globals.js, or the client gets an empty token
+      // (connectToken=undefined) and dies with NE_CL_IVCTOKN.
+      // Neutralino.init() is called by LoadPlatform once the game boots.
       if (platform === 'neutralino') {
         scriptTags += '  <script src="./lib/neutralino.js"></script>\n';
-        scriptTags += '  <script>window.Neutralino && Neutralino.init();</script>\n';
       }
-      
+
       // Add phaser from lib (always first)
       scriptTags += `  <script src="./lib/${this.config.flags.debug ? 'phaser.js' : 'phaser.min.js'}"></script>\n`;
       
@@ -568,7 +572,7 @@ class BuildSystem {
     // Debug initialization
     if (typeof window.eruda !== 'undefined' && (window.DEBUG || location.search.includes('debug'))) {
       eruda.init({
-        tool: ['console', 'elements', 'resources', 'snippets']
+        tool: ['console', 'elements', 'resources', 'network', 'snippets']
       });
       
       const snippets = eruda.get('snippets');
@@ -628,6 +632,27 @@ class BuildSystem {
       snippets.add("Destroy Eruda", () => {
         eruda.destroy();
       }, "Remove debug panel");
+      
+      if (typeof window.Neutralino != undefined) {
+        console._log = console.log;
+        console.log = function(...args) {
+          console._log(...args);
+          Neutralino.debug.log(args.join(" "), "INFO");
+        };
+        
+        console._warn = console.warn;
+        console.warn = function(...args) {
+          console._warn(...args);
+          Neutralino.debug.log(args.join(" "), "WARNING");
+        };
+        
+        window.onerror = function(details, file, line) {
+	        var path = file.split("/");
+		      var filename = path[path.length-1];
+		      var message = path + "<br>Line " + line + " of " + file + "(" + filename + ")";
+		      Neutralino.debug.log(message, "ERROR");
+        };
+      }
       
       console.log('PadManiacs Debug Mode Active');
     }
@@ -916,7 +941,9 @@ class BuildSystem {
       // Patch the config version placeholder
       if (fs.existsSync(configPath)) {
         const configContent = fs.readFileSync(configPath, 'utf8');
-        const updatedConfig = configContent.replace('"version": "%"', `"version": "${this.packageInfo.version}"`);
+        const updatedConfig = configContent
+          .replace('"version": "%"', `"version": "${this.packageInfo.version}"`)
+          .replace('"enableInspector": %', `"enableInspector": ${this.config.flags.debug}`);
         fs.writeFileSync(configPath, updatedConfig);
         this.log(`Set Neutralino version to: ${this.packageInfo.version}`, 'success');
       }
