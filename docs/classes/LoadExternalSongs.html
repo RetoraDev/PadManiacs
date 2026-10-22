@@ -23,7 +23,6 @@
     [ nextStateParams | Array | Parameters forwarded to the next state ]
     [ loadingDots | LoadingDots | Animated loading indicator dots ]
     [ progressText | ProgressText | Bilingual progress text shown while songs load ]
-    [ fileSystem | FileSystemTools | Helper for reading directories and files ]
     [ songs | Array&lt;Object&gt; | Parsed external song charts ]
     [ songs | Array&lt;Object&gt; | Parsed external song charts collected so far ]
     [ parser | ExternalSMParser | Parser used to read external chart files ]
@@ -54,7 +53,7 @@
     [ processFileDirectoriesSequential | (directories, dirNames) | Processes every picked directory sequentially, one at a time. ]
     [ processSongFilesWithTracking | (files, folderName) | Parses the files of one picked folder while tracking progress and refresh the progress display once the folder has been processed. ]
     [ processSongFiles | (files, folderName) | Finds the .sm files within a picked folder and returns the first chart that parses successfully, or null if the folder holds no loadable chart. ]
-    [ showError | (message) | Displays an error message on the progress text and returns to the main menu after a short delay. ]
+    [ showError | (message) | Writes an error message and returns to the main menu after a short delay. ]
     [ finish | (resetIndex) | Sorts the loaded songs, caches them in window.externalSongs, and starts the next state, defaulting to the song select screen, or shows an error if nothing loaded. ]
     [/table]
 

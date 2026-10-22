@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
-    <title>LoadCordova - PadManiaX Modding API Documentation</title>
+    <title>LoadPlatform - PadManiaX Modding API Documentation</title>
 </head>
 <body class="doki-hidden">
     <script src="../doki-loader.js"></script>
-    [title: "LoadCordova Class"]
+    [title: "LoadPlatform Class"]
 
     <a href="../">← Back to index</a>
 
-    <p>Initialize Cordova on mobile devices, initialize file system</p>
+    <p>Initialize platform (Cordova, Neutralino) and file system</p>
 
     [heading: "Description"]
-    <p>A conditional startup state that runs before any external storage is accessed. When the game is running inside a Cordova environment the Cordova script is injected and the filesystem is created once the device is ready; on other platforms the game proceeds straight to building the required directory structure.</p>
+    <p>A conditional startup state that runs before any external storage is accessed. When the game is running inside a Cordova environment the Cordova script is injected and the filesystem is created once the device is ready; on Neutralino it initializes the Neutralino client and creates the required directory structure; on other platforms it builds the folder structure immediately.</p>
 
     [heading: "Methods"]
     [table header]
@@ -30,8 +30,8 @@
     [heading: "Example Usage (Modding)"]
     [codeblock javascript]
 // Added to the boot chain so storage directories exist before song loading.
-game.state.add('LoadCordova', LoadCordova);
-game.state.start('LoadCordova');
+game.state.add('LoadPlatform', LoadPlatform);
+game.state.start('LoadPlatform');
     [/codeblock]
 
     [footer: "&copy; Retora 2026"]

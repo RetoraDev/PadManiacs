@@ -52,6 +52,7 @@
     [ update | () | Updates the metronome each frame, dispatching to the active mode's update logic. ]
     [ updateBeatMode | () | Plays a tick whenever the beat crosses into a new subdivision value. ]
     [ updateNoteMode | () | Triggers ticks as the song time reaches the beat of each chart note. ]
+    [ syncNoteIndexToCurrentBeat | (currentBeat) | Syncs the note index to the current song beat so the metronome starts ticking from the current position instead of the beginning of the chart. This fixes the delay when toggling Note mode mid-song. ]
     [ initializeNotes | () | Builds a sorted list of unique note beats from the current difficulty chart. ]
     [ getCurrentDivisionValue | (beat) | Computes the current subdivision value by scaling the beat with the mode's multiplier. ]
     [ playTick | () | Plays the metronome tick sound effect. ]

@@ -38,6 +38,11 @@
     [ getBasePath | () | Returns the base directory path for the current platform. Only meaningful on Neutralino; returns empty string on other platforms. ]
     [ canExitApp | () | Checks whether the application can be programmatically closed on this platform. ]
     [ exitApp | () | Terminates the application. Only works on Neutralino and Cordova platforms. ]
+    [ showOpenDialog | (title, options) | Shows a native open dialog (Neutralino only) ]
+    [ showFolderDialog | (title, options) | Shows a native folder dialog (Neutralino only) ]
+    [ showSaveDialog | (title, options) | Shows a native save dialog (Neutralino only) ]
+    [ execCommand | (command, options) | Executes a shell command (Neutralino only) ]
+    [ neutralinoFs | () | Direct access to Neutralino filesystem ]
     [/table]
 
 

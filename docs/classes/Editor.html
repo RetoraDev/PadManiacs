@@ -43,6 +43,7 @@
     [ chartRenderer | ChartRenderer | Renders the chart and manages note visuals. ]
     [ metronome | Metronome | Metronome helper for note timing feedback. ]
     [ audio | HTMLAudioElement | Audio element used for playback and previews. ]
+    [ audioContext | AudioContext|null | Audio context for latency compensation ]
     [/table]
 
 
@@ -79,6 +80,7 @@
     [ getDivisionSize | () | Returns the grid division size used for snapping. ]
     [ getSnappedBeat | (beat) | Snaps a beat value to the current grid division. ]
     [ getCurrentTime | () | Returns the current time and beat, from playback or the cursor position. ]
+    [ getAudioOutputLatency | () | Reads the audio output latency from the active audio context, if any. ]
     [ handleChartEditInput | () | Processes gamepad input for editing: selecting, placing, and seeking. ]
     [ togglePlayback | () | Starts or stops chart playback depending on the current state. ]
     [ startPlayback | () | Begins playback from the cursor position and starts the audio. ]
