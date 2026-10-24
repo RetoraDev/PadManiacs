@@ -187,6 +187,9 @@ class Boot {
       if (typeof Account.settings.aviSettings.useSystemFfmpeg === 'undefined') {
         Account.settings.aviSettings.useSystemFfmpeg = false;
       }
+      if (typeof Account.settings.touch === 'undefined') {
+        Account.settings.touch = DEFAULT_ACCOUNT.settings.touch;
+      }
     }
     
     Account.version = currentVersion;
@@ -201,7 +204,18 @@ class Boot {
     notifications = new NotificationSystem();
     
     this.fixSettings();
-
+    
+    // Initialize touch controls css variables
+    document.body.style.setProperty("--controls-scale-portrait", `${Account.settings.touch.controlsScalePortrait}`);
+    document.body.style.setProperty("--controls-scale-landscape", `${Account.settings.touch.controlsScaleLandscape}`);
+    document.body.style.setProperty("--controls-opacity-portrait", `${Account.settings.touch.controlsOpacityPortrait}`);
+    document.body.style.setProperty("--controls-opacity-landscape", `${Account.settings.touch.controlsOpacityLandscape}`);
+    document.body.style.setProperty("--rhythm-pad-scale-portrait", `${Account.settings.touch.rhythmPadScalePortrait}`);
+    document.body.style.setProperty("--rhythm-pad-scale-landscape", `${Account.settings.touch.rhythmPadScaleLandscape}`);
+    document.body.style.setProperty("--controller-parent-height", `${100 - Account.settings.touch.portraitScreenPosition}%`);
+    document.body.style.setProperty("--rhythm-pad-visibility-landscape", `${Account.settings.touch.showRhythmPadInLandscape ? "visible" : "hidden"}`);
+    __updateRhythmPadSize();
+  
     /** @type {InputManager} Global input manager handling input system definitions */
     window.inputManager = new InputManager(game);
     
@@ -233,6 +247,7 @@ class Boot {
     game.state.add("ChartModifiers", ChartModifiers);
     game.state.add("Keybindings", Keybindings);
     game.state.add("AviSettings", AviSettings);
+    game.state.add("TouchSettings", TouchSettings);
     game.state.add("SongSelect", SongSelect);
     game.state.add("DecodeAvi", DecodeAvi);
     game.state.add("SongStats", SongStats);

@@ -1,6 +1,6 @@
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
-  version: 1.4, // 1.3.0
+  version: 1.31, // 1.3.0
   firstRun: true,
   settings: {
     volume: 100,
@@ -31,6 +31,16 @@ const DEFAULT_ACCOUNT = {
     videoFps: 1, // 60 FPS
     enableSongInfo: true,
     enableTemperature: false,
+    touch: {
+      controlsScalePortrait: 1.0,
+      controlsScaleLandscape: 1.0,
+      controlsOpacityPortrait: 0.4,
+      controlsOpacityLandscape: 0.4,
+      rhythmPadScalePortrait: 1.0,
+      rhythmPadScaleLandscape: 1.0,
+      portraitScreenPosition: 45,
+      showRhythmPadInLandscape: true
+    },
     chartModifiers: {
       'NO JUMPS': false,
       'NO HANDS': false,

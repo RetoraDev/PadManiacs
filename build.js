@@ -130,6 +130,7 @@ class BuildSystem {
       'js/game/states/ChartModifiers.js',
       'js/game/states/Keybindings.js',
       'js/game/states/AviSettings.js',
+      'js/game/states/TouchSettings.js',
       'js/game/states/FileSelect.js',
       'js/game/states/SongSelect.js',
       'js/game/states/DecodeAvi.js',
@@ -633,24 +634,24 @@ class BuildSystem {
         eruda.destroy();
       }, "Remove debug panel");
       
-      if (typeof window.Neutralino != undefined) {
+      if (typeof window.Neutralino != 'undefined') {
         console._log = console.log;
         console.log = function(...args) {
           console._log(...args);
-          Neutralino.debug.log(args.join(" "), "INFO");
+          window.Neutralino.debug.log(args.join(" "), "INFO");
         };
         
         console._warn = console.warn;
         console.warn = function(...args) {
           console._warn(...args);
-          Neutralino.debug.log(args.join(" "), "WARNING");
+          window.Neutralino.debug.log(args.join(" "), "WARNING");
         };
         
         window.onerror = function(details, file, line) {
 	        var path = file.split("/");
 		      var filename = path[path.length-1];
 		      var message = path + "<br>Line " + line + " of " + file + "(" + filename + ")";
-		      Neutralino.debug.log(message, "ERROR");
+		      window.Neutralino.debug.log(message, "ERROR");
         };
       }
       

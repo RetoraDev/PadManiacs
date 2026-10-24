@@ -347,6 +347,7 @@ class NeutralinoFileSystem {
    */
   ensureMounted() {
     if (!NeutralinoFileSystem.mountPromise) {
+      console.log('Ensure mounted:', NeutralinoFileSystem.MOUNT_URL, this.basePath);
       NeutralinoFileSystem.mountPromise = Neutralino.server.mount(NeutralinoFileSystem.MOUNT_URL, this.basePath)
         .then(() => {
           console.log(`FileSystem: Mounted ${this.basePath} at ${NeutralinoFileSystem.MOUNT_URL}`);

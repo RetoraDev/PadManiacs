@@ -458,7 +458,7 @@ class Settings {
     // Renderer
     settingsWindow.addSettingItem(
       __("(Renderer|Renderizador)"),
-      ["Auto", __("(Canvas (Experimental)|Canvas (Experimental))"), "Webgl"],
+      ["Auto", __("Canvas (Experimental)||Canvas (Experimental)"), "Webgl"],
       Account.settings.renderer,
       index => {
         Account.settings.renderer = index;
@@ -504,9 +504,10 @@ class Settings {
     );
     
     // Configure keybindings
-    settingsWindow.addItem(__("(Configure keybindings|Configurar teclas)"), ">", () => {
-      this.showKeybindingsMenu()
-    });
+    settingsWindow.addItem(__("(Configure keybindings|Configurar teclas)"), ">", () => this.showKeybindingsMenu());
+    
+    // Configure keybindings
+    settingsWindow.addItem(__("(Configure Touch Gamepad|Configurar mando táctil)"), ">", () => this.showTouchSettingsMenu());
     
     // Chart Modifiers
     settingsWindow.addItem(__("(Chart Modifiers|Modificadores de Chart)"), ">", () => this.showChartModifiersMenu());
@@ -667,6 +668,13 @@ class Settings {
    */
   showKeybindingsMenu() {
     game.state.start("Keybindings");
+  }
+  
+  /**
+   * Opens the touch gamepad settings configuration state.
+   */
+  showTouchSettingsMenu() {
+    game.state.start("TouchSettings");
   }
   
   /**

@@ -257,11 +257,19 @@ window.multiplayerState = {
 const __updateRhythmPadSize = () => {
   if (!document.body || !document.body.style) return;
   
-  const buttonWidth = Math.min(window.innerWidth * 0.2, 240);
+  const isLandscape = window.innerWidth > window.innerHeight;
+  
+  const reference = isLandscape ? window.innerHeight : window.innerWidth;
+  
+  const buttonWidth = Math.min(reference * 0.2, 240);
   const buttonHeight = buttonWidth * 0.888888;
   
   document.body.style.setProperty("--rhythm-pad-btn-width", `${buttonWidth}px`);
   document.body.style.setProperty("--rhythm-pad-btn-height", `${buttonHeight}px`);
+  
+  if (isLandscape) {
+    document.body.style.setProperty("--rhythm-pad-visibility-landscape", Account.settings.showRhythmPadInLandscape ? "visible" : "hidden");
+  }
 };
               
 __updateRhythmPadSize();

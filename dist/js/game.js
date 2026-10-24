@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.3.0 dev
- * Build: 10/20/2026, 10:48:16 AM
- * Platform: Development
+ * Version: v1.3.0
+ * Build: 10/23/2026, 10:34:57 PM
+ * Platform: Web
  * Debug: false
  * Minified: false
  */
@@ -125,7 +125,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.3.0 dev";
+const VERSION = "v1.3.0";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -866,7 +866,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -3344,7 +3344,8 @@ const CHARACTER_ITEMS = [
 
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
-  version: 1.4, // 1.4.0
+  version: 1.31, // 1.3.0
+  firstRun: true,
   settings: {
     volume: 100,
     sfxVolume: 100,
@@ -3374,6 +3375,16 @@ const DEFAULT_ACCOUNT = {
     videoFps: 1, // 60 FPS
     enableSongInfo: true,
     enableTemperature: false,
+    touch: {
+      controlsScalePortrait: 1.0,
+      controlsScaleLandscape: 1.0,
+      controlsOpacityPortrait: 0.4,
+      controlsOpacityLandscape: 0.4,
+      rhythmPadScalePortrait: 1.0,
+      rhythmPadScaleLandscape: 1.0,
+      portraitScreenPosition: 45,
+      showRhythmPadInLandscape: true
+    },
     chartModifiers: {
       'NO JUMPS': false,
       'NO HANDS': false,
@@ -3387,7 +3398,8 @@ const DEFAULT_ACCOUNT = {
       ffmpegPreset: 'ultrafast',
       crf: 32,
       scaleToGameRes: false,
-      deleteOriginal: false
+      deleteOriginal: false,
+      useSystemFfmpeg: false
     },
     // Addon system settings
     safeMode: false,
@@ -14922,6 +14934,68 @@ class FileSystemTools {
       }
     }
   }
+
+  /**
+   * Shows a native open dialog (Neutralino only)
+   * @param {string} title 
+   * @param {Object} options 
+   * @returns {Promise<Array<string>>}
+   */
+  showOpenDialog(title, options = {}) {
+    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showOpenDialog) {
+      return Neutralino.os.showOpenDialog(title, options);
+    }
+    return Promise.reject(new Error('showOpenDialog not supported on this platform'));
+  }
+
+  /**
+   * Shows a native folder dialog (Neutralino only)
+   * @param {string} title 
+   * @param {Object} options 
+   * @returns {Promise<string>}
+   */
+  showFolderDialog(title, options = {}) {
+    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showFolderDialog) {
+      return Neutralino.os.showFolderDialog(title, options);
+    }
+    return Promise.reject(new Error('showFolderDialog not supported on this platform'));
+  }
+
+  /**
+   * Shows a native save dialog (Neutralino only)
+   * @param {string} title 
+   * @param {Object} options 
+   * @returns {Promise<string>}
+   */
+  showSaveDialog(title, options = {}) {
+    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showSaveDialog) {
+      return Neutralino.os.showSaveDialog(title, options);
+    }
+    return Promise.reject(new Error('showSaveDialog not supported on this platform'));
+  }
+
+  /**
+   * Executes a shell command (Neutralino only)
+   * @param {string} command 
+   * @param {Object} options 
+   * @returns {Promise<any>}
+   */
+  execCommand(command, options = {}) {
+    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
+      return Neutralino.os.execCommand(command, options);
+    }
+    return Promise.reject(new Error('execCommand not supported on this platform'));
+  }
+
+  /**
+   * Direct access to Neutralino filesystem
+   */
+  get neutralinoFs() {
+    if (this.platform === 'neutralino') {
+      return this.fileSystem;
+    }
+    return null;
+  }
 }
 
 /**
@@ -15237,17 +15311,21 @@ class NeutralinoFileSystem {
     if (typeof NL_PATH !== 'undefined' && NL_PATH) {
       return NL_PATH;
     }
+    if (typeof window !== 'undefined' && window.NL_PATH) {
+      return window.NL_PATH;
+    }
     return '.';
   }
 
   /**
-   * Converts a relative path into an absolute path for Neutralino native calls.
+   * Resolves a relative path into an absolute path for Neutralino native calls.
    * @param {string} relativePath - Path relative to the base directory
    * @returns {string} The absolute filesystem path
    */
   resolvePath(relativePath) {
     const relative = (relativePath || '').replace(/^\/+/, '').replace(/\/+$/, '');
     if (!relative) return this.basePath;
+    if ((relativePath || '').startsWith(this.basePath)) return relativePath.replace(/\/+$/, '');
     return `${this.basePath}/${relative}`.replace(/\/+/g, '/');
   }
 
@@ -15269,6 +15347,7 @@ class NeutralinoFileSystem {
    */
   ensureMounted() {
     if (!NeutralinoFileSystem.mountPromise) {
+      console.log('Ensure mounted:', NeutralinoFileSystem.MOUNT_URL, this.basePath);
       NeutralinoFileSystem.mountPromise = Neutralino.server.mount(NeutralinoFileSystem.MOUNT_URL, this.basePath)
         .then(() => {
           console.log(`FileSystem: Mounted ${this.basePath} at ${NeutralinoFileSystem.MOUNT_URL}`);
@@ -15829,6 +15908,16 @@ const _File = window.File;
  */
 const saveAccount = () => localStorage.setItem("Account", JSON.stringify(Account));
 
+// Auto-switch to Canvas on first run for Neutralino on Linux/Mac (poor WebGL)
+if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && Account.firstRun) {
+  const poorGL = window.PAD_IS_LINUX || window.PAD_IS_MAC;
+  if (poorGL && Account.settings && Account.settings.renderer === 0) {
+    Account.settings.renderer = 1; // Canvas
+  }
+  Account.firstRun = false;
+  saveAccount();
+}
+
 /**
  * Initializes and starts the Phaser game
  */
@@ -16062,11 +16151,19 @@ window.multiplayerState = {
 const __updateRhythmPadSize = () => {
   if (!document.body || !document.body.style) return;
   
-  const buttonWidth = Math.min(window.innerWidth * 0.2, 240);
+  const isLandscape = window.innerWidth > window.innerHeight;
+  
+  const reference = isLandscape ? window.innerHeight : window.innerWidth;
+  
+  const buttonWidth = Math.min(reference * 0.2, 240);
   const buttonHeight = buttonWidth * 0.888888;
   
   document.body.style.setProperty("--rhythm-pad-btn-width", `${buttonWidth}px`);
   document.body.style.setProperty("--rhythm-pad-btn-height", `${buttonHeight}px`);
+  
+  if (isLandscape) {
+    document.body.style.setProperty("--rhythm-pad-visibility-landscape", Account.settings.showRhythmPadInLandscape ? "visible" : "hidden");
+  }
 };
               
 __updateRhythmPadSize();
@@ -17905,6 +18002,7 @@ class Gamepad {
    */
   setupTouch() {
     if (this.playerIndex > 0) return; // Only Player 1 uses touch
+    if (!this.game.device.touch) return; // Only touch devices use touch controls
     
     // Get controller elements
     /** @type {?HTMLElement} Touch controller parent element */
@@ -22081,6 +22179,10 @@ class Boot {
     if (!Account.mapping || !Account.mapping.keyboard.player1 || !Account.mapping.gamepad.player1) {
       Account.mapping = DEFAULT_ACCOUNT.mapping;
     }
+
+    if (typeof Account.firstRun === 'undefined') {
+      Account.firstRun = true;
+    }
     
     // Add background opacity field 
     if (isNaN(Account.settings.backgroundOpacity) || typeof Account.settings.backgroundOpacity == undefined) Account.settings.backgroundOpacity = 0.3; 
@@ -22151,14 +22253,30 @@ class Boot {
       // AVI bgvideo decode settings (added in 1.3)
       if (!Account.settings.aviSettings) {
         Account.settings.aviSettings = { ...DEFAULT_ACCOUNT.settings.aviSettings };
+      } else {
+        if (typeof Account.settings.aviSettings.useSystemFfmpeg === 'undefined') {
+          Account.settings.aviSettings.useSystemFfmpeg = false;
+        }
       }
     }
     
-    // Version 1.4: offset sign convention flipped so positive = audio delay.
-    // Negate stored offset once so existing calibrations feel identical.
-    if (oldVersion < 1.4) {
-      if (typeof Account.settings.userOffset === "number") {
-        Account.settings.userOffset = -Account.settings.userOffset;
+    // Version 1.3: add AVI settings
+    if (oldVersion < 1.3) {
+      if (!Account.settings.aviSettings) {
+        Account.settings.aviSettings = { ...DEFAULT_ACCOUNT.settings.aviSettings };
+      }
+      if (typeof Account.settings.aviSettings.useSystemFfmpeg === 'undefined') {
+        Account.settings.aviSettings.useSystemFfmpeg = false;
+      }
+    } else if (oldVersion >= 1.3 && oldVersion < 1.4) {
+      if (!Account.settings.aviSettings) {
+        Account.settings.aviSettings = { ...DEFAULT_ACCOUNT.settings.aviSettings };
+      }
+      if (typeof Account.settings.aviSettings.useSystemFfmpeg === 'undefined') {
+        Account.settings.aviSettings.useSystemFfmpeg = false;
+      }
+      if (typeof Account.settings.touch === 'undefined') {
+        Account.settings.touch = DEFAULT_ACCOUNT.settings.touch;
       }
     }
     
@@ -22174,7 +22292,18 @@ class Boot {
     notifications = new NotificationSystem();
     
     this.fixSettings();
-
+    
+    // Initialize touch controls css variables
+    document.body.style.setProperty("--controls-scale-portrait", `${Account.settings.touch.controlsScalePortrait}`);
+    document.body.style.setProperty("--controls-scale-landscape", `${Account.settings.touch.controlsScaleLandscape}`);
+    document.body.style.setProperty("--controls-opacity-portrait", `${Account.settings.touch.controlsOpacityPortrait}`);
+    document.body.style.setProperty("--controls-opacity-landscape", `${Account.settings.touch.controlsOpacityLandscape}`);
+    document.body.style.setProperty("--rhythm-pad-scale-portrait", `${Account.settings.touch.rhythmPadScalePortrait}`);
+    document.body.style.setProperty("--rhythm-pad-scale-landscape", `${Account.settings.touch.rhythmPadScaleLandscape}`);
+    document.body.style.setProperty("--controller-parent-height", `${100 - Account.settings.touch.portraitScreenPosition}%`);
+    document.body.style.setProperty("--rhythm-pad-visibility-landscape", `${Account.settings.touch.showRhythmPadInLandscape ? "visible" : "hidden"}`);
+    __updateRhythmPadSize();
+  
     /** @type {InputManager} Global input manager handling input system definitions */
     window.inputManager = new InputManager(game);
     
@@ -22206,6 +22335,7 @@ class Boot {
     game.state.add("ChartModifiers", ChartModifiers);
     game.state.add("Keybindings", Keybindings);
     game.state.add("AviSettings", AviSettings);
+    game.state.add("TouchSettings", TouchSettings);
     game.state.add("SongSelect", SongSelect);
     game.state.add("DecodeAvi", DecodeAvi);
     game.state.add("SongStats", SongStats);
@@ -22710,6 +22840,140 @@ class Load {
 }
 
 /**
+ * @class LoadPlatform
+ * @category Game States
+ * @summary Initialize platform (Cordova, Neutralino) and file system
+ * @constructor
+ * @description
+ * A conditional startup state that runs before any external storage is accessed. When
+ * the game is running inside a Cordova environment the Cordova script is injected and
+ * the filesystem is created once the device is ready; on Neutralino it initializes the
+ * Neutralino client and creates the required directory structure; on other platforms
+ * it builds the folder structure immediately.
+ * @example
+ * // Added to the boot chain so storage directories exist before song loading.
+ * game.state.add('LoadPlatform', LoadPlatform);
+ * game.state.start('LoadPlatform');
+ */
+class LoadPlatform {
+  /**
+   * Detects the current environment: on Cordova it injects cordova.js and waits for
+   * the device to be ready, otherwise it builds the folder structure immediately.
+   */
+  create() {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
+      this.loadScript();
+    } else {
+      this.createFolderStructure();
+    }
+  }
+  /**
+   * Shows the loading dots, injects the cordova.js script into the page, and registers
+   * a back button handler for mobile devices once the Cordova device is ready.
+   */
+  loadScript() {
+    this.loadingDots = new LoadingDots();
+    
+    this.progressText = new ProgressText(__("Initializing filesystem...||Inicializando Sistema de Archivos..."));
+
+    const script = document.createElement("script");
+    script.src = "./cordova/cordova.js";
+    document.head.appendChild(script);
+    document.addEventListener("deviceready", () => {
+      this.createFolderStructure();
+      document.addEventListener("backbutton", () => {
+        if (game.state.current == "Play") {
+          gamepad.press('start');
+        } else {
+          gamepad.press('b');
+        }
+      });
+    });
+  }
+  /**
+   * Creates the main storage directory along with its addons, screenshots, songs, and
+   * editor output subdirectories, then continues to the next startup state.
+   * @returns {Promise<void>} Resolves once the folders have been created
+   */
+  async createFolderStructure() {
+    // Initialize Neutralino client if running in Neutralino environment
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && window.Neutralino) {
+      try {
+        await Neutralino.init();
+      } catch (e) {
+        console.warn("Neutralino.init() failed:", e);
+      }
+    }
+    
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+      this.fileSystemTools = new FileSystemTools();
+      
+      const fileSystem = this.fileSystemTools;
+      
+      const rootDir = await fileSystem.getDirectory("");
+      
+      const gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
+      
+      await fileSystem.createDirectory(gameDir, ADDONS_DIRECTORY);
+      await fileSystem.createDirectory(gameDir, SCREENSHOTS_DIRECTORY);
+      await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
+      await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
+      
+      this.checkFfmpegBundle();
+    } else {
+      this.continue();
+    }
+  }
+  
+  /**
+   * Check if the bundled ffmpeg lib needs to be copied to external folder and copies them
+   */
+  async checkFfmpegBundle() {
+    const fileSystem = this.fileSystemTools;
+    
+    const gameDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY);
+    
+    const ffDir = await fileSystem.createDirectory(gameDir, FF_DIR_NAME);
+    
+    window.ff_bundle_dir = ffDir.nativeURL || window.ff_dir;
+    
+    // Check ffmpeg-wasm-lite files 
+    const fileNames = [
+      "ffmpeg-core.js",
+      "ffmpeg-core.wasm",
+      "ffmpeg-worker.js"
+    ];
+    const presentFileNames = [];
+    
+    const entries = await fileSystem.listFiles(ffDir);
+    
+    entries.forEach(fileEntry => {
+      presentFileNames.push(fileEntry.name);
+    });
+    
+    const filesToCopy = fileNames.filter(n => !presentFileNames.includes(n));
+     
+    for (const fileName of filesToCopy) {
+      const file = await fetch(window.ff_dir + fileName);
+      const blob = await file.blob();
+      
+      this.progressText.write(__(`(Copying|Copiando) ${fileName}`));
+      
+      await fileSystem.saveFile(ffDir, blob, fileName);
+    }
+    
+    this.continue();
+  }
+
+  /**
+   * Advances to the LoadAddons state to continue the startup sequence.
+   */
+  continue() {
+    game.state.start("LoadAddons");
+  }
+}
+
+/**
  * @class LoadAddons
  * @category Game States
  * @summary Initializes the addon manager and loads addon resources
@@ -22904,16 +23168,13 @@ class LoadExternalSongs {
     /** @type {ProgressText} Bilingual progress text shown while songs load */
     this.progressText = new ProgressText(__("Loading External Songs...||Cargando canciones externas..."));
     
-    /** @type {FileSystemTools} Helper for reading directories and files */
-    this.fileSystem = new FileSystemTools();
-    
     if (window.externalSongs) {
       /** @type {Array<Object>} Parsed external song charts */
       this.songs = window.externalSongs;
       this.finish(window.lastExternalSongIndex || 0);
       return;
     }
-    
+
     /** @type {Array<Object>} Parsed external song charts collected so far */
     this.songs = [];
     /** @type {ExternalSMParser} Parser used to read external chart files */
@@ -22928,8 +23189,11 @@ class LoadExternalSongs {
     this.totalCount = 0;
     /** @type {Set<string>} Names of directories currently being loaded */
     this.currentlyLoading = new Set();
+
+    this.fileSystem = new FileSystemTools();
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+      this.targetDirectory = EXTERNAL_DIRECTORY + SONGS_DIRECTORY;
       this.loadSongsFromStorage();
     } else {
       this.showFileInput();
@@ -22943,8 +23207,15 @@ class LoadExternalSongs {
    */
   async loadSongsFromStorage() {
     try {
-      const rootDir = await this.fileSystem.getDirectory(EXTERNAL_DIRECTORY + SONGS_DIRECTORY);
-      const allDirs = await this.fileSystem.listAllDirectories(rootDir);
+      this.targetDirectory = EXTERNAL_DIRECTORY + SONGS_DIRECTORY;
+      const rootDir = await this.fileSystem.getDirectory(this.targetDirectory);
+      let allDirs = [];
+      try {
+        allDirs = await this.fileSystem.listAllDirectories(rootDir);
+      } catch (e) {
+        console.warn('listAllDirectories failed, trying manual scan', e);
+        allDirs = [];
+      }
       allDirs.unshift(rootDir);
 
       this.totalCount = allDirs.length;
@@ -23297,8 +23568,7 @@ class LoadExternalSongs {
   }
   
   /**
-   * Displays an error message on the progress text and returns to the main menu after
-   * a short delay.
+   * Writes an error message and returns to the main menu after a short delay.
    * @param {string} message - Error message to display
    */
   showError(message) {
@@ -23307,7 +23577,7 @@ class LoadExternalSongs {
       game.state.start("MainMenu");
     });
   }
-  
+
   /**
    * Sorts the loaded songs, caches them in window.externalSongs, and starts the next
    * state, defaulting to the song select screen, or shows an error if nothing loaded.
@@ -23366,27 +23636,44 @@ class LoadSongFolder {
    * Creates and opens a webkitdirectory file input, wiring up selection to processFiles
    * and cancellation to an error message, with a fallback hint for non-webkit browsers.
    */
-  showFileInput() {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.webkitdirectory = true;
-    fileInput.multiple = true;
-
-    fileInput.onchange = e => {
-      this.processFiles(e.target.files);
-    };
-    
-    fileInput.oncancel = e => {
-      this.showError(__("Nothing selected||Nada seleccionado"));
-    };
-
-    // Add a fallback for non-webkit browsers
-    if (!fileInput.webkitdirectory) {
+  async showFileInput() {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+      const entries = await Neutralino.os.showOpenDialog(__('Open a StepMania chart||Abre un chart de StepMania'), {
+        filters: [
+          { name: __('StepMania/ITG charts'), extensions: ['sm'] },
+          { name: __('StepMania ZIP file'), extensions: ['smzip', 'zip'] },
+          { name: __('All files'), extensions: ['*'] }
+        ]
+      });
+      
+      const path = entries[0];
+      
+      const filename = FileTools.getFilename(path);
+      const directory = FileTools.getDirectory(path);
+      
+      game.state.start("LoadExternalSongFile", true, false, filename, directory);
+    } else {
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.webkitdirectory = true;
       fileInput.multiple = true;
-      this.progressText.write(__("Select all song files||Seleccionar todos los archivos"));
+  
+      fileInput.onchange = e => {
+        this.processFiles(e.target.files);
+      };
+      
+      fileInput.oncancel = e => {
+        this.showError(__("Nothing selected||Nada seleccionado"));
+      };
+  
+      // Add a fallback for non-webkit browsers
+      if (!fileInput.webkitdirectory) {
+        fileInput.multiple = true;
+        this.progressText.write(__("Select all song files||Seleccionar todos los archivos"));
+      }
+  
+      fileInput.click();
     }
-
-    fileInput.click();
   }
 
   /**
@@ -23643,6 +23930,10 @@ class LoadExternalSongFile {
     this.fileSystem = new FileSystemTools();
     /** @type {ExternalSMParser} Parser used to read external chart files */
     this.parser = new ExternalSMParser();
+    
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+      this.fileSystem.fileSystem.basePath = '';
+    }
     
     if (this.fileName.endsWith('.zip')) {
       this.loadZipFileData();
@@ -25248,9 +25539,10 @@ class Settings {
     );
     
     // Configure keybindings
-    settingsWindow.addItem(__("(Configure keybindings|Configurar teclas)"), ">", () => {
-      this.showKeybindingsMenu()
-    });
+    settingsWindow.addItem(__("(Configure keybindings|Configurar teclas)"), ">", () => this.showKeybindingsMenu());
+    
+    // Configure keybindings
+    settingsWindow.addItem(__("(Configure Touch Gamepad|Configurar mando táctil)"), ">", () => this.showTouchSettingsMenu());
     
     // Chart Modifiers
     settingsWindow.addItem(__("(Chart Modifiers|Modificadores de Chart)"), ">", () => this.showChartModifiersMenu());
@@ -25411,6 +25703,13 @@ class Settings {
    */
   showKeybindingsMenu() {
     game.state.start("Keybindings");
+  }
+  
+  /**
+   * Opens the touch gamepad settings configuration state.
+   */
+  showTouchSettingsMenu() {
+    game.state.start("TouchSettings");
   }
   
   /**
@@ -26124,6 +26423,7 @@ class Keybindings {
     
     const keyDownListener = (keyCode) => {
       if (!this.waitOverlayActive) return;
+      if (keyCode == Phaser.KeyCode.F11 || KeyCode || Phaser.KeyCode.F12) return;
       
       if (keyCode === Phaser.KeyCode.ESC) {
         if (!escIsHeld) {
@@ -26159,7 +26459,8 @@ class Keybindings {
     
     const keyUpListener = (keyCode) => {
       if (!this.waitOverlayActive) return;
-      
+      if (keyCode == Phaser.KeyCode.F11 || KeyCode || Phaser.KeyCode.F12) return;
+            
       if (keyCode === Phaser.KeyCode.ESC && escIsHeld) {
         escIsHeld = false;
         resetProgress();
@@ -26644,9 +26945,206 @@ class AviSettings {
       }
     );
 
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
+      settingsWindow.addSettingItem(
+        __("Use System ffmpeg||Usar ffmpeg del sistema"),
+        [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
+        this.settings.useSystemFfmpeg ? 0 : 1,
+        index => {
+          this.settings.useSystemFfmpeg = index === 0;
+        }
+      );
+    }
+
     settingsWindow.addItem(__("BACK||VOLVER"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       Account.settings.aviSettings = this.settings;
+      saveAccount();
+      game.state.start(this.returnState, true, false);
+    }, true);
+  }
+}
+
+/**
+ * @class TouchSettings
+ * @category Game States
+ * @summary On-screen touch controls settings screen
+ * @constructor
+ * @features
+ * 
+ * @description
+ * 
+ */
+class TouchSettings {
+  /**
+   * Phaser state hook that stores the state to return to after editing.
+   * @param {string} [returnState='Settings'] - Name of the state to return to
+   */
+  init(returnState = "Settings") {
+    /** @type {string} Game state to start when leaving this screen */
+    this.returnState = returnState;
+  }
+
+  /**
+   * Phaser state hook that sets up the background and builds the settings window.
+   */
+  create() {
+    game.camera.fadeIn(0x000000);
+
+    /** @type {FuturisticLines} Decorative animated background line effect */
+    this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Ambient gradient overlay for the menu background */
+    this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} On-screen hint bar with contextual button labels */
+    this.navigationHint = new NavigationHint("general");
+
+    /** @type {WindowManager} Manages the settings window and its focus */
+    this.windowManager = new WindowManager();
+
+    gamepad.releaseAll();
+
+    this.showMenu();
+
+    addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+
+  /**
+   * Phaser lifecycle hook called every frame to poll gamepad input.
+   */
+  update() {
+    gamepad.update();
+    this.windowManager.update();
+  }
+
+  /**
+   * Builds the settings window with every AVI decoding option.
+   */
+  showMenu() {
+    const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
+    settingsWindow.fontTint = 0x76fcde;
+
+    /** @type {Window} The settings window being edited */
+    this.settingsWindow = settingsWindow;
+
+    // Portrait Touch Gamepad Size
+    settingsWindow.addRangeItem(
+      __("(Portrait Touch Gamepad Size|Tamaño del mando táctil en vertical)"),
+      0,
+      150,
+      1,
+      Account.settings.touch.controlsScalePortrait * 100,
+      "%",
+      value => {
+        Account.settings.touch.controlsScalePortrait = value / 100;
+        saveAccount();
+        document.body.style.setProperty("--controls-scale-portrait", `${value / 100}`);
+      }
+    );
+    
+    // Landscape Touch Gamepad Size
+    settingsWindow.addRangeItem(
+      __("(Landscape Touch Gamepad Size|Tamaño del mando táctil en horizontal)"),
+      0,
+      150,
+      1,
+      Account.settings.touch.controlsScaleLandscape * 100,
+      "%",
+      value => {
+        Account.settings.touch.controlsScaleLandscape = value / 100;
+        saveAccount();
+        document.body.style.setProperty("--controls-scale-landscape", `${value / 100}`);
+      }
+    );
+    
+    // Portrait Touch Gamepad Opacity
+    settingsWindow.addRangeItem(
+      __("(Portrait Touch Gamepad Opacity|Opacidad del mando táctil en vertical)"),
+      0,
+      100,
+      1,
+      Account.settings.touch.controlsOpacityPortrait * 100,
+      "%",
+      value => {
+        Account.settings.touch.controlsOpacityPortrait = value / 100;
+        saveAccount();
+        document.body.style.setProperty("--controls-opacity-portrait", `${value / 100}`);
+      }
+    );
+    
+    // Landscape Touch Gamepad Opacity
+    settingsWindow.addRangeItem(
+      __("(Landscape Touch Gamepad Opacity|Opacidad del mando táctil en horizontal)"),
+      0,
+      100,
+      1,
+      Account.settings.touch.controlsOpacityLandscape * 100,
+      "%",
+      value => {
+        Account.settings.touch.controlsOpacityLandscape = value / 100;
+        saveAccount();
+        document.body.style.setProperty("--controls-opacity-landscape", `${value / 100}`);
+      }
+    );
+    
+    // Portrait Rhythm Pad Size
+    settingsWindow.addRangeItem(
+      __("(Portrait Rhythm Pad Size|Tamaño del Rhythm Pad en vertical)"),
+      0,
+      150,
+      1,
+      Account.settings.touch.rhythmPadScalePortrait * 100,
+      "%",
+      value => {
+        Account.settings.touch.rhythmPadScalePortrait = value / 100;
+        saveAccount();
+        document.body.style.setProperty("--rhythm-pad-scale-portrait", `${value / 100}`);
+      }
+    );
+    
+    // Landscape Rhythm Pad Size
+    settingsWindow.addRangeItem(
+      __("(Landscape Rhythm Pad Size|Tamaño del Rhythm Pad en horizontal)"),
+      0,
+      150,
+      1,
+      Account.settings.touch.rhythmPadScaleLandscape * 100,
+      "%",
+      value => {
+        Account.settings.touch.rhythmPadScaleLandscape = value / 100;
+        saveAccount();
+        document.body.style.setProperty("--rhythm-pad-scale-landscape", `${value / 100}`);
+      }
+    );
+    
+    // Portrait Screen Position 
+    settingsWindow.addRangeItem(
+      __("(Vertical Game Position|Posición vertical del juego)"),
+      30,
+      70,
+      1,
+      Account.settings.touch.portraitScreenPosition,
+      "%",
+      value => {
+        Account.settings.touch.portraitScreenPosition = value;
+        saveAccount();
+        document.body.style.setProperty("--controller-parent-height", `${100 - value}%`);
+      }
+    );
+    
+    // Show Rhythm Pad in Landscape
+    settingsWindow.addSettingItem(
+      __("(Show Rhythm Pad in Landscape|Mostrar Rhythm Pad en Horizontal)"),
+      [__("(Yes|Sí)"), __("(No|No)")],
+      Account.settings.touch.showRhythmPadInLandscape ? 0 : 1,
+      index => {
+        Account.settings.touch.showRhythmPadInLandscape = index === 0;
+        document.body.style.setProperty("--rhythm-pad-visibility-landscape", `${Account.settings.touch.showRhythmPadInLandscape ? "visible" : "hidden"}`);
+        saveAccount();
+      }
+    );
+
+    settingsWindow.addItem(__("BACK||VOLVER"), "", () => {
+      this.windowManager.remove(settingsWindow, true);
       saveAccount();
       game.state.start(this.returnState, true, false);
     }, true);
@@ -28361,16 +28859,53 @@ class DecodeAvi {
           (done + 1) / fileNames.length
         );
       } else {
-        let bytes;
-        
-        if (this.song.files) {
-          bytes = new Uint8Array(await FileTools.readAsArrayBuffer(this.song.files[fileName.toLowerCase()]));
-        } else {
-          throw new Error("No way to get the video file");
-        }
-        
-        this.throwIfCanceled();
+      let bytes;
+      
+      if (this.song.files) {
+        bytes = new Uint8Array(await FileTools.readAsArrayBuffer(this.song.files[fileName.toLowerCase()]));
+      } else {
+        throw new Error("No way to get the video file");
+      }
+      
+      this.throwIfCanceled();
 
+      let blob;
+      let blobUrl;
+      const settings = aviSettings || {};
+      if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && settings.useSystemFfmpeg && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
+        try {
+          const fsTools = new FileSystemTools();
+          const nlFs = fsTools.neutralinoFs;
+          const basePath = (typeof NL_PATH !== 'undefined' && NL_PATH) ? NL_PATH : (nlFs ? nlFs.getBasePath() : '');
+          const songPath = this.song && (this.song.externalPath || this.song.chartFolderPath || (this.song.chart && this.song.chart.externalPath));
+          if (basePath && songPath) {
+            const absIn = (basePath.replace(/\/+$/, '') + '/' + (songPath + '/' + fileName).replace(/^\/+/, '')).replace(/\/+/g, '/');
+            const outName = AviTools.toMp4Name ? AviTools.toMp4Name(fileName) : fileName.replace(/\.avi$/i, '.mp4');
+            const absOut = (basePath.replace(/\/+$/, '') + '/' + (songPath + '/' + outName).replace(/^\/+/, '')).replace(/\/+/g, '/');
+            const crf = typeof settings.crf === 'number' ? settings.crf : 32;
+            const preset = settings.ffmpegPreset || 'ultrafast';
+            let scale = '';
+            if (settings.scaleToGameRes) {
+              scale = ' -vf scale=240:140:flags=neighbor';
+            }
+            const cmd = `ffmpeg -y -i "${absIn}" -c:v libx264 -preset ${preset} -crf ${crf}${scale} -pix_fmt yuv420p "${absOut}"`;
+            await Neutralino.os.execCommand(cmd);
+            try {
+              const data = await Neutralino.filesystem.readBinaryFile(absOut);
+              blob = new Blob([data], { type: 'video/mp4' });
+              fileName = outName;
+            } catch (e2) {
+              console.warn('Failed reading system ffmpeg output', e2);
+              blob = null;
+            }
+          }
+        } catch (e1) {
+          console.warn('System ffmpeg conversion failed, falling back to wasm', e1);
+          blob = null;
+        }
+      }
+
+      if (!blob) {
         blob = await AviTranscoder.convertToBlob(bytes, {
           preset: aviSettings.ffmpegPreset,
           crf: aviSettings.crf,
@@ -28387,22 +28922,39 @@ class DecodeAvi {
             }
           }
         });
-        this.throwIfCanceled();
+      }
+      this.throwIfCanceled();
 
         blobUrl = URL.createObjectURL(blob);
         AviTranscoder.putCached(cacheKey, blob, blobUrl);
       }
 
-      if (persist) {
-        const newFileName = AviTools.toMp4Name(fileName);
-        const written = await this.persistFile(newFileName, blob);
-        if (written) {
-          nameMap[fileName] = newFileName;
-          AviTools.applyReplacement(this.song, fileName, blobUrl, newFileName, blob);
-          if (aviSettings.deleteOriginal) {
-            await this.deleteOriginal(fileName);
-          }
-        } else {
+        if (persist) {
+          const newFileName = AviTools.toMp4Name(fileName);
+          const written = await this.persistFile(newFileName, blob);
+          if (written) {
+            nameMap[fileName] = newFileName;
+            AviTools.applyReplacement(this.song, fileName, blobUrl, newFileName, blob);
+            if (aviSettings.deleteOriginal) {
+              try {
+                if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.trashItem) {
+                  const fsTools = new FileSystemTools();
+                  const nlFs = fsTools.neutralinoFs;
+                  const basePath = (typeof NL_PATH !== 'undefined' && NL_PATH) ? NL_PATH : (nlFs ? nlFs.getBasePath() : '');
+                  const songPath = this.song && (this.song.externalPath || this.song.chartFolderPath || (this.song.chart && this.song.chart.externalPath));
+                  if (basePath && songPath) {
+                    const absOrig = (basePath.replace(/\/+$/, '') + '/' + (songPath + '/' + fileName).replace(/^\/+/, '')).replace(/\/+/g, '/');
+                    await Neutralino.os.trashItem(absOrig);
+                  }
+                } else {
+                  await this.deleteOriginal(fileName);
+                }
+              } catch (e) {
+                console.warn('Failed to trash original avi', e);
+                await this.deleteOriginal(fileName);
+              }
+            }
+          } else {
           // Could not write next to the chart — fall back to a transient swap.
           AviTools.applyReplacement(this.song, fileName, blobUrl, null, blob);
         }
@@ -31703,6 +32255,25 @@ class Play {
     if (backgroundMusic) {
       backgroundMusic.stop();
     }
+
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window && this.song) {
+      try {
+        let chartTitle = '';
+        let chartAuthor = '';
+        if (this.song.chart) {
+          chartTitle = this.song.chart.title || this.song.title || '';
+          chartAuthor = this.song.chart.author || this.song.author || '';
+        }
+        if (!chartTitle && this.song.title) chartTitle = this.song.title;
+        if (!chartAuthor && this.song.author) chartAuthor = this.song.author;
+        let title = chartTitle;
+        if (chartAuthor) title += ' (Chart by ' + chartAuthor + ')';
+        title += ' - PadManiacs';
+        Neutralino.window.setTitle(title);
+      } catch (e) {
+        console.warn('Failed to set Neutralino window title', e);
+      }
+    }
     
     game.camera.fadeIn(0x000000);
     
@@ -33254,6 +33825,48 @@ class Play {
    */
   update() {
     gamepad.update();
+
+    // Neutralino: fullscreen toggle (F11)
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window && game.input && game.input.keyboard) {
+      const f11Down = game.input.keyboard.isDown(Phaser.KeyCode.F11);
+      if (f11Down && !this._lastF11Key) {
+        try {
+          Neutralino.window.isFullScreen().then(isFs => {
+            try {
+              if (isFs) {
+                Neutralino.window.exitFullScreen();
+              } else {
+                Neutralino.window.setFullScreen();
+              }
+            } catch (e) {
+              console.warn('Failed to toggle fullscreen', e);
+            }
+          }).catch(() => {
+            try {
+              Neutralino.window.setFullScreen();
+            } catch (e) {}
+          });
+        } catch (e) {
+          console.warn('Failed to check fullscreen state', e);
+        }
+      }
+      this._lastF11Key = f11Down;
+    }
+
+    // Screenshot (PrintScreen)
+    if (game.input && game.input.keyboard) {
+      const prtscDown = game.input.keyboard.isDown(Phaser.KeyCode.PRINT_SCREEN);
+      if (prtscDown && !this._lastPrintScreenKey) {
+        try {
+          if (game.recorder && typeof game.recorder.screenshot === 'function') {
+            game.recorder.screenshot();
+          }
+        } catch (e) {
+          console.warn('Failed to take screenshot', e);
+        }
+      }
+      this._lastPrintScreenKey = prtscDown;
+    }
         
     if (this.isPaused) return;
     
@@ -33343,6 +33956,12 @@ class Play {
    */
   shutdown() {
     this.shootingDown = true;
+
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window) {
+      try {
+        Neutralino.window.setTitle('PadManiacs');
+      } catch (e) {}
+    }
     
     if (this._bgEffectTimer) {
       clearInterval(this._bgEffectTimer);

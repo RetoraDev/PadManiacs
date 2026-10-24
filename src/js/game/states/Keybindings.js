@@ -192,11 +192,6 @@ class Keybindings {
       this.showGamepadCustomization(2);
     });
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window) {
-      settingsWindow.addItem(__("Fullscreen (F11)||Pantalla Completa (F11)"), "", () => {}, false);
-    }
-    settingsWindow.addItem(__("Screenshot (PrintScreen)||Captura de Pantalla (Impr Pant)"), "", () => {}, false);
-    
     settingsWindow.addItem(__("Reset To Defaults||Restablecer"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       this.confirmDialog(
@@ -418,8 +413,32 @@ class Keybindings {
       progressBar.destroy();
     };
     
+    const setKey = (keyCode) => {
+      // Check if key is Unidentified
+      const keyName = this.getKeyName(keyCode);
+      if (keyName === 'Unidentified' || keyName === '???') {
+        cleanup();
+        this.showNotification(__(`Cannot map: ${keyName}||No se puede asignar: ${keyName}`));
+        onCancel();
+        return;
+      }
+      cleanup();
+      // Check for conflicts BEFORE calling onSubmit
+      const conflict = this.findKeyboardKeyConflict(
+        this._pendingPlayerKey || null,
+        this._pendingMappingKey || null,
+        this._pendingIndex || 0,
+        keyCode
+      );
+      if (conflict) {
+        this.showNotification(__(`Changed with ${conflict.label}||Cambiado con ${conflict.label}`));
+      }
+      onSubmit?.(keyCode);
+    };
+    
     const keyDownListener = (keyCode) => {
       if (!this.waitOverlayActive) return;
+      if (keyCode == Phaser.KeyCode.F11 || keyCode == Phaser.KeyCode.F12) return;
       
       if (keyCode === Phaser.KeyCode.ESC) {
         if (!escIsHeld) {
@@ -430,35 +449,24 @@ class Keybindings {
         }
       } else if (!keyPressed && listenKeyboard) {
         keyPressed = true;
-        // Check if key is Unidentified
-        const keyName = this.getKeyName(keyCode);
-        if (keyName === 'Unidentified' || keyName === '???') {
-          cleanup();
-          this.showNotification(__(`Cannot map: ${keyName}||No se puede asignar: ${keyName}`));
-          onCancel();
-          return;
-        }
-        cleanup();
-        // Check for conflicts BEFORE calling onSubmit
-        const conflict = this.findKeyboardKeyConflict(
-          this._pendingPlayerKey || null,
-          this._pendingMappingKey || null,
-          this._pendingIndex || 0,
-          keyCode
-        );
-        if (conflict) {
-          this.showNotification(__(`Changed with ${conflict.label}||Cambiado con ${conflict.label}`));
-        }
-        onSubmit?.(keyCode);
+        setKey(keyCode);
       }
     };
     
     const keyUpListener = (keyCode) => {
       if (!this.waitOverlayActive) return;
-      
+      if (keyCode == Phaser.KeyCode.F11 || keyCode == Phaser.KeyCode.F12) return;
+            
       if (keyCode === Phaser.KeyCode.ESC && escIsHeld) {
         escIsHeld = false;
         resetProgress();
+        
+        const elapsed = Date.now() - escHoldStartTime;
+        const progress = Math.min(elapsed / holdDuration, 1);
+        
+        if (progress <= 0.7) {
+          setKey(keyCode)
+        }
       }
     };
     

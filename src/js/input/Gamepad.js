@@ -239,6 +239,7 @@ class Gamepad {
    */
   setupTouch() {
     if (this.playerIndex > 0) return; // Only Player 1 uses touch
+    if (game.device.dekstop) return; // Only mobile devices use touch controls
     
     // Get controller elements
     /** @type {?HTMLElement} Touch controller parent element */

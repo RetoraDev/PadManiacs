@@ -18,8 +18,16 @@
   --debug-border: #ddd;
   --debug-hover: #eee;
   --debug-active: #ddd;
+  --controls-scale-portrait: 1.0;
+  --controls-scale-landscape: 1.0;
+  --controls-opacity-portrait: 0.8;
+  --controls-opacity-landscape: 0.4;
   --rhythm-pad-btn-width: 72px;
   --rhythm-pad-btn-height: 64px;
+  --rhythm-pad-scale-portrait: 1.0;
+  --rhythm-pad-scale-landscape: 1.0;
+  --rhythm-pad-visibility-landscape: visible;
+  --controller-parent-height: 55%;
 }
 
 body {
@@ -55,9 +63,11 @@ body {
 }
 
 #controller_parent {
-  display: .;
+  display: none;
   width: 100%;
-  opacity: 0.8;
+  height: var(--controller-parent-height);
+  top: calc(100% - var(--controller-parent-height));
+  opacity: var(--controls-opacity-portrait);
   pointer-events: none;
 }
 
@@ -72,16 +82,16 @@ body {
   position: absolute;
   top: 0px;
   left: 0px;
-  width: 184px;
-  height: 184px;
+  width: calc(184px * var(--controls-scale-portrait));
+  height: calc(184px * var(--controls-scale-portrait));
   pointer-events: inherit;
 }
 
 #controller_dpad:before {
   content: "";
   display: block;
-  width: 48px;
-  height: 48px;
+  width: calc(48px * var(--controls-scale-portrait));
+  height: calc(48px * var(--controls-scale-portrait));
   background: var(--controller-bg);
   background: radial-gradient(
     ellipse at center,
@@ -90,8 +100,8 @@ body {
     var(--dpad-center) 60%
   );
   position: absolute;
-  left: 68px;
-  top: 68px;
+  left: calc(68px * var(--controls-scale-portrait));
+  top: calc(68px * var(--controls-scale-portrait));
   pointer-events: auto;
 }
 
@@ -100,61 +110,61 @@ body {
 #controller_up,
 #controller_down {
   position: absolute;
-  width: 48px;
-  height: 48px;
+  width: calc(48px * var(--controls-scale-portrait));
+  height: calc(48px * var(--controls-scale-portrait));
   background: var(--dpad-button);
   background: radial-gradient(ellipse at center, var(--dpad-button) 0%, var(--dpad-button-dark) 80%);
   pointer-events: auto;
-}  
+}
 
 #controller_left {
-  left: 20px;
-  top: 68px;
+  left: calc(20px * var(--controls-scale-portrait));
+  top: calc(68px * var(--controls-scale-portrait));
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
 }
 #controller_right {
-  left: 116px;
-  top: 68px;
+  left: calc(116px * var(--controls-scale-portrait));
+  top: calc(68px * var(--controls-scale-portrait));
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
 }
 #controller_up {
-  left: 68px;
-  top: 20px;
+  left: calc(68px * var(--controls-scale-portrait));
+  top: calc(20px * var(--controls-scale-portrait));
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
 }
 #controller_down {
-  left: 68px;
-  top: 116px;
+  left: calc(68px * var(--controls-scale-portrait));
+  top: calc(116px * var(--controls-scale-portrait));
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
 }
 
 #controller_a {
   position: absolute;
-  top: 22px;
-  right: 20px;
+  top: calc(22px * var(--controls-scale-portrait));
+  right: calc(20px * var(--controls-scale-portrait));
   pointer-events: auto;
 }
 #controller_b {
   position: absolute;
-  top: 50px;
-  right: 100px;
+  top: calc(50px * var(--controls-scale-portrait));
+  right: calc(100px * var(--controls-scale-portrait));
   pointer-events: auto;
 }
 
 #controller_start {
   position: absolute;
-  top: 132px;
-  right: 15px;
+  top: calc(132px * var(--controls-scale-portrait));
+  right: calc(15px * var(--controls-scale-portrait));
   pointer-events: auto;
 }
 #controller_select {
   position: absolute;
-  top: 132px;
-  right: 100px;
+  top: calc(132px * var(--controls-scale-portrait));
+  right: calc(100px * var(--controls-scale-portrait));
   pointer-events: auto;
 }
 
@@ -174,40 +184,42 @@ body {
   justify-content: center;
   align-items: center;
   font-weight: bold;
-  font-size: 32px;
+  font-size: calc(32px * var(--controls-scale-portrait));
   color: var(--button-text);
-  line-height: 64px;
-  width: 64px;
-  height: 64px;
-  border-radius: 64px;
+  line-height: calc(64px * var(--controls-scale-portrait));
+  width: calc(64px * var(--controls-scale-portrait));
+  height: calc(64px * var(--controls-scale-portrait));
+  border-radius: 100%;
   background: var(--button-pink-dark);
   background: radial-gradient(ellipse at center, var(--button-pink-light) 0%, var(--button-pink-dark) 100%);
 }
 .capsuleBtn {
   font-weight: bold;
-  font-size: 10px;
+  font-size: calc(10px * var(--controls-scale-portrait));
   color: var(--capsule-text);
   display: flex;
   justify-content: center;
   align-items: center;
-  line-height: 40px;
+  line-height: calc(40px * var(--controls-scale-portrait));
   text-transform: uppercase;
-  width: 64px;
-  height: 32px;
+  width: calc(64px * var(--controls-scale-portrait));
+  height: calc(32px * var(--controls-scale-portrait));
   border-radius: 40px;
   background: var(--capsule-dark);
   background: radial-gradient(ellipse at center, var(--capsule-light) 0%, var(--capsule-dark) 100%);
 }
 .squareBtn {
-  width: var(--rhythm-pad-btn-width);
-  height: var(--rhythm-pad-btn-height);
+  width: calc(var(--rhythm-pad-btn-width) * var(--rhythm-pad-scale-portrait));
+  height: calc(var(--rhythm-pad-btn-height) * var(--rhythm-pad-scale-portrait));
+  font-size: calc(10px * var(--rhythm-pad-scale-portrait));
+  line-height: calc(40px * var(--rhythm-pad-scale-portrait));
   border-radius: 13%;
 }
 .btnPressed {
   opacity: 0.5;
 }
 
-@media only screen and (max-device-width: 812px) and (orientation: portrait) {
+@media only screen and (orientation: portrait) {
   #canvas_parent,
   #controller_parent {
     position: absolute;
@@ -215,11 +227,7 @@ body {
   }
   #canvas_parent {
     top: 0px;
-    height: 45%;
-  }
-  #controller_parent {
-    top: 45%;
-    height: 55%;
+    height: calc(100% - var(--controller-parent-height));
   }
 }
 
@@ -228,20 +236,120 @@ body {
   #controller_parent {
     position: absolute;
     width: 100%;
+    padding-bottom: 0.8rem;
   }
   #canvas_parent {
     height: 100%;
+    bottom: initial;
+    top: 50%;
+    padding: 0;
+    transform: translateY(-50%);
+  }
+  #canvas_parent canvas {
+    height: 100%;
   }
   #controller_parent {
-    height: 192px;
+    height: 50%;
     bottom: 0;
-    opacity: 0.4;
+    opacity: var(--controls-opacity-landscape);
+    overflow: visible;
+  }
+
+  #controller_dpad {
+    top: auto;
+    bottom: 0;
+    width: calc(184px * var(--controls-scale-landscape));
+    height: calc(184px * var(--controls-scale-landscape));
+  }
+
+  #controller_dpad:before {
+    top: auto;
+    bottom: calc(68px * var(--controls-scale-landscape));
+    left: calc(68px * var(--controls-scale-landscape));
+    width: calc(48px * var(--controls-scale-landscape));
+    height: calc(48px * var(--controls-scale-landscape));
+  }
+
+  #controller_left,
+  #controller_right,
+  #controller_up,
+  #controller_down {
+    width: calc(48px * var(--controls-scale-landscape));
+    height: calc(48px * var(--controls-scale-landscape));
+  }
+
+  #controller_left {
+    top: auto;
+    bottom: calc(68px * var(--controls-scale-landscape));
+    left: calc(20px * var(--controls-scale-landscape));
+  }
+  #controller_right {
+    top: auto;
+    bottom: calc(68px * var(--controls-scale-landscape));
+    left: calc(116px * var(--controls-scale-landscape));
+  }
+  #controller_up {
+    top: auto;
+    bottom: calc(116px * var(--controls-scale-landscape));
+    left: calc(68px * var(--controls-scale-landscape));
+  }
+  #controller_down {
+    top: auto;
+    bottom: calc(20px * var(--controls-scale-landscape));
+    left: calc(68px * var(--controls-scale-landscape));
+  }
+
+  #controller_a {
+    top: auto;
+    bottom: calc(
+      100% - (22px * var(--controls-scale-landscape)) - (64px * var(--controls-scale-landscape))
+    );
+    right: calc(20px * var(--controls-scale-landscape));
+  }
+  #controller_b {
+    top: auto;
+    bottom: calc(
+      100% - (50px * var(--controls-scale-landscape)) - (64px * var(--controls-scale-landscape))
+    );
+    right: calc(100px * var(--controls-scale-landscape));
+  }
+  #controller_start {
+    top: auto;
+    bottom: calc(
+      100% - (132px * var(--controls-scale-landscape)) - (32px * var(--controls-scale-landscape))
+    );
+    right: calc(15px * var(--controls-scale-landscape));
+  }
+  #controller_select {
+    top: auto;
+    bottom: calc(
+      100% - (132px * var(--controls-scale-landscape)) - (32px * var(--controls-scale-landscape))
+    );
+    right: calc(100px * var(--controls-scale-landscape));
+  }
+
+  .roundBtn {
+    font-size: calc(32px * var(--controls-scale-landscape));
+    line-height: calc(64px * var(--controls-scale-landscape));
+    width: calc(64px * var(--controls-scale-landscape));
+    height: calc(64px * var(--controls-scale-landscape));
+  }
+  .capsuleBtn {
+    font-size: calc(10px * var(--controls-scale-landscape));
+    line-height: calc(40px * var(--controls-scale-landscape));
+    width: calc(64px * var(--controls-scale-landscape));
+    height: calc(32px * var(--controls-scale-landscape));
   }
   .squareBtn {
-    width: 56px;
-    height: 52px;
+    width: calc(var(--rhythm-pad-btn-width) * var(--rhythm-pad-scale-landscape));
+    height: calc(var(--rhythm-pad-btn-height) * var(--rhythm-pad-scale-landscape));
+    font-size: calc(10px * var(--rhythm-pad-scale-landscape));
+    line-height: calc(40px * var(--rhythm-pad-scale-landscape));
   }
+
   #controller_rhythm_pad {
-    visibility: hidden;
+    top: auto;
+    bottom: 4px;
+    visibility: var(--rhythm-pad-visibility-landscape);
   }
 }
