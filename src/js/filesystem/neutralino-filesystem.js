@@ -42,10 +42,16 @@ class NeutralinoDirectoryEntry {
   }
 
   createReader() {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] DirectoryEntry.createReader:', this.fullPath);
+    }
     return {
       readEntries: (successCallback, errorCallback) => {
         Neutralino.filesystem.readDirectory(this.filesystem.resolvePath(this.fullPath))
           .then(entries => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] DirectoryEntry.readEntries success:', this.fullPath, entries.length);
+            }
             const result = entries.map(entry => {
               const relativePath = NeutralinoDirectoryEntry.joinRelative(this.fullPath, entry.entry);
               if (entry.type === 'directory') {
@@ -61,35 +67,70 @@ class NeutralinoDirectoryEntry {
   }
 
   getDirectory(path, options, successCallback, errorCallback) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] DirectoryEntry.getDirectory:', this.fullPath, '->', path);
+    }
     const relativePath = NeutralinoDirectoryEntry.joinRelative(this.fullPath, path);
     this.filesystem.ensureDirectory(relativePath, options)
       .then(() => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.getDirectory success:', relativePath);
+        }
         successCallback(new NeutralinoDirectoryEntry(
           NeutralinoDirectoryEntry.baseName(path),
           relativePath,
           this.filesystem
         ));
       })
-      .catch(errorCallback);
+      .catch(err => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.getDirectory error:', relativePath, err);
+        }
+        errorCallback(err);
+      });
   }
 
   getFile(path, options, successCallback, errorCallback) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] DirectoryEntry.getFile:', this.fullPath, '->', path);
+    }
     const relativePath = NeutralinoDirectoryEntry.joinRelative(this.fullPath, path);
     this.filesystem.ensureFile(relativePath, options)
       .then(() => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.getFile success:', relativePath);
+        }
         successCallback(new NeutralinoFileEntry(
           NeutralinoFileEntry.baseName(path),
           relativePath,
           this.filesystem
         ));
       })
-      .catch(errorCallback);
+      .catch(err => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.getFile error:', relativePath, err);
+        }
+        errorCallback(err);
+      });
   }
 
   removeRecursively(successCallback, errorCallback) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] DirectoryEntry.removeRecursively:', this.fullPath);
+    }
     Neutralino.filesystem.remove(this.filesystem.resolvePath(this.fullPath))
-      .then(() => successCallback())
-      .catch(errorCallback);
+      .then(() => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.removeRecursively success:', this.fullPath);
+        }
+        successCallback();
+      })
+      .catch(err => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.removeRecursively error:', this.fullPath, err);
+        }
+        errorCallback(err);
+      });
   }
 
   /**
@@ -131,7 +172,7 @@ class NeutralinoDirectoryEntry {
  * NeutralinoFileEntry wraps a single file behind the same interface Cordova's
  * FileEntry exposes. The returned file descriptor carries a server-backed
  * localURL (mounted via Neutralino.server.mount) so higher-level code can use
- * it directly as a media URL, matching the NW.js file:// and Cordova localURL
+ * it directly as a media URL, matching the file:// handling in other environments and Cordova localURL
  * behaviour on other platforms.
  * @example
  * // Reading a file via NeutralinoFileEntry
@@ -156,13 +197,29 @@ class NeutralinoFileEntry {
   }
 
   createWriter(successCallback, errorCallback) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] FileEntry.createWriter:', this.fullPath);
+    }
     const absolutePath = this.filesystem.resolvePath(this.fullPath);
 
     try {
       const writer = {
         write: (data, onDone, onError) => {
-          const done = () => { if (onDone) onDone(); };
-          const fail = err => { if (onError) onError(err); else errorCallback(err); };
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] FileEntry.write:', this.fullPath);
+          }
+          const done = () => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] FileEntry.write success:', this.fullPath);
+            }
+            if (onDone) onDone();
+          };
+          const fail = err => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] FileEntry.write error:', this.fullPath, err);
+            }
+            if (onError) onError(err); else errorCallback(err);
+          };
           try {
             if (typeof Blob !== 'undefined' && data instanceof Blob) {
               const reader = new FileReader();
@@ -199,10 +256,16 @@ class NeutralinoFileEntry {
   }
 
   file(successCallback, errorCallback) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] FileEntry.file:', this.fullPath);
+    }
     const absolutePath = this.filesystem.resolvePath(this.fullPath);
 
     Neutralino.filesystem.getStats(absolutePath)
       .then(stats => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] FileEntry.file success:', this.fullPath, stats.size);
+        }
         const file = {
           name: this.name,
           size: stats.size,
@@ -272,7 +335,7 @@ class NeutralinoFileEntry {
  * global, exposes Promise-based methods mirroring the Cordova file system API,
  * and mounts the base directory into Neutralino's built-in HTTP server so that
  * directory/file nativeURLs can be used directly as media URLs inside the
- * webview (the same role file:// URLs play on NW.js).
+ * webview (the same role file:// URLs play in other environments).
  * @example
  * // Reading song data from the file system in a Neutralino build
  * const fs = new NeutralinoFileSystem();
@@ -308,13 +371,19 @@ class NeutralinoFileSystem {
    * @returns {string} The application working directory path
    */
   getBasePath() {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] getBasePath called');
+    }
+    let base = '.';
     if (typeof NL_PATH !== 'undefined' && NL_PATH) {
-      return NL_PATH;
+      base = NL_PATH;
+    } else if (typeof window !== 'undefined' && window.NL_PATH) {
+      base = window.NL_PATH;
     }
-    if (typeof window !== 'undefined' && window.NL_PATH) {
-      return window.NL_PATH;
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] getBasePath:', base);
     }
-    return '.';
+    return base;
   }
 
   /**
@@ -323,10 +392,58 @@ class NeutralinoFileSystem {
    * @returns {string} The absolute filesystem path
    */
   resolvePath(relativePath) {
-    const relative = (relativePath || '').replace(/^\/+/, '').replace(/\/+$/, '');
-    if (!relative) return this.basePath;
-    if ((relativePath || '').startsWith(this.basePath)) return relativePath.replace(/\/+$/, '');
-    return `${this.basePath}/${relative}`.replace(/\/+/g, '/');
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] resolvePath:', relativePath);
+    }
+    if (!relativePath) {
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] resolvePath -> basePath:', this.basePath);
+      }
+      return this.basePath;
+    }
+    // If it's already an absolute path
+    if (relativePath.startsWith('/') || /^[A-Za-z]:[\\/]/.test(relativePath)) {
+      // Check if it starts with basePath (case-insensitive on Linux)
+      if (this.basePath && relativePath.toLowerCase().indexOf(this.basePath.toLowerCase()) === 0) {
+        const result = relativePath.replace(/\/+$/, '');
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] resolvePath ->', result);
+        }
+        return result;
+      }
+      // If it contains basePath somewhere else, try to extract from basePath onwards
+      if (this.basePath) {
+        const baseLower = this.basePath.toLowerCase();
+        const pathLower = relativePath.toLowerCase();
+        const idx = pathLower.indexOf(baseLower);
+        if (idx >= 0) {
+          const result = relativePath.substring(idx).replace(/\/+$/, '');
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] resolvePath -> extracted from base:', result);
+          }
+          return result;
+        }
+      }
+      // Otherwise it's absolute but not under basePath - might need to join differently
+      // For Neutralino, often paths are absolute
+      const result = relativePath.replace(/\/+$/, '');
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] resolvePath -> absolute:', result);
+      }
+      return result;
+    }
+    const relative = relativePath.replace(/^\/+/, '').replace(/\/+$/, '');
+    if (!relative) {
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] resolvePath -> basePath:', this.basePath);
+      }
+      return this.basePath;
+    }
+    const result = `${this.basePath}/${relative}`.replace(/\/+/g, '/');
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] resolvePath ->', result);
+    }
+    return result;
   }
 
   /**
@@ -336,9 +453,16 @@ class NeutralinoFileSystem {
    * @returns {string} The server URL path (e.g. /pmfs/data/Songs/My%20Song)
    */
   toServerUrl(relativePath) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] toServerUrl:', relativePath);
+    }
     const relative = (relativePath || '').replace(/^\/+/, '');
     const encoded = relative.split('/').map(segment => encodeURIComponent(segment)).join('/');
-    return `${NeutralinoFileSystem.MOUNT_URL}/${encoded}`;
+    const result = `${NeutralinoFileSystem.MOUNT_URL}/${encoded}`;
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] toServerUrl ->', result);
+    }
+    return result;
   }
 
   /**
@@ -369,10 +493,18 @@ class NeutralinoFileSystem {
    * @returns {Promise<Object>} Resolves with the Neutralino stats object
    */
   ensurePath(relativePath, shouldBeDirectory, options) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] ensurePath:', relativePath, shouldBeDirectory ? '(dir)' : '(file)', options);
+    }
     const absolutePath = this.resolvePath(relativePath);
 
     return Neutralino.filesystem.getStats(absolutePath)
-      .catch(() => null)
+      .catch(() => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] ensurePath: getStats failed for', relativePath);
+        }
+        return null;
+      })
       .then(stats => {
         if (!stats) {
           if (!(options && options.create)) {
@@ -422,14 +554,25 @@ class NeutralinoFileSystem {
    * @returns {Promise<NeutralinoDirectoryEntry>} Resolves with the directory entry
    */
   getDirectory(path) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] getDirectory:', path);
+    }
     const relativePath = (path || '').replace(/^\/+/, '');
 
     return this.ensurePath(relativePath, true, null).then(() => {
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] getDirectory success:', relativePath);
+      }
       return new NeutralinoDirectoryEntry(
         NeutralinoDirectoryEntry.baseName(relativePath) || '.',
         relativePath,
         this
       );
+    }).catch(err => {
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] getDirectory error:', path, err);
+      }
+      throw err;
     });
   }
 
@@ -439,10 +582,23 @@ class NeutralinoFileSystem {
    * @returns {Promise<Array>} Resolves with an array of directory entries
    */
   listDirectories(dirEntry) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] listDirectories:', dirEntry.fullPath);
+    }
     return new Promise((resolve, reject) => {
       dirEntry.createReader().readEntries(
-        entries => resolve(entries.filter(e => e.isDirectory)),
-        err => reject(err)
+        entries => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] listDirectories success:', dirEntry.fullPath, entries.filter(e => e.isDirectory).length);
+          }
+          resolve(entries.filter(e => e.isDirectory));
+        },
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] listDirectories error:', dirEntry.fullPath, err);
+          }
+          reject(err);
+        }
       );
     });
   }
@@ -453,6 +609,9 @@ class NeutralinoFileSystem {
    * @returns {Promise<Array>} Resolves with all descendant directory entries
    */
   listAllDirectories(startDir) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] listAllDirectories:', startDir.fullPath);
+    }
     return new Promise(async (resolve) => {
       const dirs = [];
       const queue = [startDir];
@@ -464,10 +623,16 @@ class NeutralinoFileSystem {
           dirs.push(...subDirs);
           queue.push(...subDirs);
         } catch (error) {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] listAllDirectories error in', dir.name, error);
+          }
           console.warn(`Error listing directories in ${dir.name}:`, error);
         }
       }
 
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] listAllDirectories success:', startDir.fullPath, dirs.length);
+      }
       resolve(dirs);
     });
   }
@@ -478,10 +643,23 @@ class NeutralinoFileSystem {
    * @returns {Promise<Array>} Resolves with an array of file entries
    */
   listFiles(dirEntry) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] listFiles:', dirEntry.fullPath);
+    }
     return new Promise((resolve, reject) => {
       dirEntry.createReader().readEntries(
-        entries => resolve(entries.filter(e => e.isFile)),
-        err => reject(err)
+        entries => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] listFiles success:', dirEntry.fullPath, entries.filter(e => e.isFile).length);
+          }
+          resolve(entries.filter(e => e.isFile));
+        },
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] listFiles error:', dirEntry.fullPath, err);
+          }
+          reject(err);
+        }
       );
     });
   }
@@ -492,10 +670,23 @@ class NeutralinoFileSystem {
    * @returns {Promise<Object>} Resolves with the file descriptor object
    */
   getFile(fileEntry) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] getFile:', fileEntry.fullPath);
+    }
     return new Promise((resolve, reject) => {
       fileEntry.file(
-        file => resolve(file),
-        err => reject(err)
+        file => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] getFile success:', fileEntry.fullPath);
+          }
+          resolve(file);
+        },
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] getFile error:', fileEntry.fullPath, err);
+          }
+          reject(err);
+        }
       );
     });
   }
@@ -506,12 +697,25 @@ class NeutralinoFileSystem {
    * @returns {Promise<string>} Resolves with the file content as text
    */
   readFileContent(file) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] readFileContent:', file && (file._path || file.name));
+    }
     return new Promise((resolve, reject) => {
       // If file has _path (from NeutralinoFileEntry), use it directly
       if (file && file._path) {
         Neutralino.filesystem.readFile(file._path)
-          .then(data => resolve(data))
-          .catch(reject);
+          .then(data => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] readFileContent success:', file._path, typeof data);
+            }
+            resolve(data);
+          })
+          .catch(err => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] readFileContent error:', file._path, err);
+            }
+            reject(err);
+          });
       } else if (file && typeof file.text === 'function') {
         // Fallback for Blob/File objects
         file.text().then(resolve).catch(reject);
@@ -533,18 +737,39 @@ class NeutralinoFileSystem {
    * @returns {Promise<NeutralinoFileEntry>} Resolves with the file entry once written
    */
   saveFile(dirEntry, fileData, fileName) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] saveFile:', dirEntry.fullPath, fileName);
+    }
     return new Promise((resolve, reject) => {
       dirEntry.getFile(fileName, { create: true, exclusive: false },
         fileEntry => {
           if (fileData === undefined || fileData === null) {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] saveFile success (no data):', fileEntry.fullPath);
+            }
             resolve(fileEntry);
             return;
           }
           this.writeFile(fileEntry, fileData)
-            .then(() => resolve(fileEntry))
-            .catch(err => reject(err));
+            .then(() => {
+              if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+                console.log('[NeutralinoFS] saveFile success:', fileEntry.fullPath);
+              }
+              resolve(fileEntry);
+            })
+            .catch(err => {
+              if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+                console.log('[NeutralinoFS] saveFile error:', fileEntry.fullPath, err);
+              }
+              reject(err);
+            });
         },
-        error => reject(error)
+        error => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] saveFile getFile error:', dirEntry.fullPath, fileName, error);
+          }
+          reject(error);
+        }
       );
     });
   }
@@ -557,10 +782,23 @@ class NeutralinoFileSystem {
    * @returns {Promise<NeutralinoFileEntry>} Resolves with the file entry
    */
   createEmptyFile(dirEntry, fileName, isAppend) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] createEmptyFile:', dirEntry.fullPath, fileName, isAppend);
+    }
     return new Promise((resolve, reject) => {
       dirEntry.getFile(fileName, {create: true, exclusive: false},
-        fileEntry => resolve(fileEntry),
-        err => reject(err)
+        fileEntry => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] createEmptyFile success:', fileEntry.fullPath);
+          }
+          resolve(fileEntry);
+        },
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] createEmptyFile error:', dirEntry.fullPath, fileName, err);
+          }
+          reject(err);
+        }
       );
     });
   }
@@ -573,12 +811,30 @@ class NeutralinoFileSystem {
    * @returns {Promise<Object>} Resolves with the writer
    */
   writeFile(fileEntry, dataObj, isAppend) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] writeFile:', fileEntry.fullPath, isAppend);
+    }
     return new Promise((resolve, reject) => {
       fileEntry.createWriter(
         writer => {
-          writer.write(dataObj, () => resolve(writer), reject);
+          writer.write(dataObj, () => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] writeFile success:', fileEntry.fullPath);
+            }
+            resolve(writer);
+          }, err => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] writeFile error:', fileEntry.fullPath, err);
+            }
+            reject(err);
+          });
         },
-        err => reject(err)
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] writeFile createWriter error:', fileEntry.fullPath, err);
+          }
+          reject(err);
+        }
       );
     });
   }
@@ -589,8 +845,22 @@ class NeutralinoFileSystem {
    * @returns {Promise<boolean>} Resolves true once the file is removed
    */
   deleteFile(fileEntry) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] deleteFile:', fileEntry.fullPath);
+    }
     return Neutralino.filesystem.remove(this.resolvePath(fileEntry.fullPath))
-      .then(() => true);
+      .then(() => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] deleteFile success:', fileEntry.fullPath);
+        }
+        return true;
+      })
+      .catch(err => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] deleteFile error:', fileEntry.fullPath, err);
+        }
+        throw err;
+      });
   }
 
   /**
@@ -600,10 +870,23 @@ class NeutralinoFileSystem {
    * @returns {Promise<NeutralinoDirectoryEntry>} Resolves with the new directory entry
    */
   createDirectory(rootDirEntry, dirName) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] createDirectory:', rootDirEntry.fullPath, dirName);
+    }
     return new Promise((resolve, reject) => {
       rootDirEntry.getDirectory(dirName, { create: true },
-        dirEntry => resolve(dirEntry),
-        err => reject(err)
+        dirEntry => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] createDirectory success:', dirEntry.fullPath);
+          }
+          resolve(dirEntry);
+        },
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] createDirectory error:', rootDirEntry.fullPath, dirName, err);
+          }
+          reject(err);
+        }
       );
     });
   }

@@ -99,12 +99,17 @@ Accessible from the main menu, the Add-on Manager allows you to:
 - Double charts are not supported since it's hard to implement Single Player Doubles on mobile
 - Most mobile file browsers may require selecting individual files one by one
 - Limited HTML5 gamepad API makes some gamepads unusable with the game. In such case, users will need to use X360CE and similar programs
+- **WebView requirements:** On desktop (Neutralino.js builds) you need WebView2 installed. On Android you need Android System WebView installed and up to date. Without a working WebView, the game may not function correctly.
 
 ## License
 
 Copyright © 2026 RETORA
 
 PadManiacs is free software licensed under the GNU General Public License version 3 (or any later version), with an additional permission requiring that the attribution "PadManiacs by RETORA" be preserved in all copies and modified versions. Modified versions may not be distributed under the name "PadManiacs" or any confusingly similar name. See the LICENSE file for complete terms.
+
+## Music Disclaimer
+
+The game includes 16 Vocaloid songs. While the code is GPL and the game is free, this does not make the audio libre. I do not have explicit licenses from all of the producers for these tracks. I assume this risk and, if I receive a valid takedown/request, I will resolve it by removing the affected songs or seeking permission. These songs will remain until the project matures and obtains original music. The risk is low but real. If any rights holder dislikes their song being in this game, I will remove it in good faith. See [NOTICE](NOTICE) for details.
 
 Third-party components:
 - Uses StepMania chart format specification
