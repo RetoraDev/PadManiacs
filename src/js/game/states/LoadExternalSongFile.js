@@ -49,7 +49,7 @@ class LoadExternalSongFile {
     this.parser = new ExternalSMParser();
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
-      this.fileSystem.fileSystem.basePath = '';
+      // Keep basePath from NeutralinoFileSystem; don't reset to empty
     }
     
     if (this.fileName.endsWith('.zip')) {

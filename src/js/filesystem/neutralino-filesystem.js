@@ -496,6 +496,31 @@ class NeutralinoFileSystem {
     if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
       console.log('[NeutralinoFS] ensurePath:', relativePath, shouldBeDirectory ? '(dir)' : '(file)', options);
     }
+    if (!relativePath || relativePath === '') {
+      const absolutePath = this.basePath;
+      return Neutralino.filesystem.getStats(absolutePath)
+        .catch(() => null)
+        .then(stats => {
+          if (stats) {
+            if (shouldBeDirectory && !stats.isDirectory) {
+              throw new Error(`Path is not a directory: ${relativePath}`);
+            }
+            if (!shouldBeDirectory && !stats.isFile) {
+              throw new Error(`Path is not a file: ${relativePath}`);
+            }
+            return stats;
+          }
+          if (options && options.create) {
+            if (shouldBeDirectory) {
+              return Neutralino.filesystem.createDirectory(absolutePath)
+                .then(() => Neutralino.filesystem.getStats(absolutePath));
+            }
+            return Neutralino.filesystem.writeFile(absolutePath, '')
+              .then(() => Neutralino.filesystem.getStats(absolutePath));
+          }
+          throw new Error(`${shouldBeDirectory ? 'Directory' : 'File'} not found: ${relativePath}`);
+        });
+    }
     const absolutePath = this.resolvePath(relativePath);
 
     return Neutralino.filesystem.getStats(absolutePath)
@@ -557,7 +582,17 @@ class NeutralinoFileSystem {
     if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
       console.log('[NeutralinoFS] getDirectory:', path);
     }
-    const relativePath = (path || '').replace(/^\/+/, '');
+    if (!path || path === '' || path === '/') {
+      // Return root
+      return this.ensurePath('', true, null).then(() => {
+        return new NeutralinoDirectoryEntry('.', '', this);
+      });
+    }
+    let relativePath = (path || '').replace(/^\/+/, '');
+    // If it's absolute and points outside base but contains base, try to make relative
+    if (this.basePath && relativePath && relativePath.indexOf(this.basePath.replace(/^\//, '')) === 0 && relativePath !== this.basePath.replace(/^\//, '')) {
+      relativePath = relativePath.substring(this.basePath.replace(/^\//, '').length).replace(/^\/+/, '');
+    }
 
     return this.ensurePath(relativePath, true, null).then(() => {
       if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {

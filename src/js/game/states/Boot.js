@@ -118,7 +118,20 @@ class Boot {
           return character;
         }
         
-        const newCharacter = structuredClone(character);
+        let newCharacter;
+        try {
+          if (typeof structuredClone === 'function') {
+            newCharacter = structuredClone(character);
+          } else {
+            newCharacter = JSON.parse(JSON.stringify(character));
+          }
+        } catch (e) {
+          try {
+            newCharacter = JSON.parse(JSON.stringify(character));
+          } catch (e2) {
+            newCharacter = character;
+          }
+        }
         
         newCharacter.appearance.clothing = DEFAULT_CHARACTER.appearance.clothing;
         newCharacter.appearance.tints = DEFAULT_CHARACTER.appearance.tints;

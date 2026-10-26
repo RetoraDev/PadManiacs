@@ -37,7 +37,19 @@ class Play {
     /** @type {Object} The unmodified song object passed into the state */
     this.originalSong = song;
     /** @type {Object} A deep clone of the chart used for gameplay */
-    this.song = structuredClone(song);
+    try {
+      if (typeof structuredClone === 'function') {
+        this.song = structuredClone(song);
+      } else {
+        this.song = JSON.parse(JSON.stringify(song));
+      }
+    } catch (e) {
+      try {
+        this.song = JSON.parse(JSON.stringify(song));
+      } catch (e2) {
+        this.song = song;
+      }
+    }
     /** @type {number} Index of the selected difficulty */
     this.difficultyIndex = typeof difficultyIndex != undefined ? difficultyIndex : song.difficultyIndex;
     /** @type {Object|null} The player renderer and judgement objects */

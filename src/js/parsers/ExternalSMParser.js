@@ -118,13 +118,25 @@ class ExternalSMParser {
                 const ext = bgEntry.file.split(".").pop().toLowerCase();
                 bgEntry.type = VIDEO_EXTENSIONS.includes(ext) ? "video" : "image";
                 // Create URL for the file if it exists
-                if (files[bgEntry.file.toLowerCase()]) {
-                  const file = files[bgEntry.file.toLowerCase()];
-                  bgEntry.url = file.localURL ? file.localURL : URL.createObjectURL(file);
-                  bgEntry.url = bgEntry.url
-                    .replace('cdvfile://', 'file://')
-                    .replace('localhost/persistent/', '/storage/emulated/0/');
+            if (files[bgEntry.file.toLowerCase()]) {
+              const file = files[bgEntry.file.toLowerCase()];
+              if (file.localURL) {
+                bgEntry.url = file.localURL;
+              } else if (file.nativeURL) {
+                bgEntry.url = file.nativeURL;
+              } else {
+                try {
+                  bgEntry.url = URL.createObjectURL(file);
+                } catch (e) {
+                  bgEntry.url = file.localURL || file.nativeURL || '';
                 }
+              }
+              if (typeof bgEntry.url === 'string') {
+                bgEntry.url = bgEntry.url
+                  .replace('cdvfile://', 'file://')
+                  .replace('localhost/persistent/', '/storage/emulated/0/');
+              }
+            }
               }
 
               if (parts.length > 6) {
@@ -140,20 +152,44 @@ class ExternalSMParser {
           if (p[1] && files[p[1].toLowerCase()]) {
             const file = files[p[1].toLowerCase()];
             out.banner = p[1];
-            out.bannerUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.bannerUrl = out.bannerUrl
-              .replace('cdvfile://', 'file://')
-              .replace('localhost/persistent/', '/storage/emulated/0/');
+            if (file.localURL) {
+              out.bannerUrl = file.localURL;
+            } else if (file.nativeURL) {
+              out.bannerUrl = file.nativeURL;
+            } else {
+              try {
+                out.bannerUrl = URL.createObjectURL(file);
+              } catch (e) {
+                out.bannerUrl = file.localURL || file.nativeURL || '';
+              }
+            }
+            if (typeof out.bannerUrl === 'string') {
+              out.bannerUrl = out.bannerUrl
+                .replace('cdvfile://', 'file://')
+                .replace('localhost/persistent/', '/storage/emulated/0/');
+            }
           }
           break;
         case "#CDTITLE":
           if (p[1] && files[p[1].toLowerCase()]) {
             const file = files[p[1].toLowerCase()];
             out.cdtitle = p[1];
-            out.cdtitleUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.cdtitleUrl = out.cdtitleUrl
-              .replace('cdvfile://', 'file://')
-              .replace('localhost/persistent/', '/storage/emulated/0/');
+            if (file.localURL) {
+              out.cdtitleUrl = file.localURL;
+            } else if (file.nativeURL) {
+              out.cdtitleUrl = file.nativeURL;
+            } else {
+              try {
+                out.cdtitleUrl = URL.createObjectURL(file);
+              } catch (e) {
+                out.cdtitleUrl = file.localURL || file.nativeURL || '';
+              }
+            }
+            if (typeof out.cdtitleUrl === 'string') {
+              out.cdtitleUrl = out.cdtitleUrl
+                .replace('cdvfile://', 'file://')
+                .replace('localhost/persistent/', '/storage/emulated/0/');
+            }
           }
           break;
         case "#SAMPLESTART":
@@ -166,10 +202,22 @@ class ExternalSMParser {
           if (p[1] && files[p[1].toLowerCase()]) {
             const file = files[p[1].toLowerCase()];
             out.background = p[1];
-            out.backgroundUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.backgroundUrl = out.backgroundUrl
-              .replace('cdvfile://', 'file://')
-              .replace('localhost/persistent/', '/storage/emulated/0/');
+            if (file.localURL) {
+              out.backgroundUrl = file.localURL;
+            } else if (file.nativeURL) {
+              out.backgroundUrl = file.nativeURL;
+            } else {
+              try {
+                out.backgroundUrl = URL.createObjectURL(file);
+              } catch (e) {
+                out.backgroundUrl = file.localURL || file.nativeURL || '';
+              }
+            }
+            if (typeof out.backgroundUrl === 'string') {
+              out.backgroundUrl = out.backgroundUrl
+                .replace('cdvfile://', 'file://')
+                .replace('localhost/persistent/', '/storage/emulated/0/');
+            }
           }
           break;
         case "#LYRICSPATH":
@@ -184,10 +232,22 @@ class ExternalSMParser {
             out.audio = p[1];
             if (files[p[1].toLowerCase()]) {
               const file = files[p[1].toLowerCase()];
-              out.audioUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
-              out.audioUrl = out.audioUrl
-                .replace('cdvfile://', 'file://')
-                .replace('localhost/persistent/', '/storage/emulated/0/');
+              if (file.localURL) {
+                out.audioUrl = file.localURL;
+              } else if (file.nativeURL) {
+                out.audioUrl = file.nativeURL;
+              } else {
+                try {
+                  out.audioUrl = URL.createObjectURL(file);
+                } catch (e) {
+                  out.audioUrl = file.localURL || file.nativeURL || '';
+                }
+              }
+              if (typeof out.audioUrl === 'string') {
+                out.audioUrl = out.audioUrl
+                  .replace('cdvfile://', 'file://')
+                  .replace('localhost/persistent/', '/storage/emulated/0/');
+              }
             }
           }
           break;
