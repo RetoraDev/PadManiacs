@@ -244,6 +244,7 @@ class Boot {
     game.world.updateOnlyExistingChildren = true;
 
     game.onMenuIn = new Phaser.Signal();
+    game.onMenuOut = new Phaser.Signal();
 
     game.state.add("Load", Load);
     game.state.add("LoadPlatform", LoadPlatform);

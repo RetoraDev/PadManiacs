@@ -42,16 +42,6 @@
     [ ensureDirectory | (relativePath, options) | Ensures a directory exists at the given relative path. ]
     [ ensureFile | (relativePath, options) | Ensures a file exists at the given relative path. ]
     [ getDirectory | (path) | Resolves a directory path and returns a NeutralinoDirectoryEntry. ]
-    [ listDirectories | (dirEntry) | Lists immediate child directories within a NeutralinoDirectoryEntry. ]
-    [ listAllDirectories | (startDir) | Recursively lists all subdirectories under a root directory. ]
-    [ listFiles | (dirEntry) | Lists immediate child files within a directory entry. ]
-    [ getFile | (fileEntry) | Retrieves the file object from a file entry. ]
-    [ readFileContent | (file) | Reads the full text content of a file object. ]
-    [ saveFile | (dirEntry, fileData, fileName) | Creates or opens a file for saving data, writing fileData when provided. ]
-    [ createEmptyFile | (dirEntry, fileName, isAppend) | Creates an empty file or opens an existing one for appending. ]
-    [ writeFile | (fileEntry, dataObj, isAppend) | Writes data to an existing file entry, resolving once the data is on disk. ]
-    [ deleteFile | (fileEntry) | Deletes a file from the filesystem. ]
-    [ createDirectory | (rootDirEntry, dirName) | Creates a new subdirectory inside a parent directory. ]
     [/table]
 
 

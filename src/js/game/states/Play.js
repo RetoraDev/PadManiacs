@@ -1602,6 +1602,9 @@ class Play {
    */
   hidePauseMenu() {
     if (this.pauseCarousel) {
+      try {
+        if (game.onMenuOut) game.onMenuOut.dispatch('pause', this.pauseCarousel);
+      } catch (e) {}
       this.pauseBg.destroy();
       this.pauseStatsText.destroy();
       this.pauseCarousel.destroy();
