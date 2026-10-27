@@ -31,3 +31,6 @@ src/static/nw/*
 !src/static/nw/padmaniacs.exe
 !src/static/nw/package.json
 !src/static/nw/.gitkeep
+src/static/nw/www/.placeholder
+www/.placeholder
+www
