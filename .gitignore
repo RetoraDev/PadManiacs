@@ -21,3 +21,13 @@ dist/android/
 src/static/android_app/res/xml/config.xml.bak
 dist
 PadManiacs.bfproject
+
+# NW.js binaries (download manually)
+src/static/nw/*
+!src/static/nw/locales/
+!src/static/nw/locales/**
+!src/static/nw/www/
+!src/static/nw/www/**
+!src/static/nw/padmaniacs.exe
+!src/static/nw/package.json
+!src/static/nw/.gitkeep

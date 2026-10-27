@@ -4,13 +4,16 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.3.0
- * Build: 10/23/2026, 10:34:57 PM
+ * Version: v1.3.0 dev
+ * Build: 10/27/2026, 3:42:39 PM
  * Platform: Web
- * Debug: false
+ * Debug: true
  * Minified: false
  */
 
+
+
+// ======== js/core/lang.js ========
 /**
  * Global localization helpers for the game.
  *
@@ -121,17 +124,21 @@ window.__ = function(text) {
 /** @type {Function} Module-local alias for the global localization function */
 const __ = window.__;
 
+
+
+// ======== js/core/constants.js ========
 /** @type {string} Copyright notice */
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.3.0";
+const VERSION = "v1.3.0 dev";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
-window.DEBUG = false;
+window.DEBUG = true;
 
 /** @type {boolean} Whether to log personality study data during development */
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
+window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS = window.DEBUG;
 
 /** @type {boolean} Whether to unlock all clothing items for development */
 window.UNLOCK_ALL_CLOTHES = false;
@@ -855,6 +862,9 @@ const DEFAULT_GAMEPAD_MAPPING = {
 /** @type {array} Supported video file extensions for external songs */
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg", "mpeg4"];
 
+
+
+// ======== js/core/environment.js ========
 // Environment detection constants
 /** @type {Object} Environment type definitions (UNKNOWN, NEUTRALINO, CORDOVA, WEB) */
 const ENVIRONMENT = {
@@ -889,12 +899,12 @@ const BACKUPS_DIRECTORY = "Backups";
 const FF_DIR_NAME = "Decoder";
 
 /** @type {boolean} Enable parallel asset loading */
-const ENABLE_PARALLEL_LOADING = true;
+const ENABLE_PARALLEL_LOADING = false;
 /** @type {number} Maximum parallel downloads */
-const MAX_PARALLEL_DOWNLOADS = 16;
+const MAX_PARALLEL_DOWNLOADS = 0;
 
 /** @type {number} Maximum parallel addon loads */
-const MAX_PARALLEL_ADDON_LOADS = 3;
+const MAX_PARALLEL_ADDON_LOADS = 0;
 
 /** @type {boolean} Enable UI sound effects */
 const ENABLE_UI_SFX = true;
@@ -908,6 +918,9 @@ const WEAK_VIBRATION_INTENSITY = 50;
 /** @type {number} Vibration duration in MS for strong hits */
 const STRONG_VIBRATION_INTENSITY = 50;
 
+
+
+// ======== js/core/character.js ========
 // Character system constants
 /** @type {Object} Character system constants (max level, name length, etc.) */
 const CHARACTER_SYSTEM = {
@@ -3342,6 +3355,9 @@ const CHARACTER_ITEMS = [
   }
 ];
 
+
+
+// ======== js/core/account.js ========
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
   version: 1.31, // 1.3.0
@@ -3508,6 +3524,9 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
+
+
+// ======== js/core/achievements.js ========
 // Achievements system constants
 /** @type {Object} Achievements system constants */
 const ACHIEVEMENTS = {
@@ -5149,6 +5168,9 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
+
+
+// ======== js/character/Character.js ========
 /**
  * @class Character
  * @category Character System Classes
@@ -5749,6 +5771,9 @@ class Character {
   }
 }
 
+
+
+// ======== js/character/CharacterDisplay.js ========
 /**
  * @class CharacterDisplay
  * @category Character System Classes
@@ -6464,6 +6489,9 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/character/CharacterCroppedDisplay.js ========
 /**
  * @class CharacterCroppedDisplay
  * @category Character System Classes
@@ -6558,6 +6586,9 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
+
+
+// ======== js/character/CharacterPortrait.js ========
 /**
  * @class CharacterPortrait
  * @category Character System Classes
@@ -6585,6 +6616,9 @@ class CharacterPortrait extends CharacterCroppedDisplay {
   }
 }
 
+
+
+// ======== js/character/CharacterCloseShot.js ========
 /**
  * @class CharacterCloseShot
  * @category Character System Classes
@@ -6612,6 +6646,9 @@ class CharacterCloseShot extends CharacterCroppedDisplay {
   }
 }
 
+
+
+// ======== js/character/CharacterManager.js ========
 /**
  * @class CharacterManager
  * @category Character System Classes
@@ -6905,6 +6942,9 @@ class CharacterManager {
   }
 }
 
+
+
+// ======== js/character/CharacterSkillSystem.js ========
 /**
  * @class CharacterSkillSystem
  * @category Character System Classes
@@ -7401,6 +7441,9 @@ class CharacterSkillSystem {
   }
 }
 
+
+
+// ======== js/achievements/AchievementsManager.js ========
 /**
  * @class AchievementsManager
  * @category Achievements and Stats Classes
@@ -8056,6 +8099,9 @@ class AchievementsManager {
   }
 }
 
+
+
+// ======== js/playlist/PlaylistManager.js ========
 /**
  * @class PlaylistManager
  * @category Playlist System Classes
@@ -8365,6 +8411,9 @@ class PlaylistManager {
   }
 }
 
+
+
+// ======== js/ui/Text.js ========
 /**
  * @class Text
  * @category UI Classes
@@ -8709,6 +8758,9 @@ class Text extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Window.js ========
 /**
  * @class Window
  * @category UI Classes
@@ -9365,6 +9417,9 @@ class Window extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/WindowManager.js ========
 /**
  * @class WindowManager
  * @category UI Classes
@@ -9745,6 +9800,9 @@ class WindowManager {
   }
 }
 
+
+
+// ======== js/ui/DialogWindow.js ========
 /**
  * @class DialogWindow
  * @category UI Classes
@@ -10313,6 +10371,9 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/CarouselMenu.js ========
 /**
  * @class CarouselMenu
  * @category UI Classes
@@ -11214,6 +11275,9 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Background.js ========
 /**
  * @class Background
  * @category UI Classes
@@ -11268,6 +11332,9 @@ class Background extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/BackgroundGradient.js ========
 /**
  * @class BackgroundGradient
  * @category UI Classes
@@ -11292,6 +11359,9 @@ class BackgroundGradient extends Background {
   }
 } 
 
+
+
+// ======== js/ui/CanvasBackground.js ========
 /**
  * @class CanvasBackground
  * @category UI Classes
@@ -11361,6 +11431,9 @@ class CanvasBackground extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/FuturisticLines.js ========
 /**
  * @class FuturisticLines
  * @category UI Classes
@@ -11602,6 +11675,9 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LoadingDots.js ========
 /**
  * @class LoadingDots
  * @category UI Classes
@@ -11630,6 +11706,9 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Logo.js ========
 /**
  * @class Logo
  * @category UI Classes
@@ -11717,6 +11796,9 @@ class Logo extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NavigationHint.js ========
 /**
  * @class NavigationHint
  * @category UI Classes
@@ -12342,6 +12424,9 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/ProgressText.js ========
 /**
  * @class ProgressText
  * @category UI Classes
@@ -12370,6 +12455,9 @@ class ProgressText extends Text {
   }
 }
 
+
+
+// ======== js/ui/ExperienceBar.js ========
 /**
  * @class ExperienceBar
  * @category UI Classes
@@ -12453,6 +12541,9 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/SkillBar.js ========
 /**
  * @class SkillBar
  * @category UI Classes
@@ -12504,6 +12595,9 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/TextInput.js ========
 /**
  * @class TextInput
  * @category UI Classes
@@ -12841,6 +12935,9 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NumberInput.js ========
 /**
  * @class NumberInput
  * @category UI Classes
@@ -13054,6 +13151,9 @@ class NumberInput extends TextInput {
   }
 }
 
+
+
+// ======== js/ui/NotificationSystem.js ========
 /**
  * @class NotificationSystem
  * @category UI Classes
@@ -13554,6 +13654,9 @@ class NotificationSystem {
   }
 }
 
+
+
+// ======== js/ui/Lyrics.js ========
 /**
  * @class Lyrics
  * @category Core Game Classes
@@ -13812,6 +13915,9 @@ class Lyrics {
   }
 }
 
+
+
+// ======== js/ui/OffsetAssistant.js ========
 /**
  * @class OffsetAssistant
  * @category Core Game Classes
@@ -14246,6 +14352,9 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/MouseCursor.js ========
 /**
  * @class MouseCursor
  * @category UI Classes
@@ -14507,6 +14616,9 @@ class MouseCursor {
   }
 }
 
+
+
+// ======== js/ui/BarChart.js ========
 /**
  * @class BarChart
  * @category UI Classes
@@ -14643,6 +14755,9 @@ class BarChart extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LineChart.js ========
 /**
  * @class LineChart
  * @category UI Classes
@@ -14793,6 +14908,9 @@ class LineChart extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/filesystem/filesystem.js ========
 /**
  * @class FileSystemTools
  * @category File System Classes
@@ -14998,6 +15116,9 @@ class FileSystemTools {
   }
 }
 
+
+
+// ======== js/filesystem/neutralino-filesystem.js ========
 /**
  * @class NeutralinoDirectoryEntry
  * @category File System Classes
@@ -15042,10 +15163,16 @@ class NeutralinoDirectoryEntry {
   }
 
   createReader() {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] DirectoryEntry.createReader:', this.fullPath);
+    }
     return {
       readEntries: (successCallback, errorCallback) => {
         Neutralino.filesystem.readDirectory(this.filesystem.resolvePath(this.fullPath))
           .then(entries => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] DirectoryEntry.readEntries success:', this.fullPath, entries.length);
+            }
             const result = entries.map(entry => {
               const relativePath = NeutralinoDirectoryEntry.joinRelative(this.fullPath, entry.entry);
               if (entry.type === 'directory') {
@@ -15061,35 +15188,70 @@ class NeutralinoDirectoryEntry {
   }
 
   getDirectory(path, options, successCallback, errorCallback) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] DirectoryEntry.getDirectory:', this.fullPath, '->', path);
+    }
     const relativePath = NeutralinoDirectoryEntry.joinRelative(this.fullPath, path);
     this.filesystem.ensureDirectory(relativePath, options)
       .then(() => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.getDirectory success:', relativePath);
+        }
         successCallback(new NeutralinoDirectoryEntry(
           NeutralinoDirectoryEntry.baseName(path),
           relativePath,
           this.filesystem
         ));
       })
-      .catch(errorCallback);
+      .catch(err => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.getDirectory error:', relativePath, err);
+        }
+        errorCallback(err);
+      });
   }
 
   getFile(path, options, successCallback, errorCallback) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] DirectoryEntry.getFile:', this.fullPath, '->', path);
+    }
     const relativePath = NeutralinoDirectoryEntry.joinRelative(this.fullPath, path);
     this.filesystem.ensureFile(relativePath, options)
       .then(() => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.getFile success:', relativePath);
+        }
         successCallback(new NeutralinoFileEntry(
           NeutralinoFileEntry.baseName(path),
           relativePath,
           this.filesystem
         ));
       })
-      .catch(errorCallback);
+      .catch(err => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.getFile error:', relativePath, err);
+        }
+        errorCallback(err);
+      });
   }
 
   removeRecursively(successCallback, errorCallback) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] DirectoryEntry.removeRecursively:', this.fullPath);
+    }
     Neutralino.filesystem.remove(this.filesystem.resolvePath(this.fullPath))
-      .then(() => successCallback())
-      .catch(errorCallback);
+      .then(() => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.removeRecursively success:', this.fullPath);
+        }
+        successCallback();
+      })
+      .catch(err => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] DirectoryEntry.removeRecursively error:', this.fullPath, err);
+        }
+        errorCallback(err);
+      });
   }
 
   /**
@@ -15131,7 +15293,7 @@ class NeutralinoDirectoryEntry {
  * NeutralinoFileEntry wraps a single file behind the same interface Cordova's
  * FileEntry exposes. The returned file descriptor carries a server-backed
  * localURL (mounted via Neutralino.server.mount) so higher-level code can use
- * it directly as a media URL, matching the NW.js file:// and Cordova localURL
+ * it directly as a media URL, matching the file:// handling in other environments and Cordova localURL
  * behaviour on other platforms.
  * @example
  * // Reading a file via NeutralinoFileEntry
@@ -15156,13 +15318,29 @@ class NeutralinoFileEntry {
   }
 
   createWriter(successCallback, errorCallback) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] FileEntry.createWriter:', this.fullPath);
+    }
     const absolutePath = this.filesystem.resolvePath(this.fullPath);
 
     try {
       const writer = {
         write: (data, onDone, onError) => {
-          const done = () => { if (onDone) onDone(); };
-          const fail = err => { if (onError) onError(err); else errorCallback(err); };
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] FileEntry.write:', this.fullPath);
+          }
+          const done = () => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] FileEntry.write success:', this.fullPath);
+            }
+            if (onDone) onDone();
+          };
+          const fail = err => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] FileEntry.write error:', this.fullPath, err);
+            }
+            if (onError) onError(err); else errorCallback(err);
+          };
           try {
             if (typeof Blob !== 'undefined' && data instanceof Blob) {
               const reader = new FileReader();
@@ -15199,10 +15377,16 @@ class NeutralinoFileEntry {
   }
 
   file(successCallback, errorCallback) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] FileEntry.file:', this.fullPath);
+    }
     const absolutePath = this.filesystem.resolvePath(this.fullPath);
 
     Neutralino.filesystem.getStats(absolutePath)
       .then(stats => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] FileEntry.file success:', this.fullPath, stats.size);
+        }
         const file = {
           name: this.name,
           size: stats.size,
@@ -15272,7 +15456,7 @@ class NeutralinoFileEntry {
  * global, exposes Promise-based methods mirroring the Cordova file system API,
  * and mounts the base directory into Neutralino's built-in HTTP server so that
  * directory/file nativeURLs can be used directly as media URLs inside the
- * webview (the same role file:// URLs play on NW.js).
+ * webview (the same role file:// URLs play in other environments).
  * @example
  * // Reading song data from the file system in a Neutralino build
  * const fs = new NeutralinoFileSystem();
@@ -15308,13 +15492,19 @@ class NeutralinoFileSystem {
    * @returns {string} The application working directory path
    */
   getBasePath() {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] getBasePath called');
+    }
+    let base = '.';
     if (typeof NL_PATH !== 'undefined' && NL_PATH) {
-      return NL_PATH;
+      base = NL_PATH;
+    } else if (typeof window !== 'undefined' && window.NL_PATH) {
+      base = window.NL_PATH;
     }
-    if (typeof window !== 'undefined' && window.NL_PATH) {
-      return window.NL_PATH;
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] getBasePath:', base);
     }
-    return '.';
+    return base;
   }
 
   /**
@@ -15323,10 +15513,58 @@ class NeutralinoFileSystem {
    * @returns {string} The absolute filesystem path
    */
   resolvePath(relativePath) {
-    const relative = (relativePath || '').replace(/^\/+/, '').replace(/\/+$/, '');
-    if (!relative) return this.basePath;
-    if ((relativePath || '').startsWith(this.basePath)) return relativePath.replace(/\/+$/, '');
-    return `${this.basePath}/${relative}`.replace(/\/+/g, '/');
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] resolvePath:', relativePath);
+    }
+    if (!relativePath) {
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] resolvePath -> basePath:', this.basePath);
+      }
+      return this.basePath;
+    }
+    // If it's already an absolute path
+    if (relativePath.startsWith('/') || /^[A-Za-z]:[\\/]/.test(relativePath)) {
+      // Check if it starts with basePath (case-insensitive on Linux)
+      if (this.basePath && relativePath.toLowerCase().indexOf(this.basePath.toLowerCase()) === 0) {
+        const result = relativePath.replace(/\/+$/, '');
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] resolvePath ->', result);
+        }
+        return result;
+      }
+      // If it contains basePath somewhere else, try to extract from basePath onwards
+      if (this.basePath) {
+        const baseLower = this.basePath.toLowerCase();
+        const pathLower = relativePath.toLowerCase();
+        const idx = pathLower.indexOf(baseLower);
+        if (idx >= 0) {
+          const result = relativePath.substring(idx).replace(/\/+$/, '');
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] resolvePath -> extracted from base:', result);
+          }
+          return result;
+        }
+      }
+      // Otherwise it's absolute but not under basePath - might need to join differently
+      // For Neutralino, often paths are absolute
+      const result = relativePath.replace(/\/+$/, '');
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] resolvePath -> absolute:', result);
+      }
+      return result;
+    }
+    const relative = relativePath.replace(/^\/+/, '').replace(/\/+$/, '');
+    if (!relative) {
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] resolvePath -> basePath:', this.basePath);
+      }
+      return this.basePath;
+    }
+    const result = `${this.basePath}/${relative}`.replace(/\/+/g, '/');
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] resolvePath ->', result);
+    }
+    return result;
   }
 
   /**
@@ -15336,9 +15574,16 @@ class NeutralinoFileSystem {
    * @returns {string} The server URL path (e.g. /pmfs/data/Songs/My%20Song)
    */
   toServerUrl(relativePath) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] toServerUrl:', relativePath);
+    }
     const relative = (relativePath || '').replace(/^\/+/, '');
     const encoded = relative.split('/').map(segment => encodeURIComponent(segment)).join('/');
-    return `${NeutralinoFileSystem.MOUNT_URL}/${encoded}`;
+    const result = `${NeutralinoFileSystem.MOUNT_URL}/${encoded}`;
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] toServerUrl ->', result);
+    }
+    return result;
   }
 
   /**
@@ -15369,10 +15614,43 @@ class NeutralinoFileSystem {
    * @returns {Promise<Object>} Resolves with the Neutralino stats object
    */
   ensurePath(relativePath, shouldBeDirectory, options) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] ensurePath:', relativePath, shouldBeDirectory ? '(dir)' : '(file)', options);
+    }
+    if (!relativePath || relativePath === '') {
+      const absolutePath = this.basePath;
+      return Neutralino.filesystem.getStats(absolutePath)
+        .catch(() => null)
+        .then(stats => {
+          if (stats) {
+            if (shouldBeDirectory && !stats.isDirectory) {
+              throw new Error(`Path is not a directory: ${relativePath}`);
+            }
+            if (!shouldBeDirectory && !stats.isFile) {
+              throw new Error(`Path is not a file: ${relativePath}`);
+            }
+            return stats;
+          }
+          if (options && options.create) {
+            if (shouldBeDirectory) {
+              return Neutralino.filesystem.createDirectory(absolutePath)
+                .then(() => Neutralino.filesystem.getStats(absolutePath));
+            }
+            return Neutralino.filesystem.writeFile(absolutePath, '')
+              .then(() => Neutralino.filesystem.getStats(absolutePath));
+          }
+          throw new Error(`${shouldBeDirectory ? 'Directory' : 'File'} not found: ${relativePath}`);
+        });
+    }
     const absolutePath = this.resolvePath(relativePath);
 
     return Neutralino.filesystem.getStats(absolutePath)
-      .catch(() => null)
+      .catch(() => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] ensurePath: getStats failed for', relativePath);
+        }
+        return null;
+      })
       .then(stats => {
         if (!stats) {
           if (!(options && options.create)) {
@@ -15422,14 +15700,35 @@ class NeutralinoFileSystem {
    * @returns {Promise<NeutralinoDirectoryEntry>} Resolves with the directory entry
    */
   getDirectory(path) {
-    const relativePath = (path || '').replace(/^\/+/, '');
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] getDirectory:', path);
+    }
+    if (!path || path === '' || path === '/') {
+      // Return root
+      return this.ensurePath('', true, null).then(() => {
+        return new NeutralinoDirectoryEntry('.', '', this);
+      });
+    }
+    let relativePath = (path || '').replace(/^\/+/, '');
+    // If it's absolute and points outside base but contains base, try to make relative
+    if (this.basePath && relativePath && relativePath.indexOf(this.basePath.replace(/^\//, '')) === 0 && relativePath !== this.basePath.replace(/^\//, '')) {
+      relativePath = relativePath.substring(this.basePath.replace(/^\//, '').length).replace(/^\/+/, '');
+    }
 
     return this.ensurePath(relativePath, true, null).then(() => {
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] getDirectory success:', relativePath);
+      }
       return new NeutralinoDirectoryEntry(
         NeutralinoDirectoryEntry.baseName(relativePath) || '.',
         relativePath,
         this
       );
+    }).catch(err => {
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] getDirectory error:', path, err);
+      }
+      throw err;
     });
   }
 
@@ -15439,10 +15738,23 @@ class NeutralinoFileSystem {
    * @returns {Promise<Array>} Resolves with an array of directory entries
    */
   listDirectories(dirEntry) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] listDirectories:', dirEntry.fullPath);
+    }
     return new Promise((resolve, reject) => {
       dirEntry.createReader().readEntries(
-        entries => resolve(entries.filter(e => e.isDirectory)),
-        err => reject(err)
+        entries => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] listDirectories success:', dirEntry.fullPath, entries.filter(e => e.isDirectory).length);
+          }
+          resolve(entries.filter(e => e.isDirectory));
+        },
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] listDirectories error:', dirEntry.fullPath, err);
+          }
+          reject(err);
+        }
       );
     });
   }
@@ -15453,6 +15765,9 @@ class NeutralinoFileSystem {
    * @returns {Promise<Array>} Resolves with all descendant directory entries
    */
   listAllDirectories(startDir) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] listAllDirectories:', startDir.fullPath);
+    }
     return new Promise(async (resolve) => {
       const dirs = [];
       const queue = [startDir];
@@ -15464,10 +15779,16 @@ class NeutralinoFileSystem {
           dirs.push(...subDirs);
           queue.push(...subDirs);
         } catch (error) {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] listAllDirectories error in', dir.name, error);
+          }
           console.warn(`Error listing directories in ${dir.name}:`, error);
         }
       }
 
+      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+        console.log('[NeutralinoFS] listAllDirectories success:', startDir.fullPath, dirs.length);
+      }
       resolve(dirs);
     });
   }
@@ -15478,10 +15799,23 @@ class NeutralinoFileSystem {
    * @returns {Promise<Array>} Resolves with an array of file entries
    */
   listFiles(dirEntry) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] listFiles:', dirEntry.fullPath);
+    }
     return new Promise((resolve, reject) => {
       dirEntry.createReader().readEntries(
-        entries => resolve(entries.filter(e => e.isFile)),
-        err => reject(err)
+        entries => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] listFiles success:', dirEntry.fullPath, entries.filter(e => e.isFile).length);
+          }
+          resolve(entries.filter(e => e.isFile));
+        },
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] listFiles error:', dirEntry.fullPath, err);
+          }
+          reject(err);
+        }
       );
     });
   }
@@ -15492,10 +15826,23 @@ class NeutralinoFileSystem {
    * @returns {Promise<Object>} Resolves with the file descriptor object
    */
   getFile(fileEntry) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] getFile:', fileEntry.fullPath);
+    }
     return new Promise((resolve, reject) => {
       fileEntry.file(
-        file => resolve(file),
-        err => reject(err)
+        file => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] getFile success:', fileEntry.fullPath);
+          }
+          resolve(file);
+        },
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] getFile error:', fileEntry.fullPath, err);
+          }
+          reject(err);
+        }
       );
     });
   }
@@ -15506,12 +15853,25 @@ class NeutralinoFileSystem {
    * @returns {Promise<string>} Resolves with the file content as text
    */
   readFileContent(file) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] readFileContent:', file && (file._path || file.name));
+    }
     return new Promise((resolve, reject) => {
       // If file has _path (from NeutralinoFileEntry), use it directly
       if (file && file._path) {
         Neutralino.filesystem.readFile(file._path)
-          .then(data => resolve(data))
-          .catch(reject);
+          .then(data => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] readFileContent success:', file._path, typeof data);
+            }
+            resolve(data);
+          })
+          .catch(err => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] readFileContent error:', file._path, err);
+            }
+            reject(err);
+          });
       } else if (file && typeof file.text === 'function') {
         // Fallback for Blob/File objects
         file.text().then(resolve).catch(reject);
@@ -15533,18 +15893,39 @@ class NeutralinoFileSystem {
    * @returns {Promise<NeutralinoFileEntry>} Resolves with the file entry once written
    */
   saveFile(dirEntry, fileData, fileName) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] saveFile:', dirEntry.fullPath, fileName);
+    }
     return new Promise((resolve, reject) => {
       dirEntry.getFile(fileName, { create: true, exclusive: false },
         fileEntry => {
           if (fileData === undefined || fileData === null) {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] saveFile success (no data):', fileEntry.fullPath);
+            }
             resolve(fileEntry);
             return;
           }
           this.writeFile(fileEntry, fileData)
-            .then(() => resolve(fileEntry))
-            .catch(err => reject(err));
+            .then(() => {
+              if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+                console.log('[NeutralinoFS] saveFile success:', fileEntry.fullPath);
+              }
+              resolve(fileEntry);
+            })
+            .catch(err => {
+              if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+                console.log('[NeutralinoFS] saveFile error:', fileEntry.fullPath, err);
+              }
+              reject(err);
+            });
         },
-        error => reject(error)
+        error => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] saveFile getFile error:', dirEntry.fullPath, fileName, error);
+          }
+          reject(error);
+        }
       );
     });
   }
@@ -15557,10 +15938,23 @@ class NeutralinoFileSystem {
    * @returns {Promise<NeutralinoFileEntry>} Resolves with the file entry
    */
   createEmptyFile(dirEntry, fileName, isAppend) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] createEmptyFile:', dirEntry.fullPath, fileName, isAppend);
+    }
     return new Promise((resolve, reject) => {
       dirEntry.getFile(fileName, {create: true, exclusive: false},
-        fileEntry => resolve(fileEntry),
-        err => reject(err)
+        fileEntry => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] createEmptyFile success:', fileEntry.fullPath);
+          }
+          resolve(fileEntry);
+        },
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] createEmptyFile error:', dirEntry.fullPath, fileName, err);
+          }
+          reject(err);
+        }
       );
     });
   }
@@ -15573,12 +15967,30 @@ class NeutralinoFileSystem {
    * @returns {Promise<Object>} Resolves with the writer
    */
   writeFile(fileEntry, dataObj, isAppend) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] writeFile:', fileEntry.fullPath, isAppend);
+    }
     return new Promise((resolve, reject) => {
       fileEntry.createWriter(
         writer => {
-          writer.write(dataObj, () => resolve(writer), reject);
+          writer.write(dataObj, () => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] writeFile success:', fileEntry.fullPath);
+            }
+            resolve(writer);
+          }, err => {
+            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+              console.log('[NeutralinoFS] writeFile error:', fileEntry.fullPath, err);
+            }
+            reject(err);
+          });
         },
-        err => reject(err)
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] writeFile createWriter error:', fileEntry.fullPath, err);
+          }
+          reject(err);
+        }
       );
     });
   }
@@ -15589,8 +16001,22 @@ class NeutralinoFileSystem {
    * @returns {Promise<boolean>} Resolves true once the file is removed
    */
   deleteFile(fileEntry) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] deleteFile:', fileEntry.fullPath);
+    }
     return Neutralino.filesystem.remove(this.resolvePath(fileEntry.fullPath))
-      .then(() => true);
+      .then(() => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] deleteFile success:', fileEntry.fullPath);
+        }
+        return true;
+      })
+      .catch(err => {
+        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+          console.log('[NeutralinoFS] deleteFile error:', fileEntry.fullPath, err);
+        }
+        throw err;
+      });
   }
 
   /**
@@ -15600,10 +16026,23 @@ class NeutralinoFileSystem {
    * @returns {Promise<NeutralinoDirectoryEntry>} Resolves with the new directory entry
    */
   createDirectory(rootDirEntry, dirName) {
+    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+      console.log('[NeutralinoFS] createDirectory:', rootDirEntry.fullPath, dirName);
+    }
     return new Promise((resolve, reject) => {
       rootDirEntry.getDirectory(dirName, { create: true },
-        dirEntry => resolve(dirEntry),
-        err => reject(err)
+        dirEntry => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] createDirectory success:', dirEntry.fullPath);
+          }
+          resolve(dirEntry);
+        },
+        err => {
+          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
+            console.log('[NeutralinoFS] createDirectory error:', rootDirEntry.fullPath, dirName, err);
+          }
+          reject(err);
+        }
       );
     });
   }
@@ -15614,6 +16053,9 @@ NeutralinoFileSystem.MOUNT_URL = '/pmfs';
 /** @type {Promise<boolean>|null} Shared mount promise (server.mount is idempotent per path) */
 NeutralinoFileSystem.mountPromise = null;
 
+
+
+// ======== js/filesystem/cordova-filesystem.js ========
 /**
  * @class CordovaFileSystem
  * @category File System Classes
@@ -15821,6 +16263,9 @@ class CordovaFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/fallback-filesystem.js ========
 /**
  * @class FallbackFileSystem
  * @category File System Classes
@@ -15892,6 +16337,9 @@ class FallbackFileSystem {
   }
 }
 
+
+
+// ======== js/game/game.js ========
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 /** @type {AccountData} User data with settings, characters, achievements, and progress */
@@ -16227,6 +16675,9 @@ const fetch = url => new Promise((resolve, reject) => {
   resolve(new XhrFetchResponse(url));
 });
 
+
+
+// ======== js/utils/ScreenRecorder.js ========
 /**
  * @class ScreenRecorder
  * @category Core Game Classes
@@ -16692,6 +17143,9 @@ class ScreenRecorder {
   }
 }
 
+
+
+// ======== js/utils/Metronome.js ========
 /**
  * @class Metronome
  * @category Core Game Classes
@@ -16973,6 +17427,9 @@ class Metronome {
   }
 }
 
+
+
+// ======== js/utils/TimeUtils.js ========
 /**
  * @class TimeUtils
  * @category Utility Classes
@@ -17026,6 +17483,9 @@ class TimeUtils {
   }
 }
 
+
+
+// ======== js/utils/AviTranscoder.js ========
 /**
  * @class AviTranscoder
  * @category Utils
@@ -17614,6 +18074,9 @@ class AviTools {
   }
 }
 
+
+
+// ======== js/input/GamepadListener.js ========
 /**
  * @class GamepadListener
  * @category Core Game Classes
@@ -17660,6 +18123,9 @@ class GamepadListener {
   }
 }
 
+
+
+// ======== js/input/KeyboardListener.js ========
 /**
  * @class KeyboardListener
  * @category Core Game Classes
@@ -17699,6 +18165,9 @@ class KeyboardListener {
   }
 }
 
+
+
+// ======== js/input/InputManager.js ========
 let inputManager, gamepad, gamepad1, gamepad2;
 
 /**
@@ -17761,6 +18230,9 @@ class InputManager {
   }
 }
 
+
+
+// ======== js/input/Gamepad.js ========
 /**
  * @class Gamepad
  * @category Core Game Classes
@@ -18002,7 +18474,7 @@ class Gamepad {
    */
   setupTouch() {
     if (this.playerIndex > 0) return; // Only Player 1 uses touch
-    if (!this.game.device.touch) return; // Only touch devices use touch controls
+    if (game.device.dekstop) return; // Only mobile devices use touch controls
     
     // Get controller elements
     /** @type {?HTMLElement} Touch controller parent element */
@@ -18529,6 +19001,9 @@ class Gamepad {
   }
 }
 
+
+
+// ======== js/input/AllPads.js ========
 /**
  * @class AllPads
  * @category Core Game Classes
@@ -18725,6 +19200,9 @@ class AllPads extends Gamepad {
   destroy() {}
 }
 
+
+
+// ======== js/input/OnScreenKeyboard.js ========
 /**
  * @class OnScreenKeyboard
  * @category Core Game Classes
@@ -19007,6 +19485,9 @@ class OnScreenKeyboard extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/input/NumericTypeOnScreenKeyboard.js ========
 /**
  * @class NumericTypeOnScreenKeyboard
  * @category Core Game Classes
@@ -19057,6 +19538,9 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   }
 }
 
+
+
+// ======== js/audio/BackgroundMusic.js ========
 /**
  * @class BackgroundMusic
  * @category Core Game Classes
@@ -19369,6 +19853,9 @@ class BackgroundMusic {
   }
 }
 
+
+
+// ======== js/visualizers/Visualizer.js ========
 /**
  * @class Visualizer
  * @category Core Game Classes
@@ -19438,6 +19925,9 @@ class Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AccurracyVisualizer.js ========
 /**
  * @class AccuracyVisualizer
  * @category Core Game Classes
@@ -19507,6 +19997,9 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AudioVisualizer.js ========
 /**
  * @class AudioVisualizer
  * @category Core Game Classes
@@ -19612,6 +20105,9 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/BPMVisualizer.js ========
 /**
  * @class BPMVisualizer
  * @category Core Game Classes
@@ -19752,6 +20248,9 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 /**
  * @class FullScreenAudioVisualizer
  * @category Core Game Classes
@@ -20201,6 +20700,9 @@ class FullScreenAudioVisualizer {
   }
 }
 
+
+
+// ======== js/parsers/SMFile.js ========
 /**
  * @class SMFile
  * @category Parser Classes
@@ -20561,6 +21063,9 @@ class SMFile {
   }
 }
 
+
+
+// ======== js/parsers/FileTools.js ========
 /**
  * @class FileTools
  * @category File System Classes
@@ -20865,6 +21370,9 @@ class FileTools {
   }
 }
 
+
+
+// ======== js/parsers/LocalSMParser.js ========
 /**
  * @class LocalSMParser
  * @category Parser Classes
@@ -21198,6 +21706,9 @@ class LocalSMParser {
   }
 }
 
+
+
+// ======== js/parsers/ExternalSMParser.js ========
 /**
  * @class ExternalSMParser
  * @category Parser Classes
@@ -21318,13 +21829,25 @@ class ExternalSMParser {
                 const ext = bgEntry.file.split(".").pop().toLowerCase();
                 bgEntry.type = VIDEO_EXTENSIONS.includes(ext) ? "video" : "image";
                 // Create URL for the file if it exists
-                if (files[bgEntry.file.toLowerCase()]) {
-                  const file = files[bgEntry.file.toLowerCase()];
-                  bgEntry.url = file.localURL ? file.localURL : URL.createObjectURL(file);
-                  bgEntry.url = bgEntry.url
-                    .replace('cdvfile://', 'file://')
-                    .replace('localhost/persistent/', '/storage/emulated/0/');
+            if (files[bgEntry.file.toLowerCase()]) {
+              const file = files[bgEntry.file.toLowerCase()];
+              if (file.localURL) {
+                bgEntry.url = file.localURL;
+              } else if (file.nativeURL) {
+                bgEntry.url = file.nativeURL;
+              } else {
+                try {
+                  bgEntry.url = URL.createObjectURL(file);
+                } catch (e) {
+                  bgEntry.url = file.localURL || file.nativeURL || '';
                 }
+              }
+              if (typeof bgEntry.url === 'string') {
+                bgEntry.url = bgEntry.url
+                  .replace('cdvfile://', 'file://')
+                  .replace('localhost/persistent/', '/storage/emulated/0/');
+              }
+            }
               }
 
               if (parts.length > 6) {
@@ -21340,20 +21863,44 @@ class ExternalSMParser {
           if (p[1] && files[p[1].toLowerCase()]) {
             const file = files[p[1].toLowerCase()];
             out.banner = p[1];
-            out.bannerUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.bannerUrl = out.bannerUrl
-              .replace('cdvfile://', 'file://')
-              .replace('localhost/persistent/', '/storage/emulated/0/');
+            if (file.localURL) {
+              out.bannerUrl = file.localURL;
+            } else if (file.nativeURL) {
+              out.bannerUrl = file.nativeURL;
+            } else {
+              try {
+                out.bannerUrl = URL.createObjectURL(file);
+              } catch (e) {
+                out.bannerUrl = file.localURL || file.nativeURL || '';
+              }
+            }
+            if (typeof out.bannerUrl === 'string') {
+              out.bannerUrl = out.bannerUrl
+                .replace('cdvfile://', 'file://')
+                .replace('localhost/persistent/', '/storage/emulated/0/');
+            }
           }
           break;
         case "#CDTITLE":
           if (p[1] && files[p[1].toLowerCase()]) {
             const file = files[p[1].toLowerCase()];
             out.cdtitle = p[1];
-            out.cdtitleUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.cdtitleUrl = out.cdtitleUrl
-              .replace('cdvfile://', 'file://')
-              .replace('localhost/persistent/', '/storage/emulated/0/');
+            if (file.localURL) {
+              out.cdtitleUrl = file.localURL;
+            } else if (file.nativeURL) {
+              out.cdtitleUrl = file.nativeURL;
+            } else {
+              try {
+                out.cdtitleUrl = URL.createObjectURL(file);
+              } catch (e) {
+                out.cdtitleUrl = file.localURL || file.nativeURL || '';
+              }
+            }
+            if (typeof out.cdtitleUrl === 'string') {
+              out.cdtitleUrl = out.cdtitleUrl
+                .replace('cdvfile://', 'file://')
+                .replace('localhost/persistent/', '/storage/emulated/0/');
+            }
           }
           break;
         case "#SAMPLESTART":
@@ -21366,10 +21913,22 @@ class ExternalSMParser {
           if (p[1] && files[p[1].toLowerCase()]) {
             const file = files[p[1].toLowerCase()];
             out.background = p[1];
-            out.backgroundUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
-            out.backgroundUrl = out.backgroundUrl
-              .replace('cdvfile://', 'file://')
-              .replace('localhost/persistent/', '/storage/emulated/0/');
+            if (file.localURL) {
+              out.backgroundUrl = file.localURL;
+            } else if (file.nativeURL) {
+              out.backgroundUrl = file.nativeURL;
+            } else {
+              try {
+                out.backgroundUrl = URL.createObjectURL(file);
+              } catch (e) {
+                out.backgroundUrl = file.localURL || file.nativeURL || '';
+              }
+            }
+            if (typeof out.backgroundUrl === 'string') {
+              out.backgroundUrl = out.backgroundUrl
+                .replace('cdvfile://', 'file://')
+                .replace('localhost/persistent/', '/storage/emulated/0/');
+            }
           }
           break;
         case "#LYRICSPATH":
@@ -21384,10 +21943,22 @@ class ExternalSMParser {
             out.audio = p[1];
             if (files[p[1].toLowerCase()]) {
               const file = files[p[1].toLowerCase()];
-              out.audioUrl = file.localURL ? file.localURL : URL.createObjectURL(file);
-              out.audioUrl = out.audioUrl
-                .replace('cdvfile://', 'file://')
-                .replace('localhost/persistent/', '/storage/emulated/0/');
+              if (file.localURL) {
+                out.audioUrl = file.localURL;
+              } else if (file.nativeURL) {
+                out.audioUrl = file.nativeURL;
+              } else {
+                try {
+                  out.audioUrl = URL.createObjectURL(file);
+                } catch (e) {
+                  out.audioUrl = file.localURL || file.nativeURL || '';
+                }
+              }
+              if (typeof out.audioUrl === 'string') {
+                out.audioUrl = out.audioUrl
+                  .replace('cdvfile://', 'file://')
+                  .replace('localhost/persistent/', '/storage/emulated/0/');
+              }
             }
           }
           break;
@@ -21533,6 +22104,9 @@ class ExternalSMParser {
   }
 }
 
+
+
+// ======== js/addons/AddonManager.js ========
 /**
  * @class AddonManager
  * @category Addon System Classes
@@ -22086,6 +22660,9 @@ class AddonManager {
   }
 }
 
+
+
+// ======== js/game/states/Boot.js ========
 /**
  * @class Boot
  * @category Game States
@@ -22206,7 +22783,20 @@ class Boot {
           return character;
         }
         
-        const newCharacter = structuredClone(character);
+        let newCharacter;
+        try {
+          if (typeof structuredClone === 'function') {
+            newCharacter = structuredClone(character);
+          } else {
+            newCharacter = JSON.parse(JSON.stringify(character));
+          }
+        } catch (e) {
+          try {
+            newCharacter = JSON.parse(JSON.stringify(character));
+          } catch (e2) {
+            newCharacter = character;
+          }
+        }
         
         newCharacter.appearance.clothing = DEFAULT_CHARACTER.appearance.clothing;
         newCharacter.appearance.tints = DEFAULT_CHARACTER.appearance.tints;
@@ -22754,6 +23344,9 @@ class Boot {
   }
 }
 
+
+
+// ======== js/game/states/Load.js ========
 /**
  * @class Load
  * @category Game States
@@ -22839,6 +23432,9 @@ class Load {
   }
 }
 
+
+
+// ======== js/game/states/LoadPlatform.js ========
 /**
  * @class LoadPlatform
  * @category Game States
@@ -22973,6 +23569,9 @@ class LoadPlatform {
   }
 }
 
+
+
+// ======== js/game/states/LoadAddons.js ========
 /**
  * @class LoadAddons
  * @category Game States
@@ -23020,6 +23619,9 @@ class LoadAddons {
   }
 }
 
+
+
+// ======== js/game/states/LoadLocalSongs.js ========
 /**
  * @class LoadLocalSongs
  * @category Game States
@@ -23128,6 +23730,9 @@ class LoadLocalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadExternalSongs.js ========
 /**
  * @class LoadExternalSongs
  * @category Game States
@@ -23603,6 +24208,9 @@ class LoadExternalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadSongFolder.js ========
 /**
  * @class LoadSongFolder
  * @category Game States
@@ -23881,6 +24489,9 @@ class LoadSongFolder {
   }
 }
 
+
+
+// ======== js/game/states/LoadExternalSongFile.js ========
 /**
  * @class LoadExternalSongFile
  * @category Game States
@@ -23932,7 +24543,7 @@ class LoadExternalSongFile {
     this.parser = new ExternalSMParser();
     
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
-      this.fileSystem.fileSystem.basePath = '';
+      // Keep basePath from NeutralinoFileSystem; don't reset to empty
     }
     
     if (this.fileName.endsWith('.zip')) {
@@ -24055,6 +24666,9 @@ class LoadExternalSongFile {
   }
 }
 
+
+
+// ======== js/game/states/Title.js ========
 /**
  * @class Title
  * @category Game States
@@ -24194,6 +24808,9 @@ class Title {
   }
 }
 
+
+
+// ======== js/game/states/MainMenu.js ========
 /**
  * @class MainMenu
  * @category Game States
@@ -24762,6 +25379,9 @@ class MainMenu {
   }
 }
 
+
+
+// ======== js/game/states/Addons.js ========
 /**
  * @class Addons
  * @category Game States
@@ -25033,6 +25653,9 @@ class Addons {
   }
 }
 
+
+
+// ======== js/game/states/Settings.js ========
 /**
  * @class Settings
  * @category Game States
@@ -25493,7 +26116,7 @@ class Settings {
     // Renderer
     settingsWindow.addSettingItem(
       __("(Renderer|Renderizador)"),
-      ["Auto", __("(Canvas (Experimental)|Canvas (Experimental))"), "Webgl"],
+      ["Auto", __("Canvas (Experimental)||Canvas (Experimental)"), "Webgl"],
       Account.settings.renderer,
       index => {
         Account.settings.renderer = index;
@@ -25808,6 +26431,9 @@ class Settings {
   }
 }
 
+
+
+// ======== js/game/states/ChartModifiers.js ========
 /**
  * @class ChartModifiers
  * @category Game States
@@ -26006,6 +26632,9 @@ class ChartModifiers {
   }
 }
 
+
+
+// ======== js/game/states/Keybindings.js ========
 /**
  * @class Keybindings
  * @category Game States
@@ -26421,9 +27050,32 @@ class Keybindings {
       progressBar.destroy();
     };
     
+    const setKey = (keyCode) => {
+      // Check if key is Unidentified
+      const keyName = this.getKeyName(keyCode);
+      if (keyName === 'Unidentified' || keyName === '???') {
+        cleanup();
+        this.showNotification(__(`Cannot map: ${keyName}||No se puede asignar: ${keyName}`));
+        onCancel();
+        return;
+      }
+      cleanup();
+      // Check for conflicts BEFORE calling onSubmit
+      const conflict = this.findKeyboardKeyConflict(
+        this._pendingPlayerKey || null,
+        this._pendingMappingKey || null,
+        this._pendingIndex || 0,
+        keyCode
+      );
+      if (conflict) {
+        this.showNotification(__(`Changed with ${conflict.label}||Cambiado con ${conflict.label}`));
+      }
+      onSubmit?.(keyCode);
+    };
+    
     const keyDownListener = (keyCode) => {
       if (!this.waitOverlayActive) return;
-      if (keyCode == Phaser.KeyCode.F11 || KeyCode || Phaser.KeyCode.F12) return;
+      if (keyCode == Phaser.KeyCode.F11 || keyCode == Phaser.KeyCode.F12) return;
       
       if (keyCode === Phaser.KeyCode.ESC) {
         if (!escIsHeld) {
@@ -26434,36 +27086,24 @@ class Keybindings {
         }
       } else if (!keyPressed && listenKeyboard) {
         keyPressed = true;
-        // Check if key is Unidentified
-        const keyName = this.getKeyName(keyCode);
-        if (keyName === 'Unidentified' || keyName === '???') {
-          cleanup();
-          this.showNotification(__(`Cannot map: ${keyName}||No se puede asignar: ${keyName}`));
-          onCancel();
-          return;
-        }
-        cleanup();
-        // Check for conflicts BEFORE calling onSubmit
-        const conflict = this.findKeyboardKeyConflict(
-          this._pendingPlayerKey || null,
-          this._pendingMappingKey || null,
-          this._pendingIndex || 0,
-          keyCode
-        );
-        if (conflict) {
-          this.showNotification(__(`Changed with ${conflict.label}||Cambiado con ${conflict.label}`));
-        }
-        onSubmit?.(keyCode);
+        setKey(keyCode);
       }
     };
     
     const keyUpListener = (keyCode) => {
       if (!this.waitOverlayActive) return;
-      if (keyCode == Phaser.KeyCode.F11 || KeyCode || Phaser.KeyCode.F12) return;
+      if (keyCode == Phaser.KeyCode.F11 || keyCode == Phaser.KeyCode.F12) return;
             
       if (keyCode === Phaser.KeyCode.ESC && escIsHeld) {
         escIsHeld = false;
         resetProgress();
+        
+        const elapsed = Date.now() - escHoldStartTime;
+        const progress = Math.min(elapsed / holdDuration, 1);
+        
+        if (progress <= 0.7) {
+          setKey(keyCode)
+        }
       }
     };
     
@@ -26823,6 +27463,9 @@ class Keybindings {
   }
 }
 
+
+
+// ======== js/game/states/AviSettings.js ========
 /**
  * @class AviSettings
  * @category Game States
@@ -26965,6 +27608,9 @@ class AviSettings {
   }
 }
 
+
+
+// ======== js/game/states/TouchSettings.js ========
 /**
  * @class TouchSettings
  * @category Game States
@@ -27151,6 +27797,9 @@ class TouchSettings {
   }
 }
 
+
+
+// ======== js/game/states/FileSelect.js ========
 /**
  * @class FileSelect
  * @category Game States
@@ -27515,6 +28164,9 @@ class FileSelect {
   }
 }
 
+
+
+// ======== js/game/states/SongSelect.js ========
 /**
  * @class SongSelect
  * @category Game States
@@ -28634,6 +29286,9 @@ class SongSelect {
   }
 }
 
+
+
+// ======== js/game/states/DecodeAvi.js ========
 /**
  * @class DecodeAvi
  * @category Game States
@@ -29092,6 +29747,9 @@ class DecodeAvi {
   }
 }
 
+
+
+// ======== js/game/states/SongStats.js ========
 /**
  * @class SongStats
  * @category Game States
@@ -29832,6 +30490,9 @@ class SongStats {
   }
 }
 
+
+
+// ======== js/game/states/CharacterSelect.js ========
 /**
  * @class CharacterSelect
  * @category Game States
@@ -31774,6 +32435,9 @@ class CharacterSelect {
   }
 }
 
+
+
+// ======== js/game/states/AchievementsMenu.js ========
 /**
  * @class AchievementsMenu
  * @category Game States
@@ -31954,6 +32618,9 @@ class AchievementsMenu {
   }
 }
 
+
+
+// ======== js/game/states/StatsMenu.js ========
 /**
  * @class StatsMenu
  * @category Game States
@@ -32101,6 +32768,9 @@ class StatsMenu {
   }
 }
 
+
+
+// ======== js/game/states/Play.js ========
 /**
  * @class Play
  * @category Game States
@@ -32140,7 +32810,19 @@ class Play {
     /** @type {Object} The unmodified song object passed into the state */
     this.originalSong = song;
     /** @type {Object} A deep clone of the chart used for gameplay */
-    this.song = structuredClone(song);
+    try {
+      if (typeof structuredClone === 'function') {
+        this.song = structuredClone(song);
+      } else {
+        this.song = JSON.parse(JSON.stringify(song));
+      }
+    } catch (e) {
+      try {
+        this.song = JSON.parse(JSON.stringify(song));
+      } catch (e2) {
+        this.song = song;
+      }
+    }
     /** @type {number} Index of the selected difficulty */
     this.difficultyIndex = typeof difficultyIndex != undefined ? difficultyIndex : song.difficultyIndex;
     /** @type {Object|null} The player renderer and judgement objects */
@@ -34006,6 +34688,9 @@ class Play {
   }
 }
 
+
+
+// ======== js/game/states/PlayMulti.js ========
 /**
  * @class PlayMulti
  * @category Game States
@@ -34405,6 +35090,9 @@ class PlayMulti extends Play {
   }
 }
 
+
+
+// ======== js/game/states/Results.js ========
 /**
  * @class Results
  * @category Game States
@@ -34771,6 +35459,9 @@ class Results {
   }
 }
 
+
+
+// ======== js/game/states/ResultsMulti.js ========
 /**
  * @class ResultsMulti
  * @category Game States
@@ -35009,6 +35700,9 @@ class ResultsMulti extends Results {
   }
 }
 
+
+
+// ======== js/game/states/Playlists.js ========
 /**
  * @class Playlists
  * @category Game States
@@ -35350,6 +36044,9 @@ class Playlists {
   }
 }
 
+
+
+// ======== js/game/states/Jukebox.js ========
 /**
  * @class Jukebox
  * @category Game States
@@ -36441,6 +37138,9 @@ class Jukebox {
   }
 }
 
+
+
+// ======== js/game/states/Editor.js ========
 /**
  * @class Editor
  * @category Game States
@@ -39784,6 +40484,9 @@ class Editor {
   }
 }
 
+
+
+// ======== js/game/states/Credits.js ========
 /**
  * @class Credits
  * @category Game States
@@ -40180,6 +40883,9 @@ class Credits {
   }
 }
 
+
+
+// ======== js/game/states/ErrorScreen.js ========
 /**
  * @class ErrorScreen
  * @category Game States
@@ -40250,6 +40956,9 @@ Please Report The Developer Immediately!
   }
 }
 
+
+
+// ======== js/game/player/ChartRenderer.js ========
 /**
  * @class ChartRenderer
  * @category Core Game Classes
@@ -41400,6 +42109,9 @@ class ChartRenderer {
   }
 }
 
+
+
+// ======== js/game/player/AudioTemperatureMeter.js ========
 /**
  * @class AudioTemperatureMeter
  * @category Core Game Classes
@@ -41856,6 +42568,9 @@ class AudioTemperatureMeter {
   }
 }
 
+
+
+// ======== js/game/player/Player.js ========
 /**
  * @class Player
  * @category Core Game Classes
@@ -43032,6 +43747,9 @@ class Player {
   }
 }
 
+
+
+// ======== js/game/player/FirstPlayer.js ========
 /**
  * @class FirstPlayer
  * @category Core Game Classes
@@ -43075,6 +43793,9 @@ class FirstPlayer extends Player {
   }
 }
 
+
+
+// ======== js/game/player/SecondPlayer.js ========
 /**
  * @class SecondPlayer
  * @category Core Game Classes

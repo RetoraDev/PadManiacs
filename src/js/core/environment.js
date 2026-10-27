@@ -32,12 +32,12 @@ const BACKUPS_DIRECTORY = "Backups";
 const FF_DIR_NAME = "Decoder";
 
 /** @type {boolean} Enable parallel asset loading */
-const ENABLE_PARALLEL_LOADING = true;
+const ENABLE_PARALLEL_LOADING = false;
 /** @type {number} Maximum parallel downloads */
-const MAX_PARALLEL_DOWNLOADS = 16;
+const MAX_PARALLEL_DOWNLOADS = 0;
 
 /** @type {number} Maximum parallel addon loads */
-const MAX_PARALLEL_ADDON_LOADS = 3;
+const MAX_PARALLEL_ADDON_LOADS = 0;
 
 /** @type {boolean} Enable UI sound effects */
 const ENABLE_UI_SFX = true;

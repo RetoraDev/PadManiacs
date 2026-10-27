@@ -100,6 +100,7 @@ Accessible from the main menu, the Add-on Manager allows you to:
 - Most mobile file browsers may require selecting individual files one by one
 - Limited HTML5 gamepad API makes some gamepads unusable with the game. In such case, users will need to use X360CE and similar programs
 - **WebView requirements:** On desktop (Neutralino.js builds) you need WebView2 installed. On Android you need Android System WebView installed and up to date. Without a working WebView, the game may not function correctly.
+- **NW.js builds:** NW.js binaries are not included in the repo. Download NW.js v0.88.0 for your platform and put the contents into `src/static/nw/` (keep `locales/`, `www/`, `padmaniacs.exe`, and `package.json` as needed). Then build with `node build.js --platform nwjs` or the NW.js build target.
 
 ## License
 

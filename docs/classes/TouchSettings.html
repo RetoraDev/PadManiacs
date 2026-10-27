@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>TouchSettings - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+    [title: "TouchSettings Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>On-screen touch controls settings screen</p>
+
+    [heading: "Description"]
+    <p>On-screen touch controls settings screen</p>
+
+    [heading: "Properties"]
+    [table header]
+    [ Property | Type | Description ]
+    [ returnState | string | Game state to start when leaving this screen ]
+    [ futuristicLines | FuturisticLines | Decorative animated background line effect ]
+    [ backgroundGradient | BackgroundGradient | Ambient gradient overlay for the menu background ]
+    [ navigationHint | NavigationHint | On-screen hint bar with contextual button labels ]
+    [ windowManager | WindowManager | Manages the settings window and its focus ]
+    [ settingsWindow | Window | The settings window being edited ]
+    [/table]
+
+
+    [heading: "Methods"]
+    [table header]
+    [ Method | Parameters | Description ]
+    [ init | (returnState='Settings') | Phaser state hook that stores the state to return to after editing. ]
+    [ create | () | Phaser state hook that sets up the background and builds the settings window. ]
+    [ update | () | Phaser lifecycle hook called every frame to poll gamepad input. ]
+    [ showMenu | () | Builds the settings window with every AVI decoding option. ]
+    [/table]
+
+
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

@@ -249,7 +249,6 @@ body {
     height: 100%;
   }
   #controller_parent {
-    display: block;
     height: 50%;
     bottom: 0;
     opacity: var(--controls-opacity-landscape);
