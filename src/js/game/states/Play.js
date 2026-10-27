@@ -1449,6 +1449,8 @@ class Play {
     // Hide HUD
     this.hideHud(500, 1, 0);
     
+    try { if (game.onGameEnd) game.onGameEnd.dispatch(gameResults, gameData); } catch (e) {}
+    
     game.state.start("Results", true, false, gameData);
   }
   
@@ -1512,13 +1514,14 @@ class Play {
   }
   
   /**
-   * Pauses gameplay and playback, then shows the pause menu.
+   * Pauses gameplay and playback and shows the pause menu.
    */
   pause() {
-    if (!this.started) return;
+    if (this.isPaused) return;
     this.isPaused = true;
     this.pauseStartTime = game.time.now;
     this.pausedAudioTime = this.audio ? this.audio.currentTime : 0;
+    try { if (game.onPause) game.onPause.dispatch(this.song, this.difficultyIndex); } catch (e) {}
     this.audio?.pause();
     this.video?.pause();
     this.showPauseMenu();
@@ -1530,6 +1533,7 @@ class Play {
   resume() {
     this.isPaused = false;
     this.totalPausedDuration += game.time.now - this.pauseStartTime;
+    try { if (game.onResume) game.onResume.dispatch(this.song, this.difficultyIndex); } catch (e) {}
     this.video?.play();
     this.audio?.play();
     this.hidePauseMenu();

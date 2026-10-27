@@ -223,7 +223,9 @@ class LoadExternalSongs {
         try {
           // Try to parse the chart file
           const content = await this.fileSystem.readFileContent(chartFiles[smFileName]);
+          try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(content, { type: 'external_dir', fileName: smFileName }); } catch (e) {}
           const chart = await this.parser.parseSM(chartFiles, content);
+          try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(chart, { type: 'external_dir_parsed', fileName: smFileName }); } catch (e) {}
           
           if (chart && chart.difficulties && chart.difficulties.length > 0) {
             // Chart file parsed successfully
@@ -421,7 +423,9 @@ class LoadExternalSongs {
     for (const smFileName of chartFileNames) {
       try {
         const content = await this.fileSystem.readFileContent(files[smFileName]);
+        try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(content, { type: 'external_dir_map', fileName: smFileName }); } catch (e) {}
         const chart = this.parser.parseSM(files, content);
+        try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(chart, { type: 'external_dir_map_parsed', fileName: smFileName }); } catch (e) {}
         
         if (chart && chart.difficulties && chart.difficulties.length > 0) {
           chart.folderName = folderName;

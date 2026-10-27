@@ -85,7 +85,9 @@ class LoadLocalSongs {
       }
 
       // Parse the SM file
+      try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(smContent, { type: 'local', baseUrl }); } catch (e) {}
       const chart = await this.parser.parseSM(smContent, baseUrl);
+      try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(chart, { type: 'local_parsed', baseUrl }); } catch (e) {}
       chart.folderName = folderName;
       chart.isLocal = true;
       chart.loaded = true;

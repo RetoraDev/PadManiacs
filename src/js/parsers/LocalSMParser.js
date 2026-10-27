@@ -33,6 +33,7 @@ class LocalSMParser {
    * @returns {Promise<Object>} The parsed song data object
    */
   async parseSM(smContent, baseUrl) {
+    try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(smContent, { type: 'parser_local', baseUrl }); } catch (e) {}
     this.baseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
     
     let out = {};

@@ -26,6 +26,7 @@ class ExternalSMParser {
    * @returns {Promise<Object>} The parsed song data object
    */
   async parseSM(files, smContent) {
+    try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(smContent, { type: 'parser_external', filesCount: files ? Object.keys(files).length : 0 }); } catch (e) {}
     let out = {};
     let isSSC = smContent.includes("#VERSION:");
 

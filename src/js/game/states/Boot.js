@@ -245,6 +245,28 @@ class Boot {
 
     game.onMenuIn = new Phaser.Signal();
     game.onMenuOut = new Phaser.Signal();
+    game.onStateChange = new Phaser.Signal();
+    game.onGameStart = new Phaser.Signal();
+    game.onGameEnd = new Phaser.Signal();
+    game.onPause = new Phaser.Signal();
+    game.onResume = new Phaser.Signal();
+    game.onSongLoad = new Phaser.Signal();
+
+    // Hook state transitions for onStateChange
+    if (game.state && game.state.start) {
+      const originalStateStart = game.state.start;
+      game.state.start = function(stateId) {
+        const oldState = game.state.current;
+        const args = Array.prototype.slice.call(arguments);
+        const result = originalStateStart.apply(game.state, args);
+        try {
+          if (game.onStateChange) {
+            game.onStateChange.dispatch(oldState, stateId);
+          }
+        } catch (e) {}
+        return result;
+      };
+    }
 
     game.state.add("Load", Load);
     game.state.add("LoadPlatform", LoadPlatform);

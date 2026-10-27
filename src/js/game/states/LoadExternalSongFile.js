@@ -80,7 +80,9 @@ class LoadExternalSongFile {
       
       // Try to parse the chart file
       const content = await this.fileSystem.readFileContent(smFile);
+      try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(content, { type: 'external', fileName: this.fileName, path: this.filePath }); } catch (e) {}
       const chart = await this.parser.parseSM(chartFiles, content);
+      try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(chart, { type: 'external_parsed', fileName: this.fileName, path: this.filePath }); } catch (e) {}
       
       if (chart && chart.difficulties && chart.difficulties.length > 0) {
         // Chart file parsed successfully
