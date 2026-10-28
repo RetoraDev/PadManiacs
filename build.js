@@ -16,6 +16,7 @@ class BuildSystem {
         minify: false,
         zipalign: false,
         noPack: false,
+        noWebBase: false,
         ...flags
       }
     };
@@ -246,6 +247,7 @@ class BuildSystem {
       if (arg === '--all') this.config.flags.platform = 'all';
       if (arg === '--minify') this.config.flags.minify = true;
       if (arg === '--no-pack' || arg === '--nopack') this.config.flags.noPack = true;
+      if (arg === '--no-web-base') this.config.flags.noWebBase = true;
     });
   }
 
@@ -1012,14 +1014,26 @@ class BuildSystem {
       await this.buildBaseFiles('nwjs');
       await this.buildNWJS();
       await this.buildWeb();
+      await this.finalizeWebDist('nwjs');
     } else if (platform === 'cordova') {
       await this.buildBaseFiles('cordova');
       await this.buildAndroid();
       await this.buildWeb();
+      await this.finalizeWebDist('cordova');
     } else if (platform === 'none') {
       await this.buildBaseFiles('none');
       this.log('Development build complete', 'success');
     }
+  }
+  
+  async finalizeWebDist(platform) {
+    if (this.config.flags.noWebBase) {
+      this.log(`Re-staging dist/ as ${this.getPlatformDisplayName(platform)} (--no-web-base)`, 'info');
+      await this.buildBaseFiles(platform);
+      return;
+    }
+    await this.buildBaseFiles('web');
+    this.log('dist/ restored to the web platform build', 'success');
   }
 
   async buildBaseFiles(platform) {
@@ -1050,7 +1064,7 @@ class BuildSystem {
     this.log(`Platform: ${this.config.flags.platform}`, 'info');
     this.log(`Minify: ${this.config.flags.minify}`, 'info');
     this.log(`Debug: ${this.config.flags.debug}`, 'info');
-    this.log(`Packaging: ${this.config.flags.noPack ? 'disabled (--no-pack)' : 'enabled'}\n`, 'info');
+    this.log(`Packaging: ${this.config.flags.noPack ? 'disabled' : 'enabled'}\n`, 'info');
     
     // Clean and create dist directory
     if (fs.existsSync(this.config.distDir)) {
