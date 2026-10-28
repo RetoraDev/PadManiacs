@@ -4,7 +4,6 @@
 .nomedia
 .nosearch
 *.apk
-*.exe
 *build.zip
 log.txt
 save/
@@ -22,15 +21,16 @@ src/static/android_app/res/xml/config.xml.bak
 dist
 PadManiacs.bfproject
 
-# NW.js binaries (download manually)
+# Executables (except the one we explicitly keep below)
+*.exe
+
+# NW.js: ignore everything, then re-include only what we need
 src/static/nw/*
+!src/static/nw/.gitkeep
+!src/static/nw/credits.html
+!src/static/nw/package.json
 !src/static/nw/locales/
 !src/static/nw/locales/**
 !src/static/nw/www/
 !src/static/nw/www/**
 !src/static/nw/padmaniacs.exe
-!src/static/nw/package.json
-!src/static/nw/.gitkeep
-src/static/nw/www/.placeholder
-www/.placeholder
-www
