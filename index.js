@@ -82,6 +82,7 @@ class InteractiveInterface {
       { label: 'Minify: Off', action: () => this.toggleMinify() },
       { label: 'Zip Align: Off', action: () => this.toggleZipAlign() },
       { label: 'Debug: Off', action: () => this.toggleDebug() },
+      { label: 'Packaging: On', action: () => this.togglePack() },
       { label: 'Start Build', action: () => this.startCustomBuild() },
       { label: 'Back to Build Menu', action: () => this.showBuildMenu() }
     ];
@@ -90,7 +91,8 @@ class InteractiveInterface {
       platform: 'all',
       minify: false,
       zipalign: false,
-      debug: false
+      debug: false,
+      noPack: false
     };
     
     this.currentMenu = this.mainMenu;
@@ -111,6 +113,7 @@ class InteractiveInterface {
       minify: false,
       debug: false,
       zipalign: false,
+      noPack: false,
       docs: false,
       headless: false,
       help: false
@@ -154,6 +157,9 @@ class InteractiveInterface {
           break;
         case '--zipalign':
           parsed.zipalign = true;
+          break;
+        case '--no-pack':
+          parsed.noPack = true;
           break;
         case '--docs':
           parsed.docs = true;
@@ -227,6 +233,7 @@ class InteractiveInterface {
     console.log('  --minify         Enable minification');
     console.log('  --debug          Enable debug mode');
     console.log('  --zipalign       Enable APK zip alignment');
+    console.log('  --no-pack        Skip packaging (no zip/7z/apk; stage to dist/)');
     console.log('');
     
     console.log(this.color('Serve Options:', 'yellow'));
@@ -279,6 +286,9 @@ class InteractiveInterface {
     }
     if (this.cliArgs.zipalign) {
       args.push('--zipalign');
+    }
+    if (this.cliArgs.noPack) {
+      args.push('--no-pack');
     }
     
     // Flag should exit when it ends
@@ -455,6 +465,7 @@ class InteractiveInterface {
     this.customBuildMenu[1].label = `Minify: ${this.color(this.customBuildOptions.minify ? 'ON' : 'OFF', this.customBuildOptions.minify ? 'green' : 'red')}`;
     this.customBuildMenu[2].label = `Zip Align: ${this.color(this.customBuildOptions.zipalign ? 'ON' : 'OFF', this.customBuildOptions.zipalign ? 'green' : 'red')}`;
     this.customBuildMenu[3].label = `Debug: ${this.color(this.customBuildOptions.debug ? 'ON' : 'OFF', this.customBuildOptions.debug ? 'green' : 'red')}`;
+    this.customBuildMenu[4].label = `Packaging: ${this.color(this.customBuildOptions.noPack ? 'OFF' : 'ON', this.customBuildOptions.noPack ? 'red' : 'green')}`;
   }
 
   togglePlatform() {
@@ -479,6 +490,12 @@ class InteractiveInterface {
   
   toggleDebug() {
     this.customBuildOptions.debug = !this.customBuildOptions.debug;
+    this.updateCustomBuildLabels();
+    this.drawMenu();
+  }
+  
+  togglePack() {
+    this.customBuildOptions.noPack = !this.customBuildOptions.noPack;
     this.updateCustomBuildLabels();
     this.drawMenu();
   }
@@ -666,6 +683,9 @@ class InteractiveInterface {
     }
     if (this.customBuildOptions.debug) {
       args.push('--debug');
+    }
+    if (this.customBuildOptions.noPack) {
+      args.push('--no-pack');
     }
     this.runBuild(args);
   }

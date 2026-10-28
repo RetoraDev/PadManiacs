@@ -15,6 +15,7 @@ class BuildSystem {
         platform: 'all', // 'web', 'cordova', 'nwjs', 'all', 'none'
         minify: false,
         zipalign: false,
+        noPack: false,
         ...flags
       }
     };
@@ -244,6 +245,7 @@ class BuildSystem {
       if (arg === '--web') this.config.flags.platform = 'web';
       if (arg === '--all') this.config.flags.platform = 'all';
       if (arg === '--minify') this.config.flags.minify = true;
+      if (arg === '--no-pack' || arg === '--nopack') this.config.flags.noPack = true;
     });
   }
 
@@ -731,6 +733,10 @@ class BuildSystem {
   }
 
   createZipArchive(sourceDir, outputFile) {
+    if (this.config.flags.noPack) {
+      this.log(`Skipping zip (--no-pack): ${sourceDir}`, 'info');
+      return true;
+    }
     this.log(`Creating zip: ${sourceDir} → ${outputFile}`, 'info');
     try {
       if (this.hasZip()) {
@@ -748,6 +754,10 @@ class BuildSystem {
   }
 
   create7zArchive(sourceDir, outputFile) {
+    if (this.config.flags.noPack) {
+      this.log(`Skipping 7z archive (--no-pack): ${sourceDir}`, 'info');
+      return true;
+    }
     this.log(`Creating 7z archive: ${sourceDir} → ${outputFile}`, 'info');
     try {
       if (this.has7Zip()) {
@@ -816,6 +826,11 @@ class BuildSystem {
   async buildWeb() {
     this.log('Building web platform...', 'info');
     
+    if (this.config.flags.noPack) {
+      this.log('Skipping web packaging (--no-pack); dist/ contains the web build', 'info');
+      return;
+    }
+    
     // Create temporary web build directory
     const tempWebDir = path.join(this.config.distDir, 'temp', 'web');
     this.ensureDir(tempWebDir);
@@ -870,13 +885,20 @@ class BuildSystem {
       // Copy other web files to NW.js www folder (no cordova)
       this.copyDir(this.config.distDir, path.join(tempNwDir, 'www'), ['www.zip', 'padmaniacs-*.zip', '*.apk', '*.apk.idsig', 'temp', 'cordova', 'js']);
       
-      // Create 7z archive for NW.js from temp directory
-      const nwZipName = `padmaniacs-v${this.packageInfo.version}-nwjs-win-x64.zip`;
-      const nwZipPath = path.join('../../', nwZipName);
-      if (this.create7zArchive(tempNwDir, nwZipPath)) {
-        this.log('NW.js platform build complete', 'success');
+      if (this.config.flags.noPack) {
+        // Keep an exploded, inspectable copy in dist/ instead of a 7z file
+        const explodedDir = path.join(this.config.distDir, 'nw');
+        this.copyDir(tempNwDir, explodedDir);
+        this.log('Skipping NW.js packaging (--no-pack); staged to dist/nw/', 'info');
       } else {
-        this.log('NW.js platform build failed - 7z command unavailable', 'warning');
+        // Create 7z archive for NW.js from temp directory
+        const nwZipName = `padmaniacs-v${this.packageInfo.version}-nwjs-win-x64.zip`;
+        const nwZipPath = path.join('../../', nwZipName);
+        if (this.create7zArchive(tempNwDir, nwZipPath)) {
+          this.log('NW.js platform build complete', 'success');
+        } else {
+          this.log('NW.js platform build failed - 7z command unavailable', 'warning');
+        }
       }
       
       // Clean up temp directory
@@ -917,41 +939,52 @@ class BuildSystem {
         this.log('Cordova files copied for Android build', 'success');
       }
       
-      // First create unsigned APK using zip from temp directory
-      const unsignedUnalignedApkName = `padmaniacs-v${this.packageInfo.version}-android-unsigned-unaligned.apk`;
-      const unsignedUnalignedApkPath = path.join(this.config.distDir, unsignedUnalignedApkName);
-      
-      if (this.createZipArchive(tempAndroidDir, '../../' + unsignedUnalignedApkName)) {
-        // Apply zipalign
-        let unsignedApkName = `padmaniacs-v${this.packageInfo.version}-android-unsigned.apk`;
-        let unsignedApkPath  = path.join(this.config.distDir, unsignedApkName);
-        
-        if (this.config.flags.zipalign) {
-          if (this.zipAlignAndroidAPK(unsignedUnalignedApkPath, unsignedApkPath)) {
-            // Clean up build artifacts
-            fs.unlinkSync(unsignedUnalignedApkPath);
-          } else {
-            this.log('Could not apply zipalign to APK', 'warning');
-          }
-        } else {
-          unsignedApkName = unsignedUnalignedApkName;
-          unsignedApkPath = unsignedUnalignedApkPath;
-        }
-        
-        // Sign the APK
-        const signedApkName = `padmaniacs-v${this.packageInfo.version}-android.apk`;
-        const signedApkPath = path.join(this.config.distDir, signedApkName);
-
-        if (this.signAndroidAPK(unsignedApkPath, signedApkPath)) {
-          // Clean up build artifacts
-          fs.unlinkSync(unsignedApkPath);
-        } else {
-          this.log('Could not apply signature to APK', 'warning');
-        }
-        
+      if (this.config.flags.noPack) {
+        // Keep an exploded, inspectable Android project in dist/android/
+        // instead of producing (and signing) an APK.
+        const explodedDir = path.join(this.config.distDir, 'android');
+        this.copyDir(tempAndroidDir, explodedDir);
+        fs.rmSync(path.join(this.config.distDir, 'temp'), { recursive: true });
+        this.log('Skipping Android packaging (--no-pack); staged to dist/android/', 'info');
         this.log('Android platform build complete', 'success');
+        return;
       } else {
-        this.log('Android platform build failed - zip command unavailable', 'warning');
+        // First create unsigned APK using zip from temp directory
+        const unsignedUnalignedApkName = `padmaniacs-v${this.packageInfo.version}-android-unsigned-unaligned.apk`;
+        const unsignedUnalignedApkPath = path.join(this.config.distDir, unsignedUnalignedApkName);
+        
+        if (this.createZipArchive(tempAndroidDir, '../../' + unsignedUnalignedApkName)) {
+          // Apply zipalign
+          let unsignedApkName = `padmaniacs-v${this.packageInfo.version}-android-unsigned.apk`;
+          let unsignedApkPath  = path.join(this.config.distDir, unsignedApkName);
+          
+          if (this.config.flags.zipalign) {
+            if (this.zipAlignAndroidAPK(unsignedUnalignedApkPath, unsignedApkPath)) {
+              // Clean up build artifacts
+              fs.unlinkSync(unsignedUnalignedApkPath);
+            } else {
+              this.log('Could not apply zipalign to APK', 'warning');
+            }
+          } else {
+            unsignedApkName = unsignedUnalignedApkName;
+            unsignedApkPath = unsignedUnalignedApkPath;
+          }
+          
+          // Sign the APK
+          const signedApkName = `padmaniacs-v${this.packageInfo.version}-android.apk`;
+          const signedApkPath = path.join(this.config.distDir, signedApkName);
+  
+          if (this.signAndroidAPK(unsignedApkPath, signedApkPath)) {
+            // Clean up build artifacts
+            fs.unlinkSync(unsignedApkPath);
+          } else {
+            this.log('Could not apply signature to APK', 'warning');
+          }
+          
+          this.log('Android platform build complete', 'success');
+        } else {
+          this.log('Android platform build failed - zip command unavailable', 'warning');
+        }
       }
       
       // Clean up temp directory
@@ -1016,7 +1049,8 @@ class BuildSystem {
     this.log('Starting build process...', 'info');
     this.log(`Platform: ${this.config.flags.platform}`, 'info');
     this.log(`Minify: ${this.config.flags.minify}`, 'info');
-    this.log(`Debug: ${this.config.flags.debug}\n`, 'info');
+    this.log(`Debug: ${this.config.flags.debug}`, 'info');
+    this.log(`Packaging: ${this.config.flags.noPack ? 'disabled (--no-pack)' : 'enabled'}\n`, 'info');
     
     // Clean and create dist directory
     if (fs.existsSync(this.config.distDir)) {
