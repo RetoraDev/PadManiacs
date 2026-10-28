@@ -5,15 +5,12 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0 dev
- * Build: 10/27/2026, 3:42:39 PM
- * Platform: Web
- * Debug: true
+ * Build: 10/28/2026, 4:03:32 AM
+ * Platform: Development
+ * Debug: false
  * Minified: false
  */
 
-
-
-// ======== js/core/lang.js ========
 /**
  * Global localization helpers for the game.
  *
@@ -124,9 +121,6 @@ window.__ = function(text) {
 /** @type {Function} Module-local alias for the global localization function */
 const __ = window.__;
 
-
-
-// ======== js/core/constants.js ========
 /** @type {string} Copyright notice */
 const COPYRIGHT = "(C) RETORA 2026";
 
@@ -134,7 +128,7 @@ const COPYRIGHT = "(C) RETORA 2026";
 const VERSION = "v1.3.0 dev";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
-window.DEBUG = true;
+window.DEBUG = false;
 
 /** @type {boolean} Whether to log personality study data during development */
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
@@ -862,9 +856,6 @@ const DEFAULT_GAMEPAD_MAPPING = {
 /** @type {array} Supported video file extensions for external songs */
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg", "mpeg4"];
 
-
-
-// ======== js/core/environment.js ========
 // Environment detection constants
 /** @type {Object} Environment type definitions (UNKNOWN, NEUTRALINO, CORDOVA, WEB) */
 const ENVIRONMENT = {
@@ -876,7 +867,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -918,9 +909,6 @@ const WEAK_VIBRATION_INTENSITY = 50;
 /** @type {number} Vibration duration in MS for strong hits */
 const STRONG_VIBRATION_INTENSITY = 50;
 
-
-
-// ======== js/core/character.js ========
 // Character system constants
 /** @type {Object} Character system constants (max level, name length, etc.) */
 const CHARACTER_SYSTEM = {
@@ -3355,9 +3343,6 @@ const CHARACTER_ITEMS = [
   }
 ];
 
-
-
-// ======== js/core/account.js ========
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
   version: 1.31, // 1.3.0
@@ -3524,9 +3509,6 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
-
-
-// ======== js/core/achievements.js ========
 // Achievements system constants
 /** @type {Object} Achievements system constants */
 const ACHIEVEMENTS = {
@@ -5168,9 +5150,6 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
-
-
-// ======== js/character/Character.js ========
 /**
  * @class Character
  * @category Character System Classes
@@ -5771,9 +5750,6 @@ class Character {
   }
 }
 
-
-
-// ======== js/character/CharacterDisplay.js ========
 /**
  * @class CharacterDisplay
  * @category Character System Classes
@@ -6489,9 +6465,6 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/character/CharacterCroppedDisplay.js ========
 /**
  * @class CharacterCroppedDisplay
  * @category Character System Classes
@@ -6586,9 +6559,6 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterPortrait.js ========
 /**
  * @class CharacterPortrait
  * @category Character System Classes
@@ -6616,9 +6586,6 @@ class CharacterPortrait extends CharacterCroppedDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterCloseShot.js ========
 /**
  * @class CharacterCloseShot
  * @category Character System Classes
@@ -6646,9 +6613,6 @@ class CharacterCloseShot extends CharacterCroppedDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterManager.js ========
 /**
  * @class CharacterManager
  * @category Character System Classes
@@ -6942,9 +6906,6 @@ class CharacterManager {
   }
 }
 
-
-
-// ======== js/character/CharacterSkillSystem.js ========
 /**
  * @class CharacterSkillSystem
  * @category Character System Classes
@@ -7441,9 +7402,6 @@ class CharacterSkillSystem {
   }
 }
 
-
-
-// ======== js/achievements/AchievementsManager.js ========
 /**
  * @class AchievementsManager
  * @category Achievements and Stats Classes
@@ -8099,9 +8057,6 @@ class AchievementsManager {
   }
 }
 
-
-
-// ======== js/playlist/PlaylistManager.js ========
 /**
  * @class PlaylistManager
  * @category Playlist System Classes
@@ -8411,9 +8366,6 @@ class PlaylistManager {
   }
 }
 
-
-
-// ======== js/ui/Text.js ========
 /**
  * @class Text
  * @category UI Classes
@@ -8758,9 +8710,6 @@ class Text extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Window.js ========
 /**
  * @class Window
  * @category UI Classes
@@ -9417,9 +9366,6 @@ class Window extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/WindowManager.js ========
 /**
  * @class WindowManager
  * @category UI Classes
@@ -9800,9 +9746,6 @@ class WindowManager {
   }
 }
 
-
-
-// ======== js/ui/DialogWindow.js ========
 /**
  * @class DialogWindow
  * @category UI Classes
@@ -10371,9 +10314,6 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/CarouselMenu.js ========
 /**
  * @class CarouselMenu
  * @category UI Classes
@@ -11275,9 +11215,6 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Background.js ========
 /**
  * @class Background
  * @category UI Classes
@@ -11332,9 +11269,6 @@ class Background extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/BackgroundGradient.js ========
 /**
  * @class BackgroundGradient
  * @category UI Classes
@@ -11359,9 +11293,6 @@ class BackgroundGradient extends Background {
   }
 } 
 
-
-
-// ======== js/ui/CanvasBackground.js ========
 /**
  * @class CanvasBackground
  * @category UI Classes
@@ -11431,9 +11362,6 @@ class CanvasBackground extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/FuturisticLines.js ========
 /**
  * @class FuturisticLines
  * @category UI Classes
@@ -11675,9 +11603,6 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LoadingDots.js ========
 /**
  * @class LoadingDots
  * @category UI Classes
@@ -11706,9 +11631,6 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Logo.js ========
 /**
  * @class Logo
  * @category UI Classes
@@ -11796,9 +11718,6 @@ class Logo extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NavigationHint.js ========
 /**
  * @class NavigationHint
  * @category UI Classes
@@ -12424,9 +12343,6 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/ProgressText.js ========
 /**
  * @class ProgressText
  * @category UI Classes
@@ -12455,9 +12371,6 @@ class ProgressText extends Text {
   }
 }
 
-
-
-// ======== js/ui/ExperienceBar.js ========
 /**
  * @class ExperienceBar
  * @category UI Classes
@@ -12541,9 +12454,6 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/SkillBar.js ========
 /**
  * @class SkillBar
  * @category UI Classes
@@ -12595,9 +12505,6 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/TextInput.js ========
 /**
  * @class TextInput
  * @category UI Classes
@@ -12935,9 +12842,6 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NumberInput.js ========
 /**
  * @class NumberInput
  * @category UI Classes
@@ -13151,9 +13055,6 @@ class NumberInput extends TextInput {
   }
 }
 
-
-
-// ======== js/ui/NotificationSystem.js ========
 /**
  * @class NotificationSystem
  * @category UI Classes
@@ -13654,9 +13555,6 @@ class NotificationSystem {
   }
 }
 
-
-
-// ======== js/ui/Lyrics.js ========
 /**
  * @class Lyrics
  * @category Core Game Classes
@@ -13915,9 +13813,6 @@ class Lyrics {
   }
 }
 
-
-
-// ======== js/ui/OffsetAssistant.js ========
 /**
  * @class OffsetAssistant
  * @category Core Game Classes
@@ -14352,9 +14247,6 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/MouseCursor.js ========
 /**
  * @class MouseCursor
  * @category UI Classes
@@ -14616,9 +14508,6 @@ class MouseCursor {
   }
 }
 
-
-
-// ======== js/ui/BarChart.js ========
 /**
  * @class BarChart
  * @category UI Classes
@@ -14755,9 +14644,6 @@ class BarChart extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LineChart.js ========
 /**
  * @class LineChart
  * @category UI Classes
@@ -14908,9 +14794,6 @@ class LineChart extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/filesystem/filesystem.js ========
 /**
  * @class FileSystemTools
  * @category File System Classes
@@ -15116,9 +14999,6 @@ class FileSystemTools {
   }
 }
 
-
-
-// ======== js/filesystem/neutralino-filesystem.js ========
 /**
  * @class NeutralinoDirectoryEntry
  * @category File System Classes
@@ -16053,9 +15933,6 @@ NeutralinoFileSystem.MOUNT_URL = '/pmfs';
 /** @type {Promise<boolean>|null} Shared mount promise (server.mount is idempotent per path) */
 NeutralinoFileSystem.mountPromise = null;
 
-
-
-// ======== js/filesystem/cordova-filesystem.js ========
 /**
  * @class CordovaFileSystem
  * @category File System Classes
@@ -16263,9 +16140,6 @@ class CordovaFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/fallback-filesystem.js ========
 /**
  * @class FallbackFileSystem
  * @category File System Classes
@@ -16337,9 +16211,6 @@ class FallbackFileSystem {
   }
 }
 
-
-
-// ======== js/game/game.js ========
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 /** @type {AccountData} User data with settings, characters, achievements, and progress */
@@ -16675,9 +16546,6 @@ const fetch = url => new Promise((resolve, reject) => {
   resolve(new XhrFetchResponse(url));
 });
 
-
-
-// ======== js/utils/ScreenRecorder.js ========
 /**
  * @class ScreenRecorder
  * @category Core Game Classes
@@ -17143,9 +17011,6 @@ class ScreenRecorder {
   }
 }
 
-
-
-// ======== js/utils/Metronome.js ========
 /**
  * @class Metronome
  * @category Core Game Classes
@@ -17427,9 +17292,6 @@ class Metronome {
   }
 }
 
-
-
-// ======== js/utils/TimeUtils.js ========
 /**
  * @class TimeUtils
  * @category Utility Classes
@@ -17483,9 +17345,6 @@ class TimeUtils {
   }
 }
 
-
-
-// ======== js/utils/AviTranscoder.js ========
 /**
  * @class AviTranscoder
  * @category Utils
@@ -18074,9 +17933,6 @@ class AviTools {
   }
 }
 
-
-
-// ======== js/input/GamepadListener.js ========
 /**
  * @class GamepadListener
  * @category Core Game Classes
@@ -18123,9 +17979,6 @@ class GamepadListener {
   }
 }
 
-
-
-// ======== js/input/KeyboardListener.js ========
 /**
  * @class KeyboardListener
  * @category Core Game Classes
@@ -18165,9 +18018,6 @@ class KeyboardListener {
   }
 }
 
-
-
-// ======== js/input/InputManager.js ========
 let inputManager, gamepad, gamepad1, gamepad2;
 
 /**
@@ -18230,9 +18080,6 @@ class InputManager {
   }
 }
 
-
-
-// ======== js/input/Gamepad.js ========
 /**
  * @class Gamepad
  * @category Core Game Classes
@@ -19001,9 +18848,6 @@ class Gamepad {
   }
 }
 
-
-
-// ======== js/input/AllPads.js ========
 /**
  * @class AllPads
  * @category Core Game Classes
@@ -19200,9 +19044,6 @@ class AllPads extends Gamepad {
   destroy() {}
 }
 
-
-
-// ======== js/input/OnScreenKeyboard.js ========
 /**
  * @class OnScreenKeyboard
  * @category Core Game Classes
@@ -19485,9 +19326,6 @@ class OnScreenKeyboard extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/input/NumericTypeOnScreenKeyboard.js ========
 /**
  * @class NumericTypeOnScreenKeyboard
  * @category Core Game Classes
@@ -19538,9 +19376,6 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   }
 }
 
-
-
-// ======== js/audio/BackgroundMusic.js ========
 /**
  * @class BackgroundMusic
  * @category Core Game Classes
@@ -19853,9 +19688,6 @@ class BackgroundMusic {
   }
 }
 
-
-
-// ======== js/visualizers/Visualizer.js ========
 /**
  * @class Visualizer
  * @category Core Game Classes
@@ -19925,9 +19757,6 @@ class Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AccurracyVisualizer.js ========
 /**
  * @class AccuracyVisualizer
  * @category Core Game Classes
@@ -19997,9 +19826,6 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AudioVisualizer.js ========
 /**
  * @class AudioVisualizer
  * @category Core Game Classes
@@ -20105,9 +19931,6 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/BPMVisualizer.js ========
 /**
  * @class BPMVisualizer
  * @category Core Game Classes
@@ -20248,9 +20071,6 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 /**
  * @class FullScreenAudioVisualizer
  * @category Core Game Classes
@@ -20700,9 +20520,6 @@ class FullScreenAudioVisualizer {
   }
 }
 
-
-
-// ======== js/parsers/SMFile.js ========
 /**
  * @class SMFile
  * @category Parser Classes
@@ -21063,9 +20880,6 @@ class SMFile {
   }
 }
 
-
-
-// ======== js/parsers/FileTools.js ========
 /**
  * @class FileTools
  * @category File System Classes
@@ -21370,9 +21184,6 @@ class FileTools {
   }
 }
 
-
-
-// ======== js/parsers/LocalSMParser.js ========
 /**
  * @class LocalSMParser
  * @category Parser Classes
@@ -21408,6 +21219,7 @@ class LocalSMParser {
    * @returns {Promise<Object>} The parsed song data object
    */
   async parseSM(smContent, baseUrl) {
+    try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(smContent, { type: 'parser_local', baseUrl }); } catch (e) {}
     this.baseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
     
     let out = {};
@@ -21706,9 +21518,6 @@ class LocalSMParser {
   }
 }
 
-
-
-// ======== js/parsers/ExternalSMParser.js ========
 /**
  * @class ExternalSMParser
  * @category Parser Classes
@@ -21737,6 +21546,7 @@ class ExternalSMParser {
    * @returns {Promise<Object>} The parsed song data object
    */
   async parseSM(files, smContent) {
+    try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(smContent, { type: 'parser_external', filesCount: files ? Object.keys(files).length : 0 }); } catch (e) {}
     let out = {};
     let isSSC = smContent.includes("#VERSION:");
 
@@ -22104,9 +21914,6 @@ class ExternalSMParser {
   }
 }
 
-
-
-// ======== js/addons/AddonManager.js ========
 /**
  * @class AddonManager
  * @category Addon System Classes
@@ -22660,9 +22467,6 @@ class AddonManager {
   }
 }
 
-
-
-// ======== js/game/states/Boot.js ========
 /**
  * @class Boot
  * @category Game States
@@ -22909,6 +22713,29 @@ class Boot {
     game.world.updateOnlyExistingChildren = true;
 
     game.onMenuIn = new Phaser.Signal();
+    game.onMenuOut = new Phaser.Signal();
+    game.onStateChange = new Phaser.Signal();
+    game.onGameStart = new Phaser.Signal();
+    game.onGameEnd = new Phaser.Signal();
+    game.onPause = new Phaser.Signal();
+    game.onResume = new Phaser.Signal();
+    game.onSongLoad = new Phaser.Signal();
+
+    // Hook state transitions for onStateChange
+    if (game.state && game.state.start) {
+      const originalStateStart = game.state.start;
+      game.state.start = function(stateId) {
+        const oldState = game.state.current;
+        const args = Array.prototype.slice.call(arguments);
+        const result = originalStateStart.apply(game.state, args);
+        try {
+          if (game.onStateChange) {
+            game.onStateChange.dispatch(oldState, stateId);
+          }
+        } catch (e) {}
+        return result;
+      };
+    }
 
     game.state.add("Load", Load);
     game.state.add("LoadPlatform", LoadPlatform);
@@ -23344,9 +23171,6 @@ class Boot {
   }
 }
 
-
-
-// ======== js/game/states/Load.js ========
 /**
  * @class Load
  * @category Game States
@@ -23432,9 +23256,6 @@ class Load {
   }
 }
 
-
-
-// ======== js/game/states/LoadPlatform.js ========
 /**
  * @class LoadPlatform
  * @category Game States
@@ -23569,9 +23390,6 @@ class LoadPlatform {
   }
 }
 
-
-
-// ======== js/game/states/LoadAddons.js ========
 /**
  * @class LoadAddons
  * @category Game States
@@ -23619,9 +23437,6 @@ class LoadAddons {
   }
 }
 
-
-
-// ======== js/game/states/LoadLocalSongs.js ========
 /**
  * @class LoadLocalSongs
  * @category Game States
@@ -23709,7 +23524,9 @@ class LoadLocalSongs {
       }
 
       // Parse the SM file
+      try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(smContent, { type: 'local', baseUrl }); } catch (e) {}
       const chart = await this.parser.parseSM(smContent, baseUrl);
+      try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(chart, { type: 'local_parsed', baseUrl }); } catch (e) {}
       chart.folderName = folderName;
       chart.isLocal = true;
       chart.loaded = true;
@@ -23730,9 +23547,6 @@ class LoadLocalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadExternalSongs.js ========
 /**
  * @class LoadExternalSongs
  * @category Game States
@@ -23958,7 +23772,9 @@ class LoadExternalSongs {
         try {
           // Try to parse the chart file
           const content = await this.fileSystem.readFileContent(chartFiles[smFileName]);
+          try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(content, { type: 'external_dir', fileName: smFileName }); } catch (e) {}
           const chart = await this.parser.parseSM(chartFiles, content);
+          try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(chart, { type: 'external_dir_parsed', fileName: smFileName }); } catch (e) {}
           
           if (chart && chart.difficulties && chart.difficulties.length > 0) {
             // Chart file parsed successfully
@@ -24156,7 +23972,9 @@ class LoadExternalSongs {
     for (const smFileName of chartFileNames) {
       try {
         const content = await this.fileSystem.readFileContent(files[smFileName]);
+        try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(content, { type: 'external_dir_map', fileName: smFileName }); } catch (e) {}
         const chart = this.parser.parseSM(files, content);
+        try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(chart, { type: 'external_dir_map_parsed', fileName: smFileName }); } catch (e) {}
         
         if (chart && chart.difficulties && chart.difficulties.length > 0) {
           chart.folderName = folderName;
@@ -24208,9 +24026,6 @@ class LoadExternalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadSongFolder.js ========
 /**
  * @class LoadSongFolder
  * @category Game States
@@ -24489,9 +24304,6 @@ class LoadSongFolder {
   }
 }
 
-
-
-// ======== js/game/states/LoadExternalSongFile.js ========
 /**
  * @class LoadExternalSongFile
  * @category Game States
@@ -24574,7 +24386,9 @@ class LoadExternalSongFile {
       
       // Try to parse the chart file
       const content = await this.fileSystem.readFileContent(smFile);
+      try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(content, { type: 'external', fileName: this.fileName, path: this.filePath }); } catch (e) {}
       const chart = await this.parser.parseSM(chartFiles, content);
+      try { if (typeof game !== 'undefined' && game.onSongLoad) game.onSongLoad.dispatch(chart, { type: 'external_parsed', fileName: this.fileName, path: this.filePath }); } catch (e) {}
       
       if (chart && chart.difficulties && chart.difficulties.length > 0) {
         // Chart file parsed successfully
@@ -24666,9 +24480,6 @@ class LoadExternalSongFile {
   }
 }
 
-
-
-// ======== js/game/states/Title.js ========
 /**
  * @class Title
  * @category Game States
@@ -24808,9 +24619,6 @@ class Title {
   }
 }
 
-
-
-// ======== js/game/states/MainMenu.js ========
 /**
  * @class MainMenu
  * @category Game States
@@ -25379,9 +25187,6 @@ class MainMenu {
   }
 }
 
-
-
-// ======== js/game/states/Addons.js ========
 /**
  * @class Addons
  * @category Game States
@@ -25653,9 +25458,6 @@ class Addons {
   }
 }
 
-
-
-// ======== js/game/states/Settings.js ========
 /**
  * @class Settings
  * @category Game States
@@ -26431,9 +26233,6 @@ class Settings {
   }
 }
 
-
-
-// ======== js/game/states/ChartModifiers.js ========
 /**
  * @class ChartModifiers
  * @category Game States
@@ -26632,9 +26431,6 @@ class ChartModifiers {
   }
 }
 
-
-
-// ======== js/game/states/Keybindings.js ========
 /**
  * @class Keybindings
  * @category Game States
@@ -27463,9 +27259,6 @@ class Keybindings {
   }
 }
 
-
-
-// ======== js/game/states/AviSettings.js ========
 /**
  * @class AviSettings
  * @category Game States
@@ -27608,9 +27401,6 @@ class AviSettings {
   }
 }
 
-
-
-// ======== js/game/states/TouchSettings.js ========
 /**
  * @class TouchSettings
  * @category Game States
@@ -27797,9 +27587,6 @@ class TouchSettings {
   }
 }
 
-
-
-// ======== js/game/states/FileSelect.js ========
 /**
  * @class FileSelect
  * @category Game States
@@ -28164,9 +27951,6 @@ class FileSelect {
   }
 }
 
-
-
-// ======== js/game/states/SongSelect.js ========
 /**
  * @class SongSelect
  * @category Game States
@@ -29286,9 +29070,6 @@ class SongSelect {
   }
 }
 
-
-
-// ======== js/game/states/DecodeAvi.js ========
 /**
  * @class DecodeAvi
  * @category Game States
@@ -29747,9 +29528,6 @@ class DecodeAvi {
   }
 }
 
-
-
-// ======== js/game/states/SongStats.js ========
 /**
  * @class SongStats
  * @category Game States
@@ -30490,9 +30268,6 @@ class SongStats {
   }
 }
 
-
-
-// ======== js/game/states/CharacterSelect.js ========
 /**
  * @class CharacterSelect
  * @category Game States
@@ -32435,9 +32210,6 @@ class CharacterSelect {
   }
 }
 
-
-
-// ======== js/game/states/AchievementsMenu.js ========
 /**
  * @class AchievementsMenu
  * @category Game States
@@ -32618,9 +32390,6 @@ class AchievementsMenu {
   }
 }
 
-
-
-// ======== js/game/states/StatsMenu.js ========
 /**
  * @class StatsMenu
  * @category Game States
@@ -32768,9 +32537,6 @@ class StatsMenu {
   }
 }
 
-
-
-// ======== js/game/states/Play.js ========
 /**
  * @class Play
  * @category Game States
@@ -33568,8 +33334,13 @@ class Play {
    * @param {number} backgroundAlpha - Target background opacity
    * @param {number} receptorsAlpha - Receptors alpha to restore during the reveal
    */
-  showHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
-    game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.Out, true);
+  showHud(duration = 500, backgroundAlpha = null, receptorsAlpha = 1) {
+    if (backgroundAlpha === null) {
+      const isVideo = this.currentBackground && this.currentBackground.type == 'video';
+      backgroundAlpha = isVideo ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
+    }
+    this._bgFadeTween = game.add.tween(this.backgroundSprite)
+    this._bgFadeTween.to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.Out, true);
     game.add.tween(this.hudTop).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
     game.add.tween(this.hudBottom).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
   }
@@ -33580,8 +33351,13 @@ class Play {
    * @param {number} backgroundAlpha - Target background opacity while hidden
    * @param {number} receptorsAlpha - Receptors alpha to restore during the hide
    */
-  hideHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
-    game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.In, true);
+  hideHud(duration = 500, backgroundAlpha = null, receptorsAlpha = 1) {
+    if (backgroundAlpha === null) {
+      const isVideo = this.currentBackground && this.currentBackground.type == 'video';
+      backgroundAlpha = isVideo ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
+    }
+    this._bgFadeTween = game.add.tween(this.backgroundSprite);
+    this._bgFadeTween.to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.In, true);
     game.add.tween(this.hudTop).to({ y: -40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
     game.add.tween(this.hudBottom).to({ y: 40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
   }
@@ -33972,7 +33748,8 @@ class Play {
       this.loadBackgroundVideo(bg.file, bg.url, () => {
         this.applyBgEffects(bg);
       }, () => {
-        this.backgroundSprite.alpha = Account.settings.backgroundOpacity;
+        const alpha = bg.type == 'video' ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
+        this.backgroundSprite.alpha = alpha;
       });
     } else {
       this.loadBackgroundImage(bg.file, bg.url);
@@ -34023,7 +33800,7 @@ class Play {
     // StepMania effects: 0=none, 1=stretch, 2=scroll, 3=...
     if (bg.effect && bg.effect > 0) {
       // Commented, the existing implementation is poor and doesn't handle them correctly
-      // this.applyBgEffect(bg);
+      // this.applySingleBgEffect(bg);
     }
   }
   
@@ -34031,7 +33808,7 @@ class Play {
    * Applies the StepMania-style background effect loop (stretch, scroll or pulse).
    * @param {Object} bg - The background descriptor carrying an effect id
    */
-  applyBgEffect(bg) {
+  applySingleBgEffect(bg) {
     // Cancel existing effect
     if (this._bgEffectTimer) {
       clearInterval(this._bgEffectTimer);
@@ -34222,6 +33999,8 @@ class Play {
     // Hide HUD
     this.hideHud(500, 1, 0);
     
+    try { if (game.onGameEnd) game.onGameEnd.dispatch(gameResults, gameData); } catch (e) {}
+    
     game.state.start("Results", true, false, gameData);
   }
   
@@ -34285,13 +34064,14 @@ class Play {
   }
   
   /**
-   * Pauses gameplay and playback, then shows the pause menu.
+   * Pauses gameplay and playback and shows the pause menu.
    */
   pause() {
-    if (!this.started) return;
+    if (this.isPaused) return;
     this.isPaused = true;
     this.pauseStartTime = game.time.now;
     this.pausedAudioTime = this.audio ? this.audio.currentTime : 0;
+    try { if (game.onPause) game.onPause.dispatch(this.song, this.difficultyIndex); } catch (e) {}
     this.audio?.pause();
     this.video?.pause();
     this.showPauseMenu();
@@ -34303,6 +34083,7 @@ class Play {
   resume() {
     this.isPaused = false;
     this.totalPausedDuration += game.time.now - this.pauseStartTime;
+    try { if (game.onResume) game.onResume.dispatch(this.song, this.difficultyIndex); } catch (e) {}
     this.video?.play();
     this.audio?.play();
     this.hidePauseMenu();
@@ -34375,6 +34156,9 @@ class Play {
    */
   hidePauseMenu() {
     if (this.pauseCarousel) {
+      try {
+        if (game.onMenuOut) game.onMenuOut.dispatch('pause', this.pauseCarousel);
+      } catch (e) {}
       this.pauseBg.destroy();
       this.pauseStatsText.destroy();
       this.pauseCarousel.destroy();
@@ -34688,9 +34472,6 @@ class Play {
   }
 }
 
-
-
-// ======== js/game/states/PlayMulti.js ========
 /**
  * @class PlayMulti
  * @category Game States
@@ -35090,9 +34871,6 @@ class PlayMulti extends Play {
   }
 }
 
-
-
-// ======== js/game/states/Results.js ========
 /**
  * @class Results
  * @category Game States
@@ -35459,9 +35237,6 @@ class Results {
   }
 }
 
-
-
-// ======== js/game/states/ResultsMulti.js ========
 /**
  * @class ResultsMulti
  * @category Game States
@@ -35700,9 +35475,6 @@ class ResultsMulti extends Results {
   }
 }
 
-
-
-// ======== js/game/states/Playlists.js ========
 /**
  * @class Playlists
  * @category Game States
@@ -36044,9 +35816,6 @@ class Playlists {
   }
 }
 
-
-
-// ======== js/game/states/Jukebox.js ========
 /**
  * @class Jukebox
  * @category Game States
@@ -37138,9 +36907,6 @@ class Jukebox {
   }
 }
 
-
-
-// ======== js/game/states/Editor.js ========
 /**
  * @class Editor
  * @category Game States
@@ -40484,9 +40250,6 @@ class Editor {
   }
 }
 
-
-
-// ======== js/game/states/Credits.js ========
 /**
  * @class Credits
  * @category Game States
@@ -40883,9 +40646,6 @@ class Credits {
   }
 }
 
-
-
-// ======== js/game/states/ErrorScreen.js ========
 /**
  * @class ErrorScreen
  * @category Game States
@@ -40956,9 +40716,6 @@ Please Report The Developer Immediately!
   }
 }
 
-
-
-// ======== js/game/player/ChartRenderer.js ========
 /**
  * @class ChartRenderer
  * @category Core Game Classes
@@ -42109,9 +41866,6 @@ class ChartRenderer {
   }
 }
 
-
-
-// ======== js/game/player/AudioTemperatureMeter.js ========
 /**
  * @class AudioTemperatureMeter
  * @category Core Game Classes
@@ -42568,9 +42322,6 @@ class AudioTemperatureMeter {
   }
 }
 
-
-
-// ======== js/game/player/Player.js ========
 /**
  * @class Player
  * @category Core Game Classes
@@ -43747,9 +43498,6 @@ class Player {
   }
 }
 
-
-
-// ======== js/game/player/FirstPlayer.js ========
 /**
  * @class FirstPlayer
  * @category Core Game Classes
@@ -43793,9 +43541,6 @@ class FirstPlayer extends Player {
   }
 }
 
-
-
-// ======== js/game/player/SecondPlayer.js ========
 /**
  * @class SecondPlayer
  * @category Core Game Classes

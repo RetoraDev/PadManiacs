@@ -795,8 +795,13 @@ class Play {
    * @param {number} backgroundAlpha - Target background opacity
    * @param {number} receptorsAlpha - Receptors alpha to restore during the reveal
    */
-  showHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
-    game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.Out, true);
+  showHud(duration = 500, backgroundAlpha = null, receptorsAlpha = 1) {
+    if (backgroundAlpha === null) {
+      const isVideo = this.currentBackground && this.currentBackground.type == 'video';
+      backgroundAlpha = isVideo ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
+    }
+    this._bgFadeTween = game.add.tween(this.backgroundSprite)
+    this._bgFadeTween.to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.Out, true);
     game.add.tween(this.hudTop).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
     game.add.tween(this.hudBottom).to({ y: 0, alpha: 1 }, duration, Phaser.Easing.Quadratic.Out, true);
   }
@@ -807,8 +812,13 @@ class Play {
    * @param {number} backgroundAlpha - Target background opacity while hidden
    * @param {number} receptorsAlpha - Receptors alpha to restore during the hide
    */
-  hideHud(duration = 500, backgroundAlpha = Account.settings.backgroundOpacity, receptorsAlpha = 1) {
-    game.add.tween(this.backgroundSprite).to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.In, true);
+  hideHud(duration = 500, backgroundAlpha = null, receptorsAlpha = 1) {
+    if (backgroundAlpha === null) {
+      const isVideo = this.currentBackground && this.currentBackground.type == 'video';
+      backgroundAlpha = isVideo ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
+    }
+    this._bgFadeTween = game.add.tween(this.backgroundSprite);
+    this._bgFadeTween.to({ alpha: backgroundAlpha }, duration, Phaser.Easing.Quadratic.In, true);
     game.add.tween(this.hudTop).to({ y: -40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
     game.add.tween(this.hudBottom).to({ y: 40, alpha: 0 }, duration, Phaser.Easing.Quadratic.In, true);
   }
@@ -1199,7 +1209,8 @@ class Play {
       this.loadBackgroundVideo(bg.file, bg.url, () => {
         this.applyBgEffects(bg);
       }, () => {
-        this.backgroundSprite.alpha = Account.settings.backgroundOpacity;
+        const alpha = bg.type == 'video' ? Account.settings.videoBackgroundOpacity : Account.settings.backgroundOpacity;
+        this.backgroundSprite.alpha = alpha;
       });
     } else {
       this.loadBackgroundImage(bg.file, bg.url);
@@ -1250,7 +1261,7 @@ class Play {
     // StepMania effects: 0=none, 1=stretch, 2=scroll, 3=...
     if (bg.effect && bg.effect > 0) {
       // Commented, the existing implementation is poor and doesn't handle them correctly
-      // this.applyBgEffect(bg);
+      // this.applySingleBgEffect(bg);
     }
   }
   
@@ -1258,7 +1269,7 @@ class Play {
    * Applies the StepMania-style background effect loop (stretch, scroll or pulse).
    * @param {Object} bg - The background descriptor carrying an effect id
    */
-  applyBgEffect(bg) {
+  applySingleBgEffect(bg) {
     // Cancel existing effect
     if (this._bgEffectTimer) {
       clearInterval(this._bgEffectTimer);

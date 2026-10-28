@@ -1175,6 +1175,67 @@ class BuildSystem {
     }
   }
   
+  async buildNWJS() {
+    this.log('Building Desktop (NW.js) platform...', 'info');
+
+    const nwjsStatic = path.join(this.config.srcDir, 'static/nw');
+    if (!fs.existsSync(nwjsStatic)) {
+      this.log('NW.js static files not found at: ' + nwjsStatic, 'warning');
+      this.log('Download NW.js v0.88.0 and place files in src/static/nw/ (keep locales/, www/, padmaniacs.exe, package.json)', 'warning');
+      return;
+    }
+
+    const distDir = this.config.distDir;
+    const nwDir = path.join(distDir, 'nwjs');
+    this.ensureDir(nwDir);
+
+    try {
+      this.copyDir(nwjsStatic, nwDir, ['.gitkeep']);
+      const wwwDir = path.join(nwDir, 'www');
+      this.ensureDir(wwwDir);
+      ['js', 'lib', 'index.html', 'css', 'assets', 'resources'].forEach(item => {
+        const srcPath = path.join(distDir, item);
+        const dstPath = path.join(wwwDir, item);
+        if (fs.existsSync(srcPath)) {
+          if (fs.statSync(srcPath).isDirectory()) {
+            this.copyDir(srcPath, dstPath);
+          } else {
+            this.ensureDir(path.dirname(dstPath));
+            fs.copyFileSync(srcPath, dstPath);
+          }
+        }
+      });
+
+      if (fs.existsSync(path.join(nwjsStatic, 'package.json'))) {
+        const pkgContent = fs.readFileSync(path.join(nwjsStatic, 'package.json'), 'utf8');
+        const updatedPkg = pkgContent.replace('"version": "1.1.0"', `"version": "${this.packageInfo.version}"`);
+        fs.writeFileSync(path.join(nwDir, 'package.json'), updatedPkg);
+      }
+
+      if (fs.existsSync(path.join(nwjsStatic, 'padmaniacs.exe'))) {
+        fs.copyFileSync(path.join(nwjsStatic, 'padmaniacs.exe'), path.join(nwDir, 'padmaniacs.exe'));
+      }
+
+      if (fs.existsSync(path.join(nwjsStatic, 'locales'))) {
+        this.copyDir(path.join(nwjsStatic, 'locales'), path.join(nwDir, 'locales'));
+      }
+
+      if (!this.config.flags.noPack) {
+        const nwZipName = `padmaniacs-v${this.packageInfo.version}-nwjs-win-x64.zip`;
+        this.log(`Packaging NW.js build as ${nwZipName}...`, 'info');
+        if (this.createZipArchive(nwDir, '../../' + nwZipName)) {
+          this.log('NW.js platform build complete', 'success');
+        } else {
+          this.log('NW.js packaging failed - zip command unavailable', 'warning');
+        }
+      } else {
+        this.log('NW.js platform staged to dist/nwjs/ (--no-pack)', 'success');
+      }
+    } catch (error) {
+      this.log('NW.js build failed:', 'error', error);
+    }
+  }
+  
   async buildForPlatform() {
     const platform = this.config.flags.platform;
 
@@ -1184,17 +1245,18 @@ class BuildSystem {
 
       // Then build each platform into its own temp/output. dist/ stays web.
       await this.buildAndroid();
-      await this.buildNeutralino();
+      await this.buildNWJS();
 
       // Optionally package the web build (www.zip) from the web dist/.
       await this.buildWeb();
     } else if (platform === 'web') {
       await this.buildBaseFiles('web');
       await this.buildWeb();
+    } else if (platform === 'nwjs') {
+      await this.buildBaseFiles('web');
+      await this.buildNWJS();
+      await this.finalizeWebDist('nwjs');
     } else if (platform === 'neutralino') {
-      // Platform targets read from dist/, so stage the web base first, then
-      // build the Neutralino package. dist/ is re-staged afterwards (as web by
-      // default) so opening dist/ remains a deployable web build.
       await this.buildBaseFiles('web');
       await this.buildNeutralino();
       await this.finalizeWebDist('neutralino');
@@ -1294,68 +1356,6 @@ class BuildSystem {
     } catch (error) {
       this.log('\nBuild failed:', 'error', error);
       process.exit(1);
-    }
-  }
-  
-
-  async buildNWJS() {
-    this.log('Building Desktop (NW.js) platform...', 'info');
-
-    const nwjsStatic = path.join(this.config.srcDir, 'static/nw');
-    if (!fs.existsSync(nwjsStatic)) {
-      this.log('NW.js static files not found at: ' + nwjsStatic, 'warning');
-      this.log('Download NW.js v0.88.0 and place files in src/static/nw/ (keep locales/, www/, padmaniacs.exe, package.json)', 'warning');
-      return;
-    }
-
-    const distDir = this.config.distDir;
-    const nwDir = path.join(distDir, 'nwjs');
-    this.ensureDir(nwDir);
-
-    try {
-      this.copyDir(nwjsStatic, nwDir, ['.gitkeep']);
-      const wwwDir = path.join(nwDir, 'www');
-      this.ensureDir(wwwDir);
-      ['js', 'lib', 'index.html', 'css', 'assets', 'resources'].forEach(item => {
-        const srcPath = path.join(distDir, item);
-        const dstPath = path.join(wwwDir, item);
-        if (fs.existsSync(srcPath)) {
-          if (fs.statSync(srcPath).isDirectory()) {
-            this.copyDir(srcPath, dstPath);
-          } else {
-            this.ensureDir(path.dirname(dstPath));
-            fs.copyFileSync(srcPath, dstPath);
-          }
-        }
-      });
-
-      if (fs.existsSync(path.join(nwjsStatic, 'package.json'))) {
-        const pkgContent = fs.readFileSync(path.join(nwjsStatic, 'package.json'), 'utf8');
-        const updatedPkg = pkgContent.replace('"version": "1.1.0"', `"version": "${this.packageInfo.version}"`);
-        fs.writeFileSync(path.join(nwDir, 'package.json'), updatedPkg);
-      }
-
-      if (fs.existsSync(path.join(nwjsStatic, 'padmaniacs.exe'))) {
-        fs.copyFileSync(path.join(nwjsStatic, 'padmaniacs.exe'), path.join(nwDir, 'padmaniacs.exe'));
-      }
-
-      if (fs.existsSync(path.join(nwjsStatic, 'locales'))) {
-        this.copyDir(path.join(nwjsStatic, 'locales'), path.join(nwDir, 'locales'));
-      }
-
-      if (!this.config.flags.noPack) {
-        const nwZipName = `padmaniacs-v${this.packageInfo.version}-nwjs-win-x64.zip`;
-        this.log(`Packaging NW.js build as ${nwZipName}...`, 'info');
-        if (this.createZipArchive(nwDir, '../../' + nwZipName)) {
-          this.log('NW.js platform build complete', 'success');
-        } else {
-          this.log('NW.js packaging failed - zip command unavailable', 'warning');
-        }
-      } else {
-        this.log('NW.js platform staged to dist/nwjs/ (--no-pack)', 'success');
-      }
-    } catch (error) {
-      this.log('NW.js build failed:', 'error', error);
     }
   }
 
