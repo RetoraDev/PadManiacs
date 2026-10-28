@@ -34,3 +34,4 @@ src/static/nw/*
 !src/static/nw/www/
 !src/static/nw/www/**
 !src/static/nw/padmaniacs.exe
+o.txt

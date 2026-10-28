@@ -732,3 +732,6 @@ const DEFAULT_GAMEPAD_MAPPING = {
 
 /** @type {array} Supported video file extensions for external songs */
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg", "mpeg4"];
+
+/** @type {array} Supported chart types */
+const SUPPORTED_GAME_MODES = ["dance-single"];

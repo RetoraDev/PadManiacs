@@ -203,11 +203,14 @@ class LocalSMParser {
           break;
         }
         case "#NOTES":
-          steps[p[3] + p[4]] = p[6].split(",");
-          out.difficulties.push({
-            type: p[3],
-            rating: p[4]
-          });
+          if (SUPPORTED_GAME_MODES.includes(p[1])) {
+            steps[p[3] + p[4]] = p[6].split(",");
+            out.difficulties.push({
+              author: p[2],
+              type: p[3],
+              rating: p[4],
+            });
+          }
           break;
       }
     }

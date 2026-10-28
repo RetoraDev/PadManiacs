@@ -120,17 +120,6 @@ class AviSettings {
       }
     );
 
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
-      settingsWindow.addSettingItem(
-        __("Use System ffmpeg||Usar ffmpeg del sistema"),
-        [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
-        this.settings.useSystemFfmpeg ? 0 : 1,
-        index => {
-          this.settings.useSystemFfmpeg = index === 0;
-        }
-      );
-    }
-
     settingsWindow.addItem(__("BACK||VOLVER"), "", () => {
       this.windowManager.remove(settingsWindow, true);
       Account.settings.aviSettings = this.settings;
