@@ -15,6 +15,8 @@ class InteractiveInterface {
   constructor() {
     this.currentSelection = 0;
     this.busy = false;
+    this.aborting = false;
+    this.awaitingKey = false;
     this.currentServer = null;
     this.menuStack = [];
     this.cliArgs = this.parseCLIArgs();
@@ -83,6 +85,7 @@ class InteractiveInterface {
       { label: 'Zip Align: Off', action: () => this.toggleZipAlign() },
       { label: 'Debug: Off', action: () => this.toggleDebug() },
       { label: 'Packaging: On', action: () => this.togglePack() },
+      { label: 'Web in dist: On', action: () => this.toggleWebBase() },
       { label: 'Start Build', action: () => this.startCustomBuild() },
       { label: 'Back to Build Menu', action: () => this.showBuildMenu() }
     ];
@@ -92,7 +95,8 @@ class InteractiveInterface {
       minify: false,
       zipalign: false,
       debug: false,
-      noPack: false
+      noPack: false,
+      noWebBase: false
     };
     
     this.currentMenu = this.mainMenu;
@@ -114,6 +118,7 @@ class InteractiveInterface {
       debug: false,
       zipalign: false,
       noPack: false,
+      noWebBase: false,
       docs: false,
       headless: false,
       help: false
@@ -160,6 +165,9 @@ class InteractiveInterface {
           break;
         case '--no-pack':
           parsed.noPack = true;
+          break;
+        case '--no-web-base':
+          parsed.noWebBase = true;
           break;
         case '--docs':
           parsed.docs = true;
@@ -231,9 +239,10 @@ class InteractiveInterface {
     console.log('  --web            Build web platform only');
     console.log('  --all            Build all platforms (default)');
     console.log('  --minify         Enable minification');
+    console.log('  --no-pack        Skip packaging (no zip/7z/apk; stage to dist/)');
+    console.log('  --no-web-base    Keep dist/ as the built platform (skip web re-stage)');
     console.log('  --debug          Enable debug mode');
     console.log('  --zipalign       Enable APK zip alignment');
-    console.log('  --no-pack        Skip packaging (no zip/7z/apk; stage to dist/)');
     console.log('');
     
     console.log(this.color('Serve Options:', 'yellow'));
@@ -289,6 +298,9 @@ class InteractiveInterface {
     }
     if (this.cliArgs.noPack) {
       args.push('--no-pack');
+    }
+    if (this.cliArgs.noWebBase) {
+      args.push('--no-web-base');
     }
     
     // Flag should exit when it ends
@@ -426,6 +438,14 @@ class InteractiveInterface {
     this.drawMenu();
   }
   
+  waitForKey(callback) {
+    this.awaitingKey = true;
+    this.rl.input.once('data', () => {
+      this.awaitingKey = false;
+      callback();
+    });
+  }
+  
   showBuildMenu() {
     this.currentMenu = this.buildMenu;
     this.currentSelection = 0;
@@ -466,6 +486,7 @@ class InteractiveInterface {
     this.customBuildMenu[2].label = `Zip Align: ${this.color(this.customBuildOptions.zipalign ? 'ON' : 'OFF', this.customBuildOptions.zipalign ? 'green' : 'red')}`;
     this.customBuildMenu[3].label = `Debug: ${this.color(this.customBuildOptions.debug ? 'ON' : 'OFF', this.customBuildOptions.debug ? 'green' : 'red')}`;
     this.customBuildMenu[4].label = `Packaging: ${this.color(this.customBuildOptions.noPack ? 'OFF' : 'ON', this.customBuildOptions.noPack ? 'red' : 'green')}`;
+    this.customBuildMenu[5].label = `Web in dist: ${this.color(this.customBuildOptions.noWebBase ? 'OFF' : 'ON', this.customBuildOptions.noWebBase ? 'red' : 'green')}`;
   }
 
   togglePlatform() {
@@ -500,6 +521,12 @@ class InteractiveInterface {
     this.drawMenu();
   }
   
+  toggleWebBase() {
+    this.customBuildOptions.noWebBase = !this.customBuildOptions.noWebBase;
+    this.updateCustomBuildLabels();
+    this.drawMenu();
+  }
+  
   showCodeReminders() {
     this.clearScreen();
     this.drawLogo();
@@ -511,7 +538,7 @@ class InteractiveInterface {
     if (reminders.length === 0) {
       console.log(this.color('✓ No code reminders found!', 'green'));
       console.log(this.color('\nPress any key to return to menu...', 'dim'));
-      this.rl.input.once('data', () => this.showMainMenu());
+      this.waitForKey(() => this.showMainMenu());
       return;
     }
     
@@ -640,7 +667,7 @@ class InteractiveInterface {
     });
     
     console.log(this.color('\nPress any key to return to menu...', 'dim'));
-    this.rl.input.once('data', () => this.showMainMenu());
+    this.waitForKey(() => this.showMainMenu());
   }
 
   generateRemindersSummary(reminders) {
@@ -687,46 +714,91 @@ class InteractiveInterface {
     if (this.customBuildOptions.noPack) {
       args.push('--no-pack');
     }
+    if (this.customBuildOptions.noWebBase) {
+      args.push('--no-web-base');
+    }
     this.runBuild(args);
   }
 
-  async runBuild(args) {
+  runBuild(args) {
     this.clearScreen();
     this.drawLogo();
-    
+
     this.busy = true;
-    
+
     console.log(this.color('Starting build process...\n', 'yellow'));
     console.log(this.color('Build Arguments:', 'cyan'), args.join(' '));
     console.log(this.color('─'.repeat(50), 'dim') + '\n');
     
-    try {
-      this.currentBuild = new BuildSystem();
-      
-      await this.currentBuild.build(args);
-      
-      this.currentBuild = null;
-      
-      console.log(`\n${this.color('Build completed successfully!', 'green')}`);
-      
-      if (this.executingCliBuild) {
-        this.exit();
-        return;
-      }
-      
-      console.log(this.color('Press any key to return to menu...', 'dim'));
-      
-      if (this.isTermux() && !args.includes("--no-install") && args.includes("--cordova")) {
-        this.rl.input.once('data', () => this.showOpenApkConfirm());
-      } else {
-        this.rl.input.once('data', () => this.showMainMenu());
-      }
-    } catch (error) {
-      console.log(`\n${this.color('Build failed!', 'red')}`);
-      console.log(this.color('Press any key to return to menu...', 'dim'));
-      
-      this.rl.input.once('data', () => this.showMainMenu());
-    }
+    return new Promise((resolve) => {
+      const buildJsPath = path.join(__dirname, 'build.js');
+      const child = spawn(process.execPath, [buildJsPath, ...args], {
+        cwd: process.cwd(),
+        stdio: 'inherit',
+        detached: process.platform !== 'win32',
+      });
+      this.currentBuildProc = child;
+
+      let cancelled = false;
+
+      const onSigint = () => {
+        if (cancelled) return;
+        cancelled = true;
+        this.killProcessTree(child);
+      };
+      const onKey = (key) => {
+        if (key === '\u0003') onSigint();
+      };
+
+      process.on('SIGINT', onSigint);
+      this.rl.input.on('data', onKey);
+
+      const cleanup = () => {
+        process.removeListener('SIGINT', onSigint);
+        this.rl.input.removeListener('data', onKey);
+        this.currentBuildProc = null;
+        this.busy = false;
+      };
+
+      child.on('error', (error) => {
+        cleanup();
+        console.log(`\n${this.color('Build failed to start!', 'red')}`);
+        console.log(this.color(error.message, 'dim'));
+        if (this.executingCliBuild) return this.exit();
+        console.log(this.color('Press any key to return to menu...', 'dim'));
+        this.waitForKey(() => this.showMainMenu());
+        resolve();
+      });
+
+      child.on('close', (code) => {
+        cleanup();
+
+        if (cancelled) {
+          console.log(`\n${this.color('Build cancelled.', 'yellow')}`);
+          if (this.executingCliBuild) return this.exit();
+          this.waitForKey(() => this.showMainMenu());
+          return resolve();
+        }
+
+        if (code === 0) {
+          console.log(`\n${this.color('Build completed successfully!', 'green')}`);
+          if (this.executingCliBuild) return this.exit();
+          console.log(this.color('Press any key to return to menu...', 'dim'));
+          if (this.isTermux() && !args.includes('--no-install') && args.includes('--cordova')) {
+            this.waitForKey(() => this.showOpenApkConfirm());
+          } else {
+            this.waitForKey(() => this.showMainMenu());
+          }
+        } else {
+          console.log(`\n${this.color(`Build failed! (exit code ${code})`, 'red')}`);
+          if (this.executingCliBuild) return this.exit();
+          console.log(this.color('Press any key to return to menu...', 'dim'));
+          this.waitForKey(() => this.showMainMenu());
+        }
+        resolve();
+      });
+    });
+
   }
 
   serveProject(mode) {
@@ -985,7 +1057,7 @@ class InteractiveInterface {
   returnToMenuAfterError() {
     console.log(this.color('Press any key to return to menu...', 'dim'));
     
-    this.rl.input.once('data', () => {
+    this.waitForKey(() => {
       this.cleanupServer();
       this.showMainMenu();
     });
@@ -1106,7 +1178,7 @@ class InteractiveInterface {
     
     console.log(this.color('Press any key to return to menu...', 'dim'));
     
-    this.rl.input.once('data', () => this.showMainMenu());
+    this.waitForKey(() => this.showMainMenu());
   }
 
   runDocs() {
@@ -1127,7 +1199,7 @@ class InteractiveInterface {
     
     console.log(this.color('Press any key to return to menu...', 'dim'));
     
-    this.rl.input.once('data', () => this.showMainMenu());
+    this.waitForKey(() => this.showMainMenu());
   }
 
   executeCLIDocs() {
@@ -1198,12 +1270,39 @@ class InteractiveInterface {
     
     console.log(`\n${this.color('Press any key to return to menu...', 'dim')}`);
     
-    this.rl.input.once('data', () => {
+    this.waitForKey(() => {
       this.showMainMenu();
     });
   }
+  
+  killProcessTree(child) {
+    if (!child || child.killed || child.exitCode !== null) return;
+    try {
+      if (process.platform === 'win32') {
+        spawn('taskkill', ['/pid', String(child.pid), '/T', '/F']);
+      } else if (process.platform === 'darwin' || process.platform === 'linux') {
+        // Negative pid targets the whole process group (build.js spawns
+        // execSync subprocesses like zip/neu/apksigner that must also die).
+        try {
+          process.kill(-child.pid, 'SIGKILL');
+        } catch (e) {
+          // Fall back to killing just the direct child if group kill fails.
+          child.kill('SIGKILL');
+        }
+      } else {
+        child.kill('SIGKILL');
+      }
+    } catch (e) {
+      // Process already gone; nothing to do.
+    }
+  }
 
   exit() {
+    this.aborting = true;
+    if (this.currentBuildProc) {
+      this.killProcessTree(this.currentBuildProc);
+      return;
+    }
     this.cleanupServer();
     this.rl.close();
     process.exit(0);
@@ -1224,7 +1323,9 @@ class InteractiveInterface {
     this.rl.input.on('data', (key) => {
       if (key === '\u0003') { // Ctrl+C
         this.exit();
-      } else if (key === '\u001b[A') { // Up arrow
+      }
+      if (this.awaitingKey) return;
+      if (key === '\u001b[A') { // Up arrow
         this.handleInput('up');
       } else if (key === '\u001b[B') { // Down arrow
         this.handleInput('down');
