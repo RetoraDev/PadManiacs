@@ -9,7 +9,7 @@ window.DEBUG = %;
 
 /** @type {boolean} Whether to log personality study data during development */
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
-window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS = window.DEBUG;
+window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS = window.DEBUG; // Kept for compatibility
 
 /** @type {boolean} Whether to unlock all clothing items for development */
 window.UNLOCK_ALL_CLOTHES = false;

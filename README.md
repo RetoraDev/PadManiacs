@@ -116,7 +116,7 @@ Third-party components:
 - Uses StepMania chart format specification
 - Includes Phaser CE, Eruda.js, Terser.js, and JSZip libraries
 - Includes [ffmpeg-wasm-lite](https://github.com/devilanirudh/ffmpeg-wasm-lite) by devilanirudh (GPL-2.0-or-later) for decoding AVI background videos to MP4 in the browser
-- Desktop builds are packaged with [Neutralinojs](https://neutralino.js.org) (MIT License) as the application runtime
+- Desktop builds are packaged with [NW.js](https://nwjs.io) (MIT License) as the application runtime
 - All third-party content remains under their original licenses
 
 ## Contributing

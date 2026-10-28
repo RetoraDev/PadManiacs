@@ -4,14 +4,13 @@
  * @summary Platform-agnostic file system access wrapper
  * @constructor
  * @features
- * Auto-detects runtime platform (Neutralino, Cordova, or browser)
+ * Auto-detects runtime platform (NW.js, Cordova, or browser)
  * Delegates all operations to the platform-specific implementation
  * Provides uniform API for directory listing, file reading, and writing
  * @description
  * FileSystemTools wraps platform-specific file system implementations behind a single
  * consistent API. It detects the current runtime on construction and selects the
- * appropriate backend (NeutralinoFileSystem, CordovaFileSystem, or FallbackFileSystem)
- * so that the rest of the application never needs to care about the environment.
+ * appropriate backend so that the rest of the application never needs to care about the environment.
  * @example
  * // Accessing the file system from any platform
  * const fs = new FileSystemTools();
@@ -28,9 +27,9 @@ class FileSystemTools {
     /** @type {string} The detected runtime platform identifier */
     this.platform = this.detectPlatform();
     
-    if (this.platform === 'neutralino') {
-      /** @type {Object} The platform-specific filesystem adapter */
-      this.fileSystem = new NeutralinoFileSystem();
+    if (this.platform === 'nwjs') {
+      // NW.js uses Node.js filesystem directly - use fallback with Node FS or create NW adapter
+      this.fileSystem = new FallbackFileSystem();
     } else if (this.platform === 'cordova') {
       this.fileSystem = new CordovaFileSystem();
     } else {
@@ -41,14 +40,20 @@ class FileSystemTools {
   }
 
   /**
-   * Determines the current runtime platform by checking for Neutralino, Cordova,
+   * Determines the current runtime platform by checking for NW.js, Cordova,
    * or falling back to the browser environment.
-   * @returns {string} One of 'neutralino', 'cordova', or 'fallback'
+   * @returns {string} One of 'nwjs', 'cordova', or 'fallback'
    */
   detectPlatform() {
-    // Check for Neutralino.js (client connected, native API available)
-    if (typeof Neutralino !== 'undefined' && typeof NL_PATH !== 'undefined') {
-      return 'neutralino';
+    // Check for NW.js
+    if (typeof nw !== 'undefined' || (typeof process !== 'undefined' && process.versions && process.versions['node-webkit'])) {
+      return 'nwjs';
+    }
+    if (typeof require !== 'undefined' && typeof window !== 'undefined' && window.nw) {
+      return 'nwjs';
+    }
+    if (typeof global !== 'undefined' && global.require) {
+      // Could be NW.js
     }
     
     // Check for Cordova
@@ -107,11 +112,10 @@ class FileSystemTools {
   // Additional utility methods
   /**
    * Returns the base directory path for the current platform.
-   * Only meaningful on Neutralino; returns empty string on other platforms.
    * @returns {string} The base path or an empty string
    */
   getBasePath() {
-    if (this.platform === 'neutralino' && this.fileSystem.getBasePath) {
+    if (this.fileSystem.getBasePath) {
       return this.fileSystem.getBasePath();
     }
     return '';
@@ -122,83 +126,24 @@ class FileSystemTools {
    * @returns {boolean} True if the platform supports app exit
    */
   canExitApp() {
-    return this.platform === 'neutralino' || this.platform === 'cordova';
+    return this.platform === 'nwjs' || this.platform === 'cordova';
   }
 
   /**
-   * Terminates the application. Only works on Neutralino and Cordova platforms.
+   * Terminates the application.
    */
   exitApp() {
-    if (this.platform === 'neutralino') {
-      if (typeof Neutralino !== 'undefined' && Neutralino.app) {
-        Neutralino.app.exit();
-      }
+    if (this.platform === 'nwjs') {
+      try {
+        if (typeof nw !== 'undefined' && nw.App) {
+          nw.App.quit();
+          return;
+        }
+      } catch(e) {}
     } else if (this.platform === 'cordova') {
       if (typeof navigator !== 'undefined' && navigator.app) {
         navigator.app.exitApp();
       }
     }
-  }
-
-  /**
-   * Shows a native open dialog (Neutralino only)
-   * @param {string} title 
-   * @param {Object} options 
-   * @returns {Promise<Array<string>>}
-   */
-  showOpenDialog(title, options = {}) {
-    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showOpenDialog) {
-      return Neutralino.os.showOpenDialog(title, options);
-    }
-    return Promise.reject(new Error('showOpenDialog not supported on this platform'));
-  }
-
-  /**
-   * Shows a native folder dialog (Neutralino only)
-   * @param {string} title 
-   * @param {Object} options 
-   * @returns {Promise<string>}
-   */
-  showFolderDialog(title, options = {}) {
-    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showFolderDialog) {
-      return Neutralino.os.showFolderDialog(title, options);
-    }
-    return Promise.reject(new Error('showFolderDialog not supported on this platform'));
-  }
-
-  /**
-   * Shows a native save dialog (Neutralino only)
-   * @param {string} title 
-   * @param {Object} options 
-   * @returns {Promise<string>}
-   */
-  showSaveDialog(title, options = {}) {
-    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showSaveDialog) {
-      return Neutralino.os.showSaveDialog(title, options);
-    }
-    return Promise.reject(new Error('showSaveDialog not supported on this platform'));
-  }
-
-  /**
-   * Executes a shell command (Neutralino only)
-   * @param {string} command 
-   * @param {Object} options 
-   * @returns {Promise<any>}
-   */
-  execCommand(command, options = {}) {
-    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
-      return Neutralino.os.execCommand(command, options);
-    }
-    return Promise.reject(new Error('execCommand not supported on this platform'));
-  }
-
-  /**
-   * Direct access to Neutralino filesystem
-   */
-  get neutralinoFs() {
-    if (this.platform === 'neutralino') {
-      return this.fileSystem;
-    }
-    return null;
   }
 }

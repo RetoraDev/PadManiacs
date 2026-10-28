@@ -12,7 +12,7 @@ class BuildSystem {
       libDir: './lib',
       flags: {
         debug: false,
-        platform: 'all', // 'web', 'cordova', 'neutralino', 'all', 'none'
+        platform: 'all', // 'web', 'cordova', 'nwjs', 'all', 'none'
         minify: false,
         zipalign: false,
         noPack: false, // skip archive/packaging steps (zip/7z/apk/neu build)
@@ -73,7 +73,6 @@ class BuildSystem {
       
       // Filesystem
       'js/filesystem/filesystem.js',
-      'js/filesystem/neutralino-filesystem.js',
       'js/filesystem/cordova-filesystem.js',
       'js/filesystem/fallback-filesystem.js',
       
@@ -222,7 +221,7 @@ class BuildSystem {
       'none': 'Development',
       'web': 'Web',
       'cordova': 'Android (Cordova)',
-      'neutralino': 'Desktop (Neutralino.js)',
+      'nwjs': 'Desktop (NW.js)',
       'all': 'All Platforms'
     };
     return platformMap[platform] || platform;
@@ -242,7 +241,7 @@ class BuildSystem {
       if (arg === '--none') this.config.flags.platform = 'none';
       if (arg === '--cordova') this.config.flags.platform = 'cordova';
       if (arg === '--zipalign') this.config.flags.zipalign = true;
-      if (arg === '--neutralino') this.config.flags.platform = 'neutralino';
+      if (arg === '--nwjs') this.config.flags.platform = 'nwjs';
       if (arg === '--web') this.config.flags.platform = 'web';
       if (arg === '--all') this.config.flags.platform = 'all';
       if (arg === '--minify') this.config.flags.minify = true;
@@ -289,7 +288,7 @@ class BuildSystem {
         'none': 'ENVIRONMENT.UNKNOWN',
         'web': 'ENVIRONMENT.WEB',
         'cordova': 'ENVIRONMENT.CORDOVA', 
-        'neutralino': 'ENVIRONMENT.NEUTRALINO'
+        'nwjs': 'ENVIRONMENT.NWJS'
       };
       const currentEnv = envMap[platform] || 'ENVIRONMENT.WEB';
       content = content.replace(
@@ -402,13 +401,9 @@ class BuildSystem {
     this.ensureDir(libDest);
     
     // Copy the Neutralino client library when targeting the desktop build
-    if (platform === 'neutralino') {
-      const nlClientSrc = path.join(this.config.srcDir, 'static/neutralino/resources/js/neutralino.js');
-      const nlClientDest = path.join(libDest, 'neutralino.js');
-      if (fs.existsSync(nlClientSrc)) {
-        fs.copyFileSync(nlClientSrc, nlClientDest);
-        this.log('neutralino.js copied to lib/', 'success');
-      }
+    if (platform === 'nwjs') {
+      // NW.js uses Node APIs directly, no client library needed
+    }
     }
     
     // Copy Phaser to lib folder
@@ -516,15 +511,8 @@ class BuildSystem {
       // Build the proper script tags in correct order
       let scriptTags = '';
       
-      // Neutralino's server prepends the globals (NL_TOKEN, NL_PORT, ...) to
-      // the response of the script whose path ends in "neutralino.js". With
-      // tokenSecurity "one-time" the token is returned ONLY on the first such
-      // request, so this script must be the single one that fetches it: do NOT
-      // also load __neutralino_globals.js, or the client gets an empty token
-      // (connectToken=undefined) and dies with NE_CL_IVCTOKN.
-      // Neutralino.init() is called by LoadPlatform once the game boots.
-      if (platform === 'neutralino') {
-        scriptTags += '  <script src="./lib/neutralino.js"></script>\n';
+      if (platform === 'nwjs') {
+        // NW.js doesn't need a separate client script
       }
 
       // Add phaser from lib (always first)
@@ -903,10 +891,10 @@ class BuildSystem {
     fs.rmSync(path.join(this.config.distDir, 'temp'), { recursive: true });
   }
   
-  async buildNeutralino() {
+  async buildNeutralino() { return; // Removed - using NW.js now
     this.log('Building Desktop (Neutralino.js) platform...', 'info');
 
-    const neutralinoStatic = path.join(this.config.srcDir, 'static/neutralino');
+    const neutralinoStatic = null; // Removed - use NW.js now
     if (!fs.existsSync(neutralinoStatic)) {
       this.log('Neutralino static files not found at: ' + neutralinoStatic, 'warning');
       return;
@@ -1256,10 +1244,10 @@ class BuildSystem {
       await this.buildBaseFiles('web');
       await this.buildNWJS();
       await this.finalizeWebDist('nwjs');
-    } else if (platform === 'neutralino') {
+    } else if (platform === 'nwjs') {
       await this.buildBaseFiles('web');
-      await this.buildNeutralino();
-      await this.finalizeWebDist('neutralino');
+      await this.buildNWJS();
+      await this.finalizeWebDist('nwjs');
     } else if (platform === 'cordova') {
       await this.buildBaseFiles('web');
       await this.buildAndroid();

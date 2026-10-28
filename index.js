@@ -62,7 +62,7 @@ class InteractiveInterface {
       { label: 'Production Build (All Platforms)', action: () => this.runBuild(['--all', '--minify']) },
       { label: 'Web Platform Only', action: () => this.runBuild(['--web']) },
       { label: 'Android Platform Only', action: () => this.runBuild(['--cordova', '--zipalign']) },
-      { label: 'Desktop (Neutralino) Platform Only', action: () => this.runBuild(['--neutralino']) },
+      { label: 'Desktop (NW.js) Platform Only', action: () => this.runBuild(['--nwjs']) },
       { label: 'Custom Build...', action: () => this.showCustomBuildMenu() },
       { label: 'Back to Main Menu', action: () => this.showMainMenu() }
     ];
@@ -108,7 +108,7 @@ class InteractiveInterface {
       serveSrc: false,
       build: false,
       cordova: false,
-      neutralino: false,
+      nwjs: false,
       noInstall: false,
       none: false,
       web: false,
@@ -141,8 +141,8 @@ class InteractiveInterface {
           parsed.cordova = true;
           parsed.build = true;
           break;
-        case '--neutralino':
-          parsed.neutralino = true;
+        case '--nwjs':
+          parsed.nwjs = true;
           parsed.build = true;
           break;
         case '--web':
@@ -234,7 +234,7 @@ class InteractiveInterface {
     
     console.log(this.color('Build Options:', 'yellow'));
     console.log('  --cordova        Build Android platform only');
-    console.log('  --neutralino     Build Desktop (Neutralino.js) platform only');
+    console.log('  --nwjs           Build Desktop (NW.js) platform only');
     console.log('  --web            Build web platform only');
     console.log('  --all            Build all platforms (default)');
     console.log('  --minify         Enable minification');
@@ -515,7 +515,7 @@ class InteractiveInterface {
   }
 
   togglePlatform() {
-    const platforms = ['all', 'web', 'cordova', 'neutralino', 'none'];
+    const platforms = ['all', 'web', 'cordova', 'nwjs', 'none'];
     const currentIndex = platforms.indexOf(this.customBuildOptions.platform);
     this.customBuildOptions.platform = platforms[(currentIndex + 1) % platforms.length];
     this.updateCustomBuildLabels();
