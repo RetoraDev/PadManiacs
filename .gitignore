@@ -20,6 +20,7 @@ dist/android/
 src/static/android_app/res/xml/config.xml.bak
 dist
 PadManiacs.bfproject
+.nw-backup/
 
 # Executables (except the one we explicitly keep below)
 *.exe

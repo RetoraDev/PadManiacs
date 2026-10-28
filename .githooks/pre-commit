@@ -1,0 +1,22 @@
+#!/bin/sh
+cd "$(git rev-parse --show-toplevel)" || exit 0
+
+NW_DIR="src/static/nw"
+BACKUP=".nw-backup"
+
+# Only back up if nw/ has staged changes or the backup is missing
+if [ -d "$NW_DIR" ]; then
+    mkdir -p "$BACKUP"
+
+    # Sync every file currently on disk into the backup (add or update only)
+    find "$NW_DIR" -type f 2>/dev/null | while IFS= read -r f; do
+        rel="${f#$NW_DIR/}"
+        tgt="$BACKUP/$rel"
+        if [ ! -f "$tgt" ] || [ "$f" -nt "$tgt" ]; then
+            mkdir -p "$(dirname "$tgt")"
+            cp -p "$f" "$tgt" 2>/dev/null
+        fi
+    done
+fi
+
+exit 0
