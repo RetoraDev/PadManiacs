@@ -165,7 +165,7 @@ class Play {
       backgroundMusic.stop();
     }
 
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window && this.song) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS && this.song) {
       try {
         let chartTitle = '';
         let chartAuthor = '';
@@ -178,9 +178,10 @@ class Play {
         let title = chartTitle;
         if (chartAuthor) title += ' (Chart by ' + chartAuthor + ')';
         title += ' - PadManiacs';
-        Neutralino.window.setTitle(title);
+        
+        // TODO: Set NW.js window title
       } catch (e) {
-        console.warn('Failed to set Neutralino window title', e);
+        console.warn('Failed to set window title', e);
       }
     }
     
@@ -1752,48 +1753,6 @@ class Play {
    */
   update() {
     gamepad.update();
-
-    // Neutralino: fullscreen toggle (F11)
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window && game.input && game.input.keyboard) {
-      const f11Down = game.input.keyboard.isDown(Phaser.KeyCode.F11);
-      if (f11Down && !this._lastF11Key) {
-        try {
-          Neutralino.window.isFullScreen().then(isFs => {
-            try {
-              if (isFs) {
-                Neutralino.window.exitFullScreen();
-              } else {
-                Neutralino.window.setFullScreen();
-              }
-            } catch (e) {
-              console.warn('Failed to toggle fullscreen', e);
-            }
-          }).catch(() => {
-            try {
-              Neutralino.window.setFullScreen();
-            } catch (e) {}
-          });
-        } catch (e) {
-          console.warn('Failed to check fullscreen state', e);
-        }
-      }
-      this._lastF11Key = f11Down;
-    }
-
-    // Screenshot (PrintScreen)
-    if (game.input && game.input.keyboard) {
-      const prtscDown = game.input.keyboard.isDown(Phaser.KeyCode.PRINT_SCREEN);
-      if (prtscDown && !this._lastPrintScreenKey) {
-        try {
-          if (game.recorder && typeof game.recorder.screenshot === 'function') {
-            game.recorder.screenshot();
-          }
-        } catch (e) {
-          console.warn('Failed to take screenshot', e);
-        }
-      }
-      this._lastPrintScreenKey = prtscDown;
-    }
         
     if (this.isPaused) return;
     
@@ -1884,9 +1843,9 @@ class Play {
   shutdown() {
     this.shootingDown = true;
 
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       try {
-        Neutralino.window.setTitle('PadManiacs');
+        // TODO: Restore window title to "PadManiacs"
       } catch (e) {}
     }
     

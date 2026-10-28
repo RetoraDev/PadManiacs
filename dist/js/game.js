@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0 dev
- * Build: 10/28/2026, 7:32:31 AM
+ * Build: 10/28/2026, 8:19:05 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -855,6 +855,9 @@ const DEFAULT_GAMEPAD_MAPPING = {
 
 /** @type {array} Supported video file extensions for external songs */
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg", "mpeg4"];
+
+/** @type {array} Supported chart types */
+const SUPPORTED_GAME_MODES = ["dance-single"];
 
 // Environment detection constants
 /** @type {Object} Environment type definitions (UNKNOWN, NWJS, CORDOVA, WEB) */
@@ -3345,7 +3348,7 @@ const CHARACTER_ITEMS = [
 
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
-  version: 1.31, // 1.3.0
+  version: 1.3, // 1.3.0
   firstRun: true,
   settings: {
     volume: 100,
@@ -3399,8 +3402,7 @@ const DEFAULT_ACCOUNT = {
       ffmpegPreset: 'ultrafast',
       crf: 32,
       scaleToGameRes: false,
-      deleteOriginal: false,
-      useSystemFfmpeg: false
+      deleteOriginal: false
     },
     // Addon system settings
     safeMode: false,
@@ -15838,16 +15840,6 @@ const _File = window.File;
  */
 const saveAccount = () => localStorage.setItem("Account", JSON.stringify(Account));
 
-// Auto-switch to Canvas on first run for Neutralino on Linux/Mac (poor WebGL)
-if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && Account.firstRun) {
-  const poorGL = window.PAD_IS_LINUX || window.PAD_IS_MAC;
-  if (poorGL && Account.settings && Account.settings.renderer === 0) {
-    Account.settings.renderer = 1; // Canvas
-  }
-  Account.firstRun = false;
-  saveAccount();
-}
-
 /**
  * Initializes and starts the Phaser game
  */
@@ -15916,8 +15908,8 @@ window.openExternalUrl = url => {
     case ENVIRONMENT.CORDOVA:
       navigator.app.loadUrl(encodedUrl, { openExternal: true });
       break;
-    case ENVIRONMENT.NEUTRALINO:
-      Neutralino.os.open(encodedUrl);
+    case ENVIRONMENT.NWJS:
+      nw.Shell.openExternal(encodedUrl);
       break;
     case ENVIRONMENT.WEB:
     default:
@@ -21000,11 +20992,14 @@ class LocalSMParser {
           break;
         }
         case "#NOTES":
-          steps[p[3] + p[4]] = p[6].split(",");
-          out.difficulties.push({
-            type: p[3],
-            rating: p[4]
-          });
+          if (SUPPORTED_GAME_MODES.includes(p[1])) {
+            steps[p[3] + p[4]] = p[6].split(",");
+            out.difficulties.push({
+              author: p[2],
+              type: p[3],
+              rating: p[4],
+            });
+          }
           break;
       }
     }
@@ -21407,13 +21402,20 @@ class ExternalSMParser {
           break;
         }
         case "#NOTES":
-          steps[p[3] + p[4]] = p[6].split(",");
-          out.difficulties.push({
-            type: p[3],
-            rating: p[4]
-          });
+          if (SUPPORTED_GAME_MODES.includes(p[1])) {
+            steps[p[3] + p[4]] = p[6].split(",");
+            out.difficulties.push({
+              author: p[2],
+              type: p[3],
+              rating: p[4]
+            });
+          }
           break;
       }
+    }
+    
+    if (!steps.length) {
+      throw "No supported difficulties found";
     }
 
     // Process BPM changes and stops
@@ -23661,43 +23663,26 @@ class LoadSongFolder {
    * and cancellation to an error message, with a fallback hint for non-webkit browsers.
    */
   async showFileInput() {
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
-      const entries = await Neutralino.os.showOpenDialog(__('Open a StepMania chart||Abre un chart de StepMania'), {
-        filters: [
-          { name: __('StepMania/ITG charts'), extensions: ['sm'] },
-          { name: __('StepMania ZIP file'), extensions: ['smzip', 'zip'] },
-          { name: __('All files'), extensions: ['*'] }
-        ]
-      });
-      
-      const path = entries[0];
-      
-      const filename = FileTools.getFilename(path);
-      const directory = FileTools.getDirectory(path);
-      
-      game.state.start("LoadExternalSongFile", true, false, filename, directory);
-    } else {
-      const fileInput = document.createElement("input");
-      fileInput.type = "file";
-      fileInput.webkitdirectory = true;
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.webkitdirectory = true;
+    fileInput.multiple = true;
+
+    fileInput.onchange = e => {
+      this.processFiles(e.target.files);
+    };
+    
+    fileInput.oncancel = e => {
+      this.showError(__("Nothing selected||Nada seleccionado"));
+    };
+
+    // Add a fallback for non-webkit browsers
+    if (!fileInput.webkitdirectory) {
       fileInput.multiple = true;
-  
-      fileInput.onchange = e => {
-        this.processFiles(e.target.files);
-      };
-      
-      fileInput.oncancel = e => {
-        this.showError(__("Nothing selected||Nada seleccionado"));
-      };
-  
-      // Add a fallback for non-webkit browsers
-      if (!fileInput.webkitdirectory) {
-        fileInput.multiple = true;
-        this.progressText.write(__("Select all song files||Seleccionar todos los archivos"));
-      }
-  
-      fileInput.click();
+      this.progressText.write(__("Select all song files||Seleccionar todos los archivos"));
     }
+
+    fileInput.click();
   }
 
   /**
@@ -23954,10 +23939,6 @@ class LoadExternalSongFile {
     this.fileSystem = new FileSystemTools();
     /** @type {ExternalSMParser} Parser used to read external chart files */
     this.parser = new ExternalSMParser();
-    
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
-      // Keep basePath from NeutralinoFileSystem; don't reset to empty
-    }
     
     if (this.fileName.endsWith('.zip')) {
       this.loadZipFileData();
@@ -24478,7 +24459,7 @@ class MainMenu {
     
     game.onMenuIn.dispatch('home', carousel);
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       carousel.addItem(__("Exit||Salir"), () => this.confirmExit());
       carousel.onCancel.add(() => this.confirmExit());
     }
@@ -24519,13 +24500,13 @@ class MainMenu {
       crop: false
     });
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       carousel.addItem(__("User Songs||Canciones de Usuario"), () => this.loadExternalSongs());
       if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) carousel.addItem(__("Filesystem||Sistema de Archivos"), () => this.startFileSelect());
     }
     carousel.addItem(__("Load Single Song||Cargar Canción Individual"), () => this.loadSingleSong());
     
-    if (window.externalSongs && (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO)) {
+    if (window.externalSongs && (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS)) {
       carousel.addItem(__("Reload User Songs||Recargar Canciones de Usuario"), () => {
         backgroundMusic.refreshCache();
         window.externalSongs = undefined;
@@ -24550,7 +24531,7 @@ class MainMenu {
       crop: false
     });
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO || window.DEBUG) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS || window.DEBUG) {
       carousel.addItem(__("Addon Manager||Gestor de Addons"), () => this.showAddonManager());
     }
     carousel.addItem(__("Jukebox||Jukebox"), () => this.startJukebox());
@@ -24662,8 +24643,8 @@ class MainMenu {
           case ENVIRONMENT.CORDOVA:
             navigator.app.exitApp();
             break;
-          case ENVIRONMENT.NEUTRALINO:
-            Neutralino?.app?.exit?.();
+          case ENVIRONMENT.NWJS:
+            nw?.App?.quit?.();
             break;
         }
       },
@@ -24718,7 +24699,7 @@ class MainMenu {
    * Starts the Jukebox, optionally prompting to load external songs first.
    */
   startJukebox() {
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       if (!window.externalSongs) {
         this.confirmDialog(
           __("Load extra songs from external storage?||¿Cargar canciones extras desde almacenamiento externo?"),
@@ -27167,17 +27148,6 @@ class AviSettings {
         this.settings.deleteOriginal = index === 0;
       }
     );
-
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
-      settingsWindow.addSettingItem(
-        __("Use System ffmpeg||Usar ffmpeg del sistema"),
-        [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
-        this.settings.useSystemFfmpeg ? 0 : 1,
-        index => {
-          this.settings.useSystemFfmpeg = index === 0;
-        }
-      );
-    }
 
     settingsWindow.addItem(__("BACK||VOLVER"), "", () => {
       this.windowManager.remove(settingsWindow, true);
@@ -32264,7 +32234,7 @@ class Play {
       backgroundMusic.stop();
     }
 
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window && this.song) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS && this.song) {
       try {
         let chartTitle = '';
         let chartAuthor = '';
@@ -32277,9 +32247,10 @@ class Play {
         let title = chartTitle;
         if (chartAuthor) title += ' (Chart by ' + chartAuthor + ')';
         title += ' - PadManiacs';
-        Neutralino.window.setTitle(title);
+        
+        // TODO: Set NW.js window title
       } catch (e) {
-        console.warn('Failed to set Neutralino window title', e);
+        console.warn('Failed to set window title', e);
       }
     }
     
@@ -33851,48 +33822,6 @@ class Play {
    */
   update() {
     gamepad.update();
-
-    // Neutralino: fullscreen toggle (F11)
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window && game.input && game.input.keyboard) {
-      const f11Down = game.input.keyboard.isDown(Phaser.KeyCode.F11);
-      if (f11Down && !this._lastF11Key) {
-        try {
-          Neutralino.window.isFullScreen().then(isFs => {
-            try {
-              if (isFs) {
-                Neutralino.window.exitFullScreen();
-              } else {
-                Neutralino.window.setFullScreen();
-              }
-            } catch (e) {
-              console.warn('Failed to toggle fullscreen', e);
-            }
-          }).catch(() => {
-            try {
-              Neutralino.window.setFullScreen();
-            } catch (e) {}
-          });
-        } catch (e) {
-          console.warn('Failed to check fullscreen state', e);
-        }
-      }
-      this._lastF11Key = f11Down;
-    }
-
-    // Screenshot (PrintScreen)
-    if (game.input && game.input.keyboard) {
-      const prtscDown = game.input.keyboard.isDown(Phaser.KeyCode.PRINT_SCREEN);
-      if (prtscDown && !this._lastPrintScreenKey) {
-        try {
-          if (game.recorder && typeof game.recorder.screenshot === 'function') {
-            game.recorder.screenshot();
-          }
-        } catch (e) {
-          console.warn('Failed to take screenshot', e);
-        }
-      }
-      this._lastPrintScreenKey = prtscDown;
-    }
         
     if (this.isPaused) return;
     
@@ -33983,9 +33912,9 @@ class Play {
   shutdown() {
     this.shootingDown = true;
 
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.window) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       try {
-        Neutralino.window.setTitle('PadManiacs');
+        // TODO: Restore window title to "PadManiacs"
       } catch (e) {}
     }
     
@@ -39895,7 +39824,7 @@ class Credits {
       { text: "photonstorm", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "itch.io", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: "devilanirudh (ffmpeg-wasm-lite)", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
-      { text: "Neutralinojs", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
+      { text: "NW.js", font: FONTS.default_shadow, tint: 0xffffff, spacing: 8 },
       { text: __("You!||¡Tú!"), font: FONTS.bold_shadow, tint: [0xffffff, 0x05ff00], spacing: 25 },
       
       { text: COPYRIGHT, font: FONTS.default_shadow, tint: 0x888888, spacing: 40 },

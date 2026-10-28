@@ -32,43 +32,26 @@ class LoadSongFolder {
    * and cancellation to an error message, with a fallback hint for non-webkit browsers.
    */
   async showFileInput() {
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
-      const entries = await Neutralino.os.showOpenDialog(__('Open a StepMania chart||Abre un chart de StepMania'), {
-        filters: [
-          { name: __('StepMania/ITG charts'), extensions: ['sm'] },
-          { name: __('StepMania ZIP file'), extensions: ['smzip', 'zip'] },
-          { name: __('All files'), extensions: ['*'] }
-        ]
-      });
-      
-      const path = entries[0];
-      
-      const filename = FileTools.getFilename(path);
-      const directory = FileTools.getDirectory(path);
-      
-      game.state.start("LoadExternalSongFile", true, false, filename, directory);
-    } else {
-      const fileInput = document.createElement("input");
-      fileInput.type = "file";
-      fileInput.webkitdirectory = true;
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.webkitdirectory = true;
+    fileInput.multiple = true;
+
+    fileInput.onchange = e => {
+      this.processFiles(e.target.files);
+    };
+    
+    fileInput.oncancel = e => {
+      this.showError(__("Nothing selected||Nada seleccionado"));
+    };
+
+    // Add a fallback for non-webkit browsers
+    if (!fileInput.webkitdirectory) {
       fileInput.multiple = true;
-  
-      fileInput.onchange = e => {
-        this.processFiles(e.target.files);
-      };
-      
-      fileInput.oncancel = e => {
-        this.showError(__("Nothing selected||Nada seleccionado"));
-      };
-  
-      // Add a fallback for non-webkit browsers
-      if (!fileInput.webkitdirectory) {
-        fileInput.multiple = true;
-        this.progressText.write(__("Select all song files||Seleccionar todos los archivos"));
-      }
-  
-      fileInput.click();
+      this.progressText.write(__("Select all song files||Seleccionar todos los archivos"));
     }
+
+    fileInput.click();
   }
 
   /**

@@ -83,7 +83,7 @@ window.openExternalUrl = url => {
       navigator.app.loadUrl(encodedUrl, { openExternal: true });
       break;
     case ENVIRONMENT.NWJS:
-      Neutralino.os.open(encodedUrl);
+      nw.Shell.openExternal(encodedUrl);
       break;
     case ENVIRONMENT.WEB:
     default:

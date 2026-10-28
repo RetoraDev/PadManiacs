@@ -48,10 +48,6 @@ class LoadExternalSongFile {
     /** @type {ExternalSMParser} Parser used to read external chart files */
     this.parser = new ExternalSMParser();
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
-      // Keep basePath from NeutralinoFileSystem; don't reset to empty
-    }
-    
     if (this.fileName.endsWith('.zip')) {
       this.loadZipFileData();
     } else {
