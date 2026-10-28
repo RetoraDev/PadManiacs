@@ -763,7 +763,7 @@ class BuildSystem {
     this.log(`Creating 7z archive: ${sourceDir} → ${outputFile}`, 'info');
     try {
       if (this.has7Zip()) {
-        execSync(`7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on -mmt=on "${outputFile}" .`, { 
+        execSync(`7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on -mmt=on -y "${outputFile}" .`, { 
           cwd: sourceDir, 
           stdio: 'inherit' 
         });
@@ -896,7 +896,7 @@ class BuildSystem {
         // Create 7z archive for NW.js from temp directory
         const nwZipName = `padmaniacs-v${this.packageInfo.version}-nwjs-win-x64.zip`;
         const nwZipPath = path.join('../../', nwZipName);
-        if (this.create7zArchive(tempNwDir, nwZipPath)) {
+        if (this.createZipArchive(tempNwDir, nwZipPath)) {
           this.log('NW.js platform build complete', 'success');
         } else {
           this.log('NW.js platform build failed - 7z command unavailable', 'warning');
