@@ -13,8 +13,8 @@ const CURRENT_ENVIRONMENT = %;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
-/** @type {string} External directory path for NW.js desktop builds */
-const NWJS_EXTERNAL_DIRECTORY = "./";
+/** @type {string} External directory path for NW.js */
+const NWJS_EXTERNAL_DIRECTORY = "data/";
 /** @type {string} Current external directory path */
 const EXTERNAL_DIRECTORY = CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA ? CORDOVA_EXTERNAL_DIRECTORY : NWJS_EXTERNAL_DIRECTORY;
 

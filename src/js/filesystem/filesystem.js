@@ -4,13 +4,14 @@
  * @summary Platform-agnostic file system access wrapper
  * @constructor
  * @features
- * Auto-detects runtime platform (NW.js, Cordova, or browser)
+ * Auto-detects runtime platform (Node/NW.js, Cordova, or browser)
  * Delegates all operations to the platform-specific implementation
  * Provides uniform API for directory listing, file reading, and writing
  * @description
  * FileSystemTools wraps platform-specific file system implementations behind a single
  * consistent API. It detects the current runtime on construction and selects the
- * appropriate backend so that the rest of the application never needs to care about the environment.
+ * appropriate backend (NodeFileSystem, CordovaFileSystem, or FallbackFileSystem) so
+ * that the rest of the application never needs to care about the environment.
  * @example
  * // Accessing the file system from any platform
  * const fs = new FileSystemTools();
@@ -28,8 +29,8 @@ class FileSystemTools {
     this.platform = this.detectPlatform();
     
     if (this.platform === 'nwjs') {
-      // NW.js uses Node.js filesystem directly - use fallback with Node FS or create NW adapter
-      this.fileSystem = new FallbackFileSystem();
+      /** @type {Object} The platform-specific filesystem adapter */
+      this.fileSystem = new NodeFileSystem();
     } else if (this.platform === 'cordova') {
       this.fileSystem = new CordovaFileSystem();
     } else {
@@ -46,14 +47,8 @@ class FileSystemTools {
    */
   detectPlatform() {
     // Check for NW.js
-    if (typeof nw !== 'undefined' || (typeof process !== 'undefined' && process.versions && process.versions['node-webkit'])) {
+    if (typeof nw !== 'undefined' && nw.process) {
       return 'nwjs';
-    }
-    if (typeof require !== 'undefined' && typeof window !== 'undefined' && window.nw) {
-      return 'nwjs';
-    }
-    if (typeof global !== 'undefined' && global.require) {
-      // Could be NW.js
     }
     
     // Check for Cordova
@@ -112,10 +107,11 @@ class FileSystemTools {
   // Additional utility methods
   /**
    * Returns the base directory path for the current platform.
+   * Only meaningful on NW.js; returns empty string on other platforms.
    * @returns {string} The base path or an empty string
    */
   getBasePath() {
-    if (this.fileSystem.getBasePath) {
+    if (this.platform === 'nwjs' && this.fileSystem.getBasePath) {
       return this.fileSystem.getBasePath();
     }
     return '';
@@ -130,16 +126,13 @@ class FileSystemTools {
   }
 
   /**
-   * Terminates the application.
+   * Terminates the application. Only works on NW.js and Cordova platforms.
    */
   exitApp() {
     if (this.platform === 'nwjs') {
-      try {
-        if (typeof nw !== 'undefined' && nw.App) {
-          nw.App.quit();
-          return;
-        }
-      } catch(e) {}
+      if (typeof nw !== 'undefined' && nw.App) {
+        nw.App.quit();
+      }
     } else if (this.platform === 'cordova') {
       if (typeof navigator !== 'undefined' && navigator.app) {
         navigator.app.exitApp();
