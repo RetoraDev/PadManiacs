@@ -50,7 +50,7 @@
     <p>The game exposes a large set of global constants, variables, and functions that are available throughout the game and can be used in addons. These include version and environment information, font configurations, song folders, judgment windows, score values, character and achievement data, input systems, and more. For the complete reference, see the <a href="globals.html">Global Constants, Variables and Functions</a> page.</p>
 
     [heading: "API"]
-    <p>PadManiaX was built using <a href="https://github.com/photonstorm/phaser-ce">Phaser CE</a>, with Cordova for mobile file access and <a href="https://neutralino.js.org/">Neutralino.js</a> for desktop and mobile builds. See the documentation: <a href="https://cordova.apache.org/docs/en/latest/">Cordova Docs</a>, <a href="https://neutralino.js.org/docs/">Neutralino.js Docs</a>, and <a href="https://phaserjs.github.io/phaser-ce/">Phaser CE Docs</a>.</p>
+    <p>PadManiaX was built using <a href="https://github.com/photonstorm/phaser-ce">Phaser CE</a>, with Cordova for native mobile support and <a href="https://https://nwjs.io/">NW.js</a> for desktop builds. See the documentation: <a href="https://cordova.apache.org/docs/en/latest/">Cordova Docs</a>, <a href="https://nwjs.io/">NW.js Docs</a>, and <a href="https://phaserjs.github.io/phaser-ce/">Phaser CE Docs</a>.</p>
 
     <p>The game code is divided into different classes. All classes are accessible in the scope of addon file. Each of them plays a role, some more important than others. For example game screens visual or abstract elements, data managers, etc.</p>
 
@@ -75,7 +75,7 @@
     [ <a href="classes/LoadExternalSongFile.html">LoadExternalSongFile</a> | Loads a single external song file or ZIP archive ]
     [ <a href="classes/LoadExternalSongs.html">LoadExternalSongs</a> | Loads user-added songs from external storage ]
     [ <a href="classes/LoadLocalSongs.html">LoadLocalSongs</a> | Loads built-in default songs ]
-    [ <a href="classes/LoadPlatform.html">LoadPlatform</a> | Initialize platform (Cordova, Neutralino) and file system ]
+    [ <a href="classes/LoadPlatform.html">LoadPlatform</a> | Initialize platform (Cordova, NW.js) and file system ]
     [ <a href="classes/LoadSongFolder.html">LoadSongFolder</a> | Loads a single song via file input ]
     [ <a href="classes/MainMenu.html">MainMenu</a> | Main Menu screen with navigation to all features ]
     [ <a href="classes/Play.html">Play</a> | Main gameplay state ]
@@ -174,9 +174,6 @@
     [ <a href="classes/FallbackFileSystem.html">FallbackFileSystem</a> | Stub for web environments without file access ]
     [ <a href="classes/FileSystemTools.html">FileSystemTools</a> | Platform-agnostic file system access wrapper ]
     [ <a href="classes/FileTools.html">FileTools</a> | File utilities for Base64 conversion and export ]
-    [ <a href="classes/NeutralinoDirectoryEntry.html">NeutralinoDirectoryEntry</a> | Cordova DirectoryEntry equivalent for Neutralino.js ]
-    [ <a href="classes/NeutralinoFileEntry.html">NeutralinoFileEntry</a> | Cordova FileEntry equivalent for Neutralino.js ]
-    [ <a href="classes/NeutralinoFileSystem.html">NeutralinoFileSystem</a> | File system for Neutralino.js desktop apps ]
     [/table]
 
 

@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0 dev
- * Build: 10/28/2026, 4:03:32 AM
+ * Build: 10/28/2026, 7:32:31 AM
  * Platform: Development
  * Debug: false
  * Minified: false
@@ -132,7 +132,7 @@ window.DEBUG = false;
 
 /** @type {boolean} Whether to log personality study data during development */
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
-window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS = window.DEBUG;
+window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS = window.DEBUG; // Kept for compatibility
 
 /** @type {boolean} Whether to unlock all clothing items for development */
 window.UNLOCK_ALL_CLOTHES = false;
@@ -857,10 +857,10 @@ const DEFAULT_GAMEPAD_MAPPING = {
 const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mpg", "mpeg", "mpeg4"];
 
 // Environment detection constants
-/** @type {Object} Environment type definitions (UNKNOWN, NEUTRALINO, CORDOVA, WEB) */
+/** @type {Object} Environment type definitions (UNKNOWN, NWJS, CORDOVA, WEB) */
 const ENVIRONMENT = {
   UNKNOWN: 'WEB',
-  NEUTRALINO: 'NEUTRALINO',
+  NWJS: 'NWJS',
   CORDOVA: 'CORDOVA',
   WEB: 'WEB'
 };
@@ -871,10 +871,10 @@ const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
-/** @type {string} External directory path for Neutralino desktop builds */
-const NEUTRALINO_EXTERNAL_DIRECTORY = "data/";
+/** @type {string} External directory path for NW.js */
+const NWJS_EXTERNAL_DIRECTORY = "data/";
 /** @type {string} Current external directory path */
-const EXTERNAL_DIRECTORY = CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA ? CORDOVA_EXTERNAL_DIRECTORY : NEUTRALINO_EXTERNAL_DIRECTORY;
+const EXTERNAL_DIRECTORY = CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA ? CORDOVA_EXTERNAL_DIRECTORY : NWJS_EXTERNAL_DIRECTORY;
 
 /** @type {string} Addons directory name */
 const ADDONS_DIRECTORY = "Addons";
@@ -14800,14 +14800,14 @@ class LineChart extends Phaser.Sprite {
  * @summary Platform-agnostic file system access wrapper
  * @constructor
  * @features
- * Auto-detects runtime platform (Neutralino, Cordova, or browser)
+ * Auto-detects runtime platform (Node/NW.js, Cordova, or browser)
  * Delegates all operations to the platform-specific implementation
  * Provides uniform API for directory listing, file reading, and writing
  * @description
  * FileSystemTools wraps platform-specific file system implementations behind a single
  * consistent API. It detects the current runtime on construction and selects the
- * appropriate backend (NeutralinoFileSystem, CordovaFileSystem, or FallbackFileSystem)
- * so that the rest of the application never needs to care about the environment.
+ * appropriate backend (NodeFileSystem, CordovaFileSystem, or FallbackFileSystem) so
+ * that the rest of the application never needs to care about the environment.
  * @example
  * // Accessing the file system from any platform
  * const fs = new FileSystemTools();
@@ -14824,9 +14824,9 @@ class FileSystemTools {
     /** @type {string} The detected runtime platform identifier */
     this.platform = this.detectPlatform();
     
-    if (this.platform === 'neutralino') {
+    if (this.platform === 'nwjs') {
       /** @type {Object} The platform-specific filesystem adapter */
-      this.fileSystem = new NeutralinoFileSystem();
+      this.fileSystem = new NodeFileSystem();
     } else if (this.platform === 'cordova') {
       this.fileSystem = new CordovaFileSystem();
     } else {
@@ -14837,14 +14837,14 @@ class FileSystemTools {
   }
 
   /**
-   * Determines the current runtime platform by checking for Neutralino, Cordova,
+   * Determines the current runtime platform by checking for NW.js, Cordova,
    * or falling back to the browser environment.
-   * @returns {string} One of 'neutralino', 'cordova', or 'fallback'
+   * @returns {string} One of 'nwjs', 'cordova', or 'fallback'
    */
   detectPlatform() {
-    // Check for Neutralino.js (client connected, native API available)
-    if (typeof Neutralino !== 'undefined' && typeof NL_PATH !== 'undefined') {
-      return 'neutralino';
+    // Check for NW.js
+    if (typeof nw !== 'undefined' && nw.process) {
+      return 'nwjs';
     }
     
     // Check for Cordova
@@ -14903,11 +14903,11 @@ class FileSystemTools {
   // Additional utility methods
   /**
    * Returns the base directory path for the current platform.
-   * Only meaningful on Neutralino; returns empty string on other platforms.
+   * Only meaningful on NW.js; returns empty string on other platforms.
    * @returns {string} The base path or an empty string
    */
   getBasePath() {
-    if (this.platform === 'neutralino' && this.fileSystem.getBasePath) {
+    if (this.platform === 'nwjs' && this.fileSystem.getBasePath) {
       return this.fileSystem.getBasePath();
     }
     return '';
@@ -14918,16 +14918,16 @@ class FileSystemTools {
    * @returns {boolean} True if the platform supports app exit
    */
   canExitApp() {
-    return this.platform === 'neutralino' || this.platform === 'cordova';
+    return this.platform === 'nwjs' || this.platform === 'cordova';
   }
 
   /**
-   * Terminates the application. Only works on Neutralino and Cordova platforms.
+   * Terminates the application. Only works on NW.js and Cordova platforms.
    */
   exitApp() {
-    if (this.platform === 'neutralino') {
-      if (typeof Neutralino !== 'undefined' && Neutralino.app) {
-        Neutralino.app.exit();
+    if (this.platform === 'nwjs') {
+      if (typeof nw !== 'undefined' && nw.App) {
+        nw.App.quit();
       }
     } else if (this.platform === 'cordova') {
       if (typeof navigator !== 'undefined' && navigator.app) {
@@ -14935,94 +14935,30 @@ class FileSystemTools {
       }
     }
   }
-
-  /**
-   * Shows a native open dialog (Neutralino only)
-   * @param {string} title 
-   * @param {Object} options 
-   * @returns {Promise<Array<string>>}
-   */
-  showOpenDialog(title, options = {}) {
-    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showOpenDialog) {
-      return Neutralino.os.showOpenDialog(title, options);
-    }
-    return Promise.reject(new Error('showOpenDialog not supported on this platform'));
-  }
-
-  /**
-   * Shows a native folder dialog (Neutralino only)
-   * @param {string} title 
-   * @param {Object} options 
-   * @returns {Promise<string>}
-   */
-  showFolderDialog(title, options = {}) {
-    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showFolderDialog) {
-      return Neutralino.os.showFolderDialog(title, options);
-    }
-    return Promise.reject(new Error('showFolderDialog not supported on this platform'));
-  }
-
-  /**
-   * Shows a native save dialog (Neutralino only)
-   * @param {string} title 
-   * @param {Object} options 
-   * @returns {Promise<string>}
-   */
-  showSaveDialog(title, options = {}) {
-    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.showSaveDialog) {
-      return Neutralino.os.showSaveDialog(title, options);
-    }
-    return Promise.reject(new Error('showSaveDialog not supported on this platform'));
-  }
-
-  /**
-   * Executes a shell command (Neutralino only)
-   * @param {string} command 
-   * @param {Object} options 
-   * @returns {Promise<any>}
-   */
-  execCommand(command, options = {}) {
-    if (this.platform === 'neutralino' && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
-      return Neutralino.os.execCommand(command, options);
-    }
-    return Promise.reject(new Error('execCommand not supported on this platform'));
-  }
-
-  /**
-   * Direct access to Neutralino filesystem
-   */
-  get neutralinoFs() {
-    if (this.platform === 'neutralino') {
-      return this.fileSystem;
-    }
-    return null;
-  }
 }
 
 /**
- * @class NeutralinoDirectoryEntry
+ * @class NodeDirectoryEntry
  * @category File System Classes
- * @summary Cordova DirectoryEntry equivalent for Neutralino.js
+ * @summary Cordova DirectoryEntry equivalent for Node.js
  * @constructor
  * @param {string} name - The directory name
- * @param {string} fullPath - The relative path from the application base directory
- * @param {NeutralinoFileSystem} fileSystem - The parent NeutralinoFileSystem instance
- * @param {string} [nativeURL] - The server URL for this directory
+ * @param {string} fullPath - The relative path from the filesystem root
+ * @param {NodeFileSystem} fileSystem - The parent NodeFileSystem instance
+ * @param {string} [nativeURL] - The native file:// URL for this directory
  * @features
- * Mimics the Cordova DirectoryEntry API on top of Neutralino.filesystem
- * Bridges async Neutralino native calls to Cordova-style callbacks
- * Exposes server-mounted URLs so external assets load over HTTP
+ * Mimics the Cordova DirectoryEntry API for NW.js environments
+ * Supports directory creation, recursive removal, and file listing
+ * Bridges Node.js fs operations to Cordova-style callbacks
  * @description
- * NeutralinoDirectoryEntry provides a Cordova-compatible DirectoryEntry interface
- * over the Neutralino native filesystem API so that addon and song code can
- * interact with directories identically across Cordova, NW.js and Neutralino
- * platforms. Directory and file URLs are served through Neutralino's built-in
- * HTTP server (mounted at /pmfs), so media referenced by nativeURL works in the
- * webview without blob conversion.
+ * NodeDirectoryEntry provides a Cordova-compatible DirectoryEntry interface on
+ * top of Node.js synchronous file system calls. It is used by NodeFileSystem so
+ * that addon and song code can interact with directories identically across
+ * Cordova and NW.js platforms.
  * @example
- * // Listing subdirectories through a NeutralinoDirectoryEntry
- * const fs = new NeutralinoFileSystem();
- * const root = await fs.getDirectory('data/Songs/');
+ * // Listing subdirectories through a NodeDirectoryEntry
+ * const fs = new NodeFileSystem();
+ * const root = await fs.getDirectory('Songs/');
  * const reader = root.createReader();
  * reader.readEntries((entries) => {
  *   entries.filter(e => e.isDirectory).forEach(dir => {
@@ -15030,226 +14966,242 @@ class FileSystemTools {
  *   });
  * }, (err) => console.error(err));
  */
-class NeutralinoDirectoryEntry {
+// Node.js DirectoryEntry equivalent
+class NodeDirectoryEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
     this.isFile = false;
     this.isDirectory = true;
     this.name = name;
     this.fullPath = fullPath;
     this.filesystem = fileSystem;
-    // Directory URLs keep a trailing slash so code can concatenate child paths
-    // (e.g. addon.dir.nativeURL + manifest.icon), matching Cordova semantics.
-    this.nativeURL = nativeURL || (fileSystem.toServerUrl(fullPath) + '/');
+    this.nativeURL = nativeURL || `file://${fullPath}`;
   }
 
   createReader() {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] DirectoryEntry.createReader:', this.fullPath);
-    }
+    const fs = require('fs');
+    const path = require('path');
+    const fullPath = path.join(this.filesystem.basePath, this.fullPath);
+    
     return {
       readEntries: (successCallback, errorCallback) => {
-        Neutralino.filesystem.readDirectory(this.filesystem.resolvePath(this.fullPath))
-          .then(entries => {
-            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-              console.log('[NeutralinoFS] DirectoryEntry.readEntries success:', this.fullPath, entries.length);
+        try {
+          const entries = [];
+          const items = fs.readdirSync(fullPath);
+          
+          for (const item of items) {
+            const itemPath = path.join(fullPath, item);
+            const stats = fs.statSync(itemPath);
+            const relativePath = path.join(this.fullPath, item);
+            
+            if (stats.isDirectory()) {
+              entries.push(new NodeDirectoryEntry(
+                item, 
+                relativePath, 
+                this.filesystem,
+                `file://${itemPath}`
+              ));
+            } else {
+              entries.push(new NodeFileEntry(
+                item,
+                relativePath,
+                this.filesystem,
+                `file://${itemPath}`
+              ));
             }
-            const result = entries.map(entry => {
-              const relativePath = NeutralinoDirectoryEntry.joinRelative(this.fullPath, entry.entry);
-              if (entry.type === 'directory') {
-                return new NeutralinoDirectoryEntry(entry.entry, relativePath, this.filesystem);
-              }
-              return new NeutralinoFileEntry(entry.entry, relativePath, this.filesystem);
-            });
-            successCallback(result);
-          })
-          .catch(errorCallback);
+          }
+          
+          successCallback(entries);
+        } catch (error) {
+          errorCallback(error);
+        }
       }
     };
   }
 
   getDirectory(path, options, successCallback, errorCallback) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] DirectoryEntry.getDirectory:', this.fullPath, '->', path);
+    const fs = require('fs');
+    const pathModule = require('path');
+    const fullPath = pathModule.join(this.filesystem.basePath, this.fullPath, path);
+    
+    try {
+      if (!fs.existsSync(fullPath)) {
+        if (options && options.create) {
+          fs.mkdirSync(fullPath, { recursive: true });
+        } else {
+          throw new Error(`Directory not found: ${path}`);
+        }
+      }
+      
+      const stats = fs.statSync(fullPath);
+      if (!stats.isDirectory()) {
+        throw new Error(`Path is not a directory: ${path}`);
+      }
+      
+      const dirEntry = new NodeDirectoryEntry(
+        pathModule.basename(path),
+        pathModule.join(this.fullPath, path),
+        this.filesystem,
+        `file://${fullPath}`
+      );
+      
+      successCallback(dirEntry);
+    } catch (error) {
+      errorCallback(error);
     }
-    const relativePath = NeutralinoDirectoryEntry.joinRelative(this.fullPath, path);
-    this.filesystem.ensureDirectory(relativePath, options)
-      .then(() => {
-        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-          console.log('[NeutralinoFS] DirectoryEntry.getDirectory success:', relativePath);
-        }
-        successCallback(new NeutralinoDirectoryEntry(
-          NeutralinoDirectoryEntry.baseName(path),
-          relativePath,
-          this.filesystem
-        ));
-      })
-      .catch(err => {
-        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-          console.log('[NeutralinoFS] DirectoryEntry.getDirectory error:', relativePath, err);
-        }
-        errorCallback(err);
-      });
   }
 
   getFile(path, options, successCallback, errorCallback) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] DirectoryEntry.getFile:', this.fullPath, '->', path);
+    const fs = require('fs');
+    const pathModule = require('path');
+    const fullPath = pathModule.join(this.filesystem.basePath, this.fullPath, path);
+    
+    try {
+      if (!fs.existsSync(fullPath)) {
+        if (options && options.create) {
+          // Create empty file
+          fs.writeFileSync(fullPath, '');
+        } else {
+          throw new Error(`File not found: ${path}`);
+        }
+      }
+      
+      const stats = fs.statSync(fullPath);
+      if (!stats.isFile()) {
+        throw new Error(`Path is not a file: ${path}`);
+      }
+      
+      const fileEntry = new NodeFileEntry(
+        pathModule.basename(path),
+        pathModule.join(this.fullPath, path),
+        this.filesystem,
+        `file://${fullPath}`
+      );
+      
+      successCallback(fileEntry);
+    } catch (error) {
+      errorCallback(error);
     }
-    const relativePath = NeutralinoDirectoryEntry.joinRelative(this.fullPath, path);
-    this.filesystem.ensureFile(relativePath, options)
-      .then(() => {
-        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-          console.log('[NeutralinoFS] DirectoryEntry.getFile success:', relativePath);
-        }
-        successCallback(new NeutralinoFileEntry(
-          NeutralinoFileEntry.baseName(path),
-          relativePath,
-          this.filesystem
-        ));
-      })
-      .catch(err => {
-        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-          console.log('[NeutralinoFS] DirectoryEntry.getFile error:', relativePath, err);
-        }
-        errorCallback(err);
-      });
   }
 
   removeRecursively(successCallback, errorCallback) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] DirectoryEntry.removeRecursively:', this.fullPath);
+    const fs = require('fs');
+    const path = require('path');
+    const fullPath = path.join(this.filesystem.basePath, this.fullPath);
+    
+    try {
+      const removeDir = (dirPath) => {
+        if (fs.existsSync(dirPath)) {
+          const items = fs.readdirSync(dirPath);
+          for (const item of items) {
+            const itemPath = path.join(dirPath, item);
+            const stats = fs.statSync(itemPath);
+            
+            if (stats.isDirectory()) {
+              removeDir(itemPath);
+            } else {
+              fs.unlinkSync(itemPath);
+            }
+          }
+          fs.rmdirSync(dirPath);
+        }
+      };
+      
+      removeDir(fullPath);
+      successCallback();
+    } catch (error) {
+      errorCallback(error);
     }
-    Neutralino.filesystem.remove(this.filesystem.resolvePath(this.fullPath))
-      .then(() => {
-        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-          console.log('[NeutralinoFS] DirectoryEntry.removeRecursively success:', this.fullPath);
-        }
-        successCallback();
-      })
-      .catch(err => {
-        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-          console.log('[NeutralinoFS] DirectoryEntry.removeRecursively error:', this.fullPath, err);
-        }
-        errorCallback(err);
-      });
-  }
-
-  /**
-   * Joins a relative path with a child segment, collapsing duplicate slashes.
-   * @param {string} base - The parent relative path
-   * @param {string} child - The child path segment
-   * @returns {string} The joined relative path
-   */
-  static joinRelative(base, child) {
-    const joined = `${base || ''}/${child || ''}`.replace(/\/+/g, '/');
-    return joined.replace(/^\//, '');
-  }
-
-  /**
-   * Returns the last segment of a path.
-   * @param {string} path - The path to process
-   * @returns {string} The base name
-   */
-  static baseName(path) {
-    const parts = (path || '').replace(/\/+$/, '').split('/');
-    return parts[parts.length - 1] || '.';
   }
 }
 
 /**
- * @class NeutralinoFileEntry
+ * @class NodeFileEntry
  * @category File System Classes
- * @summary Cordova FileEntry equivalent for Neutralino.js
+ * @summary Cordova FileEntry equivalent for Node.js
  * @constructor
  * @param {string} name - The file name
- * @param {string} fullPath - The relative path from the application base directory
- * @param {NeutralinoFileSystem} fileSystem - The parent NeutralinoFileSystem instance
- * @param {string} [nativeURL] - The server URL for this file
+ * @param {string} fullPath - The relative path from the filesystem root
+ * @param {NodeFileSystem} fileSystem - The parent NodeFileSystem instance
+ * @param {string} [nativeURL] - The native file:// URL for this file
  * @features
- * Mimics the Cordova FileEntry API on top of Neutralino.filesystem
- * Supports string, ArrayBuffer, typed array and Blob writes
- * Exposes localURL served over Neutralino's HTTP server for media loading
+ * Mimics the Cordova FileEntry API for NW.js environments
+ * Provides createWriter and file callbacks compatible with Cordova patterns
+ * Detects MIME types from file extensions
  * @description
- * NeutralinoFileEntry wraps a single file behind the same interface Cordova's
- * FileEntry exposes. The returned file descriptor carries a server-backed
- * localURL (mounted via Neutralino.server.mount) so higher-level code can use
- * it directly as a media URL, matching the file:// handling in other environments and Cordova localURL
- * behaviour on other platforms.
+ * NodeFileEntry wraps a single file on disk behind the same interface that
+ * Cordova FileEntry exposes. It supports reading file metadata, creating a
+ * writer for output, and resolving a file descriptor so that higher-level code
+ * can operate uniformly across platforms.
  * @example
- * // Reading a file via NeutralinoFileEntry
- * const fs = new NeutralinoFileSystem();
- * const dir = await fs.getDirectory('data/Songs/MySong/');
+ * // Reading a file via NodeFileEntry
+ * const fs = new NodeFileSystem();
+ * const dir = await fs.getDirectory('Songs/MySong/');
  * const reader = dir.createReader();
  * reader.readEntries((entries) => {
  *   const fileEntry = entries.find(e => e.isFile && e.name === 'song.sm');
  *   fileEntry.file((file) => {
- *     console.log('File size:', file.size, 'URL:', file.localURL);
+ *     console.log('File size:', file.size, 'Type:', file.type);
  *   }, (err) => console.error(err));
  * }, (err) => console.error(err));
  */
-class NeutralinoFileEntry {
+// Node.js FileEntry equivalent
+class NodeFileEntry {
   constructor(name, fullPath, fileSystem, nativeURL) {
     this.isFile = true;
     this.isDirectory = false;
     this.name = name;
     this.fullPath = fullPath;
     this.filesystem = fileSystem;
-    this.nativeURL = nativeURL || fileSystem.toServerUrl(fullPath);
+    this.nativeURL = nativeURL || `file://${fullPath}`;
   }
 
   createWriter(successCallback, errorCallback) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] FileEntry.createWriter:', this.fullPath);
-    }
-    const absolutePath = this.filesystem.resolvePath(this.fullPath);
-
+    const fs = require('fs');
+    const path = require('path');
+    const fullPath = path.join(this.filesystem.basePath, this.fullPath);
+    
     try {
       const writer = {
         write: (data, onDone, onError) => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] FileEntry.write:', this.fullPath);
-          }
-          const done = () => {
-            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-              console.log('[NeutralinoFS] FileEntry.write success:', this.fullPath);
-            }
-            if (onDone) onDone();
-          };
-          const fail = err => {
-            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-              console.log('[NeutralinoFS] FileEntry.write error:', this.fullPath, err);
-            }
-            if (onError) onError(err); else errorCallback(err);
-          };
+          const done = () => { if (onDone) onDone(); };
+          const fail = err => { if (onError) onError(err); else errorCallback(err); };
           try {
             if (typeof Blob !== 'undefined' && data instanceof Blob) {
+              // Convert Blob to Buffer; finish only once the data is on disk
               const reader = new FileReader();
               reader.onload = () => {
-                Neutralino.filesystem.writeBinaryFile(absolutePath, reader.result)
-                  .then(done)
-                  .catch(fail);
+                try {
+                  fs.writeFileSync(fullPath, Buffer.from(reader.result));
+                  done();
+                } catch (error) {
+                  fail(error);
+                }
               };
               reader.onerror = () => fail(reader.error);
               reader.readAsArrayBuffer(data);
             } else if (typeof data === 'string') {
-              Neutralino.filesystem.writeFile(absolutePath, data).then(done).catch(fail);
+              fs.writeFileSync(fullPath, data);
+              done();
             } else if (data instanceof ArrayBuffer) {
-              Neutralino.filesystem.writeBinaryFile(absolutePath, data).then(done).catch(fail);
+              fs.writeFileSync(fullPath, Buffer.from(data));
+              done();
             } else if (data && data.buffer instanceof ArrayBuffer) {
               // Typed arrays (e.g. Uint8Array)
-              const view = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-              Neutralino.filesystem.writeBinaryFile(absolutePath, view.buffer).then(done).catch(fail);
+              fs.writeFileSync(fullPath, Buffer.from(data.buffer, data.byteOffset, data.byteLength));
+              done();
             } else if (data == null) {
-              Neutralino.filesystem.writeFile(absolutePath, '').then(done).catch(fail);
+              fs.writeFileSync(fullPath, '');
+              done();
             } else {
-              Neutralino.filesystem.writeFile(absolutePath, String(data)).then(done).catch(fail);
+              fs.writeFileSync(fullPath, data);
+              done();
             }
           } catch (error) {
             fail(error);
           }
         }
       };
-
+      
       successCallback(writer);
     } catch (error) {
       errorCallback(error);
@@ -15257,35 +15209,31 @@ class NeutralinoFileEntry {
   }
 
   file(successCallback, errorCallback) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] FileEntry.file:', this.fullPath);
+    const fs = require('fs');
+    const path = require('path');
+    const fullPath = path.join(this.filesystem.basePath, this.fullPath);
+    
+    try {
+      const stats = fs.statSync(fullPath);
+      const file = {
+        name: this.name,
+        size: stats.size,
+        type: this.getMimeType(this.name),
+        lastModified: stats.mtime,
+        slice: (start, end) => {
+          const buffer = fs.readFileSync(fullPath);
+          return buffer.slice(start, end);
+        },
+        localURL: fullPath
+      };
+      
+      // Add the path for internal use
+      file._path = fullPath;
+      
+      successCallback(file);
+    } catch (error) {
+      errorCallback(error);
     }
-    const absolutePath = this.filesystem.resolvePath(this.fullPath);
-
-    Neutralino.filesystem.getStats(absolutePath)
-      .then(stats => {
-        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-          console.log('[NeutralinoFS] FileEntry.file success:', this.fullPath, stats.size);
-        }
-        const file = {
-          name: this.name,
-          size: stats.size,
-          type: this.getMimeType(this.name),
-          lastModified: new Date(stats.modifiedAt),
-          localURL: this.nativeURL,
-          slice: (start, end) => {
-            // Lazy synchronous slice is not possible with native calls;
-            // callers needing partial reads should use readBinaryFile options.
-            throw new Error('slice() is not supported on Neutralino file entries, use FileSystemTools.readFileContent');
-          }
-        };
-
-        // Add the path for internal use
-        file._path = absolutePath;
-
-        successCallback(file);
-      })
-      .catch(errorCallback);
   }
 
   getMimeType(filename) {
@@ -15303,44 +15251,34 @@ class NeutralinoFileEntry {
       'avi': 'video/x-msvideo',
       'mov': 'video/quicktime',
       'sm': 'text/plain',
+      'ssc': 'text/plain',
       'json': 'application/json',
       'txt': 'text/plain'
     };
-
+    
     return mimeTypes[ext] || 'application/octet-stream';
-  }
-
-  /**
-   * Returns the last segment of a path.
-   * @param {string} path - The path to process
-   * @returns {string} The base name
-   */
-  static baseName(path) {
-    const parts = (path || '').replace(/\/+$/, '').split('/');
-    return parts[parts.length - 1] || '.';
   }
 }
 
 /**
- * @class NeutralinoFileSystem
+ * @class NodeFileSystem
  * @category File System Classes
- * @summary File system for Neutralino.js desktop apps
+ * @summary File system for NW.js desktop apps
  * @constructor
  * @features
- * Uses Neutralino.filesystem native API for all disk access
- * Serves the app base directory over Neutralino's HTTP server at /pmfs
- * Provides a Promise-based API consistent with NodeFileSystem/CordovaFileSystem
+ * Uses Node.js fs and path modules for native file access
+ * Auto-detects NW.js and plain Node.js working directories
+ * Provides a Promise-based API consistent with CordovaFileSystem
  * @description
- * NeutralinoFileSystem implements the full file system interface for Neutralino
- * desktop builds. It resolves the application base directory from the NL_PATH
- * global, exposes Promise-based methods mirroring the Cordova file system API,
- * and mounts the base directory into Neutralino's built-in HTTP server so that
- * directory/file nativeURLs can be used directly as media URLs inside the
- * webview (the same role file:// URLs play in other environments).
+ * NodeFileSystem implements the full file system interface for NW.js desktop
+ * builds using Node.js native modules. It resolves the application base
+ * directory on construction and exposes Promise-based methods for directory
+ * listing, file reading, writing, and creation that mirror the Cordova file
+ * system API used elsewhere in the application.
  * @example
- * // Reading song data from the file system in a Neutralino build
- * const fs = new NeutralinoFileSystem();
- * const songsDir = await fs.getDirectory('data/Songs/');
+ * // Reading song data from the file system in an NW.js build
+ * const fs = new NodeFileSystem();
+ * const songsDir = await fs.getDirectory('Songs/');
  * const subDirs = await fs.listDirectories(songsDir);
  * for (const dir of subDirs) {
  *   const files = await fs.listFiles(dir);
@@ -15351,303 +15289,96 @@ class NeutralinoFileEntry {
  *   }
  * }
  */
-class NeutralinoFileSystem {
+class NodeFileSystem {
   constructor() {
-    /** @type {string} The resolved base directory path (app working directory) */
-    this.basePath = this.getBasePath();
-
-    // Create file system object for DirectoryEntry
-    /** @type {Object} Pseudo filesystem exposed to DirectoryEntry instances */
-    this.fileSystemObj = {
-      name: 'neutralinofs',
-      root: new NeutralinoDirectoryEntry('', '/', this)
-    };
-
-    // Mount the base directory into the built-in HTTP server (idempotent)
-    this.ensureMounted();
+    try {
+      /** @type {Object} The Node.js fs module reference */
+      this.fs = require('fs');
+      /** @type {Object} The Node.js path module reference */
+      this.path = require('path');
+      /** @type {string} The resolved base directory path */
+      this.basePath = this.getBasePath();
+      
+      // Create file system object for DirectoryEntry
+      /** @type {Object} Pseudo filesystem exposed to DirectoryEntry instances */
+      this.fileSystemObj = {
+        name: 'nodefs',
+        root: new NodeDirectoryEntry('', '/', this, `file://${this.basePath}`)
+      };
+      
+    } catch (error) {
+      console.error('Node.js modules not available:', error);
+      throw error;
+    }
   }
 
   /**
-   * Resolves the base directory path for the Neutralino environment.
-   * @returns {string} The application working directory path
+   * Resolves the base directory path for NW.js or Node.js environments.
+   * @returns {string} The working directory path
    */
   getBasePath() {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] getBasePath called');
+    if (typeof nw !== 'undefined' && nw.process) {
+      // NW.js - use the directory where the executable is located
+      return nw.process.cwd();
+    } else if (typeof process !== 'undefined' && process.cwd) {
+      // Node.js - use current working directory
+      return process.cwd();
     }
-    let base = '.';
-    if (typeof NL_PATH !== 'undefined' && NL_PATH) {
-      base = NL_PATH;
-    } else if (typeof window !== 'undefined' && window.NL_PATH) {
-      base = window.NL_PATH;
-    }
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] getBasePath:', base);
-    }
-    return base;
+    return '.';
   }
 
   /**
-   * Resolves a relative path into an absolute path for Neutralino native calls.
-   * @param {string} relativePath - Path relative to the base directory
-   * @returns {string} The absolute filesystem path
-   */
-  resolvePath(relativePath) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] resolvePath:', relativePath);
-    }
-    if (!relativePath) {
-      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-        console.log('[NeutralinoFS] resolvePath -> basePath:', this.basePath);
-      }
-      return this.basePath;
-    }
-    // If it's already an absolute path
-    if (relativePath.startsWith('/') || /^[A-Za-z]:[\\/]/.test(relativePath)) {
-      // Check if it starts with basePath (case-insensitive on Linux)
-      if (this.basePath && relativePath.toLowerCase().indexOf(this.basePath.toLowerCase()) === 0) {
-        const result = relativePath.replace(/\/+$/, '');
-        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-          console.log('[NeutralinoFS] resolvePath ->', result);
-        }
-        return result;
-      }
-      // If it contains basePath somewhere else, try to extract from basePath onwards
-      if (this.basePath) {
-        const baseLower = this.basePath.toLowerCase();
-        const pathLower = relativePath.toLowerCase();
-        const idx = pathLower.indexOf(baseLower);
-        if (idx >= 0) {
-          const result = relativePath.substring(idx).replace(/\/+$/, '');
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] resolvePath -> extracted from base:', result);
-          }
-          return result;
-        }
-      }
-      // Otherwise it's absolute but not under basePath - might need to join differently
-      // For Neutralino, often paths are absolute
-      const result = relativePath.replace(/\/+$/, '');
-      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-        console.log('[NeutralinoFS] resolvePath -> absolute:', result);
-      }
-      return result;
-    }
-    const relative = relativePath.replace(/^\/+/, '').replace(/\/+$/, '');
-    if (!relative) {
-      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-        console.log('[NeutralinoFS] resolvePath -> basePath:', this.basePath);
-      }
-      return this.basePath;
-    }
-    const result = `${this.basePath}/${relative}`.replace(/\/+/g, '/');
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] resolvePath ->', result);
-    }
-    return result;
-  }
-
-  /**
-   * Converts a relative path into a URL served by Neutralino's HTTP server.
-   * Segments are URI-encoded so paths with spaces or accents stay loadable.
-   * @param {string} relativePath - Path relative to the base directory
-   * @returns {string} The server URL path (e.g. /pmfs/data/Songs/My%20Song)
-   */
-  toServerUrl(relativePath) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] toServerUrl:', relativePath);
-    }
-    const relative = (relativePath || '').replace(/^\/+/, '');
-    const encoded = relative.split('/').map(segment => encodeURIComponent(segment)).join('/');
-    const result = `${NeutralinoFileSystem.MOUNT_URL}/${encoded}`;
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] toServerUrl ->', result);
-    }
-    return result;
-  }
-
-  /**
-   * Mounts the base directory into the Neutralino HTTP server once.
-   * @returns {Promise<boolean>} Resolves true when the mount succeeded
-   */
-  ensureMounted() {
-    if (!NeutralinoFileSystem.mountPromise) {
-      console.log('Ensure mounted:', NeutralinoFileSystem.MOUNT_URL, this.basePath);
-      NeutralinoFileSystem.mountPromise = Neutralino.server.mount(NeutralinoFileSystem.MOUNT_URL, this.basePath)
-        .then(() => {
-          console.log(`FileSystem: Mounted ${this.basePath} at ${NeutralinoFileSystem.MOUNT_URL}`);
-          return true;
-        })
-        .catch(error => {
-          console.warn('FileSystem: Neutralino server.mount failed, nativeURL loading may not work:', error);
-          return false;
-        });
-    }
-    return NeutralinoFileSystem.mountPromise;
-  }
-
-  /**
-   * Stats a relative path, creating it when options.request create is set.
-   * @param {string} relativePath - Path relative to the base directory
-   * @param {boolean} shouldBeDirectory - Whether the path must be a directory
-   * @param {Object} [options] - Cordova-style options ({create: true})
-   * @returns {Promise<Object>} Resolves with the Neutralino stats object
-   */
-  ensurePath(relativePath, shouldBeDirectory, options) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] ensurePath:', relativePath, shouldBeDirectory ? '(dir)' : '(file)', options);
-    }
-    if (!relativePath || relativePath === '') {
-      const absolutePath = this.basePath;
-      return Neutralino.filesystem.getStats(absolutePath)
-        .catch(() => null)
-        .then(stats => {
-          if (stats) {
-            if (shouldBeDirectory && !stats.isDirectory) {
-              throw new Error(`Path is not a directory: ${relativePath}`);
-            }
-            if (!shouldBeDirectory && !stats.isFile) {
-              throw new Error(`Path is not a file: ${relativePath}`);
-            }
-            return stats;
-          }
-          if (options && options.create) {
-            if (shouldBeDirectory) {
-              return Neutralino.filesystem.createDirectory(absolutePath)
-                .then(() => Neutralino.filesystem.getStats(absolutePath));
-            }
-            return Neutralino.filesystem.writeFile(absolutePath, '')
-              .then(() => Neutralino.filesystem.getStats(absolutePath));
-          }
-          throw new Error(`${shouldBeDirectory ? 'Directory' : 'File'} not found: ${relativePath}`);
-        });
-    }
-    const absolutePath = this.resolvePath(relativePath);
-
-    return Neutralino.filesystem.getStats(absolutePath)
-      .catch(() => {
-        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-          console.log('[NeutralinoFS] ensurePath: getStats failed for', relativePath);
-        }
-        return null;
-      })
-      .then(stats => {
-        if (!stats) {
-          if (!(options && options.create)) {
-            throw new Error(`${shouldBeDirectory ? 'Directory' : 'File'} not found: ${relativePath}`);
-          }
-          if (shouldBeDirectory) {
-            return Neutralino.filesystem.createDirectory(absolutePath)
-              .then(() => Neutralino.filesystem.getStats(absolutePath));
-          }
-          return Neutralino.filesystem.writeFile(absolutePath, '')
-            .then(() => Neutralino.filesystem.getStats(absolutePath));
-        }
-
-        if (shouldBeDirectory && !stats.isDirectory) {
-          throw new Error(`Path is not a directory: ${relativePath}`);
-        }
-        if (!shouldBeDirectory && !stats.isFile) {
-          throw new Error(`Path is not a file: ${relativePath}`);
-        }
-        return stats;
-      });
-  }
-
-  /**
-   * Ensures a directory exists at the given relative path.
-   * @param {string} relativePath - Path relative to the base directory
-   * @param {Object} [options] - Cordova-style options ({create: true})
-   * @returns {Promise<void>} Resolves once the directory exists
-   */
-  ensureDirectory(relativePath, options) {
-    return this.ensurePath(relativePath, true, options).then(() => {});
-  }
-
-  /**
-   * Ensures a file exists at the given relative path.
-   * @param {string} relativePath - Path relative to the base directory
-   * @param {Object} [options] - Cordova-style options ({create: true})
-   * @returns {Promise<void>} Resolves once the file exists
-   */
-  ensureFile(relativePath, options) {
-    return this.ensurePath(relativePath, false, options).then(() => {});
-  }
-
-  /**
-   * Resolves a directory path and returns a NeutralinoDirectoryEntry.
+   * Resolves a directory path and returns a NodeDirectoryEntry.
    * @param {string} path - Relative path to the directory
-   * @returns {Promise<NeutralinoDirectoryEntry>} Resolves with the directory entry
+   * @returns {Promise<NodeDirectoryEntry>} Resolves with the directory entry
    */
   getDirectory(path) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] getDirectory:', path);
-    }
-    if (!path || path === '' || path === '/') {
-      // Return root
-      return this.ensurePath('', true, null).then(() => {
-        return new NeutralinoDirectoryEntry('.', '', this);
+    return new Promise((resolve, reject) => {
+      const fullPath = this.path.join(this.basePath, path);
+      
+      this.fs.stat(fullPath, (err, stats) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        
+        if (!stats.isDirectory()) {
+          reject(new Error(`Path is not a directory: ${path}`));
+          return;
+        }
+        
+        const dirEntry = new NodeDirectoryEntry(
+          this.path.basename(path) || '.',
+          path,
+          this,
+          `file://${fullPath}`
+        );
+        
+        resolve(dirEntry);
       });
-    }
-    let relativePath = (path || '').replace(/^\/+/, '');
-    // If it's absolute and points outside base but contains base, try to make relative
-    if (this.basePath && relativePath && relativePath.indexOf(this.basePath.replace(/^\//, '')) === 0 && relativePath !== this.basePath.replace(/^\//, '')) {
-      relativePath = relativePath.substring(this.basePath.replace(/^\//, '').length).replace(/^\/+/, '');
-    }
-
-    return this.ensurePath(relativePath, true, null).then(() => {
-      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-        console.log('[NeutralinoFS] getDirectory success:', relativePath);
-      }
-      return new NeutralinoDirectoryEntry(
-        NeutralinoDirectoryEntry.baseName(relativePath) || '.',
-        relativePath,
-        this
-      );
-    }).catch(err => {
-      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-        console.log('[NeutralinoFS] getDirectory error:', path, err);
-      }
-      throw err;
     });
   }
 
   /**
-   * Lists immediate child directories within a NeutralinoDirectoryEntry.
-   * @param {NeutralinoDirectoryEntry} dirEntry - The directory entry to list
+   * Lists immediate child directories within a NodeDirectoryEntry.
+   * @param {NodeDirectoryEntry} dirEntry - The directory entry to list
    * @returns {Promise<Array>} Resolves with an array of directory entries
    */
   listDirectories(dirEntry) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] listDirectories:', dirEntry.fullPath);
-    }
     return new Promise((resolve, reject) => {
       dirEntry.createReader().readEntries(
-        entries => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] listDirectories success:', dirEntry.fullPath, entries.filter(e => e.isDirectory).length);
-          }
-          resolve(entries.filter(e => e.isDirectory));
-        },
-        err => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] listDirectories error:', dirEntry.fullPath, err);
-          }
-          reject(err);
-        }
+        entries => resolve(entries.filter(e => e.isDirectory)),
+        err => reject(err)
       );
     });
   }
 
   /**
    * Recursively lists all subdirectories under a root directory.
-   * @param {NeutralinoDirectoryEntry} startDir - The root directory to traverse
+   * @param {NodeDirectoryEntry} startDir - The root directory to traverse
    * @returns {Promise<Array>} Resolves with all descendant directory entries
    */
   listAllDirectories(startDir) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] listAllDirectories:', startDir.fullPath);
-    }
     return new Promise(async (resolve) => {
       const dirs = [];
       const queue = [startDir];
@@ -15659,70 +15390,38 @@ class NeutralinoFileSystem {
           dirs.push(...subDirs);
           queue.push(...subDirs);
         } catch (error) {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] listAllDirectories error in', dir.name, error);
-          }
           console.warn(`Error listing directories in ${dir.name}:`, error);
         }
       }
 
-      if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-        console.log('[NeutralinoFS] listAllDirectories success:', startDir.fullPath, dirs.length);
-      }
       resolve(dirs);
     });
   }
 
   /**
    * Lists immediate child files within a directory entry.
-   * @param {NeutralinoDirectoryEntry} dirEntry - The directory entry to list
+   * @param {NodeDirectoryEntry} dirEntry - The directory entry to list
    * @returns {Promise<Array>} Resolves with an array of file entries
    */
   listFiles(dirEntry) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] listFiles:', dirEntry.fullPath);
-    }
     return new Promise((resolve, reject) => {
       dirEntry.createReader().readEntries(
-        entries => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] listFiles success:', dirEntry.fullPath, entries.filter(e => e.isFile).length);
-          }
-          resolve(entries.filter(e => e.isFile));
-        },
-        err => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] listFiles error:', dirEntry.fullPath, err);
-          }
-          reject(err);
-        }
+        entries => resolve(entries.filter(e => e.isFile)),
+        err => reject(err)
       );
     });
   }
 
   /**
    * Retrieves the file object from a file entry.
-   * @param {NeutralinoFileEntry} fileEntry - The file entry to read
+   * @param {NodeFileEntry} fileEntry - The file entry to read
    * @returns {Promise<Object>} Resolves with the file descriptor object
    */
   getFile(fileEntry) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] getFile:', fileEntry.fullPath);
-    }
     return new Promise((resolve, reject) => {
       fileEntry.file(
-        file => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] getFile success:', fileEntry.fullPath);
-          }
-          resolve(file);
-        },
-        err => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] getFile error:', fileEntry.fullPath, err);
-          }
-          reject(err);
-        }
+        file => resolve(file),
+        err => reject(err)
       );
     });
   }
@@ -15733,28 +15432,13 @@ class NeutralinoFileSystem {
    * @returns {Promise<string>} Resolves with the file content as text
    */
   readFileContent(file) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] readFileContent:', file && (file._path || file.name));
-    }
     return new Promise((resolve, reject) => {
-      // If file has _path (from NeutralinoFileEntry), use it directly
-      if (file && file._path) {
-        Neutralino.filesystem.readFile(file._path)
-          .then(data => {
-            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-              console.log('[NeutralinoFS] readFileContent success:', file._path, typeof data);
-            }
-            resolve(data);
-          })
-          .catch(err => {
-            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-              console.log('[NeutralinoFS] readFileContent error:', file._path, err);
-            }
-            reject(err);
-          });
-      } else if (file && typeof file.text === 'function') {
-        // Fallback for Blob/File objects
-        file.text().then(resolve).catch(reject);
+      // If file has _path (from NodeFileEntry), use it directly
+      if (file._path) {
+        this.fs.readFile(file._path, 'utf8', (err, data) => {
+          if (err) reject(err);
+          else resolve(data);
+        });
       } else {
         // Fallback for Blob files (from Cordova)
         const reader = new FileReader();
@@ -15764,174 +15448,101 @@ class NeutralinoFileSystem {
       }
     });
   }
-
+  
   /**
    * Creates or opens a file for saving data, writing fileData when provided.
-   * @param {NeutralinoDirectoryEntry} dirEntry - The parent directory
+   * @param {NodeDirectoryEntry} dirEntry - The parent directory
    * @param {string|Blob|ArrayBuffer} [fileData] - Optional data to write into the file
    * @param {string} fileName - The file name to save
-   * @returns {Promise<NeutralinoFileEntry>} Resolves with the file entry once written
+   * @returns {Promise<NodeFileEntry>} Resolves with the file entry once written
    */
   saveFile(dirEntry, fileData, fileName) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] saveFile:', dirEntry.fullPath, fileName);
-    }
     return new Promise((resolve, reject) => {
-      dirEntry.getFile(fileName, { create: true, exclusive: false },
+      dirEntry.getFile(fileName, { create: true, exclusive: false }, 
         fileEntry => {
           if (fileData === undefined || fileData === null) {
-            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-              console.log('[NeutralinoFS] saveFile success (no data):', fileEntry.fullPath);
-            }
             resolve(fileEntry);
             return;
           }
           this.writeFile(fileEntry, fileData)
-            .then(() => {
-              if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-                console.log('[NeutralinoFS] saveFile success:', fileEntry.fullPath);
-              }
-              resolve(fileEntry);
-            })
-            .catch(err => {
-              if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-                console.log('[NeutralinoFS] saveFile error:', fileEntry.fullPath, err);
-              }
-              reject(err);
-            });
+            .then(() => resolve(fileEntry))
+            .catch(err => reject(err));
         },
-        error => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] saveFile getFile error:', dirEntry.fullPath, fileName, error);
-          }
-          reject(error);
-        }
+        error => reject(error)
       );
     });
   }
-
+  
   /**
    * Creates an empty file or opens an existing one for appending.
-   * @param {NeutralinoDirectoryEntry} dirEntry - The parent directory
+   * @param {NodeDirectoryEntry} dirEntry - The parent directory
    * @param {string} fileName - The file name to create
    * @param {boolean} isAppend - Whether to append to existing content
-   * @returns {Promise<NeutralinoFileEntry>} Resolves with the file entry
+   * @returns {Promise<NodeFileEntry>} Resolves with the file entry
    */
   createEmptyFile(dirEntry, fileName, isAppend) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] createEmptyFile:', dirEntry.fullPath, fileName, isAppend);
-    }
     return new Promise((resolve, reject) => {
-      dirEntry.getFile(fileName, {create: true, exclusive: false},
-        fileEntry => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] createEmptyFile success:', fileEntry.fullPath);
-          }
-          resolve(fileEntry);
-        },
-        err => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] createEmptyFile error:', dirEntry.fullPath, fileName, err);
-          }
-          reject(err);
-        }
+      dirEntry.getFile(fileName, {create: true, exclusive: false}, 
+        fileEntry => resolve(fileEntry),
+        err => reject(err)
       );
     });
   }
-
+  
   /**
    * Writes data to an existing file entry, resolving once the data is on disk.
-   * @param {NeutralinoFileEntry} fileEntry - The file entry to write to
+   * @param {NodeFileEntry} fileEntry - The file entry to write to
    * @param {string|Blob|ArrayBuffer} dataObj - The data to write
    * @param {boolean} isAppend - Whether to append instead of overwrite
    * @returns {Promise<Object>} Resolves with the writer
    */
   writeFile(fileEntry, dataObj, isAppend) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] writeFile:', fileEntry.fullPath, isAppend);
-    }
     return new Promise((resolve, reject) => {
       fileEntry.createWriter(
         writer => {
-          writer.write(dataObj, () => {
-            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-              console.log('[NeutralinoFS] writeFile success:', fileEntry.fullPath);
-            }
-            resolve(writer);
-          }, err => {
-            if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-              console.log('[NeutralinoFS] writeFile error:', fileEntry.fullPath, err);
-            }
-            reject(err);
-          });
+          writer.write(dataObj, () => resolve(writer), reject);
         },
-        err => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] writeFile createWriter error:', fileEntry.fullPath, err);
-          }
-          reject(err);
-        }
+        err => reject(err)
       );
     });
   }
-
+  
   /**
    * Deletes a file from the filesystem.
-   * @param {NeutralinoFileEntry} fileEntry - The file entry to delete
+   * @param {NodeFileEntry} fileEntry - The file entry to delete
    * @returns {Promise<boolean>} Resolves true once the file is removed
    */
   deleteFile(fileEntry) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] deleteFile:', fileEntry.fullPath);
-    }
-    return Neutralino.filesystem.remove(this.resolvePath(fileEntry.fullPath))
-      .then(() => {
-        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-          console.log('[NeutralinoFS] deleteFile success:', fileEntry.fullPath);
-        }
-        return true;
-      })
-      .catch(err => {
-        if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-          console.log('[NeutralinoFS] deleteFile error:', fileEntry.fullPath, err);
-        }
-        throw err;
-      });
+    return new Promise((resolve, reject) => {
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const fullPath = path.join(this.basePath, fileEntry.fullPath);
+        fs.unlink(fullPath, err => {
+          if (err) reject(err);
+          else resolve(true);
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
-
+  
   /**
    * Creates a new subdirectory inside a parent directory.
-   * @param {NeutralinoDirectoryEntry} rootDirEntry - The parent directory
+   * @param {NodeDirectoryEntry} rootDirEntry - The parent directory
    * @param {string} dirName - The directory name to create
-   * @returns {Promise<NeutralinoDirectoryEntry>} Resolves with the new directory entry
+   * @returns {Promise<NodeDirectoryEntry>} Resolves with the new directory entry
    */
   createDirectory(rootDirEntry, dirName) {
-    if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-      console.log('[NeutralinoFS] createDirectory:', rootDirEntry.fullPath, dirName);
-    }
     return new Promise((resolve, reject) => {
-      rootDirEntry.getDirectory(dirName, { create: true },
-        dirEntry => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] createDirectory success:', dirEntry.fullPath);
-          }
-          resolve(dirEntry);
-        },
-        err => {
-          if (typeof window !== 'undefined' && window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS) {
-            console.log('[NeutralinoFS] createDirectory error:', rootDirEntry.fullPath, dirName, err);
-          }
-          reject(err);
-        }
+      rootDirEntry.getDirectory(dirName, { create: true }, 
+        dirEntry => resolve(dirEntry),
+        err => reject(err)
       );
     });
   }
 }
-
-/** @type {string} URL prefix where the base directory is mounted in the Neutralino HTTP server */
-NeutralinoFileSystem.MOUNT_URL = '/pmfs';
-/** @type {Promise<boolean>|null} Shared mount promise (server.mount is idempotent per path) */
-NeutralinoFileSystem.mountPromise = null;
 
 /**
  * @class CordovaFileSystem
@@ -23259,14 +22870,13 @@ class Load {
 /**
  * @class LoadPlatform
  * @category Game States
- * @summary Initialize platform (Cordova, Neutralino) and file system
+ * @summary Initialize platform (Cordova, NW.js) and file system
  * @constructor
  * @description
  * A conditional startup state that runs before any external storage is accessed. When
  * the game is running inside a Cordova environment the Cordova script is injected and
- * the filesystem is created once the device is ready; on Neutralino it initializes the
- * Neutralino client and creates the required directory structure; on other platforms
- * it builds the folder structure immediately.
+ * the filesystem is created once the device is ready; on NW.js it creates the required
+ * directory structure; on other platforms it builds the folder structure immediately.
  * @example
  * // Added to the boot chain so storage directories exist before song loading.
  * game.state.add('LoadPlatform', LoadPlatform);
@@ -23313,16 +22923,7 @@ class LoadPlatform {
    * @returns {Promise<void>} Resolves once the folders have been created
    */
   async createFolderStructure() {
-    // Initialize Neutralino client if running in Neutralino environment
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && window.Neutralino) {
-      try {
-        await Neutralino.init();
-      } catch (e) {
-        console.warn("Neutralino.init() failed:", e);
-      }
-    }
-    
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       this.fileSystemTools = new FileSystemTools();
       
       const fileSystem = this.fileSystemTools;
@@ -27260,148 +26861,6 @@ class Keybindings {
 }
 
 /**
- * @class AviSettings
- * @category Game States
- * @summary AVI bgvideo decoding settings screen (FFmpeg.wasm)
- * @constructor
- * @features
- * FFmpeg preset selector (ultrafast .. medium) for AVI to H.264 conversion
- * Quality (CRF) slider from 18 (near-lossless) to 32 (tiny)
- * Optional scaling of decoded videos to the game resolution
- * Optional deletion of the original .avi files after a successful Decode & Replace
- * @description
- * AviSettings edits Account.settings.aviSettings, which control how the
- * DecodeAvi state transcodes AVI background videos with the bundled
- * FFmpeg.wasm lite build. It mirrors the layout of Keybindings and
- * ChartModifiers and returns to the state that opened it.
- * @example
- * // Open from Settings
- * game.state.start("AviSettings");
- */
-class AviSettings {
-  /**
-   * Phaser state hook that stores the state to return to after editing.
-   * @param {string} [returnState='Settings'] - Name of the state to return to
-   */
-  init(returnState = "Settings") {
-    /** @type {string} Game state to start when leaving this screen */
-    this.returnState = returnState;
-  }
-
-  /**
-   * Phaser state hook that sets up the background and builds the settings window.
-   */
-  create() {
-    game.camera.fadeIn(0x000000);
-
-    /** @type {FuturisticLines} Decorative animated background line effect */
-    this.futuristicLines = new FuturisticLines();
-    /** @type {BackgroundGradient} Ambient gradient overlay for the menu background */
-    this.backgroundGradient = new BackgroundGradient();
-    /** @type {NavigationHint} On-screen hint bar with contextual button labels */
-    this.navigationHint = new NavigationHint("general");
-
-    /** @type {WindowManager} Manages the settings window and its focus */
-    this.windowManager = new WindowManager();
-
-    gamepad.releaseAll();
-
-    /** @type {Object} Working copy of the AVI decoding settings */
-    this.settings = Object.assign(
-      {},
-      DEFAULT_ACCOUNT.settings.aviSettings,
-      Account.settings.aviSettings || {}
-    );
-
-    this.showMenu();
-
-    addonManager.executeStateBehaviors(this.constructor.name, this);
-  }
-
-  /**
-   * Phaser lifecycle hook called every frame to poll gamepad input.
-   */
-  update() {
-    gamepad.update();
-    this.windowManager.update();
-  }
-
-  /**
-   * Builds the settings window with every AVI decoding option.
-   */
-  showMenu() {
-    const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
-    settingsWindow.fontTint = 0x76fcde;
-
-    /** @type {Window} The settings window being edited */
-    this.settingsWindow = settingsWindow;
-
-    // FFmpeg preset
-    const presets = ["ultrafast", "superfast", "veryfast", "faster", "fast", "medium"];
-    const currentPresetIndex = Math.max(0, presets.indexOf(this.settings.ffmpegPreset));
-    settingsWindow.addSettingItem(
-      __("FFmpeg Preset||Preset de FFmpeg"),
-      presets,
-      currentPresetIndex,
-      index => {
-        this.settings.ffmpegPreset = presets[index];
-      }
-    );
-
-    // Quality (CRF)
-    settingsWindow.addRangeItem(
-      __("Quality (CRF)||Calidad (CRF)"),
-      18,
-      32,
-      1,
-      this.settings.crf,
-      "",
-      value => {
-        this.settings.crf = value;
-      }
-    );
-
-    // Scale to game resolution
-    settingsWindow.addSettingItem(
-      __("Scale to Game Resolution||Escalar a Resolución del Juego"),
-      [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
-      this.settings.scaleToGameRes ? 0 : 1,
-      index => {
-        this.settings.scaleToGameRes = index === 0;
-      }
-    );
-
-    // Delete original AVI
-    settingsWindow.addSettingItem(
-      __("Delete Original AVI||Eliminar AVI Original"),
-      [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
-      this.settings.deleteOriginal ? 0 : 1,
-      index => {
-        this.settings.deleteOriginal = index === 0;
-      }
-    );
-
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
-      settingsWindow.addSettingItem(
-        __("Use System ffmpeg||Usar ffmpeg del sistema"),
-        [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
-        this.settings.useSystemFfmpeg ? 0 : 1,
-        index => {
-          this.settings.useSystemFfmpeg = index === 0;
-        }
-      );
-    }
-
-    settingsWindow.addItem(__("BACK||VOLVER"), "", () => {
-      this.windowManager.remove(settingsWindow, true);
-      Account.settings.aviSettings = this.settings;
-      saveAccount();
-      game.state.start(this.returnState, true, false);
-    }, true);
-  }
-}
-
-/**
  * @class TouchSettings
  * @category Game States
  * @summary On-screen touch controls settings screen
@@ -27581,6 +27040,148 @@ class TouchSettings {
 
     settingsWindow.addItem(__("BACK||VOLVER"), "", () => {
       this.windowManager.remove(settingsWindow, true);
+      saveAccount();
+      game.state.start(this.returnState, true, false);
+    }, true);
+  }
+}
+
+/**
+ * @class AviSettings
+ * @category Game States
+ * @summary AVI bgvideo decoding settings screen (FFmpeg.wasm)
+ * @constructor
+ * @features
+ * FFmpeg preset selector (ultrafast .. medium) for AVI to H.264 conversion
+ * Quality (CRF) slider from 18 (near-lossless) to 32 (tiny)
+ * Optional scaling of decoded videos to the game resolution
+ * Optional deletion of the original .avi files after a successful Decode & Replace
+ * @description
+ * AviSettings edits Account.settings.aviSettings, which control how the
+ * DecodeAvi state transcodes AVI background videos with the bundled
+ * FFmpeg.wasm lite build. It mirrors the layout of Keybindings and
+ * ChartModifiers and returns to the state that opened it.
+ * @example
+ * // Open from Settings
+ * game.state.start("AviSettings");
+ */
+class AviSettings {
+  /**
+   * Phaser state hook that stores the state to return to after editing.
+   * @param {string} [returnState='Settings'] - Name of the state to return to
+   */
+  init(returnState = "Settings") {
+    /** @type {string} Game state to start when leaving this screen */
+    this.returnState = returnState;
+  }
+
+  /**
+   * Phaser state hook that sets up the background and builds the settings window.
+   */
+  create() {
+    game.camera.fadeIn(0x000000);
+
+    /** @type {FuturisticLines} Decorative animated background line effect */
+    this.futuristicLines = new FuturisticLines();
+    /** @type {BackgroundGradient} Ambient gradient overlay for the menu background */
+    this.backgroundGradient = new BackgroundGradient();
+    /** @type {NavigationHint} On-screen hint bar with contextual button labels */
+    this.navigationHint = new NavigationHint("general");
+
+    /** @type {WindowManager} Manages the settings window and its focus */
+    this.windowManager = new WindowManager();
+
+    gamepad.releaseAll();
+
+    /** @type {Object} Working copy of the AVI decoding settings */
+    this.settings = Object.assign(
+      {},
+      DEFAULT_ACCOUNT.settings.aviSettings,
+      Account.settings.aviSettings || {}
+    );
+
+    this.showMenu();
+
+    addonManager.executeStateBehaviors(this.constructor.name, this);
+  }
+
+  /**
+   * Phaser lifecycle hook called every frame to poll gamepad input.
+   */
+  update() {
+    gamepad.update();
+    this.windowManager.update();
+  }
+
+  /**
+   * Builds the settings window with every AVI decoding option.
+   */
+  showMenu() {
+    const settingsWindow = this.windowManager.createWindow(2, 1, 26, 15, "1");
+    settingsWindow.fontTint = 0x76fcde;
+
+    /** @type {Window} The settings window being edited */
+    this.settingsWindow = settingsWindow;
+
+    // FFmpeg preset
+    const presets = ["ultrafast", "superfast", "veryfast", "faster", "fast", "medium"];
+    const currentPresetIndex = Math.max(0, presets.indexOf(this.settings.ffmpegPreset));
+    settingsWindow.addSettingItem(
+      __("FFmpeg Preset||Preset de FFmpeg"),
+      presets,
+      currentPresetIndex,
+      index => {
+        this.settings.ffmpegPreset = presets[index];
+      }
+    );
+
+    // Quality (CRF)
+    settingsWindow.addRangeItem(
+      __("Quality (CRF)||Calidad (CRF)"),
+      18,
+      32,
+      1,
+      this.settings.crf,
+      "",
+      value => {
+        this.settings.crf = value;
+      }
+    );
+
+    // Scale to game resolution
+    settingsWindow.addSettingItem(
+      __("Scale to Game Resolution||Escalar a Resolución del Juego"),
+      [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
+      this.settings.scaleToGameRes ? 0 : 1,
+      index => {
+        this.settings.scaleToGameRes = index === 0;
+      }
+    );
+
+    // Delete original AVI
+    settingsWindow.addSettingItem(
+      __("Delete Original AVI||Eliminar AVI Original"),
+      [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
+      this.settings.deleteOriginal ? 0 : 1,
+      index => {
+        this.settings.deleteOriginal = index === 0;
+      }
+    );
+
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
+      settingsWindow.addSettingItem(
+        __("Use System ffmpeg||Usar ffmpeg del sistema"),
+        [__("ENABLED||ACTIVADO"), __("DISABLED||DESACTIVADO")],
+        this.settings.useSystemFfmpeg ? 0 : 1,
+        index => {
+          this.settings.useSystemFfmpeg = index === 0;
+        }
+      );
+    }
+
+    settingsWindow.addItem(__("BACK||VOLVER"), "", () => {
+      this.windowManager.remove(settingsWindow, true);
+      Account.settings.aviSettings = this.settings;
       saveAccount();
       game.state.start(this.returnState, true, false);
     }, true);
@@ -29308,38 +28909,6 @@ class DecodeAvi {
       let blob;
       let blobUrl;
       const settings = aviSettings || {};
-      if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && settings.useSystemFfmpeg && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
-        try {
-          const fsTools = new FileSystemTools();
-          const nlFs = fsTools.neutralinoFs;
-          const basePath = (typeof NL_PATH !== 'undefined' && NL_PATH) ? NL_PATH : (nlFs ? nlFs.getBasePath() : '');
-          const songPath = this.song && (this.song.externalPath || this.song.chartFolderPath || (this.song.chart && this.song.chart.externalPath));
-          if (basePath && songPath) {
-            const absIn = (basePath.replace(/\/+$/, '') + '/' + (songPath + '/' + fileName).replace(/^\/+/, '')).replace(/\/+/g, '/');
-            const outName = AviTools.toMp4Name ? AviTools.toMp4Name(fileName) : fileName.replace(/\.avi$/i, '.mp4');
-            const absOut = (basePath.replace(/\/+$/, '') + '/' + (songPath + '/' + outName).replace(/^\/+/, '')).replace(/\/+/g, '/');
-            const crf = typeof settings.crf === 'number' ? settings.crf : 32;
-            const preset = settings.ffmpegPreset || 'ultrafast';
-            let scale = '';
-            if (settings.scaleToGameRes) {
-              scale = ' -vf scale=240:140:flags=neighbor';
-            }
-            const cmd = `ffmpeg -y -i "${absIn}" -c:v libx264 -preset ${preset} -crf ${crf}${scale} -pix_fmt yuv420p "${absOut}"`;
-            await Neutralino.os.execCommand(cmd);
-            try {
-              const data = await Neutralino.filesystem.readBinaryFile(absOut);
-              blob = new Blob([data], { type: 'video/mp4' });
-              fileName = outName;
-            } catch (e2) {
-              console.warn('Failed reading system ffmpeg output', e2);
-              blob = null;
-            }
-          }
-        } catch (e1) {
-          console.warn('System ffmpeg conversion failed, falling back to wasm', e1);
-          blob = null;
-        }
-      }
 
       if (!blob) {
         blob = await AviTranscoder.convertToBlob(bytes, {
@@ -29365,32 +28934,23 @@ class DecodeAvi {
         AviTranscoder.putCached(cacheKey, blob, blobUrl);
       }
 
-        if (persist) {
-          const newFileName = AviTools.toMp4Name(fileName);
-          const written = await this.persistFile(newFileName, blob);
-          if (written) {
-            nameMap[fileName] = newFileName;
-            AviTools.applyReplacement(this.song, fileName, blobUrl, newFileName, blob);
-            if (aviSettings.deleteOriginal) {
-              try {
-                if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.trashItem) {
-                  const fsTools = new FileSystemTools();
-                  const nlFs = fsTools.neutralinoFs;
-                  const basePath = (typeof NL_PATH !== 'undefined' && NL_PATH) ? NL_PATH : (nlFs ? nlFs.getBasePath() : '');
-                  const songPath = this.song && (this.song.externalPath || this.song.chartFolderPath || (this.song.chart && this.song.chart.externalPath));
-                  if (basePath && songPath) {
-                    const absOrig = (basePath.replace(/\/+$/, '') + '/' + (songPath + '/' + fileName).replace(/^\/+/, '')).replace(/\/+/g, '/');
-                    await Neutralino.os.trashItem(absOrig);
-                  }
-                } else {
-                  await this.deleteOriginal(fileName);
-                }
-              } catch (e) {
-                console.warn('Failed to trash original avi', e);
+      if (persist) {
+        const newFileName = AviTools.toMp4Name(fileName);
+        const written = await this.persistFile(newFileName, blob);
+        if (written) {
+          nameMap[fileName] = newFileName;
+          AviTools.applyReplacement(this.song, fileName, blobUrl, newFileName, blob);
+          if (aviSettings.deleteOriginal) {
+            try {
+              if (CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS || CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
                 await this.deleteOriginal(fileName);
               }
+            } catch (e) {
+              console.warn('Failed to delete original avi', e);
+              await this.deleteOriginal(fileName);
             }
-          } else {
+          }
+        } else {
           // Could not write next to the chart — fall back to a transient swap.
           AviTools.applyReplacement(this.song, fileName, blobUrl, null, blob);
         }

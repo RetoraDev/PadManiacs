@@ -236,38 +236,6 @@ class DecodeAvi {
       let blob;
       let blobUrl;
       const settings = aviSettings || {};
-      if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && settings.useSystemFfmpeg && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.execCommand) {
-        try {
-          const fsTools = new FileSystemTools();
-          const nlFs = fsTools.neutralinoFs;
-          const basePath = (typeof NL_PATH !== 'undefined' && NL_PATH) ? NL_PATH : (nlFs ? nlFs.getBasePath() : '');
-          const songPath = this.song && (this.song.externalPath || this.song.chartFolderPath || (this.song.chart && this.song.chart.externalPath));
-          if (basePath && songPath) {
-            const absIn = (basePath.replace(/\/+$/, '') + '/' + (songPath + '/' + fileName).replace(/^\/+/, '')).replace(/\/+/g, '/');
-            const outName = AviTools.toMp4Name ? AviTools.toMp4Name(fileName) : fileName.replace(/\.avi$/i, '.mp4');
-            const absOut = (basePath.replace(/\/+$/, '') + '/' + (songPath + '/' + outName).replace(/^\/+/, '')).replace(/\/+/g, '/');
-            const crf = typeof settings.crf === 'number' ? settings.crf : 32;
-            const preset = settings.ffmpegPreset || 'ultrafast';
-            let scale = '';
-            if (settings.scaleToGameRes) {
-              scale = ' -vf scale=240:140:flags=neighbor';
-            }
-            const cmd = `ffmpeg -y -i "${absIn}" -c:v libx264 -preset ${preset} -crf ${crf}${scale} -pix_fmt yuv420p "${absOut}"`;
-            await Neutralino.os.execCommand(cmd);
-            try {
-              const data = await Neutralino.filesystem.readBinaryFile(absOut);
-              blob = new Blob([data], { type: 'video/mp4' });
-              fileName = outName;
-            } catch (e2) {
-              console.warn('Failed reading system ffmpeg output', e2);
-              blob = null;
-            }
-          }
-        } catch (e1) {
-          console.warn('System ffmpeg conversion failed, falling back to wasm', e1);
-          blob = null;
-        }
-      }
 
       if (!blob) {
         blob = await AviTranscoder.convertToBlob(bytes, {
@@ -293,32 +261,23 @@ class DecodeAvi {
         AviTranscoder.putCached(cacheKey, blob, blobUrl);
       }
 
-        if (persist) {
-          const newFileName = AviTools.toMp4Name(fileName);
-          const written = await this.persistFile(newFileName, blob);
-          if (written) {
-            nameMap[fileName] = newFileName;
-            AviTools.applyReplacement(this.song, fileName, blobUrl, newFileName, blob);
-            if (aviSettings.deleteOriginal) {
-              try {
-                if (CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO && typeof Neutralino !== 'undefined' && Neutralino.os && Neutralino.os.trashItem) {
-                  const fsTools = new FileSystemTools();
-                  const nlFs = fsTools.neutralinoFs;
-                  const basePath = (typeof NL_PATH !== 'undefined' && NL_PATH) ? NL_PATH : (nlFs ? nlFs.getBasePath() : '');
-                  const songPath = this.song && (this.song.externalPath || this.song.chartFolderPath || (this.song.chart && this.song.chart.externalPath));
-                  if (basePath && songPath) {
-                    const absOrig = (basePath.replace(/\/+$/, '') + '/' + (songPath + '/' + fileName).replace(/^\/+/, '')).replace(/\/+/g, '/');
-                    await Neutralino.os.trashItem(absOrig);
-                  }
-                } else {
-                  await this.deleteOriginal(fileName);
-                }
-              } catch (e) {
-                console.warn('Failed to trash original avi', e);
+      if (persist) {
+        const newFileName = AviTools.toMp4Name(fileName);
+        const written = await this.persistFile(newFileName, blob);
+        if (written) {
+          nameMap[fileName] = newFileName;
+          AviTools.applyReplacement(this.song, fileName, blobUrl, newFileName, blob);
+          if (aviSettings.deleteOriginal) {
+            try {
+              if (CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS || CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
                 await this.deleteOriginal(fileName);
               }
+            } catch (e) {
+              console.warn('Failed to delete original avi', e);
+              await this.deleteOriginal(fileName);
             }
-          } else {
+          }
+        } else {
           // Could not write next to the chart — fall back to a transient swap.
           AviTools.applyReplacement(this.song, fileName, blobUrl, null, blob);
         }

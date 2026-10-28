@@ -721,16 +721,9 @@ Public License instead of this License.  But first, please read
 
 THIRD-PARTY COMPONENTS
 Third-party components included in this software (Phaser CE, Eruda.js,
-Terser.js, JSZip, ffmpeg-wasm-lite, Neutralinojs) are governed by their
-own licenses (MIT/BSD/GPL) and may be used, modified, and distributed
+Terser.js, JSZip, ffmpeg-wasm-lite, NW.js, webm-muxer) are governed by
+their own licenses (MIT/BSD/GPL) and may be used, modified, and distributed
 according to those licenses regardless of the terms of this document.
-
-NEUTRALINOJS NOTICE
-Desktop builds of this software are packaged with Neutralinojs
-(https://neutralino.js.org), Copyright (c) Neutralinojs, licensed under
-the MIT License. Neutralinojs is used solely as the desktop application
-runtime and is distributed under its own license, available at
-https://github.com/neutralinojs/neutralinojs/blob/main/LICENSE.
 
 FFMPEG-WASM-LITE NOTICE
 This software bundles ffmpeg-wasm-lite, a minimal FFmpeg.wasm build used

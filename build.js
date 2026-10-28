@@ -15,8 +15,6 @@ class BuildSystem {
         platform: 'all', // 'web', 'cordova', 'nwjs', 'all', 'none'
         minify: false,
         zipalign: false,
-        noPack: false, // skip archive/packaging steps (zip/7z/apk/neu build)
-        noWebBase: false, // don't re-stage dist/ as web after a platform build
         ...flags
       }
     };
@@ -73,6 +71,7 @@ class BuildSystem {
       
       // Filesystem
       'js/filesystem/filesystem.js',
+      'js/filesystem/node-filesystem.js',
       'js/filesystem/cordova-filesystem.js',
       'js/filesystem/fallback-filesystem.js',
       
@@ -128,8 +127,8 @@ class BuildSystem {
       'js/game/states/Settings.js',
       'js/game/states/ChartModifiers.js',
       'js/game/states/Keybindings.js',
-      'js/game/states/AviSettings.js',
       'js/game/states/TouchSettings.js',
+      'js/game/states/AviSettings.js',
       'js/game/states/FileSelect.js',
       'js/game/states/SongSelect.js',
       'js/game/states/DecodeAvi.js',
@@ -221,7 +220,7 @@ class BuildSystem {
       'none': 'Development',
       'web': 'Web',
       'cordova': 'Android (Cordova)',
-      'nwjs': 'Desktop (NW.js)',
+      'nwjs': 'Windows (NW.js)',
       'all': 'All Platforms'
     };
     return platformMap[platform] || platform;
@@ -245,8 +244,6 @@ class BuildSystem {
       if (arg === '--web') this.config.flags.platform = 'web';
       if (arg === '--all') this.config.flags.platform = 'all';
       if (arg === '--minify') this.config.flags.minify = true;
-      if (arg === '--no-pack' || arg === '--no-pack=' || arg === '--nopack') this.config.flags.noPack = true;
-      if (arg === '--no-web-base') this.config.flags.noWebBase = true;
     });
   }
 
@@ -394,10 +391,10 @@ class BuildSystem {
     }
   }
 
-  copyLibFiles(platform, destDir = this.config.distDir) {
+  copyLibFiles() {
     this.log('Copying lib files...', 'info');
     
-    const libDest = path.join(destDir, 'lib');
+    const libDest = path.join(this.config.distDir, 'lib');
     this.ensureDir(libDest);
     
     // Copy Phaser to lib folder
@@ -490,11 +487,11 @@ class BuildSystem {
     }
   }
   
-  processIndexHTML(platform, destDir = this.config.distDir) {
+  processIndexHTML(platform) {
     this.log(`Processing index.html for ${this.getPlatformDisplayName(platform)}...`, 'info');
     
     const htmlSrc = path.join(this.config.srcDir, 'index.html');
-    const htmlDest = path.join(destDir, 'index.html');
+    const htmlDest = path.join(this.config.distDir, 'index.html');
     
     if (fs.existsSync(htmlSrc)) {
       let htmlContent = fs.readFileSync(htmlSrc, 'utf8');
@@ -505,10 +502,6 @@ class BuildSystem {
       // Build the proper script tags in correct order
       let scriptTags = '';
       
-      if (platform === 'nwjs') {
-        // NW.js doesn't need a separate client script
-      }
-
       // Add phaser from lib (always first)
       scriptTags += `  <script src="./lib/${this.config.flags.debug ? 'phaser.js' : 'phaser.min.js'}"></script>\n`;
       
@@ -555,7 +548,7 @@ class BuildSystem {
     // Debug initialization
     if (typeof window.eruda !== 'undefined' && (window.DEBUG || location.search.includes('debug'))) {
       eruda.init({
-        tool: ['console', 'elements', 'resources', 'network', 'snippets']
+        tool: ['console', 'elements', 'resources', 'snippets']
       });
       
       const snippets = eruda.get('snippets');
@@ -719,15 +712,6 @@ class BuildSystem {
     }
   }
 
-  hasNeu() {
-    try {
-      execSync('neu --help', { stdio: 'ignore' });
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   hasApkSigner() {
     try {
       execSync('apksigner --help', { stdio: 'ignore' });
@@ -747,10 +731,6 @@ class BuildSystem {
   }
 
   createZipArchive(sourceDir, outputFile) {
-    if (this.config.flags.noPack) {
-      this.log(`Skipping zip (--no-pack): ${sourceDir}`, 'info');
-      return true;
-    }
     this.log(`Creating zip: ${sourceDir} → ${outputFile}`, 'info');
     try {
       if (this.hasZip()) {
@@ -768,10 +748,6 @@ class BuildSystem {
   }
 
   create7zArchive(sourceDir, outputFile) {
-    if (this.config.flags.noPack) {
-      this.log(`Skipping 7z archive (--no-pack): ${sourceDir}`, 'info');
-      return true;
-    }
     this.log(`Creating 7z archive: ${sourceDir} → ${outputFile}`, 'info');
     try {
       if (this.has7Zip()) {
@@ -839,12 +815,7 @@ class BuildSystem {
 
   async buildWeb() {
     this.log('Building web platform...', 'info');
-
-    if (this.config.flags.noPack) {
-      this.log('Skipping web packaging (--no-pack); dist/ contains the web build', 'info');
-      return;
-    }
-
+    
     // Create temporary web build directory
     const tempWebDir = path.join(this.config.distDir, 'temp', 'web');
     this.ensureDir(tempWebDir);
@@ -864,24 +835,55 @@ class BuildSystem {
     fs.rmSync(path.join(this.config.distDir, 'temp'), { recursive: true });
   }
   
-  /**
-   * Recursively finds the first file with the given name under a directory.
-   * @param {string} dir - Directory to search
-   * @param {string} name - File name to look for
-   * @returns {string|null} The full path or null
-   */
-  findFile(dir, name) {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        const found = this.findFile(full, name);
-        if (found) return found;
-      } else if (entry.name === name) {
-        return full;
+  async buildNWJS() {
+    this.log('Building NW.js Windows platform...', 'info');
+    
+    const nwStatic = path.join(this.config.srcDir, 'static/nw');
+    if (fs.existsSync(nwStatic)) {
+      // Create temporary NW.js build directory
+      const tempNwDir = path.join(this.config.distDir, 'temp', 'nw');
+      this.ensureDir(tempNwDir);
+      
+      // Copy NW.js binaries to temp directory
+      this.copyDir(nwStatic, tempNwDir, [".placeholder"]);
+      
+      // Replace version in temp package.json by current version
+      const packageJsonPath = path.join(tempNwDir, 'package.json');
+      if (fs.existsSync(packageJsonPath)) {
+        try {
+          const packageContent = fs.readFileSync(packageJsonPath, 'utf8');
+          const updatedContent = packageContent.replace('"version": "%"', `"version": "${this.packageInfo.version}"`);
+          fs.writeFileSync(packageJsonPath, updatedContent);
+          this.log(`Set NW.js package.json version to: ${this.packageInfo.version}`, 'success');
+        } catch (error) {
+          this.log('Failed to set NW.js package.json version', 'warning');
+          console.error(error);
+        }
       }
+      
+      // Create platform-specific game.js for NW.js
+      const jsDest = path.join(tempNwDir, 'www/js');
+      this.ensureDir(jsDest);
+      const nwjsGameJS = await this.concatenateFiles('nwjs');
+      fs.writeFileSync(path.join(jsDest, 'game.js'), nwjsGameJS);
+      
+      // Copy other web files to NW.js www folder (no cordova)
+      this.copyDir(this.config.distDir, path.join(tempNwDir, 'www'), ['www.zip', 'padmaniacs-*.zip', '*.apk', '*.apk.idsig', 'temp', 'cordova', 'js']);
+      
+      // Create 7z archive for NW.js from temp directory
+      const nwZipName = `padmaniacs-v${this.packageInfo.version}-nwjs-win-x64.zip`;
+      const nwZipPath = path.join('../../', nwZipName);
+      if (this.create7zArchive(tempNwDir, nwZipPath)) {
+        this.log('NW.js platform build complete', 'success');
+      } else {
+        this.log('NW.js platform build failed - 7z command unavailable', 'warning');
+      }
+      
+      // Clean up temp directory
+      fs.rmSync(path.join(this.config.distDir, 'temp'), { recursive: true });
+    } else {
+      this.log('NW.js static files not found at: ' + nwStatic, 'warning');
     }
-    return null;
   }
   
   async buildAndroid() {
@@ -918,18 +920,7 @@ class BuildSystem {
       // First create unsigned APK using zip from temp directory
       const unsignedUnalignedApkName = `padmaniacs-v${this.packageInfo.version}-android-unsigned-unaligned.apk`;
       const unsignedUnalignedApkPath = path.join(this.config.distDir, unsignedUnalignedApkName);
-
-      if (this.config.flags.noPack) {
-        // Keep an exploded, inspectable Android project in dist/android/
-        // instead of producing (and signing) an APK.
-        const explodedDir = path.join(this.config.distDir, 'android');
-        this.copyDir(tempAndroidDir, explodedDir);
-        fs.rmSync(path.join(this.config.distDir, 'temp'), { recursive: true });
-        this.log('Skipping Android packaging (--no-pack); staged to dist/android/', 'info');
-        this.log('Android platform build complete', 'success');
-        return;
-      }
-
+      
       if (this.createZipArchive(tempAndroidDir, '../../' + unsignedUnalignedApkName)) {
         // Apply zipalign
         let unsignedApkName = `padmaniacs-v${this.packageInfo.version}-android-unsigned.apk`;
@@ -970,116 +961,32 @@ class BuildSystem {
     }
   }
   
-  async buildNWJS() {
-    this.log('Building Desktop (NW.js) platform...', 'info');
-
-    const nwjsStatic = path.join(this.config.srcDir, 'static/nw');
-    if (!fs.existsSync(nwjsStatic)) {
-      this.log('NW.js static files not found at: ' + nwjsStatic, 'warning');
-      this.log('Download NW.js v0.88.0 and place files in src/static/nw/ (keep locales/, www/, padmaniacs.exe, package.json)', 'warning');
-      return;
-    }
-
-    const distDir = this.config.distDir;
-    const nwDir = path.join(distDir, 'nwjs');
-    this.ensureDir(nwDir);
-
-    try {
-      this.copyDir(nwjsStatic, nwDir, ['.gitkeep']);
-      const wwwDir = path.join(nwDir, 'www');
-      this.ensureDir(wwwDir);
-      ['js', 'lib', 'index.html', 'css', 'assets', 'resources'].forEach(item => {
-        const srcPath = path.join(distDir, item);
-        const dstPath = path.join(wwwDir, item);
-        if (fs.existsSync(srcPath)) {
-          if (fs.statSync(srcPath).isDirectory()) {
-            this.copyDir(srcPath, dstPath);
-          } else {
-            this.ensureDir(path.dirname(dstPath));
-            fs.copyFileSync(srcPath, dstPath);
-          }
-        }
-      });
-
-      if (fs.existsSync(path.join(nwjsStatic, 'package.json'))) {
-        const pkgContent = fs.readFileSync(path.join(nwjsStatic, 'package.json'), 'utf8');
-        const updatedPkg = pkgContent.replace('"version": "1.1.0"', `"version": "${this.packageInfo.version}"`);
-        fs.writeFileSync(path.join(nwDir, 'package.json'), updatedPkg);
-      }
-
-      if (fs.existsSync(path.join(nwjsStatic, 'padmaniacs.exe'))) {
-        fs.copyFileSync(path.join(nwjsStatic, 'padmaniacs.exe'), path.join(nwDir, 'padmaniacs.exe'));
-      }
-
-      if (fs.existsSync(path.join(nwjsStatic, 'locales'))) {
-        this.copyDir(path.join(nwjsStatic, 'locales'), path.join(nwDir, 'locales'));
-      }
-
-      if (!this.config.flags.noPack) {
-        const nwZipName = `padmaniacs-v${this.packageInfo.version}-nwjs-win-x64.zip`;
-        this.log(`Packaging NW.js build as ${nwZipName}...`, 'info');
-        if (this.createZipArchive(nwDir, '../../' + nwZipName)) {
-          this.log('NW.js platform build complete', 'success');
-        } else {
-          this.log('NW.js packaging failed - zip command unavailable', 'warning');
-        }
-      } else {
-        this.log('NW.js platform staged to dist/nwjs/ (--no-pack)', 'success');
-      }
-    } catch (error) {
-      this.log('NW.js build failed:', 'error', error);
-    }
-  }
-  
   async buildForPlatform() {
     const platform = this.config.flags.platform;
-
+    
     if (platform === 'all') {
-      // Build the web base into dist/ first: platform targets read from dist/.
+      // Build base files first
       await this.buildBaseFiles('web');
-
-      // Then build each platform into its own temp/output. dist/ stays web.
+      
+      // Then build each platform with their specific environment
       await this.buildAndroid();
       await this.buildNWJS();
-
-      // Optionally package the web build (www.zip) from the web dist/.
       await this.buildWeb();
     } else if (platform === 'web') {
       await this.buildBaseFiles('web');
       await this.buildWeb();
     } else if (platform === 'nwjs') {
-      await this.buildBaseFiles('web');
+      await this.buildBaseFiles('nwjs');
       await this.buildNWJS();
-      await this.finalizeWebDist('nwjs');
-    } else if (platform === 'nwjs') {
-      await this.buildBaseFiles('web');
-      await this.buildNWJS();
-      await this.finalizeWebDist('nwjs');
+      await this.buildWeb();
     } else if (platform === 'cordova') {
-      await this.buildBaseFiles('web');
+      await this.buildBaseFiles('cordova');
       await this.buildAndroid();
-      await this.finalizeWebDist('cordova');
+      await this.buildWeb();
     } else if (platform === 'none') {
       await this.buildBaseFiles('none');
       this.log('Development build complete', 'success');
     }
-  }
-
-  /**
-   * Re-stages dist/ after a non-web platform build. By default dist/ is set
-   * back to the plain web platform so opening dist/ (e.g. github.io/dist)
-   * always works. When noWebBase is set, dist/ is instead re-staged as the
-   * platform that was just built, so the exploded output reflects it.
-   * @param {string} platform - The non-web platform that was built
-   */
-  async finalizeWebDist(platform) {
-    if (this.config.flags.noWebBase) {
-      this.log(`Re-staging dist/ as ${this.getPlatformDisplayName(platform)} (--no-web-base)`, 'info');
-      await this.buildBaseFiles(platform);
-      return;
-    }
-    await this.buildBaseFiles('web');
-    this.log('dist/ restored to the web platform build', 'success');
   }
 
   async buildBaseFiles(platform) {
@@ -1096,7 +1003,7 @@ class BuildSystem {
     // Copy other files to base dist
     this.copyAssets();
     this.copyCSS();
-    this.copyLibFiles(platform);
+    this.copyLibFiles();
     this.copyStaticFiles();
     this.processIndexHTML(platform);
   }
@@ -1109,8 +1016,7 @@ class BuildSystem {
     this.log('Starting build process...', 'info');
     this.log(`Platform: ${this.config.flags.platform}`, 'info');
     this.log(`Minify: ${this.config.flags.minify}`, 'info');
-    this.log(`Debug: ${this.config.flags.debug}`, 'info');
-    this.log(`Packaging: ${this.config.flags.noPack ? 'disabled (--no-pack)' : 'enabled'}\n`, 'info');
+    this.log(`Debug: ${this.config.flags.debug}\n`, 'info');
     
     // Clean and create dist directory
     if (fs.existsSync(this.config.distDir)) {
@@ -1138,14 +1044,6 @@ class BuildSystem {
           const stats = fs.statSync(filePath);
           this.log(`  - ${file} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`, 'info');
         });
-      } else if (this.config.flags.noPack) {
-        const staged = files.filter(file => {
-          const full = path.join(this.config.distDir, file);
-          return fs.existsSync(full) && fs.statSync(full).isDirectory() && file !== 'temp';
-        });
-        this.log('Packaging disabled (--no-pack). Staged output:', 'info');
-        this.log(`  - ${this.config.distDir}/ (${files.length} entries)`, 'info');
-        staged.forEach(dir => this.log(`  - ${this.config.distDir}/${dir}/`, 'info'));
       }
       
     } catch (error) {
@@ -1153,20 +1051,10 @@ class BuildSystem {
       process.exit(1);
     }
   }
-
+  
   exit() {
     process.exit(0);
   }
-}
-
-async function build(args) {
-  const builder = new BuildSystem();
-  await builder.build(args);
-}
-
-// Run build if this script is executed directly
-if (require.main === module) {
-  build();
 }
 
 async function build(args) {

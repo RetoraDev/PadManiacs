@@ -15,7 +15,6 @@ class InteractiveInterface {
   constructor() {
     this.currentSelection = 0;
     this.busy = false;
-    this.awaitingKey = false;
     this.currentServer = null;
     this.menuStack = [];
     this.cliArgs = this.parseCLIArgs();
@@ -62,7 +61,7 @@ class InteractiveInterface {
       { label: 'Production Build (All Platforms)', action: () => this.runBuild(['--all', '--minify']) },
       { label: 'Web Platform Only', action: () => this.runBuild(['--web']) },
       { label: 'Android Platform Only', action: () => this.runBuild(['--cordova', '--zipalign']) },
-      { label: 'Desktop (NW.js) Platform Only', action: () => this.runBuild(['--nwjs']) },
+      { label: 'Windows Platform Only', action: () => this.runBuild(['--nwjs']) },
       { label: 'Custom Build...', action: () => this.showCustomBuildMenu() },
       { label: 'Back to Main Menu', action: () => this.showMainMenu() }
     ];
@@ -83,8 +82,6 @@ class InteractiveInterface {
       { label: 'Minify: Off', action: () => this.toggleMinify() },
       { label: 'Zip Align: Off', action: () => this.toggleZipAlign() },
       { label: 'Debug: Off', action: () => this.toggleDebug() },
-      { label: 'Packaging: On', action: () => this.togglePack() },
-      { label: 'Web in dist: On', action: () => this.toggleWebBase() },
       { label: 'Start Build', action: () => this.startCustomBuild() },
       { label: 'Back to Build Menu', action: () => this.showBuildMenu() }
     ];
@@ -93,9 +90,7 @@ class InteractiveInterface {
       platform: 'all',
       minify: false,
       zipalign: false,
-      debug: false,
-      noPack: false,
-      noWebBase: false
+      debug: false
     };
     
     this.currentMenu = this.mainMenu;
@@ -116,8 +111,6 @@ class InteractiveInterface {
       minify: false,
       debug: false,
       zipalign: false,
-      noPack: false,
-      noWebBase: false,
       docs: false,
       headless: false,
       help: false
@@ -167,12 +160,6 @@ class InteractiveInterface {
           break;
         case '--no-install':
           parsed.noInstall = true;
-          break;
-        case '--no-pack':
-          parsed.noPack = true;
-          break;
-        case '--no-web-base':
-          parsed.noWebBase = true;
           break;
         case '--headless':
           parsed.headless = true;
@@ -234,12 +221,10 @@ class InteractiveInterface {
     
     console.log(this.color('Build Options:', 'yellow'));
     console.log('  --cordova        Build Android platform only');
-    console.log('  --nwjs           Build Desktop (NW.js) platform only');
+    console.log('  --nwjs           Build Windows platform only');
     console.log('  --web            Build web platform only');
     console.log('  --all            Build all platforms (default)');
     console.log('  --minify         Enable minification');
-    console.log('  --no-pack        Skip packaging (no zip/apk/resources.neu; stage to dist/)');
-    console.log('  --no-web-base    Keep dist/ as the built platform (skip web re-stage)');
     console.log('  --debug          Enable debug mode');
     console.log('  --zipalign       Enable APK zip alignment');
     console.log('');
@@ -272,8 +257,8 @@ class InteractiveInterface {
     // Determine platform
     if (this.cliArgs.cordova) {
       args.push('--cordova');
-    } else if (this.cliArgs.neutralino) {
-      args.push('--neutralino');
+    } else if (this.cliArgs.nwjs) {
+      args.push('--nwjs');
     } else if (this.cliArgs.web) {
       args.push('--web');
     } else if (this.cliArgs.none) {
@@ -295,12 +280,6 @@ class InteractiveInterface {
     if (this.cliArgs.zipalign) {
       args.push('--zipalign');
     }
-    if (this.cliArgs.noPack) {
-      args.push('--no-pack');
-    }
-    if (this.cliArgs.noWebBase) {
-      args.push('--no-web-base');
-    }
     
     // Flag should exit when it ends
     this.executingCliBuild = true;
@@ -314,33 +293,14 @@ class InteractiveInterface {
     }
   }
   
-  runBuildHeadless(args) {
-    // Spawn the build in a child process with inherited stdio so its exit code
-    // is propagated and Ctrl+C can cancel it (SIGINT is forwarded to the child).
-    const buildJsPath = path.join(__dirname, 'build.js');
-    const child = spawn(process.execPath, [buildJsPath, ...args], {
-      cwd: process.cwd(),
-      stdio: 'inherit',
-      detached: process.platform !== 'win32',
-    });
-
-    let cancelled = false;
-    const onSigint = () => {
-      if (cancelled) return;
-      cancelled = true;
-      this.killProcessTree(child);
-    };
-    process.on('SIGINT', onSigint);
-
-    child.on('close', (code) => {
-      process.removeListener('SIGINT', onSigint);
-      process.exit(cancelled ? 130 : (code || 0));
-    });
-    child.on('error', (error) => {
-      process.removeListener('SIGINT', onSigint);
-      console.error(this.color('Build failed to start:', 'red'), error.message);
+  async runBuildHeadless(args) {
+    try {
+      process.argv = ['node', 'build.js', ...args];
+      process.exit(0);
+    } catch (error) {
+      console.error(this.color('Build failed:', 'red'), error.message);
       process.exit(1);
-    });
+    }
   }
 
   executeCLIServe(mode) {
@@ -455,21 +415,6 @@ class InteractiveInterface {
     this.busy = false;
     this.drawMenu();
   }
-
-  /**
-   * Waits for a single keypress, then runs the callback. While waiting, the
-   * global menu-navigation handler is suppressed (via awaitingKey) so the same
-   * keystroke cannot both dismiss this prompt AND activate a menu item, which
-   * previously caused an unwanted second build to start on Enter.
-   * @param {Function} callback - Runs after the keypress
-   */
-  waitForKey(callback) {
-    this.awaitingKey = true;
-    this.rl.input.once('data', () => {
-      this.awaitingKey = false;
-      callback();
-    });
-  }
   
   showBuildMenu() {
     this.currentMenu = this.buildMenu;
@@ -510,8 +455,6 @@ class InteractiveInterface {
     this.customBuildMenu[1].label = `Minify: ${this.color(this.customBuildOptions.minify ? 'ON' : 'OFF', this.customBuildOptions.minify ? 'green' : 'red')}`;
     this.customBuildMenu[2].label = `Zip Align: ${this.color(this.customBuildOptions.zipalign ? 'ON' : 'OFF', this.customBuildOptions.zipalign ? 'green' : 'red')}`;
     this.customBuildMenu[3].label = `Debug: ${this.color(this.customBuildOptions.debug ? 'ON' : 'OFF', this.customBuildOptions.debug ? 'green' : 'red')}`;
-    this.customBuildMenu[4].label = `Packaging: ${this.color(this.customBuildOptions.noPack ? 'OFF' : 'ON', this.customBuildOptions.noPack ? 'red' : 'green')}`;
-    this.customBuildMenu[5].label = `Web in dist: ${this.color(this.customBuildOptions.noWebBase ? 'OFF' : 'ON', this.customBuildOptions.noWebBase ? 'red' : 'green')}`;
   }
 
   togglePlatform() {
@@ -539,18 +482,6 @@ class InteractiveInterface {
     this.updateCustomBuildLabels();
     this.drawMenu();
   }
-
-  togglePack() {
-    this.customBuildOptions.noPack = !this.customBuildOptions.noPack;
-    this.updateCustomBuildLabels();
-    this.drawMenu();
-  }
-
-  toggleWebBase() {
-    this.customBuildOptions.noWebBase = !this.customBuildOptions.noWebBase;
-    this.updateCustomBuildLabels();
-    this.drawMenu();
-  }
   
   showCodeReminders() {
     this.clearScreen();
@@ -563,7 +494,7 @@ class InteractiveInterface {
     if (reminders.length === 0) {
       console.log(this.color('✓ No code reminders found!', 'green'));
       console.log(this.color('\nPress any key to return to menu...', 'dim'));
-      this.waitForKey(() => this.showMainMenu());
+      this.rl.input.once('data', () => this.showMainMenu());
       return;
     }
     
@@ -692,7 +623,7 @@ class InteractiveInterface {
     });
     
     console.log(this.color('\nPress any key to return to menu...', 'dim'));
-    this.waitForKey(() => this.showMainMenu());
+    this.rl.input.once('data', () => this.showMainMenu());
   }
 
   generateRemindersSummary(reminders) {
@@ -736,121 +667,46 @@ class InteractiveInterface {
     if (this.customBuildOptions.debug) {
       args.push('--debug');
     }
-    if (this.customBuildOptions.noPack) {
-      args.push('--no-pack');
-    }
-    if (this.customBuildOptions.noWebBase) {
-      args.push('--no-web-base');
-    }
     this.runBuild(args);
   }
 
-  killProcessTree(child) {
-    if (!child || child.killed || child.exitCode !== null) return;
-    try {
-      if (process.platform === 'win32') {
-        spawn('taskkill', ['/pid', String(child.pid), '/T', '/F']);
-      } else if (process.platform === 'darwin' || process.platform === 'linux') {
-        // Negative pid targets the whole process group (build.js spawns
-        // execSync subprocesses like zip/neu/apksigner that must also die).
-        try {
-          process.kill(-child.pid, 'SIGKILL');
-        } catch (e) {
-          // Fall back to killing just the direct child if group kill fails.
-          child.kill('SIGKILL');
-        }
-      } else {
-        child.kill('SIGKILL');
-      }
-    } catch (e) {
-      // Process already gone; nothing to do.
-    }
-  }
-
-  runBuild(args) {
+  async runBuild(args) {
     this.clearScreen();
     this.drawLogo();
-
+    
     this.busy = true;
-
+    
     console.log(this.color('Starting build process...\n', 'yellow'));
     console.log(this.color('Build Arguments:', 'cyan'), args.join(' '));
-    console.log(this.color('Press Ctrl+C to cancel the build', 'dim'));
     console.log(this.color('─'.repeat(50), 'dim') + '\n');
-
-    return new Promise((resolve) => {
-      // Run the build in a child process so the parent event loop stays
-      // responsive and Ctrl+C can cancel it mid-build. stdio is inherited so
-      // tool progress (zip/neu/apksigner) is still visible in this terminal.
-      const buildJsPath = path.join(__dirname, 'build.js');
-      const child = spawn(process.execPath, [buildJsPath, ...args], {
-        cwd: process.cwd(),
-        stdio: 'inherit',
-        detached: process.platform !== 'win32',
-      });
-      this.currentBuildProc = child;
-
-      let cancelled = false;
-
-      const onSigint = () => {
-        if (cancelled) return;
-        cancelled = true;
-        console.log(`\n${this.color('Cancelling build...', 'yellow')}`);
-        this.killProcessTree(child);
-      };
-      const onKey = (key) => {
-        if (key === '\u0003') onSigint();
-      };
-
-      process.on('SIGINT', onSigint);
-      this.rl.input.on('data', onKey);
-
-      const cleanup = () => {
-        process.removeListener('SIGINT', onSigint);
-        this.rl.input.removeListener('data', onKey);
-        this.currentBuildProc = null;
-        this.busy = false;
-      };
-
-      child.on('error', (error) => {
-        cleanup();
-        console.log(`\n${this.color('Build failed to start!', 'red')}`);
-        console.log(this.color(error.message, 'dim'));
-        if (this.executingCliBuild) return this.exit();
-        console.log(this.color('Press any key to return to menu...', 'dim'));
-        this.waitForKey(() => this.showMainMenu());
-        resolve();
-      });
-
-      child.on('close', (code) => {
-        cleanup();
-
-        if (cancelled) {
-          console.log(`\n${this.color('Build cancelled.', 'yellow')}`);
-          if (this.executingCliBuild) return this.exit();
-          console.log(this.color('Press any key to return to menu...', 'dim'));
-          this.waitForKey(() => this.showMainMenu());
-          return resolve();
-        }
-
-        if (code === 0) {
-          console.log(`\n${this.color('Build completed successfully!', 'green')}`);
-          if (this.executingCliBuild) return this.exit();
-          console.log(this.color('Press any key to return to menu...', 'dim'));
-          if (this.isTermux() && !args.includes('--no-install') && args.includes('--cordova')) {
-            this.waitForKey(() => this.showOpenApkConfirm());
-          } else {
-            this.waitForKey(() => this.showMainMenu());
-          }
-        } else {
-          console.log(`\n${this.color(`Build failed! (exit code ${code})`, 'red')}`);
-          if (this.executingCliBuild) return this.exit();
-          console.log(this.color('Press any key to return to menu...', 'dim'));
-          this.waitForKey(() => this.showMainMenu());
-        }
-        resolve();
-      });
-    });
+    
+    try {
+      this.currentBuild = new BuildSystem();
+      
+      await this.currentBuild.build(args);
+      
+      this.currentBuild = null;
+      
+      console.log(`\n${this.color('Build completed successfully!', 'green')}`);
+      
+      if (this.executingCliBuild) {
+        this.exit();
+        return;
+      }
+      
+      console.log(this.color('Press any key to return to menu...', 'dim'));
+      
+      if (this.isTermux() && !args.includes("--no-install") && args.includes("--cordova")) {
+        this.rl.input.once('data', () => this.showOpenApkConfirm());
+      } else {
+        this.rl.input.once('data', () => this.showMainMenu());
+      }
+    } catch (error) {
+      console.log(`\n${this.color('Build failed!', 'red')}`);
+      console.log(this.color('Press any key to return to menu...', 'dim'));
+      
+      this.rl.input.once('data', () => this.showMainMenu());
+    }
   }
 
   serveProject(mode) {
@@ -1109,7 +965,7 @@ class InteractiveInterface {
   returnToMenuAfterError() {
     console.log(this.color('Press any key to return to menu...', 'dim'));
     
-    this.waitForKey(() => {
+    this.rl.input.once('data', () => {
       this.cleanupServer();
       this.showMainMenu();
     });
@@ -1230,7 +1086,7 @@ class InteractiveInterface {
     
     console.log(this.color('Press any key to return to menu...', 'dim'));
     
-    this.waitForKey(() => this.showMainMenu());
+    this.rl.input.once('data', () => this.showMainMenu());
   }
 
   runDocs() {
@@ -1251,7 +1107,7 @@ class InteractiveInterface {
     
     console.log(this.color('Press any key to return to menu...', 'dim'));
     
-    this.waitForKey(() => this.showMainMenu());
+    this.rl.input.once('data', () => this.showMainMenu());
   }
 
   executeCLIDocs() {
@@ -1295,10 +1151,10 @@ class InteractiveInterface {
           requires: "zip command to build www.zip"
         },
         {
-          name: "Desktop",
-          description: "Neutralino.js package (Linux/Windows/macOS, per-platform zips)",
-          supported: testSystem.hasZip() && testSystem.hasNeu(),
-          requires: "zip command and the Neutralino CLI (neu) to bundle resources.neu"
+          name: "Windows",
+          description: "NW.JS Package for Windows",
+          supported: testSystem.hasZip(),
+          requires: "7-zip command to package nw.js"
         },
         {
           name: "Android",
@@ -1322,18 +1178,12 @@ class InteractiveInterface {
     
     console.log(`\n${this.color('Press any key to return to menu...', 'dim')}`);
     
-    this.waitForKey(() => {
+    this.rl.input.once('data', () => {
       this.showMainMenu();
     });
   }
 
   exit() {
-    // While a build is running, Ctrl+C should cancel the build, not quit the
-    // app. The active build's own handler performs the cancellation.
-    if (this.currentBuildProc) {
-      this.killProcessTree(this.currentBuildProc);
-      return;
-    }
     this.cleanupServer();
     this.rl.close();
     process.exit(0);
@@ -1354,12 +1204,7 @@ class InteractiveInterface {
     this.rl.input.on('data', (key) => {
       if (key === '\u0003') { // Ctrl+C
         this.exit();
-        return;
-      }
-      // While waiting for a "press any key" prompt, ignore all other keys here:
-      // the one-shot handler owns this keystroke.
-      if (this.awaitingKey) return;
-      if (key === '\u001b[A') { // Up arrow
+      } else if (key === '\u001b[A') { // Up arrow
         this.handleInput('up');
       } else if (key === '\u001b[B') { // Down arrow
         this.handleInput('down');
