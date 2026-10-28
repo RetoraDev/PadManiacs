@@ -203,7 +203,7 @@ class LocalSMParser {
           break;
         }
         case "#NOTES":
-          if (SUPPORTED_GAME_MODES.includes(p[1])) {
+          if (SUPPORTED_GAME_MODES.includes(p[1].toLowerCase())) {
             steps[p[3] + p[4]] = p[6].split(",");
             out.difficulties.push({
               author: p[2],

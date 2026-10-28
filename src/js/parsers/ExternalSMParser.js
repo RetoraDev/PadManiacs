@@ -276,7 +276,7 @@ class ExternalSMParser {
           break;
         }
         case "#NOTES":
-          if (SUPPORTED_GAME_MODES.includes(p[1])) {
+          if (SUPPORTED_GAME_MODES.includes(p[1].toLowerCase())) {
             steps[p[3] + p[4]] = p[6].split(",");
             out.difficulties.push({
               author: p[2],
@@ -288,10 +288,6 @@ class ExternalSMParser {
       }
     }
     
-    if (!steps.length) {
-      throw "No supported difficulties found";
-    }
-
     // Process BPM changes and stops
     out.bpmChanges.sort((a, b) => a.beat - b.beat);
     if (out.bpmChanges.length === 0 || out.bpmChanges[0].beat !== 0) {

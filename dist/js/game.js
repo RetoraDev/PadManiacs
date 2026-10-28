@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0
- * Build: 10/28/2026, 9:44:59 AM
+ * Build: 10/28/2026, 10:10:16 AM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -20992,7 +20992,7 @@ class LocalSMParser {
           break;
         }
         case "#NOTES":
-          if (SUPPORTED_GAME_MODES.includes(p[1])) {
+          if (SUPPORTED_GAME_MODES.includes(p[1].toLowerCase())) {
             steps[p[3] + p[4]] = p[6].split(",");
             out.difficulties.push({
               author: p[2],
@@ -21402,7 +21402,7 @@ class ExternalSMParser {
           break;
         }
         case "#NOTES":
-          if (SUPPORTED_GAME_MODES.includes(p[1])) {
+          if (SUPPORTED_GAME_MODES.includes(p[1].toLowerCase())) {
             steps[p[3] + p[4]] = p[6].split(",");
             out.difficulties.push({
               author: p[2],
@@ -21414,10 +21414,6 @@ class ExternalSMParser {
       }
     }
     
-    if (!steps.length) {
-      throw "No supported difficulties found";
-    }
-
     // Process BPM changes and stops
     out.bpmChanges.sort((a, b) => a.beat - b.beat);
     if (out.bpmChanges.length === 0 || out.bpmChanges[0].beat !== 0) {
