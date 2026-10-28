@@ -85,6 +85,7 @@ class BuildSystem {
       'js/utils/Metronome.js',
       'js/utils/TimeUtils.js',
       'js/utils/AviTranscoder.js',
+      'js/utils/AviTools.js',
       
       // Input
       'js/input/GamepadListener.js',
