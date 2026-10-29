@@ -27,7 +27,7 @@
     "release:headless": "node index.js --all --minify --zipalign --headless",
     "clean": "rm -rf dist",
     "clean:all": "rm -rf dist && rm -f *.zip *.apk && rm -rf docs",
-    "test": "echo 'No tests specified'",
+    "test": "node test/syntax-check.js",
     "docs": "node docs-generator.js",
     "help": "node index.js --help"
   },

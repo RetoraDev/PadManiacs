@@ -73,7 +73,7 @@ class LoadPlatform {
         await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
         await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
   
-        if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
+        if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA) {
           return await this.checkFfmpegBundle();
         }
       } catch (error) {

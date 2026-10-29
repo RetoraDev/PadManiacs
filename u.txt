@@ -1,0 +1,160 @@
+diff --git a/dist/js/game.js b/dist/js/game.js
+index 13159e8..db1e52b 100644
+--- a/dist/js/game.js
++++ b/dist/js/game.js
+@@ -5,7 +5,7 @@
+  * 
+  * Source: https://github.com/RetoraDev/PadManiacs
+  * Version: v1.3.0
+- * Build: 10/29/2026, 4:13:49 AM
++ * Build: 10/29/2026, 3:02:55 PM
+  * Platform: Web
+  * Debug: false
+  * Minified: false
+@@ -20732,6 +20732,20 @@ class FileTools {
+    */
+   static readAsText(file) {
+     return new Promise((resolve, reject) => {
++      const isBlob = typeof Blob !== 'undefined' && file instanceof Blob;
++      if (!isBlob && file._path && typeof require !== 'undefined') {
++        try {
++          const fs = require('fs');
++          fs.readFile(file._path, 'utf8', (err, data) => {
++            if (err) reject(err);
++            else resolve(String(data));
++          });
++          return;
++        } catch (e) {
++          reject(e);
++          return;
++        }
++      }
+       const reader = new FileReader();
+       reader.onload = () => resolve(reader.result);
+       reader.onerror = () => reject(reader.error);
+@@ -20768,6 +20782,20 @@ class FileTools {
+    */
+   static readAsArrayBuffer(file) {
+     return new Promise((resolve, reject) => {
++      const isBlob = typeof Blob !== 'undefined' && file instanceof Blob;
++      if (!isBlob && file._path && typeof require !== 'undefined') {
++        try {
++          const fs = require('fs');
++          fs.readFile(file._path, (err, data) => {
++            if (err) reject(err);
++            else resolve(data);
++          });
++          return;
++        } catch (e) {
++          reject(e);
++          return;
++        }
++      }
+       const reader = new FileReader();
+       reader.onload = () => resolve(reader.result);
+       reader.onerror = () => reject(reader.error);
+@@ -23161,7 +23189,7 @@ class LoadPlatform {
+         await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
+         await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
+   
+-        if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
++        if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA) {
+           return await this.checkFfmpegBundle();
+         }
+       } catch (error) {
+diff --git a/docs/classes/Editor.html b/docs/classes/Editor.html
+index ea06056..94ac006 100644
+--- a/docs/classes/Editor.html
++++ b/docs/classes/Editor.html
+@@ -77,10 +77,10 @@
+     [ updateCursorPosition | () | Redraws the cursor rectangle at the current column and judge line. ]
+     [ updateSelectionRect | () | Redraws the selection rectangle for the active area selection. ]
+     [ updateFreezePreview | () | Redraws the hold drag preview while the hold key is held. ]
++    [ updateStopPreview | () | Redraws the stop preview while the stop key combination is held. ]
+     [ getDivisionSize | () | Returns the grid division size used for snapping. ]
+     [ getSnappedBeat | (beat) | Snaps a beat value to the current grid division. ]
+     [ getCurrentTime | () | Returns the current time and beat, from playback or the cursor position. ]
+-    [ getAudioOutputLatency | () | Reads the audio output latency from the active audio context, if any. ]
+     [ handleChartEditInput | () | Processes gamepad input for editing: selecting, placing, and seeking. ]
+     [ togglePlayback | () | Starts or stops chart playback depending on the current state. ]
+     [ startPlayback | () | Begins playback from the cursor position and starts the audio. ]
+@@ -150,6 +150,7 @@
+     [ addNewDifficulty | () | Adds a new empty difficulty to the song chart. ]
+     [ showMetadataEdit | () | Opens the metadata editing screen for the current song. ]
+     [ editMetadataField | (field) | Edits a metadata field for the current song via text input. ]
++    [ numberInput | (parameters) | Create number input method ]
+     [ editSongBpm | () | Opens a text input to change the song BPM. ]
+     [ editSongOffset | () | Opens a text input to change the song offset. ]
+     [ editSampleStart | () | Opens a text input to change the sample start time. ]
+diff --git a/package.json b/package.json
+index 9c245e3..59cd824 100644
+--- a/package.json
++++ b/package.json
+@@ -27,7 +27,7 @@
+     "release:headless": "node index.js --all --minify --zipalign --headless",
+     "clean": "rm -rf dist",
+     "clean:all": "rm -rf dist && rm -f *.zip *.apk && rm -rf docs",
+-    "test": "echo 'No tests specified'",
++    "test": "node test/syntax-check.js",
+     "docs": "node docs-generator.js",
+     "help": "node index.js --help"
+   },
+diff --git a/src/js/game/states/LoadPlatform.js b/src/js/game/states/LoadPlatform.js
+index d534336..42ed480 100644
+--- a/src/js/game/states/LoadPlatform.js
++++ b/src/js/game/states/LoadPlatform.js
+@@ -73,7 +73,7 @@ class LoadPlatform {
+         await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
+         await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
+   
+-        if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
++        if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA) {
+           return await this.checkFfmpegBundle();
+         }
+       } catch (error) {
+diff --git a/src/js/parsers/FileTools.js b/src/js/parsers/FileTools.js
+index 10a6439..83bd34d 100644
+--- a/src/js/parsers/FileTools.js
++++ b/src/js/parsers/FileTools.js
+@@ -221,6 +221,20 @@ class FileTools {
+    */
+   static readAsText(file) {
+     return new Promise((resolve, reject) => {
++      const isBlob = typeof Blob !== 'undefined' && file instanceof Blob;
++      if (!isBlob && file._path && typeof require !== 'undefined') {
++        try {
++          const fs = require('fs');
++          fs.readFile(file._path, 'utf8', (err, data) => {
++            if (err) reject(err);
++            else resolve(String(data));
++          });
++          return;
++        } catch (e) {
++          reject(e);
++          return;
++        }
++      }
+       const reader = new FileReader();
+       reader.onload = () => resolve(reader.result);
+       reader.onerror = () => reject(reader.error);
+@@ -257,6 +271,20 @@ class FileTools {
+    */
+   static readAsArrayBuffer(file) {
+     return new Promise((resolve, reject) => {
++      const isBlob = typeof Blob !== 'undefined' && file instanceof Blob;
++      if (!isBlob && file._path && typeof require !== 'undefined') {
++        try {
++          const fs = require('fs');
++          fs.readFile(file._path, (err, data) => {
++            if (err) reject(err);
++            else resolve(data);
++          });
++          return;
++        } catch (e) {
++          reject(e);
++          return;
++        }
++      }
+       const reader = new FileReader();
+       reader.onload = () => resolve(reader.result);
+       reader.onerror = () => reject(reader.error);

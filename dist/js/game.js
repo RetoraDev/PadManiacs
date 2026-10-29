@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0
- * Build: 10/29/2026, 4:13:49 AM
+ * Build: 10/29/2026, 3:02:55 PM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -20732,6 +20732,20 @@ class FileTools {
    */
   static readAsText(file) {
     return new Promise((resolve, reject) => {
+      const isBlob = typeof Blob !== 'undefined' && file instanceof Blob;
+      if (!isBlob && file._path && typeof require !== 'undefined') {
+        try {
+          const fs = require('fs');
+          fs.readFile(file._path, 'utf8', (err, data) => {
+            if (err) reject(err);
+            else resolve(String(data));
+          });
+          return;
+        } catch (e) {
+          reject(e);
+          return;
+        }
+      }
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
       reader.onerror = () => reject(reader.error);
@@ -20768,6 +20782,20 @@ class FileTools {
    */
   static readAsArrayBuffer(file) {
     return new Promise((resolve, reject) => {
+      const isBlob = typeof Blob !== 'undefined' && file instanceof Blob;
+      if (!isBlob && file._path && typeof require !== 'undefined') {
+        try {
+          const fs = require('fs');
+          fs.readFile(file._path, (err, data) => {
+            if (err) reject(err);
+            else resolve(data);
+          });
+          return;
+        } catch (e) {
+          reject(e);
+          return;
+        }
+      }
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
       reader.onerror = () => reject(reader.error);
@@ -23161,7 +23189,7 @@ class LoadPlatform {
         await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
         await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
   
-        if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
+        if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA) {
           return await this.checkFfmpegBundle();
         }
       } catch (error) {
