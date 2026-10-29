@@ -33,9 +33,9 @@ class NodeDirectoryEntry {
     this.isFile = false;
     this.isDirectory = true;
     this.name = name;
-    this.fullPath = fullPath;
+    this.fullPath = String(fullPath || '').replace(/^[\/\\]+/, '');
     this.filesystem = fileSystem;
-    this.nativeURL = nativeURL || `file://${fullPath}`;
+    this.nativeURL = nativeURL || `file://${this.fullPath}`;
   }
 
   createReader() {
@@ -46,6 +46,9 @@ class NodeDirectoryEntry {
     return {
       readEntries: (successCallback, errorCallback) => {
         try {
+          if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+            console.log('[NodeFileSystem] readEntries', fullPath);
+          }
           const entries = [];
           const items = fs.readdirSync(fullPath);
           
@@ -85,6 +88,9 @@ class NodeDirectoryEntry {
     const fullPath = pathModule.join(this.filesystem.basePath, this.fullPath, path);
     
     try {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeDirectoryEntry] getDirectory', path, options && options.create ? '(create)' : '');
+      }
       if (!fs.existsSync(fullPath)) {
         if (options && options.create) {
           fs.mkdirSync(fullPath, { recursive: true });
@@ -117,9 +123,13 @@ class NodeDirectoryEntry {
     const fullPath = pathModule.join(this.filesystem.basePath, this.fullPath, path);
     
     try {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeDirectoryEntry] getFile', path, options && options.create ? '(create)' : '');
+      }
       if (!fs.existsSync(fullPath)) {
         if (options && options.create) {
-          // Create empty file
+          // Ensure parent directory exists
+          fs.mkdirSync(pathModule.dirname(fullPath), { recursive: true });
           fs.writeFileSync(fullPath, '');
         } else {
           throw new Error(`File not found: ${path}`);
@@ -150,6 +160,9 @@ class NodeDirectoryEntry {
     const fullPath = path.join(this.filesystem.basePath, this.fullPath);
     
     try {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeDirectoryEntry] removeRecursively', fullPath);
+      }
       const removeDir = (dirPath) => {
         if (fs.existsSync(dirPath)) {
           const items = fs.readdirSync(dirPath);
@@ -224,6 +237,9 @@ class NodeFileEntry {
     try {
       const writer = {
         write: (data, onDone, onError) => {
+          if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+            console.log('[NodeFileEntry] write', fullPath, typeof data === 'string' ? data.length + ' bytes' : typeof data);
+          }
           const done = () => { if (onDone) onDone(); };
           const fail = err => { if (onError) onError(err); else errorCallback(err); };
           try {
@@ -275,6 +291,9 @@ class NodeFileEntry {
     const fullPath = path.join(this.filesystem.basePath, this.fullPath);
     
     try {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeFileEntry] file', fullPath);
+      }
       const stats = fs.statSync(fullPath);
       const file = {
         name: this.name,
@@ -364,9 +383,8 @@ class NodeFileSystem {
       /** @type {Object} Pseudo filesystem exposed to DirectoryEntry instances */
       this.fileSystemObj = {
         name: 'nodefs',
-        root: new NodeDirectoryEntry('', '/', this, `file://${this.basePath}`)
+        root: new NodeDirectoryEntry('', '', this, `file://${this.basePath}`)
       };
-      
     } catch (error) {
       console.error('Node.js modules not available:', error);
       throw error;
@@ -378,14 +396,7 @@ class NodeFileSystem {
    * @returns {string} The working directory path
    */
   getBasePath() {
-    if (typeof nw !== 'undefined' && nw.process) {
-      // NW.js - use the directory where the executable is located
-      return nw.process.cwd();
-    } else if (typeof process !== 'undefined' && process.cwd) {
-      // Node.js - use current working directory
-      return process.cwd();
-    }
-    return '.';
+    return '.'; // We can trust relative '.' path exists and is readable
   }
 
   /**
@@ -397,8 +408,13 @@ class NodeFileSystem {
     return new Promise((resolve, reject) => {
       const fullPath = this.path.join(this.basePath, path);
       
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeFileSystem] getDirectory', path);
+      }
+      
       this.fs.stat(fullPath, (err, stats) => {
         if (err) {
+          console.error('[NodeFileSystem] stat failed', fullPath, err.code, err.message);
           reject(err);
           return;
         }
@@ -496,6 +512,9 @@ class NodeFileSystem {
     return new Promise((resolve, reject) => {
       // If file has _path (from NodeFileEntry), use it directly
       if (file._path) {
+        if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+          console.log('[NodeFileSystem] readFileContent', file._path);
+        }
         this.fs.readFile(file._path, 'utf8', (err, data) => {
           if (err) reject(err);
           else resolve(data);
@@ -559,6 +578,9 @@ class NodeFileSystem {
    */
   writeFile(fileEntry, dataObj, isAppend) {
     return new Promise((resolve, reject) => {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeFileSystem] writeFile', fileEntry.fullPath, isAppend ? '(append)' : '');
+      }
       fileEntry.createWriter(
         writer => {
           writer.write(dataObj, () => resolve(writer), reject);
@@ -579,6 +601,9 @@ class NodeFileSystem {
         const fs = require('fs');
         const path = require('path');
         const fullPath = path.join(this.basePath, fileEntry.fullPath);
+        if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+          console.log('[NodeFileSystem] deleteFile', fullPath);
+        }
         fs.unlink(fullPath, err => {
           if (err) reject(err);
           else resolve(true);
@@ -597,6 +622,9 @@ class NodeFileSystem {
    */
   createDirectory(rootDirEntry, dirName) {
     return new Promise((resolve, reject) => {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeFileSystem] createDirectory', dirName);
+      }
       rootDirEntry.getDirectory(dirName, { create: true }, 
         dirEntry => resolve(dirEntry),
         err => reject(err)

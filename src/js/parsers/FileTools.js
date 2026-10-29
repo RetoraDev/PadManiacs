@@ -286,7 +286,7 @@ class FileTools {
     }
     
     // Si es un path de archivo local (Cordova/NWJS)
-    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NEUTRALINO) {
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       try {
         const fileSystem = new FileSystemTools();
         const fileEntry = await fileSystem.getFile(url);

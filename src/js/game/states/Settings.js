@@ -641,7 +641,7 @@ class Settings {
       URL.revokeObjectURL(url);
       notifications.show(__("Backup exported successfully!||¡Respaldo exportado exitosamente!"), 2000, "success");
       this.showSettings();
-    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NEUTRALINO) {
+    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       try {
         const fileSystem = new FileSystemTools();
         const outputDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + BACKUPS_DIRECTORY);

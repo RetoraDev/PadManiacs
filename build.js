@@ -117,6 +117,7 @@ class BuildSystem {
       
       // Game states
       'js/game/states/Boot.js',
+      'js/game/states/LanguageSelect.js',
       'js/game/states/Load.js',
       'js/game/states/LoadPlatform.js',
       'js/game/states/LoadAddons.js',
@@ -553,7 +554,7 @@ class BuildSystem {
     // Debug initialization
     if (typeof window.eruda !== 'undefined' && (window.DEBUG || location.search.includes('debug'))) {
       eruda.init({
-        tool: ['console', 'elements', 'resources', 'snippets']
+        tool: ['console', 'elements', 'resources', 'network', 'snippets',]
       });
       
       const snippets = eruda.get('snippets');
@@ -609,6 +610,12 @@ class BuildSystem {
       snippets.add("Reload Game", () => {
         location.reload();
       }, "Reload the game");
+
+      snippets.add("Force First Run", () => {
+        Account.firstRun = true;
+        saveAccount();
+        location.reload();
+      }, "Reload the game with Account.firstRun = true");
       
       snippets.add("Destroy Eruda", () => {
         eruda.destroy();

@@ -216,7 +216,7 @@ class AviTools {
       song &&
       song.isExternal &&
       song.externalPath &&
-      (CURRENT_ENVIRONMENT === ENVIRONMENT.NEUTRALINO || CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA)
+      (CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS || CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA)
     );
   }
 }

@@ -62,7 +62,7 @@ class LoadExternalSongs {
 
     this.fileSystem = new FileSystemTools();
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       this.targetDirectory = EXTERNAL_DIRECTORY + SONGS_DIRECTORY;
       this.loadSongsFromStorage();
     } else {

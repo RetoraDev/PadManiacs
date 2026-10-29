@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0
- * Build: 10/28/2026, 8:51:16 PM
+ * Build: 10/29/2026, 12:27:22 AM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -132,7 +132,7 @@ window.DEBUG = false;
 
 /** @type {boolean} Whether to log personality study data during development */
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
-window.LOG_NEUTRALINO_FILESYTEM_OPERATIONS = window.DEBUG; // Kept for compatibility
+window.LOG_NWJS_FILESYSTEM_OPERATIONS = window.DEBUG;
 
 /** @type {boolean} Whether to unlock all clothing items for development */
 window.UNLOCK_ALL_CLOTHES = false;
@@ -14974,9 +14974,9 @@ class NodeDirectoryEntry {
     this.isFile = false;
     this.isDirectory = true;
     this.name = name;
-    this.fullPath = fullPath;
+    this.fullPath = String(fullPath || '').replace(/^[\/\\]+/, '');
     this.filesystem = fileSystem;
-    this.nativeURL = nativeURL || `file://${fullPath}`;
+    this.nativeURL = nativeURL || `file://${this.fullPath}`;
   }
 
   createReader() {
@@ -14987,6 +14987,9 @@ class NodeDirectoryEntry {
     return {
       readEntries: (successCallback, errorCallback) => {
         try {
+          if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+            console.log('[NodeFileSystem] readEntries', fullPath);
+          }
           const entries = [];
           const items = fs.readdirSync(fullPath);
           
@@ -15026,6 +15029,9 @@ class NodeDirectoryEntry {
     const fullPath = pathModule.join(this.filesystem.basePath, this.fullPath, path);
     
     try {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeDirectoryEntry] getDirectory', path, options && options.create ? '(create)' : '');
+      }
       if (!fs.existsSync(fullPath)) {
         if (options && options.create) {
           fs.mkdirSync(fullPath, { recursive: true });
@@ -15058,9 +15064,13 @@ class NodeDirectoryEntry {
     const fullPath = pathModule.join(this.filesystem.basePath, this.fullPath, path);
     
     try {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeDirectoryEntry] getFile', path, options && options.create ? '(create)' : '');
+      }
       if (!fs.existsSync(fullPath)) {
         if (options && options.create) {
-          // Create empty file
+          // Ensure parent directory exists
+          fs.mkdirSync(pathModule.dirname(fullPath), { recursive: true });
           fs.writeFileSync(fullPath, '');
         } else {
           throw new Error(`File not found: ${path}`);
@@ -15091,6 +15101,9 @@ class NodeDirectoryEntry {
     const fullPath = path.join(this.filesystem.basePath, this.fullPath);
     
     try {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeDirectoryEntry] removeRecursively', fullPath);
+      }
       const removeDir = (dirPath) => {
         if (fs.existsSync(dirPath)) {
           const items = fs.readdirSync(dirPath);
@@ -15165,6 +15178,9 @@ class NodeFileEntry {
     try {
       const writer = {
         write: (data, onDone, onError) => {
+          if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+            console.log('[NodeFileEntry] write', fullPath, typeof data === 'string' ? data.length + ' bytes' : typeof data);
+          }
           const done = () => { if (onDone) onDone(); };
           const fail = err => { if (onError) onError(err); else errorCallback(err); };
           try {
@@ -15216,6 +15232,9 @@ class NodeFileEntry {
     const fullPath = path.join(this.filesystem.basePath, this.fullPath);
     
     try {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeFileEntry] file', fullPath);
+      }
       const stats = fs.statSync(fullPath);
       const file = {
         name: this.name,
@@ -15305,9 +15324,8 @@ class NodeFileSystem {
       /** @type {Object} Pseudo filesystem exposed to DirectoryEntry instances */
       this.fileSystemObj = {
         name: 'nodefs',
-        root: new NodeDirectoryEntry('', '/', this, `file://${this.basePath}`)
+        root: new NodeDirectoryEntry('', '', this, `file://${this.basePath}`)
       };
-      
     } catch (error) {
       console.error('Node.js modules not available:', error);
       throw error;
@@ -15319,14 +15337,7 @@ class NodeFileSystem {
    * @returns {string} The working directory path
    */
   getBasePath() {
-    if (typeof nw !== 'undefined' && nw.process) {
-      // NW.js - use the directory where the executable is located
-      return nw.process.cwd();
-    } else if (typeof process !== 'undefined' && process.cwd) {
-      // Node.js - use current working directory
-      return process.cwd();
-    }
-    return '.';
+    return '.'; // We can trust relative '.' path exists and is readable
   }
 
   /**
@@ -15338,8 +15349,13 @@ class NodeFileSystem {
     return new Promise((resolve, reject) => {
       const fullPath = this.path.join(this.basePath, path);
       
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeFileSystem] getDirectory', path);
+      }
+      
       this.fs.stat(fullPath, (err, stats) => {
         if (err) {
+          console.error('[NodeFileSystem] stat failed', fullPath, err.code, err.message);
           reject(err);
           return;
         }
@@ -15437,6 +15453,9 @@ class NodeFileSystem {
     return new Promise((resolve, reject) => {
       // If file has _path (from NodeFileEntry), use it directly
       if (file._path) {
+        if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+          console.log('[NodeFileSystem] readFileContent', file._path);
+        }
         this.fs.readFile(file._path, 'utf8', (err, data) => {
           if (err) reject(err);
           else resolve(data);
@@ -15500,6 +15519,9 @@ class NodeFileSystem {
    */
   writeFile(fileEntry, dataObj, isAppend) {
     return new Promise((resolve, reject) => {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeFileSystem] writeFile', fileEntry.fullPath, isAppend ? '(append)' : '');
+      }
       fileEntry.createWriter(
         writer => {
           writer.write(dataObj, () => resolve(writer), reject);
@@ -15520,6 +15542,9 @@ class NodeFileSystem {
         const fs = require('fs');
         const path = require('path');
         const fullPath = path.join(this.basePath, fileEntry.fullPath);
+        if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+          console.log('[NodeFileSystem] deleteFile', fullPath);
+        }
         fs.unlink(fullPath, err => {
           if (err) reject(err);
           else resolve(true);
@@ -15538,6 +15563,9 @@ class NodeFileSystem {
    */
   createDirectory(rootDirEntry, dirName) {
     return new Promise((resolve, reject) => {
+      if (window.LOG_NWJS_FILESYSTEM_OPERATIONS) {
+        console.log('[NodeFileSystem] createDirectory', dirName);
+      }
       rootDirEntry.getDirectory(dirName, { create: true }, 
         dirEntry => resolve(dirEntry),
         err => reject(err)
@@ -16429,7 +16457,7 @@ class ScreenRecorder {
    * @param {Blob} blob - Data blob to save
    */
   async saveFile(filename, blob) {
-    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NEUTRALINO) {
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       const fileSystem = new FileSystemTools();
       
       // Make sure SCREENSHOTS_DIRECTORY is defined, or use a default
@@ -16976,9 +17004,7 @@ class AviTranscoder {
    * @type {string}
    */
   static get FF_DIR() {
-    return (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO)
-      ? window.ff_bundle_dir || window.ff_dir
-      : window.ff_dir;
+    return CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA ? window.ff_bundle_dir || window.ff_dir : window.ff_dir;
   }
 
   /** @type {Worker|null} Shared ffmpeg worker instance */
@@ -17531,7 +17557,7 @@ class AviTools {
       song &&
       song.isExternal &&
       song.externalPath &&
-      (CURRENT_ENVIRONMENT === ENVIRONMENT.NEUTRALINO || CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA)
+      (CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS || CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA)
     );
   }
 }
@@ -20771,7 +20797,7 @@ class FileTools {
     }
     
     // Si es un path de archivo local (Cordova/NWJS)
-    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NEUTRALINO) {
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       try {
         const fileSystem = new FileSystemTools();
         const fileEntry = await fileSystem.getFile(url);
@@ -22347,6 +22373,7 @@ class Boot {
       };
     }
 
+    game.state.add("LanguageSelect", LanguageSelect);
     game.state.add("Load", Load);
     game.state.add("LoadPlatform", LoadPlatform);
     game.state.add("LoadAddons", LoadAddons);
@@ -22565,6 +22592,13 @@ class Boot {
         key: "ui_banner_no_image_small",
         url: "ui/banner_no_image_small.png",
       },
+      {
+        key: "flags",
+        url: "ui/flags.png",
+        type: "spritesheet",
+        frameWidth: 24,
+        frameHeight: 16
+      },
       // Sfx
       {
         key: "assist_tick",
@@ -22777,7 +22811,193 @@ class Boot {
       }
     ];
     
-    game.state.start("Load", true, false, window.gameResources, "LoadPlatform");
+    const nextState = Account.firstRun ? "LanguageSelect" : "LoadPlatform";
+    game.state.start("Load", true, false, window.gameResources, nextState);
+  }
+}
+
+/**
+ * @class LanguageSelect
+ * @category Game States
+ * @summary First-run language selection screen
+ * @constructor
+ * @features
+ * Black screen with a centered Window frame
+ * Flag spritesheet at src/assets/flags.png with two frames (English / Español)
+ * Left/right arrows to change language
+ * Language name text below the flag
+ * Confirm with A or START
+ * @description
+ * The first-run language selection screen. Shown when Account.firstRun is true
+ * before the game loads any songs. Displays a flag for the currently selected
+ * language, lets the player switch between English and Spanish, and on confirm
+ * saves the choice to the account and continues to load local songs.
+ */
+class LanguageSelect {
+  /**
+   * Phaser state hook that builds the language selection screen.
+   */
+  create() {
+    game.camera.fadeIn(0x000000);
+
+    /** @type {Array<Object>} Supported languages with their display info */
+    this.languages = [
+      { key: 0, name: "English", frame: 0 },
+      { key: 1, name: "Español", frame: 1 }
+    ];
+
+    /** @type {number} Index into this.languages for the current selection */
+    this.currentIndex = Account.settings?.language ?? 0;
+
+    // Clamp to valid range
+    if (this.currentIndex < 0 || this.currentIndex >= this.languages.length) {
+      this.currentIndex = 0;
+    }
+
+    // Dark background
+    /** @type {Phaser.Graphics} Black backdrop for the language screen */
+    this.background = game.add.graphics(0, 0);
+    this.background.beginFill(0x000000, 1);
+    this.background.drawRect(0, 0, game.width, game.height);
+    this.background.endFill();
+
+    // Centered window (Window units are 8px cells)
+    // Window width: 10 cells = 80px, height: 5 cells = 40px
+    // Center it: x = (240 - 80) / 2 / 8 = 10, y = (140 - 40) / 2 / 8 = 6.25 → 6
+    const windowWidth = 10;
+    const windowHeight = 5;
+    const windowX = Math.floor((game.width / 8 - windowWidth) / 2);
+    const windowY = Math.floor((game.height / 8 - windowHeight) / 2);
+
+    /** @type {Window} The centered window frame */
+    this.window = new Window(windowX, windowY, windowWidth, windowHeight, "1");
+    this.window.disableScrollBar = true;
+    this.window.disableHighlight = true;
+    this.window.selector.visible = false;
+
+    // Window pixel geometry for precise layout
+    const winLeft = windowX * 8;
+    const winTop = windowY * 8;
+    const winW = windowWidth * 8;
+    const winH = windowHeight * 8;
+    const centerX = winLeft + winW / 2;
+
+    // Flag position: centered horizontally in window
+    const flagW = 24;
+    const flagH = 16;
+    const flagX = Math.floor(centerX - flagW / 2);
+    const flagY = winTop + 8;
+
+    /** @type {Phaser.Sprite} Flag sprite showing the currently selected language */
+    this.flagSprite = game.add.sprite(flagX, flagY, 'flags', this.languages[this.currentIndex].frame);
+    this.flagSprite.scale.set(1, 1);
+
+    // Left arrow
+    /** @type {Text} Left arrow indicator */
+    this.leftArrow = new Text(winLeft + 10, flagY + 5, "<", FONTS.bold);
+    this.leftArrow.tint = 0xffffff;
+    this.leftArrow.alpha = 0.6;
+
+    // Right arrow
+    /** @type {Text} Right arrow indicator */
+    this.rightArrow = new Text(winLeft + winW - 14, flagY + 5, ">", FONTS.bold);
+    this.rightArrow.tint = 0xffffff;
+    this.rightArrow.alpha = 0.6;
+
+    // Blink the arrows to hint at interactivity
+    game.add.tween(this.leftArrow).to({ alpha: 1 }, 400, "Linear", true, 0, -1).yoyo(true);
+    game.add.tween(this.rightArrow).to({ alpha: 1 }, 400, "Linear", true, 0, -1).yoyo(true);
+
+    // Language name text below the flag
+    /** @type {Text} Selected language display name */
+    this.languageText = new Text(centerX, flagY + flagH + 2, this.languages[this.currentIndex].name, FONTS.default);
+    this.languageText.anchor.x = 0.5;
+    this.languageText.tint = 0x76fcde;
+
+    // Input cooldown to prevent immediate confirm on state start
+    /** @type {number} Timestamp before which input is ignored */
+    this.inputLockedUntil = game.time.now + 200;
+
+    // Execute addon behaviors for this state
+    if (typeof addonManager !== 'undefined' && addonManager) {
+      addonManager.executeStateBehaviors(this.constructor.name, this);
+    }
+  }
+
+  /**
+   * Cycles the language selection by a direction and refreshes the UI.
+   * @param {number} direction - -1 for previous, 1 for next
+   */
+  changeLanguage(direction) {
+    const count = this.languages.length;
+    this.currentIndex = (this.currentIndex + direction + count) % count;
+    this.refreshUI();
+    ENABLE_UI_SFX && Audio.play('ui_nav');
+  }
+
+  /**
+   * Updates the flag frame and language text to match currentIndex.
+   */
+  refreshUI() {
+    const lang = this.languages[this.currentIndex];
+    this.flagSprite.frame = lang.frame;
+    this.languageText.write(lang.name);
+  }
+
+  /**
+   * Saves the selected language, clears the first-run flag, and starts loading.
+   */
+  confirm() {
+    Account.settings.language = this.languages[this.currentIndex].key;
+    Account.firstRun = false;
+    saveAccount();
+
+    ENABLE_UI_SFX && Audio.play('ui_select');
+
+    // Continue the boot chain
+    game.state.start("LoadPlatform");
+  }
+
+  /**
+   * Phaser lifecycle hook: processes input each frame.
+   */
+  update() {
+    if (gamepad) gamepad.update();
+
+    // Ignore input briefly after state start
+    if (game.time.now < this.inputLockedUntil) return;
+
+    // Navigation
+    if (gamepad.pressed.left) {
+      this.changeLanguage(-1);
+      return;
+    }
+    if (gamepad.pressed.right) {
+      this.changeLanguage(1);
+      return;
+    }
+
+    // Mouse: click arrows
+    if (mouse && mouse.pressed.left) {
+      const p = mouse.pointer.position;
+      const leftBounds = new Phaser.Rectangle(this.leftArrow.x - 4, this.leftArrow.y - 4, this.leftArrow.width + 8, this.leftArrow.height + 8);
+      const rightBounds = new Phaser.Rectangle(this.rightArrow.x - 4, this.rightArrow.y - 4, this.rightArrow.width + 8, this.rightArrow.height + 8);
+      if (Phaser.Rectangle.contains(leftBounds, p.x, p.y)) {
+        this.changeLanguage(-1);
+        return;
+      }
+      if (Phaser.Rectangle.contains(rightBounds, p.x, p.y)) {
+        this.changeLanguage(1);
+        return;
+      }
+    }
+
+    // Confirm with A or START
+    if (gamepad.pressed.a || gamepad.pressed.start || (mouse && mouse.pressed.left)) {
+      // Only auto-confirm on mouse if clicked outside arrows; otherwise the arrows already returned.
+      // Since arrows return before reaching here, a mouse click here means "confirm".
+      this.confirm();
+    }
   }
 }
 
@@ -22853,7 +23073,7 @@ class Load {
     });
 
     /** @type {ProgressText} Text showing loading progress of assets */
-    this.progressText = new ProgressText(__("Loading assets...||Cargando recursos..."));
+    this.progressText = new ProgressText(Account.firstRun ? "" : __("Loading assets...||Cargando recursos..."));
   }
 
   /**
@@ -22925,27 +23145,31 @@ class LoadPlatform {
    */
   async createFolderStructure() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
-      this.fileSystemTools = new FileSystemTools();
-      
-      const fileSystem = this.fileSystemTools;
-      
-      const rootDir = await fileSystem.getDirectory("");
-      
-      const gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
-      
-      await fileSystem.createDirectory(gameDir, ADDONS_DIRECTORY);
-      await fileSystem.createDirectory(gameDir, SCREENSHOTS_DIRECTORY);
-      await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
-      await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
-      
-      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
-        this.checkFfmpegBundle();
-      } else {
-        this.continue();
+      try {
+        this.fileSystemTools = new FileSystemTools();
+        const fileSystem = this.fileSystemTools;
+  
+        if (this.progressText) {
+          this.progressText.write(__("Initializing filesystem...||Inicializando Sistema de Archivos..."));
+        }
+  
+        const rootDir = await fileSystem.getDirectory("");
+        const gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
+  
+        await fileSystem.createDirectory(gameDir, ADDONS_DIRECTORY);
+        await fileSystem.createDirectory(gameDir, SCREENSHOTS_DIRECTORY);
+        await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
+        await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
+  
+        if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
+          return await this.checkFfmpegBundle();
+        }
+      } catch (error) {
+        console.error("[LoadPlatform] Failed to create folder structure:", error);
       }
-    } else {
-      this.continue();
     }
+  
+    this.continue();
   }
   
   /**
@@ -23217,7 +23441,7 @@ class LoadExternalSongs {
 
     this.fileSystem = new FileSystemTools();
     
-    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO) {
+    if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
       this.targetDirectory = EXTERNAL_DIRECTORY + SONGS_DIRECTORY;
       this.loadSongsFromStorage();
     } else {
@@ -25686,7 +25910,7 @@ class Settings {
       URL.revokeObjectURL(url);
       notifications.show(__("Backup exported successfully!||¡Respaldo exportado exitosamente!"), 2000, "success");
       this.showSettings();
-    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NEUTRALINO) {
+    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       try {
         const fileSystem = new FileSystemTools();
         const outputDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + BACKUPS_DIRECTORY);
@@ -38815,7 +39039,7 @@ class Editor {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NEUTRALINO) {
+    } else if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       await this.saveFileToFilesystem(blob, filename);
     }
   }

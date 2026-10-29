@@ -268,6 +268,7 @@ class Boot {
       };
     }
 
+    game.state.add("LanguageSelect", LanguageSelect);
     game.state.add("Load", Load);
     game.state.add("LoadPlatform", LoadPlatform);
     game.state.add("LoadAddons", LoadAddons);
@@ -486,6 +487,13 @@ class Boot {
         key: "ui_banner_no_image_small",
         url: "ui/banner_no_image_small.png",
       },
+      {
+        key: "flags",
+        url: "ui/flags.png",
+        type: "spritesheet",
+        frameWidth: 24,
+        frameHeight: 16
+      },
       // Sfx
       {
         key: "assist_tick",
@@ -698,6 +706,7 @@ class Boot {
       }
     ];
     
-    game.state.start("Load", true, false, window.gameResources, "LoadPlatform");
+    const nextState = Account.firstRun ? "LanguageSelect" : "LoadPlatform";
+    game.state.start("Load", true, false, window.gameResources, nextState);
   }
 }

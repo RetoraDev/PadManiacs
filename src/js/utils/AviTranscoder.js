@@ -26,9 +26,7 @@ class AviTranscoder {
    * @type {string}
    */
   static get FF_DIR() {
-    return (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NEUTRALINO)
-      ? window.ff_bundle_dir || window.ff_dir
-      : window.ff_dir;
+    return CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA ? window.ff_bundle_dir || window.ff_dir : window.ff_dir;
   }
 
   /** @type {Worker|null} Shared ffmpeg worker instance */

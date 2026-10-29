@@ -278,7 +278,7 @@ class ScreenRecorder {
    * @param {Blob} blob - Data blob to save
    */
   async saveFile(filename, blob) {
-    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NEUTRALINO) {
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
       const fileSystem = new FileSystemTools();
       
       // Make sure SCREENSHOTS_DIRECTORY is defined, or use a default

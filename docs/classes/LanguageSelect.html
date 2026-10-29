@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>LanguageSelect - PadManiaX Modding API Documentation</title>
+</head>
+<body class="doki-hidden">
+    <script src="../doki-loader.js"></script>
+    [title: "LanguageSelect Class"]
+
+    <a href="../">← Back to index</a>
+
+    <p>First-run language selection screen</p>
+
+    [heading: "Description"]
+    <p>The first-run language selection screen. Shown when Account.firstRun is true before the game loads any songs. Displays a flag for the currently selected language, lets the player switch between English and Spanish, and on confirm saves the choice to the account and continues to load local songs.</p>
+
+    [heading: "Key Features"]
+    [list]
+    * Black screen with a centered Window frame
+    * Flag spritesheet at src/assets/flags.png with two frames (English / Español)
+    * Left/right arrows to change language
+    * Language name text below the flag
+    * Confirm with A or START
+    [/list]
+
+    [heading: "Properties"]
+    [table header]
+    [ Property | Type | Description ]
+    [ languages | Array&lt;Object&gt; | Supported languages with their display info ]
+    [ currentIndex | number | Index into this.languages for the current selection ]
+    [ background | Phaser.Graphics | Black backdrop for the language screen ]
+    [ window | Window | The centered window frame ]
+    [ flagSprite | Phaser.Sprite | Flag sprite showing the currently selected language ]
+    [ leftArrow | Text | Left arrow indicator ]
+    [ rightArrow | Text | Right arrow indicator ]
+    [ languageText | Text | Selected language display name ]
+    [ inputLockedUntil | number | Timestamp before which input is ignored ]
+    [/table]
+
+
+    [heading: "Methods"]
+    [table header]
+    [ Method | Parameters | Description ]
+    [ create | () | Phaser state hook that builds the language selection screen. ]
+    [ changeLanguage | (direction) | Cycles the language selection by a direction and refreshes the UI. ]
+    [ refreshUI | () | Updates the flag frame and language text to match currentIndex. ]
+    [ confirm | () | Saves the selected language, clears the first-run flag, and starts loading. ]
+    [ update | () | Phaser lifecycle hook: processes input each frame. ]
+    [/table]
+
+
+    [footer: "&copy; Retora 2026"]
+</body>
+</html>

@@ -57,27 +57,31 @@ class LoadPlatform {
    */
   async createFolderStructure() {
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT == ENVIRONMENT.NWJS) {
-      this.fileSystemTools = new FileSystemTools();
-      
-      const fileSystem = this.fileSystemTools;
-      
-      const rootDir = await fileSystem.getDirectory("");
-      
-      const gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
-      
-      await fileSystem.createDirectory(gameDir, ADDONS_DIRECTORY);
-      await fileSystem.createDirectory(gameDir, SCREENSHOTS_DIRECTORY);
-      await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
-      await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
-      
-      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
-        this.checkFfmpegBundle();
-      } else {
-        this.continue();
+      try {
+        this.fileSystemTools = new FileSystemTools();
+        const fileSystem = this.fileSystemTools;
+  
+        if (this.progressText) {
+          this.progressText.write(__("Initializing filesystem...||Inicializando Sistema de Archivos..."));
+        }
+  
+        const rootDir = await fileSystem.getDirectory("");
+        const gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
+  
+        await fileSystem.createDirectory(gameDir, ADDONS_DIRECTORY);
+        await fileSystem.createDirectory(gameDir, SCREENSHOTS_DIRECTORY);
+        await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
+        await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
+  
+        if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
+          return await this.checkFfmpegBundle();
+        }
+      } catch (error) {
+        console.error("[LoadPlatform] Failed to create folder structure:", error);
       }
-    } else {
-      this.continue();
     }
+  
+    this.continue();
   }
   
   /**
