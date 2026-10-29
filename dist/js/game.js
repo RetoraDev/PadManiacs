@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.3.0
- * Build: 10/29/2026, 3:02:55 PM
- * Platform: Web
+ * Version: v1.3.0 dev
+ * Build: 10/29/2026, 4:10:49 PM
+ * Platform: Development
  * Debug: false
  * Minified: false
  */
@@ -125,7 +125,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.3.0";
+const VERSION = "v1.3.0 dev";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -870,7 +870,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -14947,7 +14947,7 @@ class FileSystemTools {
  * @param {string} name - The directory name
  * @param {string} fullPath - The relative path from the filesystem root
  * @param {NodeFileSystem} fileSystem - The parent NodeFileSystem instance
- * @param {string} [nativeURL] - The native file:// URL for this directory
+ * @param {string} [nativeURL] - The native path for this directory
  * @features
  * Mimics the Cordova DirectoryEntry API for NW.js environments
  * Supports directory creation, recursive removal, and file listing
@@ -14976,7 +14976,7 @@ class NodeDirectoryEntry {
     this.name = name;
     this.fullPath = String(fullPath || '').replace(/^[\/\\]+/, '');
     this.filesystem = fileSystem;
-    this.nativeURL = nativeURL || `file://${this.fullPath}`;
+    this.nativeURL = nativeURL || this.fullPath;
   }
 
   createReader() {
@@ -15003,14 +15003,14 @@ class NodeDirectoryEntry {
                 item, 
                 relativePath, 
                 this.filesystem,
-                `file://${itemPath}`
+                `${itemPath}`
               ));
             } else {
               entries.push(new NodeFileEntry(
                 item,
                 relativePath,
                 this.filesystem,
-                `file://${itemPath}`
+                `${itemPath}`
               ));
             }
           }
@@ -15049,7 +15049,7 @@ class NodeDirectoryEntry {
         pathModule.basename(path),
         pathModule.join(this.fullPath, path),
         this.filesystem,
-        `file://${fullPath}`
+        `${fullPath}`
       );
       
       successCallback(dirEntry);
@@ -15086,7 +15086,7 @@ class NodeDirectoryEntry {
         pathModule.basename(path),
         pathModule.join(this.fullPath, path),
         this.filesystem,
-        `file://${fullPath}`
+        `${fullPath}`
       );
       
       successCallback(fileEntry);
@@ -15137,7 +15137,7 @@ class NodeDirectoryEntry {
  * @param {string} name - The file name
  * @param {string} fullPath - The relative path from the filesystem root
  * @param {NodeFileSystem} fileSystem - The parent NodeFileSystem instance
- * @param {string} [nativeURL] - The native file:// URL for this file
+ * @param {string} [nativeURL] - The native path for this file
  * @features
  * Mimics the Cordova FileEntry API for NW.js environments
  * Provides createWriter and file callbacks compatible with Cordova patterns
@@ -15167,7 +15167,7 @@ class NodeFileEntry {
     this.name = name;
     this.fullPath = fullPath;
     this.filesystem = fileSystem;
-    this.nativeURL = nativeURL || `file://${fullPath}`;
+    this.nativeURL = nativeURL || fullPath;
   }
 
   createWriter(successCallback, errorCallback) {
@@ -15324,7 +15324,7 @@ class NodeFileSystem {
       /** @type {Object} Pseudo filesystem exposed to DirectoryEntry instances */
       this.fileSystemObj = {
         name: 'nodefs',
-        root: new NodeDirectoryEntry('', '', this, `file://${this.basePath}`)
+        root: new NodeDirectoryEntry('', '', this, this.basePath)
       };
     } catch (error) {
       console.error('Node.js modules not available:', error);
@@ -15369,7 +15369,7 @@ class NodeFileSystem {
           this.path.basename(path) || '.',
           path,
           this,
-          `file://${fullPath}`
+          `${fullPath}`
         );
         
         resolve(dirEntry);
