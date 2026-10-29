@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0
- * Build: 10/29/2026, 2:26:55 AM
+ * Build: 10/29/2026, 4:13:49 AM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -37193,7 +37193,7 @@ class Editor {
         chart: this.song.chart,
         difficultyIndex
       },
-      0,
+      difficultyIndex,
       true
     );
   }
@@ -37397,7 +37397,6 @@ class Editor {
       if (this.audio && this.audio.src && !isNaN(this.audio.currentTime)) {
         currentTime = this.audio.currentTime
           + chartOffset
-          - this.getAudioOutputLatency()
           - this.getAudioOffset();
       } else {
         currentTime = ((game.time.now - this.playStartTime + (chartOffset*1000)) / 1000) + this.playOffset;
@@ -37417,23 +37416,6 @@ class Editor {
     }
   }
   
-  /**
-   * Reads the audio output latency from the active audio context, if any.
-   * @returns {number} Latency in seconds
-   */
-  getAudioOutputLatency() {
-    const context = this.audioContext
-      || (this.visualizer && this.visualizer.audioContext);
-    
-    if (!context) return 0;
-    
-    const latency = typeof context.outputLatency === "number"
-      ? context.outputLatency
-      : context.baseLatency;
-    
-    return typeof latency === "number" && isFinite(latency) ? latency : 0;
-  }
-
   /**
    * Processes gamepad input for editing: selecting, placing, and seeking.
    */
@@ -37645,7 +37627,9 @@ class Editor {
     if (!this.isPlaying && this.audio && this.audio.src) {
       this.abortPreview();
 
-      this.audio.currentTime = Math.max(0, start - this.getAudioOffset());
+      const chartOffset = 0; // TODO: Apply chart offset
+
+      this.audio.currentTime = Math.max(0, start + chartOffset - this.getAudioOffset());
 
       this.previewEndHandler = () => {
         this.audio.pause();
