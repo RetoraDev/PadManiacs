@@ -99,7 +99,6 @@
     [ pauseBg | Phaser.Graphics | Dark overlay dimming the gameplay behind the pause menu ]
     [ pauseStatsText | Text | Label listing the current judgement counts ]
     [ pauseCarousel | CarouselMenu | Pause menu options (continue, autoplay, restart, quit) ]
-    [ lastStart | boolean | Start button state from the previous frame ]
     [/table]
 
 
@@ -149,7 +148,6 @@
     [ showPauseMenu | () | Shows the pause menu with continue, autoplay, restart, retry and quit options. ]
     [ hidePauseMenu | () | Removes the pause menu objects from the scene. ]
     [ getCurrentTime | () | Returns the current play time in seconds and beats, accounting for pauses. Once the song is running the position is read from the audio element's own playback clock rather than the wall clock. The audio clock is the only source that reflects what the player actually hears, so it stays in sync across devices (including Bluetooth headphones whose output lags by a variable amount) instead of drifting against a fixed timer. The configured output latency is subtracted because it is the delay between the audio clock position and the sound reaching the ears; the user offset is then subtracted as a residual (positive offset = audio arrives late, so the visuals wait for it). ]
-    [ getAudioOutputLatency | () | Reads the audio output latency from the active audio context, if any. Falls back to zero when the API is unavailable (e.g. plain HTMLAudio). ]
     [ secToBeat | (sec) | Converts a time in seconds to beats using the player's timing. ]
     [ updateBackgrounds | () | Enqueues and applies chart backgrounds as their beats arrive, then updates video. ]
     [ updateVideo | () | Redraws the current video frame at the configured frame rate. ]
