@@ -344,7 +344,7 @@ class ExternalSMParser {
                 note[c].type = nt[c];
                 break;
               default:
-                console.warn(`invalid note type ${nt[c]}`);
+                console.warn(`invalid note type ${nt[c]}, ignored`);
             }
             note[c].beat = b;
             note[c].sec = this.beatToSec(out.bpmChanges, out.stops, b);

@@ -1014,12 +1014,10 @@ class BuildSystem {
     } else if (platform === 'nwjs') {
       await this.buildBaseFiles('nwjs');
       await this.buildNWJS();
-      await this.buildWeb();
       await this.finalizeWebDist('nwjs');
     } else if (platform === 'cordova') {
       await this.buildBaseFiles('cordova');
       await this.buildAndroid();
-      await this.buildWeb();
       await this.finalizeWebDist('cordova');
     } else if (platform === 'none') {
       await this.buildBaseFiles('none');

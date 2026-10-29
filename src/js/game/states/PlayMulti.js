@@ -335,7 +335,7 @@ class PlayMulti extends Play {
     if (this.isPaused) return;
     
     // Pause with start button
-    if (gamepad.pressed.start) {
+    if (this.started && gamepad.pressed.start) {
       this.togglePause();
     }
 

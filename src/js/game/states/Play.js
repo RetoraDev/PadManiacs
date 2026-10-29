@@ -47,7 +47,7 @@ class Play {
       try {
         this.song = JSON.parse(JSON.stringify(song));
       } catch (e2) {
-        this.song = song;
+        this.song = { ...song };
       }
     }
     /** @type {number} Index of the selected difficulty */
@@ -1655,7 +1655,6 @@ class Play {
       // Latency + user offset, both subtract because positive means "audio arrives late"
       elapsed = audioMs
         + chartOffset * 1000
-        - this.getAudioOutputLatency() * 1000
         - this.userOffset;
     } else {
       // Pre-roll (before the audio starts): keep the wall-clock countdown
@@ -1670,24 +1669,6 @@ class Play {
       now: elapsed / 1000,
       beat: this.secToBeat(elapsed / 1000)
     };
-  }
-  
-  /**
-   * Reads the audio output latency from the active audio context, if any.
-   * Falls back to zero when the API is unavailable (e.g. plain HTMLAudio).
-   * @returns {number} Latency in seconds
-   */
-  getAudioOutputLatency() {
-    const context = (this.temperature && this.temperature.audioContext)
-      || (this.visualizer && this.visualizer.audioContext);
-    
-    if (!context) return 0;
-    
-    const latency = typeof context.outputLatency === "number"
-      ? context.outputLatency
-      : context.baseLatency;
-    
-    return typeof latency === "number" && isFinite(latency) ? latency : 0;
   }
   
   /**
@@ -1757,11 +1738,9 @@ class Play {
     if (this.isPaused) return;
     
     // Pause with start button
-    if (gamepad.pressed.start && !this.lastStart) {
+    if (this.started && gamepad.pressed.start) {
       this.togglePause();
     }
-    /** @type {boolean} Start button state from the previous frame */
-    this.lastStart = gamepad.pressed.start;
     
     // Update skill system
     if (this.skillSystem) {

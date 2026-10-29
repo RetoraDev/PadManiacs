@@ -19,6 +19,8 @@ class LoadPlatform {
    * the device to be ready, otherwise it builds the folder structure immediately.
    */
   create() {
+    this.progressText = new ProgressText("");
+    
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
       this.loadScript();
     } else {
@@ -32,7 +34,7 @@ class LoadPlatform {
   loadScript() {
     this.loadingDots = new LoadingDots();
     
-    this.progressText = new ProgressText(__("Initializing filesystem...||Inicializando Sistema de Archivos..."));
+    this.progressText.write(__("Initializing filesystem...||Inicializando Sistema de Archivos..."));
 
     const script = document.createElement("script");
     script.src = "./cordova/cordova.js";
@@ -68,7 +70,11 @@ class LoadPlatform {
       await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
       await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
       
-      this.checkFfmpegBundle();
+      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
+        this.checkFfmpegBundle();
+      } else {
+        this.continue();
+      }
     } else {
       this.continue();
     }

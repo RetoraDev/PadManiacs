@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0
- * Build: 10/28/2026, 10:10:16 AM
+ * Build: 10/28/2026, 8:40:56 PM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -21023,6 +21023,7 @@ class LocalSMParser {
         steps[key][m] = steps[key][m].trim();
         if (steps[key][m].length % 4)
           throw `Invalid length on measure ${m}, length is ${steps[key][m].length}`;
+        
         steps[key][m] = steps[key][m].match(/(.{4})/g);
 
         let t = steps[key][m].length;
@@ -21055,7 +21056,7 @@ class LocalSMParser {
                 note[c].type = nt[c];
                 break;
               default:
-                throw `invalid note type ${nt[c]}`;
+                console.warn(`unknown note type: ${nt[c]}`);
             }
             note[c].beat = b;
             note[c].sec = this.beatToSec(out.bpmChanges, out.stops, b);
@@ -21470,7 +21471,7 @@ class ExternalSMParser {
                 note[c].type = nt[c];
                 break;
               default:
-                console.warn(`invalid note type ${nt[c]}`);
+                console.warn(`invalid note type ${nt[c]}, ignored`);
             }
             note[c].beat = b;
             note[c].sec = this.beatToSec(out.bpmChanges, out.stops, b);
@@ -22886,6 +22887,8 @@ class LoadPlatform {
    * the device to be ready, otherwise it builds the folder structure immediately.
    */
   create() {
+    this.progressText = new ProgressText("");
+    
     if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA && typeof window.cordova == 'undefined') {
       this.loadScript();
     } else {
@@ -22899,7 +22902,7 @@ class LoadPlatform {
   loadScript() {
     this.loadingDots = new LoadingDots();
     
-    this.progressText = new ProgressText(__("Initializing filesystem...||Inicializando Sistema de Archivos..."));
+    this.progressText.write(__("Initializing filesystem...||Inicializando Sistema de Archivos..."));
 
     const script = document.createElement("script");
     script.src = "./cordova/cordova.js";
@@ -22935,7 +22938,11 @@ class LoadPlatform {
       await fileSystem.createDirectory(gameDir, SONGS_DIRECTORY);
       await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
       
-      this.checkFfmpegBundle();
+      if (CURRENT_ENVIRONMENT == ENVIRONMENT.CORDOVA) {
+        this.checkFfmpegBundle();
+      } else {
+        this.continue();
+      }
     } else {
       this.continue();
     }
@@ -32112,7 +32119,7 @@ class Play {
       try {
         this.song = JSON.parse(JSON.stringify(song));
       } catch (e2) {
-        this.song = song;
+        this.song = { ...song };
       }
     }
     /** @type {number} Index of the selected difficulty */
@@ -33720,7 +33727,6 @@ class Play {
       // Latency + user offset, both subtract because positive means "audio arrives late"
       elapsed = audioMs
         + chartOffset * 1000
-        - this.getAudioOutputLatency() * 1000
         - this.userOffset;
     } else {
       // Pre-roll (before the audio starts): keep the wall-clock countdown
@@ -33735,24 +33741,6 @@ class Play {
       now: elapsed / 1000,
       beat: this.secToBeat(elapsed / 1000)
     };
-  }
-  
-  /**
-   * Reads the audio output latency from the active audio context, if any.
-   * Falls back to zero when the API is unavailable (e.g. plain HTMLAudio).
-   * @returns {number} Latency in seconds
-   */
-  getAudioOutputLatency() {
-    const context = (this.temperature && this.temperature.audioContext)
-      || (this.visualizer && this.visualizer.audioContext);
-    
-    if (!context) return 0;
-    
-    const latency = typeof context.outputLatency === "number"
-      ? context.outputLatency
-      : context.baseLatency;
-    
-    return typeof latency === "number" && isFinite(latency) ? latency : 0;
   }
   
   /**
@@ -33822,11 +33810,9 @@ class Play {
     if (this.isPaused) return;
     
     // Pause with start button
-    if (gamepad.pressed.start && !this.lastStart) {
+    if (this.started && gamepad.pressed.start) {
       this.togglePause();
     }
-    /** @type {boolean} Start button state from the previous frame */
-    this.lastStart = gamepad.pressed.start;
     
     // Update skill system
     if (this.skillSystem) {
@@ -34294,7 +34280,7 @@ class PlayMulti extends Play {
     if (this.isPaused) return;
     
     // Pause with start button
-    if (gamepad.pressed.start) {
+    if (this.started && gamepad.pressed.start) {
       this.togglePause();
     }
 
