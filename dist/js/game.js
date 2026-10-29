@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0
- * Build: 10/29/2026, 12:27:22 AM
+ * Build: 10/29/2026, 2:26:55 AM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -9134,8 +9134,8 @@ class Window extends Phaser.Sprite {
     
     this.scrollBarTween.to({ alpha: 0 }, 1000, Phaser.Easing.Quadratic.Out, true, 500)
       .onComplete.add(() => {
-/** @type {?Phaser.Tween} Tween animating the scroll bar fade */
-    this.scrollBarTween = null;
+        /** @type {?Phaser.Tween} Tween animating the scroll bar fade */
+        this.scrollBarTween = null;
       });
   }
 
@@ -36728,6 +36728,7 @@ class Editor {
     this.cursorSprite = game.add.graphics(0, 0);
     this.selectionRect = game.add.graphics(0, 0);
     this.freezePreviewSprite = game.add.graphics(0, 0);
+    this.stopPreviewSprite = game.add.graphics(0, 0);
     this.updateCursorPosition();
     
     this.lyricsText = new Text(game.width / 2, 106, "", FONTS.default_stroke);
@@ -37332,6 +37333,37 @@ class Editor {
       }
     }
   }
+  
+  /**
+   * Redraws the stop preview while the stop key combination is held.
+   */
+  updateStopPreview() {
+    this.stopPreviewSprite.clear();
+
+    if (!this.isPlaying && gamepad.held.select && this.holdSelectStartTime !== null) {
+      const currentBeat = this.getCurrentTime().beat;
+      const startBeat = this.holdSelectStartTime;
+      const duration = currentBeat - startBeat;
+
+      if (Math.abs(duration) > 0.001) {
+        const leftOffset = this.chartRenderer.calculateLeftOffset();
+        const x = leftOffset;
+        const width = this.chartRenderer.calculateFullWidth();
+
+        const startY = this.chartRenderer.getYPos(this.getCurrentTime().now, this.getCurrentTime().beat, startBeat);
+        const endY = this.chartRenderer.getYPos(this.getCurrentTime().now, this.getCurrentTime().beat, currentBeat);
+
+        const y = Math.min(startY, endY);
+        const height = Math.abs(endY - startY);
+
+        const alpha = 0.5 + 0.2 * Math.sin(Date.now() * 0.01);
+
+        this.stopPreviewSprite.beginFill(0xff00ff, alpha);
+        this.stopPreviewSprite.drawRect(x, y, width, height);
+        this.stopPreviewSprite.endFill();
+      }
+    }
+  }
 
   /**
    * Returns the grid division size used for snapping.
@@ -37411,7 +37443,7 @@ class Editor {
     const { now, beat } = this.getCurrentTime();
 
     // Handle A button - selection
-    if (gamepad.pressed.a) {
+    if (gamepad.pressed.a && !gamepad.held.b) {
       this.holdAStartTime = game.time.now;
       this.startSingleSelect();
     }
@@ -37429,10 +37461,10 @@ class Editor {
     }
 
     // Handle B button  placement
-    if (gamepad.pressed.b) {
+    if (gamepad.pressed.b && !gamepad.held.a) {
       this.holdBStartTime = beat;
     }
-
+    
     if (gamepad.released.b) {
       const holdDuration = beat - this.holdBStartTime;
 
@@ -37486,10 +37518,33 @@ class Editor {
       }
     }
 
-    // Toggle playback with SELECT
+    // Handle SELECT button
     if (gamepad.pressed.select && !gamepad.held.start) {
-      this.togglePlayback();
-      this.updateCursorPosition();
+      this.holdSelectStartTime = beat;
+    }
+    
+    if (gamepad.released.select) {
+      const stopDuration = beat - this.holdSelectStartTime;
+
+      if (this.isPlaying || Math.abs(stopDuration) == 0) {
+        // Single tap - toggle playback
+        this.togglePlayback();
+        this.updateCursorPosition();
+      } else {
+        // Long press - add stop
+        const beat = stopDuration > 0 ? this.holdSelectStartTime : this.holdSelectStartTime + stopDuration;
+        
+        this.song.chart.stops.push({
+          beat: beat,
+          len: this.chartRenderer.beatToSec(stopDuration),
+          sec: this.chartRenderer.beatToSec(beat)
+        });
+        this.song.chart.stops.sort((a, b) => a.beat - b.beat);
+        this.rearrangeNotes();
+        this.updateInfoText();
+        
+        this.holdSelectStartTime = null;
+      }
     }
     
     // Metronome controls
@@ -37515,6 +37570,7 @@ class Editor {
     // Update visuals
     this.updateSelectionRect();
     this.updateFreezePreview();
+    this.updateStopPreview();
   }
 
   /**
@@ -39187,12 +39243,13 @@ class Editor {
     const currentValue = this.song.chart[field] || "";
     
     const keyboard = new OnScreenKeyboard(10, 44);
+    keyboard.x += 2;
     
     window.focusedElement = new TextInput({
       text: currentValue,
       maxLength: 28,
       useNewline: true,
-      width: 15,
+      width: 14,
       height: 2,
       x: 72,
       y: 28,
@@ -39211,23 +39268,64 @@ class Editor {
     });
   }
   
+  // TODO: Better jsdoc for this
+  /**
+   * Create number input method
+   * @param {object} parameters - Paramerers for the numeric input
+   */
+  numberInput({
+    value = 0,
+    min = 0,
+    max = 1000,
+    decimals = 0,
+    x = 80,
+    y = 54,
+    onConfirm = null,
+    onCancel = null
+  }) {
+    this.menuVisible = true;
+    
+    const WIDTH = 5;
+      
+    const keyboard = new NumericTypeOnScreenKeyboard();
+    keyboard.x = x - 2;
+    keyboard.y = y + 16;
+    
+    window.focusedElement = new NumberInput({
+      text: value,
+      min: min,
+      max: max,
+      decimals: decimals,
+      x: x + (WIDTH * 8 / 2),
+      y: y,
+      width: WIDTH,
+      height: 2,
+      onConfirm: (value) => {
+        this.menuVisible = false;
+        keyboard.destroy();
+        window.focusedElement = null;
+        onConfirm(value);
+      },
+      onCancel: () => {
+        this.menuVisible = false;
+        keyboard.destroy();
+        window.focusedElement = null;
+        onCancel();
+      }
+    });
+  }
+  
   /**
    * Opens a text input to change the song BPM.
    */
   editSongBpm() {
     const bpm = this.song.chart.bpmChanges[0]?.bpm || 120;
     
-    const keyboard = new NumericTypeOnScreenKeyboard();
-    
-    window.focusedElement = new NumberInput({
-      text: bpm,
+    this.numberInput({
+      value: bpm,
       min: 0,
       max: 3000,
-      decimals: 1,
-      x: 96,
-      y: 40,
-      width: 10,
-      height: 2,
+      decimals: 2,
       onConfirm: (value) => {
         if (!this.song.chart.bpmChanges[0]) {
           this.song.chart.bpmChanges[0] = { beat: 0, bpm: value, sec: 0 };
@@ -39237,13 +39335,9 @@ class Editor {
         this.showMetadataEdit();
         this.updateInfoText();
         notifications.show(__("BPM (UPDATED|ACTUALIZADO)"));
-        keyboard.destroy();
-        window.focusedElement = null;
       },
       onCancel: () => {
         this.showMetadataEdit();
-        keyboard.destroy();
-        window.focusedElement = null;
       }
     });
   }
@@ -39254,28 +39348,18 @@ class Editor {
   editSongOffset() {
     const offset = this.song.chart.offset || 0;
     
-    const keyboard = new NumericTypeOnScreenKeyboard();
-    
-    window.focusedElement = new NumberInput({
-      text: offset,
+    this.numberInput({
+      value: offset,
       min: -32,
-      max: 32,
+      max: +32,
       decimals: 3,
-      x: 96,
-      y: 40,
-      width: 10,
-      height: 2,
       onConfirm: (value) => {
         this.song.chart.offset = value;
         this.showMetadataEdit();
         notifications.show(__("AUDIO OFFSET (UPDATED|ACTUALIZADO)"));
-        keyboard.destroy();
-        window.focusedElement = null;
       },
       onCancel: () => {
         this.showMetadataEdit();
-        keyboard.destroy();
-        window.focusedElement = null;
       }
     });
   }
@@ -39286,34 +39370,22 @@ class Editor {
   editSampleStart() {
     const sampleStart = this.song.chart.sampleStart || 0;
     
-    const keyboard = new NumericTypeOnScreenKeyboard();
-    
-    window.focusedElement = new NumberInput({
-      text: sampleStart,
+    this.numberInput({
+      value: sampleStart,
       min: 0,
       max: this.audio.duration || 100,
       decimals: 1,
-      x: 96,
-      y: 40,
-      width: 10,
-      height: 2,
       onConfirm: (value) => {
         this.song.chart.sampleStart = value;
-
         if (this.audio && this.audio.src) {
           this.playPreview(value, this.song.chart.sampleLength);
         }
-        
         this.updateInfoText();
         this.showMetadataEdit();
         notifications.show(__("SAMPLE START (UPDATED|ACTUALIZADO)"));
-        keyboard.destroy();
-        window.focusedElement = null;
       },
       onCancel: () => {
         this.showMetadataEdit();
-        keyboard.destroy();
-        window.focusedElement = null;
       }
     });
   }
@@ -39324,29 +39396,19 @@ class Editor {
   editSampleLength() {
     const sampleLength = this.song.chart.sampleLength || 10;
     
-    const keyboard = new NumericTypeOnScreenKeyboard();
-    
-    window.focusedElement = new NumberInput({
-      text: sampleLength,
+    this.numberInput({
+      value: sampleLength,
       min: 1,
       max: 30,
       decimals: 1,
-      x: 96,
-      y: 40,
-      width: 10,
-      height: 2,
       onConfirm: (value) => {
         this.song.chart.sampleLength = value;
         this.updateInfoText();
         this.showMetadataEdit();
         notifications.show("SAMPLE LENGTH UPDATED");
-        keyboard.destroy();
-        window.focusedElement = null;
       },
       onCancel: () => {
         this.showMetadataEdit();
-        keyboard.destroy();
-        window.focusedElement = null;
       }
     });
   }
@@ -39547,19 +39609,11 @@ class Editor {
    * Adds a new BPM change at the current cursor beat.
    */
   addBPMChange() {
-    this.menuVisible = true;
-    
-    const keyboard = new NumericTypeOnScreenKeyboard();
-    
-    window.focusedElement = new NumberInput({
-      text: 120,
+    this.numberInput({
+      value: 120,
       min: 0,
-      max: 1000,
-      decimals: 0,
-      x: 96,
-      y: 40,
-      width: 10,
-      height: 2,
+      max: 3000,
+      decimals: 2,
       onConfirm: (value) => {
         this.song.chart.bpmChanges.push({
           beat: this.cursorBeat,
@@ -39570,13 +39624,6 @@ class Editor {
         this.rearrangeNotes();
         this.updateInfoText();
         this.menuVisible = false;
-        keyboard.destroy();
-        window.focusedElement = null;
-      },
-      onCancel: () => {
-        this.menuVisible = false;
-        keyboard.destroy();
-        window.focusedElement = null;
       }
     });
   }
@@ -39596,32 +39643,16 @@ class Editor {
   editBPMChange(target) {
     const bpmChange = target || this.getBPMChange();
     if (bpmChange) {
-      this.menuVisible = true;
-      
-      const keyboard = new NumericTypeOnScreenKeyboard();
-      
-      window.focusedElement = new NumberInput({
-        text: bpmChange.bpm,
+      this.numberInput({
+        value: bpmChange.bpm,
         min: 0,
-        max: 1000,
-        decimals: 0,
-        x: 96,
-        y: 40,
-        width: 10,
-        height: 2,
+        max: 3000,
+        decimals: 2,
         onConfirm: (bpm) => {
           const index = this.song.chart.bpmChanges.indexOf(bpmChange);
           if (index != -1) this.song.chart.bpmChanges[index].bpm = bpm;
           this.rearrangeNotes();
           this.updateInfoText();
-          this.menuVisible = false;
-          keyboard.destroy();
-          window.focusedElement = null;
-        },
-        onCancel: () => {
-          this.menuVisible = false;
-          keyboard.destroy();
-          window.focusedElement = null;
         }
       });
     }
@@ -39645,19 +39676,11 @@ class Editor {
    * Adds a new stop duration at the current cursor beat.
    */
   addStop() {
-    this.menuVisible = true;
-    
-    const keyboard = new NumericTypeOnScreenKeyboard();
-    
-    window.focusedElement = new NumberInput({
-      text: 1,
+    this.numberInput({
+      value: 1,
       min: 0,
       max: 360,
       decimals: 3,
-      x: 96,
-      y: 40,
-      width: 10,
-      height: 2,
       onConfirm: (length) => {
         this.song.chart.stops.push({
           beat: this.cursorBeat,
@@ -39667,17 +39690,9 @@ class Editor {
         this.song.chart.stops.sort((a, b) => a.beat - b.beat);
         this.rearrangeNotes();
         this.updateInfoText();
-        this.menuVisible = false;
-        keyboard.destroy();
-        window.focusedElement = null;
-      },
-      onCancel: () => {
-        this.menuVisible = false;
-        keyboard.destroy();
-        window.focusedElement = null;
       }
     });
-  }  
+  }
 
   /**
    * Returns the stop at the current cursor beat, if any.
@@ -39693,37 +39708,21 @@ class Editor {
   editStop() {
     const stop = this.getStop();
     if (stop) {
-      this.menuVisible = true;
-      
-      const keyboard = new NumericTypeOnScreenKeyboard();
-      
-      window.focusedElement = new NumberInput({
+      this.numberInput({
         text: stop.len,
         min: 0,
         max: 360,
         decimals: 3,
-        x: 96,
-        y: 40,
-        width: 10,
-        height: 2,
         onConfirm: (length) => {
           const index = this.song.chart.stops.indexOf(stop);
           if (index != -1) this.song.chart.stops[index].len = length;
           this.rearrangeNotes();
           this.updateInfoText();
-          this.menuVisible = false;
-          keyboard.destroy();
-          window.focusedElement = null;
-        },
-        onCancel: () => {
-          this.menuVisible = false;
-          keyboard.destroy();
-          window.focusedElement = null;
         }
       });
     }
   }
-
+  
   /**
    * Removes the stop located at the cursor beat.
    */

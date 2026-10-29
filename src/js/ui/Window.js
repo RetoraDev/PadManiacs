@@ -420,8 +420,8 @@ class Window extends Phaser.Sprite {
     
     this.scrollBarTween.to({ alpha: 0 }, 1000, Phaser.Easing.Quadratic.Out, true, 500)
       .onComplete.add(() => {
-/** @type {?Phaser.Tween} Tween animating the scroll bar fade */
-    this.scrollBarTween = null;
+        /** @type {?Phaser.Tween} Tween animating the scroll bar fade */
+        this.scrollBarTween = null;
       });
   }
 
