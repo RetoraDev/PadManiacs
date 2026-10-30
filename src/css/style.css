@@ -24,6 +24,8 @@
   --controls-opacity-landscape: 0.4;
   --rhythm-pad-btn-width: 72px;
   --rhythm-pad-btn-height: 64px;
+  --virtual-keyboard-btn-width: 40px;
+  --virtual-keyboard-btn-height: 40px;
   --rhythm-pad-scale-portrait: 1.0;
   --rhythm-pad-scale-landscape: 1.0;
   --rhythm-pad-visibility-landscape: visible;
@@ -217,6 +219,52 @@ body {
 }
 .btnPressed {
   opacity: 0.5;
+}
+
+#keyboards {
+  /* TODO: Visibility (display) should be contrary to #controller automatically */
+  display: none;
+}
+  
+.virtual-keyboard {
+  position: absolute;
+  left: 50%;
+  display: none;
+  transform: translateX(-50%);
+  grid-template-columns: repeat(5, 1fr);
+  grid-column-gap: 5.5px;
+  grid-row-gap: 5.5px;
+  grid-template-rows: repeat(1, 60px);
+}
+
+.virtual-keyboard.active {
+  display: grid;
+}
+
+.virtual-keyboard button {
+  width: var(--virtual-keyboard-btn-width);
+  height: var(--virtual-keyboard-btn-height);
+  font-weight: bold;
+  font-size: calc(var(--virtual-keyboard-btn-width) / 3 * var(--controls-scale-portrait));
+  color: var(--capsule-text);
+  border: 0;
+  background: var(--dpad-button);
+  border-radius: 10%;
+  cursor: pointer;
+}
+
+#numeric-keyboard {
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+#typing-keyboard {
+  --virtual-keyboard-btn-width: calc((100vw - (2px * 10) - 10px)/11);
+  --virtual-keyboard-btn-height: var(--virtual-keyboard-btn-width);
+  grid-template-columns: repeat(11, auto);
+  grid-template-rows: repeat(5, 1fr);
+  grid-column-gap: 2px;
+  grid-row-gap: 2px;
 }
 
 @media only screen and (orientation: portrait) {
