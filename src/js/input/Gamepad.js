@@ -126,6 +126,15 @@ class Gamepad {
     this.dontUpdateThisTime = true;
     this.setupKeyboard();
   }
+  
+  /**
+   * Prevents default behavior of input event when needed
+   */
+  consumeInput(event) {
+    if (window.canvasFocused) {
+      event.preventDefault();
+    }
+  }
 
   /**
    * Builds the reverse keycode lookup and captures the keys used by this player.
@@ -158,11 +167,9 @@ class Gamepad {
     inputManager.keyboardListener.onDown.add((keyCode, event) => {
       const action = this.keyCodeToAction[keyCode];
       if (action) {
-        event.preventDefault();
         this.held[action] = true;
         this.detectInputSource('keyboard');
-      } else if (window.focusedElement) {
-        event.preventDefault();
+        this.consumeInput(event);
       }
     });
   
@@ -170,9 +177,7 @@ class Gamepad {
       const action = this.keyCodeToAction[keyCode];
       if (action) {
         this.held[action] = false;
-        event.preventDefault();
-      } else if (window.focusedElement) {
-        event.preventDefault();
+        this.consumeInput(event);
       }
     });
     

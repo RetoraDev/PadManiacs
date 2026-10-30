@@ -86,6 +86,12 @@ class OnScreenKeyboard extends Phaser.Sprite {
       { top: 44, left: 108, width: 7, height: 7, code: "ArrowRight", action: "right", shortcut: "right" }
     ];
     
+    /** @type {Object} Map of special key action names to methods of this class */
+    this.actionMap = {
+      'symbol': this.toggleSymbol,
+      'shift': this.toggleShift
+    };
+    
     /** @type {Phaser.Graphics} Graphics object that draws the pressed key highlight */
     this.highlight = game.add.graphics(0, 0);
     this.addChild(this.highlight);
@@ -194,20 +200,22 @@ class OnScreenKeyboard extends Phaser.Sprite {
     
     this.onDown.dispatch(key, input);
     
-    if (key.action) {
-      switch(key.action) {
-        case 'symbol':
-          this.toggleSymbol();
-          break;
-        case 'shift':
-          this.toggleShift();
-          break;
-        default:
-          this.sendInput(key, input);
-          break;
-      }
+    if (key) {
+      this.handleAction(key)
     } else {
       this.sendInput(key, input);
+    }
+  }
+  
+  /**
+   * Handle special key actions like 'symbol' or 'shift'
+   * @param {string} action - The name of the action to execute
+   */
+  handleAction(action) {
+    const callback = this.actionMap[action];
+    
+    if (typeof callback == 'function') {
+      callback.call(this, action);
     }
   }
   
@@ -240,12 +248,14 @@ class OnScreenKeyboard extends Phaser.Sprite {
     
     if (pointer.isDown) {
       this.activeKey = this.getKeyUnderPointer(pointer);
-    } else if (this.activeKey) {
+    } else {
       this.activeKey = this.keyboardKey;
     }
     
+    if (this.keyboardKey) console.log(this.activeKey.code)
+    
     this.keys.forEach(key => {
-      if (key.shortcut && gamepad.pressed[key.shortcut]) {
+      if (key.shortcut && gamepad.lastInputSource != 'keyboard' && gamepad.pressed[key.shortcut]) {
         this.activeKey = key;
       } 
     });

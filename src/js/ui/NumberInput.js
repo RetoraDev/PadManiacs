@@ -121,6 +121,9 @@ class NumberInput extends TextInput {
         case 'erase':
           this.erase();
           break;
+        case 'clear':
+          this.clear();
+          break;
       }
       return;
     }

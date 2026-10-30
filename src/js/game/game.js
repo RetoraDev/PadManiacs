@@ -9,6 +9,9 @@ let Account = {
 /** @type {File} Saves the original File class from being overwrited by Cordova */
 const _File = window.File;
 
+/** @type {boolean} Flag to trag if the game canvas parent is focused or not */
+window.canvasFocused = true;
+
 /**
  * Saves account data to localStorage
  */
@@ -70,6 +73,13 @@ const addFpsText = () => {
   return text;
 };
 
+const addFocusTrackingText = () => {
+  const text = new Text(238, 2, "");
+  text.anchor.x = 1;
+  game.time.events.loop(100, () => text.write(`F: ${window.canvasFocused}`));
+  return text;
+};
+
 /**
  * Opens URL in default browser
  * @param {string} url - URL to open in the default browser
@@ -95,6 +105,7 @@ window.openExternalUrl = url => {
   }
 };
 
+// TODO: Pending documentation
 window.getSongKey = song => {
   if (!song) return null;
   
@@ -110,6 +121,7 @@ window.getSongKey = song => {
   return `unknown_${Date.now()}`;
 }
 
+// TODO: Pending documentation
 window.getDifficultyColor = (value, returnIntFormat = false) => {
   const max = 11; // The actual maximum considered difficulty
   
@@ -176,6 +188,7 @@ const Audio = {
   }
 };
 
+// TODO: Pending documentation
 const createGradientBackground = (x, y, width, height, color) => {
   const bitmap = game.add.bitmapData(width, height);
     

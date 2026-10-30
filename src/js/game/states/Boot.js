@@ -228,7 +228,11 @@ class Boot {
     document.body.style.setProperty("--controller-parent-height", `${100 - Account.settings.touch.portraitScreenPosition}%`);
     document.body.style.setProperty("--rhythm-pad-visibility-landscape", `${Account.settings.touch.showRhythmPadInLandscape ? "visible" : "hidden"}`);
     __updateRhythmPadSize();
-  
+    
+    // Intialize focus tracking
+    game.canvas.parentNode.addEventListener("blur", () => window.canvasFocused = false);
+    game.canvas.parentNode.addEventListener("focus", () => window.canvasFocused = true);
+    
     /** @type {InputManager} Global input manager handling input system definitions */
     window.inputManager = new InputManager(game);
     

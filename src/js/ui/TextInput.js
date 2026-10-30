@@ -173,6 +173,11 @@ class TextInput extends Phaser.Sprite {
         case 'erase':
           this.erase();
           break;
+        
+        // Clear everything
+        case 'clear':
+          this.clear();
+          break;
       }
     }
   }
@@ -204,6 +209,12 @@ class TextInput extends Phaser.Sprite {
       this.currentIndex --;
       this.updateCursor();
     }
+  }
+  
+  clear() {
+    this.text = "";
+    this.currentIndex = 0;
+    this.updateCursor();
   }
   
   /**

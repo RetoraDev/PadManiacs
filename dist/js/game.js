@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.3.0 dev
- * Build: 10/29/2026, 4:10:49 PM
- * Platform: Development
+ * Version: v1.3.0
+ * Build: 10/30/2026, 7:45:47 AM
+ * Platform: Web
  * Debug: false
  * Minified: false
  */
@@ -125,7 +125,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.3.0 dev";
+const VERSION = "v1.3.0";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -870,7 +870,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -12682,6 +12682,11 @@ class TextInput extends Phaser.Sprite {
         case 'erase':
           this.erase();
           break;
+        
+        // Clear everything
+        case 'clear':
+          this.clear();
+          break;
       }
     }
   }
@@ -12713,6 +12718,12 @@ class TextInput extends Phaser.Sprite {
       this.currentIndex --;
       this.updateCursor();
     }
+  }
+  
+  clear() {
+    this.text = "";
+    this.currentIndex = 0;
+    this.updateCursor();
   }
   
   /**
@@ -12966,6 +12977,9 @@ class NumberInput extends TextInput {
           break;
         case 'erase':
           this.erase();
+          break;
+        case 'clear':
+          this.clear();
           break;
       }
       return;
@@ -15863,6 +15877,9 @@ let Account = {
 /** @type {File} Saves the original File class from being overwrited by Cordova */
 const _File = window.File;
 
+/** @type {boolean} Flag to trag if the game canvas parent is focused or not */
+window.canvasFocused = true;
+
 /**
  * Saves account data to localStorage
  */
@@ -15924,6 +15941,13 @@ const addFpsText = () => {
   return text;
 };
 
+const addFocusTrackingText = () => {
+  const text = new Text(238, 2, "");
+  text.anchor.x = 1;
+  game.time.events.loop(100, () => text.write(`F: ${window.canvasFocused}`));
+  return text;
+};
+
 /**
  * Opens URL in default browser
  * @param {string} url - URL to open in the default browser
@@ -15949,6 +15973,7 @@ window.openExternalUrl = url => {
   }
 };
 
+// TODO: Pending documentation
 window.getSongKey = song => {
   if (!song) return null;
   
@@ -15964,6 +15989,7 @@ window.getSongKey = song => {
   return `unknown_${Date.now()}`;
 }
 
+// TODO: Pending documentation
 window.getDifficultyColor = (value, returnIntFormat = false) => {
   const max = 11; // The actual maximum considered difficulty
   
@@ -16030,6 +16056,7 @@ const Audio = {
   }
 };
 
+// TODO: Pending documentation
 const createGradientBackground = (x, y, width, height, color) => {
   const bitmap = game.add.bitmapData(width, height);
     
@@ -17837,6 +17864,15 @@ class Gamepad {
     this.dontUpdateThisTime = true;
     this.setupKeyboard();
   }
+  
+  /**
+   * Prevents default behavior of input event when needed
+   */
+  consumeInput(event) {
+    if (window.canvasFocused) {
+      event.preventDefault();
+    }
+  }
 
   /**
    * Builds the reverse keycode lookup and captures the keys used by this player.
@@ -17869,11 +17905,9 @@ class Gamepad {
     inputManager.keyboardListener.onDown.add((keyCode, event) => {
       const action = this.keyCodeToAction[keyCode];
       if (action) {
-        event.preventDefault();
         this.held[action] = true;
         this.detectInputSource('keyboard');
-      } else if (window.focusedElement) {
-        event.preventDefault();
+        this.consumeInput(event);
       }
     });
   
@@ -17881,9 +17915,7 @@ class Gamepad {
       const action = this.keyCodeToAction[keyCode];
       if (action) {
         this.held[action] = false;
-        event.preventDefault();
-      } else if (window.focusedElement) {
-        event.preventDefault();
+        this.consumeInput(event);
       }
     });
     
@@ -18761,6 +18793,12 @@ class OnScreenKeyboard extends Phaser.Sprite {
       { top: 44, left: 108, width: 7, height: 7, code: "ArrowRight", action: "right", shortcut: "right" }
     ];
     
+    /** @type {Object} Map of special key action names to methods of this class */
+    this.actionMap = {
+      'symbol': this.toggleSymbol,
+      'shift': this.toggleShift
+    };
+    
     /** @type {Phaser.Graphics} Graphics object that draws the pressed key highlight */
     this.highlight = game.add.graphics(0, 0);
     this.addChild(this.highlight);
@@ -18869,20 +18907,22 @@ class OnScreenKeyboard extends Phaser.Sprite {
     
     this.onDown.dispatch(key, input);
     
-    if (key.action) {
-      switch(key.action) {
-        case 'symbol':
-          this.toggleSymbol();
-          break;
-        case 'shift':
-          this.toggleShift();
-          break;
-        default:
-          this.sendInput(key, input);
-          break;
-      }
+    if (key) {
+      this.handleAction(key)
     } else {
       this.sendInput(key, input);
+    }
+  }
+  
+  /**
+   * Handle special key actions like 'symbol' or 'shift'
+   * @param {string} action - The name of the action to execute
+   */
+  handleAction(action) {
+    const callback = this.actionMap[action];
+    
+    if (typeof callback == 'function') {
+      callback.call(this, action);
     }
   }
   
@@ -18915,12 +18955,14 @@ class OnScreenKeyboard extends Phaser.Sprite {
     
     if (pointer.isDown) {
       this.activeKey = this.getKeyUnderPointer(pointer);
-    } else if (this.activeKey) {
+    } else {
       this.activeKey = this.keyboardKey;
     }
     
+    if (this.keyboardKey) console.log(this.activeKey.code)
+    
     this.keys.forEach(key => {
-      if (key.shortcut && gamepad.pressed[key.shortcut]) {
+      if (key.shortcut && gamepad.lastInputSource != 'keyboard' && gamepad.pressed[key.shortcut]) {
         this.activeKey = key;
       } 
     });
@@ -22361,7 +22403,11 @@ class Boot {
     document.body.style.setProperty("--controller-parent-height", `${100 - Account.settings.touch.portraitScreenPosition}%`);
     document.body.style.setProperty("--rhythm-pad-visibility-landscape", `${Account.settings.touch.showRhythmPadInLandscape ? "visible" : "hidden"}`);
     __updateRhythmPadSize();
-  
+    
+    // Intialize focus tracking
+    game.canvas.parentNode.addEventListener("blur", () => window.canvasFocused = false);
+    game.canvas.parentNode.addEventListener("focus", () => window.canvasFocused = true);
+    
     /** @type {InputManager} Global input manager handling input system definitions */
     window.inputManager = new InputManager(game);
     
