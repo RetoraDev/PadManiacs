@@ -112,6 +112,8 @@ class Editor {
     
     /** @type {Metronome} Metronome helper for note timing feedback. */
     this.metronome = new Metronome(this);
+    /** @type {BpmDetector} Tempo/BPM detector (independent, reusable). */
+    this.bpmDetector = new BpmDetector();
         
     this.homeOverlay = game.add.graphics(0, 0);
     this.homeOverlay.beginFill(0x000000, 0.5);
@@ -2141,6 +2143,7 @@ class Editor {
 
       this.stopPlayback();
       this.abortPreview();
+      if (this.bpmDetector) this.bpmDetector.clearCache();
       this.audio.src = chart.audioUrl || "";
       this.updateBanner(chart.bannerUrl);
       this.updateBackground(chart.backgroundUrl);
@@ -2163,6 +2166,7 @@ class Editor {
     try {
       this.stopPlayback();
       this.abortPreview();
+      if (this.bpmDetector) this.bpmDetector.clearCache();
       const url = URL.createObjectURL(file);
       this.song.chart.audio = file.name;
       this.song.chart.audioUrl = url;
@@ -2385,6 +2389,7 @@ class Editor {
     
     this.stopPlayback();
     this.abortPreview();
+    if (this.bpmDetector) this.bpmDetector.clearCache();
     this.audioBuffer = null;
     this.audio.src = "";
 
@@ -2422,6 +2427,7 @@ class Editor {
 
     this.stopPlayback();
     this.abortPreview();
+    if (this.bpmDetector) this.bpmDetector.clearCache();
 
     this.song = { chart, difficulties: 0 };
 
@@ -3059,6 +3065,7 @@ class Editor {
    * Resets the editor and returns to the home screen.
    */
   createNewSongAndReload() {
+    if (this.bpmDetector) this.bpmDetector.clearCache();
     this.song = this.createNewSong();
     game.state.start("Editor");
   }
@@ -3089,86 +3096,139 @@ class Editor {
 
   // BPM/Stop/BG change methods
   /**
-   * Estimates the BPM from a series of tapped beat times.
-   * @param {Array} beats - Tapped beat timestamps in seconds.
-   * @returns {number} Estimated BPM value.
+   * Detects BPM automatically from the loaded audio and shows a results table.
+   * Results are cached per audio file and re-shown on subsequent runs.
    */
-  calculateBPM(beats) {
-    if (beats.length < 3) {
-      return 0;
+  detectBPMHere() {
+    if (!this.audioBuffer) {
+      notifications.show(__("Load audio first||Carga el audio primero"));
+      return;
+    }
+    if (this.isPlaying) this.stopPlayback();
+    this.abortPreview();
+    this.menuVisible = true;
+
+    const audioKey = this.song && this.song.chart ? (this.song.chart.audioUrl || this.song.chart.audio || null) : null;
+    const detector = this.bpmDetector;
+    const cached = audioKey && detector && detector._cacheKey === audioKey && detector._cacheResults;
+
+    if (cached) {
+      this.showBpmResultsOverlay(detector._cacheResults.slice());
+      return;
     }
 
-    // Calculate intervals between beats
-    const intervals = [];
-    for (let i = 1; i < beats.length; i++) {
-      intervals.push(beats[i] - beats[i - 1]);
-    }
+    this.showLoadingScreen(__("Analyzing BPM...||Analizando BPM..."));
+    const buffer = this.audioBuffer;
 
-    // Filter out outliers (keep only intervals within 20% of median)
-    const median = intervals.sort((a, b) => a - b)[Math.floor(intervals.length / 2)];
-    const validIntervals = intervals.filter(interval => Math.abs(interval - median) / median < 0.2);
-
-    if (validIntervals.length === 0) {
-      return 0;
-    }
-
-    // Calculate average interval and convert to BPM
-    const avgInterval = validIntervals.reduce((a, b) => a + b, 0) / validIntervals.length;
-    const bpm = Math.round(60 / avgInterval);
-
-    // TODO: Validate BPM range
-    return bpm;
+    setTimeout(() => {
+      let results = [];
+      try {
+        if (detector) {
+          const out = detector.detect(buffer, { cacheKey: audioKey });
+          results = out && out.results ? out.results : [];
+        }
+      } catch (e) {
+        console.error("BPM detection failed:", e);
+        results = [];
+      }
+      this.hideLoadingScreen();
+      this.showBpmResultsOverlay(results);
+    }, 50);
   }
 
   /**
-   * Opens a tap-to-the-beat mode to estimate the BPM at the cursor.
+   * Displays detected BPM results in a table overlay (graphics-drawn). Informational only.
+   * @param {Array} results - [{bpm, offset, fitness, confidence}]
    */
-  detectBPMHere() {
-    const audioElement = document.createElement("audio");
-    audioElement.src = this.audio.src;
-    audioElement.currentTime = this.chartRenderer.beatToSec(this.cursorBeat);
-
+  showBpmResultsOverlay(results) {
     this.menuVisible = true;
 
-    // Create background
-    const background = game.add.graphics(0, 0);
-    background.beginFill(0x000000, 0.8);
-    background.drawRect(0, 0, game.width, game.height);
-    background.endFill();
+    const overlay = game.add.group();
 
-    // Create instruction text
-    const instructionText = new Text(game.width / 2, game.height / 2 - 20, "TAP TO THE BEAT TO CALCULATE BPM");
-    instructionText.anchor.set(0.5);
+    const dim = game.add.graphics(0, 0);
+    dim.beginFill(0x000000, 0.75);
+    dim.drawRect(0, 0, game.width, game.height);
+    dim.endFill();
+    overlay.add(dim);
 
-    // Create offset display text
-    const valueText = new Text(game.width / 2, game.height / 2 + 10, "BPM: 0", FONTS.default);
-    valueText.tint = 0xffff00;
-    valueText.anchor.set(0.5);
-    
-    const startTime = this.audio.currentTime;
+    const panelW = 220;
+    const rowH = 14;
+    const headerH = 16;
+    const rows = (results && results.length) ? results.length : 1;
+    const panelH = 28 + headerH + rows * rowH + 16;
+    const px = Math.floor((game.width - panelW) / 2);
+    const py = Math.floor((game.height - panelH) / 2);
 
-    const beats = [];
+    const panel = game.add.graphics(0, 0);
+    panel.beginFill(0x1a1a2e, 0.98);
+    panel.drawRect(px, py, panelW, panelH);
+    panel.endFill();
+    panel.lineStyle(1, 0x3498db, 1);
+    panel.drawRect(px, py, panelW, panelH);
+    // separators
+    panel.lineStyle(1, 0x34495e, 1);
+    panel.moveTo(px, py + 20);
+    panel.lineTo(px + panelW, py + 20);
+    panel.moveTo(px, py + 20 + headerH);
+    panel.lineTo(px + panelW, py + 20 + headerH);
+    const col1 = px + 34;
+    const col2 = px + 122;
+    panel.moveTo(col1, py + 20);
+    panel.lineTo(col1, py + 20 + headerH + rows * rowH);
+    panel.moveTo(col2, py + 20);
+    panel.lineTo(col2, py + 20 + headerH + rows * rowH);
+    // row lines
+    for (let i = 1; i < rows; i++) {
+      const ly = py + 20 + headerH + i * rowH;
+      panel.moveTo(px, ly);
+      panel.lineTo(px + panelW, ly);
+    }
+    overlay.add(panel);
 
-    this.stopPlayback();
-    audioElement.play();
+    const title = new Text(px + panelW / 2, py + 5, __("BPM DETECTION||DETECCION BPM"), FONTS.default);
+    title.anchor.set(0.5, 0);
+    overlay.add(title);
 
-    const inputHandler = key => {
-      if (key == "a") {
-        beats.push(audioElement.currentTime);
-        valueText.write(`BPM: ${this.calculateBPM(beats)}`);
-        game.add.tween(valueText.scale).to({ x: 1.1, y: 1.1 }, 50, Phaser.Easing.Quadratic.Out, true).yoyo(true);
-      } else if (key == "b") {
-        background.destroy();
-        instructionText.destroy();
-        valueText.destroy();
-        audioElement.pause();
-        audioElement.src = "";
-        gamepad.signals.pressed.any.remove(inputHandler);
+    const hy = py + 23;
+    const hRank = new Text(px + 6, hy, "#", FONTS.tiny || FONTS.default);
+    const hBpm = new Text(col1 + 6, hy, "BPM", FONTS.tiny || FONTS.default);
+    const hConf = new Text(col2 + 6, hy, __("CONF||CONF"), FONTS.tiny || FONTS.default);
+    hRank.tint = 0xaaaaaa; hBpm.tint = 0xaaaaaa; hConf.tint = 0xaaaaaa;
+    overlay.add(hRank); overlay.add(hBpm); overlay.add(hConf);
+
+    if (results && results.length) {
+      for (let i = 0; i < results.length; i++) {
+        const r = results[i];
+        const ry = py + 20 + headerH + i * rowH + 2;
+        const conf = typeof r.confidence === "number" ? Math.round(r.confidence * 100) : 0;
+        const bpmVal = (typeof r.bpm === "number" ? r.bpm : 0).toFixed(2);
+        const tr = new Text(px + 8, ry, String(i + 1), FONTS.tiny || FONTS.default);
+        const tb = new Text(col1 + 6, ry, bpmVal, FONTS.tiny || FONTS.default);
+        const tc = new Text(col2 + 6, ry, conf + "%", FONTS.tiny || FONTS.default);
+        tb.tint = 0x00ffcc;
+        tc.tint = 0xffcc00;
+        overlay.add(tr); overlay.add(tb); overlay.add(tc);
+      }
+    } else {
+      const ry = py + 20 + headerH + 2;
+      const none = new Text(px + panelW / 2, ry, __("No results found||Sin resultados"), FONTS.tiny || FONTS.default);
+      none.anchor.set(0.5, 0);
+      overlay.add(none);
+    }
+
+    const hint = new Text(px + panelW / 2, py + panelH - 12, __("B: Close||B: Cerrar"), FONTS.tiny || FONTS.default);
+    hint.anchor.set(0.5, 0);
+    hint.tint = 0x888888;
+    overlay.add(hint);
+
+    const close = key => {
+      if (key === "b" || key === "start" || key === "a") {
+        gamepad.signals.pressed.any.remove(close);
+        overlay.destroy(true);
         this.menuVisible = false;
       }
     };
-
-    gamepad.signals.pressed.any.add(inputHandler);
+    gamepad.signals.pressed.any.add(close);
   }
 
   /**

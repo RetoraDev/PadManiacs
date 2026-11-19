@@ -84,6 +84,7 @@ class BuildSystem {
       'js/utils/ScreenRecorder.js',
       'js/utils/Metronome.js',
       'js/utils/TimeUtils.js',
+      'js/utils/BpmDetector.js',
       'js/utils/AviTranscoder.js',
       'js/utils/AviTools.js',
       
