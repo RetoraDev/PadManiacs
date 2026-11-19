@@ -4,13 +4,16 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.3.0
- * Build: 10/30/2026, 7:45:47 AM
+ * Version: v1.3.0 dev
+ * Build: 11/11/2026, 6:28:51 PM
  * Platform: Web
- * Debug: false
+ * Debug: true
  * Minified: false
  */
 
+
+
+// ======== js/core/lang.js ========
 /**
  * Global localization helpers for the game.
  *
@@ -121,14 +124,17 @@ window.__ = function(text) {
 /** @type {Function} Module-local alias for the global localization function */
 const __ = window.__;
 
+
+
+// ======== js/core/constants.js ========
 /** @type {string} Copyright notice */
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.3.0";
+const VERSION = "v1.3.0 dev";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
-window.DEBUG = false;
+window.DEBUG = true;
 
 /** @type {boolean} Whether to log personality study data during development */
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
@@ -859,6 +865,9 @@ const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mp
 /** @type {array} Supported chart types */
 const SUPPORTED_GAME_MODES = ["dance-single"];
 
+
+
+// ======== js/core/environment.js ========
 // Environment detection constants
 /** @type {Object} Environment type definitions (UNKNOWN, NWJS, CORDOVA, WEB) */
 const ENVIRONMENT = {
@@ -912,6 +921,9 @@ const WEAK_VIBRATION_INTENSITY = 50;
 /** @type {number} Vibration duration in MS for strong hits */
 const STRONG_VIBRATION_INTENSITY = 50;
 
+
+
+// ======== js/core/character.js ========
 // Character system constants
 /** @type {Object} Character system constants (max level, name length, etc.) */
 const CHARACTER_SYSTEM = {
@@ -3346,6 +3358,9 @@ const CHARACTER_ITEMS = [
   }
 ];
 
+
+
+// ======== js/core/account.js ========
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
   version: 1.3, // 1.3.0
@@ -3511,6 +3526,9 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
+
+
+// ======== js/core/achievements.js ========
 // Achievements system constants
 /** @type {Object} Achievements system constants */
 const ACHIEVEMENTS = {
@@ -5152,6 +5170,9 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
+
+
+// ======== js/character/Character.js ========
 /**
  * @class Character
  * @category Character System Classes
@@ -5752,6 +5773,9 @@ class Character {
   }
 }
 
+
+
+// ======== js/character/CharacterDisplay.js ========
 /**
  * @class CharacterDisplay
  * @category Character System Classes
@@ -6467,6 +6491,9 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/character/CharacterCroppedDisplay.js ========
 /**
  * @class CharacterCroppedDisplay
  * @category Character System Classes
@@ -6561,6 +6588,9 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
+
+
+// ======== js/character/CharacterPortrait.js ========
 /**
  * @class CharacterPortrait
  * @category Character System Classes
@@ -6588,6 +6618,9 @@ class CharacterPortrait extends CharacterCroppedDisplay {
   }
 }
 
+
+
+// ======== js/character/CharacterCloseShot.js ========
 /**
  * @class CharacterCloseShot
  * @category Character System Classes
@@ -6615,6 +6648,9 @@ class CharacterCloseShot extends CharacterCroppedDisplay {
   }
 }
 
+
+
+// ======== js/character/CharacterManager.js ========
 /**
  * @class CharacterManager
  * @category Character System Classes
@@ -6908,6 +6944,9 @@ class CharacterManager {
   }
 }
 
+
+
+// ======== js/character/CharacterSkillSystem.js ========
 /**
  * @class CharacterSkillSystem
  * @category Character System Classes
@@ -7404,6 +7443,9 @@ class CharacterSkillSystem {
   }
 }
 
+
+
+// ======== js/achievements/AchievementsManager.js ========
 /**
  * @class AchievementsManager
  * @category Achievements and Stats Classes
@@ -8059,6 +8101,9 @@ class AchievementsManager {
   }
 }
 
+
+
+// ======== js/playlist/PlaylistManager.js ========
 /**
  * @class PlaylistManager
  * @category Playlist System Classes
@@ -8368,6 +8413,9 @@ class PlaylistManager {
   }
 }
 
+
+
+// ======== js/ui/Text.js ========
 /**
  * @class Text
  * @category UI Classes
@@ -8712,6 +8760,9 @@ class Text extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Window.js ========
 /**
  * @class Window
  * @category UI Classes
@@ -9368,6 +9419,9 @@ class Window extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/WindowManager.js ========
 /**
  * @class WindowManager
  * @category UI Classes
@@ -9748,6 +9802,9 @@ class WindowManager {
   }
 }
 
+
+
+// ======== js/ui/DialogWindow.js ========
 /**
  * @class DialogWindow
  * @category UI Classes
@@ -10316,6 +10373,9 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/CarouselMenu.js ========
 /**
  * @class CarouselMenu
  * @category UI Classes
@@ -11217,6 +11277,9 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Background.js ========
 /**
  * @class Background
  * @category UI Classes
@@ -11271,6 +11334,9 @@ class Background extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/BackgroundGradient.js ========
 /**
  * @class BackgroundGradient
  * @category UI Classes
@@ -11295,6 +11361,9 @@ class BackgroundGradient extends Background {
   }
 } 
 
+
+
+// ======== js/ui/CanvasBackground.js ========
 /**
  * @class CanvasBackground
  * @category UI Classes
@@ -11364,6 +11433,9 @@ class CanvasBackground extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/FuturisticLines.js ========
 /**
  * @class FuturisticLines
  * @category UI Classes
@@ -11605,6 +11677,9 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LoadingDots.js ========
 /**
  * @class LoadingDots
  * @category UI Classes
@@ -11633,6 +11708,9 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/Logo.js ========
 /**
  * @class Logo
  * @category UI Classes
@@ -11720,6 +11798,9 @@ class Logo extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NavigationHint.js ========
 /**
  * @class NavigationHint
  * @category UI Classes
@@ -12345,6 +12426,9 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/ProgressText.js ========
 /**
  * @class ProgressText
  * @category UI Classes
@@ -12373,6 +12457,9 @@ class ProgressText extends Text {
   }
 }
 
+
+
+// ======== js/ui/ExperienceBar.js ========
 /**
  * @class ExperienceBar
  * @category UI Classes
@@ -12456,6 +12543,9 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/SkillBar.js ========
 /**
  * @class SkillBar
  * @category UI Classes
@@ -12507,6 +12597,9 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/TextInput.js ========
 /**
  * @class TextInput
  * @category UI Classes
@@ -12855,6 +12948,9 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/NumberInput.js ========
 /**
  * @class NumberInput
  * @category UI Classes
@@ -13071,6 +13167,9 @@ class NumberInput extends TextInput {
   }
 }
 
+
+
+// ======== js/ui/NotificationSystem.js ========
 /**
  * @class NotificationSystem
  * @category UI Classes
@@ -13571,6 +13670,9 @@ class NotificationSystem {
   }
 }
 
+
+
+// ======== js/ui/Lyrics.js ========
 /**
  * @class Lyrics
  * @category Core Game Classes
@@ -13829,6 +13931,9 @@ class Lyrics {
   }
 }
 
+
+
+// ======== js/ui/OffsetAssistant.js ========
 /**
  * @class OffsetAssistant
  * @category Core Game Classes
@@ -14263,6 +14368,9 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/MouseCursor.js ========
 /**
  * @class MouseCursor
  * @category UI Classes
@@ -14524,6 +14632,9 @@ class MouseCursor {
   }
 }
 
+
+
+// ======== js/ui/BarChart.js ========
 /**
  * @class BarChart
  * @category UI Classes
@@ -14660,6 +14771,9 @@ class BarChart extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/ui/LineChart.js ========
 /**
  * @class LineChart
  * @category UI Classes
@@ -14810,6 +14924,9 @@ class LineChart extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/filesystem/filesystem.js ========
 /**
  * @class FileSystemTools
  * @category File System Classes
@@ -14953,6 +15070,9 @@ class FileSystemTools {
   }
 }
 
+
+
+// ======== js/filesystem/node-filesystem.js ========
 /**
  * @class NodeDirectoryEntry
  * @category File System Classes
@@ -15588,6 +15708,9 @@ class NodeFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/cordova-filesystem.js ========
 /**
  * @class CordovaFileSystem
  * @category File System Classes
@@ -15795,6 +15918,9 @@ class CordovaFileSystem {
   }
 }
 
+
+
+// ======== js/filesystem/fallback-filesystem.js ========
 /**
  * @class FallbackFileSystem
  * @category File System Classes
@@ -15866,6 +15992,9 @@ class FallbackFileSystem {
   }
 }
 
+
+
+// ======== js/game/game.js ========
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 /** @type {AccountData} User data with settings, characters, achievements, and progress */
@@ -16204,6 +16333,9 @@ const fetch = url => new Promise((resolve, reject) => {
   resolve(new XhrFetchResponse(url));
 });
 
+
+
+// ======== js/utils/ScreenRecorder.js ========
 /**
  * @class ScreenRecorder
  * @category Core Game Classes
@@ -16669,6 +16801,9 @@ class ScreenRecorder {
   }
 }
 
+
+
+// ======== js/utils/Metronome.js ========
 /**
  * @class Metronome
  * @category Core Game Classes
@@ -16950,6 +17085,9 @@ class Metronome {
   }
 }
 
+
+
+// ======== js/utils/TimeUtils.js ========
 /**
  * @class TimeUtils
  * @category Utility Classes
@@ -17003,6 +17141,9 @@ class TimeUtils {
   }
 }
 
+
+
+// ======== js/utils/AviTranscoder.js ========
 /**
  * @class AviTranscoder
  * @category Utils
@@ -17366,6 +17507,9 @@ class AviTranscoder {
   }
 }
 
+
+
+// ======== js/utils/AviTools.js ========
 /**
  * @class AviTools
  * @category Utils
@@ -17589,6 +17733,9 @@ class AviTools {
   }
 }
 
+
+
+// ======== js/input/GamepadListener.js ========
 /**
  * @class GamepadListener
  * @category Core Game Classes
@@ -17635,6 +17782,9 @@ class GamepadListener {
   }
 }
 
+
+
+// ======== js/input/KeyboardListener.js ========
 /**
  * @class KeyboardListener
  * @category Core Game Classes
@@ -17674,6 +17824,9 @@ class KeyboardListener {
   }
 }
 
+
+
+// ======== js/input/InputManager.js ========
 let inputManager, gamepad, gamepad1, gamepad2;
 
 /**
@@ -17736,6 +17889,9 @@ class InputManager {
   }
 }
 
+
+
+// ======== js/input/Gamepad.js ========
 /**
  * @class Gamepad
  * @category Core Game Classes
@@ -18509,6 +18665,9 @@ class Gamepad {
   }
 }
 
+
+
+// ======== js/input/AllPads.js ========
 /**
  * @class AllPads
  * @category Core Game Classes
@@ -18705,6 +18864,9 @@ class AllPads extends Gamepad {
   destroy() {}
 }
 
+
+
+// ======== js/input/OnScreenKeyboard.js ========
 /**
  * @class OnScreenKeyboard
  * @category Core Game Classes
@@ -18997,6 +19159,9 @@ class OnScreenKeyboard extends Phaser.Sprite {
   }
 }
 
+
+
+// ======== js/input/NumericTypeOnScreenKeyboard.js ========
 /**
  * @class NumericTypeOnScreenKeyboard
  * @category Core Game Classes
@@ -19047,6 +19212,9 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   }
 }
 
+
+
+// ======== js/audio/BackgroundMusic.js ========
 /**
  * @class BackgroundMusic
  * @category Core Game Classes
@@ -19359,6 +19527,9 @@ class BackgroundMusic {
   }
 }
 
+
+
+// ======== js/visualizers/Visualizer.js ========
 /**
  * @class Visualizer
  * @category Core Game Classes
@@ -19428,6 +19599,9 @@ class Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AccurracyVisualizer.js ========
 /**
  * @class AccuracyVisualizer
  * @category Core Game Classes
@@ -19497,6 +19671,9 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/AudioVisualizer.js ========
 /**
  * @class AudioVisualizer
  * @category Core Game Classes
@@ -19602,6 +19779,9 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/BPMVisualizer.js ========
 /**
  * @class BPMVisualizer
  * @category Core Game Classes
@@ -19742,6 +19922,9 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
+
+
+// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 /**
  * @class FullScreenAudioVisualizer
  * @category Core Game Classes
@@ -20191,6 +20374,9 @@ class FullScreenAudioVisualizer {
   }
 }
 
+
+
+// ======== js/parsers/SMFile.js ========
 /**
  * @class SMFile
  * @category Parser Classes
@@ -20551,6 +20737,9 @@ class SMFile {
   }
 }
 
+
+
+// ======== js/parsers/FileTools.js ========
 /**
  * @class FileTools
  * @category File System Classes
@@ -20883,6 +21072,9 @@ class FileTools {
   }
 }
 
+
+
+// ======== js/parsers/LocalSMParser.js ========
 /**
  * @class LocalSMParser
  * @category Parser Classes
@@ -21221,6 +21413,9 @@ class LocalSMParser {
   }
 }
 
+
+
+// ======== js/parsers/ExternalSMParser.js ========
 /**
  * @class ExternalSMParser
  * @category Parser Classes
@@ -21620,6 +21815,9 @@ class ExternalSMParser {
   }
 }
 
+
+
+// ======== js/addons/AddonManager.js ========
 /**
  * @class AddonManager
  * @category Addon System Classes
@@ -22173,6 +22371,9 @@ class AddonManager {
   }
 }
 
+
+
+// ======== js/game/states/Boot.js ========
 /**
  * @class Boot
  * @category Game States
@@ -22890,6 +23091,9 @@ class Boot {
   }
 }
 
+
+
+// ======== js/game/states/LanguageSelect.js ========
 /**
  * @class LanguageSelect
  * @category Game States
@@ -23075,6 +23279,9 @@ class LanguageSelect {
   }
 }
 
+
+
+// ======== js/game/states/Load.js ========
 /**
  * @class Load
  * @category Game States
@@ -23160,6 +23367,9 @@ class Load {
   }
 }
 
+
+
+// ======== js/game/states/LoadPlatform.js ========
 /**
  * @class LoadPlatform
  * @category Game States
@@ -23294,6 +23504,9 @@ class LoadPlatform {
   }
 }
 
+
+
+// ======== js/game/states/LoadAddons.js ========
 /**
  * @class LoadAddons
  * @category Game States
@@ -23341,6 +23554,9 @@ class LoadAddons {
   }
 }
 
+
+
+// ======== js/game/states/LoadLocalSongs.js ========
 /**
  * @class LoadLocalSongs
  * @category Game States
@@ -23451,6 +23667,9 @@ class LoadLocalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadExternalSongs.js ========
 /**
  * @class LoadExternalSongs
  * @category Game States
@@ -23930,6 +24149,9 @@ class LoadExternalSongs {
   }
 }
 
+
+
+// ======== js/game/states/LoadSongFolder.js ========
 /**
  * @class LoadSongFolder
  * @category Game States
@@ -24191,6 +24413,9 @@ class LoadSongFolder {
   }
 }
 
+
+
+// ======== js/game/states/LoadExternalSongFile.js ========
 /**
  * @class LoadExternalSongFile
  * @category Game States
@@ -24363,6 +24588,9 @@ class LoadExternalSongFile {
   }
 }
 
+
+
+// ======== js/game/states/Title.js ========
 /**
  * @class Title
  * @category Game States
@@ -24502,6 +24730,9 @@ class Title {
   }
 }
 
+
+
+// ======== js/game/states/MainMenu.js ========
 /**
  * @class MainMenu
  * @category Game States
@@ -25070,6 +25301,9 @@ class MainMenu {
   }
 }
 
+
+
+// ======== js/game/states/Addons.js ========
 /**
  * @class Addons
  * @category Game States
@@ -25341,6 +25575,9 @@ class Addons {
   }
 }
 
+
+
+// ======== js/game/states/Settings.js ========
 /**
  * @class Settings
  * @category Game States
@@ -26116,6 +26353,9 @@ class Settings {
   }
 }
 
+
+
+// ======== js/game/states/ChartModifiers.js ========
 /**
  * @class ChartModifiers
  * @category Game States
@@ -26314,6 +26554,9 @@ class ChartModifiers {
   }
 }
 
+
+
+// ======== js/game/states/Keybindings.js ========
 /**
  * @class Keybindings
  * @category Game States
@@ -27142,6 +27385,9 @@ class Keybindings {
   }
 }
 
+
+
+// ======== js/game/states/TouchSettings.js ========
 /**
  * @class TouchSettings
  * @category Game States
@@ -27328,6 +27574,9 @@ class TouchSettings {
   }
 }
 
+
+
+// ======== js/game/states/AviSettings.js ========
 /**
  * @class AviSettings
  * @category Game States
@@ -27459,6 +27708,9 @@ class AviSettings {
   }
 }
 
+
+
+// ======== js/game/states/FileSelect.js ========
 /**
  * @class FileSelect
  * @category Game States
@@ -27823,6 +28075,9 @@ class FileSelect {
   }
 }
 
+
+
+// ======== js/game/states/SongSelect.js ========
 /**
  * @class SongSelect
  * @category Game States
@@ -28942,6 +29197,9 @@ class SongSelect {
   }
 }
 
+
+
+// ======== js/game/states/DecodeAvi.js ========
 /**
  * @class DecodeAvi
  * @category Game States
@@ -29359,6 +29617,9 @@ class DecodeAvi {
   }
 }
 
+
+
+// ======== js/game/states/SongStats.js ========
 /**
  * @class SongStats
  * @category Game States
@@ -30099,6 +30360,9 @@ class SongStats {
   }
 }
 
+
+
+// ======== js/game/states/CharacterSelect.js ========
 /**
  * @class CharacterSelect
  * @category Game States
@@ -32041,6 +32305,9 @@ class CharacterSelect {
   }
 }
 
+
+
+// ======== js/game/states/AchievementsMenu.js ========
 /**
  * @class AchievementsMenu
  * @category Game States
@@ -32221,6 +32488,9 @@ class AchievementsMenu {
   }
 }
 
+
+
+// ======== js/game/states/StatsMenu.js ========
 /**
  * @class StatsMenu
  * @category Game States
@@ -32368,6 +32638,9 @@ class StatsMenu {
   }
 }
 
+
+
+// ======== js/game/states/Play.js ========
 /**
  * @class Play
  * @category Game States
@@ -34241,6 +34514,9 @@ class Play {
   }
 }
 
+
+
+// ======== js/game/states/PlayMulti.js ========
 /**
  * @class PlayMulti
  * @category Game States
@@ -34640,6 +34916,9 @@ class PlayMulti extends Play {
   }
 }
 
+
+
+// ======== js/game/states/Results.js ========
 /**
  * @class Results
  * @category Game States
@@ -35006,6 +35285,9 @@ class Results {
   }
 }
 
+
+
+// ======== js/game/states/ResultsMulti.js ========
 /**
  * @class ResultsMulti
  * @category Game States
@@ -35244,6 +35526,9 @@ class ResultsMulti extends Results {
   }
 }
 
+
+
+// ======== js/game/states/Playlists.js ========
 /**
  * @class Playlists
  * @category Game States
@@ -35585,6 +35870,9 @@ class Playlists {
   }
 }
 
+
+
+// ======== js/game/states/Jukebox.js ========
 /**
  * @class Jukebox
  * @category Game States
@@ -36676,6 +36964,9 @@ class Jukebox {
   }
 }
 
+
+
+// ======== js/game/states/Editor.js ========
 /**
  * @class Editor
  * @category Game States
@@ -40002,6 +40293,9 @@ class Editor {
   }
 }
 
+
+
+// ======== js/game/states/Credits.js ========
 /**
  * @class Credits
  * @category Game States
@@ -40398,6 +40692,9 @@ class Credits {
   }
 }
 
+
+
+// ======== js/game/states/ErrorScreen.js ========
 /**
  * @class ErrorScreen
  * @category Game States
@@ -40468,6 +40765,9 @@ Please Report The Developer Immediately!
   }
 }
 
+
+
+// ======== js/game/player/ChartRenderer.js ========
 /**
  * @class ChartRenderer
  * @category Core Game Classes
@@ -41618,6 +41918,9 @@ class ChartRenderer {
   }
 }
 
+
+
+// ======== js/game/player/AudioTemperatureMeter.js ========
 /**
  * @class AudioTemperatureMeter
  * @category Core Game Classes
@@ -42074,6 +42377,9 @@ class AudioTemperatureMeter {
   }
 }
 
+
+
+// ======== js/game/player/Player.js ========
 /**
  * @class Player
  * @category Core Game Classes
@@ -43250,6 +43556,9 @@ class Player {
   }
 }
 
+
+
+// ======== js/game/player/FirstPlayer.js ========
 /**
  * @class FirstPlayer
  * @category Core Game Classes
@@ -43293,6 +43602,9 @@ class FirstPlayer extends Player {
   }
 }
 
+
+
+// ======== js/game/player/SecondPlayer.js ========
 /**
  * @class SecondPlayer
  * @category Core Game Classes

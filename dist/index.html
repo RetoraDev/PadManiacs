@@ -10,7 +10,7 @@
   
   <title>PadManiacs</title>
 
-  <script src="./lib/phaser.min.js"></script>
+  <script src="./lib/phaser.js"></script>
   <script src="./lib/jszip.js"></script>
   <script src="./lib/eruda.js"></script>
   <script src="./js/game.js"></script>
@@ -19,27 +19,174 @@
 <body>
   <div id="game">
     <div id="canvas_parent"></div>
-      <div id="controller_parent">
-        <div id="controller">
-          <div id="controller_dpad">
-            <div id="controller_left"></div>
-            <div id="controller_right"></div>
-            <div id="controller_up"></div>
-            <div id="controller_down"></div>
-          </div>
-          <div id="controller_rhythm_pad">
-            <div id="controller_rhythm_left" class="capsuleBtn squareBtn"></div>
-            <div id="controller_rhythm_down" class="capsuleBtn squareBtn"></div>
-            <div id="controller_rhythm_up" class="capsuleBtn squareBtn"></div>
-            <div id="controller_rhythm_right" class="capsuleBtn squareBtn"></div>
-          </div>
-          <div id="controller_select" class="capsuleBtn">Select</div>
-          <div id="controller_start" class="capsuleBtn">Start</div>
-          <div id="controller_b" class="roundBtn">B</div>
-          <div id="controller_a" class="roundBtn">A</div>
+    <div id="controller_parent">
+      <div id="controller">
+        <div id="controller_dpad">
+          <div id="controller_left"></div>
+          <div id="controller_right"></div>
+          <div id="controller_up"></div>
+          <div id="controller_down"></div>
+        </div>
+        <div id="controller_rhythm_pad">
+          <div id="controller_rhythm_left" class="capsuleBtn squareBtn"></div>
+          <div id="controller_rhythm_down" class="capsuleBtn squareBtn"></div>
+          <div id="controller_rhythm_up" class="capsuleBtn squareBtn"></div>
+          <div id="controller_rhythm_right" class="capsuleBtn squareBtn"></div>
+        </div>
+        <div id="controller_select" class="capsuleBtn">Select</div>
+        <div id="controller_start" class="capsuleBtn">Start</div>
+        <div id="controller_b" class="roundBtn">B</div>
+        <div id="controller_a" class="roundBtn">A</div>
+      </div>
+      <div id="keyboards">
+        <div id="typing-keyboard" class="virtual-keyboard">
+          <button code="1">1</button>
+          <button code="2">2</button>
+          <button code="3">3</button>
+          <button code="4">4</button>
+          <button code="5">5</button>
+          <button code="6">6</button>
+          <button code="7">7</button>
+          <button code="8">8</button>
+          <button code="9">9</button>
+          <button code="0">0</button>
+          <button code="Backspace" action="clear">⌫</button>
+          <button code="q">q</button>
+          <button code="w">w</button>
+          <button code="e">e</button>
+          <button code="r">r</button>
+          <button code="t">t</button>
+          <button code="y">y</button>
+          <button code="u">u</button>
+          <button code="i">i</button>
+          <button code="o">o</button>
+          <button code="p">p</button>
+          <button action="symbol">…</button>
+          <button code="a">a</button>
+          <button code="s">s</button>
+          <button code="d">d</button>
+          <button code="f">f</button>
+          <button code="g">g</button>
+          <button code="h">h</button>
+          <button code="j">j</button>
+          <button code="k">k</button>
+          <button code="l">l</button>
+          <button char=";">;</button>
+          <button code=" " char=" ">␣</button>
+          <button code="Shift" action="shift">⇧</button>
+          <button code="z">z</button>
+          <button code="z">x</button>
+          <button code="z">c</button>
+          <button code="z">v</button>
+          <button code="z">b</button>
+          <button code="z">n</button>
+          <button char="_">_</button>
+          <button char=",">,</button>
+          <button char=".">.</button>
+          <button code="Enter" action="enter">✓</button>
+        </div>
+        <div id="numeric-keyboard" class="virtual-keyboard">
+          <button code="7">7</button>
+          <button code="8">8</button>
+          <button code="9">9</button>
+          <button code="Backspace" action="erase">⌫</button>
+          <button code="4">4</button>
+          <button code="5">5</button>
+          <button code="6">6</button>
+          <button code="+">+</button>
+          <button code="1">1</button>
+          <button code="2">2</button>
+          <button code="3">3</button>
+          <button code="-">-</button>
+          <button code="c" action="clear">C</button>
+          <button code="0">0</button>
+          <button code=".">.</button>
+          <button code="Enter" action="enter">✓</button>
         </div>
       </div>
+    </div>
   </div>
+
+  <script>
+    
+    // Auto-enable debug mode if URL has debug parameter
+    if (location.search.includes('debug')) {
+      window.DEBUG = true;
+    }
+    
+    // Debug initialization
+    if (typeof window.eruda !== 'undefined' && (window.DEBUG || location.search.includes('debug'))) {
+      eruda.init({
+        tool: ['console', 'elements', 'resources', 'network', 'snippets',]
+      });
+      
+      const snippets = eruda.get('snippets');
+      snippets.clear();
+      
+      // Debug utilities
+      snippets.add("Start Recording", () => {
+        if (window.game && game.recorder) {
+          game.recorder.start();
+        } else {
+          console.warn('Game not initialized yet');
+        }
+      }, "Start recording the game");
+      
+      snippets.add("Stop Recording", () => {
+        if (window.game && game.recorder) {
+          game.recorder.stop();
+        }
+      }, "Stop recording and save video");
+      
+      snippets.add("Record Next Game", () => {
+        window.recordNextGame = true;
+        console.log('Recording will start on next game');
+      }, "Start recording next song, stop when it ends");
+      
+      snippets.add("Take Screenshot", () => {
+        if (window.game && game.recorder) {
+          game.recorder.screenshot();
+        }
+      }, "Take a screenshot");
+      
+      snippets.add("Auto Screenshots", () => {
+        const screenshot = () => {
+          if (window.game && game.recorder) {
+            game.recorder.screenshot();
+            setTimeout(screenshot, Phaser.Math.between(5000, 20000));
+          }
+        };
+        screenshot();
+      }, "Take screenshots randomly every 5-20 seconds");
+      
+      snippets.add("Add FPS Counter", () => {
+        if (window.game) {
+          addFpsText();
+        }
+      }, "Displays performance information");
+
+      snippets.add("Toggle UNLOCK_ALL_CLOTHES", () => {
+        window.UNLOCK_ALL_CLOTHES = !window.UNLOCK_ALL_CLOTHES;
+        notifications.show(window.UNLOCK_ALL_CLOTHES ? "All clothes unlocked!" : "Unlock status back to normal", 1000);
+      }, "Toggles the state of temporary clothes unlock");
+      
+      snippets.add("Reload Game", () => {
+        location.reload();
+      }, "Reload the game");
+
+      snippets.add("Force First Run", () => {
+        Account.firstRun = true;
+        saveAccount();
+        location.reload();
+      }, "Reload the game with Account.firstRun = true");
+      
+      snippets.add("Destroy Eruda", () => {
+        eruda.destroy();
+      }, "Remove debug panel");
+      
+      console.log('PadManiacs Debug Mode Active');
+    }
+  </script>
 </body>
 
 </html>

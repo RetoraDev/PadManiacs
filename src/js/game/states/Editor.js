@@ -153,16 +153,24 @@ class Editor {
     this.updateInfoText();
     
     // Create play/pause audio
-    /** @type {HTMLAudioElement} Audio element used for playback and previews. */
+    /** @type {HTMLAudioElement} Fallback audio element. */
     this.audio = document.createElement("audio");
     if (this.song.chart.audioUrl) {
       this.audio.src = this.song.chart.audioUrl;
     }
-    
-    // Create a shared AudioContext for output latency measurement (BT compensation)
-    /** @type {AudioContext|null} Audio context for latency compensation */
-    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    this.audioContext.createMediaElementSource(this.audio).connect(this.audioContext.destination);
+
+    /** @type {AudioContext|null} Web Audio context for editor playback/preview. */
+    this.editorAudioCtx = null;
+    /** @type {AudioBuffer|null} Decoded audio buffer for editor playback/preview. */
+    this.audioBuffer = null;
+    /** @type {AudioBufferSourceNode|null} Active playback source (SELECT). */
+    this.playbackSource = null;
+    /** @type {AudioBufferSourceNode|null} Active note placement preview source. */
+    this.previewSource = null;
+    /** @type {number} AudioContext time when playback started. */
+    this.playbackStartCtxTime = 0;
+    /** @type {number} Buffer offset (seconds) when playback started. */
+    this.playbackStartOffset = 0;
 
     this.initalSetup();
 
@@ -189,6 +197,9 @@ class Editor {
       this.updateBackground(this.song.chart.backgroundUrl);
       this.refreshLyrics();
       this.hideLoadingScreen();
+    }
+    if (this.song.chart.audioUrl) {
+      await this.syncEditorAudio(this.song.chart.audioUrl);
     }
     this.setupMouseEvents();
     this.showHomeScreen();
@@ -434,6 +445,79 @@ class Editor {
    */
   hideLoadingScreen() {
     this.loadingScreen?.destroy();
+    this.loadingDots?.destroy();
+    this.progressText?.destroy();
+    this.loadingScreen = null;
+    this.loadingDots = null;
+    this.progressText = null;
+  }
+
+  /**
+   * Returns or creates the Web Audio context for editor playback/preview.
+   * @returns {AudioContext}
+   */
+  ensureEditorAudioContext() {
+    if (!this.editorAudioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      this.editorAudioCtx = new Ctx();
+    }
+    return this.editorAudioCtx;
+  }
+
+  /**
+   * Decodes audio into memory for synchronized editor playback/preview.
+   * @param {string} [url]
+   */
+  async syncEditorAudio(url) {
+    const sourceUrl = url || (this.song && this.song.chart && this.song.chart.audioUrl);
+    if (!sourceUrl) {
+      this.audioBuffer = null;
+      return;
+    }
+    this.showLoadingScreen(__("Synchronizing Audio...||Sincronizando Audio..."));
+    try {
+      const ctx = this.ensureEditorAudioContext();
+      const response = await fetch(sourceUrl);
+      const arrayBuffer = await response.arrayBuffer();
+      this.audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+    } catch (error) {
+      console.error("Error synchronizing audio:", error);
+      this.audioBuffer = null;
+      notifications.show(__("Audio sync failed||Fallo al sincronizar audio"));
+    }
+    this.hideLoadingScreen();
+  }
+
+  /**
+   * Returns the loaded audio duration in seconds.
+   * @returns {number}
+   */
+  getEditorAudioDuration() {
+    if (this.audioBuffer) return this.audioBuffer.duration;
+    if (this.audio && !isNaN(this.audio.duration)) return this.audio.duration;
+    return 0;
+  }
+
+  /**
+   * Stops the active SELECT playback source.
+   */
+  stopPlaybackSource() {
+    if (this.playbackSource) {
+      try { this.playbackSource.onended = null; this.playbackSource.stop(); } catch (e) {}
+      try { this.playbackSource.disconnect(); } catch (e) {}
+      this.playbackSource = null;
+    }
+  }
+
+  /**
+   * Stops the active note placement preview source.
+   */
+  stopPreviewSource() {
+    if (this.previewSource) {
+      try { this.previewSource.onended = null; this.previewSource.stop(); } catch (e) {}
+      try { this.previewSource.disconnect(); } catch (e) {}
+      this.previewSource = null;
+    }
   }
   
   /**
@@ -787,17 +871,18 @@ class Editor {
     if (this.isPlaying) {
       const chartOffset = this.song.chart.offset || 0;
       let currentTime;
-      
-      // Read the real audio clock so the editor playhead stays in sync with
-      // what is actually heard, matching the Play state's timing model.
-      if (this.audio && this.audio.src && !isNaN(this.audio.currentTime)) {
+
+      if (this.audioBuffer && this.editorAudioCtx && this.playbackSource) {
+        const audioPos = this.playbackStartOffset + (this.editorAudioCtx.currentTime - this.playbackStartCtxTime);
+        currentTime = audioPos + chartOffset - this.getAudioOffset();
+      } else if (this.audio && this.audio.src && !isNaN(this.audio.currentTime)) {
         currentTime = this.audio.currentTime
           + chartOffset
           - this.getAudioOffset();
       } else {
         currentTime = ((game.time.now - this.playStartTime + (chartOffset*1000)) / 1000) + this.playOffset;
       }
-      
+
       const currentBeat = this.chartRenderer.secToBeat(currentTime);
       return {
         now: currentTime,
@@ -974,10 +1059,41 @@ class Editor {
 
     this.getCurrentChartNotes().forEach(note => (note.hitEffectShown = false));
 
-    if (this.audio && this.audio.src) {
-      if (this.previewEndTimeoutId) clearTimeout(this.previewEndTimeoutId);
-      this.audio.currentTime = this.playOffset;
-      this.audio.play();
+    if (this.previewEndTimeoutId) {
+      clearTimeout(this.previewEndTimeoutId);
+      this.previewEndTimeoutId = null;
+    }
+    this.previewEndHandler = null;
+    this.stopPreviewSource();
+    this.stopPlaybackSource();
+
+    if (this.audioBuffer) {
+      const ctx = this.ensureEditorAudioContext();
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      const chartOffset = this.song.chart.offset || 0;
+      const offset = Math.max(0, Math.min(this.playOffset - chartOffset + this.getAudioOffset(), this.audioBuffer.duration));
+      const source = ctx.createBufferSource();
+      source.buffer = this.audioBuffer;
+      source.connect(ctx.destination);
+      source.onended = () => {
+        if (this.playbackSource === source) {
+          this.playbackSource = null;
+          if (this.isPlaying) this.stopPlayback();
+        }
+      };
+      this.playbackSource = source;
+      this.playbackStartCtxTime = ctx.currentTime;
+      this.playbackStartOffset = offset;
+      try {
+        source.start(0, offset);
+      } catch (e) {
+        this.playbackSource = null;
+      }
+    } else if (this.audio && this.audio.src) {
+      const chartOffset = this.song.chart.offset || 0;
+      const targetTime = Math.max(0, this.playOffset - chartOffset + this.getAudioOffset());
+      this.audio.currentTime = targetTime;
+      this.audio.play().catch(() => {});
     }
     
     this.metronome.resetNoteMode();
@@ -990,8 +1106,9 @@ class Editor {
     this.isPlaying = false;
     this.navigationHint.visible = true;
 
+    this.stopPlaybackSource();
     if (this.audio && this.audio.src) {
-      this.audio.pause();
+      try { this.audio.pause(); } catch (e) {}
     }
 
     // Snap cursor to current position
@@ -1004,14 +1121,21 @@ class Editor {
 
   /**
    * Cancels an active preview and removes its end handler.
+   * @param {boolean} [pause] - Whether to pause audio using the active handler.
    */
-  abortPreview() {
-    if (this.previewEndHandler && this.previewEndTimeoutId) {
+  abortPreview(pause = true) {
+    if (this.previewEndTimeoutId) {
       clearTimeout(this.previewEndTimeoutId);
-      this.previewEndHandler();
-      this.previewEndHandler = null;
       this.previewEndTimeoutId = null;
     }
+    if (this.previewEndHandler) {
+      const handler = this.previewEndHandler;
+      this.previewEndHandler = null;
+      if (pause) handler();
+    } else {
+      this.previewEndHandler = null;
+    }
+    this.stopPreviewSource();
   }
 
   /**
@@ -1020,21 +1144,65 @@ class Editor {
    * @param {number} length - Preview duration in seconds.
    */
   playPreview(start, length) {
-    if (!this.isPlaying && this.audio && this.audio.src) {
-      this.abortPreview();
+    if (this.isPlaying) return;
 
-      const chartOffset = 0; // TODO: Apply chart offset
+    const chartOffset = this.song.chart.offset || 0;
+    const targetTime = Math.max(0, start - chartOffset + this.getAudioOffset());
 
-      this.audio.currentTime = Math.max(0, start + chartOffset - this.getAudioOffset());
+    if (this.previewEndTimeoutId) {
+      clearTimeout(this.previewEndTimeoutId);
+      this.previewEndTimeoutId = null;
+    }
+    this.previewEndHandler = null;
+    this.stopPreviewSource();
 
-      this.previewEndHandler = () => {
-        this.audio.pause();
-        this.audio.currentTime = start;
+    if (this.audioBuffer) {
+      const ctx = this.ensureEditorAudioContext();
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      const offset = Math.max(0, Math.min(targetTime, this.audioBuffer.duration));
+      const duration = Math.max(0, Math.min(length, this.audioBuffer.duration - offset));
+      if (duration <= 0) return;
+      const source = ctx.createBufferSource();
+      source.buffer = this.audioBuffer;
+      source.connect(ctx.destination);
+      source.onended = () => {
+        if (this.previewSource === source) this.previewSource = null;
       };
+      this.previewSource = source;
+      try {
+        source.start(0, offset, duration);
+      } catch (e) {
+        this.previewSource = null;
+      }
+      return;
+    }
 
-      this.audio.play().then(() => {
-        this.previewEndTimeoutId = setTimeout(this.previewEndHandler, length * 1000);
-      });
+    if (!this.audio || !this.audio.src) return;
+
+    try { this.audio.currentTime = targetTime; } catch (e) {}
+
+    const endPreview = () => {
+      try { this.audio.pause(); } catch (e) {}
+      this.previewEndHandler = null;
+      this.previewEndTimeoutId = null;
+    };
+    this.previewEndHandler = endPreview;
+
+    const startTimer = () => {
+      this.previewEndTimeoutId = setTimeout(() => {
+        if (this.previewEndHandler === endPreview) endPreview();
+      }, length * 1000);
+    };
+
+    if (this.audio.paused) {
+      const p = this.audio.play();
+      if (p && typeof p.then === "function") {
+        p.then(startTimer).catch(() => {});
+      } else {
+        startTimer();
+      }
+    } else {
+      startTimer();
     }
   }
 
@@ -1970,13 +2138,16 @@ class Editor {
       }
       
       this.hideLoadingScreen();
-      
-      this.audio.src = chart.audioUrl;
+
+      this.stopPlayback();
+      this.abortPreview();
+      this.audio.src = chart.audioUrl || "";
       this.updateBanner(chart.bannerUrl);
       this.updateBackground(chart.backgroundUrl);
       this.refreshLyrics();
 
       this.song = { chart, difficultyIndex: 0 };
+      await this.syncEditorAudio(chart.audioUrl);
       this.showHomeScreen();
     } catch (error) {
       console.error("Error loading song:", error);
@@ -1990,6 +2161,8 @@ class Editor {
    */
   async loadAudioFile(file) {
     try {
+      this.stopPlayback();
+      this.abortPreview();
       const url = URL.createObjectURL(file);
       this.song.chart.audio = file.name;
       this.song.chart.audioUrl = url;
@@ -1997,15 +2170,17 @@ class Editor {
       this.showLoadingScreen(__("Processing Audio||Procesando Audio"));
       
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         this.files.audio = FileTools.extractBase64(reader.result);
         this.audio.src = url;
         this.hideLoadingScreen();
+        await this.syncEditorAudio(url);
         this.showHomeScreen();
       };
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error loading audio:", error);
+      this.hideLoadingScreen();
       this.showHomeScreen();
     }
   }
@@ -2181,7 +2356,7 @@ class Editor {
         if (targetProp === "audio") {
           this.song.chart.audio = filename;
           this.song.chart.audioUrl = objectUrl;
-          this.files.audio = FileTools.urlToBase64(objectUrl);
+          this.files.audio = await FileTools.urlToBase64(objectUrl);
           this.audio.src = objectUrl;
         } else if (targetProp === "background") {
           this.song.chart.background = filename;
@@ -2208,6 +2383,9 @@ class Editor {
       return null;
     };
     
+    this.stopPlayback();
+    this.abortPreview();
+    this.audioBuffer = null;
     this.audio.src = "";
 
     // Load main files
@@ -2224,8 +2402,12 @@ class Editor {
         }
       }
     }
-    
-    this.hideLoadingScreen();
+
+    if (this.song.chart.audioUrl) {
+      await this.syncEditorAudio(this.song.chart.audioUrl);
+    } else {
+      this.hideLoadingScreen();
+    }
 
     notifications.show(__("StepMania song imported!||Canción importada"));
   }
@@ -2238,6 +2420,9 @@ class Editor {
     const content = await FileTools.readTextFile(file);
     const chart = await new LocalSMParser().parseSM(content);
 
+    this.stopPlayback();
+    this.abortPreview();
+
     this.song = { chart, difficulties: 0 };
 
     this.files = {
@@ -2247,6 +2432,7 @@ class Editor {
       extra: {}
     };
     
+    this.audioBuffer = null;
     this.updateBackground();
     this.updateBanner();
     this.refreshLyrics();
@@ -2753,11 +2939,11 @@ class Editor {
     this.numberInput({
       value: sampleStart,
       min: 0,
-      max: this.audio.duration || 100,
+      max: this.getEditorAudioDuration() || 100,
       decimals: 1,
       onConfirm: (value) => {
         this.song.chart.sampleStart = value;
-        if (this.audio && this.audio.src) {
+        if (this.audioBuffer || (this.audio && this.audio.src)) {
           this.playPreview(value, this.song.chart.sampleLength);
         }
         this.updateInfoText();
@@ -3315,8 +3501,14 @@ class Editor {
       this.fileInput = null;
     }
     this.stopPlayback();
+    this.abortPreview();
+    if (this.editorAudioCtx) {
+      try { this.editorAudioCtx.close(); } catch (e) {}
+      this.editorAudioCtx = null;
+    }
+    this.audioBuffer = null;
     if (this.audio) {
-      this.audio.pause();
+      try { this.audio.pause(); } catch (e) {}
       this.audio.src = "";
       this.audio = null;
     }

@@ -222,7 +222,6 @@ body {
 }
 
 #keyboards {
-  /* TODO: Visibility (display) should be contrary to #controller automatically */
   display: none;
 }
   

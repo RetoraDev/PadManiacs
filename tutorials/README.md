@@ -8,5 +8,5 @@ When the docs are built (`npm run docs` -> `node docs-generator.js`), every `.ht
 
 To add a new tutorial:
 1. Create `<name>.html` in this folder using one of the existing tutorials as a template.
-2. Add a link to it from the Tutorials section in `docs-generator.js` (`INDEX_STATIC`).
+2. Add a link to it from the Tutorials section in `docs-templates/index.html.tpl`.
 3. Regenerate the docs with `npm run docs`.
