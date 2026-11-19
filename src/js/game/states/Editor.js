@@ -1743,7 +1743,7 @@ class Editor {
         contextMenu.addItem("(Remove BG Change|Eliminar Cambio de Fondo)", () => this.removeBGChange());
       }
       
-      contextMenu.addItem("(Detect BPM Here|Detectar BPM Aquí)", () => this.detectBPMHere());
+      contextMenu.addItem("Detect BPM||Detectar BPM", () => this.detectBPM());
     } else if (this.selectedNotes.length === 1) {
       const note = this.selectedNotes[0];
       contextMenu.addItem("(Unselect|Deseleccionar)", () => (this.selectedNotes = []));
@@ -3099,7 +3099,7 @@ class Editor {
    * Detects BPM automatically from the loaded audio and shows a results table.
    * Results are cached per audio file and re-shown on subsequent runs.
    */
-  detectBPMHere() {
+  detectBPM() {
     if (!this.audioBuffer) {
       notifications.show(__("Load audio first||Carga el audio primero"));
       return;
@@ -3167,9 +3167,9 @@ class Editor {
     panel.drawRect(px, py, panelW, panelH);
     // separators
     panel.lineStyle(1, 0x34495e, 1);
-    panel.moveTo(px, py + 20);
+    panel.moveTo(px + 1, py + 20);
     panel.lineTo(px + panelW, py + 20);
-    panel.moveTo(px, py + 20 + headerH);
+    panel.moveTo(px + 1, py + 20 + headerH);
     panel.lineTo(px + panelW, py + 20 + headerH);
     const col1 = px + 34;
     const col2 = px + 122;
@@ -3180,12 +3180,12 @@ class Editor {
     // row lines
     for (let i = 1; i < rows; i++) {
       const ly = py + 20 + headerH + i * rowH;
-      panel.moveTo(px, ly);
+      panel.moveTo(px + 1, ly);
       panel.lineTo(px + panelW, ly);
     }
     overlay.add(panel);
 
-    const title = new Text(px + panelW / 2, py + 5, __("BPM DETECTION||DETECCION BPM"), FONTS.default);
+    const title = new Text(px + panelW / 2, py + 5, __("BPM Detection Results||BPM detectados"), FONTS.default);
     title.anchor.set(0.5, 0);
     overlay.add(title);
 
@@ -3216,7 +3216,7 @@ class Editor {
       overlay.add(none);
     }
 
-    const hint = new Text(px + panelW / 2, py + panelH - 12, __("B: Close||B: Cerrar"), FONTS.tiny || FONTS.default);
+    const hint = new Text(px + panelW / 2, py + panelH - 12, __("Press B to close||Pulsa B cerrar"), FONTS.tiny || FONTS.default);
     hint.anchor.set(0.5, 0);
     hint.tint = 0x888888;
     overlay.add(hint);

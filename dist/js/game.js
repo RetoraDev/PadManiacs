@@ -5,15 +5,12 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0 dev
- * Build: 11/11/2026, 6:28:51 PM
- * Platform: Web
- * Debug: true
+ * Build: 11/19/2026, 2:27:42 PM
+ * Platform: Development
+ * Debug: false
  * Minified: false
  */
 
-
-
-// ======== js/core/lang.js ========
 /**
  * Global localization helpers for the game.
  *
@@ -124,9 +121,6 @@ window.__ = function(text) {
 /** @type {Function} Module-local alias for the global localization function */
 const __ = window.__;
 
-
-
-// ======== js/core/constants.js ========
 /** @type {string} Copyright notice */
 const COPYRIGHT = "(C) RETORA 2026";
 
@@ -134,7 +128,7 @@ const COPYRIGHT = "(C) RETORA 2026";
 const VERSION = "v1.3.0 dev";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
-window.DEBUG = true;
+window.DEBUG = false;
 
 /** @type {boolean} Whether to log personality study data during development */
 window.LOG_PERSONALITY_STUDY = window.DEBUG;
@@ -865,9 +859,6 @@ const VIDEO_EXTENSIONS =  ["mp4", "avi", "av1", "mkv", "3gp", "mov", "webm", "mp
 /** @type {array} Supported chart types */
 const SUPPORTED_GAME_MODES = ["dance-single"];
 
-
-
-// ======== js/core/environment.js ========
 // Environment detection constants
 /** @type {Object} Environment type definitions (UNKNOWN, NWJS, CORDOVA, WEB) */
 const ENVIRONMENT = {
@@ -879,7 +870,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -921,9 +912,6 @@ const WEAK_VIBRATION_INTENSITY = 50;
 /** @type {number} Vibration duration in MS for strong hits */
 const STRONG_VIBRATION_INTENSITY = 50;
 
-
-
-// ======== js/core/character.js ========
 // Character system constants
 /** @type {Object} Character system constants (max level, name length, etc.) */
 const CHARACTER_SYSTEM = {
@@ -3358,9 +3346,6 @@ const CHARACTER_ITEMS = [
   }
 ];
 
-
-
-// ======== js/core/account.js ========
 /** @type {Object} Default settings and user data including characters and achievements */
 const DEFAULT_ACCOUNT = {
   version: 1.3, // 1.3.0
@@ -3526,9 +3511,6 @@ const DEFAULT_ACCOUNT = {
   }
 };
 
-
-
-// ======== js/core/achievements.js ========
 // Achievements system constants
 /** @type {Object} Achievements system constants */
 const ACHIEVEMENTS = {
@@ -5170,9 +5152,6 @@ const ACHIEVEMENT_DEFINITIONS = [
   }
 ];
 
-
-
-// ======== js/character/Character.js ========
 /**
  * @class Character
  * @category Character System Classes
@@ -5773,9 +5752,6 @@ class Character {
   }
 }
 
-
-
-// ======== js/character/CharacterDisplay.js ========
 /**
  * @class CharacterDisplay
  * @category Character System Classes
@@ -6491,9 +6467,6 @@ class CharacterDisplay extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/character/CharacterCroppedDisplay.js ========
 /**
  * @class CharacterCroppedDisplay
  * @category Character System Classes
@@ -6588,9 +6561,6 @@ class CharacterCroppedDisplay extends CharacterDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterPortrait.js ========
 /**
  * @class CharacterPortrait
  * @category Character System Classes
@@ -6618,9 +6588,6 @@ class CharacterPortrait extends CharacterCroppedDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterCloseShot.js ========
 /**
  * @class CharacterCloseShot
  * @category Character System Classes
@@ -6648,9 +6615,6 @@ class CharacterCloseShot extends CharacterCroppedDisplay {
   }
 }
 
-
-
-// ======== js/character/CharacterManager.js ========
 /**
  * @class CharacterManager
  * @category Character System Classes
@@ -6944,9 +6908,6 @@ class CharacterManager {
   }
 }
 
-
-
-// ======== js/character/CharacterSkillSystem.js ========
 /**
  * @class CharacterSkillSystem
  * @category Character System Classes
@@ -7443,9 +7404,6 @@ class CharacterSkillSystem {
   }
 }
 
-
-
-// ======== js/achievements/AchievementsManager.js ========
 /**
  * @class AchievementsManager
  * @category Achievements and Stats Classes
@@ -8101,9 +8059,6 @@ class AchievementsManager {
   }
 }
 
-
-
-// ======== js/playlist/PlaylistManager.js ========
 /**
  * @class PlaylistManager
  * @category Playlist System Classes
@@ -8413,9 +8368,6 @@ class PlaylistManager {
   }
 }
 
-
-
-// ======== js/ui/Text.js ========
 /**
  * @class Text
  * @category UI Classes
@@ -8760,9 +8712,6 @@ class Text extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Window.js ========
 /**
  * @class Window
  * @category UI Classes
@@ -9419,9 +9368,6 @@ class Window extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/WindowManager.js ========
 /**
  * @class WindowManager
  * @category UI Classes
@@ -9802,9 +9748,6 @@ class WindowManager {
   }
 }
 
-
-
-// ======== js/ui/DialogWindow.js ========
 /**
  * @class DialogWindow
  * @category UI Classes
@@ -10373,9 +10316,6 @@ class DialogWindow extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/CarouselMenu.js ========
 /**
  * @class CarouselMenu
  * @category UI Classes
@@ -11277,9 +11217,6 @@ class CarouselMenu extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Background.js ========
 /**
  * @class Background
  * @category UI Classes
@@ -11334,9 +11271,6 @@ class Background extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/BackgroundGradient.js ========
 /**
  * @class BackgroundGradient
  * @category UI Classes
@@ -11361,9 +11295,6 @@ class BackgroundGradient extends Background {
   }
 } 
 
-
-
-// ======== js/ui/CanvasBackground.js ========
 /**
  * @class CanvasBackground
  * @category UI Classes
@@ -11433,9 +11364,6 @@ class CanvasBackground extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/FuturisticLines.js ========
 /**
  * @class FuturisticLines
  * @category UI Classes
@@ -11677,9 +11605,6 @@ class FuturisticLines extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LoadingDots.js ========
 /**
  * @class LoadingDots
  * @category UI Classes
@@ -11708,9 +11633,6 @@ class LoadingDots extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/Logo.js ========
 /**
  * @class Logo
  * @category UI Classes
@@ -11798,9 +11720,6 @@ class Logo extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NavigationHint.js ========
 /**
  * @class NavigationHint
  * @category UI Classes
@@ -12426,9 +12345,6 @@ class NavigationHint extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/ProgressText.js ========
 /**
  * @class ProgressText
  * @category UI Classes
@@ -12457,9 +12373,6 @@ class ProgressText extends Text {
   }
 }
 
-
-
-// ======== js/ui/ExperienceBar.js ========
 /**
  * @class ExperienceBar
  * @category UI Classes
@@ -12543,9 +12456,6 @@ class ExperienceBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/SkillBar.js ========
 /**
  * @class SkillBar
  * @category UI Classes
@@ -12597,9 +12507,6 @@ class SkillBar extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/TextInput.js ========
 /**
  * @class TextInput
  * @category UI Classes
@@ -12948,9 +12855,6 @@ class TextInput extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/NumberInput.js ========
 /**
  * @class NumberInput
  * @category UI Classes
@@ -13167,9 +13071,6 @@ class NumberInput extends TextInput {
   }
 }
 
-
-
-// ======== js/ui/NotificationSystem.js ========
 /**
  * @class NotificationSystem
  * @category UI Classes
@@ -13670,9 +13571,6 @@ class NotificationSystem {
   }
 }
 
-
-
-// ======== js/ui/Lyrics.js ========
 /**
  * @class Lyrics
  * @category Core Game Classes
@@ -13931,9 +13829,6 @@ class Lyrics {
   }
 }
 
-
-
-// ======== js/ui/OffsetAssistant.js ========
 /**
  * @class OffsetAssistant
  * @category Core Game Classes
@@ -14368,9 +14263,6 @@ class OffsetAssistant extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/MouseCursor.js ========
 /**
  * @class MouseCursor
  * @category UI Classes
@@ -14632,9 +14524,6 @@ class MouseCursor {
   }
 }
 
-
-
-// ======== js/ui/BarChart.js ========
 /**
  * @class BarChart
  * @category UI Classes
@@ -14771,9 +14660,6 @@ class BarChart extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/ui/LineChart.js ========
 /**
  * @class LineChart
  * @category UI Classes
@@ -14924,9 +14810,6 @@ class LineChart extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/filesystem/filesystem.js ========
 /**
  * @class FileSystemTools
  * @category File System Classes
@@ -15070,9 +14953,6 @@ class FileSystemTools {
   }
 }
 
-
-
-// ======== js/filesystem/node-filesystem.js ========
 /**
  * @class NodeDirectoryEntry
  * @category File System Classes
@@ -15708,9 +15588,6 @@ class NodeFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/cordova-filesystem.js ========
 /**
  * @class CordovaFileSystem
  * @category File System Classes
@@ -15918,9 +15795,6 @@ class CordovaFileSystem {
   }
 }
 
-
-
-// ======== js/filesystem/fallback-filesystem.js ========
 /**
  * @class FallbackFileSystem
  * @category File System Classes
@@ -15992,9 +15866,6 @@ class FallbackFileSystem {
   }
 }
 
-
-
-// ======== js/game/game.js ========
 let game, backgroundMusic, notifications, addonManager, achievementsManager, mouse;
 
 /** @type {AccountData} User data with settings, characters, achievements, and progress */
@@ -16333,9 +16204,6 @@ const fetch = url => new Promise((resolve, reject) => {
   resolve(new XhrFetchResponse(url));
 });
 
-
-
-// ======== js/utils/ScreenRecorder.js ========
 /**
  * @class ScreenRecorder
  * @category Core Game Classes
@@ -16801,9 +16669,6 @@ class ScreenRecorder {
   }
 }
 
-
-
-// ======== js/utils/Metronome.js ========
 /**
  * @class Metronome
  * @category Core Game Classes
@@ -17085,9 +16950,6 @@ class Metronome {
   }
 }
 
-
-
-// ======== js/utils/TimeUtils.js ========
 /**
  * @class TimeUtils
  * @category Utility Classes
@@ -17141,9 +17003,698 @@ class TimeUtils {
   }
 }
 
+/**
+ * @class BpmDetector
+ * @category Utility Classes
+ * @summary Audio tempo/BPM detection ported from ArrowVortex
+ * @constructor
+ * @features
+ * Onset detection from decoded audio buffers
+ * Tempo candidate estimation with gap-confidence scoring and polynomial normalization
+ * Confidence-ranked BPM results with offset estimation
+ * Optional result caching keyed by audio identity
+ * @description
+ * Analyzes an AudioBuffer to detect likely BPM values. The tempo estimation
+ * algorithm (interval/gap confidence, refinement, deduplication and rounding)
+ * is ported from ArrowVortex's FindTempo. Designed as an independent utility so
+ * it can be reused by the editor and other parts of the game.
+ * @example
+ * const detector = new BpmDetector();
+ * const { results } = detector.detect(audioBuffer, { cacheKey: song.audio });
+ * // results: [{ bpm, offset, fitness, confidence }, ...] ordered by confidence
+ */
+class BpmDetector {
+  constructor() {
+    /** @type {string|null} Cache key for the last detection */
+    this._cacheKey = null;
+    /** @type {Array|null} Cached detection results */
+    this._cacheResults = null;
+  }
 
+  /**
+   * Clears cached detection results.
+   * @param {string} [key] - If provided, only clear when it matches the cache key.
+   */
+  clearCache(key) {
+    if (typeof key === "undefined" || key === null || key === this._cacheKey) {
+      this._cacheKey = null;
+      this._cacheResults = null;
+    }
+  }
 
-// ======== js/utils/AviTranscoder.js ========
+  /**
+   * Detects BPM candidates from an AudioBuffer.
+   * @param {AudioBuffer} audioBuffer - Decoded audio buffer to analyze
+   * @param {Object} [options]
+   * @param {string} [options.cacheKey] - Audio identity key for caching/invalidation
+   * @param {number} [options.startSec=0] - Analysis start time in seconds
+   * @param {number} [options.durationSec] - Analysis duration in seconds
+   * @returns {{results: Array<{bpm:number, offset:number, fitness:number, confidence:number}>}}
+   */
+  detect(audioBuffer, options = {}) {
+    if (!audioBuffer) return { results: [] };
+
+    const cacheKey = typeof options.cacheKey !== "undefined" ? options.cacheKey : null;
+    if (cacheKey !== null) {
+      if (cacheKey !== this._cacheKey) {
+        this._cacheKey = cacheKey;
+        this._cacheResults = null;
+      } else if (this._cacheResults) {
+        return { results: this._cacheResults.slice() };
+      }
+    }
+
+    const samplerate = audioBuffer.sampleRate;
+    const totalFrames = audioBuffer.length;
+    const startFrame = Math.max(0, Math.floor((options.startSec || 0) * samplerate));
+    const maxLen = Math.max(0, totalFrames - startFrame);
+    const wantLen = typeof options.durationSec === "number"
+      ? Math.floor(options.durationSec * samplerate)
+      : maxLen;
+    const numFrames = Math.max(0, Math.min(wantLen, maxLen));
+
+    let results = [];
+    if (numFrames > samplerate * 0.5) {
+      const samples = this._getMonoSamples(audioBuffer, startFrame, numFrames);
+      const onsets = this._findOnsets(samples, samplerate);
+      this._recomputeOnsetStrengths(samples, onsets);
+      results = this._calculateBPM(onsets, samplerate);
+      if (results.length > 0) {
+        this._calculateOffset(samples, samplerate, onsets, results);
+      }
+      // Normalize confidence for display
+      let sum = 0;
+      for (let i = 0; i < results.length; i++) sum += results[i].fitness;
+      for (let i = 0; i < results.length; i++) {
+        results[i].confidence = sum > 0 ? results[i].fitness / sum : 0;
+      }
+    }
+
+    if (cacheKey !== null) {
+      this._cacheKey = cacheKey;
+      this._cacheResults = results.slice();
+    }
+
+    return { results: results.slice() };
+  }
+
+  // --------------------------------------------------------------------------------------------
+  // Audio preparation and onset detection
+
+  _getMonoSamples(audioBuffer, startFrame, numFrames) {
+    const channels = audioBuffer.numberOfChannels || 1;
+    const out = new Float32Array(numFrames);
+    if (channels === 1) {
+      const ch = audioBuffer.getChannelData(0);
+      for (let i = 0; i < numFrames; i++) out[i] = ch[startFrame + i] || 0;
+      return out;
+    }
+    const ch0 = audioBuffer.getChannelData(0);
+    const ch1 = channels > 1 ? audioBuffer.getChannelData(1) : null;
+    if (ch1) {
+      for (let i = 0; i < numFrames; i++) {
+        out[i] = ((ch0[startFrame + i] || 0) + (ch1[startFrame + i] || 0)) * 0.5;
+      }
+    } else {
+      const inv = 1 / channels;
+      for (let c = 0; c < channels; c++) {
+        const ch = audioBuffer.getChannelData(c);
+        for (let i = 0; i < numFrames; i++) out[i] += (ch[startFrame + i] || 0) * inv;
+      }
+    }
+    return out;
+  }
+
+  _findOnsets(samples, samplerate) {
+    const n = samples.length;
+    if (n < 2048) return [];
+
+    // Downsample for faster analysis
+    let factor = 1;
+    if (samplerate >= 44100) factor = 2;
+    if (samplerate >= 88200) factor = 4;
+    let dsRate = samplerate;
+    let ds = samples;
+    if (factor > 1) {
+      const dn = Math.floor(n / factor);
+      ds = new Float32Array(dn);
+      for (let i = 0, j = 0; i < dn; i++, j += factor) {
+        let sum = 0;
+        for (let k = 0; k < factor; k++) sum += samples[j + k] || 0;
+        ds[i] = sum / factor;
+      }
+      dsRate = samplerate / factor;
+    }
+
+    const frameSize = 1024;
+    const hop = 512;
+    if (ds.length < frameSize + hop) return [];
+
+    const numBins = (frameSize >> 1) + 1;
+    const prevMag = new Float64Array(numBins);
+    const flux = [];
+    const window = this._hannWindow(frameSize);
+    const re = new Float64Array(frameSize);
+    const im = new Float64Array(frameSize);
+
+    for (let pos = 0; pos + frameSize <= ds.length; pos += hop) {
+      for (let i = 0; i < frameSize; i++) {
+        re[i] = (ds[pos + i] || 0) * window[i];
+        im[i] = 0;
+      }
+      this._fft(re, im);
+      let f = 0;
+      for (let b = 0; b < numBins; b++) {
+        const mag = Math.sqrt(re[b] * re[b] + im[b] * im[b]);
+        const diff = mag - prevMag[b];
+        if (diff > 0) f += diff;
+        prevMag[b] = mag;
+      }
+      flux.push(f);
+    }
+
+    if (flux.length < 3) return [];
+
+    // Pick onset peaks
+    let mean = 0;
+    for (let i = 0; i < flux.length; i++) mean += flux[i];
+    mean /= flux.length;
+    let variance = 0;
+    for (let i = 0; i < flux.length; i++) { const d = flux[i] - mean; variance += d * d; }
+    const std = Math.sqrt(variance / flux.length);
+    const threshold = mean + std * 0.3;
+
+    const onsets = [];
+    for (let i = 1; i < flux.length - 1; i++) {
+      const v = flux[i];
+      if (v >= threshold && v >= flux[i - 1] && v >= flux[i + 1]) {
+        const pos = Math.round(i * hop * factor);
+        if (pos >= 0 && pos < n) onsets.push({ pos, strength: v });
+      }
+    }
+    return onsets;
+  }
+
+  _recomputeOnsetStrengths(samples, onsets) {
+    const n = samples.length;
+    for (let i = 0; i < onsets.length; i++) {
+      const pos = onsets[i].pos;
+      const a = Math.max(0, pos - 100);
+      const b = Math.min(n, pos + 100);
+      let v = 0;
+      for (let j = a; j < b; j++) v += Math.abs(samples[j] || 0);
+      const count = Math.max(1, b - a);
+      onsets[i].strength = v / count;
+    }
+  }
+
+  _hannWindow(size) {
+    const w = new Float64Array(size);
+    const t = (2 * Math.PI) / (size - 1);
+    for (let i = 0; i < size; i++) w[i] = 0.5 - 0.5 * Math.cos(i * t);
+    return w;
+  }
+
+  _fft(re, im) {
+    const n = re.length;
+    // bit-reversal permutation
+    for (let i = 1, j = 0; i < n; i++) {
+      let bit = n >> 1;
+      while (j & bit) { j ^= bit; bit >>= 1; }
+      j ^= bit;
+      if (i < j) {
+        let tmp = re[i]; re[i] = re[j]; re[j] = tmp;
+        tmp = im[i]; im[i] = im[j]; im[j] = tmp;
+      }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+      const ang = -2 * Math.PI / len;
+      const wlenRe = Math.cos(ang);
+      const wlenIm = Math.sin(ang);
+      for (let i = 0; i < n; i += len) {
+        let wRe = 1, wIm = 0;
+        const half = len >> 1;
+        for (let j = 0; j < half; j++) {
+          const u = i + j;
+          const v = i + j + half;
+          const xRe = re[u], xIm = im[u];
+          const yRe = re[v] * wRe - im[v] * wIm;
+          const yIm = re[v] * wIm + im[v] * wRe;
+          re[u] = xRe + yRe; im[u] = xIm + yIm;
+          re[v] = xRe - yRe; im[v] = xIm - yIm;
+          const nextWRe = wRe * wlenRe - wIm * wlenIm;
+          wIm = wRe * wlenIm + wIm * wlenRe;
+          wRe = nextWRe;
+        }
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------------------------
+  // ArrowVortex tempo estimation (ported)
+
+  _createHammingWindow(out, n) {
+    const t = (2 * Math.PI) / (n - 1);
+    for (let i = 0; i < n; i++) out[i] = 0.54 - 0.46 * Math.cos(i * t);
+  }
+
+  _normalizeFitness(obj, coefs, interval) {
+    const x = interval, x2 = x * x, x3 = x2 * x;
+    return obj - (coefs[0] + coefs[1] * x + coefs[2] * x2 + coefs[3] * x3);
+  }
+
+  _gapConfidence(wrappedOnsets, windowArr, windowSize, interval, gapPos) {
+    const half = windowSize >> 1;
+    let area = 0.0;
+    let begin = gapPos - half;
+    let end = gapPos + half;
+
+    if (begin < 0) {
+      const wrappedBegin = begin + interval;
+      for (let i = wrappedBegin; i < interval; i++) {
+        area += wrappedOnsets[i] * windowArr[i - wrappedBegin];
+      }
+      begin = 0;
+    }
+    if (end > interval) {
+      const wrappedEnd = end - interval;
+      const indexOffset = windowSize - wrappedEnd;
+      for (let i = 0; i < wrappedEnd; i++) {
+        area += wrappedOnsets[i] * windowArr[i + indexOffset];
+      }
+      end = interval;
+    }
+    for (let i = begin; i < end; i++) {
+      area += wrappedOnsets[i] * windowArr[i - begin];
+    }
+    return area;
+  }
+
+  _getConfidenceForInterval(onsets, wrappedOnsets, wrappedPos, windowArr, windowSize, interval, downsample) {
+    const nOn = onsets.length;
+    // clear
+    for (let i = 0; i < wrappedOnsets.length; i++) wrappedOnsets[i] = 0;
+
+    const reducedInterval = interval >> downsample;
+    for (let i = 0; i < nOn; i++) {
+      const pos = ((onsets[i].pos % interval) + interval) % interval;
+      const rpos = pos >> downsample;
+      wrappedPos[i] = rpos;
+      if (rpos >= 0 && rpos < wrappedOnsets.length) wrappedOnsets[rpos] += onsets[i].strength;
+    }
+
+    let highest = 0.0;
+    for (let i = 0; i < nOn; i++) {
+      const pos = wrappedPos[i];
+      let confidence = this._gapConfidence(wrappedOnsets, windowArr, windowSize, reducedInterval, pos);
+      const offbeatPos = (pos + (reducedInterval >> 1)) % reducedInterval;
+      confidence += this._gapConfidence(wrappedOnsets, windowArr, windowSize, reducedInterval, offbeatPos) * 0.5;
+      if (confidence > highest) highest = confidence;
+    }
+    return highest;
+  }
+
+  _getConfidenceForIntervalFine(onsets, wrappedOnsets, wrappedPos, windowArr, windowSize, interval) {
+    const nOn = onsets.length;
+    for (let i = 0; i < interval && i < wrappedOnsets.length; i++) wrappedOnsets[i] = 0;
+
+    for (let i = 0; i < nOn; i++) {
+      const pos = ((onsets[i].pos % interval) + interval) % interval;
+      wrappedPos[i] = pos;
+      if (pos < wrappedOnsets.length) wrappedOnsets[pos] += onsets[i].strength;
+    }
+
+    let highest = 0.0;
+    for (let i = 0; i < nOn; i++) {
+      const pos = wrappedPos[i];
+      let confidence = this._gapConfidence(wrappedOnsets, windowArr, windowSize, interval, pos);
+      const offbeatPos = (pos + (interval >> 1)) % interval;
+      confidence += this._gapConfidence(wrappedOnsets, windowArr, windowSize, interval, offbeatPos) * 0.5;
+      if (confidence > highest) highest = confidence;
+    }
+    return highest;
+  }
+
+  _intervalToBPM(samplerate, intervalIndex, minInterval) {
+    return (samplerate * 60.0) / (intervalIndex + minInterval);
+  }
+
+  _fillIntervalRange(fitness, coefs, onsets, wrappedOnsets, wrappedPos, windowArr, windowSize, samplerate, minInterval, numIntervals, begin, end) {
+    begin = Math.max(begin, 0);
+    end = Math.min(end, numIntervals);
+    for (let i = begin; i < end; i++) {
+      if (fitness[i] === 0) {
+        const interval = minInterval + i;
+        let f = this._getConfidenceForIntervalFine(onsets, wrappedOnsets, wrappedPos, windowArr, windowSize, interval);
+        f = this._normalizeFitness(f, coefs, interval);
+        fitness[i] = Math.max(f, 0.1);
+      }
+    }
+    return { begin, end };
+  }
+
+  _findBestInterval(fitness, begin, end) {
+    let best = begin;
+    let highest = -Infinity;
+    for (let i = begin; i < end; i++) {
+      if (fitness[i] > highest) { highest = fitness[i]; best = i; }
+    }
+    return best;
+  }
+
+  _removeDuplicates(tempo) {
+    for (let i = 0; i < tempo.length; i++) {
+      const bpm = tempo[i].bpm, doubled = bpm * 2.0, halved = bpm * 0.5;
+      for (let j = tempo.length - 1; j > i; j--) {
+        const v = tempo[j].bpm;
+        const d = Math.min(Math.abs(v - bpm), Math.abs(v - doubled), Math.abs(v - halved));
+        if (d < 0.1) tempo.splice(j, 1);
+      }
+    }
+  }
+
+  _getConfidenceForBPM(onsets, wrappedOnsets, wrappedPos, windowArr, windowSize, samplerate, bpm, coefs) {
+    const nOn = onsets.length;
+    const intervalf = samplerate * 60.0 / bpm;
+    const interval = Math.round(intervalf);
+    for (let i = 0; i < interval && i < wrappedOnsets.length; i++) wrappedOnsets[i] = 0;
+
+    for (let i = 0; i < nOn; i++) {
+      const pos = Math.floor(((onsets[i].pos % intervalf) + intervalf) % intervalf);
+      wrappedPos[i] = pos;
+      if (pos < wrappedOnsets.length) wrappedOnsets[pos] += onsets[i].strength;
+    }
+
+    let highest = 0.0;
+    for (let i = 0; i < nOn; i++) {
+      const pos = wrappedPos[i];
+      let confidence = this._gapConfidence(wrappedOnsets, windowArr, windowSize, interval, pos);
+      const offbeatPos = (pos + (interval >> 1)) % interval;
+      confidence += this._gapConfidence(wrappedOnsets, windowArr, windowSize, interval, offbeatPos) * 0.5;
+      if (confidence > highest) highest = confidence;
+    }
+
+    highest = this._normalizeFitness(highest, coefs, intervalf);
+    return highest;
+  }
+
+  _roundBPMValues(tempo, onsets, wrappedOnsets, wrappedPos, windowArr, windowSize, samplerate, coefs) {
+    for (let t = 0; t < tempo.length; t++) {
+      const roundBPM = Math.round(tempo[t].bpm);
+      const diff = Math.abs(tempo[t].bpm - roundBPM);
+      if (diff < 0.01) {
+        tempo[t].bpm = roundBPM;
+      } else if (diff < 0.05) {
+        const oldC = this._getConfidenceForBPM(onsets, wrappedOnsets, wrappedPos, windowArr, windowSize, samplerate, tempo[t].bpm, coefs);
+        const curC = this._getConfidenceForBPM(onsets, wrappedOnsets, wrappedPos, windowArr, windowSize, samplerate, roundBPM, coefs);
+        if (curC > oldC * 0.99) tempo[t].bpm = roundBPM;
+      }
+    }
+  }
+
+  _calculateBPM(onsets, samplerate) {
+    const tempo = [];
+    if (!onsets || onsets.length < 2) return tempo;
+
+    const MinimumBPM = 89.0;
+    const MaximumBPM = 205.0;
+    const IntervalDelta = 10;
+    const IntervalDownsample = 3;
+
+    const minInterval = Math.round(samplerate * 60.0 / MaximumBPM);
+    const maxInterval = Math.round(samplerate * 60.0 / MinimumBPM);
+    const numIntervals = maxInterval - minInterval;
+    if (numIntervals <= 0) return tempo;
+
+    const fitness = new Float64Array(numIntervals);
+    const wrappedPos = new Int32Array(onsets.length);
+
+    // Coarse pass (downsampled gap window)
+    const coarseWindowSize = 2048 >> IntervalDownsample;
+    const coarseWindow = new Float64Array(coarseWindowSize);
+    this._createHammingWindow(coarseWindow, coarseWindowSize);
+    const coarseWrapped = new Float64Array(maxInterval + 1);
+
+    // Fill coarse intervals (every IntervalDelta)
+    for (let i = 0; i < numIntervals; i += IntervalDelta) {
+      const interval = minInterval + i;
+      const c = this._getConfidenceForInterval(onsets, coarseWrapped, wrappedPos, coarseWindow, coarseWindowSize, interval, IntervalDownsample);
+      fitness[i] = Math.max(0.001, c);
+    }
+
+    // Polynomial coefficients for normalization (degree 3) from coarse samples
+    const coefs = this._polyfitSpecial(3, fitness, numIntervals, minInterval);
+    let maxFitness = 0.001;
+    for (let i = 0; i < numIntervals; i += IntervalDelta) {
+      fitness[i] = this._normalizeFitness(fitness[i], coefs, minInterval + i);
+      if (fitness[i] > maxFitness) maxFitness = fitness[i];
+    }
+
+    // Fine pass buffers
+    const fineWindowSize = 2048;
+    const fineWindow = new Float64Array(fineWindowSize);
+    this._createHammingWindow(fineWindow, fineWindowSize);
+    const fineWrapped = new Float64Array(maxInterval + 1);
+
+    const fitnessThreshold = maxFitness * 0.4;
+    for (let i = 0; i < numIntervals; i += IntervalDelta) {
+      if (fitness[i] > fitnessThreshold) {
+        const range = this._fillIntervalRange(fitness, coefs, onsets, fineWrapped, wrappedPos, fineWindow, fineWindowSize, samplerate, minInterval, numIntervals, i - IntervalDelta, i + IntervalDelta);
+        const best = this._findBestInterval(fitness, range.begin, range.end);
+        tempo.push({ bpm: this._intervalToBPM(samplerate, best, minInterval), offset: 0.0, fitness: fitness[best] });
+      }
+    }
+
+    // Sort, dedupe, round
+    tempo.sort((a, b) => b.fitness - a.fitness);
+    this._removeDuplicates(tempo);
+    this._roundBPMValues(tempo, onsets, fineWrapped, wrappedPos, fineWindow, fineWindowSize, samplerate, coefs);
+
+    // Second opinion if top 2 very close
+    if (tempo.length >= 2 && tempo[0].fitness > 0 && (tempo[0].fitness / tempo[1].fitness) < 1.05) {
+      for (let t = 0; t < tempo.length; t++) {
+        tempo[t].fitness = this._getConfidenceForBPM(onsets, fineWrapped, wrappedPos, fineWindow, fineWindowSize, samplerate, tempo[t].bpm, coefs);
+      }
+      tempo.sort((a, b) => b.fitness - a.fitness);
+    }
+
+    if (tempo.length > 3) tempo.length = 3;
+    return tempo;
+  }
+
+  // --------------------------------------------------------------------------------------------
+  // Offset estimation (ported)
+
+  _computeSlopes(samples, out) {
+    const n = samples.length;
+    const samplerateApprox = 44100; // not passed; window is relative but AV uses samplerate/20
+    // We'll compute with passed samplerate in caller; this variant takes wh directly
+    for (let i = 0; i < n; i++) out[i] = 0;
+  }
+
+  _calculateOffset(samples, samplerate, onsets, tempo) {
+    if (!tempo.length) return;
+
+    let maxInterval = 0.0;
+    for (let i = 0; i < tempo.length; i++) {
+      maxInterval = Math.max(maxInterval, samplerate * 60.0 / tempo[i].bpm);
+    }
+    const bufferSize = Math.ceil(maxInterval) + 1;
+    const windowSize = 2048 >> 1; // downsample 1 in GapData ctor for offset
+    const windowArr = new Float64Array(windowSize);
+    this._createHammingWindow(windowArr, windowSize);
+    const wrappedOnsets = new Float64Array(bufferSize);
+    const wrappedPos = new Int32Array(onsets.length);
+
+    // Base offsets
+    for (let i = 0; i < tempo.length; i++) {
+      tempo[i].offset = this._getBaseOffsetValue(onsets, wrappedOnsets, wrappedPos, windowArr, windowSize, bufferSize, samplerate, tempo[i].bpm);
+    }
+
+    // Adjust for offbeats using slope envelope
+    const slopes = new Float64Array(samples.length);
+    this._fillSlopes(samples, slopes, samplerate);
+    for (let i = 0; i < tempo.length; i++) {
+      tempo[i].offset = this._adjustForOffbeats(slopes, samplerate, tempo[i].offset, tempo[i].bpm);
+    }
+  }
+
+  _getBaseOffsetValue(onsets, wrappedOnsets, wrappedPos, windowArr, windowSize, bufferSize, samplerate, bpm) {
+    const nOn = onsets.length;
+    const intervalf = samplerate * 60.0 / bpm;
+    const interval = Math.round(intervalf);
+    for (let i = 0; i < interval && i < bufferSize; i++) wrappedOnsets[i] = 0;
+
+    for (let i = 0; i < nOn; i++) {
+      const pos = Math.floor(((onsets[i].pos % intervalf) + intervalf) % intervalf);
+      wrappedPos[i] = pos;
+      if (pos < bufferSize) wrappedOnsets[pos] += 1.0;
+    }
+
+    let highest = 0.0;
+    let offsetPos = 0;
+    for (let i = 0; i < nOn; i++) {
+      const pos = wrappedPos[i];
+      let confidence = this._gapConfidence(wrappedOnsets, windowArr, windowSize, interval, pos);
+      const offbeatPos = (pos + (interval >> 1)) % interval;
+      confidence += this._gapConfidence(wrappedOnsets, windowArr, windowSize, interval, offbeatPos) * 0.5;
+      if (confidence > highest) {
+        highest = confidence;
+        offsetPos = pos;
+      }
+    }
+
+    return offsetPos / samplerate;
+  }
+
+  _fillSlopes(samples, out, samplerate) {
+    const n = samples.length;
+    out.fill(0);
+    const wh = Math.max(1, Math.floor(samplerate / 20));
+    if (n < wh * 2) return;
+
+    let sumL = 0, sumR = 0;
+    for (let i = 0, j = wh; i < wh; i++, j++) {
+      sumL += Math.abs(samples[i] || 0);
+      sumR += Math.abs(samples[j] || 0);
+    }
+
+    const scalar = 1.0 / wh;
+    for (let i = wh, end = n - wh; i < end; i++) {
+      const slope = (sumR - sumL) * scalar;
+      out[i] = slope > 0 ? slope : 0;
+      const cur = Math.abs(samples[i] || 0);
+      sumL -= Math.abs(samples[i - wh] || 0);
+      sumL += cur;
+      sumR -= cur;
+      sumR += Math.abs(samples[i + wh] || 0);
+    }
+  }
+
+  _adjustForOffbeats(slopes, samplerate, offset, bpm) {
+    const n = slopes.length;
+    const secondsPerBeat = 60.0 / bpm;
+    let offbeat = offset + secondsPerBeat * 0.5;
+    if (offbeat > secondsPerBeat) offbeat -= secondsPerBeat;
+
+    const end = n;
+    const interval = secondsPerBeat * samplerate;
+    let posA = offset * samplerate, sumA = 0.0;
+    let posB = offbeat * samplerate, sumB = 0.0;
+    while (posA < end && posB < end) {
+      const ia = posA | 0;
+      const ib = posB | 0;
+      if (ia >= 0 && ia < n) sumA += slopes[ia];
+      if (ib >= 0 && ib < n) sumB += slopes[ib];
+      posA += interval;
+      posB += interval;
+    }
+    return sumA >= sumB ? offset : offbeat;
+  }
+
+  // --------------------------------------------------------------------------------------------
+  // Polynomial fit (ported from ArrowVortex Core/Polyfit.h specialized version)
+
+  _polyfitSpecial(degree, inValues, numIntervals, offsetX) {
+    degree = degree + 1; // coefficients count
+
+    // Count non-zero coarse samples (every IntervalDelta in our usage mirrors AV layout)
+    const xs = [];
+    const ys = [];
+    for (let i = 0; i < numIntervals; i++) {
+      if (inValues[i] !== 0) {
+        xs.push(offsetX + i);
+        ys.push(inValues[i]);
+      }
+    }
+    const m = xs.length;
+    const coefs = new Float64Array(degree);
+    if (m === 0) return coefs;
+
+    // Build normal equations X^T X * a = X^T y
+    const XtX = [];
+    const XtY = new Float64Array(degree);
+    for (let r = 0; r < degree; r++) {
+      XtX[r] = new Float64Array(degree);
+    }
+
+    // Precompute powers sums incrementally per row
+    const powers = new Float64Array(degree * 2);
+    for (let k = 0; k < m; k++) {
+      const x = xs[k];
+      const y = ys[k];
+      let p = 1.0;
+      for (let j = 0; j < degree * 2 - 1; j++) {
+        powers[j] += p;
+        p *= x;
+      }
+      let py = 1.0;
+      for (let j = 0; j < degree; j++) {
+        XtY[j] += py * y;
+        py *= x;
+      }
+    }
+    // fill XtX from powers: (r,c) = sum x^(r+c)
+    // recompute powers sums properly
+    for (let r = 0; r < degree; r++) XtX[r].fill(0);
+    const powSums = new Float64Array(degree * 2);
+    for (let k = 0; k < m; k++) {
+      let p = 1.0;
+      const x = xs[k];
+      for (let j = 0; j < degree * 2; j++) {
+        powSums[j] += p;
+        p *= x;
+      }
+    }
+    for (let r = 0; r < degree; r++) {
+      for (let c = 0; c < degree; c++) {
+        XtX[r][c] = powSums[r + c];
+      }
+    }
+
+    // Solve via Gaussian elimination
+    const a = this._solveLinearSystem(XtX, XtY, degree);
+    for (let i = 0; i < degree; i++) coefs[i] = a[i];
+    return coefs;
+  }
+
+  _solveLinearSystem(A, b, n) {
+    // A: array of Float64Array rows (n x n), b: Float64Array(n)
+    const M = [];
+    for (let i = 0; i < n; i++) {
+      const row = new Float64Array(n + 1);
+      for (let j = 0; j < n; j++) row[j] = A[i][j];
+      row[n] = b[i];
+      M[i] = row;
+    }
+    for (let col = 0; col < n; col++) {
+      // pivot
+      let pivot = col;
+      let maxAbs = Math.abs(M[col][col]);
+      for (let r = col + 1; r < n; r++) {
+        const v = Math.abs(M[r][col]);
+        if (v > maxAbs) { maxAbs = v; pivot = r; }
+      }
+      if (maxAbs < 1e-12) continue;
+      if (pivot !== col) { const tmp = M[col]; M[col] = M[pivot]; M[pivot] = tmp; }
+      const diag = M[col][col];
+      for (let r = col + 1; r < n; r++) {
+        const factor = M[r][col] / diag;
+        if (factor === 0) continue;
+        for (let c = col; c <= n; c++) M[r][c] -= factor * M[col][c];
+      }
+    }
+    const x = new Float64Array(n);
+    for (let i = n - 1; i >= 0; i--) {
+      let sum = M[i][n];
+      for (let j = i + 1; j < n; j++) sum -= M[i][j] * x[j];
+      const diag = M[i][i];
+      x[i] = Math.abs(diag) < 1e-12 ? 0 : sum / diag;
+    }
+    return x;
+  }
+}
+
 /**
  * @class AviTranscoder
  * @category Utils
@@ -17507,9 +18058,6 @@ class AviTranscoder {
   }
 }
 
-
-
-// ======== js/utils/AviTools.js ========
 /**
  * @class AviTools
  * @category Utils
@@ -17733,9 +18281,6 @@ class AviTools {
   }
 }
 
-
-
-// ======== js/input/GamepadListener.js ========
 /**
  * @class GamepadListener
  * @category Core Game Classes
@@ -17782,9 +18327,6 @@ class GamepadListener {
   }
 }
 
-
-
-// ======== js/input/KeyboardListener.js ========
 /**
  * @class KeyboardListener
  * @category Core Game Classes
@@ -17824,9 +18366,6 @@ class KeyboardListener {
   }
 }
 
-
-
-// ======== js/input/InputManager.js ========
 let inputManager, gamepad, gamepad1, gamepad2;
 
 /**
@@ -17889,9 +18428,6 @@ class InputManager {
   }
 }
 
-
-
-// ======== js/input/Gamepad.js ========
 /**
  * @class Gamepad
  * @category Core Game Classes
@@ -18665,9 +19201,6 @@ class Gamepad {
   }
 }
 
-
-
-// ======== js/input/AllPads.js ========
 /**
  * @class AllPads
  * @category Core Game Classes
@@ -18864,9 +19397,6 @@ class AllPads extends Gamepad {
   destroy() {}
 }
 
-
-
-// ======== js/input/OnScreenKeyboard.js ========
 /**
  * @class OnScreenKeyboard
  * @category Core Game Classes
@@ -19159,9 +19689,6 @@ class OnScreenKeyboard extends Phaser.Sprite {
   }
 }
 
-
-
-// ======== js/input/NumericTypeOnScreenKeyboard.js ========
 /**
  * @class NumericTypeOnScreenKeyboard
  * @category Core Game Classes
@@ -19212,9 +19739,6 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
   }
 }
 
-
-
-// ======== js/audio/BackgroundMusic.js ========
 /**
  * @class BackgroundMusic
  * @category Core Game Classes
@@ -19527,9 +20051,6 @@ class BackgroundMusic {
   }
 }
 
-
-
-// ======== js/visualizers/Visualizer.js ========
 /**
  * @class Visualizer
  * @category Core Game Classes
@@ -19599,9 +20120,6 @@ class Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AccurracyVisualizer.js ========
 /**
  * @class AccuracyVisualizer
  * @category Core Game Classes
@@ -19671,9 +20189,6 @@ class AccuracyVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/AudioVisualizer.js ========
 /**
  * @class AudioVisualizer
  * @category Core Game Classes
@@ -19779,9 +20294,6 @@ class AudioVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/BPMVisualizer.js ========
 /**
  * @class BPMVisualizer
  * @category Core Game Classes
@@ -19922,9 +20434,6 @@ class BPMVisualizer extends Visualizer {
   }
 }
 
-
-
-// ======== js/visualizers/FullScreenAudioVisualizer.js ========
 /**
  * @class FullScreenAudioVisualizer
  * @category Core Game Classes
@@ -20374,9 +20883,6 @@ class FullScreenAudioVisualizer {
   }
 }
 
-
-
-// ======== js/parsers/SMFile.js ========
 /**
  * @class SMFile
  * @category Parser Classes
@@ -20737,9 +21243,6 @@ class SMFile {
   }
 }
 
-
-
-// ======== js/parsers/FileTools.js ========
 /**
  * @class FileTools
  * @category File System Classes
@@ -21072,9 +21575,6 @@ class FileTools {
   }
 }
 
-
-
-// ======== js/parsers/LocalSMParser.js ========
 /**
  * @class LocalSMParser
  * @category Parser Classes
@@ -21413,9 +21913,6 @@ class LocalSMParser {
   }
 }
 
-
-
-// ======== js/parsers/ExternalSMParser.js ========
 /**
  * @class ExternalSMParser
  * @category Parser Classes
@@ -21815,9 +22312,6 @@ class ExternalSMParser {
   }
 }
 
-
-
-// ======== js/addons/AddonManager.js ========
 /**
  * @class AddonManager
  * @category Addon System Classes
@@ -22371,9 +22865,6 @@ class AddonManager {
   }
 }
 
-
-
-// ======== js/game/states/Boot.js ========
 /**
  * @class Boot
  * @category Game States
@@ -23091,9 +23582,6 @@ class Boot {
   }
 }
 
-
-
-// ======== js/game/states/LanguageSelect.js ========
 /**
  * @class LanguageSelect
  * @category Game States
@@ -23279,9 +23767,6 @@ class LanguageSelect {
   }
 }
 
-
-
-// ======== js/game/states/Load.js ========
 /**
  * @class Load
  * @category Game States
@@ -23367,9 +23852,6 @@ class Load {
   }
 }
 
-
-
-// ======== js/game/states/LoadPlatform.js ========
 /**
  * @class LoadPlatform
  * @category Game States
@@ -23504,9 +23986,6 @@ class LoadPlatform {
   }
 }
 
-
-
-// ======== js/game/states/LoadAddons.js ========
 /**
  * @class LoadAddons
  * @category Game States
@@ -23554,9 +24033,6 @@ class LoadAddons {
   }
 }
 
-
-
-// ======== js/game/states/LoadLocalSongs.js ========
 /**
  * @class LoadLocalSongs
  * @category Game States
@@ -23667,9 +24143,6 @@ class LoadLocalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadExternalSongs.js ========
 /**
  * @class LoadExternalSongs
  * @category Game States
@@ -24149,9 +24622,6 @@ class LoadExternalSongs {
   }
 }
 
-
-
-// ======== js/game/states/LoadSongFolder.js ========
 /**
  * @class LoadSongFolder
  * @category Game States
@@ -24413,9 +24883,6 @@ class LoadSongFolder {
   }
 }
 
-
-
-// ======== js/game/states/LoadExternalSongFile.js ========
 /**
  * @class LoadExternalSongFile
  * @category Game States
@@ -24588,9 +25055,6 @@ class LoadExternalSongFile {
   }
 }
 
-
-
-// ======== js/game/states/Title.js ========
 /**
  * @class Title
  * @category Game States
@@ -24730,9 +25194,6 @@ class Title {
   }
 }
 
-
-
-// ======== js/game/states/MainMenu.js ========
 /**
  * @class MainMenu
  * @category Game States
@@ -25301,9 +25762,6 @@ class MainMenu {
   }
 }
 
-
-
-// ======== js/game/states/Addons.js ========
 /**
  * @class Addons
  * @category Game States
@@ -25575,9 +26033,6 @@ class Addons {
   }
 }
 
-
-
-// ======== js/game/states/Settings.js ========
 /**
  * @class Settings
  * @category Game States
@@ -26353,9 +26808,6 @@ class Settings {
   }
 }
 
-
-
-// ======== js/game/states/ChartModifiers.js ========
 /**
  * @class ChartModifiers
  * @category Game States
@@ -26554,9 +27006,6 @@ class ChartModifiers {
   }
 }
 
-
-
-// ======== js/game/states/Keybindings.js ========
 /**
  * @class Keybindings
  * @category Game States
@@ -27385,9 +27834,6 @@ class Keybindings {
   }
 }
 
-
-
-// ======== js/game/states/TouchSettings.js ========
 /**
  * @class TouchSettings
  * @category Game States
@@ -27574,9 +28020,6 @@ class TouchSettings {
   }
 }
 
-
-
-// ======== js/game/states/AviSettings.js ========
 /**
  * @class AviSettings
  * @category Game States
@@ -27708,9 +28151,6 @@ class AviSettings {
   }
 }
 
-
-
-// ======== js/game/states/FileSelect.js ========
 /**
  * @class FileSelect
  * @category Game States
@@ -28075,9 +28515,6 @@ class FileSelect {
   }
 }
 
-
-
-// ======== js/game/states/SongSelect.js ========
 /**
  * @class SongSelect
  * @category Game States
@@ -29197,9 +29634,6 @@ class SongSelect {
   }
 }
 
-
-
-// ======== js/game/states/DecodeAvi.js ========
 /**
  * @class DecodeAvi
  * @category Game States
@@ -29617,9 +30051,6 @@ class DecodeAvi {
   }
 }
 
-
-
-// ======== js/game/states/SongStats.js ========
 /**
  * @class SongStats
  * @category Game States
@@ -30360,9 +30791,6 @@ class SongStats {
   }
 }
 
-
-
-// ======== js/game/states/CharacterSelect.js ========
 /**
  * @class CharacterSelect
  * @category Game States
@@ -32305,9 +32733,6 @@ class CharacterSelect {
   }
 }
 
-
-
-// ======== js/game/states/AchievementsMenu.js ========
 /**
  * @class AchievementsMenu
  * @category Game States
@@ -32488,9 +32913,6 @@ class AchievementsMenu {
   }
 }
 
-
-
-// ======== js/game/states/StatsMenu.js ========
 /**
  * @class StatsMenu
  * @category Game States
@@ -32638,9 +33060,6 @@ class StatsMenu {
   }
 }
 
-
-
-// ======== js/game/states/Play.js ========
 /**
  * @class Play
  * @category Game States
@@ -34514,9 +34933,6 @@ class Play {
   }
 }
 
-
-
-// ======== js/game/states/PlayMulti.js ========
 /**
  * @class PlayMulti
  * @category Game States
@@ -34916,9 +35332,6 @@ class PlayMulti extends Play {
   }
 }
 
-
-
-// ======== js/game/states/Results.js ========
 /**
  * @class Results
  * @category Game States
@@ -35285,9 +35698,6 @@ class Results {
   }
 }
 
-
-
-// ======== js/game/states/ResultsMulti.js ========
 /**
  * @class ResultsMulti
  * @category Game States
@@ -35526,9 +35936,6 @@ class ResultsMulti extends Results {
   }
 }
 
-
-
-// ======== js/game/states/Playlists.js ========
 /**
  * @class Playlists
  * @category Game States
@@ -35870,9 +36277,6 @@ class Playlists {
   }
 }
 
-
-
-// ======== js/game/states/Jukebox.js ========
 /**
  * @class Jukebox
  * @category Game States
@@ -36964,9 +37368,6 @@ class Jukebox {
   }
 }
 
-
-
-// ======== js/game/states/Editor.js ========
 /**
  * @class Editor
  * @category Game States
@@ -37081,6 +37482,8 @@ class Editor {
     
     /** @type {Metronome} Metronome helper for note timing feedback. */
     this.metronome = new Metronome(this);
+    /** @type {BpmDetector} Tempo/BPM detector (independent, reusable). */
+    this.bpmDetector = new BpmDetector();
         
     this.homeOverlay = game.add.graphics(0, 0);
     this.homeOverlay.beginFill(0x000000, 0.5);
@@ -37122,16 +37525,24 @@ class Editor {
     this.updateInfoText();
     
     // Create play/pause audio
-    /** @type {HTMLAudioElement} Audio element used for playback and previews. */
+    /** @type {HTMLAudioElement} Fallback audio element. */
     this.audio = document.createElement("audio");
     if (this.song.chart.audioUrl) {
       this.audio.src = this.song.chart.audioUrl;
     }
-    
-    // Create a shared AudioContext for output latency measurement (BT compensation)
-    /** @type {AudioContext|null} Audio context for latency compensation */
-    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    this.audioContext.createMediaElementSource(this.audio).connect(this.audioContext.destination);
+
+    /** @type {AudioContext|null} Web Audio context for editor playback/preview. */
+    this.editorAudioCtx = null;
+    /** @type {AudioBuffer|null} Decoded audio buffer for editor playback/preview. */
+    this.audioBuffer = null;
+    /** @type {AudioBufferSourceNode|null} Active playback source (SELECT). */
+    this.playbackSource = null;
+    /** @type {AudioBufferSourceNode|null} Active note placement preview source. */
+    this.previewSource = null;
+    /** @type {number} AudioContext time when playback started. */
+    this.playbackStartCtxTime = 0;
+    /** @type {number} Buffer offset (seconds) when playback started. */
+    this.playbackStartOffset = 0;
 
     this.initalSetup();
 
@@ -37158,6 +37569,9 @@ class Editor {
       this.updateBackground(this.song.chart.backgroundUrl);
       this.refreshLyrics();
       this.hideLoadingScreen();
+    }
+    if (this.song.chart.audioUrl) {
+      await this.syncEditorAudio(this.song.chart.audioUrl);
     }
     this.setupMouseEvents();
     this.showHomeScreen();
@@ -37403,6 +37817,79 @@ class Editor {
    */
   hideLoadingScreen() {
     this.loadingScreen?.destroy();
+    this.loadingDots?.destroy();
+    this.progressText?.destroy();
+    this.loadingScreen = null;
+    this.loadingDots = null;
+    this.progressText = null;
+  }
+
+  /**
+   * Returns or creates the Web Audio context for editor playback/preview.
+   * @returns {AudioContext}
+   */
+  ensureEditorAudioContext() {
+    if (!this.editorAudioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      this.editorAudioCtx = new Ctx();
+    }
+    return this.editorAudioCtx;
+  }
+
+  /**
+   * Decodes audio into memory for synchronized editor playback/preview.
+   * @param {string} [url]
+   */
+  async syncEditorAudio(url) {
+    const sourceUrl = url || (this.song && this.song.chart && this.song.chart.audioUrl);
+    if (!sourceUrl) {
+      this.audioBuffer = null;
+      return;
+    }
+    this.showLoadingScreen(__("Synchronizing Audio...||Sincronizando Audio..."));
+    try {
+      const ctx = this.ensureEditorAudioContext();
+      const response = await fetch(sourceUrl);
+      const arrayBuffer = await response.arrayBuffer();
+      this.audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+    } catch (error) {
+      console.error("Error synchronizing audio:", error);
+      this.audioBuffer = null;
+      notifications.show(__("Audio sync failed||Fallo al sincronizar audio"));
+    }
+    this.hideLoadingScreen();
+  }
+
+  /**
+   * Returns the loaded audio duration in seconds.
+   * @returns {number}
+   */
+  getEditorAudioDuration() {
+    if (this.audioBuffer) return this.audioBuffer.duration;
+    if (this.audio && !isNaN(this.audio.duration)) return this.audio.duration;
+    return 0;
+  }
+
+  /**
+   * Stops the active SELECT playback source.
+   */
+  stopPlaybackSource() {
+    if (this.playbackSource) {
+      try { this.playbackSource.onended = null; this.playbackSource.stop(); } catch (e) {}
+      try { this.playbackSource.disconnect(); } catch (e) {}
+      this.playbackSource = null;
+    }
+  }
+
+  /**
+   * Stops the active note placement preview source.
+   */
+  stopPreviewSource() {
+    if (this.previewSource) {
+      try { this.previewSource.onended = null; this.previewSource.stop(); } catch (e) {}
+      try { this.previewSource.disconnect(); } catch (e) {}
+      this.previewSource = null;
+    }
   }
   
   /**
@@ -37756,17 +38243,18 @@ class Editor {
     if (this.isPlaying) {
       const chartOffset = this.song.chart.offset || 0;
       let currentTime;
-      
-      // Read the real audio clock so the editor playhead stays in sync with
-      // what is actually heard, matching the Play state's timing model.
-      if (this.audio && this.audio.src && !isNaN(this.audio.currentTime)) {
+
+      if (this.audioBuffer && this.editorAudioCtx && this.playbackSource) {
+        const audioPos = this.playbackStartOffset + (this.editorAudioCtx.currentTime - this.playbackStartCtxTime);
+        currentTime = audioPos + chartOffset - this.getAudioOffset();
+      } else if (this.audio && this.audio.src && !isNaN(this.audio.currentTime)) {
         currentTime = this.audio.currentTime
           + chartOffset
           - this.getAudioOffset();
       } else {
         currentTime = ((game.time.now - this.playStartTime + (chartOffset*1000)) / 1000) + this.playOffset;
       }
-      
+
       const currentBeat = this.chartRenderer.secToBeat(currentTime);
       return {
         now: currentTime,
@@ -37943,10 +38431,41 @@ class Editor {
 
     this.getCurrentChartNotes().forEach(note => (note.hitEffectShown = false));
 
-    if (this.audio && this.audio.src) {
-      if (this.previewEndTimeoutId) clearTimeout(this.previewEndTimeoutId);
-      this.audio.currentTime = this.playOffset;
-      this.audio.play();
+    if (this.previewEndTimeoutId) {
+      clearTimeout(this.previewEndTimeoutId);
+      this.previewEndTimeoutId = null;
+    }
+    this.previewEndHandler = null;
+    this.stopPreviewSource();
+    this.stopPlaybackSource();
+
+    if (this.audioBuffer) {
+      const ctx = this.ensureEditorAudioContext();
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      const chartOffset = this.song.chart.offset || 0;
+      const offset = Math.max(0, Math.min(this.playOffset - chartOffset + this.getAudioOffset(), this.audioBuffer.duration));
+      const source = ctx.createBufferSource();
+      source.buffer = this.audioBuffer;
+      source.connect(ctx.destination);
+      source.onended = () => {
+        if (this.playbackSource === source) {
+          this.playbackSource = null;
+          if (this.isPlaying) this.stopPlayback();
+        }
+      };
+      this.playbackSource = source;
+      this.playbackStartCtxTime = ctx.currentTime;
+      this.playbackStartOffset = offset;
+      try {
+        source.start(0, offset);
+      } catch (e) {
+        this.playbackSource = null;
+      }
+    } else if (this.audio && this.audio.src) {
+      const chartOffset = this.song.chart.offset || 0;
+      const targetTime = Math.max(0, this.playOffset - chartOffset + this.getAudioOffset());
+      this.audio.currentTime = targetTime;
+      this.audio.play().catch(() => {});
     }
     
     this.metronome.resetNoteMode();
@@ -37959,8 +38478,9 @@ class Editor {
     this.isPlaying = false;
     this.navigationHint.visible = true;
 
+    this.stopPlaybackSource();
     if (this.audio && this.audio.src) {
-      this.audio.pause();
+      try { this.audio.pause(); } catch (e) {}
     }
 
     // Snap cursor to current position
@@ -37973,14 +38493,21 @@ class Editor {
 
   /**
    * Cancels an active preview and removes its end handler.
+   * @param {boolean} [pause] - Whether to pause audio using the active handler.
    */
-  abortPreview() {
-    if (this.previewEndHandler && this.previewEndTimeoutId) {
+  abortPreview(pause = true) {
+    if (this.previewEndTimeoutId) {
       clearTimeout(this.previewEndTimeoutId);
-      this.previewEndHandler();
-      this.previewEndHandler = null;
       this.previewEndTimeoutId = null;
     }
+    if (this.previewEndHandler) {
+      const handler = this.previewEndHandler;
+      this.previewEndHandler = null;
+      if (pause) handler();
+    } else {
+      this.previewEndHandler = null;
+    }
+    this.stopPreviewSource();
   }
 
   /**
@@ -37989,21 +38516,65 @@ class Editor {
    * @param {number} length - Preview duration in seconds.
    */
   playPreview(start, length) {
-    if (!this.isPlaying && this.audio && this.audio.src) {
-      this.abortPreview();
+    if (this.isPlaying) return;
 
-      const chartOffset = 0; // TODO: Apply chart offset
+    const chartOffset = this.song.chart.offset || 0;
+    const targetTime = Math.max(0, start - chartOffset + this.getAudioOffset());
 
-      this.audio.currentTime = Math.max(0, start + chartOffset - this.getAudioOffset());
+    if (this.previewEndTimeoutId) {
+      clearTimeout(this.previewEndTimeoutId);
+      this.previewEndTimeoutId = null;
+    }
+    this.previewEndHandler = null;
+    this.stopPreviewSource();
 
-      this.previewEndHandler = () => {
-        this.audio.pause();
-        this.audio.currentTime = start;
+    if (this.audioBuffer) {
+      const ctx = this.ensureEditorAudioContext();
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      const offset = Math.max(0, Math.min(targetTime, this.audioBuffer.duration));
+      const duration = Math.max(0, Math.min(length, this.audioBuffer.duration - offset));
+      if (duration <= 0) return;
+      const source = ctx.createBufferSource();
+      source.buffer = this.audioBuffer;
+      source.connect(ctx.destination);
+      source.onended = () => {
+        if (this.previewSource === source) this.previewSource = null;
       };
+      this.previewSource = source;
+      try {
+        source.start(0, offset, duration);
+      } catch (e) {
+        this.previewSource = null;
+      }
+      return;
+    }
 
-      this.audio.play().then(() => {
-        this.previewEndTimeoutId = setTimeout(this.previewEndHandler, length * 1000);
-      });
+    if (!this.audio || !this.audio.src) return;
+
+    try { this.audio.currentTime = targetTime; } catch (e) {}
+
+    const endPreview = () => {
+      try { this.audio.pause(); } catch (e) {}
+      this.previewEndHandler = null;
+      this.previewEndTimeoutId = null;
+    };
+    this.previewEndHandler = endPreview;
+
+    const startTimer = () => {
+      this.previewEndTimeoutId = setTimeout(() => {
+        if (this.previewEndHandler === endPreview) endPreview();
+      }, length * 1000);
+    };
+
+    if (this.audio.paused) {
+      const p = this.audio.play();
+      if (p && typeof p.then === "function") {
+        p.then(startTimer).catch(() => {});
+      } else {
+        startTimer();
+      }
+    } else {
+      startTimer();
     }
   }
 
@@ -38542,7 +39113,7 @@ class Editor {
         contextMenu.addItem("(Remove BG Change|Eliminar Cambio de Fondo)", () => this.removeBGChange());
       }
       
-      contextMenu.addItem("(Detect BPM Here|Detectar BPM Aquí)", () => this.detectBPMHere());
+      contextMenu.addItem("Detect BPM||Detectar BPM", () => this.detectBPM());
     } else if (this.selectedNotes.length === 1) {
       const note = this.selectedNotes[0];
       contextMenu.addItem("(Unselect|Deseleccionar)", () => (this.selectedNotes = []));
@@ -38939,13 +39510,17 @@ class Editor {
       }
       
       this.hideLoadingScreen();
-      
-      this.audio.src = chart.audioUrl;
+
+      this.stopPlayback();
+      this.abortPreview();
+      if (this.bpmDetector) this.bpmDetector.clearCache();
+      this.audio.src = chart.audioUrl || "";
       this.updateBanner(chart.bannerUrl);
       this.updateBackground(chart.backgroundUrl);
       this.refreshLyrics();
 
       this.song = { chart, difficultyIndex: 0 };
+      await this.syncEditorAudio(chart.audioUrl);
       this.showHomeScreen();
     } catch (error) {
       console.error("Error loading song:", error);
@@ -38959,6 +39534,9 @@ class Editor {
    */
   async loadAudioFile(file) {
     try {
+      this.stopPlayback();
+      this.abortPreview();
+      if (this.bpmDetector) this.bpmDetector.clearCache();
       const url = URL.createObjectURL(file);
       this.song.chart.audio = file.name;
       this.song.chart.audioUrl = url;
@@ -38966,15 +39544,17 @@ class Editor {
       this.showLoadingScreen(__("Processing Audio||Procesando Audio"));
       
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         this.files.audio = FileTools.extractBase64(reader.result);
         this.audio.src = url;
         this.hideLoadingScreen();
+        await this.syncEditorAudio(url);
         this.showHomeScreen();
       };
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error loading audio:", error);
+      this.hideLoadingScreen();
       this.showHomeScreen();
     }
   }
@@ -39150,7 +39730,7 @@ class Editor {
         if (targetProp === "audio") {
           this.song.chart.audio = filename;
           this.song.chart.audioUrl = objectUrl;
-          this.files.audio = FileTools.urlToBase64(objectUrl);
+          this.files.audio = await FileTools.urlToBase64(objectUrl);
           this.audio.src = objectUrl;
         } else if (targetProp === "background") {
           this.song.chart.background = filename;
@@ -39177,6 +39757,10 @@ class Editor {
       return null;
     };
     
+    this.stopPlayback();
+    this.abortPreview();
+    if (this.bpmDetector) this.bpmDetector.clearCache();
+    this.audioBuffer = null;
     this.audio.src = "";
 
     // Load main files
@@ -39193,8 +39777,12 @@ class Editor {
         }
       }
     }
-    
-    this.hideLoadingScreen();
+
+    if (this.song.chart.audioUrl) {
+      await this.syncEditorAudio(this.song.chart.audioUrl);
+    } else {
+      this.hideLoadingScreen();
+    }
 
     notifications.show(__("StepMania song imported!||Canción importada"));
   }
@@ -39207,6 +39795,10 @@ class Editor {
     const content = await FileTools.readTextFile(file);
     const chart = await new LocalSMParser().parseSM(content);
 
+    this.stopPlayback();
+    this.abortPreview();
+    if (this.bpmDetector) this.bpmDetector.clearCache();
+
     this.song = { chart, difficulties: 0 };
 
     this.files = {
@@ -39216,6 +39808,7 @@ class Editor {
       extra: {}
     };
     
+    this.audioBuffer = null;
     this.updateBackground();
     this.updateBanner();
     this.refreshLyrics();
@@ -39722,11 +40315,11 @@ class Editor {
     this.numberInput({
       value: sampleStart,
       min: 0,
-      max: this.audio.duration || 100,
+      max: this.getEditorAudioDuration() || 100,
       decimals: 1,
       onConfirm: (value) => {
         this.song.chart.sampleStart = value;
-        if (this.audio && this.audio.src) {
+        if (this.audioBuffer || (this.audio && this.audio.src)) {
           this.playPreview(value, this.song.chart.sampleLength);
         }
         this.updateInfoText();
@@ -39842,6 +40435,7 @@ class Editor {
    * Resets the editor and returns to the home screen.
    */
   createNewSongAndReload() {
+    if (this.bpmDetector) this.bpmDetector.clearCache();
     this.song = this.createNewSong();
     game.state.start("Editor");
   }
@@ -39872,86 +40466,139 @@ class Editor {
 
   // BPM/Stop/BG change methods
   /**
-   * Estimates the BPM from a series of tapped beat times.
-   * @param {Array} beats - Tapped beat timestamps in seconds.
-   * @returns {number} Estimated BPM value.
+   * Detects BPM automatically from the loaded audio and shows a results table.
+   * Results are cached per audio file and re-shown on subsequent runs.
    */
-  calculateBPM(beats) {
-    if (beats.length < 3) {
-      return 0;
+  detectBPM() {
+    if (!this.audioBuffer) {
+      notifications.show(__("Load audio first||Carga el audio primero"));
+      return;
+    }
+    if (this.isPlaying) this.stopPlayback();
+    this.abortPreview();
+    this.menuVisible = true;
+
+    const audioKey = this.song && this.song.chart ? (this.song.chart.audioUrl || this.song.chart.audio || null) : null;
+    const detector = this.bpmDetector;
+    const cached = audioKey && detector && detector._cacheKey === audioKey && detector._cacheResults;
+
+    if (cached) {
+      this.showBpmResultsOverlay(detector._cacheResults.slice());
+      return;
     }
 
-    // Calculate intervals between beats
-    const intervals = [];
-    for (let i = 1; i < beats.length; i++) {
-      intervals.push(beats[i] - beats[i - 1]);
-    }
+    this.showLoadingScreen(__("Analyzing BPM...||Analizando BPM..."));
+    const buffer = this.audioBuffer;
 
-    // Filter out outliers (keep only intervals within 20% of median)
-    const median = intervals.sort((a, b) => a - b)[Math.floor(intervals.length / 2)];
-    const validIntervals = intervals.filter(interval => Math.abs(interval - median) / median < 0.2);
-
-    if (validIntervals.length === 0) {
-      return 0;
-    }
-
-    // Calculate average interval and convert to BPM
-    const avgInterval = validIntervals.reduce((a, b) => a + b, 0) / validIntervals.length;
-    const bpm = Math.round(60 / avgInterval);
-
-    // TODO: Validate BPM range
-    return bpm;
+    setTimeout(() => {
+      let results = [];
+      try {
+        if (detector) {
+          const out = detector.detect(buffer, { cacheKey: audioKey });
+          results = out && out.results ? out.results : [];
+        }
+      } catch (e) {
+        console.error("BPM detection failed:", e);
+        results = [];
+      }
+      this.hideLoadingScreen();
+      this.showBpmResultsOverlay(results);
+    }, 50);
   }
 
   /**
-   * Opens a tap-to-the-beat mode to estimate the BPM at the cursor.
+   * Displays detected BPM results in a table overlay (graphics-drawn). Informational only.
+   * @param {Array} results - [{bpm, offset, fitness, confidence}]
    */
-  detectBPMHere() {
-    const audioElement = document.createElement("audio");
-    audioElement.src = this.audio.src;
-    audioElement.currentTime = this.chartRenderer.beatToSec(this.cursorBeat);
-
+  showBpmResultsOverlay(results) {
     this.menuVisible = true;
 
-    // Create background
-    const background = game.add.graphics(0, 0);
-    background.beginFill(0x000000, 0.8);
-    background.drawRect(0, 0, game.width, game.height);
-    background.endFill();
+    const overlay = game.add.group();
 
-    // Create instruction text
-    const instructionText = new Text(game.width / 2, game.height / 2 - 20, "TAP TO THE BEAT TO CALCULATE BPM");
-    instructionText.anchor.set(0.5);
+    const dim = game.add.graphics(0, 0);
+    dim.beginFill(0x000000, 0.75);
+    dim.drawRect(0, 0, game.width, game.height);
+    dim.endFill();
+    overlay.add(dim);
 
-    // Create offset display text
-    const valueText = new Text(game.width / 2, game.height / 2 + 10, "BPM: 0", FONTS.default);
-    valueText.tint = 0xffff00;
-    valueText.anchor.set(0.5);
-    
-    const startTime = this.audio.currentTime;
+    const panelW = 220;
+    const rowH = 14;
+    const headerH = 16;
+    const rows = (results && results.length) ? results.length : 1;
+    const panelH = 28 + headerH + rows * rowH + 16;
+    const px = Math.floor((game.width - panelW) / 2);
+    const py = Math.floor((game.height - panelH) / 2);
 
-    const beats = [];
+    const panel = game.add.graphics(0, 0);
+    panel.beginFill(0x1a1a2e, 0.98);
+    panel.drawRect(px, py, panelW, panelH);
+    panel.endFill();
+    panel.lineStyle(1, 0x3498db, 1);
+    panel.drawRect(px, py, panelW, panelH);
+    // separators
+    panel.lineStyle(1, 0x34495e, 1);
+    panel.moveTo(px + 1, py + 20);
+    panel.lineTo(px + panelW, py + 20);
+    panel.moveTo(px + 1, py + 20 + headerH);
+    panel.lineTo(px + panelW, py + 20 + headerH);
+    const col1 = px + 34;
+    const col2 = px + 122;
+    panel.moveTo(col1, py + 20);
+    panel.lineTo(col1, py + 20 + headerH + rows * rowH);
+    panel.moveTo(col2, py + 20);
+    panel.lineTo(col2, py + 20 + headerH + rows * rowH);
+    // row lines
+    for (let i = 1; i < rows; i++) {
+      const ly = py + 20 + headerH + i * rowH;
+      panel.moveTo(px + 1, ly);
+      panel.lineTo(px + panelW, ly);
+    }
+    overlay.add(panel);
 
-    this.stopPlayback();
-    audioElement.play();
+    const title = new Text(px + panelW / 2, py + 5, __("BPM Detection Results||BPM detectados"), FONTS.default);
+    title.anchor.set(0.5, 0);
+    overlay.add(title);
 
-    const inputHandler = key => {
-      if (key == "a") {
-        beats.push(audioElement.currentTime);
-        valueText.write(`BPM: ${this.calculateBPM(beats)}`);
-        game.add.tween(valueText.scale).to({ x: 1.1, y: 1.1 }, 50, Phaser.Easing.Quadratic.Out, true).yoyo(true);
-      } else if (key == "b") {
-        background.destroy();
-        instructionText.destroy();
-        valueText.destroy();
-        audioElement.pause();
-        audioElement.src = "";
-        gamepad.signals.pressed.any.remove(inputHandler);
+    const hy = py + 23;
+    const hRank = new Text(px + 6, hy, "#", FONTS.tiny || FONTS.default);
+    const hBpm = new Text(col1 + 6, hy, "BPM", FONTS.tiny || FONTS.default);
+    const hConf = new Text(col2 + 6, hy, __("CONF||CONF"), FONTS.tiny || FONTS.default);
+    hRank.tint = 0xaaaaaa; hBpm.tint = 0xaaaaaa; hConf.tint = 0xaaaaaa;
+    overlay.add(hRank); overlay.add(hBpm); overlay.add(hConf);
+
+    if (results && results.length) {
+      for (let i = 0; i < results.length; i++) {
+        const r = results[i];
+        const ry = py + 20 + headerH + i * rowH + 2;
+        const conf = typeof r.confidence === "number" ? Math.round(r.confidence * 100) : 0;
+        const bpmVal = (typeof r.bpm === "number" ? r.bpm : 0).toFixed(2);
+        const tr = new Text(px + 8, ry, String(i + 1), FONTS.tiny || FONTS.default);
+        const tb = new Text(col1 + 6, ry, bpmVal, FONTS.tiny || FONTS.default);
+        const tc = new Text(col2 + 6, ry, conf + "%", FONTS.tiny || FONTS.default);
+        tb.tint = 0x00ffcc;
+        tc.tint = 0xffcc00;
+        overlay.add(tr); overlay.add(tb); overlay.add(tc);
+      }
+    } else {
+      const ry = py + 20 + headerH + 2;
+      const none = new Text(px + panelW / 2, ry, __("No results found||Sin resultados"), FONTS.tiny || FONTS.default);
+      none.anchor.set(0.5, 0);
+      overlay.add(none);
+    }
+
+    const hint = new Text(px + panelW / 2, py + panelH - 12, __("Press B to close||Pulsa B cerrar"), FONTS.tiny || FONTS.default);
+    hint.anchor.set(0.5, 0);
+    hint.tint = 0x888888;
+    overlay.add(hint);
+
+    const close = key => {
+      if (key === "b" || key === "start" || key === "a") {
+        gamepad.signals.pressed.any.remove(close);
+        overlay.destroy(true);
         this.menuVisible = false;
       }
     };
-
-    gamepad.signals.pressed.any.add(inputHandler);
+    gamepad.signals.pressed.any.add(close);
   }
 
   /**
@@ -40284,8 +40931,14 @@ class Editor {
       this.fileInput = null;
     }
     this.stopPlayback();
+    this.abortPreview();
+    if (this.editorAudioCtx) {
+      try { this.editorAudioCtx.close(); } catch (e) {}
+      this.editorAudioCtx = null;
+    }
+    this.audioBuffer = null;
     if (this.audio) {
-      this.audio.pause();
+      try { this.audio.pause(); } catch (e) {}
       this.audio.src = "";
       this.audio = null;
     }
@@ -40293,9 +40946,6 @@ class Editor {
   }
 }
 
-
-
-// ======== js/game/states/Credits.js ========
 /**
  * @class Credits
  * @category Game States
@@ -40692,9 +41342,6 @@ class Credits {
   }
 }
 
-
-
-// ======== js/game/states/ErrorScreen.js ========
 /**
  * @class ErrorScreen
  * @category Game States
@@ -40765,9 +41412,6 @@ Please Report The Developer Immediately!
   }
 }
 
-
-
-// ======== js/game/player/ChartRenderer.js ========
 /**
  * @class ChartRenderer
  * @category Core Game Classes
@@ -41918,9 +42562,6 @@ class ChartRenderer {
   }
 }
 
-
-
-// ======== js/game/player/AudioTemperatureMeter.js ========
 /**
  * @class AudioTemperatureMeter
  * @category Core Game Classes
@@ -42377,9 +43018,6 @@ class AudioTemperatureMeter {
   }
 }
 
-
-
-// ======== js/game/player/Player.js ========
 /**
  * @class Player
  * @category Core Game Classes
@@ -43556,9 +44194,6 @@ class Player {
   }
 }
 
-
-
-// ======== js/game/player/FirstPlayer.js ========
 /**
  * @class FirstPlayer
  * @category Core Game Classes
@@ -43602,9 +44237,6 @@ class FirstPlayer extends Player {
   }
 }
 
-
-
-// ======== js/game/player/SecondPlayer.js ========
 /**
  * @class SecondPlayer
  * @category Core Game Classes
