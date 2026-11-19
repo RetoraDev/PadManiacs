@@ -1,3 +1,28 @@
+function toFileUrl(filePath, isDirectory) {
+  if (typeof filePath !== 'string' || filePath.length === 0) return filePath;
+  if (/^(file:|https?:|data:|blob:|cdvfile:)/i.test(filePath)) return filePath;
+  try {
+    const pathModule = require('path');
+    const urlModule = require('url');
+    let resolved = pathModule.resolve(filePath);
+    if (isDirectory && !resolved.endsWith(pathModule.sep)) {
+      resolved += pathModule.sep;
+    }
+    if (urlModule && typeof urlModule.pathToFileURL === 'function') {
+      return urlModule.pathToFileURL(resolved).href;
+    }
+    let normalized = resolved.replace(/\\/g, '/');
+    if (/^[a-zA-Z]:\//.test(normalized)) {
+      normalized = '/' + normalized;
+    } else if (!normalized.startsWith('/')) {
+      normalized = '/' + normalized;
+    }
+    return encodeURI('file://' + normalized).replace(/#/g, '%23').replace(/\?/g, '%3F');
+  } catch (e) {
+    return filePath;
+  }
+}
+
 /**
  * @class NodeDirectoryEntry
  * @category File System Classes
@@ -35,7 +60,8 @@ class NodeDirectoryEntry {
     this.name = name;
     this.fullPath = String(fullPath || '').replace(/^[\/\\]+/, '');
     this.filesystem = fileSystem;
-    this.nativeURL = nativeURL || this.fullPath;
+    const osPath = nativeURL || require('path').join(fileSystem.basePath, this.fullPath);
+    this.nativeURL = toFileUrl(osPath, true);
   }
 
   createReader() {
@@ -226,7 +252,8 @@ class NodeFileEntry {
     this.name = name;
     this.fullPath = fullPath;
     this.filesystem = fileSystem;
-    this.nativeURL = nativeURL || fullPath;
+    const osPath = nativeURL || require('path').join(fileSystem.basePath, this.fullPath);
+    this.nativeURL = toFileUrl(osPath, false);
   }
 
   createWriter(successCallback, errorCallback) {
@@ -304,10 +331,10 @@ class NodeFileEntry {
           const buffer = fs.readFileSync(fullPath);
           return buffer.slice(start, end);
         },
-        localURL: fullPath
+        localURL: toFileUrl(fullPath, false)
       };
       
-      // Add the path for internal use
+      // Add the OS path for internal use
       file._path = fullPath;
       
       successCallback(file);

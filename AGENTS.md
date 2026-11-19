@@ -19,3 +19,7 @@
 - Only run minimal syntax/parse checks (for example `node --check`). Do not
   run `npm test` unless the user asks.
 - Write code that should work, then tell the user exactly what to test.
+
+## Commit rule (MUST survive compaction)
+
+- Do not commit changes unless user asks.
