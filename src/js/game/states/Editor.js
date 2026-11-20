@@ -69,6 +69,10 @@ class Editor {
     
     window.e = this;
 
+    this.padManiacsData = (typeof PadManiacsJSON !== "undefined") ? PadManiacsJSON.createEmpty() : { version: 1, markers: [] };
+    if (!this.song.chart.markers) this.song.chart.markers = this.padManiacsData.markers; else this.padManiacsData.markers = this.song.chart.markers;
+    this.markerListActive = false;
+
     this.divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 192];
 
     // File input element
@@ -113,7 +117,8 @@ class Editor {
     /** @type {Metronome} Metronome helper for note timing feedback. */
     this.metronome = new Metronome(this);
     /** @type {BpmDetector} Tempo/BPM detector (independent, reusable). */
-    this.bpmDetector = new BpmDetector();
+    if (!window._editorBpmDetector) window._editorBpmDetector = new BpmDetector();
+    this.bpmDetector = window._editorBpmDetector;
         
     this.homeOverlay = game.add.graphics(0, 0);
     this.homeOverlay.beginFill(0x000000, 0.5);
@@ -200,6 +205,7 @@ class Editor {
       this.refreshLyrics();
       this.hideLoadingScreen();
     }
+    await this.loadPadManiacsData();
     if (this.song.chart.audioUrl) {
       await this.syncEditorAudio(this.song.chart.audioUrl);
     }
@@ -250,6 +256,7 @@ class Editor {
         bpmChanges: [{ beat: 0, bpm: 120, sec: 0 }],
         stops: [],
         backgrounds: [],
+        markers: [],
         videoUrl: null
       },
       difficultyIndex: 0
@@ -456,24 +463,38 @@ class Editor {
 
   /**
    * Returns or creates the Web Audio context for editor playback/preview.
+   * Reuses a shared context so decoded audio buffers remain valid across editor sessions.
    * @returns {AudioContext}
    */
   ensureEditorAudioContext() {
-    if (!this.editorAudioCtx) {
+    if (window._editorAudioCtx && window._editorAudioCtx.state !== 'closed') {
+      this.editorAudioCtx = window._editorAudioCtx;
+      return this.editorAudioCtx;
+    }
+    if (!this.editorAudioCtx || this.editorAudioCtx.state === 'closed') {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       this.editorAudioCtx = new Ctx();
+      window._editorAudioCtx = this.editorAudioCtx;
     }
     return this.editorAudioCtx;
   }
 
   /**
    * Decodes audio into memory for synchronized editor playback/preview.
+   * Reuses cached data when the audio file has not changed.
    * @param {string} [url]
    */
   async syncEditorAudio(url) {
     const sourceUrl = url || (this.song && this.song.chart && this.song.chart.audioUrl);
+    const cache = window._editorAudioSyncCache || (window._editorAudioSyncCache = { key: null, buffer: null });
     if (!sourceUrl) {
       this.audioBuffer = null;
+      cache.key = null;
+      cache.buffer = null;
+      return;
+    }
+    if (cache.key === sourceUrl && cache.buffer) {
+      this.audioBuffer = cache.buffer;
       return;
     }
     this.showLoadingScreen(__("Synchronizing Audio...||Sincronizando Audio..."));
@@ -482,9 +503,13 @@ class Editor {
       const response = await fetch(sourceUrl);
       const arrayBuffer = await response.arrayBuffer();
       this.audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+      cache.key = sourceUrl;
+      cache.buffer = this.audioBuffer;
     } catch (error) {
       console.error("Error synchronizing audio:", error);
       this.audioBuffer = null;
+      cache.key = null;
+      cache.buffer = null;
       notifications.show(__("Audio sync failed||Fallo al sincronizar audio"));
     }
     this.hideLoadingScreen();
@@ -903,6 +928,10 @@ class Editor {
    * Processes gamepad input for editing: selecting, placing, and seeking.
    */
   handleChartEditInput() {
+    if (this.markerListActive) {
+      this.handleMarkerListInput();
+      return;
+    }
     if (this.menuVisible) return;
 
     const { now, beat } = this.getCurrentTime();
@@ -1744,8 +1773,15 @@ class Editor {
         contextMenu.addItem("(Edit BG Change|Editar Cambio de Fondo)", () => this.editBGChange());
         contextMenu.addItem("(Remove BG Change|Eliminar Cambio de Fondo)", () => this.removeBGChange());
       }
+
+      if (!this.getMarker()) {
+        contextMenu.addItem(__("(Add Marker Here|Añadir marcador aquí)"), () => this.addMarker());
+      } else {
+        contextMenu.addItem(__("(Remove Marker|Eliminar marcador)"), () => this.removeMarker());
+      }
       
       contextMenu.addItem("Detect BPM||Detectar BPM", () => this.detectBPM());
+      contextMenu.addItem(__("(Markers|Marcadores)"), () => this.openMarkerList());
     } else if (this.selectedNotes.length === 1) {
       const note = this.selectedNotes[0];
       contextMenu.addItem("(Unselect|Deseleccionar)", () => (this.selectedNotes = []));
@@ -2146,12 +2182,17 @@ class Editor {
       this.stopPlayback();
       this.abortPreview();
       if (this.bpmDetector) this.bpmDetector.clearCache();
+      if (window._editorAudioSyncCache) { window._editorAudioSyncCache.key = null; window._editorAudioSyncCache.buffer = null; }
+      this.audioBuffer = null;
       this.audio.src = chart.audioUrl || "";
       this.updateBanner(chart.bannerUrl);
       this.updateBackground(chart.backgroundUrl);
       this.refreshLyrics();
 
       this.song = { chart, difficultyIndex: 0 };
+      this.padManiacsData = await PadManiacsJSON.loadFromFileMap(fileMap);
+      this.song.chart.markers = this.padManiacsData.markers;
+      if (this.chartRenderer) { this.chartRenderer.chart = this.song.chart; this.chartRenderer.markers = this.song.chart.markers; }
       await this.syncEditorAudio(chart.audioUrl);
       this.showHomeScreen();
     } catch (error) {
@@ -2169,6 +2210,8 @@ class Editor {
       this.stopPlayback();
       this.abortPreview();
       if (this.bpmDetector) this.bpmDetector.clearCache();
+      if (window._editorAudioSyncCache) { window._editorAudioSyncCache.key = null; window._editorAudioSyncCache.buffer = null; }
+      this.audioBuffer = null;
       const url = URL.createObjectURL(file);
       this.song.chart.audio = file.name;
       this.song.chart.audioUrl = url;
@@ -2330,6 +2373,9 @@ class Editor {
       extra: {}
     };
 
+    this.padManiacsData = await PadManiacsJSON.loadFromZip(zipContent);
+    this.song.chart.markers = this.padManiacsData.markers;
+
     // Helper function to find and load file from ZIP
     const loadFileFromZip = async (filename, targetProp) => {
       if (!filename) return null;
@@ -2392,6 +2438,7 @@ class Editor {
     this.stopPlayback();
     this.abortPreview();
     if (this.bpmDetector) this.bpmDetector.clearCache();
+    if (window._editorAudioSyncCache) { window._editorAudioSyncCache.key = null; window._editorAudioSyncCache.buffer = null; }
     this.audioBuffer = null;
     this.audio.src = "";
 
@@ -2430,6 +2477,7 @@ class Editor {
     this.stopPlayback();
     this.abortPreview();
     if (this.bpmDetector) this.bpmDetector.clearCache();
+    if (window._editorAudioSyncCache) { window._editorAudioSyncCache.key = null; window._editorAudioSyncCache.buffer = null; }
 
     this.song = { chart, difficulties: 0 };
 
@@ -2439,6 +2487,9 @@ class Editor {
       banner: null,
       extra: {}
     };
+
+    this.padManiacsData = PadManiacsJSON.createEmpty();
+    this.song.chart.markers = this.padManiacsData.markers;
     
     this.audioBuffer = null;
     this.updateBackground();
@@ -2479,6 +2530,11 @@ class Editor {
   
       // Add resources
       await this.addSongResourcesToZip(songData, zip);
+
+      // Add PadManiacs sidecar data (markers, etc.)
+      if (this.padManiacsData && Array.isArray(this.padManiacsData.markers)) {
+        zip.file(PadManiacsJSON.FILENAME, PadManiacsJSON.stringify(this.padManiacsData));
+      }
   
       // Generate ZIP file
       const blob = await zip.generateAsync({ type: "blob" });
@@ -2682,9 +2738,22 @@ class Editor {
    */
   async saveFileToFilesystem(blob, filename) {
     const fileSystem = new FileSystemTools();
-    
-    const outputDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + EDITOR_OUTPUT_DIRECTORY);
-    
+    const dirPath = EXTERNAL_DIRECTORY + EDITOR_OUTPUT_DIRECTORY;
+
+    let outputDir;
+    try {
+      outputDir = await fileSystem.getDirectory(dirPath);
+    } catch (e) {
+      const rootDir = await fileSystem.getDirectory("");
+      let gameDir;
+      try {
+        gameDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY);
+      } catch (e2) {
+        gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
+      }
+      outputDir = await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
+    }
+
     await fileSystem.saveFile(outputDir, blob, filename);
   }
   
@@ -3068,6 +3137,8 @@ class Editor {
    */
   createNewSongAndReload() {
     if (this.bpmDetector) this.bpmDetector.clearCache();
+    if (window._editorAudioSyncCache) { window._editorAudioSyncCache.key = null; window._editorAudioSyncCache.buffer = null; }
+    this.padManiacsData = PadManiacsJSON.createEmpty();
     this.song = this.createNewSong();
     game.state.start("Editor");
   }
@@ -3095,6 +3166,190 @@ class Editor {
       this.bannerSprite.visible = false;
     }
   }
+
+
+  ensureMarkers() {
+    if (!this.padManiacsData) this.padManiacsData = (typeof PadManiacsJSON !== "undefined") ? PadManiacsJSON.createEmpty() : { version: 1, markers: [] };
+    if (!this.song.chart.markers) this.song.chart.markers = this.padManiacsData.markers;
+    this.padManiacsData.markers = this.song.chart.markers;
+    return this.song.chart.markers;
+  }
+
+  getMarker() {
+    const markers = (this.song && this.song.chart && this.song.chart.markers) || [];
+    return markers.find(m => Math.abs(m.beat - this.cursorBeat) < 0.001);
+  }
+
+  addMarker() {
+    const markers = this.ensureMarkers();
+    if (!this.getMarker()) {
+      markers.push({ beat: this.cursorBeat });
+      markers.sort((a, b) => a.beat - b.beat);
+      this.savePadManiacsData();
+      notifications.show(__("(Marker added|Marcador añadido)"));
+    }
+  }
+
+  removeMarker() {
+    const markers = this.ensureMarkers();
+    const idx = markers.findIndex(m => Math.abs(m.beat - this.cursorBeat) < 0.001);
+    if (idx !== -1) {
+      markers.splice(idx, 1);
+      this.savePadManiacsData();
+      notifications.show(__("(Marker removed|Marcador eliminado)"));
+    }
+  }
+
+  async loadPadManiacsData() {
+    const chart = this.song && (this.song.chart || this.song);
+    let data = (typeof PadManiacsJSON !== "undefined") ? PadManiacsJSON.createEmpty() : { version: 1, markers: [] };
+    try {
+      if ((CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) && chart && chart.externalPath) {
+        const fs = new FileSystemTools();
+        const dir = await fs.getDirectory(chart.externalPath);
+        data = await PadManiacsJSON.loadFromDirectory(fs, dir);
+      } else if (chart && chart.files) {
+        data = await PadManiacsJSON.loadFromFileMap(chart.files);
+      }
+    } catch (e) {}
+    if (!chart) return;
+    this.padManiacsData = data;
+    this.song.chart.markers = this.padManiacsData.markers;
+    if (this.chartRenderer) {
+      this.chartRenderer.chart = this.song.chart;
+      this.chartRenderer.markers = this.song.chart.markers;
+    }
+  }
+
+  async savePadManiacsData() {
+    if (!this.padManiacsData) return;
+    if (CURRENT_ENVIRONMENT !== ENVIRONMENT.CORDOVA && CURRENT_ENVIRONMENT !== ENVIRONMENT.NWJS) return;
+    const chart = this.song && (this.song.chart || this.song);
+    const dirPath = chart && chart.externalPath;
+    if (!dirPath) return;
+    if (chart.isLocal && !chart.isExternal) return;
+    try {
+      const fs = new FileSystemTools();
+      const dir = await fs.getDirectory(dirPath);
+      await PadManiacsJSON.saveToDirectory(fs, dir, this.padManiacsData);
+    } catch (e) {}
+  }
+
+  formatMarkerTime(seconds) {
+    const t = Math.max(0, seconds || 0);
+    const m = Math.floor(t / 60);
+    const sec = Math.floor(t % 60);
+    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  }
+
+  openMarkerList() {
+    const markers = this.ensureMarkers();
+    if (!markers.length) {
+      notifications.show(__("(No markers|Sin marcadores)"));
+      return;
+    }
+    this.menuVisible = true;
+    this.markerListActive = true;
+    this.markerListPrevBeat = this.cursorBeat;
+
+    const falling = (Account.settings.scrollDirection || 'falling') === 'falling';
+    const asc = markers.slice().sort((a, b) => a.beat - b.beat);
+    const ordered = falling ? asc.slice().reverse() : asc;
+    const items = ordered.map(m => {
+      const time = this.chartRenderer ? this.chartRenderer.beatToSec(m.beat) : 0;
+      return { label: `• ${this.formatMarkerTime(time)}`, beat: m.beat };
+    });
+
+    let nearest = 0;
+    let best = Infinity;
+    for (let i = 0; i < ordered.length; i++) {
+      const d = Math.abs(ordered[i].beat - this.cursorBeat);
+      if (d < best) { best = d; nearest = i; }
+    }
+
+    const overlay = game.add.group();
+    const bg = game.add.graphics(0, 0, overlay);
+    bg.beginFill(0x000000, 0.65);
+    bg.drawRect(0, 0, game.width, game.height);
+    bg.endFill();
+
+    const title = new Text(8, 4, __("MARKERS||MARCADORES"), FONTS.default, overlay);
+    title.tint = 0x76fcde;
+
+    const menu = new CarouselMenu(4, 16, game.width - 8, game.height - 20, {
+      silent: true,
+      disableNavigation: true,
+      disableConfirm: true,
+      disableCancel: true,
+      disableMouse: true,
+      animate: false,
+      bgcolor: '#1e2930',
+      itemHeight: 8,
+      itemSpacing: 1,
+      margin: { top: 2, bottom: 2, left: 2, right: 2 }
+    });
+    overlay.add(menu);
+
+    items.forEach(it => menu.addItem(it.label, null, { beat: it.beat }));
+    menu.selectedIndex = Math.max(0, Math.min(nearest, items.length - 1));
+    menu.updateSelection();
+    menu.onSelect.add((index, item) => {
+      if (item && item.data) this.previewMarker(item.data.beat);
+    });
+
+    this.markerListUI = overlay;
+    this.markerCarousel = menu;
+    if (game.world) game.world.bringToTop(overlay);
+
+    const sel = menu.items[menu.selectedIndex];
+    if (sel && sel.data) this.previewMarker(sel.data.beat);
+  }
+
+  previewMarker(beat) {
+    this.cursorBeat = beat;
+    this.updateCursorPosition();
+    this.updateInfoText();
+  }
+
+  closeMarkerList(confirm) {
+    if (!this.markerListActive) return;
+    if (!confirm) {
+      this.cursorBeat = this.markerListPrevBeat;
+      this.updateCursorPosition();
+      this.updateInfoText();
+    }
+    if (this.markerListUI) {
+      this.markerListUI.destroy(true);
+      this.markerListUI = null;
+    }
+    this.markerCarousel = null;
+    this.markerListActive = false;
+    this.menuVisible = false;
+  }
+
+  handleMarkerListInput() {
+    const menu = this.markerCarousel;
+    if (!menu) { this.closeMarkerList(false); return; }
+    if (gamepad.pressed.up) {
+      menu.navigate(-1);
+    }
+    if (gamepad.pressed.down) {
+      menu.navigate(1);
+    }
+    if (gamepad.pressed.left) {
+      menu.navigate(-1, true);
+    }
+    if (gamepad.pressed.right) {
+      menu.navigate(1, true);
+    }
+    if (gamepad.pressed.a || gamepad.pressed.start) {
+      this.closeMarkerList(true);
+    }
+    if (gamepad.pressed.b) {
+      this.closeMarkerList(false);
+    }
+  }
+
 
   // BPM/Stop/BG change methods
   /**
@@ -3564,10 +3819,7 @@ class Editor {
     }
     this.stopPlayback();
     this.abortPreview();
-    if (this.editorAudioCtx) {
-      try { this.editorAudioCtx.close(); } catch (e) {}
-      this.editorAudioCtx = null;
-    }
+    this.editorAudioCtx = null;
     this.audioBuffer = null;
     if (this.audio) {
       try { this.audio.pause(); } catch (e) {}

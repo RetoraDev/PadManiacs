@@ -110,6 +110,7 @@ class BuildSystem {
       // Parsers
       'js/parsers/SMFile.js',
       'js/parsers/FileTools.js',
+      'js/parsers/PadManiacsJSON.js',
       'js/parsers/LocalSMParser.js',
       'js/parsers/ExternalSMParser.js',
       

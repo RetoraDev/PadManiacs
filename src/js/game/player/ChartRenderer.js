@@ -200,10 +200,12 @@ class ChartRenderer {
     this.backgroundGraphics = game.add.graphics(0, 0);
     this.speedModGraphics = game.add.graphics(0, 0);
     this.bgChangeGraphics = game.add.graphics(0, 0);
+    this.markerGraphics = game.add.graphics(0, 0);
     
     this.backgroundGroup.addChild(this.backgroundGraphics);
     this.backgroundGroup.addChild(this.speedModGraphics);
     this.backgroundGroup.addChild(this.bgChangeGraphics);
+    this.backgroundGroup.addChild(this.markerGraphics);
 
     this.tags = {};
     
@@ -235,6 +237,7 @@ class ChartRenderer {
     /** @type {Array} Stop events from the chart */
     this.stops = this.chart.stops;
     this.backgrounds = this.chart.backgrounds || [];
+    this.markers = this.chart.markers || [];
   }
   
   /**
@@ -457,6 +460,7 @@ class ChartRenderer {
     if (this.options.enableBGRendering) {
       this.renderBGChanges(now, beat);
     }
+    this.renderMarkers(now, beat);
     this.cleanupTags();
   }
 
@@ -875,6 +879,30 @@ class ChartRenderer {
       } else {
         this.removeTag(bgChange.beat, 'bg');
       }
+    });
+  }
+  
+  renderMarkers(now, beat) {
+    if (!this.markerGraphics) return;
+    this.markerGraphics.clear();
+    const markers = (this.chart && this.chart.markers) || this.markers || [];
+    if (!markers.length) return;
+    const left = this.calculateLeftOffset();
+    const size = 4;
+    const color = 0x3399ff;
+    markers.forEach(marker => {
+      const y = this.getYPos(now, beat, marker.beat);
+      if (y < -this.COLUMN_SIZE || y > game.height + this.COLUMN_SIZE) return;
+      const sx = Math.round(left - size - 3);
+      const sy = Math.round(y - size / 2);
+      this.markerGraphics.beginFill(color, 1);
+      this.markerGraphics.drawRect(sx, sy, size, size);
+      this.markerGraphics.endFill();
+      const cy = sy + Math.floor(size / 2);
+      const cx = sx + Math.floor(size / 2);
+      this.markerGraphics.lineStyle(1, color, 1);
+      this.markerGraphics.moveTo(cx, cy);
+      this.markerGraphics.lineTo(cx + size, cy);
     });
   }
   

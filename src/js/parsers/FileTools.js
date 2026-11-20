@@ -298,12 +298,40 @@ class FileTools {
    * @returns {Promise<Blob>} Resolves with the Blob data
    */
   static async fetchFileAsBlob(url) {
+    if (typeof url !== 'string') {
+      throw new Error(`Unsupported URL type: ${typeof url}`);
+    }
+
     // Si es una URL de objeto (blob:) o data URL, fetch directamente
     if (url.startsWith('blob:') || url.startsWith('data:')) {
       const response = await fetch(url);
       return await response.blob();
     }
-    
+
+    // Local file:// URLs or Windows paths in Node/NW.js: read from disk directly
+    const isFileUrl = url.startsWith('file:');
+    const isWindowsPath = /^[a-zA-Z]:[\\/]/.test(url);
+    if ((isFileUrl || isWindowsPath) && typeof require !== 'undefined') {
+      try {
+        const fs = require('fs');
+        const pathModule = require('path');
+        const urlModule = require('url');
+        let filePath = url;
+        if (isFileUrl) {
+          if (urlModule && typeof urlModule.fileURLToPath === 'function') {
+            filePath = urlModule.fileURLToPath(url);
+          } else {
+            filePath = decodeURIComponent(url.replace(/^file:\/\//i, ''));
+            if (/^\/[a-zA-Z]:\//.test(filePath)) filePath = filePath.slice(1);
+          }
+        }
+        const buffer = fs.readFileSync(filePath);
+        return new Blob([buffer]);
+      } catch (e) {
+        // fall through to other strategies
+      }
+    }
+
     // Si es una URL relativa o absoluta (http/https)
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
       const response = await fetch(url);
@@ -312,9 +340,17 @@ class FileTools {
       }
       return await response.blob();
     }
-    
+
     // Si es un path de archivo local (Cordova/NWJS)
     if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+      // NW.js fallback: try reading as a filesystem path
+      if (typeof require !== 'undefined') {
+        try {
+          const fs = require('fs');
+          const buffer = fs.readFileSync(url);
+          return new Blob([buffer]);
+        } catch (e) {}
+      }
       try {
         const fileSystem = new FileSystemTools();
         const fileEntry = await fileSystem.getFile(url);
@@ -325,7 +361,7 @@ class FileTools {
         throw new Error(`Failed to load local file: ${url}`);
       }
     }
-    
+
     throw new Error(`Unsupported URL type: ${url}`);
   }
 }

@@ -270,8 +270,21 @@ class NodeFileEntry {
           const done = () => { if (onDone) onDone(); };
           const fail = err => { if (onError) onError(err); else errorCallback(err); };
           try {
-            if (typeof Blob !== 'undefined' && data instanceof Blob) {
+            const isBlobLike = (typeof Blob !== 'undefined' && data instanceof Blob) ||
+              (data && typeof data === 'object' && Object.prototype.toString.call(data) === '[object Blob]');
+            if (isBlobLike) {
               // Convert Blob to Buffer; finish only once the data is on disk
+              if (typeof data.arrayBuffer === 'function') {
+                data.arrayBuffer().then(ab => {
+                  try {
+                    fs.writeFileSync(fullPath, Buffer.from(ab));
+                    done();
+                  } catch (error) {
+                    fail(error);
+                  }
+                }).catch(fail);
+                return;
+              }
               const reader = new FileReader();
               reader.onload = () => {
                 try {
@@ -283,6 +296,9 @@ class NodeFileEntry {
               };
               reader.onerror = () => fail(reader.error);
               reader.readAsArrayBuffer(data);
+            } else if (typeof Buffer !== 'undefined' && typeof Buffer.isBuffer === 'function' && Buffer.isBuffer(data)) {
+              fs.writeFileSync(fullPath, data);
+              done();
             } else if (typeof data === 'string') {
               fs.writeFileSync(fullPath, data);
               done();
