@@ -381,13 +381,18 @@ class StepGenerator {
 
   static _minGapFor(rating, style, maxStep, density) {
     const d = Math.max(density || 1, 0.25);
-    let gap = Math.max(maxStep, (1 / d) * 0.6);
-    if (rating <= 3) gap = Math.max(gap, 0.5);
-    else if (rating <= 5) gap = Math.max(gap, 0.25);
-    else if (rating <= 8) gap = Math.max(gap, 1 / 6);
-    if (style === 'Stamina' || style === 'Stream') gap = Math.max(maxStep, gap * 0.85);
-    if (style === 'Technical') gap = Math.max(maxStep, gap * 0.9);
-    gap = Math.min(gap, Math.max(maxStep, (1 / d) * 1.1));
+    let gap = Math.max(maxStep, (1 / d) * 0.65);
+    // keep low ratings comfortably sparse (rating 8 ~ Hard, not Challenge)
+    if (rating <= 2) gap = Math.max(gap, 1.0);       // mostly 4ths
+    else if (rating <= 4) gap = Math.max(gap, 0.5);  // 8ths
+    else if (rating <= 6) gap = Math.max(gap, 0.25); // 16ths occasional
+    else if (rating <= 8) gap = Math.max(gap, 0.25); // 8th/16th mix, still ~Hard
+    else if (rating <= 10) gap = Math.max(gap, 1 / 6);
+    else if (rating <= 12) gap = Math.max(gap, 0.125);
+    if (style === 'Stamina' || style === 'Stream') gap = Math.max(maxStep, gap * 0.9);
+    if (style === 'Technical') gap = Math.max(maxStep, gap * 0.92);
+    if (style === 'DDR' || style === 'Jumpstream') gap = Math.max(maxStep, gap * 1.05);
+    gap = Math.min(gap, Math.max(maxStep, (1 / d) * 1.2));
     return gap;
   }
 
@@ -416,12 +421,20 @@ class StepGenerator {
   }
 
   static _densityFor(rating, style) {
-    // approximate notes per beat
-    let base = 0.5 + rating * 0.25; // 1->0.75, 10->3, 20->5.5
-    if (style === 'Stamina' || style === 'Stream') base *= 1.15;
+    // approximate notes per beat (conservative: 8 ~ Hard, 13 ~ Challenge)
+    let base;
+    if (rating <= 2) base = 0.3 + rating * 0.1;       // ~0.4-0.5
+    else if (rating <= 4) base = 0.5 + (rating - 2) * 0.15; // ~0.65-0.8
+    else if (rating <= 6) base = 0.8 + (rating - 4) * 0.2;  // ~1.0-1.2
+    else if (rating <= 8) base = 1.2 + (rating - 6) * 0.2;  // ~1.4-1.6 (Hard)
+    else if (rating <= 10) base = 1.7 + (rating - 8) * 0.25; // ~1.95-2.2
+    else if (rating <= 13) base = 2.2 + (rating - 10) * 0.3; // ~2.5-3.1 (Challenge around 13)
+    else if (rating <= 16) base = 3.1 + (rating - 13) * 0.35; // ~3.45-4.15
+    else base = 4.15 + (rating - 16) * 0.35;                 // up to ~5.5
+    if (style === 'Stamina' || style === 'Stream') base *= 1.1;
     if (style === 'Technical') base *= 1.05;
-    if (style === 'DDR') base *= 0.9;
-    return Math.max(0.25, Math.min(8, base));
+    if (style === 'DDR' || style === 'Jumpstream') base *= 0.95;
+    return Math.max(0.25, Math.min(7, base));
   }
 
   static _subdivForRating(rating, allowed) {
@@ -470,39 +483,76 @@ class StepGenerator {
     let placed = 0;
     let lastCols = [];
     let prevBeat = -999;
+    let holdUntil = [-1, -1, -1, -1]; // per-column hold end (beat)
 
     const jumpProb = this._jumpProb(rating, style, allowJumps);
     const mineProb = allowMines ? this._mineProb(rating, style) : 0;
     const holdProb = allowHolds ? this._holdProb(rating, style) : 0;
+    const eps = 1e-9;
 
     for (let i = 0; i < candidates.length; i++) {
       const beat = candidates[i];
-      if (beat >= endBeat - 1e-9) continue;
+      if (beat >= endBeat - eps) continue;
 
-      // decide if mine instead of tap (sparse)
-      if (allowMines && Math.random() < mineProb && (beat - prevBeat) >= maxStep * 1.5) {
-        const col = this._pickColumn(lastCols, style, 1)[0];
-        placed += this._insertNote(editor, notesArr, { type: 'M', beat, column: col }, overwriteOnly) ? 1 : 0;
-        lastCols = [col];
-        prevBeat = beat;
-        continue;
+      // decide if mine instead of tap (style-dependent, sparse)
+      if (allowMines && Math.random() < mineProb) {
+        const sincePrev = beat - prevBeat;
+        const mineGapOk = (style === 'Technical') ? (sincePrev >= maxStep * 0.75) : (sincePrev >= maxStep * 1.5);
+        if (mineGapOk) {
+          const col = this._pickMineColumn(lastCols, style, holdUntil, beat);
+          if (col != null && beat >= holdUntil[col] - eps) {
+            if (this._insertNote(editor, notesArr, { type: 'M', beat, column: col }, overwriteOnly)) {
+              placed++;
+              // in Technical mines act as obstacles but flow may continue; in others treat as replacement
+              if (style !== 'Technical' || Math.random() < 0.6) {
+                lastCols = [col];
+                prevBeat = beat;
+                continue;
+              }
+            }
+          }
+        }
       }
 
-      const doJump = allowJumps && Math.random() < jumpProb;
+      let doJump = allowJumps && Math.random() < jumpProb;
+      // style shaping: avoid jumps too often in pure stream/stamina, allow more in jumpstream/DDR
+      if (doJump && (style === 'Stream' || style === 'Stamina') && Math.random() < 0.5) doJump = false;
       const count = doJump ? 2 : 1;
-      const cols = this._pickColumn(lastCols, style, count);
+      let cols = this._pickColumn(lastCols, style, count, holdUntil, beat);
 
-      // maybe hold
+      // filter out columns currently held
+      cols = cols.filter(c => beat >= holdUntil[c] - eps);
+      if (cols.length === 0) {
+        cols = this._pickColumn(lastCols, style, 1, holdUntil, beat).filter(c => beat >= holdUntil[c] - eps);
+      }
+      if (cols.length === 0) continue;
+
+      // try hold on first column (style-aware)
       let didHold = false;
-      if (allowHolds && Math.random() < holdProb && i + 1 < candidates.length) {
+      if (allowHolds && !doJump && Math.random() < holdProb) {
         const col = cols[0];
-        const next = candidates[i + 1];
-        const dur = next - beat;
-        if (dur >= maxStep * 2 - 1e-9 && dur <= 4.0) {
-          didHold = this._insertFreeze(editor, notesArr, beat, dur, col, rating >= 12 && style === 'Technical' ? '4' : '2', overwriteOnly);
-          if (didHold) {
+        const dur = this._pickHoldDuration(beat, endBeat, maxStep, style, rating);
+        if (dur > 0) {
+          const rollProb = (style === 'Technical') ? (rating >= 11 ? 0.4 : (rating >= 8 ? 0.2 : 0)) : 0;
+          const type = (Math.random() < rollProb) ? '4' : '2';
+          // avoid starting hold if column busy just before end (basic) and if end collides badly is handled in insert
+          if (this._insertFreeze(editor, notesArr, beat, dur, col, type, overwriteOnly)) {
             placed++;
-            lastCols = [col];
+            holdUntil[col] = Math.max(holdUntil[col], beat + dur);
+            // occasionally add a tap on another column at hold start (Technical/DDR higher levels)
+            let extraPlaced = false;
+            if (allowJumps && rating >= 9 && (style === 'Technical' || style === 'DDR' || style === 'Jumpstream') && Math.random() < 0.18) {
+              const others = [0,1,2,3].filter(c => c !== col && beat >= holdUntil[c] - eps);
+              if (others.length) {
+                const oc = others[Math.floor(Math.random() * others.length)];
+                if (this._insertNote(editor, notesArr, { type: '1', beat, column: oc }, overwriteOnly)) {
+                  placed++;
+                  lastCols = [col, oc];
+                  extraPlaced = true;
+                }
+              }
+            }
+            if (!extraPlaced) lastCols = [col];
             prevBeat = beat;
             continue;
           }
@@ -510,6 +560,7 @@ class StepGenerator {
       }
 
       for (let c = 0; c < cols.length; c++) {
+        if (beat < holdUntil[cols[c]] - eps) continue;
         const ok = this._insertNote(editor, notesArr, { type: '1', beat, column: cols[c] }, overwriteOnly);
         if (ok) placed++;
       }
@@ -521,46 +572,143 @@ class StepGenerator {
 
   static _jumpProb(rating, style, allowJumps) {
     if (!allowJumps) return 0;
-    let p = Math.max(0, (rating - 3) * 0.03);
-    if (style === 'Jumpstream' || style === 'DDR') p += 0.12;
-    if (style === 'Stream' || style === 'Stamina') p *= 0.5;
+    let p = Math.max(0, (rating - 5) * 0.02);
+    if (style === 'Jumpstream') p += 0.14;
+    if (style === 'DDR') p += 0.09;
+    if (style === 'Stream' || style === 'Stamina') p *= 0.4;
     if (style === 'Technical') p += 0.05;
-    return Math.max(0, Math.min(0.45, p));
+    // keep 8 (Hard) from feeling like Challenge
+    if (rating <= 8) p *= 0.6;
+    return Math.max(0, Math.min(0.35, p));
   }
   static _mineProb(rating, style) {
-    let p = Math.max(0, (rating - 6) * 0.01);
-    if (style === 'Technical') p += 0.08;
-    if (style === 'DDR') p += 0.03;
-    return Math.max(0, Math.min(0.18, p));
-  }
-  static _holdProb(rating, style) {
-    let p = Math.max(0, (rating - 4) * 0.015);
-    if (style === 'Technical') p += 0.08;
-    if (style === 'Stamina') p *= 0.5;
-    if (style === 'Stream') p *= 0.6;
+    let p = 0;
+    if (style === 'Technical') {
+      if (rating >= 6) p = 0.03 + (rating - 6) * 0.012; // noticeable in tech
+      if (rating >= 11) p += 0.03;
+    } else if (style === 'DDR') {
+      if (rating >= 7) p = 0.01 + (rating - 7) * 0.006;
+    } else if (style === 'Jumpstream') {
+      if (rating >= 8) p = 0.008 + (rating - 8) * 0.005;
+    } else if (style === 'Stream') {
+      if (rating >= 10) p = 0.004 + (rating - 10) * 0.003;
+    } else if (style === 'Stamina') {
+      if (rating >= 11) p = 0.003 + (rating - 11) * 0.002;
+    }
     return Math.max(0, Math.min(0.2, p));
   }
+  static _holdProb(rating, style) {
+    let p = 0;
+    if (style === 'Stream') {
+      if (rating >= 4) p = 0.02 + (rating - 4) * 0.006;
+    } else if (style === 'Stamina') {
+      if (rating >= 5) p = 0.015 + (rating - 5) * 0.005;
+    } else if (style === 'Jumpstream') {
+      if (rating >= 3) p = 0.04 + (rating - 3) * 0.01;
+    } else if (style === 'DDR') {
+      if (rating >= 2) p = 0.05 + (rating - 2) * 0.012;
+    } else if (style === 'Technical') {
+      if (rating >= 3) p = 0.06 + (rating - 3) * 0.014;
+    }
+    // keep overall reasonable
+    if (rating <= 3) p *= 0.7;
+    return Math.max(0, Math.min(0.28, p));
+  }
 
-  static _pickColumn(lastCols, style, count) {
-    const all = [0,1,2,3];
+  static _shouldPlaceMine(beat, prevBeat, mineProb, style, rating) {
+    // basic gating; style-specific spacing handled by caller
+    if (Math.random() >= mineProb) return false;
+    if (style === 'Stream' || style === 'Stamina') {
+      // very rare, avoid cluttering runs
+      return Math.random() < 0.5;
+    }
+    return true;
+  }
+
+  static _pickMineColumn(lastCols, style, holdUntil, beat) {
+    const eps = 1e-9;
+    const all = [0,1,2,3].filter(c => beat >= (holdUntil ? holdUntil[c] : -1) - eps);
+    if (!all.length) return null;
+    let pool = all.slice();
+    if (style === 'Technical') {
+      // tech mines often feel like obstacles off the immediate flow
+      if (lastCols && lastCols.length && Math.random() < 0.7) {
+        const off = all.filter(c => lastCols.indexOf(c) === -1);
+        if (off.length) pool = off;
+      }
+    } else if (style === 'DDR' || style === 'Jumpstream') {
+      if (lastCols && lastCols.length && Math.random() < 0.4) {
+        const off = all.filter(c => lastCols.indexOf(c) === -1);
+        if (off.length) pool = off;
+      }
+    } else {
+      // stream/stamina: avoid disrupting same lane repeatedly but keep simple
+      if (lastCols && lastCols.length && Math.random() < 0.5) {
+        const off = all.filter(c => lastCols.indexOf(c) === -1);
+        if (off.length) pool = off;
+      }
+    }
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  static _pickHoldDuration(beat, endBeat, maxStep, style, rating) {
+    let options;
+    if (style === 'Stream' || style === 'Stamina') {
+      options = [1.0, 1.5, 2.0, 3.0, 4.0];
+    } else if (style === 'DDR') {
+      options = [0.5, 1.0, 1.5, 2.0, 3.0, 4.0];
+    } else if (style === 'Jumpstream') {
+      options = [0.5, 1.0, 1.5, 2.0];
+      if (rating >= 10) options.push(3.0);
+    } else if (style === 'Technical') {
+      options = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0];
+      if (rating >= 12) options.push(0.125, 3.0);
+    } else {
+      options = [0.5, 1.0, 2.0];
+    }
+    // filter by rating a bit
+    if (rating <= 4) options = options.filter(d => d >= 1.0);
+    else if (rating <= 6) options = options.filter(d => d >= 0.5);
+
+    const eps = 1e-9;
+    for (let tries = 0; tries < 8; tries++) {
+      let d = options[Math.floor(Math.random() * options.length)];
+      if (!isFinite(d)) continue;
+      // snap to maxStep grid
+      d = Math.round(d / maxStep) * maxStep;
+      if (d < maxStep * 2 - eps) continue;
+      if (beat + d > endBeat - eps) continue;
+      if (d > 4.0 + eps) continue;
+      return d;
+    }
+    return 0;
+  }
+
+  static _pickColumn(lastCols, style, count, holdUntil, beat) {
+    const eps = 1e-9;
+    const allBase = [0,1,2,3];
+    const available = holdUntil ? allBase.filter(c => beat >= holdUntil[c] - eps) : allBase.slice();
+    const all = available.length ? available : allBase.slice();
     let pool = all.slice();
     // avoid repeating same single column too often
-    if (count === 1 && lastCols.length === 1) {
+    if (count === 1 && lastCols && lastCols.length === 1) {
       if (Math.random() < 0.75) pool = all.filter(c => c !== lastCols[0]);
       if (!pool.length) pool = all.slice();
     }
     // simple flow: prefer movement
     if (count === 2) {
-      const pairs = [[0,1],[1,2],[2,3],[0,2],[1,3],[0,3]];
-      // avoid same pair
+      const pairsAll = [[0,1],[1,2],[2,3],[0,2],[1,3],[0,3]];
+      let pairs = pairsAll.filter(p => all.indexOf(p[0]) !== -1 && all.indexOf(p[1]) !== -1);
+      if (!pairs.length) pairs = pairsAll.slice();
       let cand = pairs.slice();
-      if (lastCols.length === 2) {
+      if (lastCols && lastCols.length === 2) {
         const key = lastCols.slice().sort().join(',');
-        cand = pairs.filter(p => p.join(',') !== key);
-        if (!cand.length) cand = pairs.slice();
+        const filtered = pairs.filter(p => p.join(',') !== key);
+        if (filtered.length) cand = filtered;
       }
       return cand[Math.floor(Math.random() * cand.length)].slice();
     }
+    if (!pool.length) pool = allBase.slice();
     return [pool[Math.floor(Math.random() * pool.length)]];
   }
 
