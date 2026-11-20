@@ -23,3 +23,4 @@
 ## Commit rule (MUST survive compaction)
 
 - Do not commit changes unless user asks.
+- Commits made entirely with help of AI are marked with an asterisk. For example: "Minor fixes *"
