@@ -3752,9 +3752,15 @@ class Editor {
     }
     if (cfg.lengthBeats < 1) cfg.lengthBeats = 1;
 
+    const bg = game.add.graphics(0, 0);
+    bg.beginFill(0x000000, 0.65);
+    bg.drawRect(0, 0, game.width, game.height);
+    bg.endFill();
+
     const wm = new WindowManager();
     const w = wm.createWindow(2, 1, 26, 15, "1");
     w.fontTint = 0x76fcde;
+    if (w && w.bringToTop) w.bringToTop();
 
     w.addRangeItem(__("(Start Beat|Beat inicial)"), 0, Math.max(0, totalBeats), snapStep, cfg.startBeat, "", v => { cfg.startBeat = v; });
     w.addRangeItem(__("(Length (beats)|Longitud (beats))"), 1, Math.max(1, Math.ceil(totalBeats)), 1, cfg.lengthBeats, "", v => { cfg.lengthBeats = v; });
@@ -3773,6 +3779,8 @@ class Editor {
       closed = true;
       try { wm.closeAll(); } catch (e) {}
       try { wm.clearAll(true); } catch (e) {}
+      if (this.stepGenBg) { try { this.stepGenBg.destroy(); } catch (e) {} }
+      this.stepGenBg = null;
       this.stepGenWM = null;
       this.stepGenWindow = null;
       this.menuVisible = false;
@@ -3802,9 +3810,14 @@ class Editor {
     });
 
     w.addItem("< (Back|Volver)", "", () => close(), true);
-    w.onCancel.add(() => close());
+    w.onCancel.add(() => {
+      this.ignoreBInput = true;
+      this.holdBStartTime = null;
+      close();
+    });
 
     wm.focus(w);
+    this.stepGenBg = bg;
     this.stepGenWM = wm;
     this.stepGenWindow = w;
   }
