@@ -56,11 +56,15 @@ function __processParens(text, lang) {
   // Fast path: if no parentheses, return as-is
   if (text.indexOf('(') === -1) return text;
   
-  return text.replace(__parenRegex, (match, inner) => {
+  const raw = text.replace(__parenRegex, (match, inner) => {
     const parts = inner.split('|');
     if (parts.length < 2) return match;
     return parts[lang] || parts[0];
   });
+  
+  const cleaned = raw.replace('))', ')');
+  
+  return cleaned;
 }
 
 /**

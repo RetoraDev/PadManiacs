@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.3.0
- * Build: 11/20/2026, 1:11:26 AM
- * Platform: Web
+ * Version: v1.3.0 dev
+ * Build: 11/20/2026, 8:28:18 AM
+ * Platform: Development
  * Debug: false
  * Minified: false
  */
@@ -69,11 +69,15 @@ function __processParens(text, lang) {
   // Fast path: if no parentheses, return as-is
   if (text.indexOf('(') === -1) return text;
   
-  return text.replace(__parenRegex, (match, inner) => {
+  const raw = text.replace(__parenRegex, (match, inner) => {
     const parts = inner.split('|');
     if (parts.length < 2) return match;
     return parts[lang] || parts[0];
   });
+  
+  const cleaned = raw.replace('))', ')');
+  
+  return cleaned;
 }
 
 /**
@@ -125,7 +129,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.3.0";
+const VERSION = "v1.3.0 dev";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -870,7 +874,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -12864,13 +12868,15 @@ class TextInput extends Phaser.Sprite {
  * @features
  * Clamped numeric range with min and max enforcement
  * Decimal place support with fixed formatting
- * Increment and decrement on gamepad up/down
+ * Cursor can be moved left/right across digits (skipping sign and separator)
+ * Up/down adjusts the digit under cursor by its place value, respecting step
  * Dispatches the numeric value on confirm or cancel
  * @description
  * NumberInput extends TextInput to edit numeric values instead of free text.
  * The input is clamped to a min/max range, honors a decimal-place count, and
- * restricts the permitted characters accordingly. Gamepad up/down increments
- * or decrements the value, and confirm or cancel dispatch the numeric result.
+ * restricts the permitted characters accordingly. Cursor movement is limited to
+ * digits, and up/down changes the selected digit's place value while respecting
+ * the configured step granularity.
  * @example
  * // Modding usage example
  * const input = new NumberInput({
@@ -12886,6 +12892,7 @@ class NumberInput extends TextInput {
       min: 0,
       max: Infinity,
       decimals: 0,
+      step: null,
       x: 120,
       y: 35,
       width: 10,
@@ -12894,11 +12901,12 @@ class NumberInput extends TextInput {
       onCancel: null,
       ...config
     };
-    
+
     const initialValue = typeof config.text === 'number' ? config.text : parseFloat(config.text) || 0;
+    const baseStep = (typeof config.step === 'number' && config.step > 0) ? config.step : Math.pow(10, -config.decimals);
     const clampedValue = Math.min(config.max, Math.max(config.min, initialValue));
-    const displayText = config.decimals > 0 ? clampedValue.toFixed(config.decimals) : clampedValue.toString();
-    
+    const displayText = config.decimals > 0 ? clampedValue.toFixed(config.decimals) : Math.round(clampedValue).toString();
+
     super({
       text: displayText,
       x: config.x,
@@ -12912,15 +12920,48 @@ class NumberInput extends TextInput {
       onConfirm: config.onConfirm,
       onCancel: config.onCancel
     });
-    
+
     /** @type {number} Minimum allowed value */
     this.min = config.min;
     /** @type {number} Maximum allowed value */
     this.max = config.max;
     /** @type {number} Number of decimal places to display */
     this.decimals = config.decimals;
+    /** @type {number} Minimum granularity for value changes */
+    this.step = baseStep;
+    this.stepPrecision = this._countDecimals(baseStep, config.decimals);
+
+    this.currentIndex = this.getLastDigitIndex();
+    this.updateCursor();
   }
-  
+
+  _countDecimals(step, decimals) {
+    let d = decimals || 0;
+    const s = String(step);
+    if (s.indexOf('e-') !== -1) {
+      const parts = s.split('e-');
+      d = Math.max(d, parseInt(parts[1], 10) || 0);
+    } else if (s.indexOf('.') !== -1) {
+      d = Math.max(d, s.split('.')[1].length);
+    }
+    return d;
+  }
+
+  formatValue(value) {
+    if (this.decimals > 0) return value.toFixed(this.decimals);
+    return Math.round(value).toString();
+  }
+
+  snapToStep(value) {
+    if (!isFinite(value)) return this.min;
+    const step = this.step || 1;
+    let snapped = Math.round(value / step) * step;
+    const prec = Math.max(this.decimals || 0, this.stepPrecision || 0, 0);
+    snapped = parseFloat(snapped.toFixed(prec + 4));
+    if (Object.is(snapped, -0)) snapped = 0;
+    return snapped;
+  }
+
   /**
    * Parses the current text into a number clamped to the configured range.
    * @returns {number} The clamped numeric value
@@ -12928,9 +12969,78 @@ class NumberInput extends TextInput {
   getNumericValue() {
     let value = parseFloat(this.text);
     if (isNaN(value)) value = this.min;
+    value = this.snapToStep(value);
     return Math.min(this.max, Math.max(this.min, value));
   }
-  
+
+  getFirstDigitIndex() {
+    for (let i = 0; i < this.text.length; i++) {
+      if (/[0-9]/.test(this.text[i])) return i;
+    }
+    return 0;
+  }
+
+  getLastDigitIndex() {
+    for (let i = this.text.length - 1; i >= 0; i--) {
+      if (/[0-9]/.test(this.text[i])) return i;
+    }
+    return 0;
+  }
+
+  clampCursorToDigit() {
+    if (this.text.length === 0) { this.currentIndex = 0; return; }
+    if (this.currentIndex >= 0 && this.currentIndex < this.text.length && /[0-9]/.test(this.text[this.currentIndex])) return;
+    let left = Math.min(this.currentIndex, this.text.length - 1);
+    let right = Math.max(this.currentIndex, 0);
+    while (left >= 0 || right < this.text.length) {
+      if (left >= 0 && /[0-9]/.test(this.text[left])) { this.currentIndex = left; return; }
+      if (right < this.text.length && /[0-9]/.test(this.text[right])) { this.currentIndex = right; return; }
+      left--; right++;
+    }
+    this.currentIndex = this.getLastDigitIndex();
+  }
+
+  getExponentAt(index, text) {
+    const t = text || this.text;
+    if (index == null || index < 0 || index >= t.length || !/[0-9]/.test(t[index])) return null;
+    const dot = t.indexOf('.');
+    if (dot === -1) {
+      return (t.length - 1) - index;
+    }
+    if (index < dot) return (dot - 1) - index;
+    if (index > dot) return -(index - dot);
+    return null;
+  }
+
+  getIndexForExponent(exp, text) {
+    const t = text || this.text;
+    if (exp == null) return null;
+    const dot = t.indexOf('.');
+    let idx;
+    if (dot === -1) {
+      idx = (t.length - 1) - exp;
+    } else {
+      if (exp >= 0) idx = (dot - 1) - exp;
+      else idx = dot + (-exp);
+    }
+    if (idx >= 0 && idx < t.length && /[0-9]/.test(t[idx])) return idx;
+    return null;
+  }
+
+  getNearestIndexForExponent(exp, text) {
+    const t = text || this.text;
+    let best = null;
+    let bestDiff = Infinity;
+    for (let i = 0; i < t.length; i++) {
+      if (!/[0-9]/.test(t[i])) continue;
+      const e = this.getExponentAt(i, t);
+      if (e == null) continue;
+      const d = Math.abs(e - exp);
+      if (d < bestDiff) { bestDiff = d; best = i; }
+    }
+    return best != null ? best : this.getLastDigitIndex();
+  }
+
   /**
    * Validates characters for numeric input, guarding minus and decimal signs.
    * @param {string} char - The single character to validate
@@ -12940,119 +13050,166 @@ class NumberInput extends TextInput {
     if (char === '-') {
       return this.text.length === 0;
     }
-    
+
     if (char === '.') {
       return this.decimals > 0 && !this.text.includes('.');
     }
-    
+
     return super.validateCharInput(char);
   }
-  
+
   /**
-   * Handles input, mapping up/down to increment/decrement actions.
+   * Moves cursor left/right across digits, skipping sign and separator.
+   * @param {string} dir - 'left' or 'right'
+   */
+  moveCursor(dir) {
+    if (dir === 'left' || dir === 'right') {
+      const delta = dir === 'left' ? -1 : 1;
+      let i = this.currentIndex + delta;
+      while (i >= 0 && i < this.text.length) {
+        if (/[0-9]/.test(this.text[i])) {
+          this.currentIndex = i;
+          this.updateCursor();
+          return;
+        }
+        i += delta;
+      }
+      return;
+    }
+    super.moveCursor(dir);
+    this.clampCursorToDigit();
+    this.updateCursor();
+  }
+
+  adjustAtCursor(direction) {
+    this.clampCursorToDigit();
+    const idx = this.currentIndex;
+    if (idx < 0 || idx >= this.text.length || !/[0-9]/.test(this.text[idx])) return;
+    const exp = this.getExponentAt(idx, this.text);
+    if (exp == null) return;
+    let delta = Math.pow(10, exp);
+    if (!isFinite(delta) || delta <= 0) delta = this.step;
+    if (delta < this.step) delta = this.step;
+    delta = this.snapToStep(delta);
+    if (delta <= 0) delta = this.step;
+    const val = this.getNumericValue();
+    let next = val + direction * delta;
+    next = this.snapToStep(next);
+    next = Math.min(this.max, Math.max(this.min, next));
+    this.setValue(next, idx);
+  }
+
+  /**
+   * Handles input: left/right move cursor, up/down adjust by digit place value.
    * @param {object} key - Key event with an optional action string
    * @param {string} input - The character to insert (ignored for actions)
    */
   receiveInput(key, input) {
-    const oldValue = this.getNumericValue();
-    
     if (key.action) {
       switch (key.action) {
         case 'up':
         case 'add':
-          this.increment();
-          break;
+          this.adjustAtCursor(1);
+          return;
         case 'down':
         case 'subtract':
-          this.decrement();
-          break;
+          this.adjustAtCursor(-1);
+          return;
         case 'left':
-          //this.moveCursor('left');
-          break;
+          this.moveCursor('left');
+          return;
         case 'right':
-          //this.moveCursor('right');
-          break;
+          this.moveCursor('right');
+          return;
         case 'enter':
           this.confirm();
-          break;
+          return;
         case 'erase':
           this.erase();
-          break;
+          this.clampAndUpdateDisplay(true);
+          return;
         case 'clear':
           this.clear();
-          break;
+          return;
       }
       return;
     }
-    
-    this.insertCharacter(input);
-    
-    const newValue = this.getNumericValue();
 
-    if (newValue !== oldValue) {
-      this.clampAndUpdateDisplay();
-    }
+    this.insertCharacter(input);
+    this.clampAndUpdateDisplay(true);
   }
-  
+
   /**
-   * Increases the value by one step of the configured decimal precision.
+   * Increases the value at the cursor's place value.
    */
   increment() {
-    let step = Math.pow(10, -this.decimals);
-    let newValue = this.getNumericValue() + step;
-    newValue = Math.min(this.max, newValue);
-    this.setValue(newValue);
+    this.adjustAtCursor(1);
   }
-  
+
   /**
-   * Decreases the value by one step of the configured decimal precision.
+   * Decreases the value at the cursor's place value.
    */
   decrement() {
-    let step = Math.pow(10, -this.decimals);
-    let newValue = this.getNumericValue() - step;
-    newValue = Math.max(this.min, newValue);
-    this.setValue(newValue);
+    this.adjustAtCursor(-1);
   }
-  
+
   /**
-   * Sets and displays a value, clamped to the configured range.
+   * Sets and displays a value, clamped to range and snapped to step.
    * @param {number} value - The value to set
+   * @param {?number} anchorIndex - Digit index whose place value to preserve
    */
-  setValue(value) {
-    value = Math.min(this.max, Math.max(this.min, value));
-    let displayValue;
-    if (this.decimals > 0) {
-      displayValue = value.toFixed(this.decimals);
+  setValue(value, anchorIndex = null) {
+    value = this.snapToStep(Math.min(this.max, Math.max(this.min, value)));
+    let exp = null;
+    if (anchorIndex != null) exp = this.getExponentAt(anchorIndex, this.text);
+    const oldIndex = this.currentIndex;
+    this.text = this.formatValue(value);
+    if (exp != null) {
+      let ni = this.getIndexForExponent(exp, this.text);
+      if (ni == null) ni = this.getNearestIndexForExponent(exp, this.text);
+      this.currentIndex = ni != null ? ni : this.getLastDigitIndex();
+    } else if (anchorIndex == null) {
+      this.currentIndex = this.getLastDigitIndex();
     } else {
-      displayValue = Math.floor(value).toString();
+      this.currentIndex = Math.min(oldIndex, this.text.length - 1);
     }
-    /** @type {string} Current value rendered as text */
-    this.text = displayValue;
-    /** @type {number} Cursor position within the text */
-    this.currentIndex = this.text.length;
+    this.clampCursorToDigit();
     this.updateCursor();
   }
-  
+
   /**
    * Reclamps the current text's value and refreshes its formatted display.
    */
-  clampAndUpdateDisplay() {
+  clampAndUpdateDisplay(preserveCursor = false) {
+    const exp = preserveCursor ? this.getExponentAt(this.currentIndex, this.text) : null;
+    const oldIndex = this.currentIndex;
     let value = this.getNumericValue();
-    let newDisplay;
-    
-    if (this.decimals > 0) {
-      newDisplay = value.toFixed(this.decimals);
-    } else {
-      newDisplay = Math.floor(value).toString();
-    }
-    
+    value = this.snapToStep(Math.min(this.max, Math.max(this.min, value)));
+    const newDisplay = this.formatValue(value);
     if (this.text !== newDisplay) {
       this.text = newDisplay;
-      this.currentIndex = this.text.length;
-      this.updateCursor();
+      if (exp != null) {
+        let ni = this.getIndexForExponent(exp, this.text);
+        if (ni == null) ni = this.getNearestIndexForExponent(exp, this.text);
+        this.currentIndex = ni != null ? ni : this.getLastDigitIndex();
+      } else if (preserveCursor) {
+        this.currentIndex = Math.min(oldIndex, this.text.length - 1);
+      } else {
+        this.currentIndex = this.getLastDigitIndex();
+      }
+    } else if (preserveCursor) {
+      this.currentIndex = oldIndex;
+    } else {
+      this.currentIndex = this.getLastDigitIndex();
     }
+    this.clampCursorToDigit();
+    this.updateCursor();
   }
-  
+
+  clear() {
+    this.setValue(this.min, null);
+  }
+
   /**
    * Dispatches the clamped numeric value on onConfirm and destroys the input.
    */
@@ -13061,7 +13218,7 @@ class NumberInput extends TextInput {
     this.onConfirm.dispatch(numericValue);
     this.destroy();
   }
-  
+
   /**
    * Dispatches the clamped numeric value on onCancel and destroys the input.
    */
@@ -15226,8 +15383,21 @@ class NodeFileEntry {
           const done = () => { if (onDone) onDone(); };
           const fail = err => { if (onError) onError(err); else errorCallback(err); };
           try {
-            if (typeof Blob !== 'undefined' && data instanceof Blob) {
+            const isBlobLike = (typeof Blob !== 'undefined' && data instanceof Blob) ||
+              (data && typeof data === 'object' && Object.prototype.toString.call(data) === '[object Blob]');
+            if (isBlobLike) {
               // Convert Blob to Buffer; finish only once the data is on disk
+              if (typeof data.arrayBuffer === 'function') {
+                data.arrayBuffer().then(ab => {
+                  try {
+                    fs.writeFileSync(fullPath, Buffer.from(ab));
+                    done();
+                  } catch (error) {
+                    fail(error);
+                  }
+                }).catch(fail);
+                return;
+              }
               const reader = new FileReader();
               reader.onload = () => {
                 try {
@@ -15239,6 +15409,9 @@ class NodeFileEntry {
               };
               reader.onerror = () => fail(reader.error);
               reader.readAsArrayBuffer(data);
+            } else if (typeof Buffer !== 'undefined' && typeof Buffer.isBuffer === 'function' && Buffer.isBuffer(data)) {
+              fs.writeFileSync(fullPath, data);
+              done();
             } else if (typeof data === 'string') {
               fs.writeFileSync(fullPath, data);
               done();
@@ -17724,6 +17897,786 @@ class BpmDetector {
 }
 
 /**
+ * @class StepGenerator
+ * @category Utility Classes
+ * @summary Generates step patterns for a chart section from audio onsets
+ * @constructor
+ * @features
+ * Analyzes audio onset strengths and maps them to beats
+ * Generates taps/holds/rolls/mines with style and rating-driven density
+ * Supports editor-snap or auto-detected subdivisions (up to max editor resolution)
+ * Respects existing notes via remove or overwrite-collisions conflict modes
+ * @description
+ * Utility for automatic step generation in the editor. Uses onset detection to
+ * find rhythmically relevant grid positions within a beat range and places
+ * notes according to style, difficulty rating, and allowed note types.
+ */
+class StepGenerator {
+  constructor() {}
+
+  /**
+   * Computes total beat span for the song (audio end or last chart element).
+   * @param {Object} editor - Editor instance
+   * @returns {number}
+   */
+  static getSongTotalBeats(editor) {
+    let maxBeat = 0;
+    try {
+      const chart = editor.song && editor.song.chart ? editor.song.chart : null;
+      if (chart) {
+        if (Array.isArray(chart.bpmChanges)) {
+          chart.bpmChanges.forEach(b => { if (b && isFinite(b.beat)) maxBeat = Math.max(maxBeat, b.beat); });
+        }
+        if (Array.isArray(chart.stops)) {
+          chart.stops.forEach(s => { if (s && isFinite(s.beat)) maxBeat = Math.max(maxBeat, s.beat + (s.len || 0)); });
+        }
+        if (Array.isArray(chart.backgrounds)) {
+          chart.backgrounds.forEach(b => { if (b && isFinite(b.beat)) maxBeat = Math.max(maxBeat, b.beat); });
+        }
+        if (chart.difficulties && chart.notes) {
+          chart.difficulties.forEach(diff => {
+            const key = diff.type + diff.rating;
+            const notes = chart.notes[key] || [];
+            notes.forEach(n => {
+              if (!n) return;
+              if (isFinite(n.beat)) maxBeat = Math.max(maxBeat, n.beat);
+              if (isFinite(n.beatEnd)) maxBeat = Math.max(maxBeat, n.beatEnd);
+            });
+          });
+        }
+      }
+      if (editor.chartRenderer && typeof editor.getEditorAudioDuration === 'function') {
+        const dur = editor.getEditorAudioDuration();
+        if (isFinite(dur) && dur > 0) {
+          const offset = (chart && chart.offset) || 0;
+          const user = typeof editor.getAudioOffset === 'function' ? editor.getAudioOffset() : 0;
+          const sec = dur + offset - user;
+          const b = editor.chartRenderer.secToBeat(sec);
+          if (isFinite(b)) maxBeat = Math.max(maxBeat, b);
+        }
+      }
+    } catch (e) {}
+    return Math.max(1, Math.ceil(maxBeat + 1));
+  }
+
+  /**
+   * Generates steps into the current difficulty.
+   * @param {Object} editor - Editor instance
+   * @param {Object} cfg - Configuration
+   * @returns {{placed:number, removed:number}}
+   */
+  static generate(editor, cfg) {
+    const chart = editor.song && editor.song.chart ? editor.song.chart : null;
+    if (!chart || !editor.chartRenderer) return { placed: 0, removed: 0 };
+    const diff = chart.difficulties[editor.currentDifficultyIndex];
+    if (!diff) return { placed: 0, removed: 0 };
+    const key = diff.type + diff.rating;
+    if (!chart.notes[key]) chart.notes[key] = [];
+    const notesArr = chart.notes[key];
+
+    const startBeat = Math.max(0, Number(cfg.startBeat) || 0);
+    const lengthBeats = Math.max(0, Number(cfg.lengthBeats) || 0);
+    const endBeat = startBeat + lengthBeats;
+    if (!(lengthBeats > 0) || endBeat <= startBeat) return { placed: 0, removed: 0 };
+
+    const snapDiv = Math.max(1, Number(editor.snapDivision) || 4);
+    const currentStep = 4 / snapDiv;
+    const finestDiv = (editor.divisions && editor.divisions.length) ? Math.max.apply(null, editor.divisions) : 192;
+    const finestStep = 4 / finestDiv;
+    const rating = Math.max(1, Math.min(20, Math.round(Number(cfg.rating) || 5)));
+    const style = cfg.style || 'Stream';
+    const autoSnap = !!cfg.autoSnap;
+    const maxStep = autoSnap ? finestStep : currentStep; // finest grid for auto onset precision
+    const removeExisting = !!cfg.removeExisting;
+    const allowHolds = !!cfg.allowHolds;
+    const allowMines = !!cfg.allowMines;
+    const allowJumps = cfg.allowJumps !== false;
+
+    // Remove/collect existing in range
+    let removed = 0;
+    if (removeExisting) {
+      for (let i = notesArr.length - 1; i >= 0; i--) {
+        const n = notesArr[i];
+        if (!n) continue;
+        const nb = Number(n.beat);
+        const nEnd = (n.type === '2' || n.type === '4') && isFinite(n.beatEnd) ? n.beatEnd : nb;
+        const overlaps = (nb >= startBeat - 1e-9 && nb < endBeat - 1e-9) ||
+          (nEnd > startBeat + 1e-9 && nEnd <= endBeat + 1e-9) ||
+          (nb <= startBeat + 1e-9 && nEnd >= endBeat - 1e-9);
+        if (overlaps) {
+          try { editor.chartRenderer.killNote(n); } catch (e) {}
+          notesArr.splice(i, 1);
+          removed++;
+        }
+      }
+      // also clear selection entries that were removed
+      if (Array.isArray(editor.selectedNotes)) {
+        editor.selectedNotes = editor.selectedNotes.filter(n => notesArr.indexOf(n) !== -1);
+      }
+    }
+
+    const onsetData = this._buildOnsetEnergy(editor, startBeat, endBeat, maxStep);
+    const candidates = this._selectCandidates(editor, startBeat, endBeat, maxStep, autoSnap, rating, style, onsetData);
+    const placed = this._placeNotes(editor, notesArr, candidates, {
+      rating, style, allowHolds, allowMines, allowJumps, maxStep, endBeat, overwriteOnly: !removeExisting
+    });
+
+    try { editor.sortNotes(); } catch (e) { notesArr.sort((a,b)=>a.beat-b.beat || a.column-b.column); }
+    try { editor.refreshMetronome(); } catch (e) {}
+    try { editor.rearrangeNotes(); } catch (e) {}
+    try { editor.updateInfoText(); } catch (e) {}
+    try { editor.chartRenderer.load(editor.song, editor.currentDifficultyIndex); } catch (e) {}
+
+    return { placed, removed };
+  }
+
+  static _buildOnsetEnergy(editor, startBeat, endBeat, maxStep) {
+    const map = new Map();
+    const onsetBeats = [];
+    const buf = editor.audioBuffer;
+    if (!buf) return { map, onsetBeats };
+    try {
+      const sr = buf.sampleRate;
+      const samples = this._mono(buf);
+      const onsets = this._findOnsets(samples, sr);
+      if (!onsets.length) return { map, onsetBeats };
+      for (let i = 0; i < onsets.length; i++) {
+        const sec = onsets[i].pos / sr;
+        const beat = editor.chartRenderer.secToBeat(sec);
+        if (!isFinite(beat) || beat < startBeat - maxStep || beat >= endBeat + maxStep) continue;
+        const strength = onsets[i].strength || 1;
+        onsetBeats.push({ beat, strength });
+        // quantize to nearest maxStep grid for lookup
+        const q = Math.round(beat / maxStep) * maxStep;
+        if (q >= startBeat - 1e-9 && q < endBeat - 1e-9) {
+          const key = this._key(q);
+          map.set(key, (map.get(key) || 0) + strength);
+        }
+      }
+    } catch (e) {}
+    return { map, onsetBeats };
+  }
+
+  static _mono(audioBuffer) {
+    const chs = audioBuffer.numberOfChannels || 1;
+    const len = audioBuffer.length;
+    if (chs === 1) {
+      const c = audioBuffer.getChannelData(0);
+      const out = new Float32Array(len);
+      out.set(c);
+      return out;
+    }
+    const out = new Float32Array(len);
+    const c0 = audioBuffer.getChannelData(0);
+    const c1 = chs > 1 ? audioBuffer.getChannelData(1) : null;
+    if (c1) {
+      for (let i = 0; i < len; i++) out[i] = (c0[i] + c1[i]) * 0.5;
+    } else {
+      for (let c = 0; c < chs; c++) {
+        const d = audioBuffer.getChannelData(c);
+        for (let i = 0; i < len; i++) out[i] += d[i] / chs;
+      }
+    }
+    return out;
+  }
+
+  static _hann(size) {
+    const w = new Float64Array(size);
+    const t = (2 * Math.PI) / (size - 1);
+    for (let i = 0; i < size; i++) w[i] = 0.5 - 0.5 * Math.cos(i * t);
+    return w;
+  }
+
+  static _fft(re, im) {
+    const n = re.length;
+    for (let i = 1, j = 0; i < n; i++) {
+      let bit = n >> 1;
+      while (j & bit) { j ^= bit; bit >>= 1; }
+      j ^= bit;
+      if (i < j) {
+        let tmp = re[i]; re[i] = re[j]; re[j] = tmp;
+        tmp = im[i]; im[i] = im[j]; im[j] = tmp;
+      }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+      const ang = -2 * Math.PI / len;
+      const wlenRe = Math.cos(ang), wlenIm = Math.sin(ang);
+      for (let i = 0; i < n; i += len) {
+        let wRe = 1, wIm = 0;
+        const half = len >> 1;
+        for (let j = 0; j < half; j++) {
+          const u = i + j, v = i + j + half;
+          const xRe = re[u], xIm = im[u];
+          const yRe = re[v] * wRe - im[v] * wIm;
+          const yIm = re[v] * wIm + im[v] * wRe;
+          re[u] = xRe + yRe; im[u] = xIm + yIm;
+          re[v] = xRe - yRe; im[v] = xIm - yIm;
+          const nwr = wRe * wlenRe - wIm * wlenIm;
+          wIm = wRe * wlenIm + wIm * wlenRe;
+          wRe = nwr;
+        }
+      }
+    }
+  }
+
+  static _findOnsets(samples, samplerate) {
+    const n = samples.length;
+    if (n < 2048) return [];
+    let factor = 1;
+    if (samplerate >= 44100) factor = 2;
+    if (samplerate >= 88200) factor = 4;
+    let ds = samples;
+    if (factor > 1) {
+      const dn = Math.floor(n / factor);
+      ds = new Float32Array(dn);
+      for (let i = 0, j = 0; i < dn; i++, j += factor) {
+        let sum = 0;
+        for (let k = 0; k < factor; k++) sum += samples[j + k] || 0;
+        ds[i] = sum / factor;
+      }
+    }
+    const frameSize = 1024, hop = 512;
+    if (ds.length < frameSize + hop) return [];
+    const numBins = (frameSize >> 1) + 1;
+    const prevMag = new Float64Array(numBins);
+    const flux = [];
+    const win = this._hann(frameSize);
+    const re = new Float64Array(frameSize), im = new Float64Array(frameSize);
+    for (let pos = 0; pos + frameSize <= ds.length; pos += hop) {
+      for (let i = 0; i < frameSize; i++) { re[i] = (ds[pos + i] || 0) * win[i]; im[i] = 0; }
+      this._fft(re, im);
+      let f = 0;
+      for (let b = 0; b < numBins; b++) {
+        const mag = Math.sqrt(re[b] * re[b] + im[b] * im[b]);
+        const diff = mag - prevMag[b];
+        if (diff > 0) f += diff;
+        prevMag[b] = mag;
+      }
+      flux.push(f);
+    }
+    if (flux.length < 3) return [];
+    let mean = 0; for (let i = 0; i < flux.length; i++) mean += flux[i]; mean /= flux.length;
+    let variance = 0; for (let i = 0; i < flux.length; i++) { const d = flux[i] - mean; variance += d * d; }
+    const std = Math.sqrt(variance / flux.length);
+    const threshold = mean + std * 0.25;
+    const out = [];
+    for (let i = 1; i < flux.length - 1; i++) {
+      const v = flux[i];
+      if (v >= threshold && v >= flux[i - 1] && v >= flux[i + 1]) {
+        // parabolic interpolation for sub-frame peak timing
+        let delta = 0;
+        const denom = (flux[i - 1] - 2 * v + flux[i + 1]);
+        if (denom !== 0) {
+          delta = 0.5 * (flux[i - 1] - flux[i + 1]) / denom;
+          if (!isFinite(delta)) delta = 0;
+          delta = Math.max(-0.5, Math.min(0.5, delta));
+        }
+        const p = Math.round((i + delta) * hop * factor);
+        if (p >= 0 && p < n) out.push({ pos: p, strength: v });
+      }
+    }
+    return out;
+  }
+
+  static _key(beat) {
+    return Math.round(beat * 10000);
+  }
+
+  static _selectCandidates(editor, startBeat, endBeat, maxStep, autoSnap, rating, style, onsetData) {
+    const onsetEnergy = (onsetData && onsetData.map) ? onsetData.map : (onsetData instanceof Map ? onsetData : new Map());
+    const onsetBeats = (onsetData && onsetData.onsetBeats) ? onsetData.onsetBeats : [];
+    // base allowed subdivisions up to max resolution
+    const baseDivs = [1, 0.5, 0.25, 1/3, 1/6, 0.125, 1/12, 0.0625, 1/24, 1/48]; // 4th,8th,16th,12th,...
+    const allowed = baseDivs.filter(d => d >= maxStep - 1e-9).sort((a,b)=>b-a);
+    if (!allowed.length) allowed.push(maxStep);
+
+    const density = this._densityFor(rating, style); // notes per beat approx target
+    const candidates = [];
+    const eps = 1e-9;
+
+    if (!autoSnap) {
+      // uniform grid on editor snap, close to density and <= max resolution
+      let chosen = allowed[allowed.length - 1];
+      for (let i = 0; i < allowed.length; i++) {
+        const d = allowed[i];
+        const perBeat = 1 / d;
+        if (perBeat <= density * 1.5) { chosen = d; break; }
+      }
+      if (chosen < maxStep) chosen = maxStep;
+      for (let b = startBeat; b < endBeat - eps; b += chosen) {
+        const q = Math.round(b / maxStep) * maxStep;
+        if (q >= startBeat - eps && q < endBeat - eps) candidates.push(q);
+      }
+    } else if (onsetBeats.length === 0 && onsetEnergy.size === 0) {
+      // no audio/onsets: fallback to uniform grid
+      let chosen = this._subdivForRating(rating, allowed);
+      if (chosen < maxStep) chosen = maxStep;
+      const alignedStep = this._alignStep(chosen, maxStep);
+      for (let b = startBeat; b < endBeat - eps; b += alignedStep) {
+        const q = Math.round(b / maxStep) * maxStep;
+        if (q >= startBeat - eps && q < endBeat - eps) candidates.push(q);
+      }
+    } else {
+      // per-onset snapping: place notes at onset beats quantized to the needed
+      // subdivision (nearest point on the editor's max snap grid), mixing
+      // subdivisions in the same section. Select strongest onsets up to density.
+      const all = this._getOnsetsInRange(onsetBeats, startBeat - maxStep, endBeat + maxStep)
+        .filter(o => o.beat >= startBeat - eps && o.beat < endBeat - eps);
+      if (all.length === 0) {
+        let chosen = this._subdivForRating(rating, allowed);
+        if (chosen < maxStep) chosen = maxStep;
+        const alignedStep = this._alignStep(chosen, maxStep);
+        for (let b = startBeat; b < endBeat - eps; b += alignedStep) {
+          const q = Math.round(b / maxStep) * maxStep;
+          if (q >= startBeat - eps && q < endBeat - eps) candidates.push(q);
+        }
+      } else {
+        const lengthBeats = Math.max(0, endBeat - startBeat);
+        const targetCount = Math.max(1, Math.round(density * lengthBeats));
+        const minGap = this._minGapFor(rating, style, maxStep, density);
+        const sorted = all.slice().sort((a, b) => (b.strength || 0) - (a.strength || 0) || a.beat - b.beat);
+        const picked = [];
+        const pickedKeys = new Set();
+        for (let i = 0; i < sorted.length && picked.length < targetCount; i++) {
+          const ob = sorted[i].beat;
+          let q = Math.round(ob / maxStep) * maxStep;
+          if (q < startBeat) q = Math.ceil(startBeat / maxStep - 1e-9) * maxStep;
+          if (q >= endBeat - eps || q < startBeat - eps) continue;
+          const key = this._key(q);
+          if (pickedKeys.has(key)) continue;
+          let tooClose = false;
+          for (let j = 0; j < picked.length; j++) {
+            if (Math.abs(picked[j] - q) < minGap - 1e-9) { tooClose = true; break; }
+          }
+          if (tooClose) continue;
+          pickedKeys.add(key);
+          picked.push(q);
+        }
+        for (let i = 0; i < picked.length; i++) candidates.push(picked[i]);
+      }
+    }
+
+    // unique & sort
+    const uniq = [];
+    const seen = new Set();
+    candidates.sort((a,b)=>a-b);
+    for (let i=0;i<candidates.length;i++) {
+      const q = Math.round(candidates[i] / maxStep) * maxStep;
+      const k = this._key(q);
+      if (seen.has(k)) continue;
+      if (q < startBeat - eps || q >= endBeat - eps) continue;
+      seen.add(k);
+      uniq.push(q);
+    }
+    return uniq;
+  }
+
+  static _alignStep(step, maxStep) {
+    // make step a multiple of maxStep
+    const r = Math.round(step / maxStep);
+    return Math.max(maxStep, r * maxStep);
+  }
+
+  static _minGapFor(rating, style, maxStep, density) {
+    const d = Math.max(density || 1, 0.25);
+    let gap = Math.max(maxStep, (1 / d) * 0.65);
+    // keep low ratings comfortably sparse (rating 8 ~ Hard, not Challenge)
+    if (rating <= 2) gap = Math.max(gap, 1.0);       // mostly 4ths
+    else if (rating <= 4) gap = Math.max(gap, 0.5);  // 8ths
+    else if (rating <= 6) gap = Math.max(gap, 0.25); // 16ths occasional
+    else if (rating <= 8) gap = Math.max(gap, 0.25); // 8th/16th mix, still ~Hard
+    else if (rating <= 10) gap = Math.max(gap, 1 / 6);
+    else if (rating <= 12) gap = Math.max(gap, 0.125);
+    if (style === 'Stamina' || style === 'Stream') gap = Math.max(maxStep, gap * 0.9);
+    if (style === 'Technical') gap = Math.max(maxStep, gap * 0.92);
+    if (style === 'DDR' || style === 'Jumpstream') gap = Math.max(maxStep, gap * 1.05);
+    gap = Math.min(gap, Math.max(maxStep, (1 / d) * 1.2));
+    return gap;
+  }
+
+  static _getOnsetsInRange(onsetBeats, start, end) {
+    if (!onsetBeats || !onsetBeats.length) return [];
+    const out = [];
+    for (let i = 0; i < onsetBeats.length; i++) {
+      const b = onsetBeats[i].beat;
+      if (b >= start && b < end) out.push(onsetBeats[i]);
+    }
+    return out;
+  }
+
+  static _scoreGridPoint(beat, onsetBeats, gridStep, maxStep) {
+    if (!onsetBeats || !onsetBeats.length) return 0;
+    const tol = Math.max(maxStep * 0.51, (gridStep || maxStep) * 0.3);
+    let score = 0;
+    for (let i = 0; i < onsetBeats.length; i++) {
+      const d = Math.abs(onsetBeats[i].beat - beat);
+      if (d <= tol) {
+        const w = 1 - (d / (tol + 1e-9));
+        score += (onsetBeats[i].strength || 1) * (0.35 + 0.65 * w);
+      }
+    }
+    return score;
+  }
+
+  static _densityFor(rating, style) {
+    // approximate notes per beat (conservative: 8 ~ Hard, 13 ~ Challenge)
+    let base;
+    if (rating <= 2) base = 0.3 + rating * 0.1;       // ~0.4-0.5
+    else if (rating <= 4) base = 0.5 + (rating - 2) * 0.15; // ~0.65-0.8
+    else if (rating <= 6) base = 0.8 + (rating - 4) * 0.2;  // ~1.0-1.2
+    else if (rating <= 8) base = 1.2 + (rating - 6) * 0.2;  // ~1.4-1.6 (Hard)
+    else if (rating <= 10) base = 1.7 + (rating - 8) * 0.25; // ~1.95-2.2
+    else if (rating <= 13) base = 2.2 + (rating - 10) * 0.3; // ~2.5-3.1 (Challenge around 13)
+    else if (rating <= 16) base = 3.1 + (rating - 13) * 0.35; // ~3.45-4.15
+    else base = 4.15 + (rating - 16) * 0.35;                 // up to ~5.5
+    if (style === 'Stamina' || style === 'Stream') base *= 1.1;
+    if (style === 'Technical') base *= 1.05;
+    if (style === 'DDR' || style === 'Jumpstream') base *= 0.95;
+    return Math.max(0.25, Math.min(7, base));
+  }
+
+  static _subdivForRating(rating, allowed) {
+    // pick from allowed (sorted desc = larger step) based on rating
+    if (rating <= 3) return allowed[0] || 1;
+    if (rating <= 6) return allowed[Math.min(1, allowed.length-1)];
+    if (rating <= 9) return allowed[Math.min(2, allowed.length-1)];
+    if (rating <= 13) return allowed[Math.min(3, allowed.length-1)];
+    return allowed[allowed.length-1];
+  }
+
+  static _subdivForSegment(segOnsets, segStart, segEnd, maxStep, allowed, rating) {
+    // compare alignment of actual onsets against candidate subdivisions
+    let best = this._subdivForRating(rating, allowed);
+    let bestScore = -1;
+    const eps = 1e-9;
+    for (let i = 0; i < allowed.length; i++) {
+      const div = allowed[i];
+      if (div < maxStep - 1e-9) continue;
+      const step = this._alignStep(div, maxStep);
+      let score = 0;
+      for (let j = 0; j < segOnsets.length; j++) {
+        const ob = segOnsets[j].beat;
+        const g = Math.round((ob - segStart) / step) * step + segStart;
+        const qg = Math.round(g / maxStep) * maxStep;
+        if (qg < segStart - eps || qg >= segEnd - eps) continue;
+        const d = Math.abs(ob - qg);
+        const tol = Math.max(maxStep * 0.51, step * 0.35);
+        if (d <= tol) {
+          const w = 1 - (d / (tol + 1e-9));
+          score += (segOnsets[j].strength || 1) * (0.4 + 0.6 * w);
+        }
+      }
+      // bias toward rating-appropriate fineness
+      const fineness = 1 / step;
+      const pref = this._densityFor(rating, 'Stream');
+      const bias = 1 / (1 + Math.abs(fineness - pref));
+      const s = score * bias;
+      if (s > bestScore) { bestScore = s; best = div; }
+    }
+    return best;
+  }
+
+  static _placeNotes(editor, notesArr, candidates, opt) {
+    const { rating, style, allowHolds, allowMines, allowJumps, maxStep, endBeat, overwriteOnly } = opt;
+    let placed = 0;
+    let lastCols = [];
+    let prevBeat = -999;
+    let holdUntil = [-1, -1, -1, -1]; // per-column hold end (beat)
+
+    const jumpProb = this._jumpProb(rating, style, allowJumps);
+    const mineProb = allowMines ? this._mineProb(rating, style) : 0;
+    const holdProb = allowHolds ? this._holdProb(rating, style) : 0;
+    const eps = 1e-9;
+
+    for (let i = 0; i < candidates.length; i++) {
+      const beat = candidates[i];
+      if (beat >= endBeat - eps) continue;
+
+      // decide if mine instead of tap (style-dependent, sparse)
+      if (allowMines && Math.random() < mineProb) {
+        const sincePrev = beat - prevBeat;
+        const mineGapOk = (style === 'Technical') ? (sincePrev >= maxStep * 0.75) : (sincePrev >= maxStep * 1.5);
+        if (mineGapOk) {
+          const col = this._pickMineColumn(lastCols, style, holdUntil, beat);
+          if (col != null && beat >= holdUntil[col] - eps) {
+            if (this._insertNote(editor, notesArr, { type: 'M', beat, column: col }, overwriteOnly)) {
+              placed++;
+              // in Technical mines act as obstacles but flow may continue; in others treat as replacement
+              if (style !== 'Technical' || Math.random() < 0.6) {
+                lastCols = [col];
+                prevBeat = beat;
+                continue;
+              }
+            }
+          }
+        }
+      }
+
+      let doJump = allowJumps && Math.random() < jumpProb;
+      // style shaping: avoid jumps too often in pure stream/stamina, allow more in jumpstream/DDR
+      if (doJump && (style === 'Stream' || style === 'Stamina') && Math.random() < 0.5) doJump = false;
+      const count = doJump ? 2 : 1;
+      let cols = this._pickColumn(lastCols, style, count, holdUntil, beat);
+
+      // filter out columns currently held
+      cols = cols.filter(c => beat >= holdUntil[c] - eps);
+      if (cols.length === 0) {
+        cols = this._pickColumn(lastCols, style, 1, holdUntil, beat).filter(c => beat >= holdUntil[c] - eps);
+      }
+      if (cols.length === 0) continue;
+
+      // try hold on first column (style-aware)
+      let didHold = false;
+      if (allowHolds && !doJump && Math.random() < holdProb) {
+        const col = cols[0];
+        const dur = this._pickHoldDuration(beat, endBeat, maxStep, style, rating);
+        if (dur > 0) {
+          const rollProb = (style === 'Technical') ? (rating >= 11 ? 0.4 : (rating >= 8 ? 0.2 : 0)) : 0;
+          const type = (Math.random() < rollProb) ? '4' : '2';
+          // avoid starting hold if column busy just before end (basic) and if end collides badly is handled in insert
+          if (this._insertFreeze(editor, notesArr, beat, dur, col, type, overwriteOnly)) {
+            placed++;
+            holdUntil[col] = Math.max(holdUntil[col], beat + dur);
+            // occasionally add a tap on another column at hold start (Technical/DDR higher levels)
+            let extraPlaced = false;
+            if (allowJumps && rating >= 9 && (style === 'Technical' || style === 'DDR' || style === 'Jumpstream') && Math.random() < 0.18) {
+              const others = [0,1,2,3].filter(c => c !== col && beat >= holdUntil[c] - eps);
+              if (others.length) {
+                const oc = others[Math.floor(Math.random() * others.length)];
+                if (this._insertNote(editor, notesArr, { type: '1', beat, column: oc }, overwriteOnly)) {
+                  placed++;
+                  lastCols = [col, oc];
+                  extraPlaced = true;
+                }
+              }
+            }
+            if (!extraPlaced) lastCols = [col];
+            prevBeat = beat;
+            continue;
+          }
+        }
+      }
+
+      for (let c = 0; c < cols.length; c++) {
+        if (beat < holdUntil[cols[c]] - eps) continue;
+        const ok = this._insertNote(editor, notesArr, { type: '1', beat, column: cols[c] }, overwriteOnly);
+        if (ok) placed++;
+      }
+      lastCols = cols.slice();
+      prevBeat = beat;
+    }
+    return placed;
+  }
+
+  static _jumpProb(rating, style, allowJumps) {
+    if (!allowJumps) return 0;
+    let p = Math.max(0, (rating - 5) * 0.02);
+    if (style === 'Jumpstream') p += 0.14;
+    if (style === 'DDR') p += 0.09;
+    if (style === 'Stream' || style === 'Stamina') p *= 0.4;
+    if (style === 'Technical') p += 0.05;
+    // keep 8 (Hard) from feeling like Challenge
+    if (rating <= 8) p *= 0.6;
+    return Math.max(0, Math.min(0.35, p));
+  }
+  static _mineProb(rating, style) {
+    let p = 0;
+    if (style === 'Technical') {
+      if (rating >= 6) p = 0.03 + (rating - 6) * 0.012; // noticeable in tech
+      if (rating >= 11) p += 0.03;
+    } else if (style === 'DDR') {
+      if (rating >= 7) p = 0.01 + (rating - 7) * 0.006;
+    } else if (style === 'Jumpstream') {
+      if (rating >= 8) p = 0.008 + (rating - 8) * 0.005;
+    } else if (style === 'Stream') {
+      if (rating >= 10) p = 0.004 + (rating - 10) * 0.003;
+    } else if (style === 'Stamina') {
+      if (rating >= 11) p = 0.003 + (rating - 11) * 0.002;
+    }
+    return Math.max(0, Math.min(0.2, p));
+  }
+  static _holdProb(rating, style) {
+    let p = 0;
+    if (style === 'Stream') {
+      if (rating >= 4) p = 0.02 + (rating - 4) * 0.006;
+    } else if (style === 'Stamina') {
+      if (rating >= 5) p = 0.015 + (rating - 5) * 0.005;
+    } else if (style === 'Jumpstream') {
+      if (rating >= 3) p = 0.04 + (rating - 3) * 0.01;
+    } else if (style === 'DDR') {
+      if (rating >= 2) p = 0.05 + (rating - 2) * 0.012;
+    } else if (style === 'Technical') {
+      if (rating >= 3) p = 0.06 + (rating - 3) * 0.014;
+    }
+    // keep overall reasonable
+    if (rating <= 3) p *= 0.7;
+    return Math.max(0, Math.min(0.28, p));
+  }
+
+  static _shouldPlaceMine(beat, prevBeat, mineProb, style, rating) {
+    // basic gating; style-specific spacing handled by caller
+    if (Math.random() >= mineProb) return false;
+    if (style === 'Stream' || style === 'Stamina') {
+      // very rare, avoid cluttering runs
+      return Math.random() < 0.5;
+    }
+    return true;
+  }
+
+  static _pickMineColumn(lastCols, style, holdUntil, beat) {
+    const eps = 1e-9;
+    const all = [0,1,2,3].filter(c => beat >= (holdUntil ? holdUntil[c] : -1) - eps);
+    if (!all.length) return null;
+    let pool = all.slice();
+    if (style === 'Technical') {
+      // tech mines often feel like obstacles off the immediate flow
+      if (lastCols && lastCols.length && Math.random() < 0.7) {
+        const off = all.filter(c => lastCols.indexOf(c) === -1);
+        if (off.length) pool = off;
+      }
+    } else if (style === 'DDR' || style === 'Jumpstream') {
+      if (lastCols && lastCols.length && Math.random() < 0.4) {
+        const off = all.filter(c => lastCols.indexOf(c) === -1);
+        if (off.length) pool = off;
+      }
+    } else {
+      // stream/stamina: avoid disrupting same lane repeatedly but keep simple
+      if (lastCols && lastCols.length && Math.random() < 0.5) {
+        const off = all.filter(c => lastCols.indexOf(c) === -1);
+        if (off.length) pool = off;
+      }
+    }
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  static _pickHoldDuration(beat, endBeat, maxStep, style, rating) {
+    let options;
+    if (style === 'Stream' || style === 'Stamina') {
+      options = [1.0, 1.5, 2.0, 3.0, 4.0];
+    } else if (style === 'DDR') {
+      options = [0.5, 1.0, 1.5, 2.0, 3.0, 4.0];
+    } else if (style === 'Jumpstream') {
+      options = [0.5, 1.0, 1.5, 2.0];
+      if (rating >= 10) options.push(3.0);
+    } else if (style === 'Technical') {
+      options = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0];
+      if (rating >= 12) options.push(0.125, 3.0);
+    } else {
+      options = [0.5, 1.0, 2.0];
+    }
+    // filter by rating a bit
+    if (rating <= 4) options = options.filter(d => d >= 1.0);
+    else if (rating <= 6) options = options.filter(d => d >= 0.5);
+
+    const eps = 1e-9;
+    for (let tries = 0; tries < 8; tries++) {
+      let d = options[Math.floor(Math.random() * options.length)];
+      if (!isFinite(d)) continue;
+      // snap to maxStep grid
+      d = Math.round(d / maxStep) * maxStep;
+      if (d < maxStep * 2 - eps) continue;
+      if (beat + d > endBeat - eps) continue;
+      if (d > 4.0 + eps) continue;
+      return d;
+    }
+    return 0;
+  }
+
+  static _pickColumn(lastCols, style, count, holdUntil, beat) {
+    const eps = 1e-9;
+    const allBase = [0,1,2,3];
+    const available = holdUntil ? allBase.filter(c => beat >= holdUntil[c] - eps) : allBase.slice();
+    const all = available.length ? available : allBase.slice();
+    let pool = all.slice();
+    // avoid repeating same single column too often
+    if (count === 1 && lastCols && lastCols.length === 1) {
+      if (Math.random() < 0.75) pool = all.filter(c => c !== lastCols[0]);
+      if (!pool.length) pool = all.slice();
+    }
+    // simple flow: prefer movement
+    if (count === 2) {
+      const pairsAll = [[0,1],[1,2],[2,3],[0,2],[1,3],[0,3]];
+      let pairs = pairsAll.filter(p => all.indexOf(p[0]) !== -1 && all.indexOf(p[1]) !== -1);
+      if (!pairs.length) pairs = pairsAll.slice();
+      let cand = pairs.slice();
+      if (lastCols && lastCols.length === 2) {
+        const key = lastCols.slice().sort().join(',');
+        const filtered = pairs.filter(p => p.join(',') !== key);
+        if (filtered.length) cand = filtered;
+      }
+      return cand[Math.floor(Math.random() * cand.length)].slice();
+    }
+    if (!pool.length) pool = allBase.slice();
+    return [pool[Math.floor(Math.random() * pool.length)]];
+  }
+
+  static _insertNote(editor, notesArr, spec, overwriteOnly) {
+    const beat = spec.beat;
+    const column = spec.column;
+    const existing = notesArr.find(n => n && n.column === column && Math.abs(n.beat - beat) < 0.001);
+    if (existing) {
+      if (!overwriteOnly) return false;
+      try { editor.chartRenderer.killNote(existing); } catch (e) {}
+      const idx = notesArr.indexOf(existing);
+      if (idx > -1) notesArr.splice(idx, 1);
+      if (Array.isArray(editor.selectedNotes)) {
+        const si = editor.selectedNotes.indexOf(existing);
+        if (si > -1) editor.selectedNotes.splice(si, 1);
+      }
+    }
+    // also avoid placing tap inside a hold occupying this column? simple check
+    for (let i = 0; i < notesArr.length; i++) {
+      const n = notesArr[i];
+      if (!n || n.column !== column) continue;
+      if ((n.type === '2' || n.type === '4') && isFinite(n.beatEnd)) {
+        if (beat > n.beat + 1e-9 && beat < n.beatEnd - 1e-9) return false;
+      }
+    }
+    const note = {
+      type: spec.type || '1',
+      beat: beat,
+      sec: editor.chartRenderer.beatToSec(beat),
+      column: column
+    };
+    notesArr.push(note);
+    return true;
+  }
+
+  static _insertFreeze(editor, notesArr, startBeat, duration, column, type, overwriteOnly) {
+    const endBeat = startBeat + duration;
+    // remove/skip colliding notes in range on this column
+    for (let i = notesArr.length - 1; i >= 0; i--) {
+      const n = notesArr[i];
+      if (!n || n.column !== column) continue;
+      const nb = n.beat;
+      const nEnd = (n.type === '2' || n.type === '4') && isFinite(n.beatEnd) ? n.beatEnd : nb;
+      const collides = !(nEnd <= startBeat + 1e-9 || nb >= endBeat - 1e-9);
+      if (collides) {
+        if (!overwriteOnly) return false;
+        try { editor.chartRenderer.killNote(n); } catch (e) {}
+        notesArr.splice(i, 1);
+        if (Array.isArray(editor.selectedNotes)) {
+          const si = editor.selectedNotes.indexOf(n);
+          if (si > -1) editor.selectedNotes.splice(si, 1);
+        }
+      }
+    }
+    const note = {
+      type: type || '2',
+      beat: startBeat,
+      sec: editor.chartRenderer.beatToSec(startBeat),
+      column: column,
+      beatLength: duration,
+      secLength: editor.chartRenderer.beatToSec(endBeat) - editor.chartRenderer.beatToSec(startBeat),
+      beatEnd: endBeat,
+      secEnd: editor.chartRenderer.beatToSec(endBeat)
+    };
+    notesArr.push(note);
+    return true;
+  }
+}
+
+/**
  * @class AviTranscoder
  * @category Utils
  * @summary FFmpeg.wasm wrapper that decodes AVI (MPEG-4 Part 2) backgrounds to H.264 MP4
@@ -19486,7 +20439,7 @@ class OnScreenKeyboard extends Phaser.Sprite {
       { top: 24, left: 34, width: 7, height: 7, code: "f", symbol: "^" },
       { top: 24, left: 44, width: 7, height: 7, code: "g", symbol: "&" },
       { top: 24, left: 54, width: 7, height: 7, code: "h", symbol: "-" },
-      { top: 24, left: 64, width: 7, height: 7, code: "i", symbol: "+" },
+      { top: 24, left: 64, width: 7, height: 7, code: "j", symbol: "+" },
       { top: 24, left: 74, width: 7, height: 7, code: "k", symbol: "(" },
       { top: 24, left: 84, width: 7, height: 7, code: "l", symbol: ")" },
       { top: 24, left: 94, width: 7, height: 7, char: ";", symbol: "/" },
@@ -21576,12 +22529,40 @@ class FileTools {
    * @returns {Promise<Blob>} Resolves with the Blob data
    */
   static async fetchFileAsBlob(url) {
+    if (typeof url !== 'string') {
+      throw new Error(`Unsupported URL type: ${typeof url}`);
+    }
+
     // Si es una URL de objeto (blob:) o data URL, fetch directamente
     if (url.startsWith('blob:') || url.startsWith('data:')) {
       const response = await fetch(url);
       return await response.blob();
     }
-    
+
+    // Local file:// URLs or Windows paths in Node/NW.js: read from disk directly
+    const isFileUrl = url.startsWith('file:');
+    const isWindowsPath = /^[a-zA-Z]:[\\/]/.test(url);
+    if ((isFileUrl || isWindowsPath) && typeof require !== 'undefined') {
+      try {
+        const fs = require('fs');
+        const pathModule = require('path');
+        const urlModule = require('url');
+        let filePath = url;
+        if (isFileUrl) {
+          if (urlModule && typeof urlModule.fileURLToPath === 'function') {
+            filePath = urlModule.fileURLToPath(url);
+          } else {
+            filePath = decodeURIComponent(url.replace(/^file:\/\//i, ''));
+            if (/^\/[a-zA-Z]:\//.test(filePath)) filePath = filePath.slice(1);
+          }
+        }
+        const buffer = fs.readFileSync(filePath);
+        return new Blob([buffer]);
+      } catch (e) {
+        // fall through to other strategies
+      }
+    }
+
     // Si es una URL relativa o absoluta (http/https)
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
       const response = await fetch(url);
@@ -21590,9 +22571,17 @@ class FileTools {
       }
       return await response.blob();
     }
-    
+
     // Si es un path de archivo local (Cordova/NWJS)
     if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+      // NW.js fallback: try reading as a filesystem path
+      if (typeof require !== 'undefined') {
+        try {
+          const fs = require('fs');
+          const buffer = fs.readFileSync(url);
+          return new Blob([buffer]);
+        } catch (e) {}
+      }
       try {
         const fileSystem = new FileSystemTools();
         const fileEntry = await fileSystem.getFile(url);
@@ -21603,8 +22592,117 @@ class FileTools {
         throw new Error(`Failed to load local file: ${url}`);
       }
     }
-    
+
     throw new Error(`Unsupported URL type: ${url}`);
+  }
+}
+
+/**
+ * @class PadManiacsJSON
+ * @category Parser Classes
+ * @summary Read/write PadManiacs sidecar data (padmaniacs.json)
+ * @constructor
+ * @features
+ * Loads and saves padmaniacs.json alongside chart files without contaminating .SM
+ * Stores editor markers (beat positions) and is extensible for future data
+ * Works with FileSystemTools on external/NW.js/Cordova storage and with file maps
+ * Can be embedded in and restored from .zip imports/exports
+ * @description
+ * Provides a small sidecar format for PadManiacs-specific metadata that should not
+ * live inside StepMania .SM files. Currently stores editor time markers as a list of
+ * beat positions.
+ */
+class PadManiacsJSON {
+  static get FILENAME() { return "padmaniacs.json"; }
+
+  static createEmpty() {
+    return { version: 1, markers: [] };
+  }
+
+  static parse(content) {
+    if (!content) return this.createEmpty();
+    try {
+      const data = typeof content === "string" ? JSON.parse(content) : content;
+      if (!data || typeof data !== "object") return this.createEmpty();
+      const markers = Array.isArray(data.markers) ? data.markers : [];
+      return {
+        version: data.version || 1,
+        markers: markers
+          .map(m => {
+            if (typeof m === "number") return { beat: m };
+            if (m && typeof m === "object" && typeof m.beat === "number") return { beat: m.beat };
+            return null;
+          })
+          .filter(m => m && isFinite(m.beat))
+      };
+    } catch (e) {
+      return this.createEmpty();
+    }
+  }
+
+  static stringify(data) {
+    const out = data && typeof data === "object" ? data : this.createEmpty();
+    if (!Array.isArray(out.markers)) out.markers = [];
+    if (!out.version) out.version = 1;
+    return JSON.stringify(out, null, 2);
+  }
+
+  static async loadFromDirectory(fileSystem, dirEntry) {
+    try {
+      const files = await fileSystem.listFiles(dirEntry);
+      const entry = files.find(f => f.name && f.name.toLowerCase() === this.FILENAME);
+      if (!entry) return this.createEmpty();
+      const file = await fileSystem.getFile(entry);
+      const content = await fileSystem.readFileContent(file);
+      return this.parse(content);
+    } catch (e) {
+      return this.createEmpty();
+    }
+  }
+
+  static async saveToDirectory(fileSystem, dirEntry, data) {
+    try {
+      const content = this.stringify(data);
+      await fileSystem.saveFile(dirEntry, content, this.FILENAME);
+      return true;
+    } catch (e) {
+      console.warn("Failed to save padmaniacs.json:", e);
+      return false;
+    }
+  }
+
+  static async loadFromFileMap(files) {
+    if (!files) return this.createEmpty();
+    try {
+      const key = Object.keys(files).find(k => k.toLowerCase() === this.FILENAME);
+      if (!key) return this.createEmpty();
+      const file = files[key];
+      let content = null;
+      if (typeof file === "string") content = file;
+      else if (typeof FileTools !== "undefined" && FileTools.readTextFile) content = await FileTools.readTextFile(file);
+      else if (file && typeof file.text === "function") content = await file.text();
+      return this.parse(content);
+    } catch (e) {
+      return this.createEmpty();
+    }
+  }
+
+  static async loadFromZip(zipContent) {
+    try {
+      let entry = zipContent.file(this.FILENAME);
+      if (!entry) {
+        zipContent.forEach((relativePath, file) => {
+          if (!entry && relativePath.split('/').pop().toLowerCase() === PadManiacsJSON.FILENAME) {
+            entry = file;
+          }
+        });
+      }
+      if (!entry) return this.createEmpty();
+      const content = await entry.async("text");
+      return this.parse(content);
+    } catch (e) {
+      return this.createEmpty();
+    }
   }
 }
 
@@ -37460,6 +38558,7 @@ class Editor {
     this.playOffset = 0;
     this.menuVisible = false;
     this.freezePreview = null;
+    this.ignoreBInput = false;
     
     /** @type {Object} Loaded media files keyed by purpose (audio, background, ...). */
     this.files = {
@@ -37471,6 +38570,10 @@ class Editor {
     };
     
     window.e = this;
+
+    this.padManiacsData = (typeof PadManiacsJSON !== "undefined") ? PadManiacsJSON.createEmpty() : { version: 1, markers: [] };
+    if (!this.song.chart.markers) this.song.chart.markers = this.padManiacsData.markers; else this.padManiacsData.markers = this.song.chart.markers;
+    this.markerListActive = false;
 
     this.divisions = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 192];
 
@@ -37516,7 +38619,8 @@ class Editor {
     /** @type {Metronome} Metronome helper for note timing feedback. */
     this.metronome = new Metronome(this);
     /** @type {BpmDetector} Tempo/BPM detector (independent, reusable). */
-    this.bpmDetector = new BpmDetector();
+    if (!window._editorBpmDetector) window._editorBpmDetector = new BpmDetector();
+    this.bpmDetector = window._editorBpmDetector;
         
     this.homeOverlay = game.add.graphics(0, 0);
     this.homeOverlay.beginFill(0x000000, 0.5);
@@ -37587,7 +38691,7 @@ class Editor {
    */
   async initalSetup() {
     if (this.initializedWithSong) {
-      this.showLoadingScreen("Setting up");
+      this.showLoadingScreen(__("Setting up||Configurando"));
       this.files.audio = await FileTools.urlToBase64(this.song.chart.audioUrl);
       this.files.banner = await FileTools.urlToBase64(this.song.chart.bannerUrl);
       this.files.background = await FileTools.urlToBase64(this.song.chart.backgroundUrl);
@@ -37603,6 +38707,7 @@ class Editor {
       this.refreshLyrics();
       this.hideLoadingScreen();
     }
+    await this.loadPadManiacsData();
     if (this.song.chart.audioUrl) {
       await this.syncEditorAudio(this.song.chart.audioUrl);
     }
@@ -37653,6 +38758,7 @@ class Editor {
         bpmChanges: [{ beat: 0, bpm: 120, sec: 0 }],
         stops: [],
         backgrounds: [],
+        markers: [],
         videoUrl: null
       },
       difficultyIndex: 0
@@ -37859,35 +38965,53 @@ class Editor {
 
   /**
    * Returns or creates the Web Audio context for editor playback/preview.
+   * Reuses a shared context so decoded audio buffers remain valid across editor sessions.
    * @returns {AudioContext}
    */
   ensureEditorAudioContext() {
-    if (!this.editorAudioCtx) {
+    if (window._editorAudioCtx && window._editorAudioCtx.state !== 'closed') {
+      this.editorAudioCtx = window._editorAudioCtx;
+      return this.editorAudioCtx;
+    }
+    if (!this.editorAudioCtx || this.editorAudioCtx.state === 'closed') {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       this.editorAudioCtx = new Ctx();
+      window._editorAudioCtx = this.editorAudioCtx;
     }
     return this.editorAudioCtx;
   }
 
   /**
    * Decodes audio into memory for synchronized editor playback/preview.
+   * Reuses cached data when the audio file has not changed.
    * @param {string} [url]
    */
   async syncEditorAudio(url) {
     const sourceUrl = url || (this.song && this.song.chart && this.song.chart.audioUrl);
+    const cache = window._editorAudioSyncCache || (window._editorAudioSyncCache = { key: null, buffer: null });
     if (!sourceUrl) {
       this.audioBuffer = null;
+      cache.key = null;
+      cache.buffer = null;
       return;
     }
-    this.showLoadingScreen(__("Synchronizing Audio...||Sincronizando Audio..."));
+    if (cache.key === sourceUrl && cache.buffer) {
+      this.audioBuffer = cache.buffer;
+      return;
+    }
+    this.showLoadingScreen(__("Synchronizing Audio||Sincronizando Audio"));
     try {
       const ctx = this.ensureEditorAudioContext();
       const response = await fetch(sourceUrl);
       const arrayBuffer = await response.arrayBuffer();
       this.audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+      cache.key = sourceUrl;
+      cache.buffer = this.audioBuffer;
     } catch (error) {
       console.error("Error synchronizing audio:", error);
       this.audioBuffer = null;
+      cache.key = null;
+      cache.buffer = null;
       notifications.show(__("Audio sync failed||Fallo al sincronizar audio"));
     }
     this.hideLoadingScreen();
@@ -37965,7 +39089,11 @@ class Editor {
       animate: true
     });
   
-    carousel.addItem("(Export StepMania Song|Exportar Canción StepMania)", () => this.exportSong());
+    carousel.addItem("(Export StepMania Song (.zip)|Exportar Canción StepMania (.zip))", () => this.exportSong());
+    carousel.addItem("(Export .SM only|Exportar solo .SM)", () => this.exportSmOnly());
+    carousel.addItem("(Export audio only|Exportar solo audio)", () => this.exportAudioOnly());
+    carousel.addItem("(Export backgrounds (images & videos)|Exportar fondos (imágenes y videos))", () => this.exportBackgroundsOnly());
+    carousel.addItem("(Export videos only|Exportar solo videos)", () => this.exportVideosOnly());
   
     game.onMenuIn.dispatch("editorProject", carousel);
   
@@ -38306,6 +39434,10 @@ class Editor {
    * Processes gamepad input for editing: selecting, placing, and seeking.
    */
   handleChartEditInput() {
+    if (this.markerListActive) {
+      this.handleMarkerListInput();
+      return;
+    }
     if (this.menuVisible) return;
 
     const { now, beat } = this.getCurrentTime();
@@ -38329,21 +39461,33 @@ class Editor {
     }
 
     // Handle B button  placement
-    if (gamepad.pressed.b && !gamepad.held.a) {
-      this.holdBStartTime = beat;
-    }
-    
-    if (gamepad.released.b) {
-      const holdDuration = beat - this.holdBStartTime;
+    if (this.ignoreBInput) {
+      this.holdBStartTime = null;
+      if (gamepad.released.b || (!gamepad.held.b && !gamepad.pressed.b)) {
+        this.ignoreBInput = false;
+      }
+    } else {
+      if (gamepad.pressed.b && !gamepad.held.a) {
+        this.holdBStartTime = beat;
+      }
 
-      if (Math.abs(holdDuration) == 0) {
-        // Single tap - place note
-        this.placeNote(this.cursorColumn, this.cursorBeat);
-      } else {
-        // Long press - place freeze
-        const freezeStart = holdDuration > 0 ? this.holdBStartTime : this.holdBStartTime + holdDuration;
+      if (gamepad.released.b) {
+        if (this.holdBStartTime == null || !isFinite(this.holdBStartTime)) {
+          this.holdBStartTime = null;
+        } else {
+          const holdDuration = beat - this.holdBStartTime;
 
-        this.placeFreeze(this.cursorColumn, freezeStart, Math.abs(holdDuration));
+          if (Math.abs(holdDuration) == 0) {
+            // Single tap - place note
+            this.placeNote(this.cursorColumn, this.cursorBeat);
+          } else {
+            // Long press - place freeze
+            const freezeStart = holdDuration > 0 ? this.holdBStartTime : this.holdBStartTime + holdDuration;
+
+            this.placeFreeze(this.cursorColumn, freezeStart, Math.abs(holdDuration));
+          }
+          this.holdBStartTime = null;
+        }
       }
     }
 
@@ -39128,7 +40272,9 @@ class Editor {
         contextMenu.addItem("(Add BPM Change|Agregar Cambio de BPM)", () => this.addBPMChange());
       } else {
         contextMenu.addItem("(Edit BPM Value|Editar Valor de BPM)", () => this.editBPMChange());
-        contextMenu.addItem("(Remove BPM Change|Eliminar Cambio de BPM)", () => this.removeBPMChange());
+        if (this.cursorBeat > 0) {
+          contextMenu.addItem("(Remove BPM Change|Eliminar Cambio de BPM)", () => this.removeBPMChange());
+        }
       }
   
       if (this.cursorBeat > 0) {
@@ -39147,8 +40293,17 @@ class Editor {
         contextMenu.addItem("(Edit BG Change|Editar Cambio de Fondo)", () => this.editBGChange());
         contextMenu.addItem("(Remove BG Change|Eliminar Cambio de Fondo)", () => this.removeBGChange());
       }
+
+      contextMenu.addItem(__("(Generate Steps|Generar pasos)"), () => this.showStepGeneratorConfig());
+
+      if (!this.getMarker()) {
+        contextMenu.addItem(__("(Add Marker|Añadir marcador)"), () => this.addMarker());
+      } else {
+        contextMenu.addItem(__("(Remove Marker|Eliminar marcador)"), () => this.removeMarker());
+      }
       
       contextMenu.addItem("Detect BPM||Detectar BPM", () => this.detectBPM());
+      contextMenu.addItem(__("(Markers|Marcadores)"), () => this.openMarkerList());
     } else if (this.selectedNotes.length === 1) {
       const note = this.selectedNotes[0];
       contextMenu.addItem("(Unselect|Deseleccionar)", () => (this.selectedNotes = []));
@@ -39549,12 +40704,17 @@ class Editor {
       this.stopPlayback();
       this.abortPreview();
       if (this.bpmDetector) this.bpmDetector.clearCache();
+      if (window._editorAudioSyncCache) { window._editorAudioSyncCache.key = null; window._editorAudioSyncCache.buffer = null; }
+      this.audioBuffer = null;
       this.audio.src = chart.audioUrl || "";
       this.updateBanner(chart.bannerUrl);
       this.updateBackground(chart.backgroundUrl);
       this.refreshLyrics();
 
       this.song = { chart, difficultyIndex: 0 };
+      this.padManiacsData = await PadManiacsJSON.loadFromFileMap(fileMap);
+      this.song.chart.markers = this.padManiacsData.markers;
+      if (this.chartRenderer) { this.chartRenderer.chart = this.song.chart; this.chartRenderer.markers = this.song.chart.markers; }
       await this.syncEditorAudio(chart.audioUrl);
       this.showHomeScreen();
     } catch (error) {
@@ -39572,6 +40732,8 @@ class Editor {
       this.stopPlayback();
       this.abortPreview();
       if (this.bpmDetector) this.bpmDetector.clearCache();
+      if (window._editorAudioSyncCache) { window._editorAudioSyncCache.key = null; window._editorAudioSyncCache.buffer = null; }
+      this.audioBuffer = null;
       const url = URL.createObjectURL(file);
       this.song.chart.audio = file.name;
       this.song.chart.audioUrl = url;
@@ -39733,6 +40895,9 @@ class Editor {
       extra: {}
     };
 
+    this.padManiacsData = await PadManiacsJSON.loadFromZip(zipContent);
+    this.song.chart.markers = this.padManiacsData.markers;
+
     // Helper function to find and load file from ZIP
     const loadFileFromZip = async (filename, targetProp) => {
       if (!filename) return null;
@@ -39795,6 +40960,7 @@ class Editor {
     this.stopPlayback();
     this.abortPreview();
     if (this.bpmDetector) this.bpmDetector.clearCache();
+    if (window._editorAudioSyncCache) { window._editorAudioSyncCache.key = null; window._editorAudioSyncCache.buffer = null; }
     this.audioBuffer = null;
     this.audio.src = "";
 
@@ -39833,6 +40999,7 @@ class Editor {
     this.stopPlayback();
     this.abortPreview();
     if (this.bpmDetector) this.bpmDetector.clearCache();
+    if (window._editorAudioSyncCache) { window._editorAudioSyncCache.key = null; window._editorAudioSyncCache.buffer = null; }
 
     this.song = { chart, difficulties: 0 };
 
@@ -39842,6 +41009,9 @@ class Editor {
       banner: null,
       extra: {}
     };
+
+    this.padManiacsData = PadManiacsJSON.createEmpty();
+    this.song.chart.markers = this.padManiacsData.markers;
     
     this.audioBuffer = null;
     this.updateBackground();
@@ -39882,6 +41052,11 @@ class Editor {
   
       // Add resources
       await this.addSongResourcesToZip(songData, zip);
+
+      // Add PadManiacs sidecar data (markers, etc.)
+      if (this.padManiacsData && Array.isArray(this.padManiacsData.markers)) {
+        zip.file(PadManiacsJSON.FILENAME, PadManiacsJSON.stringify(this.padManiacsData));
+      }
   
       // Generate ZIP file
       const blob = await zip.generateAsync({ type: "blob" });
@@ -39907,6 +41082,214 @@ class Editor {
       this.hideLoadingScreen();
       this.showHomeScreen();
       notifications.show(__("Song exported successfully!||¡Canción exportada!"));
+    } catch (error) {
+      console.error("Export failed:", error);
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      notifications.show(__("Export failed!||Problema al exportar"), 2000, "error");
+    }
+  }
+
+  sanitizeExportName(name) {
+    let out = String(name || "").trim();
+    out = out.replace(/[\\\/:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+    out = out.replace(/[. ]+$/g, "");
+    return out;
+  }
+
+  getExportBaseName() {
+    const title = this.song && this.song.chart ? this.song.chart.title : "";
+    const sanitized = this.sanitizeExportName(title);
+    if (sanitized) return sanitized;
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `Untitled ${yyyy}-${mm}-${dd}`;
+  }
+
+  isVideoFilename(name) {
+    return /\.(mp4|webm|ogv|ogg|avi|mov|mkv|m4v)$/i.test(String(name || ""));
+  }
+
+  async getEditorOutputDir(fileSystem) {
+    const dirPath = EXTERNAL_DIRECTORY + EDITOR_OUTPUT_DIRECTORY;
+    try {
+      return await fileSystem.getDirectory(dirPath);
+    } catch (e) {
+      const rootDir = await fileSystem.getDirectory("");
+      let gameDir;
+      try {
+        gameDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY);
+      } catch (e2) {
+        gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
+      }
+      return await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
+    }
+  }
+
+  async getUniqueExportSubdir(fileSystem, outputDir, baseName) {
+    const safeBase = this.sanitizeExportName(baseName) || "Untitled";
+    let candidate = safeBase;
+    let i = 1;
+    while (true) {
+      try {
+        await fileSystem.getDirectory(EXTERNAL_DIRECTORY + EDITOR_OUTPUT_DIRECTORY + "/" + candidate);
+        i++;
+        candidate = `${safeBase} (${i})`;
+      } catch (e) {
+        return await fileSystem.createDirectory(outputDir, candidate);
+      }
+    }
+  }
+
+  async toSavableData(data) {
+    if (data == null) return null;
+    if (data instanceof Blob || data instanceof File) return data;
+    if (data instanceof ArrayBuffer) return data;
+    if (data && typeof data === "object" && data._file) {
+      try { return await data._file.arrayBuffer(); } catch (e) { return null; }
+    }
+    if (typeof data === "string") {
+      if (data.startsWith("blob:") || data.startsWith("data:") || data.startsWith("http://") || data.startsWith("https://") || data.startsWith("file:") || data.startsWith("/")) {
+        try { return await this.fetchFileAsBlob(data); } catch (e) {
+          if (data.includes("base64,")) return data.split("base64,")[1];
+          return data;
+        }
+      }
+      if (data.includes("base64,")) return data.split("base64,")[1];
+      return data;
+    }
+    return data;
+  }
+
+  async saveLooseFilesToFolder(entries, baseName) {
+    if (!entries || !entries.length) {
+      notifications.show(__("Nothing to export||Nada para exportar"), 2000, "error");
+      return false;
+    }
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+      const fileSystem = new FileSystemTools();
+      const outputDir = await this.getEditorOutputDir(fileSystem);
+      const subdir = await this.getUniqueExportSubdir(fileSystem, outputDir, baseName);
+      for (const entry of entries) {
+        const savable = await this.toSavableData(entry.data);
+        if (savable == null) continue;
+        await fileSystem.saveFile(subdir, savable, entry.filename);
+      }
+      return true;
+    }
+    // WEB: trigger individual downloads
+    for (const entry of entries) {
+      const savable = await this.toSavableData(entry.data);
+      if (savable == null) continue;
+      let blob = savable;
+      if (!(savable instanceof Blob)) {
+        blob = new Blob([savable]);
+      }
+      await this.saveFile(blob, entry.filename);
+    }
+    return true;
+  }
+
+  async exportSmOnly() {
+    try {
+      this.showLoadingScreen(__("Exporting...||Exportando..."));
+      const songData = await FileTools.prepareSongForExport(this.song, this.files);
+      const smContent = SMFile.generateSM(songData);
+      const smFilename = `${this.sanitizeExportName(songData.title) || "song"}.sm`;
+      const ok = await this.saveLooseFilesToFolder([{ filename: smFilename, data: smContent }], this.getExportBaseName());
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      if (ok) notifications.show(__("Song exported successfully!||¡Canción exportada!"));
+    } catch (error) {
+      console.error("Export failed:", error);
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      notifications.show(__("Export failed!||Problema al exportar"), 2000, "error");
+    }
+  }
+
+  async exportAudioOnly() {
+    try {
+      this.showLoadingScreen(__("Exporting...||Exportando..."));
+      await this.ensureFilesLoaded();
+      const chart = this.song && this.song.chart ? this.song.chart : {};
+      const entries = [];
+      if (this.files.audio && chart.audio && chart.audio !== "no-media") {
+        entries.push({ filename: chart.audio, data: this.files.audio });
+      } else if (chart.audio && chart.audio !== "no-media" && chart.audioUrl) {
+        entries.push({ filename: chart.audio, data: chart.audioUrl });
+      }
+      const ok = await this.saveLooseFilesToFolder(entries, this.getExportBaseName());
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      if (ok && entries.length) notifications.show(__("Song exported successfully!||¡Canción exportada!"));
+    } catch (error) {
+      console.error("Export failed:", error);
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      notifications.show(__("Export failed!||Problema al exportar"), 2000, "error");
+    }
+  }
+
+  getBackgroundExportEntries(videosOnly) {
+    const chart = this.song && this.song.chart ? this.song.chart : {};
+    const entries = [];
+    const seen = new Set();
+    const add = (filename, data, isVideo) => {
+      if (!filename || filename === "no-media" || filename === "-nosongbg-") return;
+      if (videosOnly && !isVideo) return;
+      if (seen.has(filename)) return;
+      seen.add(filename);
+      entries.push({ filename, data });
+    };
+
+    if (chart.background && chart.background !== "no-media") {
+      const name = chart.background;
+      const isVideo = this.isVideoFilename(name);
+      if (!videosOnly || isVideo) {
+        add(name, this.files.background || chart.backgroundUrl, isVideo);
+      }
+    }
+
+    if (Array.isArray(chart.backgrounds)) {
+      for (const bg of chart.backgrounds) {
+        if (!bg || !bg.file || bg.file === "no-media" || bg.file === "-nosongbg-") continue;
+        const isVideo = bg.type === "video" || this.isVideoFilename(bg.file);
+        if (videosOnly && !isVideo) continue;
+        add(bg.file, this.files.extra[bg.file] || bg.url, isVideo);
+      }
+    }
+    return entries;
+  }
+
+  async exportBackgroundsOnly() {
+    try {
+      this.showLoadingScreen(__("Exporting...||Exportando..."));
+      await this.ensureFilesLoaded();
+      const entries = this.getBackgroundExportEntries(false);
+      const ok = await this.saveLooseFilesToFolder(entries, this.getExportBaseName());
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      if (ok && entries.length) notifications.show(__("Song exported successfully!||¡Canción exportada!"));
+    } catch (error) {
+      console.error("Export failed:", error);
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      notifications.show(__("Export failed!||Problema al exportar"), 2000, "error");
+    }
+  }
+
+  async exportVideosOnly() {
+    try {
+      this.showLoadingScreen(__("Exporting...||Exportando..."));
+      await this.ensureFilesLoaded();
+      const entries = this.getBackgroundExportEntries(true);
+      const ok = await this.saveLooseFilesToFolder(entries, this.getExportBaseName());
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      if (ok && entries.length) notifications.show(__("Song exported successfully!||¡Canción exportada!"));
     } catch (error) {
       console.error("Export failed:", error);
       this.hideLoadingScreen();
@@ -40085,9 +41468,22 @@ class Editor {
    */
   async saveFileToFilesystem(blob, filename) {
     const fileSystem = new FileSystemTools();
-    
-    const outputDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY + EDITOR_OUTPUT_DIRECTORY);
-    
+    const dirPath = EXTERNAL_DIRECTORY + EDITOR_OUTPUT_DIRECTORY;
+
+    let outputDir;
+    try {
+      outputDir = await fileSystem.getDirectory(dirPath);
+    } catch (e) {
+      const rootDir = await fileSystem.getDirectory("");
+      let gameDir;
+      try {
+        gameDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY);
+      } catch (e2) {
+        gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
+      }
+      outputDir = await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
+    }
+
     await fileSystem.saveFile(outputDir, blob, filename);
   }
   
@@ -40471,6 +41867,8 @@ class Editor {
    */
   createNewSongAndReload() {
     if (this.bpmDetector) this.bpmDetector.clearCache();
+    if (window._editorAudioSyncCache) { window._editorAudioSyncCache.key = null; window._editorAudioSyncCache.buffer = null; }
+    this.padManiacsData = PadManiacsJSON.createEmpty();
     this.song = this.createNewSong();
     game.state.start("Editor");
   }
@@ -40498,6 +41896,194 @@ class Editor {
       this.bannerSprite.visible = false;
     }
   }
+
+
+  ensureMarkers() {
+    if (!this.padManiacsData) this.padManiacsData = (typeof PadManiacsJSON !== "undefined") ? PadManiacsJSON.createEmpty() : { version: 1, markers: [] };
+    if (!this.song.chart.markers) this.song.chart.markers = this.padManiacsData.markers;
+    this.padManiacsData.markers = this.song.chart.markers;
+    return this.song.chart.markers;
+  }
+
+  getMarker() {
+    const markers = (this.song && this.song.chart && this.song.chart.markers) || [];
+    return markers.find(m => Math.abs(m.beat - this.cursorBeat) < 0.001);
+  }
+
+  addMarker() {
+    const markers = this.ensureMarkers();
+    if (!this.getMarker()) {
+      markers.push({ beat: this.cursorBeat });
+      markers.sort((a, b) => a.beat - b.beat);
+      this.savePadManiacsData();
+      notifications.show(__("(Marker added|Marcador añadido)"));
+    }
+  }
+
+  removeMarker() {
+    const markers = this.ensureMarkers();
+    const idx = markers.findIndex(m => Math.abs(m.beat - this.cursorBeat) < 0.001);
+    if (idx !== -1) {
+      markers.splice(idx, 1);
+      this.savePadManiacsData();
+      notifications.show(__("(Marker removed|Marcador eliminado)"));
+    }
+  }
+
+  async loadPadManiacsData() {
+    const chart = this.song && (this.song.chart || this.song);
+    let data = (typeof PadManiacsJSON !== "undefined") ? PadManiacsJSON.createEmpty() : { version: 1, markers: [] };
+    try {
+      if ((CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) && chart && chart.externalPath) {
+        const fs = new FileSystemTools();
+        const dir = await fs.getDirectory(chart.externalPath);
+        data = await PadManiacsJSON.loadFromDirectory(fs, dir);
+      } else if (chart && chart.files) {
+        data = await PadManiacsJSON.loadFromFileMap(chart.files);
+      }
+    } catch (e) {}
+    if (!chart) return;
+    this.padManiacsData = data;
+    this.song.chart.markers = this.padManiacsData.markers;
+    if (this.chartRenderer) {
+      this.chartRenderer.chart = this.song.chart;
+      this.chartRenderer.markers = this.song.chart.markers;
+    }
+  }
+
+  async savePadManiacsData() {
+    if (!this.padManiacsData) return;
+    if (CURRENT_ENVIRONMENT !== ENVIRONMENT.CORDOVA && CURRENT_ENVIRONMENT !== ENVIRONMENT.NWJS) return;
+    const chart = this.song && (this.song.chart || this.song);
+    const dirPath = chart && chart.externalPath;
+    if (!dirPath) return;
+    if (chart.isLocal && !chart.isExternal) return;
+    try {
+      const fs = new FileSystemTools();
+      const dir = await fs.getDirectory(dirPath);
+      await PadManiacsJSON.saveToDirectory(fs, dir, this.padManiacsData);
+    } catch (e) {}
+  }
+
+  formatMarkerTime(seconds) {
+    const t = Math.max(0, seconds || 0);
+    const m = Math.floor(t / 60);
+    const sec = Math.floor(t % 60);
+    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  }
+
+  openMarkerList() {
+    const markers = this.ensureMarkers();
+    if (!markers.length) {
+      notifications.show(__("(No markers|Sin marcadores)"));
+      return;
+    }
+    this.menuVisible = true;
+    this.markerListActive = true;
+    this.markerListPrevBeat = this.cursorBeat;
+
+    const falling = (Account.settings.scrollDirection || 'falling') === 'falling';
+    const asc = markers.slice().sort((a, b) => a.beat - b.beat);
+    const ordered = falling ? asc.slice().reverse() : asc;
+    const items = ordered.map(m => {
+      const time = this.chartRenderer ? this.chartRenderer.beatToSec(m.beat) : 0;
+      return { label: `• ${this.formatMarkerTime(time)}`, beat: m.beat };
+    });
+
+    let nearest = 0;
+    let best = Infinity;
+    for (let i = 0; i < ordered.length; i++) {
+      const d = Math.abs(ordered[i].beat - this.cursorBeat);
+      if (d < best) { best = d; nearest = i; }
+    }
+
+    const overlay = game.add.group();
+    const bg = game.add.graphics(0, 0, overlay);
+    bg.beginFill(0x000000, 0.65);
+    bg.drawRect(0, 0, game.width, game.height);
+    bg.endFill();
+
+    const title = new Text(8, 4, __("MARKERS||MARCADORES"), FONTS.default, overlay);
+    title.tint = 0x76fcde;
+
+    const menu = new CarouselMenu(4, 16, game.width - 8, game.height - 20, {
+      silent: true,
+      disableNavigation: true,
+      disableConfirm: true,
+      disableCancel: true,
+      disableMouse: true,
+      animate: false,
+      bgcolor: '#1e2930',
+      itemHeight: 8,
+      itemSpacing: 1,
+      margin: { top: 2, bottom: 2, left: 2, right: 2 }
+    });
+    overlay.add(menu);
+
+    items.forEach(it => menu.addItem(it.label, null, { beat: it.beat }));
+    menu.selectedIndex = Math.max(0, Math.min(nearest, items.length - 1));
+    menu.updateSelection();
+    menu.onSelect.add((index, item) => {
+      if (item && item.data) this.previewMarker(item.data.beat);
+    });
+
+    this.markerListUI = overlay;
+    this.markerCarousel = menu;
+    if (game.world) game.world.bringToTop(overlay);
+
+    const sel = menu.items[menu.selectedIndex];
+    if (sel && sel.data) this.previewMarker(sel.data.beat);
+  }
+
+  previewMarker(beat) {
+    this.cursorBeat = beat;
+    this.updateCursorPosition();
+    this.updateInfoText();
+  }
+
+  closeMarkerList(confirm) {
+    if (!this.markerListActive) return;
+    if (!confirm) {
+      this.cursorBeat = this.markerListPrevBeat;
+      this.updateCursorPosition();
+      this.updateInfoText();
+    }
+    if (this.markerListUI) {
+      this.markerListUI.destroy(true);
+      this.markerListUI = null;
+    }
+    this.markerCarousel = null;
+    this.markerListActive = false;
+    this.menuVisible = false;
+  }
+
+  handleMarkerListInput() {
+    const menu = this.markerCarousel;
+    if (!menu) { this.closeMarkerList(false); return; }
+    if (gamepad.pressed.up) {
+      menu.navigate(-1);
+    }
+    if (gamepad.pressed.down) {
+      menu.navigate(1);
+    }
+    if (gamepad.pressed.left) {
+      menu.navigate(-1, true);
+    }
+    if (gamepad.pressed.right) {
+      menu.navigate(1, true);
+    }
+    if (gamepad.pressed.a || gamepad.pressed.start) {
+      this.closeMarkerList(true);
+      return;
+    }
+    if (gamepad.pressed.b) {
+      this.ignoreBInput = true;
+      this.holdBStartTime = null;
+      this.closeMarkerList(false);
+      return;
+    }
+  }
+
 
   // BPM/Stop/BG change methods
   /**
@@ -40628,12 +42214,147 @@ class Editor {
 
     const close = key => {
       if (key === "b" || key === "start" || key === "a") {
+        if (key === "b") {
+          this.ignoreBInput = true;
+          this.holdBStartTime = null;
+        }
         gamepad.signals.pressed.any.remove(close);
         overlay.destroy(true);
         this.menuVisible = false;
       }
     };
     gamepad.signals.pressed.any.add(close);
+  }
+
+  /**
+   * Shows step generation configuration (Settings-like window).
+   */
+  showStepGeneratorConfig() {
+    if (this.menuVisible) return;
+    this.menuVisible = true;
+
+    const totalBeats = (typeof StepGenerator !== "undefined" && StepGenerator.getSongTotalBeats)
+      ? StepGenerator.getSongTotalBeats(this)
+      : 256;
+    const snapStep = this.getDivisionSize ? this.getDivisionSize() : 0.25;
+    const startDefault = this.getSnappedBeat ? this.getSnappedBeat(this.cursorBeat) : (this.cursorBeat || 0);
+
+    const cfg = {
+      startBeat: Math.max(0, Math.min(totalBeats, startDefault)),
+      lengthBeats: 16,
+      autoSnap: 1,
+      rating: 5,
+      removeExisting: 1,
+      style: 0,
+      allowHolds: 1,
+      allowMines: 0,
+      allowJumps: 1
+    };
+    if (cfg.startBeat + cfg.lengthBeats > totalBeats) {
+      cfg.lengthBeats = Math.max(1, Math.floor(totalBeats - cfg.startBeat));
+    }
+    if (cfg.lengthBeats < 1) cfg.lengthBeats = 1;
+
+    const bg = game.add.graphics(0, 0);
+    bg.beginFill(0x000000, 0.65);
+    bg.drawRect(0, 0, game.width, game.height);
+    bg.endFill();
+
+    const wm = new WindowManager();
+    const w = wm.createWindow(2, 1, 26, 15, "1");
+    w.fontTint = 0x76fcde;
+    if (w && w.bringToTop) w.bringToTop();
+
+    w.addRangeItem(__("Start Beat||Beat inicial"), 0, Math.max(0, totalBeats), snapStep, cfg.startBeat, "", v => { cfg.startBeat = v; });
+    w.addRangeItem(__("(Length|Longitud) (beats))"), 1, Math.max(1, Math.ceil(totalBeats)), 1, cfg.lengthBeats, "", v => { cfg.lengthBeats = v; });
+    w.addSettingItem(__("(Snap Mode|Modo de snap)"), [__("Editor Snap||Snap del editor"), __("Auto (onsets)")], cfg.autoSnap, i => { cfg.autoSnap = i; });
+    w.addRangeItem(__("(Step Rating|Nivel) (rating)"), 1, 20, 1, cfg.rating, "", v => { cfg.rating = v; });
+    const styles = ["Stream", "Jumpstream", "Technical", "Stamina", "DDR"];
+    w.addSettingItem(__("(Style|Estilo)"), styles, cfg.style, i => { cfg.style = i; });
+    w.addSettingItem(__("(Conflicts|Conflictos)"), [__("(Overwrite collisions|Sobrescribir colisiones)"), __("(Remove in range|Eliminar en rango)")], cfg.removeExisting, i => { cfg.removeExisting = i; });
+    w.addSettingItem(__("(Allow Holds|Permitir holds)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowHolds, i => { cfg.allowHolds = i; });
+    w.addSettingItem(__("(Allow Mines|Permitir minas)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowMines, i => { cfg.allowMines = i; });
+    w.addSettingItem(__("(Allow Jumps|Permitir jumps)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowJumps, i => { cfg.allowJumps = i; });
+
+    let closed = false;
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      try { wm.closeAll(); } catch (e) {}
+      try { wm.clearAll(true); } catch (e) {}
+      if (this.stepGenBg) { try { this.stepGenBg.destroy(); } catch (e) {} }
+      this.stepGenBg = null;
+      this.stepGenWM = null;
+      this.stepGenWindow = null;
+      this.menuVisible = false;
+    };
+
+    w.addItem(__("(Generate|Generar)"), "", () => {
+      const tb = (typeof StepGenerator !== "undefined" && StepGenerator.getSongTotalBeats)
+        ? StepGenerator.getSongTotalBeats(this)
+        : totalBeats;
+      let s = Math.max(0, Math.min(tb, Number(cfg.startBeat) || 0));
+      let l = Math.max(1, Math.min(tb, Math.round(Number(cfg.lengthBeats) || 1)));
+      if (s + l > tb) l = Math.max(1, Math.floor(tb - s));
+      if (l < 1) l = 1;
+      const finalCfg = {
+        startBeat: s,
+        lengthBeats: l,
+        autoSnap: cfg.autoSnap === 1,
+        rating: cfg.rating,
+        style: styles[cfg.style] || "Stream",
+        removeExisting: cfg.removeExisting === 1,
+        allowHolds: cfg.allowHolds === 1,
+        allowMines: cfg.allowMines === 1,
+        allowJumps: cfg.allowJumps === 1
+      };
+      close();
+      this.runStepGeneration(finalCfg);
+    });
+
+    w.addItem("< (Back|Volver)", "", () => close(), true);
+    w.onCancel.add(() => {
+      this.ignoreBInput = true;
+      this.holdBStartTime = null;
+      close();
+    });
+
+    wm.focus(w);
+    this.stepGenBg = bg;
+    this.stepGenWM = wm;
+    this.stepGenWindow = w;
+  }
+
+  /**
+   * Runs automatic step generation for a configured section.
+   * @param {Object} cfg
+   */
+  runStepGeneration(cfg) {
+    if (typeof StepGenerator === "undefined") {
+      notifications.show(__("Step generator unavailable||Generador no disponible"), 2000, "error");
+      return;
+    }
+    if (cfg.autoSnap && !this.audioBuffer) {
+      cfg.autoSnap = false;
+      notifications.show(__("No audio, using editor snap||Sin audio, usando snap del editor"));
+    }
+    this.showLoadingScreen(__("Generating steps...||Generando pasos..."));
+    setTimeout(() => {
+      let result = { placed: 0, removed: 0 };
+      try {
+        result = StepGenerator.generate(this, cfg) || result;
+      } catch (e) {
+        console.error("Step generation failed:", e);
+        result = { placed: 0, removed: 0, error: true };
+      }
+      this.hideLoadingScreen();
+      this.menuVisible = false;
+      if (result.error) {
+        notifications.show(__("Step generation failed||Fallo al generar pasos"), 2000, "error");
+      } else {
+        notifications.show(__(`(Generated|Generados) ${result.placed} (steps|pasos)`));
+      }
+    }, 50);
   }
 
   /**
@@ -40864,6 +42585,9 @@ class Editor {
     
     this.chartRenderer.render(now, beat);
     
+    if (this.stepGenWM) {
+      this.stepGenWM.update();
+    }
     if (notifications.notificationWindow) notifications.notificationWindow.bringToTop();
 
     if (this.currentScreen === "metadata") {
@@ -40967,10 +42691,7 @@ class Editor {
     }
     this.stopPlayback();
     this.abortPreview();
-    if (this.editorAudioCtx) {
-      try { this.editorAudioCtx.close(); } catch (e) {}
-      this.editorAudioCtx = null;
-    }
+    this.editorAudioCtx = null;
     this.audioBuffer = null;
     if (this.audio) {
       try { this.audio.pause(); } catch (e) {}
@@ -41649,10 +43370,12 @@ class ChartRenderer {
     this.backgroundGraphics = game.add.graphics(0, 0);
     this.speedModGraphics = game.add.graphics(0, 0);
     this.bgChangeGraphics = game.add.graphics(0, 0);
+    this.markerGraphics = game.add.graphics(0, 0);
     
     this.backgroundGroup.addChild(this.backgroundGraphics);
     this.backgroundGroup.addChild(this.speedModGraphics);
     this.backgroundGroup.addChild(this.bgChangeGraphics);
+    this.backgroundGroup.addChild(this.markerGraphics);
 
     this.tags = {};
     
@@ -41684,6 +43407,7 @@ class ChartRenderer {
     /** @type {Array} Stop events from the chart */
     this.stops = this.chart.stops;
     this.backgrounds = this.chart.backgrounds || [];
+    this.markers = this.chart.markers || [];
   }
   
   /**
@@ -41906,6 +43630,7 @@ class ChartRenderer {
     if (this.options.enableBGRendering) {
       this.renderBGChanges(now, beat);
     }
+    this.renderMarkers(now, beat);
     this.cleanupTags();
   }
 
@@ -42324,6 +44049,30 @@ class ChartRenderer {
       } else {
         this.removeTag(bgChange.beat, 'bg');
       }
+    });
+  }
+  
+  renderMarkers(now, beat) {
+    if (!this.markerGraphics) return;
+    this.markerGraphics.clear();
+    const markers = (this.chart && this.chart.markers) || this.markers || [];
+    if (!markers.length) return;
+    const left = this.calculateLeftOffset();
+    const size = 4;
+    const color = 0x3399ff;
+    markers.forEach(marker => {
+      const y = this.getYPos(now, beat, marker.beat);
+      if (y < -this.COLUMN_SIZE || y > game.height + this.COLUMN_SIZE) return;
+      const sx = Math.round(left - size - 3);
+      const sy = Math.round(y - size / 2);
+      this.markerGraphics.beginFill(color, 1);
+      this.markerGraphics.drawRect(sx, sy, size, size);
+      this.markerGraphics.endFill();
+      const cy = sy + Math.floor(size / 2);
+      const cx = sx + Math.floor(size / 2);
+      this.markerGraphics.lineStyle(1, color, 1);
+      this.markerGraphics.moveTo(cx, cy);
+      this.markerGraphics.lineTo(cx + size, cy);
     });
   }
   

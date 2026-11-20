@@ -190,7 +190,7 @@ class Editor {
    */
   async initalSetup() {
     if (this.initializedWithSong) {
-      this.showLoadingScreen("Setting up");
+      this.showLoadingScreen(__("Setting up||Configurando"));
       this.files.audio = await FileTools.urlToBase64(this.song.chart.audioUrl);
       this.files.banner = await FileTools.urlToBase64(this.song.chart.bannerUrl);
       this.files.background = await FileTools.urlToBase64(this.song.chart.backgroundUrl);
@@ -498,7 +498,7 @@ class Editor {
       this.audioBuffer = cache.buffer;
       return;
     }
-    this.showLoadingScreen(__("Synchronizing Audio...||Sincronizando Audio..."));
+    this.showLoadingScreen(__("Synchronizing Audio||Sincronizando Audio"));
     try {
       const ctx = this.ensureEditorAudioContext();
       const response = await fetch(sourceUrl);
@@ -1771,7 +1771,9 @@ class Editor {
         contextMenu.addItem("(Add BPM Change|Agregar Cambio de BPM)", () => this.addBPMChange());
       } else {
         contextMenu.addItem("(Edit BPM Value|Editar Valor de BPM)", () => this.editBPMChange());
-        contextMenu.addItem("(Remove BPM Change|Eliminar Cambio de BPM)", () => this.removeBPMChange());
+        if (this.cursorBeat > 0) {
+          contextMenu.addItem("(Remove BPM Change|Eliminar Cambio de BPM)", () => this.removeBPMChange());
+        }
       }
   
       if (this.cursorBeat > 0) {
@@ -1794,7 +1796,7 @@ class Editor {
       contextMenu.addItem(__("(Generate Steps|Generar pasos)"), () => this.showStepGeneratorConfig());
 
       if (!this.getMarker()) {
-        contextMenu.addItem(__("(Add Marker Here|Añadir marcador aquí)"), () => this.addMarker());
+        contextMenu.addItem(__("(Add Marker|Añadir marcador)"), () => this.addMarker());
       } else {
         contextMenu.addItem(__("(Remove Marker|Eliminar marcador)"), () => this.removeMarker());
       }
@@ -3762,10 +3764,10 @@ class Editor {
     w.fontTint = 0x76fcde;
     if (w && w.bringToTop) w.bringToTop();
 
-    w.addRangeItem(__("(Start Beat|Beat inicial)"), 0, Math.max(0, totalBeats), snapStep, cfg.startBeat, "", v => { cfg.startBeat = v; });
-    w.addRangeItem(__("(Length (beats)|Longitud (beats))"), 1, Math.max(1, Math.ceil(totalBeats)), 1, cfg.lengthBeats, "", v => { cfg.lengthBeats = v; });
-    w.addSettingItem(__("(Snap Mode|Modo de snap)"), [__("(Editor Snap|Snap del editor)"), __("(Auto (onsets)|Auto (onsets))")], cfg.autoSnap, i => { cfg.autoSnap = i; });
-    w.addRangeItem(__("(Step Rating|Nivel (rating))"), 1, 20, 1, cfg.rating, "", v => { cfg.rating = v; });
+    w.addRangeItem(__("Start Beat||Beat inicial"), 0, Math.max(0, totalBeats), snapStep, cfg.startBeat, "", v => { cfg.startBeat = v; });
+    w.addRangeItem(__("(Length|Longitud) (beats))"), 1, Math.max(1, Math.ceil(totalBeats)), 1, cfg.lengthBeats, "", v => { cfg.lengthBeats = v; });
+    w.addSettingItem(__("(Snap Mode|Modo de snap)"), [__("Editor Snap||Snap del editor"), __("Auto (onsets)")], cfg.autoSnap, i => { cfg.autoSnap = i; });
+    w.addRangeItem(__("(Step Rating|Nivel) (rating)"), 1, 20, 1, cfg.rating, "", v => { cfg.rating = v; });
     const styles = ["Stream", "Jumpstream", "Technical", "Stamina", "DDR"];
     w.addSettingItem(__("(Style|Estilo)"), styles, cfg.style, i => { cfg.style = i; });
     w.addSettingItem(__("(Conflicts|Conflictos)"), [__("(Overwrite collisions|Sobrescribir colisiones)"), __("(Remove in range|Eliminar en rango)")], cfg.removeExisting, i => { cfg.removeExisting = i; });
