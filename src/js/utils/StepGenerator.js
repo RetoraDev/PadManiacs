@@ -114,8 +114,8 @@ class StepGenerator {
       }
     }
 
-    const onsetEnergy = this._buildOnsetEnergy(editor, startBeat, endBeat, maxStep);
-    const candidates = this._selectCandidates(editor, startBeat, endBeat, maxStep, autoSnap, rating, style, onsetEnergy);
+    const onsetData = this._buildOnsetEnergy(editor, startBeat, endBeat, maxStep);
+    const candidates = this._selectCandidates(editor, startBeat, endBeat, maxStep, autoSnap, rating, style, onsetData);
     const placed = this._placeNotes(editor, notesArr, candidates, {
       rating, style, allowHolds, allowMines, allowJumps, maxStep, endBeat, overwriteOnly: !removeExisting
     });
@@ -131,25 +131,29 @@ class StepGenerator {
 
   static _buildOnsetEnergy(editor, startBeat, endBeat, maxStep) {
     const map = new Map();
+    const onsetBeats = [];
     const buf = editor.audioBuffer;
-    if (!buf) return map;
+    if (!buf) return { map, onsetBeats };
     try {
       const sr = buf.sampleRate;
       const samples = this._mono(buf);
       const onsets = this._findOnsets(samples, sr);
-      if (!onsets.length) return map;
+      if (!onsets.length) return { map, onsetBeats };
       for (let i = 0; i < onsets.length; i++) {
         const sec = onsets[i].pos / sr;
         const beat = editor.chartRenderer.secToBeat(sec);
         if (!isFinite(beat) || beat < startBeat - maxStep || beat >= endBeat + maxStep) continue;
+        const strength = onsets[i].strength || 1;
+        onsetBeats.push({ beat, strength });
         // quantize to nearest maxStep grid for lookup
         const q = Math.round(beat / maxStep) * maxStep;
-        if (q < startBeat - 1e-9 || q >= endBeat - 1e-9) continue;
-        const key = this._key(q);
-        map.set(key, (map.get(key) || 0) + (onsets[i].strength || 1));
+        if (q >= startBeat - 1e-9 && q < endBeat - 1e-9) {
+          const key = this._key(q);
+          map.set(key, (map.get(key) || 0) + strength);
+        }
       }
     } catch (e) {}
-    return map;
+    return { map, onsetBeats };
   }
 
   static _mono(audioBuffer) {
@@ -220,7 +224,7 @@ class StepGenerator {
     let factor = 1;
     if (samplerate >= 44100) factor = 2;
     if (samplerate >= 88200) factor = 4;
-    let ds = samples, dsRate = samplerate;
+    let ds = samples;
     if (factor > 1) {
       const dn = Math.floor(n / factor);
       ds = new Float32Array(dn);
@@ -229,7 +233,6 @@ class StepGenerator {
         for (let k = 0; k < factor; k++) sum += samples[j + k] || 0;
         ds[i] = sum / factor;
       }
-      dsRate = samplerate / factor;
     }
     const frameSize = 1024, hop = 512;
     if (ds.length < frameSize + hop) return [];
@@ -259,7 +262,15 @@ class StepGenerator {
     for (let i = 1; i < flux.length - 1; i++) {
       const v = flux[i];
       if (v >= threshold && v >= flux[i - 1] && v >= flux[i + 1]) {
-        const p = Math.round(i * hop * factor);
+        // parabolic interpolation for sub-frame peak timing
+        let delta = 0;
+        const denom = (flux[i - 1] - 2 * v + flux[i + 1]);
+        if (denom !== 0) {
+          delta = 0.5 * (flux[i - 1] - flux[i + 1]) / denom;
+          if (!isFinite(delta)) delta = 0;
+          delta = Math.max(-0.5, Math.min(0.5, delta));
+        }
+        const p = Math.round((i + delta) * hop * factor);
         if (p >= 0 && p < n) out.push({ pos: p, strength: v });
       }
     }
@@ -270,7 +281,9 @@ class StepGenerator {
     return Math.round(beat * 10000);
   }
 
-  static _selectCandidates(editor, startBeat, endBeat, maxStep, autoSnap, rating, style, onsetEnergy) {
+  static _selectCandidates(editor, startBeat, endBeat, maxStep, autoSnap, rating, style, onsetData) {
+    const onsetEnergy = (onsetData && onsetData.map) ? onsetData.map : (onsetData instanceof Map ? onsetData : new Map());
+    const onsetBeats = (onsetData && onsetData.onsetBeats) ? onsetData.onsetBeats : [];
     // base allowed subdivisions up to max resolution
     const baseDivs = [1, 0.5, 0.25, 1/3, 1/6, 0.125, 1/12, 0.0625, 1/24, 1/48]; // 4th,8th,16th,12th,...
     const allowed = baseDivs.filter(d => d >= maxStep - 1e-9).sort((a,b)=>b-a);
@@ -280,7 +293,7 @@ class StepGenerator {
     const candidates = [];
     const eps = 1e-9;
 
-    if (!autoSnap || onsetEnergy.size === 0) {
+    if (!autoSnap || (onsetEnergy.size === 0 && onsetBeats.length === 0)) {
       // choose a uniform subdivision close to density and <= max resolution
       let chosen = allowed[allowed.length - 1];
       for (let i = 0; i < allowed.length; i++) {
@@ -300,21 +313,14 @@ class StepGenerator {
       let segStart = startBeat;
       while (segStart < endBeat - eps) {
         const segEnd = Math.min(endBeat, segStart + segment);
-        // collect onset energy on max grid in segment
-        const pts = [];
-        for (let b = segStart; b < segEnd - eps; b += maxStep) {
-          const q = Math.round(b / maxStep) * maxStep;
-          const e = onsetEnergy.get(this._key(q)) || 0;
-          pts.push({ b: q, e });
-        }
+        const segOnsets = this._getOnsetsInRange(onsetBeats, segStart - maxStep, segEnd + maxStep);
         // decide subdivision for this segment: try finer if onsets present
         let chosenDiv = allowed[0];
-        const totalE = pts.reduce((s,p)=>s+p.e,0);
-        if (totalE <= 0) {
+        if (segOnsets.length === 0) {
           // fallback by rating
           chosenDiv = this._subdivForRating(rating, allowed);
         } else {
-          chosenDiv = this._subdivForSegment(pts, maxStep, allowed, rating);
+          chosenDiv = this._subdivForSegment(segOnsets, segStart, segEnd, maxStep, allowed, rating);
         }
         // pick grid points at chosenDiv that align to maxStep, prefer those with energy
         const stepB = Math.max(maxStep, chosenDiv);
@@ -323,19 +329,34 @@ class StepGenerator {
         for (let b = segStart; b < segEnd - eps; b += alignedStep) {
           const q = Math.round(b / maxStep) * maxStep;
           if (q < segStart - eps || q >= segEnd - eps) continue;
-          segPts.push({ b: q, e: onsetEnergy.get(this._key(q)) || 0 });
+          const e = this._scoreGridPoint(q, segOnsets, alignedStep, maxStep);
+          segPts.push({ b: q, e });
         }
         // density control: if too many, keep strongest
         const targetCount = Math.max(1, Math.round(density * (segEnd - segStart)));
         segPts.sort((a,b)=>b.e-a.e || a.b-b.b);
         let picked;
-        if (segPts.length > targetCount * 1.2) {
-          picked = segPts.slice(0, targetCount).map(p=>p.b);
-          // always include strong on-beat if present
-          const onBeat = Math.round(segStart / maxStep) * maxStep;
-          if (onBeat >= segStart - eps && onBeat < segEnd - eps && picked.indexOf(onBeat) === -1) picked.push(onBeat);
+        const hasOnsetSignal = segOnsets.length > 0;
+        if (hasOnsetSignal) {
+          const positive = segPts.filter(p => p.e > 0);
+          const base = positive.length ? positive : segPts;
+          if (base.length > targetCount * 1.2) {
+            picked = base.slice(0, targetCount).map(p => p.b);
+          } else {
+            picked = base.map(p => p.b);
+          }
         } else {
-          picked = segPts.map(p=>p.b);
+          if (segPts.length > targetCount * 1.2) {
+            picked = segPts.slice(0, targetCount).map(p=>p.b);
+          } else {
+            picked = segPts.map(p=>p.b);
+          }
+        }
+        // always include strong on-beat if onset present near it
+        const onBeat = Math.round(segStart / maxStep) * maxStep;
+        if (onBeat >= segStart - eps && onBeat < segEnd - eps && picked.indexOf(onBeat) === -1) {
+          const obe = this._scoreGridPoint(onBeat, segOnsets, alignedStep, maxStep);
+          if (!hasOnsetSignal || obe > 0) picked.push(onBeat);
         }
         for (let i=0;i<picked.length;i++) candidates.push(picked[i]);
         segStart = segEnd;
@@ -363,6 +384,30 @@ class StepGenerator {
     return Math.max(maxStep, r * maxStep);
   }
 
+  static _getOnsetsInRange(onsetBeats, start, end) {
+    if (!onsetBeats || !onsetBeats.length) return [];
+    const out = [];
+    for (let i = 0; i < onsetBeats.length; i++) {
+      const b = onsetBeats[i].beat;
+      if (b >= start && b < end) out.push(onsetBeats[i]);
+    }
+    return out;
+  }
+
+  static _scoreGridPoint(beat, onsetBeats, gridStep, maxStep) {
+    if (!onsetBeats || !onsetBeats.length) return 0;
+    const tol = Math.max(maxStep * 0.51, (gridStep || maxStep) * 0.3);
+    let score = 0;
+    for (let i = 0; i < onsetBeats.length; i++) {
+      const d = Math.abs(onsetBeats[i].beat - beat);
+      if (d <= tol) {
+        const w = 1 - (d / (tol + 1e-9));
+        score += (onsetBeats[i].strength || 1) * (0.35 + 0.65 * w);
+      }
+    }
+    return score;
+  }
+
   static _densityFor(rating, style) {
     // approximate notes per beat
     let base = 0.5 + rating * 0.25; // 1->0.75, 10->3, 20->5.5
@@ -381,21 +426,27 @@ class StepGenerator {
     return allowed[allowed.length-1];
   }
 
-  static _subdivForSegment(pts, maxStep, allowed, rating) {
-    // compare energy on 4th vs 8th vs 16th grids
+  static _subdivForSegment(segOnsets, segStart, segEnd, maxStep, allowed, rating) {
+    // compare alignment of actual onsets against candidate subdivisions
     let best = this._subdivForRating(rating, allowed);
     let bestScore = -1;
+    const eps = 1e-9;
     for (let i = 0; i < allowed.length; i++) {
       const div = allowed[i];
       if (div < maxStep - 1e-9) continue;
       const step = this._alignStep(div, maxStep);
-      let score = 0, count = 0;
-      // score points near this grid
-      for (let j = 0; j < pts.length; j++) {
-        const b = pts[j].b;
-        const r = Math.round((b - pts[0].b) / step);
-        const g = pts[0].b + r * step;
-        if (Math.abs(g - b) < maxStep * 0.51) { score += pts[j].e; count++; }
+      let score = 0;
+      for (let j = 0; j < segOnsets.length; j++) {
+        const ob = segOnsets[j].beat;
+        const g = Math.round((ob - segStart) / step) * step + segStart;
+        const qg = Math.round(g / maxStep) * maxStep;
+        if (qg < segStart - eps || qg >= segEnd - eps) continue;
+        const d = Math.abs(ob - qg);
+        const tol = Math.max(maxStep * 0.51, step * 0.35);
+        if (d <= tol) {
+          const w = 1 - (d / (tol + 1e-9));
+          score += (segOnsets[j].strength || 1) * (0.4 + 0.6 * w);
+        }
       }
       // bias toward rating-appropriate fineness
       const fineness = 1 / step;
