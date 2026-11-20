@@ -57,6 +57,7 @@ class Editor {
     this.playOffset = 0;
     this.menuVisible = false;
     this.freezePreview = null;
+    this.ignoreBInput = false;
     
     /** @type {Object} Loaded media files keyed by purpose (audio, background, ...). */
     this.files = {
@@ -955,21 +956,33 @@ class Editor {
     }
 
     // Handle B button  placement
-    if (gamepad.pressed.b && !gamepad.held.a) {
-      this.holdBStartTime = beat;
-    }
-    
-    if (gamepad.released.b) {
-      const holdDuration = beat - this.holdBStartTime;
+    if (this.ignoreBInput) {
+      this.holdBStartTime = null;
+      if (gamepad.released.b || (!gamepad.held.b && !gamepad.pressed.b)) {
+        this.ignoreBInput = false;
+      }
+    } else {
+      if (gamepad.pressed.b && !gamepad.held.a) {
+        this.holdBStartTime = beat;
+      }
 
-      if (Math.abs(holdDuration) == 0) {
-        // Single tap - place note
-        this.placeNote(this.cursorColumn, this.cursorBeat);
-      } else {
-        // Long press - place freeze
-        const freezeStart = holdDuration > 0 ? this.holdBStartTime : this.holdBStartTime + holdDuration;
+      if (gamepad.released.b) {
+        if (this.holdBStartTime == null || !isFinite(this.holdBStartTime)) {
+          this.holdBStartTime = null;
+        } else {
+          const holdDuration = beat - this.holdBStartTime;
 
-        this.placeFreeze(this.cursorColumn, freezeStart, Math.abs(holdDuration));
+          if (Math.abs(holdDuration) == 0) {
+            // Single tap - place note
+            this.placeNote(this.cursorColumn, this.cursorBeat);
+          } else {
+            // Long press - place freeze
+            const freezeStart = holdDuration > 0 ? this.holdBStartTime : this.holdBStartTime + holdDuration;
+
+            this.placeFreeze(this.cursorColumn, freezeStart, Math.abs(holdDuration));
+          }
+          this.holdBStartTime = null;
+        }
       }
     }
 
@@ -3344,9 +3357,13 @@ class Editor {
     }
     if (gamepad.pressed.a || gamepad.pressed.start) {
       this.closeMarkerList(true);
+      return;
     }
     if (gamepad.pressed.b) {
+      this.ignoreBInput = true;
+      this.holdBStartTime = null;
       this.closeMarkerList(false);
+      return;
     }
   }
 
@@ -3480,6 +3497,10 @@ class Editor {
 
     const close = key => {
       if (key === "b" || key === "start" || key === "a") {
+        if (key === "b") {
+          this.ignoreBInput = true;
+          this.holdBStartTime = null;
+        }
         gamepad.signals.pressed.any.remove(close);
         overlay.destroy(true);
         this.menuVisible = false;
