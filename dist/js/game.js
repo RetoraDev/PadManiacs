@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.3.0 dev
- * Build: 11/19/2026, 2:27:42 PM
- * Platform: Development
+ * Version: v1.3.0
+ * Build: 11/20/2026, 1:11:26 AM
+ * Platform: Web
  * Debug: false
  * Minified: false
  */
@@ -125,7 +125,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.3.0 dev";
+const VERSION = "v1.3.0";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -870,7 +870,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -12967,10 +12967,10 @@ class NumberInput extends TextInput {
           this.decrement();
           break;
         case 'left':
-          this.moveCursor('left');
+          //this.moveCursor('left');
           break;
         case 'right':
-          this.moveCursor('right');
+          //this.moveCursor('right');
           break;
         case 'enter':
           this.confirm();
@@ -12985,9 +12985,10 @@ class NumberInput extends TextInput {
       return;
     }
     
-    super.receiveInput(key, input);
+    this.insertCharacter(input);
     
     const newValue = this.getNumericValue();
+
     if (newValue !== oldValue) {
       this.clampAndUpdateDisplay();
     }
@@ -13047,7 +13048,7 @@ class NumberInput extends TextInput {
     
     if (this.text !== newDisplay) {
       this.text = newDisplay;
-      this.currentIndex = Math.min(this.currentIndex, this.text.length);
+      this.currentIndex = this.text.length;
       this.updateCursor();
     }
   }
@@ -14953,6 +14954,31 @@ class FileSystemTools {
   }
 }
 
+function toFileUrl(filePath, isDirectory) {
+  if (typeof filePath !== 'string' || filePath.length === 0) return filePath;
+  if (/^(file:|https?:|data:|blob:|cdvfile:)/i.test(filePath)) return filePath;
+  try {
+    const pathModule = require('path');
+    const urlModule = require('url');
+    let resolved = pathModule.resolve(filePath);
+    if (isDirectory && !resolved.endsWith(pathModule.sep)) {
+      resolved += pathModule.sep;
+    }
+    if (urlModule && typeof urlModule.pathToFileURL === 'function') {
+      return urlModule.pathToFileURL(resolved).href;
+    }
+    let normalized = resolved.replace(/\\/g, '/');
+    if (/^[a-zA-Z]:\//.test(normalized)) {
+      normalized = '/' + normalized;
+    } else if (!normalized.startsWith('/')) {
+      normalized = '/' + normalized;
+    }
+    return encodeURI('file://' + normalized).replace(/#/g, '%23').replace(/\?/g, '%3F');
+  } catch (e) {
+    return filePath;
+  }
+}
+
 /**
  * @class NodeDirectoryEntry
  * @category File System Classes
@@ -14990,7 +15016,8 @@ class NodeDirectoryEntry {
     this.name = name;
     this.fullPath = String(fullPath || '').replace(/^[\/\\]+/, '');
     this.filesystem = fileSystem;
-    this.nativeURL = nativeURL || this.fullPath;
+    const osPath = nativeURL || require('path').join(fileSystem.basePath, this.fullPath);
+    this.nativeURL = toFileUrl(osPath, true);
   }
 
   createReader() {
@@ -15181,7 +15208,8 @@ class NodeFileEntry {
     this.name = name;
     this.fullPath = fullPath;
     this.filesystem = fileSystem;
-    this.nativeURL = nativeURL || fullPath;
+    const osPath = nativeURL || require('path').join(fileSystem.basePath, this.fullPath);
+    this.nativeURL = toFileUrl(osPath, false);
   }
 
   createWriter(successCallback, errorCallback) {
@@ -15259,10 +15287,10 @@ class NodeFileEntry {
           const buffer = fs.readFileSync(fullPath);
           return buffer.slice(start, end);
         },
-        localURL: fullPath
+        localURL: toFileUrl(fullPath, false)
       };
       
-      // Add the path for internal use
+      // Add the OS path for internal use
       file._path = fullPath;
       
       successCallback(file);
@@ -19600,7 +19628,9 @@ class OnScreenKeyboard extends Phaser.Sprite {
     this.onDown.dispatch(key, input);
     
     if (key) {
-      this.handleAction(key)
+      if (!this.handleAction(key)) {
+        this.sendInput(key, input);
+      }
     } else {
       this.sendInput(key, input);
     }
@@ -19615,7 +19645,10 @@ class OnScreenKeyboard extends Phaser.Sprite {
     
     if (typeof callback == 'function') {
       callback.call(this, action);
+      return true;
     }
+    
+    return false;
   }
   
   /**
@@ -19731,10 +19764,10 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
       { top: 24, left: 14, width: 7, height: 7, code: "2" }, 
       { top: 24, left: 24, width: 7, height: 7, code: "3" }, 
       { top: 24, left: 34, width: 7, height: 7, code: "-", action: "subtract", shortcut: "down" }, 
-      { top: 34, left: 4, width: 7, height: 7, code: "c", action: "clear" }, 
+      { top: 34, left: 4, width: 7, height: 7, code: "c", action: "clear", shortcut: "select" }, 
       { top: 34, left: 14, width: 7, height: 7, code: "0" }, 
       { top: 34, left: 24, width: 7, height: 7, code: "." }, 
-      { top: 34, left: 34, width: 7, height: 7, code: "Enter", action: 'enter', shortcut: "a"  }, 
+      { top: 34, left: 34, width: 7, height: 7, code: "Enter", action: 'enter', shortcut: "start"  }, 
     ];
   }
 }
@@ -39098,11 +39131,13 @@ class Editor {
         contextMenu.addItem("(Remove BPM Change|Eliminar Cambio de BPM)", () => this.removeBPMChange());
       }
   
-      if (!this.getStop()) {
-        contextMenu.addItem("(Add Stop|Agregar Stop)", () => this.addStop());
-      } else {
-        contextMenu.addItem("(Edit Stop Duration|Editar Duración del Stop)", () => this.editStop());
-        contextMenu.addItem("(Remove Stop|Eliminar Stop)", () => this.removeStop());
+      if (this.cursorBeat > 0) {
+        if (!this.getStop()) {
+          contextMenu.addItem("(Add Stop|Agregar Stop)", () => this.addStop());
+        } else {
+          contextMenu.addItem("(Edit Stop Duration|Editar Duración del Stop)", () => this.editStop());
+          contextMenu.addItem("(Remove Stop|Eliminar Stop)", () => this.removeStop());
+        }
       }
   
       if (!this.getBGChange()) {
@@ -40212,7 +40247,7 @@ class Editor {
   
   // TODO: Better jsdoc for this
   /**
-   * Create number input method
+   * Create numeric input method
    * @param {object} parameters - Paramerers for the numeric input
    */
   numberInput({

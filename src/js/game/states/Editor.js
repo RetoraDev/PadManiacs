@@ -1728,11 +1728,13 @@ class Editor {
         contextMenu.addItem("(Remove BPM Change|Eliminar Cambio de BPM)", () => this.removeBPMChange());
       }
   
-      if (!this.getStop()) {
-        contextMenu.addItem("(Add Stop|Agregar Stop)", () => this.addStop());
-      } else {
-        contextMenu.addItem("(Edit Stop Duration|Editar Duración del Stop)", () => this.editStop());
-        contextMenu.addItem("(Remove Stop|Eliminar Stop)", () => this.removeStop());
+      if (this.cursorBeat > 0) {
+        if (!this.getStop()) {
+          contextMenu.addItem("(Add Stop|Agregar Stop)", () => this.addStop());
+        } else {
+          contextMenu.addItem("(Edit Stop Duration|Editar Duración del Stop)", () => this.editStop());
+          contextMenu.addItem("(Remove Stop|Eliminar Stop)", () => this.removeStop());
+        }
       }
   
       if (!this.getBGChange()) {
@@ -2842,7 +2844,7 @@ class Editor {
   
   // TODO: Better jsdoc for this
   /**
-   * Create number input method
+   * Create numeric input method
    * @param {object} parameters - Paramerers for the numeric input
    */
   numberInput({

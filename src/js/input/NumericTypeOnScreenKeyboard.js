@@ -40,10 +40,10 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
       { top: 24, left: 14, width: 7, height: 7, code: "2" }, 
       { top: 24, left: 24, width: 7, height: 7, code: "3" }, 
       { top: 24, left: 34, width: 7, height: 7, code: "-", action: "subtract", shortcut: "down" }, 
-      { top: 34, left: 4, width: 7, height: 7, code: "c", action: "clear" }, 
+      { top: 34, left: 4, width: 7, height: 7, code: "c", action: "clear", shortcut: "select" }, 
       { top: 34, left: 14, width: 7, height: 7, code: "0" }, 
       { top: 34, left: 24, width: 7, height: 7, code: "." }, 
-      { top: 34, left: 34, width: 7, height: 7, code: "Enter", action: 'enter', shortcut: "a"  }, 
+      { top: 34, left: 34, width: 7, height: 7, code: "Enter", action: 'enter', shortcut: "start"  }, 
     ];
   }
 }

@@ -59,7 +59,7 @@ class OnScreenKeyboard extends Phaser.Sprite {
       { top: 24, left: 34, width: 7, height: 7, code: "f", symbol: "^" },
       { top: 24, left: 44, width: 7, height: 7, code: "g", symbol: "&" },
       { top: 24, left: 54, width: 7, height: 7, code: "h", symbol: "-" },
-      { top: 24, left: 64, width: 7, height: 7, code: "i", symbol: "+" },
+      { top: 24, left: 64, width: 7, height: 7, code: "j", symbol: "+" },
       { top: 24, left: 74, width: 7, height: 7, code: "k", symbol: "(" },
       { top: 24, left: 84, width: 7, height: 7, code: "l", symbol: ")" },
       { top: 24, left: 94, width: 7, height: 7, char: ";", symbol: "/" },
@@ -201,7 +201,9 @@ class OnScreenKeyboard extends Phaser.Sprite {
     this.onDown.dispatch(key, input);
     
     if (key) {
-      this.handleAction(key)
+      if (!this.handleAction(key)) {
+        this.sendInput(key, input);
+      }
     } else {
       this.sendInput(key, input);
     }
@@ -216,7 +218,10 @@ class OnScreenKeyboard extends Phaser.Sprite {
     
     if (typeof callback == 'function') {
       callback.call(this, action);
+      return true;
     }
+    
+    return false;
   }
   
   /**

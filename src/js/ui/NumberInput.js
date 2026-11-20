@@ -110,10 +110,10 @@ class NumberInput extends TextInput {
           this.decrement();
           break;
         case 'left':
-          this.moveCursor('left');
+          //this.moveCursor('left');
           break;
         case 'right':
-          this.moveCursor('right');
+          //this.moveCursor('right');
           break;
         case 'enter':
           this.confirm();
@@ -128,9 +128,10 @@ class NumberInput extends TextInput {
       return;
     }
     
-    super.receiveInput(key, input);
+    this.insertCharacter(input);
     
     const newValue = this.getNumericValue();
+
     if (newValue !== oldValue) {
       this.clampAndUpdateDisplay();
     }
@@ -190,7 +191,7 @@ class NumberInput extends TextInput {
     
     if (this.text !== newDisplay) {
       this.text = newDisplay;
-      this.currentIndex = Math.min(this.currentIndex, this.text.length);
+      this.currentIndex = this.text.length;
       this.updateCursor();
     }
   }
