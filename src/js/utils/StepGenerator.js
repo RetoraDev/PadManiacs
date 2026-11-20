@@ -293,73 +293,65 @@ class StepGenerator {
     const candidates = [];
     const eps = 1e-9;
 
-    if (!autoSnap || (onsetEnergy.size === 0 && onsetBeats.length === 0)) {
-      // choose a uniform subdivision close to density and <= max resolution
+    if (!autoSnap) {
+      // uniform grid on editor snap, close to density and <= max resolution
       let chosen = allowed[allowed.length - 1];
       for (let i = 0; i < allowed.length; i++) {
         const d = allowed[i];
         const perBeat = 1 / d;
         if (perBeat <= density * 1.5) { chosen = d; break; }
       }
-      // ensure not finer than maxStep
       if (chosen < maxStep) chosen = maxStep;
       for (let b = startBeat; b < endBeat - eps; b += chosen) {
         const q = Math.round(b / maxStep) * maxStep;
         if (q >= startBeat - eps && q < endBeat - eps) candidates.push(q);
       }
+    } else if (onsetBeats.length === 0 && onsetEnergy.size === 0) {
+      // no audio/onsets: fallback to uniform grid
+      let chosen = this._subdivForRating(rating, allowed);
+      if (chosen < maxStep) chosen = maxStep;
+      const alignedStep = this._alignStep(chosen, maxStep);
+      for (let b = startBeat; b < endBeat - eps; b += alignedStep) {
+        const q = Math.round(b / maxStep) * maxStep;
+        if (q >= startBeat - eps && q < endBeat - eps) candidates.push(q);
+      }
     } else {
-      // segment by beats/measures, pick subdivision per segment based on onsets
-      const segment = 1.0; // 1 beat segments
-      let segStart = startBeat;
-      while (segStart < endBeat - eps) {
-        const segEnd = Math.min(endBeat, segStart + segment);
-        const segOnsets = this._getOnsetsInRange(onsetBeats, segStart - maxStep, segEnd + maxStep);
-        // decide subdivision for this segment: try finer if onsets present
-        let chosenDiv = allowed[0];
-        if (segOnsets.length === 0) {
-          // fallback by rating
-          chosenDiv = this._subdivForRating(rating, allowed);
-        } else {
-          chosenDiv = this._subdivForSegment(segOnsets, segStart, segEnd, maxStep, allowed, rating);
-        }
-        // pick grid points at chosenDiv that align to maxStep, prefer those with energy
-        const stepB = Math.max(maxStep, chosenDiv);
-        const alignedStep = this._alignStep(stepB, maxStep);
-        const segPts = [];
-        for (let b = segStart; b < segEnd - eps; b += alignedStep) {
+      // per-onset snapping: place notes at onset beats quantized to the needed
+      // subdivision (nearest point on the editor's max snap grid), mixing
+      // subdivisions in the same section. Select strongest onsets up to density.
+      const all = this._getOnsetsInRange(onsetBeats, startBeat - maxStep, endBeat + maxStep)
+        .filter(o => o.beat >= startBeat - eps && o.beat < endBeat - eps);
+      if (all.length === 0) {
+        let chosen = this._subdivForRating(rating, allowed);
+        if (chosen < maxStep) chosen = maxStep;
+        const alignedStep = this._alignStep(chosen, maxStep);
+        for (let b = startBeat; b < endBeat - eps; b += alignedStep) {
           const q = Math.round(b / maxStep) * maxStep;
-          if (q < segStart - eps || q >= segEnd - eps) continue;
-          const e = this._scoreGridPoint(q, segOnsets, alignedStep, maxStep);
-          segPts.push({ b: q, e });
+          if (q >= startBeat - eps && q < endBeat - eps) candidates.push(q);
         }
-        // density control: if too many, keep strongest
-        const targetCount = Math.max(1, Math.round(density * (segEnd - segStart)));
-        segPts.sort((a,b)=>b.e-a.e || a.b-b.b);
-        let picked;
-        const hasOnsetSignal = segOnsets.length > 0;
-        if (hasOnsetSignal) {
-          const positive = segPts.filter(p => p.e > 0);
-          const base = positive.length ? positive : segPts;
-          if (base.length > targetCount * 1.2) {
-            picked = base.slice(0, targetCount).map(p => p.b);
-          } else {
-            picked = base.map(p => p.b);
+      } else {
+        const lengthBeats = Math.max(0, endBeat - startBeat);
+        const targetCount = Math.max(1, Math.round(density * lengthBeats));
+        const minGap = this._minGapFor(rating, style, maxStep, density);
+        const sorted = all.slice().sort((a, b) => (b.strength || 0) - (a.strength || 0) || a.beat - b.beat);
+        const picked = [];
+        const pickedKeys = new Set();
+        for (let i = 0; i < sorted.length && picked.length < targetCount; i++) {
+          const ob = sorted[i].beat;
+          let q = Math.round(ob / maxStep) * maxStep;
+          if (q < startBeat) q = Math.ceil(startBeat / maxStep - 1e-9) * maxStep;
+          if (q >= endBeat - eps || q < startBeat - eps) continue;
+          const key = this._key(q);
+          if (pickedKeys.has(key)) continue;
+          let tooClose = false;
+          for (let j = 0; j < picked.length; j++) {
+            if (Math.abs(picked[j] - q) < minGap - 1e-9) { tooClose = true; break; }
           }
-        } else {
-          if (segPts.length > targetCount * 1.2) {
-            picked = segPts.slice(0, targetCount).map(p=>p.b);
-          } else {
-            picked = segPts.map(p=>p.b);
-          }
+          if (tooClose) continue;
+          pickedKeys.add(key);
+          picked.push(q);
         }
-        // always include strong on-beat if onset present near it
-        const onBeat = Math.round(segStart / maxStep) * maxStep;
-        if (onBeat >= segStart - eps && onBeat < segEnd - eps && picked.indexOf(onBeat) === -1) {
-          const obe = this._scoreGridPoint(onBeat, segOnsets, alignedStep, maxStep);
-          if (!hasOnsetSignal || obe > 0) picked.push(onBeat);
-        }
-        for (let i=0;i<picked.length;i++) candidates.push(picked[i]);
-        segStart = segEnd;
+        for (let i = 0; i < picked.length; i++) candidates.push(picked[i]);
       }
     }
 
@@ -382,6 +374,18 @@ class StepGenerator {
     // make step a multiple of maxStep
     const r = Math.round(step / maxStep);
     return Math.max(maxStep, r * maxStep);
+  }
+
+  static _minGapFor(rating, style, maxStep, density) {
+    const d = Math.max(density || 1, 0.25);
+    let gap = Math.max(maxStep, (1 / d) * 0.6);
+    if (rating <= 3) gap = Math.max(gap, 0.5);
+    else if (rating <= 5) gap = Math.max(gap, 0.25);
+    else if (rating <= 8) gap = Math.max(gap, 1 / 6);
+    if (style === 'Stamina' || style === 'Stream') gap = Math.max(maxStep, gap * 0.85);
+    if (style === 'Technical') gap = Math.max(maxStep, gap * 0.9);
+    gap = Math.min(gap, Math.max(maxStep, (1 / d) * 1.1));
+    return gap;
   }
 
   static _getOnsetsInRange(onsetBeats, start, end) {
