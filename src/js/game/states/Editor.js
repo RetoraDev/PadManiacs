@@ -1791,6 +1791,8 @@ class Editor {
         contextMenu.addItem("(Remove BG Change|Eliminar Cambio de Fondo)", () => this.removeBGChange());
       }
 
+      contextMenu.addItem(__("(Generate Steps|Generar pasos)"), () => this.showStepGeneratorConfig());
+
       if (!this.getMarker()) {
         contextMenu.addItem(__("(Add Marker Here|Añadir marcador aquí)"), () => this.addMarker());
       } else {
@@ -3722,6 +3724,124 @@ class Editor {
   }
 
   /**
+   * Shows step generation configuration (Settings-like window).
+   */
+  showStepGeneratorConfig() {
+    if (this.menuVisible) return;
+    this.menuVisible = true;
+
+    const totalBeats = (typeof StepGenerator !== "undefined" && StepGenerator.getSongTotalBeats)
+      ? StepGenerator.getSongTotalBeats(this)
+      : 256;
+    const snapStep = this.getDivisionSize ? this.getDivisionSize() : 0.25;
+    const startDefault = this.getSnappedBeat ? this.getSnappedBeat(this.cursorBeat) : (this.cursorBeat || 0);
+
+    const cfg = {
+      startBeat: Math.max(0, Math.min(totalBeats, startDefault)),
+      lengthBeats: 16,
+      autoSnap: 1,
+      rating: 5,
+      removeExisting: 1,
+      style: 0,
+      allowHolds: 1,
+      allowMines: 0,
+      allowJumps: 1
+    };
+    if (cfg.startBeat + cfg.lengthBeats > totalBeats) {
+      cfg.lengthBeats = Math.max(1, Math.floor(totalBeats - cfg.startBeat));
+    }
+    if (cfg.lengthBeats < 1) cfg.lengthBeats = 1;
+
+    const wm = new WindowManager();
+    const w = wm.createWindow(2, 1, 26, 15, "1");
+    w.fontTint = 0x76fcde;
+
+    w.addRangeItem(__("(Start Beat|Beat inicial)"), 0, Math.max(0, totalBeats), snapStep, cfg.startBeat, "", v => { cfg.startBeat = v; });
+    w.addRangeItem(__("(Length (beats)|Longitud (beats))"), 1, Math.max(1, Math.ceil(totalBeats)), 1, cfg.lengthBeats, "", v => { cfg.lengthBeats = v; });
+    w.addSettingItem(__("(Snap Mode|Modo de snap)"), [__("(Editor Snap|Snap del editor)"), __("(Auto (onsets)|Auto (onsets))")], cfg.autoSnap, i => { cfg.autoSnap = i; });
+    w.addRangeItem(__("(Step Rating|Nivel (rating))"), 1, 20, 1, cfg.rating, "", v => { cfg.rating = v; });
+    const styles = ["Stream", "Jumpstream", "Technical", "Stamina", "DDR"];
+    w.addSettingItem(__("(Style|Estilo)"), styles, cfg.style, i => { cfg.style = i; });
+    w.addSettingItem(__("(Conflicts|Conflictos)"), [__("(Overwrite collisions|Sobrescribir colisiones)"), __("(Remove in range|Eliminar en rango)")], cfg.removeExisting, i => { cfg.removeExisting = i; });
+    w.addSettingItem(__("(Allow Holds|Permitir holds)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowHolds, i => { cfg.allowHolds = i; });
+    w.addSettingItem(__("(Allow Mines|Permitir minas)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowMines, i => { cfg.allowMines = i; });
+    w.addSettingItem(__("(Allow Jumps|Permitir jumps)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowJumps, i => { cfg.allowJumps = i; });
+
+    let closed = false;
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      try { wm.closeAll(); } catch (e) {}
+      try { wm.clearAll(true); } catch (e) {}
+      this.stepGenWM = null;
+      this.stepGenWindow = null;
+      this.menuVisible = false;
+    };
+
+    w.addItem(__("(Generate|Generar)"), "", () => {
+      const tb = (typeof StepGenerator !== "undefined" && StepGenerator.getSongTotalBeats)
+        ? StepGenerator.getSongTotalBeats(this)
+        : totalBeats;
+      let s = Math.max(0, Math.min(tb, Number(cfg.startBeat) || 0));
+      let l = Math.max(1, Math.min(tb, Math.round(Number(cfg.lengthBeats) || 1)));
+      if (s + l > tb) l = Math.max(1, Math.floor(tb - s));
+      if (l < 1) l = 1;
+      const finalCfg = {
+        startBeat: s,
+        lengthBeats: l,
+        autoSnap: cfg.autoSnap === 1,
+        rating: cfg.rating,
+        style: styles[cfg.style] || "Stream",
+        removeExisting: cfg.removeExisting === 1,
+        allowHolds: cfg.allowHolds === 1,
+        allowMines: cfg.allowMines === 1,
+        allowJumps: cfg.allowJumps === 1
+      };
+      close();
+      this.runStepGeneration(finalCfg);
+    });
+
+    w.addItem("< (Back|Volver)", "", () => close(), true);
+    w.onCancel.add(() => close());
+
+    wm.focus(w);
+    this.stepGenWM = wm;
+    this.stepGenWindow = w;
+  }
+
+  /**
+   * Runs automatic step generation for a configured section.
+   * @param {Object} cfg
+   */
+  runStepGeneration(cfg) {
+    if (typeof StepGenerator === "undefined") {
+      notifications.show(__("Step generator unavailable||Generador no disponible"), 2000, "error");
+      return;
+    }
+    if (cfg.autoSnap && !this.audioBuffer) {
+      cfg.autoSnap = false;
+      notifications.show(__("No audio, using editor snap||Sin audio, usando snap del editor"));
+    }
+    this.showLoadingScreen(__("Generating steps...||Generando pasos..."));
+    setTimeout(() => {
+      let result = { placed: 0, removed: 0 };
+      try {
+        result = StepGenerator.generate(this, cfg) || result;
+      } catch (e) {
+        console.error("Step generation failed:", e);
+        result = { placed: 0, removed: 0, error: true };
+      }
+      this.hideLoadingScreen();
+      this.menuVisible = false;
+      if (result.error) {
+        notifications.show(__("Step generation failed||Fallo al generar pasos"), 2000, "error");
+      } else {
+        notifications.show(__(`(Generated|Generados) ${result.placed} (steps|pasos)`));
+      }
+    }, 50);
+  }
+
+  /**
    * Adds a new BPM change at the current cursor beat.
    */
   addBPMChange() {
@@ -3949,6 +4069,9 @@ class Editor {
     
     this.chartRenderer.render(now, beat);
     
+    if (this.stepGenWM) {
+      this.stepGenWM.update();
+    }
     if (notifications.notificationWindow) notifications.notificationWindow.bringToTop();
 
     if (this.currentScreen === "metadata") {
