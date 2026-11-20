@@ -588,7 +588,11 @@ class Editor {
       animate: true
     });
   
-    carousel.addItem("(Export StepMania Song|Exportar Canción StepMania)", () => this.exportSong());
+    carousel.addItem("(Export StepMania Song (.zip)|Exportar Canción StepMania (.zip))", () => this.exportSong());
+    carousel.addItem("(Export .SM only|Exportar solo .SM)", () => this.exportSmOnly());
+    carousel.addItem("(Export audio only|Exportar solo audio)", () => this.exportAudioOnly());
+    carousel.addItem("(Export backgrounds (images & videos)|Exportar fondos (imágenes y videos))", () => this.exportBackgroundsOnly());
+    carousel.addItem("(Export videos only|Exportar solo videos)", () => this.exportVideosOnly());
   
     game.onMenuIn.dispatch("editorProject", carousel);
   
@@ -2573,6 +2577,214 @@ class Editor {
       this.hideLoadingScreen();
       this.showHomeScreen();
       notifications.show(__("Song exported successfully!||¡Canción exportada!"));
+    } catch (error) {
+      console.error("Export failed:", error);
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      notifications.show(__("Export failed!||Problema al exportar"), 2000, "error");
+    }
+  }
+
+  sanitizeExportName(name) {
+    let out = String(name || "").trim();
+    out = out.replace(/[\\\/:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+    out = out.replace(/[. ]+$/g, "");
+    return out;
+  }
+
+  getExportBaseName() {
+    const title = this.song && this.song.chart ? this.song.chart.title : "";
+    const sanitized = this.sanitizeExportName(title);
+    if (sanitized) return sanitized;
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `Untitled ${yyyy}-${mm}-${dd}`;
+  }
+
+  isVideoFilename(name) {
+    return /\.(mp4|webm|ogv|ogg|avi|mov|mkv|m4v)$/i.test(String(name || ""));
+  }
+
+  async getEditorOutputDir(fileSystem) {
+    const dirPath = EXTERNAL_DIRECTORY + EDITOR_OUTPUT_DIRECTORY;
+    try {
+      return await fileSystem.getDirectory(dirPath);
+    } catch (e) {
+      const rootDir = await fileSystem.getDirectory("");
+      let gameDir;
+      try {
+        gameDir = await fileSystem.getDirectory(EXTERNAL_DIRECTORY);
+      } catch (e2) {
+        gameDir = await fileSystem.createDirectory(rootDir, EXTERNAL_DIRECTORY);
+      }
+      return await fileSystem.createDirectory(gameDir, EDITOR_OUTPUT_DIRECTORY);
+    }
+  }
+
+  async getUniqueExportSubdir(fileSystem, outputDir, baseName) {
+    const safeBase = this.sanitizeExportName(baseName) || "Untitled";
+    let candidate = safeBase;
+    let i = 1;
+    while (true) {
+      try {
+        await fileSystem.getDirectory(EXTERNAL_DIRECTORY + EDITOR_OUTPUT_DIRECTORY + "/" + candidate);
+        i++;
+        candidate = `${safeBase} (${i})`;
+      } catch (e) {
+        return await fileSystem.createDirectory(outputDir, candidate);
+      }
+    }
+  }
+
+  async toSavableData(data) {
+    if (data == null) return null;
+    if (data instanceof Blob || data instanceof File) return data;
+    if (data instanceof ArrayBuffer) return data;
+    if (data && typeof data === "object" && data._file) {
+      try { return await data._file.arrayBuffer(); } catch (e) { return null; }
+    }
+    if (typeof data === "string") {
+      if (data.startsWith("blob:") || data.startsWith("data:") || data.startsWith("http://") || data.startsWith("https://") || data.startsWith("file:") || data.startsWith("/")) {
+        try { return await this.fetchFileAsBlob(data); } catch (e) {
+          if (data.includes("base64,")) return data.split("base64,")[1];
+          return data;
+        }
+      }
+      if (data.includes("base64,")) return data.split("base64,")[1];
+      return data;
+    }
+    return data;
+  }
+
+  async saveLooseFilesToFolder(entries, baseName) {
+    if (!entries || !entries.length) {
+      notifications.show(__("Nothing to export||Nada para exportar"), 2000, "error");
+      return false;
+    }
+    if (CURRENT_ENVIRONMENT === ENVIRONMENT.CORDOVA || CURRENT_ENVIRONMENT === ENVIRONMENT.NWJS) {
+      const fileSystem = new FileSystemTools();
+      const outputDir = await this.getEditorOutputDir(fileSystem);
+      const subdir = await this.getUniqueExportSubdir(fileSystem, outputDir, baseName);
+      for (const entry of entries) {
+        const savable = await this.toSavableData(entry.data);
+        if (savable == null) continue;
+        await fileSystem.saveFile(subdir, savable, entry.filename);
+      }
+      return true;
+    }
+    // WEB: trigger individual downloads
+    for (const entry of entries) {
+      const savable = await this.toSavableData(entry.data);
+      if (savable == null) continue;
+      let blob = savable;
+      if (!(savable instanceof Blob)) {
+        blob = new Blob([savable]);
+      }
+      await this.saveFile(blob, entry.filename);
+    }
+    return true;
+  }
+
+  async exportSmOnly() {
+    try {
+      this.showLoadingScreen(__("Exporting...||Exportando..."));
+      const songData = await FileTools.prepareSongForExport(this.song, this.files);
+      const smContent = SMFile.generateSM(songData);
+      const smFilename = `${this.sanitizeExportName(songData.title) || "song"}.sm`;
+      const ok = await this.saveLooseFilesToFolder([{ filename: smFilename, data: smContent }], this.getExportBaseName());
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      if (ok) notifications.show(__("Song exported successfully!||¡Canción exportada!"));
+    } catch (error) {
+      console.error("Export failed:", error);
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      notifications.show(__("Export failed!||Problema al exportar"), 2000, "error");
+    }
+  }
+
+  async exportAudioOnly() {
+    try {
+      this.showLoadingScreen(__("Exporting...||Exportando..."));
+      await this.ensureFilesLoaded();
+      const chart = this.song && this.song.chart ? this.song.chart : {};
+      const entries = [];
+      if (this.files.audio && chart.audio && chart.audio !== "no-media") {
+        entries.push({ filename: chart.audio, data: this.files.audio });
+      } else if (chart.audio && chart.audio !== "no-media" && chart.audioUrl) {
+        entries.push({ filename: chart.audio, data: chart.audioUrl });
+      }
+      const ok = await this.saveLooseFilesToFolder(entries, this.getExportBaseName());
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      if (ok && entries.length) notifications.show(__("Song exported successfully!||¡Canción exportada!"));
+    } catch (error) {
+      console.error("Export failed:", error);
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      notifications.show(__("Export failed!||Problema al exportar"), 2000, "error");
+    }
+  }
+
+  getBackgroundExportEntries(videosOnly) {
+    const chart = this.song && this.song.chart ? this.song.chart : {};
+    const entries = [];
+    const seen = new Set();
+    const add = (filename, data, isVideo) => {
+      if (!filename || filename === "no-media" || filename === "-nosongbg-") return;
+      if (videosOnly && !isVideo) return;
+      if (seen.has(filename)) return;
+      seen.add(filename);
+      entries.push({ filename, data });
+    };
+
+    if (chart.background && chart.background !== "no-media") {
+      const name = chart.background;
+      const isVideo = this.isVideoFilename(name);
+      if (!videosOnly || isVideo) {
+        add(name, this.files.background || chart.backgroundUrl, isVideo);
+      }
+    }
+
+    if (Array.isArray(chart.backgrounds)) {
+      for (const bg of chart.backgrounds) {
+        if (!bg || !bg.file || bg.file === "no-media" || bg.file === "-nosongbg-") continue;
+        const isVideo = bg.type === "video" || this.isVideoFilename(bg.file);
+        if (videosOnly && !isVideo) continue;
+        add(bg.file, this.files.extra[bg.file] || bg.url, isVideo);
+      }
+    }
+    return entries;
+  }
+
+  async exportBackgroundsOnly() {
+    try {
+      this.showLoadingScreen(__("Exporting...||Exportando..."));
+      await this.ensureFilesLoaded();
+      const entries = this.getBackgroundExportEntries(false);
+      const ok = await this.saveLooseFilesToFolder(entries, this.getExportBaseName());
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      if (ok && entries.length) notifications.show(__("Song exported successfully!||¡Canción exportada!"));
+    } catch (error) {
+      console.error("Export failed:", error);
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      notifications.show(__("Export failed!||Problema al exportar"), 2000, "error");
+    }
+  }
+
+  async exportVideosOnly() {
+    try {
+      this.showLoadingScreen(__("Exporting...||Exportando..."));
+      await this.ensureFilesLoaded();
+      const entries = this.getBackgroundExportEntries(true);
+      const ok = await this.saveLooseFilesToFolder(entries, this.getExportBaseName());
+      this.hideLoadingScreen();
+      this.showHomeScreen();
+      if (ok && entries.length) notifications.show(__("Song exported successfully!||¡Canción exportada!"));
     } catch (error) {
       console.error("Export failed:", error);
       this.hideLoadingScreen();
