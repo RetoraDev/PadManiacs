@@ -82,10 +82,13 @@ class StepGenerator {
     if (!(lengthBeats > 0) || endBeat <= startBeat) return { placed: 0, removed: 0 };
 
     const snapDiv = Math.max(1, Number(editor.snapDivision) || 4);
-    const maxStep = 4 / snapDiv; // beat units, finest allowed
+    const currentStep = 4 / snapDiv;
+    const finestDiv = (editor.divisions && editor.divisions.length) ? Math.max.apply(null, editor.divisions) : 192;
+    const finestStep = 4 / finestDiv;
     const rating = Math.max(1, Math.min(20, Math.round(Number(cfg.rating) || 5)));
     const style = cfg.style || 'Stream';
     const autoSnap = !!cfg.autoSnap;
+    const maxStep = autoSnap ? finestStep : currentStep; // finest grid for auto onset precision
     const removeExisting = !!cfg.removeExisting;
     const allowHolds = !!cfg.allowHolds;
     const allowMines = !!cfg.allowMines;
