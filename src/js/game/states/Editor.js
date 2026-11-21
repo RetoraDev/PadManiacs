@@ -3745,8 +3745,6 @@ class Editor {
       rating: 5,
       removeExisting: 1,
       style: 0,
-      allowHolds: 1,
-      allowMines: 0,
       allowJumps: 1
     };
     if (cfg.startBeat + cfg.lengthBeats > totalBeats) {
@@ -3771,8 +3769,6 @@ class Editor {
     const styles = ["Stream", "Jumpstream", "Technical", "Stamina", "DDR"];
     w.addSettingItem(__("(Style|Estilo)"), styles, cfg.style, i => { cfg.style = i; });
     w.addSettingItem(__("(Conflicts|Conflictos)"), [__("(Overwrite collisions|Sobrescribir colisiones)"), __("(Remove in range|Eliminar en rango)")], cfg.removeExisting, i => { cfg.removeExisting = i; });
-    w.addSettingItem(__("(Allow Holds|Permitir holds)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowHolds, i => { cfg.allowHolds = i; });
-    w.addSettingItem(__("(Allow Mines|Permitir minas)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowMines, i => { cfg.allowMines = i; });
     w.addSettingItem(__("(Allow Jumps|Permitir jumps)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowJumps, i => { cfg.allowJumps = i; });
 
     let closed = false;
@@ -3803,8 +3799,6 @@ class Editor {
         rating: cfg.rating,
         style: styles[cfg.style] || "Stream",
         removeExisting: cfg.removeExisting === 1,
-        allowHolds: cfg.allowHolds === 1,
-        allowMines: cfg.allowMines === 1,
         allowJumps: cfg.allowJumps === 1
       };
       close();

@@ -5,13 +5,13 @@
  * @constructor
  * @features
  * Analyzes audio onset strengths and maps them to beats
- * Generates taps/holds/rolls/mines with style and rating-driven density
+ * Generates tap notes (and jumps) with style and rating-driven density
  * Supports editor-snap or auto-detected subdivisions (up to max editor resolution)
  * Respects existing notes via remove or overwrite-collisions conflict modes
  * @description
  * Utility for automatic step generation in the editor. Uses onset detection to
  * find rhythmically relevant grid positions within a beat range and places
- * notes according to style, difficulty rating, and allowed note types.
+ * tap notes according to style and difficulty rating.
  */
 class StepGenerator {
   constructor() {}
@@ -90,8 +90,6 @@ class StepGenerator {
     const autoSnap = !!cfg.autoSnap;
     const maxStep = autoSnap ? finestStep : currentStep; // finest grid for auto onset precision
     const removeExisting = !!cfg.removeExisting;
-    const allowHolds = !!cfg.allowHolds;
-    const allowMines = !!cfg.allowMines;
     const allowJumps = cfg.allowJumps !== false;
 
     // Remove/collect existing in range
@@ -120,7 +118,7 @@ class StepGenerator {
     const onsetData = this._buildOnsetEnergy(editor, startBeat, endBeat, maxStep);
     const candidates = this._selectCandidates(editor, startBeat, endBeat, maxStep, autoSnap, rating, style, onsetData);
     const placed = this._placeNotes(editor, notesArr, candidates, {
-      rating, style, allowHolds, allowMines, allowJumps, maxStep, endBeat, overwriteOnly: !removeExisting
+      rating, style, allowJumps, endBeat, overwriteOnly: !removeExisting
     });
 
     try { editor.sortNotes(); } catch (e) { notesArr.sort((a,b)=>a.beat-b.beat || a.column-b.column); }
@@ -479,55 +477,25 @@ class StepGenerator {
   }
 
   static _placeNotes(editor, notesArr, candidates, opt) {
-    const { rating, style, allowHolds, allowMines, allowJumps, maxStep, endBeat, overwriteOnly } = opt;
+    const { rating, style, allowJumps, endBeat, overwriteOnly } = opt;
     let placed = 0;
     let lastCols = [];
-    let prevBeat = -999;
 
     const jumpProb = this._jumpProb(rating, style, allowJumps);
-    const mineProb = allowMines ? this._mineProb(rating, style) : 0;
-    const holdProb = allowHolds ? this._holdProb(rating, style) : 0;
 
     for (let i = 0; i < candidates.length; i++) {
       const beat = candidates[i];
       if (beat >= endBeat - 1e-9) continue;
 
-      // decide if mine instead of tap (sparse)
-      if (allowMines && Math.random() < mineProb && (beat - prevBeat) >= maxStep * 1.5) {
-        const col = this._pickColumn(lastCols, style, 1)[0];
-        placed += this._insertNote(editor, notesArr, { type: 'M', beat, column: col }, overwriteOnly) ? 1 : 0;
-        lastCols = [col];
-        prevBeat = beat;
-        continue;
-      }
-
       const doJump = allowJumps && Math.random() < jumpProb;
       const count = doJump ? 2 : 1;
       const cols = this._pickColumn(lastCols, style, count);
-
-      // maybe hold
-      let didHold = false;
-      if (allowHolds && Math.random() < holdProb && i + 1 < candidates.length) {
-        const col = cols[0];
-        const next = candidates[i + 1];
-        const dur = next - beat;
-        if (dur >= maxStep * 2 - 1e-9 && dur <= 4.0) {
-          didHold = this._insertFreeze(editor, notesArr, beat, dur, col, rating >= 12 && style === 'Technical' ? '4' : '2', overwriteOnly);
-          if (didHold) {
-            placed++;
-            lastCols = [col];
-            prevBeat = beat;
-            continue;
-          }
-        }
-      }
 
       for (let c = 0; c < cols.length; c++) {
         const ok = this._insertNote(editor, notesArr, { type: '1', beat, column: cols[c] }, overwriteOnly);
         if (ok) placed++;
       }
       lastCols = cols.slice();
-      prevBeat = beat;
     }
     return placed;
   }
@@ -542,20 +510,6 @@ class StepGenerator {
     // keep 8 (Hard) from feeling like Challenge
     if (rating <= 8) p *= 0.6;
     return Math.max(0, Math.min(0.35, p));
-  }
-  static _mineProb(rating, style) {
-    let p = Math.max(0, (rating - 8) * 0.01);
-    if (style === 'Technical') p += 0.06;
-    if (style === 'DDR') p += 0.02;
-    return Math.max(0, Math.min(0.15, p));
-  }
-  static _holdProb(rating, style) {
-    let p = Math.max(0, (rating - 5) * 0.012);
-    if (style === 'Technical') p += 0.06;
-    if (style === 'Stamina') p *= 0.5;
-    if (style === 'Stream') p *= 0.6;
-    if (rating <= 6) p *= 0.5;
-    return Math.max(0, Math.min(0.18, p));
   }
 
   static _pickColumn(lastCols, style, count) {
@@ -595,52 +549,11 @@ class StepGenerator {
         if (si > -1) editor.selectedNotes.splice(si, 1);
       }
     }
-    // also avoid placing tap inside a hold occupying this column? simple check
-    for (let i = 0; i < notesArr.length; i++) {
-      const n = notesArr[i];
-      if (!n || n.column !== column) continue;
-      if ((n.type === '2' || n.type === '4') && isFinite(n.beatEnd)) {
-        if (beat > n.beat + 1e-9 && beat < n.beatEnd - 1e-9) return false;
-      }
-    }
     const note = {
-      type: spec.type || '1',
+      type: '1',
       beat: beat,
       sec: editor.chartRenderer.beatToSec(beat),
       column: column
-    };
-    notesArr.push(note);
-    return true;
-  }
-
-  static _insertFreeze(editor, notesArr, startBeat, duration, column, type, overwriteOnly) {
-    const endBeat = startBeat + duration;
-    // remove/skip colliding notes in range on this column
-    for (let i = notesArr.length - 1; i >= 0; i--) {
-      const n = notesArr[i];
-      if (!n || n.column !== column) continue;
-      const nb = n.beat;
-      const nEnd = (n.type === '2' || n.type === '4') && isFinite(n.beatEnd) ? n.beatEnd : nb;
-      const collides = !(nEnd <= startBeat + 1e-9 || nb >= endBeat - 1e-9);
-      if (collides) {
-        if (!overwriteOnly) return false;
-        try { editor.chartRenderer.killNote(n); } catch (e) {}
-        notesArr.splice(i, 1);
-        if (Array.isArray(editor.selectedNotes)) {
-          const si = editor.selectedNotes.indexOf(n);
-          if (si > -1) editor.selectedNotes.splice(si, 1);
-        }
-      }
-    }
-    const note = {
-      type: type || '2',
-      beat: startBeat,
-      sec: editor.chartRenderer.beatToSec(startBeat),
-      column: column,
-      beatLength: duration,
-      secLength: editor.chartRenderer.beatToSec(endBeat) - editor.chartRenderer.beatToSec(startBeat),
-      beatEnd: endBeat,
-      secEnd: editor.chartRenderer.beatToSec(endBeat)
     };
     notesArr.push(note);
     return true;
