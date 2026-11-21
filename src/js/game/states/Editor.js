@@ -1104,8 +1104,38 @@ class Editor {
    * @returns {number} The snapped beat value.
    */
   getSnappedBeat(beat) {
-    const snapped = Phaser.Math.snapToFloor(beat, this.getDivisionSize());
-    return Math.max(0, snapped);
+    const d = this.snapDivision || 4;
+    const index = Math.round((beat * d) / 4);
+    return Math.max(0, parseFloat(((index * 4) / d).toFixed(10)));
+  }
+
+  /**
+   * Moves a beat by delta steps and returns the next/previous grid line.
+   * Always advances at least one grid line in the movement direction.
+   * @param {number} beat - Current beat.
+   * @param {number} deltaBeat - Signed beat delta (typically +/-getDivisionSize()).
+   * @returns {number} Target snapped beat.
+   */
+  getSteppedBeat(beat, deltaBeat) {
+    const d = this.snapDivision || 4;
+    const step = 4 / d;
+    if (!d || !isFinite(step) || step <= 0 || !isFinite(deltaBeat) || deltaBeat === 0) {
+      return this.getSnappedBeat(beat);
+    }
+    const dir = deltaBeat > 0 ? 1 : -1;
+    const steps = Math.max(1, Math.round(Math.abs(deltaBeat) / step));
+    const base = (beat * d) / 4;
+    const eps = 1e-6;
+    const snappedBase = Math.round(base);
+    let index;
+    if (Math.abs(base - snappedBase) <= eps) {
+      index = snappedBase + dir * steps;
+    } else if (dir > 0) {
+      index = Math.floor(base + eps) + steps;
+    } else {
+      index = Math.ceil(base - eps) - steps;
+    }
+    return Math.max(0, parseFloat(((index * 4) / d).toFixed(10)));
   }
 
   /**
@@ -1484,8 +1514,8 @@ class Editor {
     this.cursorColumn = Phaser.Math.clamp(this.cursorColumn + deltaX, 0, 3);
 
     if (deltaBeat !== 0) {
-      this.cursorBeat += deltaBeat;
-      this.snapCursor();
+      this.cursorBeat = this.getSteppedBeat(this.cursorBeat, deltaBeat);
+      if (this.chartRenderer && this.chartRenderer.seek) this.chartRenderer.seek(this.cursorBeat, { smooth: true, ease: 'Bounce', duration: 90 });
     }
 
     this.chartRenderer.cleanupAllLines();
@@ -3747,6 +3777,7 @@ class Editor {
 
   previewMarker(beat) {
     this.cursorBeat = beat;
+    if (this.chartRenderer && this.chartRenderer.seek) this.chartRenderer.seek(beat, { smooth: true, ease: 'Bounce', duration: 90 });
     this.updateCursorPosition();
     this.updateInfoText();
   }
@@ -3755,6 +3786,7 @@ class Editor {
     if (!this.markerListActive) return;
     if (!confirm) {
       this.cursorBeat = this.markerListPrevBeat;
+      if (this.chartRenderer && this.chartRenderer.seek) this.chartRenderer.seek(this.cursorBeat, { smooth: true, ease: 'Bounce', duration: 90 });
       this.updateCursorPosition();
       this.updateInfoText();
     }
@@ -4314,6 +4346,7 @@ class Editor {
 
       if (this.isPlaying) {
         this.cursorBeat = beat;
+        if (this.chartRenderer && this.chartRenderer.seek) this.chartRenderer.seek(beat, { smooth: false });
         this.updateCursorPosition();
         this.updateInfoText();
         

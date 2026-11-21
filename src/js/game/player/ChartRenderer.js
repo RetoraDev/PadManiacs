@@ -444,24 +444,69 @@ class ChartRenderer {
    */
   render(now, beat) {
     if (this.paused) return;
+    const rBeat = this.getRenderBeat(beat);
     
     if (this.scrollDirection === "falling") {
-      this.renderFalling(now, beat);
+      this.renderFalling(now, rBeat);
     } else {
-      this.renderRising(now, beat);
+      this.renderRising(now, rBeat);
     }
 
     if (this.options.enableBeatLines) {
-      this.renderTimeLines(now, beat);
+      this.renderTimeLines(now, rBeat);
     }
     if (this.options.enableSpeedRendering) {
-      this.renderSpeedChanges(now, beat);
+      this.renderSpeedChanges(now, rBeat);
     }
     if (this.options.enableBGRendering) {
-      this.renderBGChanges(now, beat);
+      this.renderBGChanges(now, rBeat);
     }
-    this.renderMarkers(now, beat);
+    this.renderMarkers(now, rBeat);
     this.cleanupTags();
+  }
+
+  getRenderBeat(beat) {
+    if (!this.smoothScroll || !this.smoothScroll.active) return beat;
+    const s = this.smoothScroll;
+    const nowMs = (typeof game !== 'undefined' && game.time) ? game.time.now : Date.now();
+    const t = Math.max(0, Math.min(1, (nowMs - s.startTime) / s.duration));
+    const eased = this._applyScrollEasing(t, s.ease);
+    const value = s.from + (s.to - s.from) * eased;
+    if (t >= 1) this.smoothScroll.active = false;
+    return value;
+  }
+
+  _applyScrollEasing(t, ease) {
+    const Easing = (typeof Phaser !== 'undefined' && Phaser.Easing) ? Phaser.Easing : null;
+    if (typeof ease === 'function') return ease(t);
+    if (Easing && ease) {
+      if (Easing[ease] && typeof Easing[ease].Out === 'function') return Easing[ease].Out(t);
+      if (typeof ease === 'string' && ease.indexOf('.') !== -1) {
+        const parts = ease.split('.');
+        let fn = Easing;
+        for (let i = 0; i < parts.length && fn; i++) fn = fn[parts[i]];
+        if (typeof fn === 'function') return fn(t);
+      }
+    }
+    return Easing && Easing.Bounce ? Easing.Bounce.Out(t) : t;
+  }
+
+  seek(beat, options = {}) {
+    const opts = options || {};
+    const smooth = !!opts.smooth;
+    const ease = opts.ease || 'Bounce';
+    const duration = Math.max(0, typeof opts.duration === 'number' ? opts.duration : 90);
+    const target = typeof beat === 'number' && isFinite(beat) ? beat : 0;
+
+    if (!smooth || duration <= 0) {
+      this.smoothScroll = { active: false, from: target, to: target, startTime: 0, duration: 0, ease };
+      return target;
+    }
+
+    const from = (this.smoothScroll && this.smoothScroll.active) ? this.getRenderBeat(target) : target;
+    const nowMs = (typeof game !== 'undefined' && game.time) ? game.time.now : Date.now();
+    this.smoothScroll = { active: true, from, to: target, startTime: nowMs, duration, ease };
+    return target;
   }
 
   /**
