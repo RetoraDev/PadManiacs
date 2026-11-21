@@ -295,14 +295,9 @@ class StepGenerator {
     const eps = 1e-9;
 
     if (!autoSnap) {
-      // uniform grid on editor snap, close to density and <= max resolution
-      let chosen = allowed[allowed.length - 1];
-      for (let i = 0; i < allowed.length; i++) {
-        const d = allowed[i];
-        const perBeat = 1 / d;
-        if (perBeat <= density * 1.5) { chosen = d; break; }
-      }
-      if (chosen < maxStep) chosen = maxStep;
+      // use editor's current snap division directly
+      const snapDiv = Math.max(1, Number(editor.snapDivision) || 4);
+      const chosen = Math.max(maxStep, 4 / snapDiv);
       for (let b = startBeat; b < endBeat - eps; b += chosen) {
         const q = Math.round(b / maxStep) * maxStep;
         if (q >= startBeat - eps && q < endBeat - eps) candidates.push(q);
@@ -317,9 +312,9 @@ class StepGenerator {
         if (q >= startBeat - eps && q < endBeat - eps) candidates.push(q);
       }
     } else {
-      // per-onset snapping: place notes at onset beats quantized to the needed
-      // subdivision (nearest point on the editor's max snap grid), mixing
-      // subdivisions in the same section. Select strongest onsets up to density.
+      // per-onset snapping: place notes at onset beats quantized to the simplest
+      // subdivision that accurately represents the hit (up to editor max snap).
+      // Select strongest onsets up to rating-based density.
       const all = this._getOnsetsInRange(onsetBeats, startBeat - maxStep, endBeat + maxStep)
         .filter(o => o.beat >= startBeat - eps && o.beat < endBeat - eps);
       if (all.length === 0) {
@@ -339,7 +334,7 @@ class StepGenerator {
         const pickedKeys = new Set();
         for (let i = 0; i < sorted.length && picked.length < targetCount; i++) {
           const ob = sorted[i].beat;
-          let q = Math.round(ob / maxStep) * maxStep;
+          let q = this._quantizeOnset(ob, allowed, maxStep);
           if (q < startBeat) q = Math.ceil(startBeat / maxStep - 1e-9) * maxStep;
           if (q >= endBeat - eps || q < startBeat - eps) continue;
           const key = this._key(q);
@@ -375,6 +370,23 @@ class StepGenerator {
     // make step a multiple of maxStep
     const r = Math.round(step / maxStep);
     return Math.max(maxStep, r * maxStep);
+  }
+
+  static _quantizeOnset(beat, allowed, maxStep) {
+    const minStepBeat = Math.round(beat / maxStep) * maxStep;
+    let minErr = Math.abs(minStepBeat - beat);
+    // prefer coarsest subdivision when it is essentially as close as the finest
+    const tol = minErr + maxStep * 0.51;
+    for (let i = 0; i < allowed.length; i++) {
+      const step = allowed[i];
+      const q = Math.round(beat / step) * step;
+      const err = Math.abs(q - beat);
+      if (err <= tol) {
+        const q2 = Math.round(q / maxStep) * maxStep;
+        if (Math.abs(q2 - q) < 1e-9) return q2;
+      }
+    }
+    return minStepBeat;
   }
 
   static _minGapFor(rating, style, maxStep, density) {
