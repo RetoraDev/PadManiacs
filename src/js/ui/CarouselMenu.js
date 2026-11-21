@@ -278,7 +278,7 @@ class CarouselMenu extends Phaser.Sprite {
    * Uses a dynamic cooldown so held directions repeat at increasing speed.
    */
   handleInput() {
-    if (this.config.disableNavigation) return;
+    if (this.config.disableNavigation || game.activeMenuBar) return;
     
     const timeSinceLastPress = game.time.now - this.lastPress;
     const timeSinceFirstPress = game.time.now - (this.firstPressTime || 0);

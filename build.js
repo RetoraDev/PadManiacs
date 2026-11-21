@@ -68,6 +68,7 @@ class BuildSystem {
       'js/ui/Lyrics.js',
       'js/ui/OffsetAssistant.js',
       'js/ui/MouseCursor.js',
+      'js/ui/MenuBar.js',
       'js/ui/BarChart.js',
       'js/ui/LineChart.js',
       

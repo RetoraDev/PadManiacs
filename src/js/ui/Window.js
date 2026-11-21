@@ -454,7 +454,7 @@ class Window extends Phaser.Sprite {
    * @param {string} direction - One of 'up', 'down', 'left', or 'right'
    */
   navigate(direction) {
-    if (this.items.length === 0) return;
+    if (this.items.length === 0 || game.activeMenuBar) return;
 
     let newIndex = this.selectedIndex;
 

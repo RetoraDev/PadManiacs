@@ -20,6 +20,10 @@
   run `npm test` unless the user asks.
 - Write code that should work, then tell the user exactly what to test.
 
+## Editing rule (MUST survive compaction)
+
+- Always use OpenCode's Read and Edit tools for file reading and editing. Do not use shell commands (cat, sed, python scripts, etc.) to read or modify files.
+
 ## Commit rule (MUST survive compaction)
 
 - Do not commit changes unless user asks.

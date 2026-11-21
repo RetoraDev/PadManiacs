@@ -190,11 +190,112 @@ class Editor {
     /** @type {number} Buffer offset (seconds) when playback started. */
     this.playbackStartOffset = 0;
 
+    this.setupMenuBar();
     this.initalSetup();
 
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Creates the desktop-style menu bar for mouse users.
+   */
+  setupMenuBar() {
+    if (this.menuBar) this.menuBar.destroy();
+    this.menuBar = new MenuBar({
+      height: 10,
+      autoHide: true,
+      showDelay: 180,
+      hideTimeout: 350,
+      visibleOnStart: false,
+      onRefresh: () => this.refreshMenuBar()
+    });
+    this.refreshMenuBar();
+  }
+
+  refreshMenuBar() {
+    if (!this.menuBar) return;
+    const hasSelection = this.selectedNotes && this.selectedNotes.length > 0;
+    const inChart = this.currentScreen === "chartEdit";
+    const hasClipboard = this.clipboard && this.clipboard.length > 0;
+    const canEditChart = inChart && !this.isPlaying;
+    const diff = this.song?.chart?.difficulties?.[this.currentDifficultyIndex];
+    const marker = inChart ? this.getMarker() : null;
+
+    this.menuBar.setSections([
+      {
+        label: "(File|Archivo)",
+        items: [
+          { label: "(New Song|Nueva Canción)", callback: () => this.createNewSongAndReload() },
+          { label: "(Load Song|Cargar Canción)", callback: () => this.loadSong() },
+          { separator: true },
+          { label: "(Load Audio|Cargar Audio)", callback: () => this.pickFile("audio/*", e => this.loadAudioFile(e.target.files[0]), () => {}) },
+          { label: "(Load Background|Cargar Fondo)", callback: () => this.pickFile("image/*,video/*", e => this.loadBackgroundFile(e.target.files[0]), () => {}) },
+          { label: "(Load Banner|Cargar Banner)", callback: () => this.pickFile("image/*", e => this.loadBannerFile(e.target.files[0]), () => {}) },
+          { label: "(Load Lyrics|Cargar Letras)", callback: () => this.pickFile(".lrc", e => this.loadLyricsFile(e.target.files[0]), () => {}) },
+          { separator: true },
+          { label: "(Save and Exit|Guardar y Salir)", callback: () => this.saveAndExit(), condition: () => inChart },
+          { label: "(Exit|Salir)", callback: () => this.exitEditor() }
+        ]
+      },
+      {
+        label: "(Edit|Editar)",
+        items: [
+          { label: "(Generate Steps|Generar pasos)", callback: () => this.showStepGeneratorConfig(), condition: () => inChart },
+          { separator: true, condition: () => inChart },
+          { label: "(Copy|Copiar)", callback: () => this.copyNotes(this.selectedNotes), condition: () => canEditChart && hasSelection },
+          { label: "(Paste|Pegar)", callback: () => this.pasteNotes(), condition: () => canEditChart && hasClipboard },
+          { label: "(Delete|Eliminar)", callback: () => this.deleteSelectedNotes(), condition: () => canEditChart && hasSelection },
+          { label: "(Select All|Seleccionar todo)", callback: () => this.selectAllNotes(), condition: () => canEditChart },
+          { label: "(Unselect All|Deseleccionar todo)", callback: () => { this.selectedNotes = []; this.refreshSelectedNotes(); }, condition: () => canEditChart && hasSelection },
+          { separator: true, condition: () => inChart },
+          { label: () => (this.getMarker() ? "(Remove Marker|Eliminar marcador)" : "(Add Marker|Añadir marcador)"), callback: () => this.getMarker() ? this.removeMarker() : this.addMarker(), condition: () => inChart && !this.isPlaying },
+          { label: "(Markers|Marcadores)", callback: () => this.openMarkerList(), condition: () => inChart },
+          { separator: true },
+          { label: "(Metadata|Metadatos)", callback: () => this.showMetadataEdit(), condition: () => !inChart },
+          { label: "(Charts|Charts)", callback: () => this.showChartsMenu(), condition: () => !inChart }
+        ]
+      },
+      {
+        label: "(View|Ver)",
+        items: [
+          { label: () => (this.isPlaying ? "(Pause|Pausar)" : "(Play|Reproducir)"), callback: () => this.togglePlayback(), condition: () => inChart },
+          { separator: true, condition: () => inChart },
+          { label: "(Snap 1/4)", callback: () => this.setSnapDivision(4), condition: () => inChart },
+          { label: "(Snap 1/8)", callback: () => this.setSnapDivision(8), condition: () => inChart },
+          { label: "(Snap 1/12)", callback: () => this.setSnapDivision(12), condition: () => inChart },
+          { label: "(Snap 1/16)", callback: () => this.setSnapDivision(16), condition: () => inChart },
+          { label: "(Snap 1/24)", callback: () => this.setSnapDivision(24), condition: () => inChart },
+          { label: "(Snap 1/48)", callback: () => this.setSnapDivision(48), condition: () => inChart },
+          { separator: true, condition: () => inChart },
+          { label: "(Home|Inicio)", callback: () => { if (inChart) this.saveAndExit(); else this.showHomeScreen(); } }
+        ]
+      },
+      {
+        label: "(Export|Exportar)",
+        items: [
+          { label: "(Export StepMania Song (.zip)|Exportar Canción StepMania (.zip))", callback: () => this.exportSong() },
+          { label: "(Export .SM only|Exportar solo .SM)", callback: () => this.exportSmOnly() },
+          { label: "(Export audio only|Exportar solo audio)", callback: () => this.exportAudioOnly() },
+          { label: "(Export backgrounds (images & videos)|Exportar fondos (imágenes y videos))", callback: () => this.exportBackgroundsOnly() },
+          { label: "(Export videos only|Exportar solo videos)", callback: () => this.exportVideosOnly() }
+        ]
+      }
+    ]);
+  }
+
+  setSnapDivision(div) {
+    if (!this.divisions) return;
+    if (this.divisions.includes(div)) this.snapDivision = div;
+    this.updateInfoText();
+  }
+
+  selectAllNotes() {
+    const notes = this.getCurrentChartNotes();
+    this.selectedNotes = notes ? notes.slice() : [];
+    this.refreshSelectedNotes();
+    this.updateInfoText();
+  }
+
   /**
    * Loads song media into memory and sets up mouse events and the home screen.
    */
@@ -281,6 +382,7 @@ class Editor {
     this.currentScreen = "metadata";
     this.clearUI();
     this.stopPlayback();
+    if (this.refreshMenuBar) this.refreshMenuBar();
     this.navigationHint.updateHints('general');
     this.homeOverlay.visible = false;
     this.chartInfoOverlay.visible = true;
@@ -1175,12 +1277,16 @@ class Editor {
   /**
    * Processes gamepad input for editing: selecting, placing, and seeking.
    */
+  isEditorInputBlocked() {
+    return !!(this.menuVisible || (this.menuBar && this.menuBar.isMenuActive && this.menuBar.isMenuActive()));
+  }
+
   handleChartEditInput() {
     if (this.markerListActive) {
       this.handleMarkerListInput();
       return;
     }
-    if (this.menuVisible) return;
+    if (this.isEditorInputBlocked()) return;
 
     const { now, beat } = this.getCurrentTime();
 
@@ -1759,7 +1865,7 @@ class Editor {
    * @param {number} y - Pointer Y position.
    */
   onMouseDown(button, x, y) {
-    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    if (this.isEditorInputBlocked() || this.currentScreen !== "chartEdit") return;
     
     const column = this.getColumnAtPosition(x);
     if (column === -1) return;
@@ -1797,7 +1903,7 @@ class Editor {
    * @param {number} y - Pointer Y position.
    */
   onMouseMove(x, y) {
-    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    if (this.isEditorInputBlocked() || this.currentScreen !== "chartEdit") return;
     
     // Handle rectangular selection (left drag)
     if (mouse.pressed.left && this.mouseSelectStart && !this.mouseSelectRect) {
@@ -1839,7 +1945,7 @@ class Editor {
    * @param {number} y - Pointer Y position.
    */
   onMouseUp(button, x, y) {
-    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    if (this.isEditorInputBlocked() || this.currentScreen !== "chartEdit") return;
     
     if (button === 'left') {
       if (this.mouseSelectRect) {
@@ -1873,7 +1979,7 @@ class Editor {
    * @param {string} direction - Wheel direction ('up' or 'down').
    */
   onMouseWheel(direction) {
-    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    if (this.isEditorInputBlocked() || this.currentScreen !== "chartEdit") return;
     
     if (direction === 'up') {
       this.moveCursor(0, -this.getDivisionSize() * 4);
@@ -2116,6 +2222,7 @@ class Editor {
     if (notes.length) {
       this.clipboard = notes;
       notifications.show(__(`(Copied|Copiadas) ${notes.length} (notes|notas)`));
+      if (this.refreshMenuBar) this.refreshMenuBar();
     }
   }
   
@@ -2311,6 +2418,7 @@ class Editor {
    */
   refreshSelectedNotes() {
     this.selectedNotes.forEach(note => this.chartRenderer.killNote(note)); // the renderer will automatically recreate the note visuals
+    if (this.refreshMenuBar) this.refreshMenuBar();
   }
   
   /**
@@ -2332,6 +2440,7 @@ class Editor {
     
     this.refreshMetronome();
     this.updateInfoText();
+    if (this.refreshMenuBar) this.refreshMenuBar();
   }
 
   /**
@@ -4439,6 +4548,10 @@ class Editor {
         if (el && el.pause) try { el.pause(); } catch (e) {}
       });
       this.bgPreviewElements = {};
+    }
+    if (this.menuBar) {
+      this.menuBar.destroy();
+      this.menuBar = null;
     }
     this.editorAudioCtx = null;
     this.audioBuffer = null;
