@@ -203,6 +203,7 @@ class NumberInput extends TextInput {
    */
   moveCursor(dir) {
     if (dir === 'left' || dir === 'right') {
+      this.clampCursorToDigit();
       const delta = dir === 'left' ? -1 : 1;
       let i = this.currentIndex + delta;
       while (i >= 0 && i < this.text.length) {
@@ -213,6 +214,7 @@ class NumberInput extends TextInput {
         }
         i += delta;
       }
+      this.updateCursor();
       return;
     }
     super.moveCursor(dir);
