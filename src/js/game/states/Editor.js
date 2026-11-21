@@ -89,14 +89,18 @@ class Editor {
     game.camera.fadeIn(0x000000);
 
     this.backgroundGradient = new BackgroundGradient();
+    this.backgroundGradient.visible = true;
 
-    // Background elements
     /** @type {Phaser.Group} Layer containing background visual elements. */
     this.backgroundLayer = game.add.group();
     /** @type {CanvasBackground} Canvas-drawn background image sprite. */
     this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 0.3;
     this.backgroundLayer.addChild(this.backgroundSprite);
+    this.bgPreviewElements = {};
+    this.currentBgPreview = null;
+    this.currentBgPreviewKey = null;
+    this._bgVideoLastUpdate = 0;
     
     /** @type {ChartRenderer} Renders the chart and manages note visuals. */
     this.chartRenderer = new ChartRenderer(this, this.song, this.currentDifficultyIndex, {
@@ -126,6 +130,12 @@ class Editor {
     this.homeOverlay.drawRect(0, 0, game.width, game.height);
     this.homeOverlay.endFill();
     this.homeOverlay.visible = false;
+
+    this.chartInfoOverlay = game.add.graphics(0, 0);
+    this.chartInfoOverlay.beginFill(0x000000, 0.35);
+    this.chartInfoOverlay.drawRect(0, 0, game.width, game.height);
+    this.chartInfoOverlay.endFill();
+    this.chartInfoOverlay.visible = false;
 
     this.navigationHint = new NavigationHint('general');
 
@@ -272,7 +282,8 @@ class Editor {
     this.clearUI();
     this.stopPlayback();
     this.navigationHint.updateHints('general');
-    this.homeOverlay.visible = true;
+    this.homeOverlay.visible = false;
+    this.chartInfoOverlay.visible = true;
     this.bannerSprite.visible = true;
     
     const leftWidth = game.width / 2;
@@ -320,22 +331,223 @@ class Editor {
     }
   }
   
+  getBgPreviewOpacity(isVideo) {
+    return isVideo ? (Account.settings.videoBackgroundOpacity ?? 0.5) : (Account.settings.backgroundOpacity ?? 0.5);
+  }
+
+  isVideoFilename(name) {
+    return /\.(mp4|webm|ogv|ogg|mov|m4v|avi|mkv)$/i.test(String(name || ""));
+  }
+
+  clearBackgroundPreview() {
+    if (this.bgPreviewVideo && this.bgPreviewVideo.pause) {
+      try { this.bgPreviewVideo.pause(); } catch (e) {}
+    }
+    this.bgPreviewVideo = null;
+    this.backgroundSprite.ctx.clearRect(0, 0, game.width, game.height);
+    this.backgroundSprite.dirty();
+    this.backgroundGradient.visible = true;
+    this.backgroundSprite.alpha = 0.3;
+  }
+
+  drawBackgroundPreviewElement(element) {
+    if (!element || element.__errored) {
+      this.clearBackgroundPreview();
+      return;
+    }
+    try {
+      this.backgroundSprite.ctx.drawImage(element, 0, 0, game.width, game.height);
+      this.backgroundSprite.dirty();
+    } catch (e) {
+      element.__errored = true;
+      this.clearBackgroundPreview();
+    }
+  }
+
+  loadBgPreviewImage(filename, url) {
+    if (!url || url === "no-media" || filename === "undefined") {
+      this.clearBackgroundPreview();
+      return;
+    }
+    const cached = this.bgPreviewElements[filename];
+    if (cached && !cached.__errored) {
+      this.bgPreviewVideo = null;
+      this.drawBackgroundPreviewElement(cached);
+      return;
+    }
+    const img = new Image();
+    img.__type = "image";
+    img.__url = url;
+    img.onload = () => {
+      this.bgPreviewElements[filename] = img;
+      if (this.currentBgPreview && this.currentBgPreview.file === filename) {
+        this.bgPreviewVideo = null;
+        this.drawBackgroundPreviewElement(img);
+      }
+    };
+    img.onerror = () => {
+      img.__errored = true;
+      this.bgPreviewElements[filename] = img;
+      if (this.currentBgPreview && this.currentBgPreview.file === filename) this.clearBackgroundPreview();
+    };
+    img.src = url;
+  }
+
+  loadBgPreviewVideo(filename, url) {
+    if (!url || url === "no-media" || filename === "undefined") {
+      this.clearBackgroundPreview();
+      return;
+    }
+    const cached = this.bgPreviewElements[filename];
+    if (cached && !cached.__errored) {
+      if (this.bgPreviewVideo && this.bgPreviewVideo !== cached) {
+        try { this.bgPreviewVideo.pause(); } catch (e) {}
+      }
+      this.bgPreviewVideo = cached;
+      this.backgroundGradient.visible = false;
+      if (cached.readyState >= 2) this.drawBackgroundPreviewElement(cached);
+      return;
+    }
+    const video = document.createElement("video");
+    video.__type = "video";
+    video.__url = url;
+    video.__errored = false;
+    video.muted = true;
+    video.volume = 0;
+    video.loop = true;
+    video.autoplay = false;
+    video.preload = "auto";
+    video.addEventListener("canplaythrough", () => {
+      this.bgPreviewElements[filename] = video;
+      if (this.currentBgPreview && this.currentBgPreview.file === filename) {
+        if (this.bgPreviewVideo && this.bgPreviewVideo !== video) {
+          try { this.bgPreviewVideo.pause(); } catch (e) {}
+        }
+        this.bgPreviewVideo = video;
+        this.backgroundGradient.visible = false;
+        this.drawBackgroundPreviewElement(video);
+      }
+    }, { once: true });
+    video.onerror = () => {
+      video.__errored = true;
+      this.bgPreviewElements[filename] = video;
+      if (this.currentBgPreview && this.currentBgPreview.file === filename) this.clearBackgroundPreview();
+    };
+    video.src = url;
+  }
+
+  applyBgPreview(bg) {
+    const file = bg && bg.file;
+    if (!file || file === "-nosongbg-" || file === "no-media") {
+      this.currentBgPreview = { file: file || "-nosongbg-", type: "image", beat: bg ? bg.beat : 0, activatedAt: 0 };
+      this.clearBackgroundPreview();
+      return;
+    }
+    this.currentBgPreview = bg;
+    const isVideo = bg.type === "video" || this.isVideoFilename(file);
+    this.backgroundSprite.alpha = this.getBgPreviewOpacity(isVideo);
+    this.backgroundGradient.visible = !isVideo;
+    const url = bg.url || (this.files.extra && this.files.extra[file]) || (file === this.song.chart.background ? this.song.chart.backgroundUrl : null);
+    if (isVideo) this.loadBgPreviewVideo(file, url);
+    else this.loadBgPreviewImage(file, url);
+  }
+
+  updateBgPreview(now, beat) {
+    const visible = this.currentScreen === "chartEdit" || this.currentScreen === "metadata";
+    this.backgroundLayer.visible = visible;
+    if (!visible) {
+      if (this.bgPreviewVideo && this.bgPreviewVideo.pause) {
+        try { this.bgPreviewVideo.pause(); } catch (e) {}
+      }
+      return;
+    }
+
+    let active = null;
+    const chart = this.song && this.song.chart;
+    if (chart) {
+      const baseFile = chart.background;
+      if (baseFile && baseFile !== "no-media") {
+        active = { file: baseFile, url: chart.backgroundUrl, type: this.isVideoFilename(baseFile) ? "video" : "image", beat: -Infinity };
+      } else {
+        active = { file: "-nosongbg-", type: "image", beat: -Infinity };
+      }
+      const bgs = Array.isArray(chart.backgrounds) ? chart.backgrounds : [];
+      for (let i = 0; i < bgs.length; i++) {
+        const bg = bgs[i];
+        if (!bg) continue;
+        if (beat >= bg.beat - 0.0001) active = bg;
+      }
+    }
+
+    if (!active) {
+      this.currentBgPreviewKey = null;
+      this.clearBackgroundPreview();
+      return;
+    }
+
+    const key = (active.beat != null ? active.beat : -1) + "|" + (active.file || "") + "|" + (active.type || "");
+    if (key !== this.currentBgPreviewKey) {
+      this.currentBgPreviewKey = key;
+      this.applyBgPreview(active);
+    }
+
+    const isVideo = active.type === "video" || this.isVideoFilename(active.file);
+    this.backgroundSprite.alpha = this.getBgPreviewOpacity(isVideo);
+
+    if (isVideo && this.bgPreviewVideo && !this.bgPreviewVideo.__errored) {
+      const video = this.bgPreviewVideo;
+      if (this.isPlaying) {
+        if (video.paused) {
+          try { const p = video.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+        }
+        const activeBeat = (active.beat != null && isFinite(active.beat)) ? active.beat : 0;
+        const startSec = this.chartRenderer ? this.chartRenderer.beatToSec(activeBeat) : 0;
+        let target = Math.max(0, (now || 0) - startSec);
+        if (isFinite(video.duration) && video.duration > 0) {
+          target = target % video.duration;
+          if (Math.abs((video.currentTime || 0) - target) > 0.2) {
+            try { video.currentTime = target; } catch (e) {}
+          }
+        }
+        if (game.time.now - (this._bgVideoLastUpdate || 0) >= 66) {
+          this._bgVideoLastUpdate = game.time.now;
+          if (video.readyState >= 2) this.drawBackgroundPreviewElement(video);
+        }
+      } else {
+        if (!video.paused) {
+          try { video.pause(); } catch (e) {}
+        }
+        const activeBeat = (active.beat != null && isFinite(active.beat)) ? active.beat : 0;
+        const startSec = this.chartRenderer ? this.chartRenderer.beatToSec(activeBeat) : 0;
+        let target = Math.max(0, (now || 0) - startSec);
+        if (isFinite(video.duration) && video.duration > 0) target = target % video.duration;
+        const cur = video.currentTime || 0;
+        if (Math.abs(cur - target) > 0.05) {
+          try { video.currentTime = target; } catch (e) {}
+          const drawWhenReady = () => {
+            if (this.bgPreviewVideo === video && video.readyState >= 2) this.drawBackgroundPreviewElement(video);
+          };
+          if (video.readyState >= 2) {
+            drawWhenReady();
+          } else {
+            video.addEventListener('seeked', drawWhenReady, { once: true });
+          }
+        } else if (video.readyState >= 2) {
+          this.drawBackgroundPreviewElement(video);
+        }
+      }
+    } else if (this.bgPreviewVideo) {
+      try { this.bgPreviewVideo.pause(); } catch (e) {}
+      this.bgPreviewVideo = null;
+    }
+  }
+
   /**
    * Draws the song background image onto the background sprite canvas.
    * @param {string} [url] - Image URL to render; a cleared canvas when null.
    */
   updateBackground(url = null) {
-    this.backgroundSprite.ctx.clearRect(0, 0, game.width, game.height);
-    this.backgroundSprite.dirty();
-    
-    if (url && url !== "no-media") {
-      const img = new Image();
-      img.onload = () => {
-        this.backgroundSprite.ctx.drawImage(img, 0, 0, game.width, game.height);
-        this.backgroundSprite.dirty();
-      };
-      img.src = url;
-    }
+    this.applyBgPreview({ file: (url && url !== "no-media") ? (this.song && this.song.chart ? this.song.chart.background : "background") : "-nosongbg-", url: url, type: "image", beat: -Infinity });
   }
   
   /**
@@ -659,6 +871,7 @@ class Editor {
     this.clearUI();
     this.stopPlayback();
     this.homeOverlay.visible = false;
+    this.chartInfoOverlay.visible = false;
     this.bannerSprite.visible = false;
     this.navigationHint.updateHints('editor');
 
@@ -2607,9 +2820,7 @@ class Editor {
     return `Untitled ${yyyy}-${mm}-${dd}`;
   }
 
-  isVideoFilename(name) {
-    return /\.(mp4|webm|ogv|ogg|avi|mov|mkv|m4v)$/i.test(String(name || ""));
-  }
+  // isVideoFilename defined earlier in Editor for BG preview
 
   async getEditorOutputDir(fileSystem) {
     const dirPath = EXTERNAL_DIRECTORY + EDITOR_OUTPUT_DIRECTORY;
@@ -4077,6 +4288,7 @@ class Editor {
     const { now, beat } = this.getCurrentTime();
     
     this.chartRenderer.render(now, beat);
+    this.updateBgPreview(now, beat);
     
     if (this.stepGenWM) {
       this.stepGenWM.update();
@@ -4184,6 +4396,17 @@ class Editor {
     }
     this.stopPlayback();
     this.abortPreview();
+    if (this.bgPreviewVideo) {
+      try { this.bgPreviewVideo.pause(); } catch (e) {}
+      this.bgPreviewVideo = null;
+    }
+    if (this.bgPreviewElements) {
+      Object.keys(this.bgPreviewElements).forEach(k => {
+        const el = this.bgPreviewElements[k];
+        if (el && el.pause) try { el.pause(); } catch (e) {}
+      });
+      this.bgPreviewElements = {};
+    }
     this.editorAudioCtx = null;
     this.audioBuffer = null;
     if (this.audio) {
