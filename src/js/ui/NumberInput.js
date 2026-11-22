@@ -59,6 +59,11 @@ class NumberInput extends TextInput {
       onConfirm: config.onConfirm,
       onCancel: config.onCancel
     });
+    
+    this.cursor.clear();
+    this.cursor.beginFill(this.window.fontTint, 1);
+    this.cursor.drawRect(0, 6, 4, 1);
+    this.cursor.endFill();
 
     /** @type {number} Minimum allowed value */
     this.min = config.min;
@@ -257,10 +262,8 @@ class NumberInput extends TextInput {
           this.adjustAtCursor(-1);
           return;
         case 'left':
-          this.moveCursor('left');
-          return;
         case 'right':
-          this.moveCursor('right');
+          this.moveCursor(key.action);
           return;
         case 'enter':
           this.confirm();

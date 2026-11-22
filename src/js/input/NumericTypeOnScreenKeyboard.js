@@ -44,6 +44,9 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
       { top: 34, left: 14, width: 7, height: 7, code: "0" }, 
       { top: 34, left: 24, width: 7, height: 7, code: "." }, 
       { top: 34, left: 34, width: 7, height: 7, code: "Enter", action: 'enter', shortcut: "start"  }, 
+      // Hidden keys
+      { top: 0, left: 0, width: 0, height: 0, code: "ArrowLeft", action: 'left', shortcut: "left"  }, 
+      { top: 0, left: 0, width: 0, height: 0, code: "ArrowRight", action: 'right', shortcut: "right"  }
     ];
   }
 }

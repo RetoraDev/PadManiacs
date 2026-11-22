@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0
- * Build: 11/21/2026, 8:19:07 PM
+ * Build: 11/22/2026, 2:13:36 PM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -11213,9 +11213,9 @@ class CarouselMenu extends Phaser.Sprite {
   
   /**
    * Clears the menu state and destroys the sprite.
-   * @param {boolean} [createNew=false] - Unused; present for compatibility
    */
-  destroy(createNew = false) {
+  destroy() {
+    this.disposed = true;
     this.clear();
     super.destroy();
   }
@@ -12920,6 +12920,11 @@ class NumberInput extends TextInput {
       onConfirm: config.onConfirm,
       onCancel: config.onCancel
     });
+    
+    this.cursor.clear();
+    this.cursor.beginFill(this.window.fontTint, 1);
+    this.cursor.drawRect(0, 6, 4, 1);
+    this.cursor.endFill();
 
     /** @type {number} Minimum allowed value */
     this.min = config.min;
@@ -13118,10 +13123,8 @@ class NumberInput extends TextInput {
           this.adjustAtCursor(-1);
           return;
         case 'left':
-          this.moveCursor('left');
-          return;
         case 'right':
-          this.moveCursor('right');
+          this.moveCursor(key.action);
           return;
         case 'enter':
           this.confirm();
@@ -14861,7 +14864,16 @@ class MenuBar extends Phaser.Graphics {
   }
 
   _getVisibleItems(items) {
-    return (items || []).filter(it => !it.condition || it.condition());
+    let previous, previousVisible;
+    return (items || []).filter(it => {
+      const conditionMet = !it.condition || it.condition();
+      const validSeparator = it.separator ? previous && previousVisible && !previous.separator : true;
+      
+      previous = it;
+      previousVisible = conditionMet && validSeparator;
+      
+      return previousVisible;      
+    });
   }
 
   _itemLabel(it) {
@@ -14924,7 +14936,7 @@ class MenuBar extends Phaser.Graphics {
     const menuObj = { container, highlight, bounds: { x: menuX, y: menuY, w: size.w, h: totalH }, itemRects: [], level, labelH: size.labelH, _parentItem: parentItem || null };
     this.openPath.push(menuObj);
     this.active = true;
-
+    
     let iy = 2;
     size.visible.forEach((it) => {
       if (it.separator) {
@@ -20929,6 +20941,9 @@ class NumericTypeOnScreenKeyboard extends OnScreenKeyboard {
       { top: 34, left: 14, width: 7, height: 7, code: "0" }, 
       { top: 34, left: 24, width: 7, height: 7, code: "." }, 
       { top: 34, left: 34, width: 7, height: 7, code: "Enter", action: 'enter', shortcut: "start"  }, 
+      // Hidden keys
+      { top: 0, left: 0, width: 0, height: 0, code: "ArrowLeft", action: 'left', shortcut: "left"  }, 
+      { top: 0, left: 0, width: 0, height: 0, code: "ArrowRight", action: 'right', shortcut: "right"  }
     ];
   }
 }
@@ -39627,6 +39642,8 @@ class Editor {
    * Lists the song's difficulties with options to edit or add each one.
    */
   showChartsMenu() {
+    this.mainCarousel?.destroy();
+    
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
       bgcolor: "#2ecc71",
@@ -42145,6 +42162,8 @@ class Editor {
    * Opens the metadata editing screen for the current song.
    */
   showMetadataEdit() {
+    this.mainCarousel?.destroy();
+    
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
       bgcolor: "#16a085",

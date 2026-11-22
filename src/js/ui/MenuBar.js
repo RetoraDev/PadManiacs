@@ -175,7 +175,16 @@ class MenuBar extends Phaser.Graphics {
   }
 
   _getVisibleItems(items) {
-    return (items || []).filter(it => !it.condition || it.condition());
+    let previous, previousVisible;
+    return (items || []).filter(it => {
+      const conditionMet = !it.condition || it.condition();
+      const validSeparator = it.separator ? previous && previousVisible && !previous.separator : true;
+      
+      previous = it;
+      previousVisible = conditionMet && validSeparator;
+      
+      return previousVisible;      
+    });
   }
 
   _itemLabel(it) {
@@ -238,7 +247,7 @@ class MenuBar extends Phaser.Graphics {
     const menuObj = { container, highlight, bounds: { x: menuX, y: menuY, w: size.w, h: totalH }, itemRects: [], level, labelH: size.labelH, _parentItem: parentItem || null };
     this.openPath.push(menuObj);
     this.active = true;
-
+    
     let iy = 2;
     size.visible.forEach((it) => {
       if (it.separator) {

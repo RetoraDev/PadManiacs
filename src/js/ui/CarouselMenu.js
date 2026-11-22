@@ -891,9 +891,9 @@ class CarouselMenu extends Phaser.Sprite {
   
   /**
    * Clears the menu state and destroys the sprite.
-   * @param {boolean} [createNew=false] - Unused; present for compatibility
    */
-  destroy(createNew = false) {
+  destroy() {
+    this.disposed = true;
     this.clear();
     super.destroy();
   }

@@ -918,6 +918,8 @@ class Editor {
    * Lists the song's difficulties with options to edit or add each one.
    */
   showChartsMenu() {
+    this.mainCarousel?.destroy();
+    
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
       bgcolor: "#2ecc71",
@@ -3436,6 +3438,8 @@ class Editor {
    * Opens the metadata editing screen for the current song.
    */
   showMetadataEdit() {
+    this.mainCarousel?.destroy();
+    
     const carousel = new CarouselMenu(0, 0, game.width / 2, game.height / 2, {
       align: "left",
       bgcolor: "#16a085",
