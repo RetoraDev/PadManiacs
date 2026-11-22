@@ -223,61 +223,61 @@ class Editor {
 
     this.menuBar.setSections([
       {
-        label: "(File|Archivo)",
+        label: "File||Archivo",
         items: [
-          { label: "(New Song|Nueva Canción)", callback: () => this.createNewSongAndReload() },
-          { label: "(Load Song|Cargar Canción)", callback: () => this.loadSong() },
+          { label: "New Song||Nueva Canción", callback: () => this.createNewSongAndReload() },
+          { label: "Load Song||Cargar Canción", callback: () => this.loadSong() },
           { separator: true },
-          { label: "(Load Audio|Cargar Audio)", callback: () => this.pickFile("audio/*", e => this.loadAudioFile(e.target.files[0]), () => {}) },
-          { label: "(Load Background|Cargar Fondo)", callback: () => this.pickFile("image/*,video/*", e => this.loadBackgroundFile(e.target.files[0]), () => {}) },
-          { label: "(Load Banner|Cargar Banner)", callback: () => this.pickFile("image/*", e => this.loadBannerFile(e.target.files[0]), () => {}) },
-          { label: "(Load Lyrics|Cargar Letras)", callback: () => this.pickFile(".lrc", e => this.loadLyricsFile(e.target.files[0]), () => {}) },
+          { label: "Load Audio||Cargar Audio", callback: () => this.pickFile("audio/*", e => this.loadAudioFile(e.target.files[0]), () => {}) },
+          { label: "Load Background||Cargar Fondo", callback: () => this.pickFile("image/*,video/*", e => this.loadBackgroundFile(e.target.files[0]), () => {}) },
+          { label: "Load Banner||Cargar Banner", callback: () => this.pickFile("image/*", e => this.loadBannerFile(e.target.files[0]), () => {}) },
+          { label: "Load Lyrics||Cargar Letras", callback: () => this.pickFile(".lrc", e => this.loadLyricsFile(e.target.files[0]), () => {}) },
           { separator: true },
-          { label: "(Save and Exit|Guardar y Salir)", callback: () => this.saveAndExit(), condition: () => inChart },
-          { label: "(Exit|Salir)", callback: () => this.exitEditor() }
+          { label: "Save and Exit||Guardar y Salir", callback: () => this.saveAndExit(), condition: () => inChart },
+          { label: "Exit Editor||Salir del Editor", callback: () => this.exitEditor(), condition: () => !inChart }
         ]
       },
       {
-        label: "(Edit|Editar)",
+        label: "Edit||Editar",
         items: [
-          { label: "(Generate Steps|Generar pasos)", callback: () => this.showStepGeneratorConfig(), condition: () => inChart },
+          { label: "Generate Steps||Generar pasos", callback: () => this.showStepGeneratorConfig(), condition: () => inChart },
           { separator: true, condition: () => inChart },
-          { label: "(Copy|Copiar)", callback: () => this.copyNotes(this.selectedNotes), condition: () => canEditChart && hasSelection },
-          { label: "(Paste|Pegar)", callback: () => this.pasteNotes(), condition: () => canEditChart && hasClipboard },
-          { label: "(Delete|Eliminar)", callback: () => this.deleteSelectedNotes(), condition: () => canEditChart && hasSelection },
-          { label: "(Select All|Seleccionar todo)", callback: () => this.selectAllNotes(), condition: () => canEditChart },
-          { label: "(Unselect All|Deseleccionar todo)", callback: () => { this.selectedNotes = []; this.refreshSelectedNotes(); }, condition: () => canEditChart && hasSelection },
+          { label: "Copy||Copiar", callback: () => this.copyNotes(this.selectedNotes), condition: () => canEditChart && hasSelection },
+          { label: "Paste||Pegar", callback: () => this.pasteNotes(), condition: () => canEditChart && hasClipboard },
+          { label: "Delete||Eliminar", callback: () => this.deleteSelectedNotes(), condition: () => canEditChart && hasSelection },
+          { label: "Select All||Seleccionar todo", callback: () => this.selectAllNotes(), condition: () => canEditChart },
+          { label: "Unselect All||Deseleccionar todo", callback: () => { this.selectedNotes = []; this.refreshSelectedNotes(); }, condition: () => canEditChart && hasSelection },
           { separator: true, condition: () => inChart },
-          { label: () => (this.getMarker() ? "(Remove Marker|Eliminar marcador)" : "(Add Marker|Añadir marcador)"), callback: () => this.getMarker() ? this.removeMarker() : this.addMarker(), condition: () => inChart && !this.isPlaying },
-          { label: "(Markers|Marcadores)", callback: () => this.openMarkerList(), condition: () => inChart },
+          { label: () => (this.getMarker() ? "Remove Marker||Eliminar marcador" : "Add Marker||Añadir marcador"), callback: () => this.getMarker() ? this.removeMarker() : this.addMarker(), condition: () => inChart && !this.isPlaying },
+          { label: "Markers||Marcadores", callback: () => this.openMarkerList(), condition: () => inChart },
           { separator: true },
-          { label: "(Metadata|Metadatos)", callback: () => this.showMetadataEdit(), condition: () => !inChart },
-          { label: "(Charts|Charts)", callback: () => this.showChartsMenu(), condition: () => !inChart }
+          { label: "Metadata||Metadatos", callback: () => this.showMetadataEdit(), condition: () => !inChart },
+          { label: "Charts||Charts", callback: () => this.showChartsMenu(), condition: () => !inChart }
         ]
       },
       {
-        label: "(View|Ver)",
+        label: "View||Ver",
         items: [
-          { label: () => (this.isPlaying ? "(Pause|Pausar)" : "(Play|Reproducir)"), callback: () => this.togglePlayback(), condition: () => inChart },
+          { label: () => (this.isPlaying ? "Pause||Pausar" : "Play||Reproducir"), callback: () => this.togglePlayback(), condition: () => inChart },
           { separator: true, condition: () => inChart },
-          { label: "(Snap 1/4)", callback: () => this.setSnapDivision(4), condition: () => inChart },
-          { label: "(Snap 1/8)", callback: () => this.setSnapDivision(8), condition: () => inChart },
-          { label: "(Snap 1/12)", callback: () => this.setSnapDivision(12), condition: () => inChart },
-          { label: "(Snap 1/16)", callback: () => this.setSnapDivision(16), condition: () => inChart },
-          { label: "(Snap 1/24)", callback: () => this.setSnapDivision(24), condition: () => inChart },
-          { label: "(Snap 1/48)", callback: () => this.setSnapDivision(48), condition: () => inChart },
+          { label: "Snap 1/4", callback: () => this.setSnapDivision(4), condition: () => inChart },
+          { label: "Snap 1/8", callback: () => this.setSnapDivision(8), condition: () => inChart },
+          { label: "Snap 1/12", callback: () => this.setSnapDivision(12), condition: () => inChart },
+          { label: "Snap 1/16", callback: () => this.setSnapDivision(16), condition: () => inChart },
+          { label: "Snap 1/24", callback: () => this.setSnapDivision(24), condition: () => inChart },
+          { label: "Snap 1/48", callback: () => this.setSnapDivision(48), condition: () => inChart },
           { separator: true, condition: () => inChart },
-          { label: "(Home|Inicio)", callback: () => { if (inChart) this.saveAndExit(); else this.showHomeScreen(); } }
+          { label: "Home||Inicio", callback: () => { if (inChart) this.saveAndExit(); else this.showHomeScreen(); } }
         ]
       },
       {
-        label: "(Export|Exportar)",
+        label: "Export||Exportar",
         items: [
-          { label: "(Export StepMania Song (.zip)|Exportar Canción StepMania (.zip))", callback: () => this.exportSong() },
-          { label: "(Export .SM only|Exportar solo .SM)", callback: () => this.exportSmOnly() },
-          { label: "(Export audio only|Exportar solo audio)", callback: () => this.exportAudioOnly() },
-          { label: "(Export backgrounds (images & videos)|Exportar fondos (imágenes y videos))", callback: () => this.exportBackgroundsOnly() },
-          { label: "(Export videos only|Exportar solo videos)", callback: () => this.exportVideosOnly() }
+          { label: "StepMania Song||Canción StepMania", callback: () => this.exportSong() },
+          { label: ".SM only||Solo .SM", callback: () => this.exportSmOnly() },
+          { label: "Audio only||Solo audio", callback: () => this.exportAudioOnly() },
+          { label: "Images & videos||Imágenes y videos", callback: () => this.exportBackgroundsOnly() },
+          { label: "Videos only||Solo videos", callback: () => this.exportVideosOnly() }
         ]
       }
     ]);
@@ -902,10 +902,10 @@ class Editor {
       animate: true
     });
   
-    carousel.addItem("(Export StepMania Song (.zip)|Exportar Canción StepMania (.zip))", () => this.exportSong());
+    carousel.addItem("(Export StepMania Song|Exportar Canción StepMania)", () => this.exportSong());
     carousel.addItem("(Export .SM only|Exportar solo .SM)", () => this.exportSmOnly());
     carousel.addItem("(Export audio only|Exportar solo audio)", () => this.exportAudioOnly());
-    carousel.addItem("(Export backgrounds (images & videos)|Exportar fondos (imágenes y videos))", () => this.exportBackgroundsOnly());
+    carousel.addItem("(Export images & videos|Exportar imágenes y videos)", () => this.exportBackgroundsOnly());
     carousel.addItem("(Export videos only|Exportar solo videos)", () => this.exportVideosOnly());
   
     game.onMenuIn.dispatch("editorProject", carousel);

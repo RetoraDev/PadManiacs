@@ -54,7 +54,6 @@ class MenuBar extends Phaser.Graphics {
     this.addChildAt(this.blocker, 0);
 
     this._drawBar();
-    game.activeMenuBar = this;
     game.add.existing(this);
   }
 
@@ -363,7 +362,8 @@ class MenuBar extends Phaser.Graphics {
     }
 
     if (hovered && hovered.rect) {
-      const { item, menu, rect } = hovered;
+      const { menu, rect } = hovered;
+      const item = rect.item;
       const hasSub = rect.hasSub;
       if (hasSub) {
         const existing = this.openPath[menu.level + 1];

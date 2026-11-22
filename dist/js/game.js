@@ -4,9 +4,9 @@
  * Licensed under the GNU GPL v3+ with attribution (see LICENSE file for full terms)
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
- * Version: v1.3.0 dev
- * Build: 11/20/2026, 8:28:18 AM
- * Platform: Development
+ * Version: v1.3.0
+ * Build: 11/21/2026, 7:35:07 PM
+ * Platform: Web
  * Debug: false
  * Minified: false
  */
@@ -129,7 +129,7 @@ const __ = window.__;
 const COPYRIGHT = "(C) RETORA 2026";
 
 /** @type {string} Current game version */
-const VERSION = "v1.3.0 dev";
+const VERSION = "v1.3.0";
 
 /** @type {boolean} Global debug flag, can be enabled for development */
 window.DEBUG = false;
@@ -874,7 +874,7 @@ const ENVIRONMENT = {
 
 // Build-time environment setting
 /** @type {string} Current runtime environment */
-const CURRENT_ENVIRONMENT = ENVIRONMENT.UNKNOWN;
+const CURRENT_ENVIRONMENT = ENVIRONMENT.WEB;
 
 /** @type {string} External directory path for Cordova */
 const CORDOVA_EXTERNAL_DIRECTORY = "PadManiacs/";
@@ -9172,7 +9172,7 @@ class Window extends Phaser.Sprite {
    * @param {string} direction - One of 'up', 'down', 'left', or 'right'
    */
   navigate(direction) {
-    if (this.items.length === 0) return;
+    if (this.items.length === 0 || game.activeMenuBar) return;
 
     let newIndex = this.selectedIndex;
 
@@ -10600,7 +10600,7 @@ class CarouselMenu extends Phaser.Sprite {
    * Uses a dynamic cooldown so held directions repeat at increasing speed.
    */
   handleInput() {
-    if (this.config.disableNavigation) return;
+    if (this.config.disableNavigation || game.activeMenuBar) return;
     
     const timeSinceLastPress = game.time.now - this.lastPress;
     const timeSinceFirstPress = game.time.now - (this.firstPressTime || 0);
@@ -13064,6 +13064,7 @@ class NumberInput extends TextInput {
    */
   moveCursor(dir) {
     if (dir === 'left' || dir === 'right') {
+      this.clampCursorToDigit();
       const delta = dir === 'left' ? -1 : 1;
       let i = this.currentIndex + delta;
       while (i >= 0 && i < this.text.length) {
@@ -13074,6 +13075,7 @@ class NumberInput extends TextInput {
         }
         i += delta;
       }
+      this.updateCursor();
       return;
     }
     super.moveCursor(dir);
@@ -14679,6 +14681,418 @@ class MouseCursor {
     this.onMove.dispose();
     this.onUp.dispose();
     this.onWheel.dispose();
+  }
+}
+
+/**
+ * @class MenuBar
+ * @category UI Classes
+ * @summary Desktop-style top menu bar with dropdown submenus
+ */
+class MenuBar extends Phaser.Graphics {
+  constructor(config = {}) {
+    super(game, 0, 0);
+    this.config = {
+      height: 10,
+      autoHide: true,
+      showDelay: 180,
+      hideTimeout: 350,
+      visibleOnStart: false,
+      paddingLeft: 2,
+      paddingRight: 2,
+      charWidth: 5,
+      onRefresh: null,
+      ...config
+    };
+    this.barHeight = this.config.height;
+    this.sections = [];
+    this.openPath = []; // [{container,highlight,bounds,itemRects,level,_parentItem}]
+    this.active = false;
+    this._showTimer = 0;
+    this._hideTimer = 0;
+    this._visibleState = !!this.config.visibleOnStart;
+    this._tween = null;
+    this._pressedItem = null;
+    this._pressedSection = -1;
+    this._sectionHitAreas = [];
+
+    this.y = this._visibleState ? 0 : -this.barHeight;
+    this.alpha = this._visibleState ? 1 : 0;
+    this.visible = this._visibleState;
+
+    this.bg = game.add.graphics(0, 0);
+    this.addChild(this.bg);
+    this.labelsLayer = game.add.sprite(0, 0);
+    this.addChild(this.labelsLayer);
+    this.menusLayer = game.add.sprite(0, 0);
+    this.addChild(this.menusLayer);
+
+    this.blocker = game.add.sprite(0, 0, null);
+    this.blocker.width = game.width;
+    this.blocker.height = game.height;
+    const blockerGfx = game.add.graphics(0, 0);
+    blockerGfx.beginFill(0x000000, 0);
+    blockerGfx.drawRect(0, 0, game.width, game.height);
+    blockerGfx.endFill();
+    this.blocker.addChild(blockerGfx);
+    this.blocker.inputEnabled = true;
+    this.blocker.visible = true;
+    this.addChildAt(this.blocker, 0);
+
+    this._drawBar();
+    game.add.existing(this);
+  }
+
+  setSections(sections) {
+    this.sections = (sections || []).map(s => ({
+      label: s.label,
+      items: s.items || [],
+      condition: s.condition,
+      text: null, x: 0, width: 0
+    }));
+    this._layoutSections();
+  }
+
+  _sectionLabel(section) {
+    const l = typeof section.label === 'function' ? section.label() : section.label;
+    return __(l);
+  }
+
+  _isSectionVisible(section) {
+    return !section.condition || section.condition();
+  }
+
+  _drawBar() {
+    this.bg.clear();
+    this.bg.beginFill(0x1a1a1a, 0.95);
+    this.bg.drawRect(0, 0, game.width, this.barHeight);
+    this.bg.endFill();
+    this.bg.lineStyle(1, 0x444444, 1);
+    this.bg.moveTo(0, this.barHeight - 0.5);
+    this.bg.lineTo(game.width, this.barHeight - 0.5);
+  }
+
+  _layoutSections() {
+    while (this.labelsLayer.children.length) this.labelsLayer.children[0].destroy();
+    this._sectionHitAreas = [];
+    let x = 4;
+    this.sections.forEach((section, i) => {
+      if (!this._isSectionVisible(section)) { section.x = x; section.width = 0; section.text = null; return; }
+      const text = new Text(x, 1, this._sectionLabel(section), { ...FONTS.default });
+      this.labelsLayer.addChild(text);
+      const w = Math.max(20, text.width + 6);
+      section.text = text;
+      section.x = x;
+      section.width = w;
+      this._sectionHitAreas.push({ index: i, x: x - 2, y: 0, w: w + 4, h: this.barHeight });
+      x += w + 2;
+    });
+  }
+
+  isPointerOver() {
+    const p = game.input.activePointer;
+    if (!p) return false;
+    const px = p.x, py = p.y;
+    if (this.visible && py >= this.y && py <= this.y + this.barHeight && px >= 0 && px <= game.width) return true;
+    return this._isPointerInOpenMenus(px, py);
+  }
+
+  isMenuActive() {
+    return this.active || this.isPointerOver();
+  }
+
+  _isPointerInOpenMenus(px, py) {
+    for (const m of this.openPath) {
+      if (!m || !m.container || !m.container.visible) continue;
+      const b = m.bounds;
+      if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) return true;
+    }
+    return false;
+  }
+
+  _show() {
+    if (this._visibleState && this.alpha >= 1) { this.visible = true; this.y = 0; this.alpha = 1; game.activeMenuBar = this; return; }
+    this._visibleState = true;
+    this.visible = true;
+    game.activeMenuBar = this;
+    if (this._tween) this._tween.stop();
+    this.y = -this.barHeight;
+    this.alpha = 0;
+    this._tween = game.add.tween(this).to({ y: 0, alpha: 1 }, 160, Phaser.Easing.Quadratic.Out, true);
+  }
+
+  _hide(force) {
+    if (!force && (!this.config.autoHide || this.active || this._isPointerInOpenMenus(game.input.activePointer.x, game.input.activePointer.y))) return;
+    if (!this._visibleState && !this.visible) return;
+    this._visibleState = false;
+    this.closeAllMenus();
+    game.activeMenuBar = null;
+    if (this._tween) this._tween.stop();
+    this._tween = game.add.tween(this).to({ y: -this.barHeight, alpha: 0 }, 160, Phaser.Easing.Quadratic.In, true);
+    this._tween.onComplete.addOnce(() => {
+      if (!this._visibleState) {
+        this.visible = false;
+        if (game.activeMenuBar === this) game.activeMenuBar = null;
+      }
+    });
+  }
+
+  closeAllMenus() {
+    this.active = false;
+    this._pressedItem = null;
+    this.openPath = [];
+    while (this.menusLayer.children.length) this.menusLayer.children[0].destroy();
+    this._clearSectionHighlights();
+  }
+
+  _clearSectionHighlights() {
+    this._drawBar();
+  }
+
+  _highlightSection(index) {
+    this._clearSectionHighlights();
+    const s = this.sections[index];
+    if (!s || !this._isSectionVisible(s)) return;
+    this.bg.beginFill(0xffffff, 0.2);
+    this.bg.drawRect(s.x - 2, 0, s.width + 4, this.barHeight);
+    this.bg.endFill();
+  }
+
+  _getVisibleItems(items) {
+    return (items || []).filter(it => !it.condition || it.condition());
+  }
+
+  _itemLabel(it) {
+    if (it.separator) return '';
+    const l = typeof it.label === 'function' ? it.label() : it.label;
+    return __(l || '');
+  }
+
+  _calcMenuSize(items) {
+    const padL = this.config.paddingLeft;
+    const padR = this.config.paddingRight;
+    const charW = this.config.charWidth;
+    const visible = this._getVisibleItems(items);
+    const hasSubmenu = visible.some(it => it.submenu && this._getVisibleItems(it.submenu).length);
+    const arrowSpace = hasSubmenu ? 10 : 0;
+    let maxLen = 0, labels = 0, seps = 0;
+    let labelH = 8;
+    visible.forEach(it => {
+      if (it.separator) { seps++; return; }
+      labels++;
+      maxLen = Math.max(maxLen, this._itemLabel(it).length);
+    });
+    if (labels > 0) {
+      const t = new Text(0, 0, 'Ag', { ...FONTS.default });
+      labelH = Math.max(8, t.height);
+      t.destroy();
+    }
+    const w = Math.max(40, padL + (maxLen * charW) + arrowSpace + padR + 8);
+    const h = (labels * labelH) + (seps * 4) + 4;
+    return { w, h, labelH, visible, hasSubmenu };
+  }
+
+  _openMenu(items, x, y, level, parentItem) {
+    while (this.openPath.length > level) {
+      const m = this.openPath.pop();
+      if (m && m.container) m.container.destroy();
+    }
+    const size = this._calcMenuSize(items);
+    let menuY = y;
+    const totalH = size.h;
+    const step = size.labelH || 8;
+    if (menuY + totalH > game.height) {
+      while (menuY + totalH > game.height && menuY > 10) menuY -= step;
+      if (menuY < 10) menuY = 10;
+    }
+    let menuX = x;
+    if (menuX + size.w > game.width) menuX = Math.max(0, (this.openPath[level - 1] ? this.openPath[level - 1].bounds.x - size.w + 1 : game.width - size.w));
+
+    const container = game.add.graphics(menuX, menuY);
+    this.menusLayer.addChild(container);
+    container.beginFill(0x222222, 0.97);
+    container.drawRect(0, 0, size.w, totalH);
+    container.endFill();
+    container.lineStyle(1, 0x555555, 1);
+    container.drawRect(0, 0, size.w, totalH);
+
+    const highlight = game.add.graphics(0, 0);
+    container.addChild(highlight);
+
+    const menuObj = { container, highlight, bounds: { x: menuX, y: menuY, w: size.w, h: totalH }, itemRects: [], level, labelH: size.labelH, _parentItem: parentItem || null };
+    this.openPath.push(menuObj);
+    this.active = true;
+
+    let iy = 2;
+    size.visible.forEach((it) => {
+      if (it.separator) {
+        const sep = game.add.graphics(0, iy + 1);
+        sep.lineStyle(1, 0x666666, 0.8);
+        sep.moveTo(3, 0); sep.lineTo(size.w - 3, 0);
+        container.addChild(sep);
+        menuObj.itemRects.push({ item: it, y: iy, h: 4, separator: true });
+        iy += 4;
+        return;
+      }
+      const lbl = this._itemLabel(it);
+      const disabled = !!(it.disabled || (it.enabledCondition && !it.enabledCondition()));
+      const t = new Text(this.config.paddingLeft + 4, iy, lbl, { ...FONTS.default });
+      if (disabled) t.alpha = 0.45;
+      container.addChild(t);
+      const ih = size.labelH;
+      const hasSub = it.submenu && this._getVisibleItems(it.submenu).length;
+      if (hasSub) {
+        const arrow = new Text(size.w - this.config.paddingRight - 8, iy, '>', { ...FONTS.default });
+        if (disabled) arrow.alpha = 0.45;
+        container.addChild(arrow);
+      }
+      menuObj.itemRects.push({ item: it, y: iy, h: ih, separator: false, hasSub, disabled });
+      iy += ih;
+    });
+    return menuObj;
+  }
+
+  _openSection(index) {
+    if (!this.active && typeof this.config.onRefresh === 'function') this.config.onRefresh();
+    const section = this.sections[index];
+    if (!section || !this._isSectionVisible(section)) { this.closeAllMenus(); return; }
+    this._highlightSection(index);
+    const items = this._getVisibleItems(section.items);
+    if (!items.length) { this.closeAllMenus(); return; }
+    this._openMenu(section.items, section.x - 2, this.barHeight, 0, null);
+  }
+
+  update() {
+    const p = game.input.activePointer;
+    const px = p ? p.x : -1;
+    const py = p ? p.y : -1;
+    const inTop = py >= 0 && py <= Math.max(2, this.barHeight / 2);
+    const overMenu = this.isPointerOver();
+
+    if (this.config.autoHide) {
+      if (inTop || overMenu || this.active) {
+        this._hideTimer = 0;
+        this._showTimer += game.time.elapsed;
+        if (this._showTimer >= this.config.showDelay || this.active) this._show();
+      } else {
+        this._showTimer = 0;
+        if (this._visibleState) {
+          this._hideTimer += game.time.elapsed;
+          if (this._hideTimer >= this.config.hideTimeout) this._hide(false);
+        }
+      }
+    } else if (!this._visibleState) {
+      this._show();
+    }
+
+    if (!this.visible) return;
+    if (this.parent && this.parent.bringToTop) this.parent.bringToTop(this);
+    else if (game.world && game.world.bringToTop) game.world.bringToTop(this);
+
+    const overBar = py >= this.y && py <= this.y + this.barHeight && px >= 0 && px <= game.width;
+    let hoverSection = -1;
+    if (overBar) {
+      for (const s of this._sectionHitAreas) {
+        if (px >= s.x && px <= s.x + s.w) { hoverSection = s.index; break; }
+      }
+    }
+
+    if (hoverSection !== -1) {
+      if (this.active) {
+        this._openSection(hoverSection);
+      } else {
+        this._highlightSection(hoverSection);
+      }
+      if (p.isDown) {
+        if (this._pressedSection !== hoverSection) this._pressedSection = hoverSection;
+      } else if (this._pressedSection === hoverSection) {
+        if (this.active) this.closeAllMenus(); else this._openSection(hoverSection);
+        this._pressedSection = -1;
+      }
+    } else {
+      if (!this.active) this._clearSectionHighlights();
+      if (!p.isDown) this._pressedSection = -1;
+    }
+
+    if (this.active) this._updateOpenMenus(px, py, p);
+    if (!p.isDown) this._pressedSection = -1;
+  }
+
+  _updateOpenMenus(px, py, p) {
+    if (!this.openPath.length) { this.active = false; return; }
+
+    let hovered = null;
+    for (let i = this.openPath.length - 1; i >= 0; i--) {
+      const m = this.openPath[i];
+      const b = m.bounds;
+      if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) {
+        for (const r of m.itemRects) {
+          if (r.separator) continue;
+          const ry = b.y + r.y;
+          if (py >= ry && py <= ry + r.h) { hovered = { level: i, rect: r, menu: m }; break; }
+        }
+        if (!hovered) hovered = { level: i, rect: null, menu: m };
+        break;
+      }
+    }
+
+    for (let i = 0; i < this.openPath.length; i++) {
+      const m = this.openPath[i];
+      m.highlight.clear();
+      if (hovered && hovered.level === i && hovered.rect && !hovered.rect.disabled) {
+        const r = hovered.rect;
+        m.highlight.beginFill(0xffffff, 0.3);
+        m.highlight.drawRect(2, r.y, m.bounds.w - 4, r.h);
+        m.highlight.endFill();
+      }
+    }
+
+    if (hovered && hovered.rect) {
+      const { menu, rect } = hovered;
+      const item = rect.item;
+      const hasSub = rect.hasSub;
+      if (hasSub) {
+        const existing = this.openPath[menu.level + 1];
+        if (!existing || existing._parentItem !== item) {
+          this._openMenu(item.submenu, menu.bounds.x + menu.bounds.w - 1, menu.bounds.y + rect.y - 2, menu.level + 1, item);
+        }
+      } else {
+        while (this.openPath.length > menu.level + 1) {
+          const cm = this.openPath.pop();
+          if (cm && cm.container) cm.container.destroy();
+        }
+      }
+
+      if (!rect.disabled && !hasSub) {
+        if (p.isDown) this._pressedItem = item;
+        else if (this._pressedItem === item) {
+          const cb = item.callback;
+          this.closeAllMenus();
+          if (this.config.autoHide) this._hide(true);
+          this._pressedItem = null;
+          if (typeof cb === 'function') cb();
+          return;
+        }
+      } else if (!p.isDown) {
+        this._pressedItem = null;
+      }
+    } else {
+      if (p.isDown) {
+        const overBar = py >= this.y && py <= this.y + this.barHeight;
+        const inMenu = this._isPointerInOpenMenus(px, py);
+        if (!overBar && !inMenu) this.closeAllMenus();
+      }
+      if (!p.isDown) this._pressedItem = null;
+    }
+
+    if (!p.isDown) this._pressedItem = null;
+  }
+
+  destroy(...args) {
+    this.closeAllMenus();
+    if (this._tween) this._tween.stop();
+    if (game.activeMenuBar === this) game.activeMenuBar = null;
+    super.destroy(...args);
   }
 }
 
@@ -17903,13 +18317,13 @@ class BpmDetector {
  * @constructor
  * @features
  * Analyzes audio onset strengths and maps them to beats
- * Generates taps/holds/rolls/mines with style and rating-driven density
+ * Generates tap notes (and jumps) with style and rating-driven density
  * Supports editor-snap or auto-detected subdivisions (up to max editor resolution)
  * Respects existing notes via remove or overwrite-collisions conflict modes
  * @description
  * Utility for automatic step generation in the editor. Uses onset detection to
  * find rhythmically relevant grid positions within a beat range and places
- * notes according to style, difficulty rating, and allowed note types.
+ * tap notes according to style and difficulty rating.
  */
 class StepGenerator {
   constructor() {}
@@ -17988,8 +18402,6 @@ class StepGenerator {
     const autoSnap = !!cfg.autoSnap;
     const maxStep = autoSnap ? finestStep : currentStep; // finest grid for auto onset precision
     const removeExisting = !!cfg.removeExisting;
-    const allowHolds = !!cfg.allowHolds;
-    const allowMines = !!cfg.allowMines;
     const allowJumps = cfg.allowJumps !== false;
 
     // Remove/collect existing in range
@@ -18018,7 +18430,7 @@ class StepGenerator {
     const onsetData = this._buildOnsetEnergy(editor, startBeat, endBeat, maxStep);
     const candidates = this._selectCandidates(editor, startBeat, endBeat, maxStep, autoSnap, rating, style, onsetData);
     const placed = this._placeNotes(editor, notesArr, candidates, {
-      rating, style, allowHolds, allowMines, allowJumps, maxStep, endBeat, overwriteOnly: !removeExisting
+      rating, style, allowJumps, endBeat, overwriteOnly: !removeExisting
     });
 
     try { editor.sortNotes(); } catch (e) { notesArr.sort((a,b)=>a.beat-b.beat || a.column-b.column); }
@@ -18195,14 +18607,9 @@ class StepGenerator {
     const eps = 1e-9;
 
     if (!autoSnap) {
-      // uniform grid on editor snap, close to density and <= max resolution
-      let chosen = allowed[allowed.length - 1];
-      for (let i = 0; i < allowed.length; i++) {
-        const d = allowed[i];
-        const perBeat = 1 / d;
-        if (perBeat <= density * 1.5) { chosen = d; break; }
-      }
-      if (chosen < maxStep) chosen = maxStep;
+      // use editor's current snap division directly
+      const snapDiv = Math.max(1, Number(editor.snapDivision) || 4);
+      const chosen = Math.max(maxStep, 4 / snapDiv);
       for (let b = startBeat; b < endBeat - eps; b += chosen) {
         const q = Math.round(b / maxStep) * maxStep;
         if (q >= startBeat - eps && q < endBeat - eps) candidates.push(q);
@@ -18217,9 +18624,9 @@ class StepGenerator {
         if (q >= startBeat - eps && q < endBeat - eps) candidates.push(q);
       }
     } else {
-      // per-onset snapping: place notes at onset beats quantized to the needed
-      // subdivision (nearest point on the editor's max snap grid), mixing
-      // subdivisions in the same section. Select strongest onsets up to density.
+      // per-onset snapping: place notes at onset beats quantized to the simplest
+      // subdivision that accurately represents the hit (up to editor max snap).
+      // Select strongest onsets up to rating-based density.
       const all = this._getOnsetsInRange(onsetBeats, startBeat - maxStep, endBeat + maxStep)
         .filter(o => o.beat >= startBeat - eps && o.beat < endBeat - eps);
       if (all.length === 0) {
@@ -18239,7 +18646,7 @@ class StepGenerator {
         const pickedKeys = new Set();
         for (let i = 0; i < sorted.length && picked.length < targetCount; i++) {
           const ob = sorted[i].beat;
-          let q = Math.round(ob / maxStep) * maxStep;
+          let q = this._quantizeOnset(ob, allowed, maxStep);
           if (q < startBeat) q = Math.ceil(startBeat / maxStep - 1e-9) * maxStep;
           if (q >= endBeat - eps || q < startBeat - eps) continue;
           const key = this._key(q);
@@ -18275,6 +18682,23 @@ class StepGenerator {
     // make step a multiple of maxStep
     const r = Math.round(step / maxStep);
     return Math.max(maxStep, r * maxStep);
+  }
+
+  static _quantizeOnset(beat, allowed, maxStep) {
+    const minStepBeat = Math.round(beat / maxStep) * maxStep;
+    let minErr = Math.abs(minStepBeat - beat);
+    // prefer coarsest subdivision when it is essentially as close as the finest
+    const tol = minErr + maxStep * 0.51;
+    for (let i = 0; i < allowed.length; i++) {
+      const step = allowed[i];
+      const q = Math.round(beat / step) * step;
+      const err = Math.abs(q - beat);
+      if (err <= tol) {
+        const q2 = Math.round(q / maxStep) * maxStep;
+        if (Math.abs(q2 - q) < 1e-9) return q2;
+      }
+    }
+    return minStepBeat;
   }
 
   static _minGapFor(rating, style, maxStep, density) {
@@ -18377,93 +18801,25 @@ class StepGenerator {
   }
 
   static _placeNotes(editor, notesArr, candidates, opt) {
-    const { rating, style, allowHolds, allowMines, allowJumps, maxStep, endBeat, overwriteOnly } = opt;
+    const { rating, style, allowJumps, endBeat, overwriteOnly } = opt;
     let placed = 0;
     let lastCols = [];
-    let prevBeat = -999;
-    let holdUntil = [-1, -1, -1, -1]; // per-column hold end (beat)
 
     const jumpProb = this._jumpProb(rating, style, allowJumps);
-    const mineProb = allowMines ? this._mineProb(rating, style) : 0;
-    const holdProb = allowHolds ? this._holdProb(rating, style) : 0;
-    const eps = 1e-9;
 
     for (let i = 0; i < candidates.length; i++) {
       const beat = candidates[i];
-      if (beat >= endBeat - eps) continue;
+      if (beat >= endBeat - 1e-9) continue;
 
-      // decide if mine instead of tap (style-dependent, sparse)
-      if (allowMines && Math.random() < mineProb) {
-        const sincePrev = beat - prevBeat;
-        const mineGapOk = (style === 'Technical') ? (sincePrev >= maxStep * 0.75) : (sincePrev >= maxStep * 1.5);
-        if (mineGapOk) {
-          const col = this._pickMineColumn(lastCols, style, holdUntil, beat);
-          if (col != null && beat >= holdUntil[col] - eps) {
-            if (this._insertNote(editor, notesArr, { type: 'M', beat, column: col }, overwriteOnly)) {
-              placed++;
-              // in Technical mines act as obstacles but flow may continue; in others treat as replacement
-              if (style !== 'Technical' || Math.random() < 0.6) {
-                lastCols = [col];
-                prevBeat = beat;
-                continue;
-              }
-            }
-          }
-        }
-      }
-
-      let doJump = allowJumps && Math.random() < jumpProb;
-      // style shaping: avoid jumps too often in pure stream/stamina, allow more in jumpstream/DDR
-      if (doJump && (style === 'Stream' || style === 'Stamina') && Math.random() < 0.5) doJump = false;
+      const doJump = allowJumps && Math.random() < jumpProb;
       const count = doJump ? 2 : 1;
-      let cols = this._pickColumn(lastCols, style, count, holdUntil, beat);
-
-      // filter out columns currently held
-      cols = cols.filter(c => beat >= holdUntil[c] - eps);
-      if (cols.length === 0) {
-        cols = this._pickColumn(lastCols, style, 1, holdUntil, beat).filter(c => beat >= holdUntil[c] - eps);
-      }
-      if (cols.length === 0) continue;
-
-      // try hold on first column (style-aware)
-      let didHold = false;
-      if (allowHolds && !doJump && Math.random() < holdProb) {
-        const col = cols[0];
-        const dur = this._pickHoldDuration(beat, endBeat, maxStep, style, rating);
-        if (dur > 0) {
-          const rollProb = (style === 'Technical') ? (rating >= 11 ? 0.4 : (rating >= 8 ? 0.2 : 0)) : 0;
-          const type = (Math.random() < rollProb) ? '4' : '2';
-          // avoid starting hold if column busy just before end (basic) and if end collides badly is handled in insert
-          if (this._insertFreeze(editor, notesArr, beat, dur, col, type, overwriteOnly)) {
-            placed++;
-            holdUntil[col] = Math.max(holdUntil[col], beat + dur);
-            // occasionally add a tap on another column at hold start (Technical/DDR higher levels)
-            let extraPlaced = false;
-            if (allowJumps && rating >= 9 && (style === 'Technical' || style === 'DDR' || style === 'Jumpstream') && Math.random() < 0.18) {
-              const others = [0,1,2,3].filter(c => c !== col && beat >= holdUntil[c] - eps);
-              if (others.length) {
-                const oc = others[Math.floor(Math.random() * others.length)];
-                if (this._insertNote(editor, notesArr, { type: '1', beat, column: oc }, overwriteOnly)) {
-                  placed++;
-                  lastCols = [col, oc];
-                  extraPlaced = true;
-                }
-              }
-            }
-            if (!extraPlaced) lastCols = [col];
-            prevBeat = beat;
-            continue;
-          }
-        }
-      }
+      const cols = this._pickColumn(lastCols, style, count);
 
       for (let c = 0; c < cols.length; c++) {
-        if (beat < holdUntil[cols[c]] - eps) continue;
         const ok = this._insertNote(editor, notesArr, { type: '1', beat, column: cols[c] }, overwriteOnly);
         if (ok) placed++;
       }
       lastCols = cols.slice();
-      prevBeat = beat;
     }
     return placed;
   }
@@ -18471,142 +18827,35 @@ class StepGenerator {
   static _jumpProb(rating, style, allowJumps) {
     if (!allowJumps) return 0;
     let p = Math.max(0, (rating - 5) * 0.02);
-    if (style === 'Jumpstream') p += 0.14;
-    if (style === 'DDR') p += 0.09;
-    if (style === 'Stream' || style === 'Stamina') p *= 0.4;
-    if (style === 'Technical') p += 0.05;
+    if (style === 'Jumpstream') p += 0.12;
+    if (style === 'DDR') p += 0.08;
+    if (style === 'Stream' || style === 'Stamina') p *= 0.45;
+    if (style === 'Technical') p += 0.04;
     // keep 8 (Hard) from feeling like Challenge
     if (rating <= 8) p *= 0.6;
     return Math.max(0, Math.min(0.35, p));
   }
-  static _mineProb(rating, style) {
-    let p = 0;
-    if (style === 'Technical') {
-      if (rating >= 6) p = 0.03 + (rating - 6) * 0.012; // noticeable in tech
-      if (rating >= 11) p += 0.03;
-    } else if (style === 'DDR') {
-      if (rating >= 7) p = 0.01 + (rating - 7) * 0.006;
-    } else if (style === 'Jumpstream') {
-      if (rating >= 8) p = 0.008 + (rating - 8) * 0.005;
-    } else if (style === 'Stream') {
-      if (rating >= 10) p = 0.004 + (rating - 10) * 0.003;
-    } else if (style === 'Stamina') {
-      if (rating >= 11) p = 0.003 + (rating - 11) * 0.002;
-    }
-    return Math.max(0, Math.min(0.2, p));
-  }
-  static _holdProb(rating, style) {
-    let p = 0;
-    if (style === 'Stream') {
-      if (rating >= 4) p = 0.02 + (rating - 4) * 0.006;
-    } else if (style === 'Stamina') {
-      if (rating >= 5) p = 0.015 + (rating - 5) * 0.005;
-    } else if (style === 'Jumpstream') {
-      if (rating >= 3) p = 0.04 + (rating - 3) * 0.01;
-    } else if (style === 'DDR') {
-      if (rating >= 2) p = 0.05 + (rating - 2) * 0.012;
-    } else if (style === 'Technical') {
-      if (rating >= 3) p = 0.06 + (rating - 3) * 0.014;
-    }
-    // keep overall reasonable
-    if (rating <= 3) p *= 0.7;
-    return Math.max(0, Math.min(0.28, p));
-  }
 
-  static _shouldPlaceMine(beat, prevBeat, mineProb, style, rating) {
-    // basic gating; style-specific spacing handled by caller
-    if (Math.random() >= mineProb) return false;
-    if (style === 'Stream' || style === 'Stamina') {
-      // very rare, avoid cluttering runs
-      return Math.random() < 0.5;
-    }
-    return true;
-  }
-
-  static _pickMineColumn(lastCols, style, holdUntil, beat) {
-    const eps = 1e-9;
-    const all = [0,1,2,3].filter(c => beat >= (holdUntil ? holdUntil[c] : -1) - eps);
-    if (!all.length) return null;
-    let pool = all.slice();
-    if (style === 'Technical') {
-      // tech mines often feel like obstacles off the immediate flow
-      if (lastCols && lastCols.length && Math.random() < 0.7) {
-        const off = all.filter(c => lastCols.indexOf(c) === -1);
-        if (off.length) pool = off;
-      }
-    } else if (style === 'DDR' || style === 'Jumpstream') {
-      if (lastCols && lastCols.length && Math.random() < 0.4) {
-        const off = all.filter(c => lastCols.indexOf(c) === -1);
-        if (off.length) pool = off;
-      }
-    } else {
-      // stream/stamina: avoid disrupting same lane repeatedly but keep simple
-      if (lastCols && lastCols.length && Math.random() < 0.5) {
-        const off = all.filter(c => lastCols.indexOf(c) === -1);
-        if (off.length) pool = off;
-      }
-    }
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
-  static _pickHoldDuration(beat, endBeat, maxStep, style, rating) {
-    let options;
-    if (style === 'Stream' || style === 'Stamina') {
-      options = [1.0, 1.5, 2.0, 3.0, 4.0];
-    } else if (style === 'DDR') {
-      options = [0.5, 1.0, 1.5, 2.0, 3.0, 4.0];
-    } else if (style === 'Jumpstream') {
-      options = [0.5, 1.0, 1.5, 2.0];
-      if (rating >= 10) options.push(3.0);
-    } else if (style === 'Technical') {
-      options = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0];
-      if (rating >= 12) options.push(0.125, 3.0);
-    } else {
-      options = [0.5, 1.0, 2.0];
-    }
-    // filter by rating a bit
-    if (rating <= 4) options = options.filter(d => d >= 1.0);
-    else if (rating <= 6) options = options.filter(d => d >= 0.5);
-
-    const eps = 1e-9;
-    for (let tries = 0; tries < 8; tries++) {
-      let d = options[Math.floor(Math.random() * options.length)];
-      if (!isFinite(d)) continue;
-      // snap to maxStep grid
-      d = Math.round(d / maxStep) * maxStep;
-      if (d < maxStep * 2 - eps) continue;
-      if (beat + d > endBeat - eps) continue;
-      if (d > 4.0 + eps) continue;
-      return d;
-    }
-    return 0;
-  }
-
-  static _pickColumn(lastCols, style, count, holdUntil, beat) {
-    const eps = 1e-9;
-    const allBase = [0,1,2,3];
-    const available = holdUntil ? allBase.filter(c => beat >= holdUntil[c] - eps) : allBase.slice();
-    const all = available.length ? available : allBase.slice();
+  static _pickColumn(lastCols, style, count) {
+    const all = [0,1,2,3];
     let pool = all.slice();
     // avoid repeating same single column too often
-    if (count === 1 && lastCols && lastCols.length === 1) {
+    if (count === 1 && lastCols.length === 1) {
       if (Math.random() < 0.75) pool = all.filter(c => c !== lastCols[0]);
       if (!pool.length) pool = all.slice();
     }
     // simple flow: prefer movement
     if (count === 2) {
-      const pairsAll = [[0,1],[1,2],[2,3],[0,2],[1,3],[0,3]];
-      let pairs = pairsAll.filter(p => all.indexOf(p[0]) !== -1 && all.indexOf(p[1]) !== -1);
-      if (!pairs.length) pairs = pairsAll.slice();
+      const pairs = [[0,1],[1,2],[2,3],[0,2],[1,3],[0,3]];
+      // avoid same pair
       let cand = pairs.slice();
-      if (lastCols && lastCols.length === 2) {
+      if (lastCols.length === 2) {
         const key = lastCols.slice().sort().join(',');
-        const filtered = pairs.filter(p => p.join(',') !== key);
-        if (filtered.length) cand = filtered;
+        cand = pairs.filter(p => p.join(',') !== key);
+        if (!cand.length) cand = pairs.slice();
       }
       return cand[Math.floor(Math.random() * cand.length)].slice();
     }
-    if (!pool.length) pool = allBase.slice();
     return [pool[Math.floor(Math.random() * pool.length)]];
   }
 
@@ -18624,52 +18873,11 @@ class StepGenerator {
         if (si > -1) editor.selectedNotes.splice(si, 1);
       }
     }
-    // also avoid placing tap inside a hold occupying this column? simple check
-    for (let i = 0; i < notesArr.length; i++) {
-      const n = notesArr[i];
-      if (!n || n.column !== column) continue;
-      if ((n.type === '2' || n.type === '4') && isFinite(n.beatEnd)) {
-        if (beat > n.beat + 1e-9 && beat < n.beatEnd - 1e-9) return false;
-      }
-    }
     const note = {
-      type: spec.type || '1',
+      type: '1',
       beat: beat,
       sec: editor.chartRenderer.beatToSec(beat),
       column: column
-    };
-    notesArr.push(note);
-    return true;
-  }
-
-  static _insertFreeze(editor, notesArr, startBeat, duration, column, type, overwriteOnly) {
-    const endBeat = startBeat + duration;
-    // remove/skip colliding notes in range on this column
-    for (let i = notesArr.length - 1; i >= 0; i--) {
-      const n = notesArr[i];
-      if (!n || n.column !== column) continue;
-      const nb = n.beat;
-      const nEnd = (n.type === '2' || n.type === '4') && isFinite(n.beatEnd) ? n.beatEnd : nb;
-      const collides = !(nEnd <= startBeat + 1e-9 || nb >= endBeat - 1e-9);
-      if (collides) {
-        if (!overwriteOnly) return false;
-        try { editor.chartRenderer.killNote(n); } catch (e) {}
-        notesArr.splice(i, 1);
-        if (Array.isArray(editor.selectedNotes)) {
-          const si = editor.selectedNotes.indexOf(n);
-          if (si > -1) editor.selectedNotes.splice(si, 1);
-        }
-      }
-    }
-    const note = {
-      type: type || '2',
-      beat: startBeat,
-      sec: editor.chartRenderer.beatToSec(startBeat),
-      column: column,
-      beatLength: duration,
-      secLength: editor.chartRenderer.beatToSec(endBeat) - editor.chartRenderer.beatToSec(startBeat),
-      beatEnd: endBeat,
-      secEnd: editor.chartRenderer.beatToSec(endBeat)
     };
     notesArr.push(note);
     return true;
@@ -38590,14 +38798,18 @@ class Editor {
     game.camera.fadeIn(0x000000);
 
     this.backgroundGradient = new BackgroundGradient();
+    this.backgroundGradient.visible = true;
 
-    // Background elements
     /** @type {Phaser.Group} Layer containing background visual elements. */
     this.backgroundLayer = game.add.group();
     /** @type {CanvasBackground} Canvas-drawn background image sprite. */
     this.backgroundSprite = new CanvasBackground(0, 0);
     this.backgroundSprite.alpha = 0.3;
     this.backgroundLayer.addChild(this.backgroundSprite);
+    this.bgPreviewElements = {};
+    this.currentBgPreview = null;
+    this.currentBgPreviewKey = null;
+    this._bgVideoLastUpdate = 0;
     
     /** @type {ChartRenderer} Renders the chart and manages note visuals. */
     this.chartRenderer = new ChartRenderer(this, this.song, this.currentDifficultyIndex, {
@@ -38627,6 +38839,12 @@ class Editor {
     this.homeOverlay.drawRect(0, 0, game.width, game.height);
     this.homeOverlay.endFill();
     this.homeOverlay.visible = false;
+
+    this.chartInfoOverlay = game.add.graphics(0, 0);
+    this.chartInfoOverlay.beginFill(0x000000, 0.35);
+    this.chartInfoOverlay.drawRect(0, 0, game.width, game.height);
+    this.chartInfoOverlay.endFill();
+    this.chartInfoOverlay.visible = false;
 
     this.navigationHint = new NavigationHint('general');
 
@@ -38681,11 +38899,112 @@ class Editor {
     /** @type {number} Buffer offset (seconds) when playback started. */
     this.playbackStartOffset = 0;
 
+    this.setupMenuBar();
     this.initalSetup();
 
     addonManager.executeStateBehaviors(this.constructor.name, this);
   }
   
+  /**
+   * Creates the desktop-style menu bar for mouse users.
+   */
+  setupMenuBar() {
+    if (this.menuBar) this.menuBar.destroy();
+    this.menuBar = new MenuBar({
+      height: 10,
+      autoHide: true,
+      showDelay: 180,
+      hideTimeout: 350,
+      visibleOnStart: false,
+      onRefresh: () => this.refreshMenuBar()
+    });
+    this.refreshMenuBar();
+  }
+
+  refreshMenuBar() {
+    if (!this.menuBar) return;
+    const hasSelection = this.selectedNotes && this.selectedNotes.length > 0;
+    const inChart = this.currentScreen === "chartEdit";
+    const hasClipboard = this.clipboard && this.clipboard.length > 0;
+    const canEditChart = inChart && !this.isPlaying;
+    const diff = this.song?.chart?.difficulties?.[this.currentDifficultyIndex];
+    const marker = inChart ? this.getMarker() : null;
+
+    this.menuBar.setSections([
+      {
+        label: "File||Archivo",
+        items: [
+          { label: "New Song||Nueva Canción", callback: () => this.createNewSongAndReload() },
+          { label: "Load Song||Cargar Canción", callback: () => this.loadSong() },
+          { separator: true },
+          { label: "Load Audio||Cargar Audio", callback: () => this.pickFile("audio/*", e => this.loadAudioFile(e.target.files[0]), () => {}) },
+          { label: "Load Background||Cargar Fondo", callback: () => this.pickFile("image/*,video/*", e => this.loadBackgroundFile(e.target.files[0]), () => {}) },
+          { label: "Load Banner||Cargar Banner", callback: () => this.pickFile("image/*", e => this.loadBannerFile(e.target.files[0]), () => {}) },
+          { label: "Load Lyrics||Cargar Letras", callback: () => this.pickFile(".lrc", e => this.loadLyricsFile(e.target.files[0]), () => {}) },
+          { separator: true },
+          { label: "Save and Exit||Guardar y Salir", callback: () => this.saveAndExit(), condition: () => inChart },
+          { label: "Exit Editor||Salir del Editor", callback: () => this.exitEditor(), condition: () => !inChart }
+        ]
+      },
+      {
+        label: "Edit||Editar",
+        items: [
+          { label: "Generate Steps||Generar pasos", callback: () => this.showStepGeneratorConfig(), condition: () => inChart },
+          { separator: true, condition: () => inChart },
+          { label: "Copy||Copiar", callback: () => this.copyNotes(this.selectedNotes), condition: () => canEditChart && hasSelection },
+          { label: "Paste||Pegar", callback: () => this.pasteNotes(), condition: () => canEditChart && hasClipboard },
+          { label: "Delete||Eliminar", callback: () => this.deleteSelectedNotes(), condition: () => canEditChart && hasSelection },
+          { label: "Select All||Seleccionar todo", callback: () => this.selectAllNotes(), condition: () => canEditChart },
+          { label: "Unselect All||Deseleccionar todo", callback: () => { this.selectedNotes = []; this.refreshSelectedNotes(); }, condition: () => canEditChart && hasSelection },
+          { separator: true, condition: () => inChart },
+          { label: () => (this.getMarker() ? "Remove Marker||Eliminar marcador" : "Add Marker||Añadir marcador"), callback: () => this.getMarker() ? this.removeMarker() : this.addMarker(), condition: () => inChart && !this.isPlaying },
+          { label: "Markers||Marcadores", callback: () => this.openMarkerList(), condition: () => inChart },
+          { separator: true },
+          { label: "Metadata||Metadatos", callback: () => this.showMetadataEdit(), condition: () => !inChart },
+          { label: "Charts||Charts", callback: () => this.showChartsMenu(), condition: () => !inChart }
+        ]
+      },
+      {
+        label: "View||Ver",
+        items: [
+          { label: () => (this.isPlaying ? "Pause||Pausar" : "Play||Reproducir"), callback: () => this.togglePlayback(), condition: () => inChart },
+          { separator: true, condition: () => inChart },
+          { label: "Snap 1/4", callback: () => this.setSnapDivision(4), condition: () => inChart },
+          { label: "Snap 1/8", callback: () => this.setSnapDivision(8), condition: () => inChart },
+          { label: "Snap 1/12", callback: () => this.setSnapDivision(12), condition: () => inChart },
+          { label: "Snap 1/16", callback: () => this.setSnapDivision(16), condition: () => inChart },
+          { label: "Snap 1/24", callback: () => this.setSnapDivision(24), condition: () => inChart },
+          { label: "Snap 1/48", callback: () => this.setSnapDivision(48), condition: () => inChart },
+          { separator: true, condition: () => inChart },
+          { label: "Home||Inicio", callback: () => { if (inChart) this.saveAndExit(); else this.showHomeScreen(); } }
+        ]
+      },
+      {
+        label: "Export||Exportar",
+        items: [
+          { label: "StepMania Song||Canción StepMania", callback: () => this.exportSong() },
+          { label: ".SM only||Solo .SM", callback: () => this.exportSmOnly() },
+          { label: "Audio only||Solo audio", callback: () => this.exportAudioOnly() },
+          { label: "Images & videos||Imágenes y videos", callback: () => this.exportBackgroundsOnly() },
+          { label: "Videos only||Solo videos", callback: () => this.exportVideosOnly() }
+        ]
+      }
+    ]);
+  }
+
+  setSnapDivision(div) {
+    if (!this.divisions) return;
+    if (this.divisions.includes(div)) this.snapDivision = div;
+    this.updateInfoText();
+  }
+
+  selectAllNotes() {
+    const notes = this.getCurrentChartNotes();
+    this.selectedNotes = notes ? notes.slice() : [];
+    this.refreshSelectedNotes();
+    this.updateInfoText();
+  }
+
   /**
    * Loads song media into memory and sets up mouse events and the home screen.
    */
@@ -38772,8 +39091,10 @@ class Editor {
     this.currentScreen = "metadata";
     this.clearUI();
     this.stopPlayback();
+    if (this.refreshMenuBar) this.refreshMenuBar();
     this.navigationHint.updateHints('general');
-    this.homeOverlay.visible = true;
+    this.homeOverlay.visible = false;
+    this.chartInfoOverlay.visible = true;
     this.bannerSprite.visible = true;
     
     const leftWidth = game.width / 2;
@@ -38821,22 +39142,223 @@ class Editor {
     }
   }
   
+  getBgPreviewOpacity(isVideo) {
+    return isVideo ? (Account.settings.videoBackgroundOpacity ?? 0.5) : (Account.settings.backgroundOpacity ?? 0.5);
+  }
+
+  isVideoFilename(name) {
+    return /\.(mp4|webm|ogv|ogg|mov|m4v|avi|mkv)$/i.test(String(name || ""));
+  }
+
+  clearBackgroundPreview() {
+    if (this.bgPreviewVideo && this.bgPreviewVideo.pause) {
+      try { this.bgPreviewVideo.pause(); } catch (e) {}
+    }
+    this.bgPreviewVideo = null;
+    this.backgroundSprite.ctx.clearRect(0, 0, game.width, game.height);
+    this.backgroundSprite.dirty();
+    this.backgroundGradient.visible = true;
+    this.backgroundSprite.alpha = 0.3;
+  }
+
+  drawBackgroundPreviewElement(element) {
+    if (!element || element.__errored) {
+      this.clearBackgroundPreview();
+      return;
+    }
+    try {
+      this.backgroundSprite.ctx.drawImage(element, 0, 0, game.width, game.height);
+      this.backgroundSprite.dirty();
+    } catch (e) {
+      element.__errored = true;
+      this.clearBackgroundPreview();
+    }
+  }
+
+  loadBgPreviewImage(filename, url) {
+    if (!url || url === "no-media" || filename === "undefined") {
+      this.clearBackgroundPreview();
+      return;
+    }
+    const cached = this.bgPreviewElements[filename];
+    if (cached && !cached.__errored) {
+      this.bgPreviewVideo = null;
+      this.drawBackgroundPreviewElement(cached);
+      return;
+    }
+    const img = new Image();
+    img.__type = "image";
+    img.__url = url;
+    img.onload = () => {
+      this.bgPreviewElements[filename] = img;
+      if (this.currentBgPreview && this.currentBgPreview.file === filename) {
+        this.bgPreviewVideo = null;
+        this.drawBackgroundPreviewElement(img);
+      }
+    };
+    img.onerror = () => {
+      img.__errored = true;
+      this.bgPreviewElements[filename] = img;
+      if (this.currentBgPreview && this.currentBgPreview.file === filename) this.clearBackgroundPreview();
+    };
+    img.src = url;
+  }
+
+  loadBgPreviewVideo(filename, url) {
+    if (!url || url === "no-media" || filename === "undefined") {
+      this.clearBackgroundPreview();
+      return;
+    }
+    const cached = this.bgPreviewElements[filename];
+    if (cached && !cached.__errored) {
+      if (this.bgPreviewVideo && this.bgPreviewVideo !== cached) {
+        try { this.bgPreviewVideo.pause(); } catch (e) {}
+      }
+      this.bgPreviewVideo = cached;
+      this.backgroundGradient.visible = false;
+      if (cached.readyState >= 2) this.drawBackgroundPreviewElement(cached);
+      return;
+    }
+    const video = document.createElement("video");
+    video.__type = "video";
+    video.__url = url;
+    video.__errored = false;
+    video.muted = true;
+    video.volume = 0;
+    video.loop = true;
+    video.autoplay = false;
+    video.preload = "auto";
+    video.addEventListener("canplaythrough", () => {
+      this.bgPreviewElements[filename] = video;
+      if (this.currentBgPreview && this.currentBgPreview.file === filename) {
+        if (this.bgPreviewVideo && this.bgPreviewVideo !== video) {
+          try { this.bgPreviewVideo.pause(); } catch (e) {}
+        }
+        this.bgPreviewVideo = video;
+        this.backgroundGradient.visible = false;
+        this.drawBackgroundPreviewElement(video);
+      }
+    }, { once: true });
+    video.onerror = () => {
+      video.__errored = true;
+      this.bgPreviewElements[filename] = video;
+      if (this.currentBgPreview && this.currentBgPreview.file === filename) this.clearBackgroundPreview();
+    };
+    video.src = url;
+  }
+
+  applyBgPreview(bg) {
+    const file = bg && bg.file;
+    if (!file || file === "-nosongbg-" || file === "no-media") {
+      this.currentBgPreview = { file: file || "-nosongbg-", type: "image", beat: bg ? bg.beat : 0, activatedAt: 0 };
+      this.clearBackgroundPreview();
+      return;
+    }
+    this.currentBgPreview = bg;
+    const isVideo = bg.type === "video" || this.isVideoFilename(file);
+    this.backgroundSprite.alpha = this.getBgPreviewOpacity(isVideo);
+    this.backgroundGradient.visible = !isVideo;
+    const url = bg.url || (this.files.extra && this.files.extra[file]) || (file === this.song.chart.background ? this.song.chart.backgroundUrl : null);
+    if (isVideo) this.loadBgPreviewVideo(file, url);
+    else this.loadBgPreviewImage(file, url);
+  }
+
+  updateBgPreview(now, beat) {
+    const visible = this.currentScreen === "chartEdit" || this.currentScreen === "metadata";
+    this.backgroundLayer.visible = visible;
+    if (!visible) {
+      if (this.bgPreviewVideo && this.bgPreviewVideo.pause) {
+        try { this.bgPreviewVideo.pause(); } catch (e) {}
+      }
+      return;
+    }
+
+    let active = null;
+    const chart = this.song && this.song.chart;
+    if (chart) {
+      const baseFile = chart.background;
+      if (baseFile && baseFile !== "no-media") {
+        active = { file: baseFile, url: chart.backgroundUrl, type: this.isVideoFilename(baseFile) ? "video" : "image", beat: -Infinity };
+      } else {
+        active = { file: "-nosongbg-", type: "image", beat: -Infinity };
+      }
+      const bgs = Array.isArray(chart.backgrounds) ? chart.backgrounds : [];
+      for (let i = 0; i < bgs.length; i++) {
+        const bg = bgs[i];
+        if (!bg) continue;
+        if (beat >= bg.beat - 0.0001) active = bg;
+      }
+    }
+
+    if (!active) {
+      this.currentBgPreviewKey = null;
+      this.clearBackgroundPreview();
+      return;
+    }
+
+    const key = (active.beat != null ? active.beat : -1) + "|" + (active.file || "") + "|" + (active.type || "");
+    if (key !== this.currentBgPreviewKey) {
+      this.currentBgPreviewKey = key;
+      this.applyBgPreview(active);
+    }
+
+    const isVideo = active.type === "video" || this.isVideoFilename(active.file);
+    this.backgroundSprite.alpha = this.getBgPreviewOpacity(isVideo);
+
+    if (isVideo && this.bgPreviewVideo && !this.bgPreviewVideo.__errored) {
+      const video = this.bgPreviewVideo;
+      if (this.isPlaying) {
+        if (video.paused) {
+          try { const p = video.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+        }
+        const activeBeat = (active.beat != null && isFinite(active.beat)) ? active.beat : 0;
+        const startSec = this.chartRenderer ? this.chartRenderer.beatToSec(activeBeat) : 0;
+        let target = Math.max(0, (now || 0) - startSec);
+        if (isFinite(video.duration) && video.duration > 0) {
+          target = target % video.duration;
+          if (Math.abs((video.currentTime || 0) - target) > 0.2) {
+            try { video.currentTime = target; } catch (e) {}
+          }
+        }
+        if (game.time.now - (this._bgVideoLastUpdate || 0) >= 66) {
+          this._bgVideoLastUpdate = game.time.now;
+          if (video.readyState >= 2) this.drawBackgroundPreviewElement(video);
+        }
+      } else {
+        if (!video.paused) {
+          try { video.pause(); } catch (e) {}
+        }
+        const activeBeat = (active.beat != null && isFinite(active.beat)) ? active.beat : 0;
+        const startSec = this.chartRenderer ? this.chartRenderer.beatToSec(activeBeat) : 0;
+        let target = Math.max(0, (now || 0) - startSec);
+        if (isFinite(video.duration) && video.duration > 0) target = target % video.duration;
+        const cur = video.currentTime || 0;
+        if (Math.abs(cur - target) > 0.05) {
+          try { video.currentTime = target; } catch (e) {}
+          const drawWhenReady = () => {
+            if (this.bgPreviewVideo === video && video.readyState >= 2) this.drawBackgroundPreviewElement(video);
+          };
+          if (video.readyState >= 2) {
+            drawWhenReady();
+          } else {
+            video.addEventListener('seeked', drawWhenReady, { once: true });
+          }
+        } else if (video.readyState >= 2) {
+          this.drawBackgroundPreviewElement(video);
+        }
+      }
+    } else if (this.bgPreviewVideo) {
+      try { this.bgPreviewVideo.pause(); } catch (e) {}
+      this.bgPreviewVideo = null;
+    }
+  }
+
   /**
    * Draws the song background image onto the background sprite canvas.
    * @param {string} [url] - Image URL to render; a cleared canvas when null.
    */
   updateBackground(url = null) {
-    this.backgroundSprite.ctx.clearRect(0, 0, game.width, game.height);
-    this.backgroundSprite.dirty();
-    
-    if (url && url !== "no-media") {
-      const img = new Image();
-      img.onload = () => {
-        this.backgroundSprite.ctx.drawImage(img, 0, 0, game.width, game.height);
-        this.backgroundSprite.dirty();
-      };
-      img.src = url;
-    }
+    this.applyBgPreview({ file: (url && url !== "no-media") ? (this.song && this.song.chart ? this.song.chart.background : "background") : "-nosongbg-", url: url, type: "image", beat: -Infinity });
   }
   
   /**
@@ -39089,10 +39611,10 @@ class Editor {
       animate: true
     });
   
-    carousel.addItem("(Export StepMania Song (.zip)|Exportar Canción StepMania (.zip))", () => this.exportSong());
+    carousel.addItem("(Export StepMania Song|Exportar Canción StepMania)", () => this.exportSong());
     carousel.addItem("(Export .SM only|Exportar solo .SM)", () => this.exportSmOnly());
     carousel.addItem("(Export audio only|Exportar solo audio)", () => this.exportAudioOnly());
-    carousel.addItem("(Export backgrounds (images & videos)|Exportar fondos (imágenes y videos))", () => this.exportBackgroundsOnly());
+    carousel.addItem("(Export images & videos|Exportar imágenes y videos)", () => this.exportBackgroundsOnly());
     carousel.addItem("(Export videos only|Exportar solo videos)", () => this.exportVideosOnly());
   
     game.onMenuIn.dispatch("editorProject", carousel);
@@ -39160,6 +39682,7 @@ class Editor {
     this.clearUI();
     this.stopPlayback();
     this.homeOverlay.visible = false;
+    this.chartInfoOverlay.visible = false;
     this.bannerSprite.visible = false;
     this.navigationHint.updateHints('editor');
 
@@ -39392,8 +39915,38 @@ class Editor {
    * @returns {number} The snapped beat value.
    */
   getSnappedBeat(beat) {
-    const snapped = Phaser.Math.snapToFloor(beat, this.getDivisionSize());
-    return Math.max(0, snapped);
+    const d = this.snapDivision || 4;
+    const index = Math.round((beat * d) / 4);
+    return Math.max(0, parseFloat(((index * 4) / d).toFixed(10)));
+  }
+
+  /**
+   * Moves a beat by delta steps and returns the next/previous grid line.
+   * Always advances at least one grid line in the movement direction.
+   * @param {number} beat - Current beat.
+   * @param {number} deltaBeat - Signed beat delta (typically +/-getDivisionSize()).
+   * @returns {number} Target snapped beat.
+   */
+  getSteppedBeat(beat, deltaBeat) {
+    const d = this.snapDivision || 4;
+    const step = 4 / d;
+    if (!d || !isFinite(step) || step <= 0 || !isFinite(deltaBeat) || deltaBeat === 0) {
+      return this.getSnappedBeat(beat);
+    }
+    const dir = deltaBeat > 0 ? 1 : -1;
+    const steps = Math.max(1, Math.round(Math.abs(deltaBeat) / step));
+    const base = (beat * d) / 4;
+    const eps = 1e-6;
+    const snappedBase = Math.round(base);
+    let index;
+    if (Math.abs(base - snappedBase) <= eps) {
+      index = snappedBase + dir * steps;
+    } else if (dir > 0) {
+      index = Math.floor(base + eps) + steps;
+    } else {
+      index = Math.ceil(base - eps) - steps;
+    }
+    return Math.max(0, parseFloat(((index * 4) / d).toFixed(10)));
   }
 
   /**
@@ -39433,12 +39986,16 @@ class Editor {
   /**
    * Processes gamepad input for editing: selecting, placing, and seeking.
    */
+  isEditorInputBlocked() {
+    return !!(this.menuVisible || (this.menuBar && this.menuBar.isMenuActive && this.menuBar.isMenuActive()));
+  }
+
   handleChartEditInput() {
     if (this.markerListActive) {
       this.handleMarkerListInput();
       return;
     }
-    if (this.menuVisible) return;
+    if (this.isEditorInputBlocked()) return;
 
     const { now, beat } = this.getCurrentTime();
 
@@ -39772,8 +40329,8 @@ class Editor {
     this.cursorColumn = Phaser.Math.clamp(this.cursorColumn + deltaX, 0, 3);
 
     if (deltaBeat !== 0) {
-      this.cursorBeat += deltaBeat;
-      this.snapCursor();
+      this.cursorBeat = this.getSteppedBeat(this.cursorBeat, deltaBeat);
+      if (this.chartRenderer && this.chartRenderer.seek) this.chartRenderer.seek(this.cursorBeat, { smooth: true, ease: 'Bounce', duration: 90 });
     }
 
     this.chartRenderer.cleanupAllLines();
@@ -40017,7 +40574,7 @@ class Editor {
    * @param {number} y - Pointer Y position.
    */
   onMouseDown(button, x, y) {
-    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    if (this.isEditorInputBlocked() || this.currentScreen !== "chartEdit") return;
     
     const column = this.getColumnAtPosition(x);
     if (column === -1) return;
@@ -40055,7 +40612,7 @@ class Editor {
    * @param {number} y - Pointer Y position.
    */
   onMouseMove(x, y) {
-    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    if (this.isEditorInputBlocked() || this.currentScreen !== "chartEdit") return;
     
     // Handle rectangular selection (left drag)
     if (mouse.pressed.left && this.mouseSelectStart && !this.mouseSelectRect) {
@@ -40097,7 +40654,7 @@ class Editor {
    * @param {number} y - Pointer Y position.
    */
   onMouseUp(button, x, y) {
-    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    if (this.isEditorInputBlocked() || this.currentScreen !== "chartEdit") return;
     
     if (button === 'left') {
       if (this.mouseSelectRect) {
@@ -40131,7 +40688,7 @@ class Editor {
    * @param {string} direction - Wheel direction ('up' or 'down').
    */
   onMouseWheel(direction) {
-    if (this.menuVisible || this.currentScreen !== "chartEdit") return;
+    if (this.isEditorInputBlocked() || this.currentScreen !== "chartEdit") return;
     
     if (direction === 'up') {
       this.moveCursor(0, -this.getDivisionSize() * 4);
@@ -40374,6 +40931,7 @@ class Editor {
     if (notes.length) {
       this.clipboard = notes;
       notifications.show(__(`(Copied|Copiadas) ${notes.length} (notes|notas)`));
+      if (this.refreshMenuBar) this.refreshMenuBar();
     }
   }
   
@@ -40569,6 +41127,7 @@ class Editor {
    */
   refreshSelectedNotes() {
     this.selectedNotes.forEach(note => this.chartRenderer.killNote(note)); // the renderer will automatically recreate the note visuals
+    if (this.refreshMenuBar) this.refreshMenuBar();
   }
   
   /**
@@ -40590,6 +41149,7 @@ class Editor {
     
     this.refreshMetronome();
     this.updateInfoText();
+    if (this.refreshMenuBar) this.refreshMenuBar();
   }
 
   /**
@@ -41108,9 +41668,7 @@ class Editor {
     return `Untitled ${yyyy}-${mm}-${dd}`;
   }
 
-  isVideoFilename(name) {
-    return /\.(mp4|webm|ogv|ogg|avi|mov|mkv|m4v)$/i.test(String(name || ""));
-  }
+  // isVideoFilename defined earlier in Editor for BG preview
 
   async getEditorOutputDir(fileSystem) {
     const dirPath = EXTERNAL_DIRECTORY + EDITOR_OUTPUT_DIRECTORY;
@@ -42037,6 +42595,7 @@ class Editor {
 
   previewMarker(beat) {
     this.cursorBeat = beat;
+    if (this.chartRenderer && this.chartRenderer.seek) this.chartRenderer.seek(beat, { smooth: true, ease: 'Bounce', duration: 90 });
     this.updateCursorPosition();
     this.updateInfoText();
   }
@@ -42045,6 +42604,7 @@ class Editor {
     if (!this.markerListActive) return;
     if (!confirm) {
       this.cursorBeat = this.markerListPrevBeat;
+      if (this.chartRenderer && this.chartRenderer.seek) this.chartRenderer.seek(this.cursorBeat, { smooth: true, ease: 'Bounce', duration: 90 });
       this.updateCursorPosition();
       this.updateInfoText();
     }
@@ -42246,8 +42806,6 @@ class Editor {
       rating: 5,
       removeExisting: 1,
       style: 0,
-      allowHolds: 1,
-      allowMines: 0,
       allowJumps: 1
     };
     if (cfg.startBeat + cfg.lengthBeats > totalBeats) {
@@ -42272,8 +42830,6 @@ class Editor {
     const styles = ["Stream", "Jumpstream", "Technical", "Stamina", "DDR"];
     w.addSettingItem(__("(Style|Estilo)"), styles, cfg.style, i => { cfg.style = i; });
     w.addSettingItem(__("(Conflicts|Conflictos)"), [__("(Overwrite collisions|Sobrescribir colisiones)"), __("(Remove in range|Eliminar en rango)")], cfg.removeExisting, i => { cfg.removeExisting = i; });
-    w.addSettingItem(__("(Allow Holds|Permitir holds)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowHolds, i => { cfg.allowHolds = i; });
-    w.addSettingItem(__("(Allow Mines|Permitir minas)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowMines, i => { cfg.allowMines = i; });
     w.addSettingItem(__("(Allow Jumps|Permitir jumps)"), [__("(No|No)"), __("(Yes|Sí)")], cfg.allowJumps, i => { cfg.allowJumps = i; });
 
     let closed = false;
@@ -42304,8 +42860,6 @@ class Editor {
         rating: cfg.rating,
         style: styles[cfg.style] || "Stream",
         removeExisting: cfg.removeExisting === 1,
-        allowHolds: cfg.allowHolds === 1,
-        allowMines: cfg.allowMines === 1,
         allowJumps: cfg.allowJumps === 1
       };
       close();
@@ -42584,6 +43138,7 @@ class Editor {
     const { now, beat } = this.getCurrentTime();
     
     this.chartRenderer.render(now, beat);
+    this.updateBgPreview(now, beat);
     
     if (this.stepGenWM) {
       this.stepGenWM.update();
@@ -42609,6 +43164,7 @@ class Editor {
 
       if (this.isPlaying) {
         this.cursorBeat = beat;
+        if (this.chartRenderer && this.chartRenderer.seek) this.chartRenderer.seek(beat, { smooth: false });
         this.updateCursorPosition();
         this.updateInfoText();
         
@@ -42691,6 +43247,21 @@ class Editor {
     }
     this.stopPlayback();
     this.abortPreview();
+    if (this.bgPreviewVideo) {
+      try { this.bgPreviewVideo.pause(); } catch (e) {}
+      this.bgPreviewVideo = null;
+    }
+    if (this.bgPreviewElements) {
+      Object.keys(this.bgPreviewElements).forEach(k => {
+        const el = this.bgPreviewElements[k];
+        if (el && el.pause) try { el.pause(); } catch (e) {}
+      });
+      this.bgPreviewElements = {};
+    }
+    if (this.menuBar) {
+      this.menuBar.destroy();
+      this.menuBar = null;
+    }
     this.editorAudioCtx = null;
     this.audioBuffer = null;
     if (this.audio) {
@@ -43614,24 +44185,69 @@ class ChartRenderer {
    */
   render(now, beat) {
     if (this.paused) return;
+    const rBeat = this.getRenderBeat(beat);
     
     if (this.scrollDirection === "falling") {
-      this.renderFalling(now, beat);
+      this.renderFalling(now, rBeat);
     } else {
-      this.renderRising(now, beat);
+      this.renderRising(now, rBeat);
     }
 
     if (this.options.enableBeatLines) {
-      this.renderTimeLines(now, beat);
+      this.renderTimeLines(now, rBeat);
     }
     if (this.options.enableSpeedRendering) {
-      this.renderSpeedChanges(now, beat);
+      this.renderSpeedChanges(now, rBeat);
     }
     if (this.options.enableBGRendering) {
-      this.renderBGChanges(now, beat);
+      this.renderBGChanges(now, rBeat);
     }
-    this.renderMarkers(now, beat);
+    this.renderMarkers(now, rBeat);
     this.cleanupTags();
+  }
+
+  getRenderBeat(beat) {
+    if (!this.smoothScroll || !this.smoothScroll.active) return beat;
+    const s = this.smoothScroll;
+    const nowMs = (typeof game !== 'undefined' && game.time) ? game.time.now : Date.now();
+    const t = Math.max(0, Math.min(1, (nowMs - s.startTime) / s.duration));
+    const eased = this._applyScrollEasing(t, s.ease);
+    const value = s.from + (s.to - s.from) * eased;
+    if (t >= 1) this.smoothScroll.active = false;
+    return value;
+  }
+
+  _applyScrollEasing(t, ease) {
+    const Easing = (typeof Phaser !== 'undefined' && Phaser.Easing) ? Phaser.Easing : null;
+    if (typeof ease === 'function') return ease(t);
+    if (Easing && ease) {
+      if (Easing[ease] && typeof Easing[ease].Out === 'function') return Easing[ease].Out(t);
+      if (typeof ease === 'string' && ease.indexOf('.') !== -1) {
+        const parts = ease.split('.');
+        let fn = Easing;
+        for (let i = 0; i < parts.length && fn; i++) fn = fn[parts[i]];
+        if (typeof fn === 'function') return fn(t);
+      }
+    }
+    return Easing && Easing.Bounce ? Easing.Bounce.Out(t) : t;
+  }
+
+  seek(beat, options = {}) {
+    const opts = options || {};
+    const smooth = !!opts.smooth;
+    const ease = opts.ease || 'Bounce';
+    const duration = Math.max(0, typeof opts.duration === 'number' ? opts.duration : 90);
+    const target = typeof beat === 'number' && isFinite(beat) ? beat : 0;
+
+    if (!smooth || duration <= 0) {
+      this.smoothScroll = { active: false, from: target, to: target, startTime: 0, duration: 0, ease };
+      return target;
+    }
+
+    const from = (this.smoothScroll && this.smoothScroll.active) ? this.getRenderBeat(target) : target;
+    const nowMs = (typeof game !== 'undefined' && game.time) ? game.time.now : Date.now();
+    this.smoothScroll = { active: true, from, to: target, startTime: nowMs, duration, ease };
+    return target;
   }
 
   /**
