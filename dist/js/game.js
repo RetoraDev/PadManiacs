@@ -5,7 +5,7 @@
  * 
  * Source: https://github.com/RetoraDev/PadManiacs
  * Version: v1.3.0
- * Build: 11/21/2026, 7:35:07 PM
+ * Build: 11/21/2026, 8:19:07 PM
  * Platform: Web
  * Debug: false
  * Minified: false
@@ -14812,6 +14812,8 @@ class MenuBar extends Phaser.Graphics {
 
   _show() {
     if (this._visibleState && this.alpha >= 1) { this.visible = true; this.y = 0; this.alpha = 1; game.activeMenuBar = this; return; }
+    if (this.parent && this.parent.bringToTop) this.parent.bringToTop(this);
+    else if (game.world && game.world.bringToTop) game.world.bringToTop(this);
     this._visibleState = true;
     this.visible = true;
     game.activeMenuBar = this;
@@ -14973,7 +14975,7 @@ class MenuBar extends Phaser.Graphics {
       if (inTop || overMenu || this.active) {
         this._hideTimer = 0;
         this._showTimer += game.time.elapsed;
-        if (this._showTimer >= this.config.showDelay || this.active) this._show();
+        if (!this._visibleState && (this._showTimer >= this.config.showDelay || this.active)) this._show();
       } else {
         this._showTimer = 0;
         if (this._visibleState) {
@@ -14985,10 +14987,8 @@ class MenuBar extends Phaser.Graphics {
       this._show();
     }
 
-    if (!this.visible) return;
-    if (this.parent && this.parent.bringToTop) this.parent.bringToTop(this);
-    else if (game.world && game.world.bringToTop) game.world.bringToTop(this);
-
+    if (!this.visible && !this._visibleState) return;
+    
     const overBar = py >= this.y && py <= this.y + this.barHeight && px >= 0 && px <= game.width;
     let hoverSection = -1;
     if (overBar) {
