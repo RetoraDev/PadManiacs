@@ -104,7 +104,10 @@ class CarouselMenu extends Phaser.Sprite {
     
     this.setupInput();
     
-    if (!this.config.silent) game.add.existing(this);
+    if (!this.config.silent) {
+      window.mainCarousel = this;
+      game.add.existing(this);
+    }
   }
   
   /**
