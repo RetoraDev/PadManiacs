@@ -236,6 +236,13 @@ class CarouselMenu extends Phaser.Sprite {
     item.text = null;
   }
   
+  /**
+   * Creates a horizontal gradient (or solid) background sprite for menu items.
+   * @param {number} width - Background width.
+   * @param {number} height - Background height.
+   * @param {string} [color] - Optional item color override.
+   * @returns {Phaser.Sprite} Background sprite.
+   */
   createGradientBackground(width, height, color) {
     const bitmap = game.add.bitmapData(width, height);
     
@@ -712,10 +719,16 @@ class CarouselMenu extends Phaser.Sprite {
     });
   }
   
+  /**
+   * Placeholder for per-frame custom animation updates.
+   */
   updateAnimations() {
     // Update any ongoing animations here, might be removed 
   }
   
+  /**
+   * Records press timing used for hold/repeat navigation acceleration.
+   */
   updatePressTiming() {
     if (this.firstPressTime === undefined) {
       this.firstPressTime = game.time.now;
@@ -723,6 +736,9 @@ class CarouselMenu extends Phaser.Sprite {
     this.lastPress = game.time.now;
   }
   
+  /**
+   * Resets press timing after a discrete navigation action.
+   */
   resetPressTiming() {
     this.firstPressTime = game.time.now;
     this.lastPress = game.time.now;
@@ -849,6 +865,9 @@ class CarouselMenu extends Phaser.Sprite {
     }
   }
   
+  /**
+   * Plays the UI navigation sound when enabled.
+   */
   playNavSound() {
     ENABLE_UI_SFX && Audio.play('ui_nav');
   }

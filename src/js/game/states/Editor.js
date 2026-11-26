@@ -197,8 +197,9 @@ class Editor {
   }
   
   /**
-   * Creates the desktop-style menu bar for mouse users.
-   */
+   * Creates and initializes the top MenuBar used for mouse-driven editor commands.
+   * Recreates any existing bar and populates it with the current section model.
+   */ 
   setupMenuBar() {
     if (this.menuBar) this.menuBar.destroy();
     this.menuBar = new MenuBar({
@@ -212,6 +213,10 @@ class Editor {
     this.refreshMenuBar();
   }
 
+  /**
+   * Rebuilds MenuBar sections/items from current editor state.
+   * Applies `condition` callbacks so items reflect screen, playback, selection and clipboard state.
+   */
   refreshMenuBar() {
     if (!this.menuBar) return;
     const hasSelection = this.selectedNotes && this.selectedNotes.length > 0;
@@ -283,12 +288,20 @@ class Editor {
     ]);
   }
 
+  /**
+   * Sets the beat snap division used by cursor movement and placement.
+   * @param {number} div - Division denominator (e.g. 4, 8, 16) present in `this.divisions`.
+   */
   setSnapDivision(div) {
     if (!this.divisions) return;
     if (this.divisions.includes(div)) this.snapDivision = div;
     this.updateInfoText();
   }
 
+  /**
+   * Selects every note in the current difficulty chart.
+   * Refreshes note visuals and editor info after selection.
+   */
   selectAllNotes() {
     const notes = this.getCurrentChartNotes();
     this.selectedNotes = notes ? notes.slice() : [];
@@ -433,14 +446,27 @@ class Editor {
     }
   }
   
+  /**
+   * Returns opacity for BG preview elements based on account settings.
+   * @param {boolean} isVideo - True for video backgrounds.
+   * @returns {number} Opacity value in 0..1.
+   */
   getBgPreviewOpacity(isVideo) {
     return isVideo ? (Account.settings.videoBackgroundOpacity ?? 0.5) : (Account.settings.backgroundOpacity ?? 0.5);
   }
 
+  /**
+   * Checks whether a filename has a supported video extension.
+   * @param {string} name - File name/path.
+   * @returns {boolean} True when filename looks like a video.
+   */
   isVideoFilename(name) {
     return /\.(mp4|webm|ogv|ogg|mov|m4v|avi|mkv)$/i.test(String(name || ""));
   }
 
+  /**
+   * Clears current BG preview, pauses preview video and restores default gradient visibility.
+   */
   clearBackgroundPreview() {
     if (this.bgPreviewVideo && this.bgPreviewVideo.pause) {
       try { this.bgPreviewVideo.pause(); } catch (e) {}
@@ -452,6 +478,10 @@ class Editor {
     this.backgroundSprite.alpha = 0.3;
   }
 
+  /**
+   * Draws an image/video element into the background preview canvas.
+   * @param {HTMLImageElement|HTMLVideoElement} element - Media element to draw.
+   */
   drawBackgroundPreviewElement(element) {
     if (!element || element.__errored) {
       this.clearBackgroundPreview();
@@ -466,6 +496,11 @@ class Editor {
     }
   }
 
+  /**
+   * Loads/caches an image for background preview and draws it when active.
+   * @param {string} filename - Background filename key.
+   * @param {string} url - Image URL/blob/data URL.
+   */
   loadBgPreviewImage(filename, url) {
     if (!url || url === "no-media" || filename === "undefined") {
       this.clearBackgroundPreview();
@@ -1279,10 +1314,20 @@ class Editor {
   /**
    * Processes gamepad input for editing: selecting, placing, and seeking.
    */
+  /**
+   * Returns whether editor chart input should be ignored.
+   * Blocks input while modal/editor menus are visible or MenuBar is active/hovered.
+   * @returns {boolean} True when chart editing input must not be processed.
+   */
   isEditorInputBlocked() {
     return !!(this.menuVisible || (this.menuBar && this.menuBar.isMenuActive && this.menuBar.isMenuActive()));
   }
 
+  /**
+   * Processes gamepad input for chart editing actions.
+   * Handles selection, note placement, cursor movement, playback and menu shortcuts,
+   * unless input is blocked by active menus.
+   */
   handleChartEditInput() {
     if (this.markerListActive) {
       this.handleMarkerListInput();

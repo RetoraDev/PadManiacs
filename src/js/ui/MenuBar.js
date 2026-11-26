@@ -2,10 +2,26 @@
  * @class MenuBar
  * @category UI Classes
  * @summary Desktop-style top menu bar with dropdown submenus
+ * @constructor
+ * @param {object} [config={}] - Menu bar configuration
+ * @param {number} [config.height=10] - Bar height in pixels
+ * @param {boolean} [config.autoHide=true] - Hide bar when pointer leaves top zone and no menu is active
+ * @param {number} [config.showDelay=180] - Delay in ms before showing after pointer enters top zone
+ * @param {number} [config.hideTimeout=350] - Delay in ms before hiding after pointer leaves
+ * @param {boolean} [config.visibleOnStart=false] - Whether bar is visible at creation
+ * @param {number} [config.paddingLeft=2] - Left padding inside dropdown labels
+ * @param {number} [config.paddingRight=2] - Right padding inside dropdown labels
+ * @param {number} [config.charWidth=5] - Approximate character width used for menu width calculation
+ * @param {Function|null} [config.onRefresh=null] - Callback invoked before opening a section to refresh items
  */
 class MenuBar extends Phaser.Graphics {
+  /**
+   * Creates the menu bar, layers, blocker, and initial visibility state.
+   * @param {object} [config={}] - Configuration overrides.
+   */
   constructor(config = {}) {
     super(game, 0, 0);
+    /** @type {object} Normalized menu bar configuration. */
     this.config = {
       height: 10,
       autoHide: true,
@@ -18,16 +34,27 @@ class MenuBar extends Phaser.Graphics {
       onRefresh: null,
       ...config
     };
+    /** @type {number} Current menu bar height in pixels. */
     this.barHeight = this.config.height;
+    /** @type {Array<object>} Top-level sections displayed in the bar. */
     this.sections = [];
+    /** @type {Array<object>} Open dropdown path from root to deepest submenu. */
     this.openPath = []; // [{container,highlight,bounds,itemRects,level,_parentItem}]
+    /** @type {boolean} Whether any dropdown menu is currently open. */
     this.active = false;
+    /** @type {number} Accumulated ms pointer has remained in show zone. */
     this._showTimer = 0;
+    /** @type {number} Accumulated ms pointer has remained outside hide conditions. */
     this._hideTimer = 0;
+    /** @type {boolean} Intended visibility state (shown/hidden) independent of tween completion. */
     this._visibleState = !!this.config.visibleOnStart;
+    /** @type {?Phaser.Tween} Active show/hide tween. */
     this._tween = null;
+    /** @type {?object} Dropdown item currently pressed on pointer down. */
     this._pressedItem = null;
+    /** @type {number} Section index currently pressed on pointer down, or -1. */
     this._pressedSection = -1;
+    /** @type {Array<object>} Hit areas for visible top-level sections. */
     this._sectionHitAreas = [];
 
     this.y = this._visibleState ? 0 : -this.barHeight;
@@ -41,6 +68,7 @@ class MenuBar extends Phaser.Graphics {
     this.menusLayer = game.add.sprite(0, 0);
     this.addChild(this.menusLayer);
 
+    /** @type {Phaser.Sprite} Fullscreen invisible input blocker placed below menu visuals. */
     this.blocker = game.add.sprite(0, 0, null);
     this.blocker.width = game.width;
     this.blocker.height = game.height;
@@ -57,6 +85,10 @@ class MenuBar extends Phaser.Graphics {
     game.add.existing(this);
   }
 
+  /**
+   * Replaces all top-level menu sections.
+   * @param {Array<object>} sections - Section definitions with label/items/condition.
+   */
   setSections(sections) {
     this.sections = (sections || []).map(s => ({
       label: s.label,
@@ -67,15 +99,28 @@ class MenuBar extends Phaser.Graphics {
     this._layoutSections();
   }
 
+  /**
+   * Resolves a section label, supporting string or function labels.
+   * @param {object} section - Section object.
+   * @returns {string} Localized label text.
+   */
   _sectionLabel(section) {
     const l = typeof section.label === 'function' ? section.label() : section.label;
     return __(l);
   }
 
+  /**
+   * Checks whether a section should be visible.
+   * @param {object} section - Section object.
+   * @returns {boolean} True when section has no condition or condition returns truthy.
+   */
   _isSectionVisible(section) {
     return !section.condition || section.condition();
   }
 
+  /**
+   * Draws the menu bar background and bottom border.
+   */
   _drawBar() {
     this.bg.clear();
     this.bg.beginFill(0x1a1a1a, 0.95);
@@ -86,6 +131,9 @@ class MenuBar extends Phaser.Graphics {
     this.bg.lineTo(game.width, this.barHeight - 0.5);
   }
 
+  /**
+   * Lays out visible section labels and updates their hit areas.
+   */
   _layoutSections() {
     while (this.labelsLayer.children.length) this.labelsLayer.children[0].destroy();
     this._sectionHitAreas = [];
@@ -103,6 +151,10 @@ class MenuBar extends Phaser.Graphics {
     });
   }
 
+  /**
+   * Checks whether the pointer is over the bar or any open dropdown.
+   * @returns {boolean} True when pointer is inside menu interactive area.
+   */
   isPointerOver() {
     const p = game.input.activePointer;
     if (!p) return false;
@@ -111,10 +163,21 @@ class MenuBar extends Phaser.Graphics {
     return this._isPointerInOpenMenus(px, py);
   }
 
+  /**
+   * Returns whether menu interaction should be considered active.
+   * Used by editor to block chart input while menus are in use.
+   * @returns {boolean} True when a dropdown is open or pointer is over menu UI.
+   */
   isMenuActive() {
     return this.active || this.isPointerOver();
   }
 
+  /**
+   * Tests pointer coordinates against open dropdown bounds.
+   * @param {number} px - Pointer x.
+   * @param {number} py - Pointer y.
+   * @returns {boolean} True if pointer is inside any open dropdown.
+   */
   _isPointerInOpenMenus(px, py) {
     for (const m of this.openPath) {
       if (!m || !m.container || !m.container.visible) continue;
@@ -124,6 +187,10 @@ class MenuBar extends Phaser.Graphics {
     return false;
   }
 
+  /**
+   * Shows the menu bar with a slide/fade tween.
+   * Also sets `game.activeMenuBar` to block keyboard navigation in other UI.
+   */
   _show() {
     if (this._visibleState && this.alpha >= 1) { this.visible = true; this.y = 0; this.alpha = 1; game.activeMenuBar = this; return; }
     if (this.parent && this.parent.bringToTop) this.parent.bringToTop(this);
@@ -137,6 +204,10 @@ class MenuBar extends Phaser.Graphics {
     this._tween = game.add.tween(this).to({ y: 0, alpha: 1 }, 160, Phaser.Easing.Quadratic.Out, true);
   }
 
+  /**
+   * Hides the menu bar with a slide/fade tween.
+   * @param {boolean} [force=false] - Hide even when auto-hide conditions would normally block it.
+   */
   _hide(force) {
     if (!force && (!this.config.autoHide || this.active || this._isPointerInOpenMenus(game.input.activePointer.x, game.input.activePointer.y))) return;
     if (!this._visibleState && !this.visible) return;
@@ -153,6 +224,9 @@ class MenuBar extends Phaser.Graphics {
     });
   }
 
+  /**
+   * Closes all open dropdown menus and clears section highlight.
+   */
   closeAllMenus() {
     this.active = false;
     this._pressedItem = null;
@@ -161,10 +235,17 @@ class MenuBar extends Phaser.Graphics {
     this._clearSectionHighlights();
   }
 
+  /**
+   * Removes section highlight by redrawing base bar.
+   */
   _clearSectionHighlights() {
     this._drawBar();
   }
 
+  /**
+   * Highlights a top-level section.
+   * @param {number} index - Section index.
+   */
   _highlightSection(index) {
     this._clearSectionHighlights();
     const s = this.sections[index];
@@ -174,6 +255,11 @@ class MenuBar extends Phaser.Graphics {
     this.bg.endFill();
   }
 
+  /**
+   * Filters menu items by `condition`, skipping invalid/leading separators.
+   * @param {Array<object>} items - Item definitions.
+   * @returns {Array<object>} Visible items.
+   */
   _getVisibleItems(items) {
     let previous, previousVisible;
     return (items || []).filter(it => {
@@ -187,12 +273,22 @@ class MenuBar extends Phaser.Graphics {
     });
   }
 
+  /**
+   * Resolves a menu item label, supporting function labels.
+   * @param {object} it - Menu item.
+   * @returns {string} Localized label or empty string for separators.
+   */
   _itemLabel(it) {
     if (it.separator) return '';
     const l = typeof it.label === 'function' ? it.label() : it.label;
     return __(l || '');
   }
 
+  /**
+   * Calculates dropdown dimensions and layout metadata.
+   * @param {Array<object>} items - Menu item definitions.
+   * @returns {{w:number,h:number,labelH:number,visible:Array<object>,hasSubmenu:boolean}} Layout data.
+   */
   _calcMenuSize(items) {
     const padL = this.config.paddingLeft;
     const padR = this.config.paddingRight;
@@ -217,6 +313,15 @@ class MenuBar extends Phaser.Graphics {
     return { w, h, labelH, visible, hasSubmenu };
   }
 
+  /**
+   * Opens a dropdown menu at a level, closing deeper levels first.
+   * @param {Array<object>} items - Menu items for this level.
+   * @param {number} x - Menu x position.
+   * @param {number} y - Preferred menu y position.
+   * @param {number} level - Depth level in open path.
+   * @param {object|null} parentItem - Parent item that opened this submenu.
+   * @returns {object} Open menu descriptor.
+   */
   _openMenu(items, x, y, level, parentItem) {
     while (this.openPath.length > level) {
       const m = this.openPath.pop();
@@ -277,6 +382,10 @@ class MenuBar extends Phaser.Graphics {
     return menuObj;
   }
 
+  /**
+   * Opens the root dropdown for a top-level section.
+   * @param {number} index - Section index.
+   */
   _openSection(index) {
     if (!this.active && typeof this.config.onRefresh === 'function') this.config.onRefresh();
     const section = this.sections[index];
@@ -287,6 +396,9 @@ class MenuBar extends Phaser.Graphics {
     this._openMenu(section.items, section.x - 2, this.barHeight, 0, null);
   }
 
+  /**
+   * Per-frame update: handles auto show/hide, hover highlights, section clicks and menu interaction.
+   */
   update() {
     const p = game.input.activePointer;
     const px = p ? p.x : -1;
@@ -341,6 +453,12 @@ class MenuBar extends Phaser.Graphics {
     if (!p.isDown) this._pressedSection = -1;
   }
 
+  /**
+   * Updates hover/press/click behavior for open dropdown menus.
+   * @param {number} px - Pointer x.
+   * @param {number} py - Pointer y.
+   * @param {Phaser.Pointer} p - Active pointer.
+   */
   _updateOpenMenus(px, py, p) {
     if (!this.openPath.length) { this.active = false; return; }
 
@@ -411,6 +529,10 @@ class MenuBar extends Phaser.Graphics {
     if (!p.isDown) this._pressedItem = null;
   }
 
+  /**
+   * Destroys menu visuals/tweens and clears global active menu bar reference.
+   * @param {...any} args - Phaser destroy args.
+   */
   destroy(...args) {
     this.closeAllMenus();
     if (this._tween) this._tween.stop();

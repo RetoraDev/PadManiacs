@@ -115,6 +115,9 @@ class Window extends Phaser.Sprite {
     this.updateSelector();
   }
 
+  /**
+   * Builds the window frame sprites from the configured skin.
+   */
   createWindowFrame() {
     // Window frame parts
     /** @type {Array} Sprites that compose the window frame */
@@ -440,6 +443,9 @@ class Window extends Phaser.Sprite {
     this.scrollBar.clear();
   }
   
+  /**
+   * Adjusts scroll offset so the selected item remains within the visible range.
+   */
   adjustScroll() {
     // Adjust scroll offset to ensure selected item is visible
     if (this.selectedIndex < this.scrollOffset) {
@@ -483,6 +489,9 @@ class Window extends Phaser.Sprite {
     }
   }
 
+  /**
+   * Handles left navigation: cycles setting/range values backward.
+   */
   handleLeft() {
     const item = this.items[this.selectedIndex];
     if (!item) return;
@@ -500,6 +509,9 @@ class Window extends Phaser.Sprite {
     this.playNavSound();
   }
 
+  /**
+   * Handles right navigation: cycles setting/range values forward.
+   */
   handleRight() {
     const item = this.items[this.selectedIndex];
     if (!item) return;
