@@ -4,51 +4,54 @@
 
 cd "$(git rev-parse --show-toplevel)" || exit 0
 
-NW_DIR="src/static/nw"
+NW_DIRS="src/static/nw src/static/nw_ia32"
 BACKUP=".nw-backup"
 
 mkdir -p "$BACKUP"
 
-# ---- RESTORE: files that this checkout deleted ----
-if [ -n "$1" ] && [ -n "$2" ] && [ "$1" != "$2" ]; then
-    old_files=$(git ls-tree -r --name-only "$1" -- "$NW_DIR" 2>/dev/null)
-    new_files=$(git ls-tree -r --name-only "$2" -- "$NW_DIR" 2>/dev/null)
+restore_deleted() {
+  NW_DIR="$1"
+  [ -n "$OLD_REF" ] && [ -n "$NEW_REF" ] && [ "$OLD_REF" != "$NEW_REF" ] || return 0
+  old_files=$(git ls-tree -r --name-only "$OLD_REF" -- "$NW_DIR" 2>/dev/null)
+  new_files=$(git ls-tree -r --name-only "$NEW_REF" -- "$NW_DIR" 2>/dev/null)
 
-    echo "$old_files" | while IFS= read -r path; do
-        [ -z "$path" ] && continue
+  echo "$old_files" | while IFS= read -r path; do
+      [ -z "$path" ] && continue
+      printf '%s\n' "$new_files" | grep -qxF "$path" && continue
+      [ -f "$path" ] && continue
+      mkdir -p "$(dirname "$path")"
+      if git show "$OLD_REF:$path" > "$path" 2>/dev/null; then
+          echo "[post-checkout] restored $path (from $OLD_REF)"
+          continue
+      fi
+      rel="${path#src/static/}"
+      if [ -f "$BACKUP/$rel" ]; then
+          cp -p "$BACKUP/$rel" "$path"
+          echo "[post-checkout] restored $path (from $BACKUP)"
+      fi
+  done
+}
 
-        if printf '%s\n' "$new_files" | grep -qxF "$path"; then
-            continue
-        fi
-
-        [ -f "$path" ] && continue
-
-        mkdir -p "$(dirname "$path")"
-
-        if git show "$1:$path" > "$path" 2>/dev/null; then
-            echo "[post-checkout] restored $path (from $1)"
-            continue
-        fi
-
-        rel="${path#$NW_DIR/}"
-        if [ -f "$BACKUP/$rel" ]; then
-            cp -p "$BACKUP/$rel" "$path"
-            echo "[post-checkout] restored $path (from $BACKUP)"
-        fi
-    done
-fi
+OLD_REF="$1"
+NEW_REF="$2"
+for NW_DIR in $NW_DIRS; do
+  restore_deleted "$NW_DIR"
+done
 
 # ---- ASYNC BACKUP: keep $BACKUP in sync, non-blocking ----
 (
     cd "$(git rev-parse --show-toplevel)" 2>/dev/null || exit 0
     mkdir -p "$BACKUP"
-    find "$NW_DIR" -type f 2>/dev/null | while IFS= read -r f; do
-        rel="${f#$NW_DIR/}"
-        tgt="$BACKUP/$rel"
-        if [ ! -f "$tgt" ] || [ "$f" -nt "$tgt" ]; then
-            mkdir -p "$(dirname "$tgt")"
-            cp -p "$f" "$tgt" 2>/dev/null
-        fi
+    for NW_DIR in $NW_DIRS; do
+      [ -d "$NW_DIR" ] || continue
+      find "$NW_DIR" -type f 2>/dev/null | while IFS= read -r f; do
+          rel="${f#src/static/}"
+          tgt="$BACKUP/$rel"
+          if [ ! -f "$tgt" ] || [ "$f" -nt "$tgt" ]; then
+              mkdir -p "$(dirname "$tgt")"
+              cp -p "$f" "$tgt" 2>/dev/null
+          fi
+      done
     done
 ) >/dev/null 2>&1 &
 

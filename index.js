@@ -57,13 +57,20 @@ class InteractiveInterface {
       { label: 'Exit', action: () => this.exit() }
     ];
     
+    const nwTargets = new BuildSystem().getNwjsTargets();
+    this.nwjsBuildMenu = [
+      { label: 'All NW.js Targets', action: () => this.runBuild(['--nwjs']) },
+      ...nwTargets.map(t => ({ label: t.name, action: () => this.runBuild([`--nwjs:${t.id}`]) })),
+      { label: 'Back to Build Menu', action: () => this.showBuildMenu() }
+    ];
+
     this.buildMenu = [
       { label: 'Development Build', action: () => this.runBuild(['--none']) },
       { label: 'Development Build (Debug)', action: () => this.runBuild(['--none', '--debug']) },
       { label: 'Production Build (All Platforms)', action: () => this.runBuild(['--all', '--minify']) },
       { label: 'Web Platform Only', action: () => this.runBuild(['--web']) },
       { label: 'Android Platform Only', action: () => this.runBuild(['--cordova', '--zipalign']) },
-      { label: 'Windows Platform Only', action: () => this.runBuild(['--nwjs']) },
+      { label: 'NW.js Desktop...', action: () => this.showNwjsBuildMenu() },
       { label: 'Custom Build...', action: () => this.showCustomBuildMenu() },
       { label: 'Back to Main Menu', action: () => this.showMainMenu() }
     ];
@@ -110,6 +117,7 @@ class InteractiveInterface {
       build: false,
       cordova: false,
       nwjs: false,
+      nwjsTarget: null,
       noInstall: false,
       none: false,
       web: false,
@@ -125,6 +133,12 @@ class InteractiveInterface {
     };
 
     args.forEach(arg => {
+      if (arg.startsWith('--nwjs:')) {
+        parsed.nwjs = true;
+        parsed.nwjsTarget = arg.slice('--nwjs:'.length);
+        parsed.build = true;
+        return;
+      }
       switch (arg) {
         case '--serve':
           parsed.serve = true;
@@ -235,7 +249,8 @@ class InteractiveInterface {
     
     console.log(this.color('Build Options:', 'yellow'));
     console.log('  --cordova        Build Android platform only');
-    console.log('  --nwjs           Build Windows platform only');
+    console.log('  --nwjs           Build all configured NW.js desktop targets');
+    console.log('  --nwjs:<id>      Build one NW.js target (e.g. --nwjs:win-ia32)');
     console.log('  --web            Build web platform only');
     console.log('  --all            Build all platforms (default)');
     console.log('  --minify         Enable minification');
@@ -274,7 +289,7 @@ class InteractiveInterface {
     if (this.cliArgs.cordova) {
       args.push('--cordova');
     } else if (this.cliArgs.nwjs) {
-      args.push('--nwjs');
+      args.push(this.cliArgs.nwjsTarget ? `--nwjs:${this.cliArgs.nwjsTarget}` : '--nwjs');
     } else if (this.cliArgs.web) {
       args.push('--web');
     } else if (this.cliArgs.none) {
@@ -467,6 +482,12 @@ class InteractiveInterface {
     this.showMainMenu();
   }
   
+  showNwjsBuildMenu() {
+    this.currentMenu = this.nwjsBuildMenu;
+    this.currentSelection = 0;
+    this.drawMenu();
+  }
+
   showServeMenu() {
     this.currentMenu = this.serveMenu;
     this.currentSelection = 0;
@@ -490,9 +511,11 @@ class InteractiveInterface {
   }
 
   togglePlatform() {
-    const platforms = ['all', 'web', 'cordova', 'nwjs', 'none'];
-    const currentIndex = platforms.indexOf(this.customBuildOptions.platform);
-    this.customBuildOptions.platform = platforms[(currentIndex + 1) % platforms.length];
+    const nwTargets = new BuildSystem().getNwjsTargets().map(t => `nwjs:${t.id}`);
+    const platforms = ['all', 'web', 'cordova', 'nwjs', ...nwTargets, 'none'];
+    const uniq = [...new Set(platforms)];
+    const currentIndex = uniq.indexOf(this.customBuildOptions.platform);
+    this.customBuildOptions.platform = uniq[(currentIndex + 1) % uniq.length];
     this.updateCustomBuildLabels();
     this.drawMenu();
   }
@@ -1243,10 +1266,10 @@ class InteractiveInterface {
           requires: "zip command to build www.zip"
         },
         {
-          name: "Windows",
-          description: "NW.JS Package for Windows",
+          name: "Windows / Desktop (NW.js)",
+          description: "Configurable NW.js desktop targets (build.js nwjsTargets)",
           supported: testSystem.hasZip(),
-          requires: "7-zip command to package nw.js"
+          requires: "zip command and target files in src/static/<target.dir>/"
         },
         {
           name: "Android",

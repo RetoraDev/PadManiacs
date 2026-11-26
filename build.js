@@ -12,7 +12,7 @@ class BuildSystem {
       libDir: './lib',
       flags: {
         debug: false,
-        platform: 'all', // 'web', 'cordova', 'nwjs', 'all', 'none'
+        platform: 'all', // 'web', 'cordova', 'nwjs', 'nwjs:<id>', 'all', 'none'
         minify: false,
         zipalign: false,
         noPack: false,
@@ -20,6 +20,13 @@ class BuildSystem {
         ...flags
       }
     };
+
+    // Desktop NW.js release targets (folders inside src/static/).
+    // Add entries here to support additional NW.js desktop releases.
+    this.nwjsTargets = [
+      { id: 'win-x64', dir: 'nw', name: 'Windows x64 (NW.js)', packageSuffix: 'nwjs-win-x64' },
+      { id: 'win-ia32', dir: 'nw_ia32', name: 'Windows IA32 (NW.js)', packageSuffix: 'nwjs-win-ia32' }
+    ];
     
     // File order for concatenation
     this.fileOrder = [
@@ -223,12 +230,34 @@ class BuildSystem {
  */`;
   }
 
+  getNwjsTargets() {
+    return this.nwjsTargets || [];
+  }
+
+  getNwjsTarget(id) {
+    return this.getNwjsTargets().find(t => t.id === id) || null;
+  }
+
+  parseNwjsPlatform(platform) {
+    if (platform === 'nwjs') return { all: true, target: null };
+    if (typeof platform === 'string' && platform.startsWith('nwjs:')) {
+      const id = platform.slice('nwjs:'.length);
+      return { all: false, target: this.getNwjsTarget(id), id };
+    }
+    return null;
+  }
+
   getPlatformDisplayName(platform) {
+    const nw = this.parseNwjsPlatform(platform);
+    if (nw) {
+      if (nw.all) return 'NW.js (All Desktop Targets)';
+      return nw.target ? nw.target.name : `NW.js (${nw.id || 'unknown'})`;
+    }
     const platformMap = {
       'none': 'Development',
       'web': 'Web',
       'cordova': 'Android (Cordova)',
-      'nwjs': 'Windows (NW.js)',
+      'nwjs': 'NW.js (All Desktop Targets)',
       'all': 'All Platforms'
     };
     return platformMap[platform] || platform;
@@ -249,6 +278,7 @@ class BuildSystem {
       if (arg === '--cordova') this.config.flags.platform = 'cordova';
       if (arg === '--zipalign') this.config.flags.zipalign = true;
       if (arg === '--nwjs') this.config.flags.platform = 'nwjs';
+      if (arg.startsWith('--nwjs:')) this.config.flags.platform = arg.slice(2); // nwjs:<id>
       if (arg === '--web') this.config.flags.platform = 'web';
       if (arg === '--all') this.config.flags.platform = 'all';
       if (arg === '--minify') this.config.flags.minify = true;
@@ -297,7 +327,8 @@ class BuildSystem {
         'cordova': 'ENVIRONMENT.CORDOVA', 
         'nwjs': 'ENVIRONMENT.NWJS'
       };
-      const currentEnv = envMap[platform] || 'ENVIRONMENT.WEB';
+      const resolvedPlatform = this.parseNwjsPlatform(platform) ? 'nwjs' : platform;
+      const currentEnv = envMap[resolvedPlatform] || 'ENVIRONMENT.WEB';
       content = content.replace(
         'const CURRENT_ENVIRONMENT = %;',
         `const CURRENT_ENVIRONMENT = ${currentEnv};`
@@ -864,62 +895,69 @@ class BuildSystem {
     fs.rmSync(path.join(this.config.distDir, 'temp'), { recursive: true });
   }
   
-  async buildNWJS() {
-    this.log('Building NW.js Windows platform...', 'info');
-    
-    const nwStatic = path.join(this.config.srcDir, 'static/nw');
-    if (fs.existsSync(nwStatic)) {
-      // Create temporary NW.js build directory
-      const tempNwDir = path.join(this.config.distDir, 'temp', 'nw');
-      this.ensureDir(tempNwDir);
-      
-      // Copy NW.js binaries to temp directory
-      this.copyDir(nwStatic, tempNwDir, [".placeholder"]);
-      
-      // Replace version in temp package.json by current version
-      const packageJsonPath = path.join(tempNwDir, 'package.json');
-      if (fs.existsSync(packageJsonPath)) {
-        try {
-          const packageContent = fs.readFileSync(packageJsonPath, 'utf8');
-          const updatedContent = packageContent.replace('"version": "%"', `"version": "${this.packageInfo.version}"`);
-          fs.writeFileSync(packageJsonPath, updatedContent);
-          this.log(`Set NW.js package.json version to: ${this.packageInfo.version}`, 'success');
-        } catch (error) {
-          this.log('Failed to set NW.js package.json version', 'warning');
-          console.error(error);
-        }
-      }
-      
-      // Create platform-specific game.js for NW.js
-      const jsDest = path.join(tempNwDir, 'www/js');
-      this.ensureDir(jsDest);
-      const nwjsGameJS = await this.concatenateFiles('nwjs');
-      fs.writeFileSync(path.join(jsDest, 'game.js'), nwjsGameJS);
-      
-      // Copy other web files to NW.js www folder (no cordova)
-      this.copyDir(this.config.distDir, path.join(tempNwDir, 'www'), ['www.zip', 'padmaniacs-*.zip', '*.apk', '*.apk.idsig', 'temp', 'cordova', 'js']);
-      
-      if (this.config.flags.noPack) {
-        // Keep an exploded, inspectable copy in dist/ instead of a 7z file
-        const explodedDir = path.join(this.config.distDir, 'nw');
-        this.copyDir(tempNwDir, explodedDir);
-        this.log('Skipping NW.js packaging (--no-pack); staged to dist/nw/', 'info');
-      } else {
-        // Create 7z archive for NW.js from temp directory
-        const nwZipName = `padmaniacs-v${this.packageInfo.version}-nwjs-win-x64.zip`;
-        const nwZipPath = path.join('../../', nwZipName);
-        if (this.createZipArchive(tempNwDir, nwZipPath)) {
-          this.log('NW.js platform build complete', 'success');
-        } else {
-          this.log('NW.js platform build failed - 7z command unavailable', 'warning');
-        }
-      }
-      
-      // Clean up temp directory
-      fs.rmSync(path.join(this.config.distDir, 'temp'), { recursive: true });
-    } else {
-      this.log('NW.js static files not found at: ' + nwStatic, 'warning');
+  async buildNWJS(targetId = null) {
+    const targets = targetId ? [this.getNwjsTarget(targetId)].filter(Boolean) : this.getNwjsTargets();
+    if (!targets.length) {
+      this.log(`No NW.js targets configured${targetId ? ` for id "${targetId}"` : ''}`, 'warning');
+      return;
     }
+
+    for (const target of targets) {
+      await this.buildNWJSTarget(target);
+    }
+  }
+
+  async buildNWJSTarget(target) {
+    this.log(`Building NW.js target: ${target.name} (${target.id})...`, 'info');
+
+    const nwStatic = path.join(this.config.srcDir, 'static', target.dir);
+    if (!fs.existsSync(nwStatic)) {
+      this.log(`NW.js static files not found for ${target.id} at: ${nwStatic}`, 'warning');
+      return;
+    }
+
+    const tempNwDir = path.join(this.config.distDir, 'temp', 'nw', target.id);
+    this.ensureDir(tempNwDir);
+
+    this.copyDir(nwStatic, tempNwDir, [".placeholder"]);
+
+    const packageJsonPath = path.join(tempNwDir, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      try {
+        const packageContent = fs.readFileSync(packageJsonPath, 'utf8');
+        const updatedContent = packageContent.replace(/"version"\s*:\s*"[^"]*"/, `"version": "${this.packageInfo.version}"`);
+        fs.writeFileSync(packageJsonPath, updatedContent);
+        this.log(`Set NW.js package.json version for ${target.id}: ${this.packageInfo.version}`, 'success');
+      } catch (error) {
+        this.log(`Failed to set NW.js package.json version for ${target.id}`, 'warning');
+        console.error(error);
+      }
+    }
+
+    const jsDest = path.join(tempNwDir, 'www/js');
+    this.ensureDir(jsDest);
+    const nwjsGameJS = await this.concatenateFiles('nwjs');
+    fs.writeFileSync(path.join(jsDest, 'game.js'), nwjsGameJS);
+
+    this.copyDir(this.config.distDir, path.join(tempNwDir, 'www'), ['www.zip', 'padmaniacs-*.zip', '*.apk', '*.apk.idsig', 'temp', 'cordova', 'js']);
+
+    if (this.config.flags.noPack) {
+      const explodedDir = path.join(this.config.distDir, 'nw', target.id);
+      this.copyDir(tempNwDir, explodedDir);
+      this.log(`Skipping NW.js packaging for ${target.id} (--no-pack); staged to dist/nw/${target.id}/`, 'info');
+    } else {
+      const nwZipName = `padmaniacs-v${this.packageInfo.version}-${target.packageSuffix || target.id}.zip`;
+      const nwZipPath = path.join('../../', nwZipName);
+      if (this.createZipArchive(tempNwDir, nwZipPath)) {
+        this.log(`NW.js target build complete: ${target.name}`, 'success');
+      } else {
+        this.log(`NW.js target build failed for ${target.id} - zip command unavailable`, 'warning');
+      }
+    }
+
+    fs.rmSync(path.join(this.config.distDir, 'temp', 'nw', target.id), { recursive: true, force: true });
+    try { fs.rmdirSync(path.join(this.config.distDir, 'temp', 'nw')); } catch (e) {}
+    try { fs.rmdirSync(path.join(this.config.distDir, 'temp')); } catch (e) {}
   }
   
   async buildAndroid() {
@@ -1010,30 +1048,44 @@ class BuildSystem {
   
   async buildForPlatform() {
     const platform = this.config.flags.platform;
-    
+    const nw = this.parseNwjsPlatform(platform);
+
     if (platform === 'all') {
-      // Build base files first
       await this.buildBaseFiles('web');
-      
-      // Then build each platform with their specific environment
       await this.buildAndroid();
       await this.buildNWJS();
       await this.buildWeb();
-    } else if (platform === 'web') {
+      return;
+    }
+    if (platform === 'web') {
       await this.buildBaseFiles('web');
       await this.buildWeb();
-    } else if (platform === 'nwjs') {
+      return;
+    }
+    if (nw) {
+      if (!nw.all && !nw.target) {
+        this.log(`Unknown NW.js target: ${nw.id}`, 'error');
+        process.exit(1);
+      }
       await this.buildBaseFiles('nwjs');
-      await this.buildNWJS();
+      await this.buildNWJS(nw.all ? null : nw.target.id);
       await this.finalizeWebDist('nwjs');
-    } else if (platform === 'cordova') {
+      return;
+    }
+    if (platform === 'cordova') {
       await this.buildBaseFiles('cordova');
       await this.buildAndroid();
       await this.finalizeWebDist('cordova');
-    } else if (platform === 'none') {
+      return;
+    }
+    if (platform === 'none') {
       await this.buildBaseFiles('none');
       this.log('Development build complete', 'success');
+      return;
     }
+
+    this.log(`Unknown platform: ${platform}`, 'error');
+    process.exit(1);
   }
   
   async finalizeWebDist(platform) {

@@ -35,5 +35,16 @@ src/static/nw/*
 !src/static/nw/www/
 !src/static/nw/www/**
 !src/static/nw/padmaniacs.exe
+
+# NW.js ia32: ignore everything, then re-include only what we need
+src/static/nw_ia32/*
+!src/static/nw_ia32/.gitkeep
+!src/static/nw_ia32/credits.html
+!src/static/nw_ia32/package.json
+!src/static/nw_ia32/locales/
+!src/static/nw_ia32/locales/**
+!src/static/nw_ia32/www/
+!src/static/nw_ia32/www/**
+!src/static/nw_ia32/padmaniacs.exe
 o.txt
 u.txt

@@ -130,23 +130,25 @@ PadManiacs is the work of RETORA and is developed in the open. Bug reports, fixe
    cd PadManiacs
    ```
 
-2. **Download NW.js v0.88.0**
+2. **Download NW.js binaries (desktop builds)**
 
-   NW.js binaries are not committed to the repository (see the NW.js section below). Download the Windows x64 build and extract it into `src/static/nw/` **without replacing existing files**:
+   NW.js binaries are not committed to the repository (see the NW.js section below). Desktop NW.js releases are configurable in `build.js` via the `nwjsTargets` array (each target has `id`, `dir`, `name`, `packageSuffix`). For each target you want to build, download the matching NW.js v0.88.0 distribution and extract it into `src/static/<target.dir>/` **without replacing existing tracked files**.
 
-   - Download: [nwjs-v0.88.0-win-x64.zip](https://dl.nwjs.io/v0.88.0/nwjs-v0.88.0-win-x64.zip)
+   Default configured targets:
+   - `win-x64` → `src/static/nw/` ([nwjs-v0.88.0-win-x64.zip](https://dl.nwjs.io/v0.88.0/nwjs-v0.88.0-win-x64.zip))
+   - `win-ia32` → `src/static/nw_ia32/` ([nwjs-v0.88.0-win-ia32.zip](https://dl.nwjs.io/v0.88.0/nwjs-v0.88.0-win-ia32.zip))
 
-   Then extract it on top of `src/static/nw/`. The archive contains the large binaries (`nw.dll`, `ffmpeg.dll`, `resources.pak`, etc.) that the game needs at runtime, but not the small tracked files (`package.json`, `credits.html`, `padmaniacs.exe`, `locales/`, `www/`), so existing files are preserved automatically. Do not overwrite if your extractor asks to replace any of the tracked files listed in the NW.js section below.
+   Extract the archive on top of the target folder. Keep tracked project files intact (`package.json`, `credits.html`, launcher/icon files as applicable, `locales/`, `www/`). Only the large NW.js runtime binaries should come from the NW.js distribution.
 
 3. **Install the shared Git hooks (optional)**
 
-   The repository ships a set of Git hooks in `.githooks/` that protect files under `src/static/nw/` from being deleted by branch or commit checkouts. Git does not run them automatically for security reasons, so enable them once after cloning:
+   The repository ships Git hooks in `.githooks/` that protect configured NW.js target folders (currently `src/static/nw/` and `src/static/nw_ia32/` if present) from being deleted by branch/commit checkouts. Git does not run them automatically for security reasons, so enable them once after cloning:
 
    ```bash
    git config core.hooksPath .githooks
    ```
 
-   The hooks are optional. They never modify tracked files. They back up `src/static/nw/` to `.nw-backup/` (gitignored) and restore any file a checkout would otherwise delete. Skip this step if you don't plan to touch NW.js builds.
+   The hooks are optional. They never modify tracked files. They back up NW.js target files to `.nw-backup/` (gitignored) and restore any tracked file a checkout would otherwise delete. Skip this step if you don't plan to touch NW.js builds.
 
 4. **Build and run**
 
@@ -156,18 +158,19 @@ PadManiacs is the work of RETORA and is developed in the open. Bug reports, fixe
    npm run interface
    ```
 
-   This launches a terminal menu where you can choose build targets, serve the project, scan for code reminders, and more. Alternatively, use the direct npm scripts:
+   This launches a terminal menu where you can choose build targets, serve the project, scan for code reminders, and more. Alternatively, use the direct npm scripts / CLI flags:
 
    ```bash
    npm run build:web          # Web platform
    npm run build:cordova      # Android APK
-   npm run build:nwjs         # Desktop (NW.js)
+   npm run build:nwjs         # All configured NW.js desktop targets
+   node build.js --nwjs:win-ia32  # One NW.js target (see build.js nwjsTargets)
    npm run build:release      # All platforms, minified
    npm run serve              # Serve dist/ on localhost:3000
    npm run serve:src          # Serve src/ for development
    ```
 
-   Run `npm run help` to see all available options.
+   Run `npm run help` to see all available options. NW.js desktop targets are configured in `build.js` (`nwjsTargets` array: `id`, `dir`, `name`, `packageSuffix`). Add a folder under `src/static/<dir>/` and register it there to enable new desktop releases.
 
 ### Making Changes
 
@@ -179,14 +182,11 @@ PadManiacs is the work of RETORA and is developed in the open. Bug reports, fixe
 
 ### NW.js Binaries Are Not Tracked
 
-The NW.js desktop build depends on several large files that live inside `src/static/nw/`, including `nw.dll`, `ffmpeg.dll`, `libEGL.dll`, `libGLESv2.dll`, `node.dll`, `nw_elf.dll`, `resources.pak`, `nw_100_percent.pak`, `nw_200_percent.pak`, `icudtl.dat`, `v8_context_snapshot.bin`, `d3dcompiler_47.dll`, `vk_swiftshader.dll`, `vulkan-1.dll`, `notification_helper.exe`, and others.
+NW.js desktop builds depend on large runtime files inside configured target folders under `src/static/` (default `src/static/nw/`, `src/static/nw_ia32/`, etc.). These include `nw.dll`, `ffmpeg.dll`, `libEGL.dll`, `libGLESv2.dll`, `node.dll`, `nw_elf.dll`, `resources.pak`, `nw_100_percent.pak`, `nw_200_percent.pak`, `icudtl.dat`, `v8_context_snapshot.bin`, `d3dcompiler_47.dll`, `vk_swiftshader.dll`, `vulkan-1.dll`, `notification_helper.exe`, and others.
 
-These files total well over 300 MB, and several of them are chromium source artifacts rather than something PadManiacs itself builds. Tracking them in Git was not practical for two reasons:
+These files are large chromium runtime artifacts, not PadManiacs source. Tracking them in Git would bloat clones/fetches/checkouts and is outside this project's scope, so **NW.js binaries are deliberately not committed**.
 
-- **Repository size.** Every clone, every fetch, and every branch checkout would carry the full weight of chromium's runtime. This slows down contribution and makes forks painful.
-- **Build workflow.** Vendoring chromium source code and setting up a full chromium build pipeline just to ship the desktop runtime is far beyond the scope of this project. It would turn a small rhythm game into a chromium fork, which is not what PadManiacs is.
-
-Because of that, **NW.js files are deliberately not committed**. Only the small, hand-maintained files are tracked:
+The repository tracks only small, hand-maintained NW.js files. For the default `win-x64` target (`src/static/nw/`) this includes:
 
 - `src/static/nw/credits.html`
 - `src/static/nw/package.json`
@@ -196,23 +196,24 @@ Because of that, **NW.js files are deliberately not committed**. Only the small,
 - `src/static/nw/www/`
 - `src/static/nw/.gitkeep`
 
-Everything else inside `src/static/nw/` is ignored via `.gitignore`.
+Other NW.js target folders may be untracked or only partially tracked depending on the target; check `.gitignore` and the target folder before committing.
 
-If you want to build or run the NW.js target locally:
+To build/run NW.js targets locally:
 
-1. Download NW.js **v0.88.0** for your platform from the official releases page.
-2. Extract the archive into `src/static/nw/` **without replacing existing files**, so the tracked files listed above stay untouched.
+1. Download NW.js **v0.88.0** for the target architecture from the official releases page.
+2. Extract the archive into `src/static/<target.dir>/` **without replacing existing tracked project files**.
 3. Build with:
 
    ```bash
-   npm run build:nwjs
+   npm run build:nwjs          # all configured targets
+   node build.js --nwjs:win-ia32  # one target
    ```
 
-   Or use the interactive interface with `npm run interface` and choose the NW.js target.
+   Or use `npm run interface` and choose NW.js Desktop.
 
-**Do not commit the NW.js binaries.** If you accidentally stage them, unstage them with `git restore --staged src/static/nw/` and confirm `.gitignore` is intact. Pull requests that add chromium or NW.js artifacts will not be merged.
+**Do not commit NW.js binaries.** If you accidentally stage them, unstage with `git restore --staged src/static/nw src/static/nw_ia32` (or the relevant target) and confirm `.gitignore` is intact. Pull requests that add chromium/NW.js runtime artifacts will not be merged.
 
-The shared hooks in `.githooks/` will automatically restore any `src/static/nw/` files that a checkout would otherwise delete, and they keep a rolling backup in `.nw-backup/` (which is gitignored). This is how the repository stays usable across branches and old commits without committing the large binaries.
+The shared hooks in `.githooks/` currently protect/backup `src/static/nw/` and `src/static/nw_ia32/` and keep a rolling backup in `.nw-backup/` (gitignored). If you add more NW.js targets in `build.js`, add those directories to the hook lists too.
 
 ### Rules
 
